@@ -1,60 +1,65 @@
-import openai
-
-from typing import Dict, List
-
-# Set up the OpenAI API client
-openai.api_key = "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"
-
-# Set up the model and prompt
-model_engine = "gpt-3.5-turbo"
-
-# Conversation = List[Dict[str, str]]
+from conversation import Conversation
 
 
-class Conversation(list):
-    def append_message(self, role:str, message:str):
-        self.append({'role': role, 'content':message})
-
-    def get_response(self,
-                     should_print: bool = True,
-                     should_append: bool = True) -> str:
-        response = openai.ChatCompletion.create(
-            model=model_engine,
-            messages=self,
-        )
-        response_message = response['choices'][0]['message']['content']
-        if should_append:
-            self.append_message('assistant', response_message)
-        if should_print:
-            print('\n' + response_message + '\n')
-        return response_message
-
+def run_custom_code(code: str):
+    try:
+        exec(code)
+    except:
+        ''
 
 conversation = Conversation()
 conversation.append_message('system', 'You are a helpful scientist.')
 
 data_description = """
-a dataframe (patient_records) containing electronic health records. 
-Each line indicates a diagnostic event where a given patient was diagnosed with a specific medical diagnostic, 
-indicated as an ICD10 code. 
-The dataframe has 4 columns: Patient ID (id), Gender (gender), Date (date), Diagnostic ICD10 code (ICD10). 
-There are about 1 million lines. 
+(1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient. 
+Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical diagnostic. 
+
+The file has 4 columns: 
+#1 row ID (row_id)
+#2 Subject ID (subject_id)
+#3 Hospital admission ID (hadm_id)
+#4 a sequential number of the diagnostic for each subject (seq_num)
+#5 The diagnostic ICD9 code (icd9_code)
+
+Here for example is the head of the file:
+```  
+row_id,subject_id,hadm_id,seq_num,icd9_code
+112344,10006,142345,1,99591
+112345,10006,142345,2,99662
+112346,10006,142345,3,5672
+```
+
+(2) PATIENTS.csv: a text file containing patient demographics. 
+Each line indicates a patient. 
+
+The file has 7 columns, the important ones for us are the second third columns that provide the patient id (patient_id)
+and the gender.
+
+Here for example is the head of the file:
+```
+row_id,subject_id,gender,dob,dod,dod_hosp,dod_ssn,expire_flag
+9467,10006,F,2094-03-05 00:00:00,2165-08-12 00:00:00,2165-08-12 00:00:00,2165-08-12 00:00:00,1
+9472,10011,F,2090-06-05 00:00:00,2126-08-28 00:00:00,2126-08-28 00:00:00,,1
+9474,10013,F,2038-09-03 00:00:00,2125-10-07 00:00:00,2125-10-07 00:00:00,2125-10-07 00:00:00,1
+```
 """
 
 goal_description = """
-I am interested identifying diagnostic codes that have different "clinical meaning" for males vs females. 
-Namely, diagnostic codes that are used at different clinical context in men versus women. 
-For example, a code X is gender-context-dependent if it is typically found in proximity to code Y in female but near a different code Z in males. 
-Note that code X can be gender-context-dependent, despite being used in similar frequencies in males and in females. 
+I am interested identifying diagnostic codes that have different "clinical meaning" for males vs females.  
+In particular, I would like to find codes that have gender-dependent context (GDC codes), namely diagnostic codes that 
+are used in different clinical context in men versus women. 
+For example, a code X is a GDC code if it tends to appear in proximity to code Y in female and in proximity to a different code Z in males. 
+Note that a code can be GDC, despite being used in similar frequencies in males and in females. 
 """
 
-conversation.append_message('user', 'We have the following data:\n\n' + data_description)
-conversation.append_message('user', 'Our goal is:\n\n' + goal_description)
+conversation.append_message('user', 'We have the following data files:\n\n' + data_description)
+conversation.append_message('user', goal_description)
 conversation.append_message('user', 'Suggest a data analysis plan to achieve the specified goal.')
 
 conversation.get_response()
 
 conversation.append_message('user', 'Write a Python code to perform the analysis you suggested.\n'
-                                    'The output should be a text file named `results.txt`.')
+                                    'The output of the code should be a text file named `results.txt`.')
 
 conversation.get_response()
+
