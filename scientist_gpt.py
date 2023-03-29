@@ -42,20 +42,19 @@ There are about 1 million lines.
 """
 
 goal_description = """
-I am interested to see if certain diagnostic codes have different "clinical meaning" for males vs females. 
-
-Can you suggest an analysis that will identify gender-context-dependent diagnostic codes, namely codes that are used at different clinical context in men versus women? 
-
-For example, a code X is gender-context-dependent if it is typically found in proximity to code Y in female and to a different code Z in males. 
-
-Note that code X can be gender-context-dependent, despite being used in similar frequency in males and in females. 
+I am interested identifying diagnostic codes that have different "clinical meaning" for males vs females. 
+Namely, diagnostic codes that are used at different clinical context in men versus women. 
+For example, a code X is gender-context-dependent if it is typically found in proximity to code Y in female but near a different code Z in males. 
+Note that code X can be gender-context-dependent, despite being used in similar frequencies in males and in females. 
 """
 
-conversation.append_message('user', data_description)
-conversation.append_message('user', goal_description)
+conversation.append_message('user', 'We have the following data:\n\n' + data_description)
+conversation.append_message('user', 'Our goal is:\n\n' + goal_description)
+conversation.append_message('user', 'Suggest a data analysis plan to achieve the specified goal.')
 
 conversation.get_response()
 
-conversation.append_message('user', 'Write a Python code to perform the analysis you suggested')
+conversation.append_message('user', 'Write a Python code to perform the analysis you suggested.\n'
+                                    'The output should be a text file named `results.txt`.')
 
 conversation.get_response()
