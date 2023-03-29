@@ -1,15 +1,3 @@
-from conversation import Conversation
-
-
-def run_custom_code(code: str):
-    try:
-        exec(code)
-    except:
-        ''
-
-conversation = Conversation()
-conversation.append_message('system', 'You are a helpful scientist.')
-
 data_description = """
 (1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient. 
 Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical diagnostic. 
@@ -48,18 +36,7 @@ goal_description = """
 I am interested identifying diagnostic codes that have different "clinical meaning" for males vs females.  
 In particular, I would like to find codes that have gender-dependent context (GDC codes), namely diagnostic codes that 
 are used in different clinical context in men versus women. 
-For example, a code X is a GDC code if it tends to appear in proximity to code Y in female and in proximity to a different code Z in males. 
+For example, a code X is a GDC code if it tends to appear in proximity to code Y in female and in proximity
+ to a different code Z in males. 
 Note that a code can be GDC, despite being used in similar frequencies in males and in females. 
 """
-
-conversation.append_message('user', 'We have the following data files:\n\n' + data_description)
-conversation.append_message('user', goal_description)
-conversation.append_message('user', 'Suggest a data analysis plan to achieve the specified goal.')
-
-conversation.get_response()
-
-conversation.append_message('user', 'Write a Python code to perform the analysis you suggested.\n'
-                                    'The output of the code should be a text file named `results.txt`.')
-
-conversation.get_response()
-
