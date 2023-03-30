@@ -1,39 +1,20 @@
 import re
 import os
-from dataclasses import dataclass
 from typing import Optional
 
-CODE_REGEXP = r"```python(.*?)```"
+from scientistgtp.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
+
+CODE_REGEXP = f"```python\n(.*?)\n```"
 
 
-class RunCoodeException(Exception):
-    pass
-
-
-@dataclass
-class FailedExtractingCode(RunCoodeException):
-    number_of_codes: int
-
-    def __str__(self):
-        if self.number_of_codes == 0:
-            return "No code was found."
-        return "More than one code snippet was found."
-
-
-@dataclass
-class FailedRunningCode(RunCoodeException):
-    exception: Exception
-
-    def __str__(self):
-        return f"Running the code resulted in the following exception:\n{self.exception}\n"
-
-
-class FailedLoadingOutput(RunCoodeException, FileNotFoundError):
-    def __str__(self):
-        return "Output file not found."
-
-
-class RunCode:
+class CodeRunner:
+    """
+    CodeRunner facilitates running code from chatGPT response:
+    1. Extract code from GPT response.
+    2. Run code
+    3. Read file created by the run.
+    """
+    
     def __init__(self, response: str, output_file: Optional[str]):
         self.response = response
         self.output_file = output_file
