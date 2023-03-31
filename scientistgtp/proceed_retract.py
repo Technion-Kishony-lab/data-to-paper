@@ -1,7 +1,8 @@
 import copy
-from typing import List, NamedTuple, Dict, Type, Union, Tuple
+from typing import List, NamedTuple, Dict, Type, Union, Tuple, Any
 
 from .exceptions import FailedRunningStep
+import colorama
 
 
 class FuncAndRetractions(NamedTuple):
@@ -28,6 +29,8 @@ class FuncAndRetractions(NamedTuple):
 
 RunPlan = List[FuncAndRetractions]
 
+State = Dict[str, Any]
+
 
 class ProceedRetract:
     """
@@ -53,43 +56,56 @@ class ProceedRetract:
 
     STATE_ATTRS: List[str] = []
 
-    def __init__(self,
-                 execution_plan: RunPlan = None,
-                 saved_states: List[Dict] = None,
-                 current_step: int = -1):
+    def __init__(self, execution_plan: RunPlan = None):
+        self.saved_states_by_name: Dict[str: State] = {}
         self.execution_plan = execution_plan or []
-        self.saved_states = saved_states or []
-        self.current_step = current_step
-        self.num_failures = [0] * self.num_steps  # the number of time each step failed since last success.
+        self.saved_states_by_step: List[State] = []
+        self.current_step: int = -1
+        self.num_failures: List[int] = [0] * self.num_steps  # the number of time each step failed since last success.
 
     @property
     def num_steps(self):
         return len(self.execution_plan)
 
     def initialize(self):
-        self.saved_states = []
+        self.saved_states_by_step = []
         self.current_step = 0
-        self.save_current_state()
+        self.save_current_state_by_step()
 
     def get_copy_of_current_state(self):
         return {attr: copy.deepcopy(getattr(self, attr)) for attr in self.STATE_ATTRS}
 
-    def save_current_state(self):
-        assert len(self.saved_states) == self.current_step
-        self.saved_states.append(self.get_copy_of_current_state())
+    def save_current_state_by_step(self):
+        assert len(self.saved_states_by_step) == self.current_step
+        self.saved_states_by_step.append(self.get_copy_of_current_state())
 
-    def go_to_step(self, step: int):
-        self.saved_states = self.saved_states[: step + 1]
-        last_state = self.saved_states[-1]
-        for attr, value in last_state.items():
+    def save_current_state_by_name(self, name):
+        self.saved_states_by_name[name] = self.get_copy_of_current_state()
+
+    def reset_state_to(self, step_or_name: Union[int, str]):
+        if isinstance(step_or_name, int):
+            self.saved_states_by_step = self.saved_states_by_step[: step_or_name + 1]
+            new_state = self.saved_states_by_step[step_or_name]
+            self.current_step = step_or_name
+        else:
+            new_state = self.saved_states_by_name[step_or_name]
+
+        for attr, value in new_state.items():
             setattr(self, attr, copy.deepcopy(value))
-        self.current_step = step
 
     def run_all(self, annotate: bool = False):
         while self.current_step < self.num_steps:
             self.run_next_step(annotate)
 
     def run_next_step(self, annotate: bool = False):
+        """
+        Run the next step in the execution plan.
+
+        If step fails, repeat or go back based on the retractions_on_failure of the executed step in the
+        execution_plan.
+
+        :param annotate: whether to print text messages indicating progress and retractions
+        """
         step = self.current_step
         if step == -1:
             self.initialize()
@@ -99,25 +115,27 @@ class ProceedRetract:
         try:
             func = getattr(self, func_and_retractions.func_name)
             if annotate:
-                print(f'Running {func_and_retractions.func_name} ...')
+                print(colorama.Fore.RED + f'Running {func_and_retractions.func_name} ...' + colorama.Style.RESET_ALL)
             func()
         except func_and_retractions.exception as e:
             num_backward_steps = func_and_retractions.retractions_on_failure[self.num_failures[step]]
             if annotate:
-                print(f'Failed with: {e}')
+                print(e)
                 if num_backward_steps == 0:
                     print('Retrying.')
                 elif num_backward_steps == 1:
-                    print('Retracting to prior step.')
+                    print('Retracting one step backwards.')
                 else:
-                    print(f'Retracting {num_backward_steps} backwards.')
-            self.go_to_step(step - num_backward_steps)
+                    print(f'Retracting {num_backward_steps} steps backwards.')
+                print()
+            self.reset_state_to(step - num_backward_steps)
             self.num_failures[step] += 1
             if self.num_failures[step] > len(func_and_retractions.retractions_on_failure):
-                raise FailedRunningStep(step=step, func=func_and_retractions.func_name)
+                raise FailedRunningStep(step=step, func_name=func_and_retractions.func_name)
         except Exception:
             raise
         else:
+            # Step was successful
             self.num_failures[step] = 0
             self.current_step += 1
-            self.save_current_state()
+            self.save_current_state_by_step()
