@@ -49,3 +49,8 @@ class FailedRunningStep(ScientistGTPException):
 
     def __str__(self):
         return f"Failed running {self.func_name} (step {self.step})"
+
+
+class DebuggingFailedException(ScientistGTPException):
+    def __str__(self):
+        return f"Failed debugging gtp code."

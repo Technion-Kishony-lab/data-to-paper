@@ -1,7 +1,8 @@
 import colorama
 
 from scientistgtp.code_runner import CodeRunner
-from scientistgtp.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput
+from scientistgtp.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+    DebuggingFailedException
 from scientistgtp.env import SUPPORTED_PACKAGES
 from scientistgtp.utils import format_str
 
@@ -96,3 +97,4 @@ class DebuggerGPT(ConverserGPT):
                 else:
                     # The code ran just fine.
                     return result
+        raise DebuggingFailedException()
