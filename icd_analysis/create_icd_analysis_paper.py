@@ -6,4 +6,4 @@ runner = ScientistGTP(run_plan=ANALYSIS_PLAN,
                       data_description=data_description,
                       goal_description=goal_description)
 
-runner.run_all()
+runner.run_all(annotate=True)
