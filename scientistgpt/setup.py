@@ -5,7 +5,7 @@ setup_directory = Path(__file__).parent
 long_description = (setup_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
-    description='A chatgtp based scientist allowing automatic analysis and paper writing',
+    description='A chatgpt based scientist allowing automatic analysis and paper writing',
     author="Kishony lab, Technion Israel Institute of Technology",
     author_email="rkishony@technion.ac.il",
     url="https://github.com/Technion-Kishony-lab/data2paper",

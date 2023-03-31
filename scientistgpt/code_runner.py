@@ -2,7 +2,7 @@ import re
 import os
 from typing import Optional
 
-from scientistgtp.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
+from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
 
 CODE_REGEXP = "```python\n(.*?)\n```"
 

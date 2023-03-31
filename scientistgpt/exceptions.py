@@ -4,13 +4,13 @@ from dataclasses import dataclass
 from typing import Callable
 
 
-class ScientistGTPException(Exception, metaclass=ABCMeta):
+class ScientistGPTException(Exception, metaclass=ABCMeta):
     @abstractmethod
     def __str__(self):
         pass
 
 
-class RunCodeException(ScientistGTPException, metaclass=ABCMeta):
+class RunCodeException(ScientistGPTException, metaclass=ABCMeta):
     pass
 
 
@@ -37,13 +37,13 @@ class FailedLoadingOutput(RunCodeException, FileNotFoundError):
         return "Output file not found."
 
 
-class UserRejectException(ScientistGTPException):
+class UserRejectException(ScientistGPTException):
     def __str__(self):
         return "Output was disapproved by user."
 
 
 @dataclass
-class FailedRunningStep(ScientistGTPException):
+class FailedRunningStep(ScientistGPTException):
     step: int
     func_name: str
 
@@ -51,6 +51,6 @@ class FailedRunningStep(ScientistGTPException):
         return f"Failed running {self.func_name} (step {self.step})"
 
 
-class DebuggingFailedException(ScientistGTPException):
+class DebuggingFailedException(ScientistGPTException):
     def __str__(self):
-        return f"Failed debugging gtp code."
+        return f"Failed debugging chatgpt code."

@@ -1,7 +1,7 @@
 from typing import Optional, List
 
-from scientistgtp.conversation import Conversation, Role
-from scientistgtp.proceed_retract import ProceedRetract, FuncAndRetractions
+from scientistgpt.conversation import Conversation, Role
+from scientistgpt.proceed_retract import ProceedRetract, FuncAndRetractions
 
 
 class ConverserGPT(ProceedRetract):
