@@ -6,8 +6,6 @@ from .code_runner import CodeRunner
 from .proceed_retract import ProceedRetract, FuncAndRetractions, RunPlan
 from .exceptions import RunCodeException
 
-OUTPUT_FILENAME = 'results.txt'
-
 
 def format_str(s: str):
     """
@@ -18,6 +16,7 @@ def format_str(s: str):
 
 class ScientistGTP(ProceedRetract):
     STATE_ATTRS: List[str] = ['conversation']
+    OUTPUT_FILENAME = 'results.txt'
 
     def __init__(self,
                  run_plan: List[FuncAndRetractions] = None,
@@ -61,15 +60,15 @@ class ScientistGTP(ProceedRetract):
 
     def request_analysis_code(self):
         prompt = format_str(f"""
-            Write a complete Python code to perform the analysis you suggested.'
-            The output of the code should be a text file named `{OUTPUT_FILENAME}`.
+            Write a complete Python code to perform the analysis you suggested.
+            The output of the code should be a text file named `{self.OUTPUT_FILENAME}`.
             """)
         self.conversation.append_user_message(prompt)
         return self.conversation.get_response_from_chatgpt()
 
     def run_analysis_code(self):
         analysis_code_response = self.conversation.get_last_response()
-        result = CodeRunner(response=analysis_code_response, output_file=OUTPUT_FILENAME).run_code()
+        result = CodeRunner(response=analysis_code_response, output_file=self.OUTPUT_FILENAME).run_code()
         prompt = format_str(f"""
             I ran your code. Here are the results:
             {result}
