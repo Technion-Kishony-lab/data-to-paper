@@ -4,7 +4,8 @@ from textwrap import dedent
 from .conversation import Conversation, Role
 from .code_runner import CodeRunner
 from .proceed_retract import ProceedRetract, FuncAndRetractions, RunPlan
-from .exceptions import RunCodeException
+from .exceptions import RunCodeException, FailedRunningCode
+from .env import SUPPORTED_PACKAGES
 
 
 def format_str(s: str):
@@ -66,9 +67,29 @@ class ScientistGTP(ProceedRetract):
         self.conversation.append_user_message(prompt)
         return self.conversation.get_response_from_chatgpt()
 
-    def run_analysis_code(self):
+    def _request_code_again_specifying_allowed_packages(self, missing_package: str):
+        prompt = format_str(f"""
+            I do not have the `{missing_package}` module installed.
+            Please rewrite the code using only {', '.join(SUPPORTED_PACKAGES)}. 
+            """)
+        self.conversation.append_user_message(prompt)
+        return self.conversation.get_response_from_chatgpt()
+
+    def _run_code_from_last_response(self):
         analysis_code_response = self.conversation.get_last_response()
-        result = CodeRunner(response=analysis_code_response, output_file=self.OUTPUT_FILENAME).run_code()
+        return CodeRunner(response=analysis_code_response, output_file=self.OUTPUT_FILENAME).run_code()
+
+    def run_analysis_code(self):
+        try:
+            result = self._run_code_from_last_response()
+        except FailedRunningCode as e:
+            if isinstance(e.exception, ImportError):
+                # chatgpt tried using a package we do not support
+                self._request_code_again_specifying_allowed_packages(e.get_missing_module_if_import_error())
+                result = self._run_code_from_last_response()
+            else:
+                raise
+
         prompt = format_str(f"""
             I ran your code. Here are the results:
             {result}

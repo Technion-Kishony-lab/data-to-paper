@@ -4,7 +4,7 @@ from typing import Optional
 
 from scientistgtp.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
 
-CODE_REGEXP = f"```python\n(.*?)\n```"
+CODE_REGEXP = "```python\n(.*?)\n```"
 
 
 class CodeRunner:

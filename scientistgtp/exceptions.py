@@ -1,3 +1,4 @@
+import re
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass
 from typing import Callable
@@ -29,6 +30,11 @@ class FailedRunningCode(RunCodeException):
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
+
+    def get_missing_module_if_import_error(self):
+        if not isinstance(self.exception, ImportError):
+            return None
+        return re.findall("'(.*?)'", str(self.exception), re.DOTALL)[0]
 
 
 class FailedLoadingOutput(RunCodeException, FileNotFoundError):
