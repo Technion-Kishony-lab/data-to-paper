@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from scientistgtp import Conversation, Role
+from scientistgpt import Conversation, Role
 
 
 @fixture()

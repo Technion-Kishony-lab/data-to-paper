@@ -1,12 +1,12 @@
 import textwrap
 from enum import Enum
-from scientistgtp.env import OPENAI_API_KEY, MODEL_ENGINE
+from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 
 import openai
 import colorama
 
 # Set up the OpenAI API client
-from scientistgtp.utils import wrap_string
+from scientistgpt.utils import wrap_string
 
 openai.api_key = OPENAI_API_KEY
 
@@ -24,7 +24,7 @@ class Role(str, Enum):
 
 class Conversation(list):
     """
-    a list of message exchange between user and chatgtp.
+    a list of message exchange between user and chatgpt.
 
     a Conversation instance allows:
     1. appending user queries.

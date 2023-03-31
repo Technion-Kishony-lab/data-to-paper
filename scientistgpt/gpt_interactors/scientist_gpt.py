@@ -1,16 +1,16 @@
 import copy
 from typing import Optional, List
 
-from scientistgtp.proceed_retract import FuncAndRetractions, RunPlan
-from scientistgtp.exceptions import RunCodeException, DebuggingFailedException
-from scientistgtp.conversation import Conversation
-from scientistgtp.utils import format_str
+from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
+from scientistgpt.exceptions import RunCodeException, DebuggingFailedException
+from scientistgpt.conversation import Conversation
+from scientistgpt.utils import format_str
 
 from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT
 
 
-class ScientistGTP(ConverserGPT):
+class ScientistGPT(ConverserGPT):
     def __init__(self,
                  run_plan: List[FuncAndRetractions] = None,
                  conversation: Optional[Conversation] = None,
@@ -73,7 +73,7 @@ class ScientistGTP(ConverserGPT):
 
 
 
-ScientistGTP_ANALYSIS_PLAN: RunPlan = [
+ScientistGPT_ANALYSIS_PLAN: RunPlan = [
     FuncAndRetractions('initialize_conversation', (), []),
     FuncAndRetractions('add_data_description', (), []),
     FuncAndRetractions('add_goal_description', (), []),

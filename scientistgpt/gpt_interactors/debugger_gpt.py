@@ -1,10 +1,10 @@
 import colorama
 
-from scientistgtp.code_runner import CodeRunner
-from scientistgtp.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+from scientistgpt.code_runner import CodeRunner
+from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     DebuggingFailedException
-from scientistgtp.env import SUPPORTED_PACKAGES
-from scientistgtp.utils import format_str
+from scientistgpt.env import SUPPORTED_PACKAGES
+from scientistgpt.utils import format_str
 
 from .converser_gpt import ConverserGPT
 
