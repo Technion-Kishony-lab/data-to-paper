@@ -56,6 +56,13 @@ class DebuggerGPT(ConverserGPT):
             """)
         self.conversation.append_user_message(prompt)
 
+    def _specify_timeout(self):
+        prompt = format_str(f"""
+            I ran the code, but it just ran forever...
+            Please fix and rewrite the complete code again so that it doesn't get stuck. 
+            """)
+        self.conversation.append_user_message(prompt)
+
     def debug_and_run_code(self):
         """
         Interact with chatgpt until getting a functional code that can run locally and produce desired output file.
@@ -85,6 +92,9 @@ class DebuggerGPT(ConverserGPT):
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support
                         self._specify_allowed_packages(str(e.exception))
+                    elif isinstance(e.exception, TimeoutError):
+                        # code took too long to run
+                        self._specify_timeout()
                     else:
                         # the code failed on other errors.
                         # indicate error message to chatgpt.

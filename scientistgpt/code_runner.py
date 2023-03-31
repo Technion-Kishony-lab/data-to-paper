@@ -2,9 +2,20 @@ import re
 import os
 from typing import Optional
 
+from scientistgpt.decorators import timeout
 from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
 
 CODE_REGEXP = "```python\n(.*?)\n```"
+MAX_EXEC_TIME = 10  # seconds
+
+
+@timeout(MAX_EXEC_TIME)
+def run_code(code: str):
+    """
+    Run the provided code and terminate if runtime is too long.
+    Raises a TimeoutError exception.
+    """
+    exec(code)
 
 
 class CodeRunner:
@@ -45,7 +56,7 @@ class CodeRunner:
         code = self.extract_code()
         self.delete_output_file()
         try:
-            exec(code)
+            run_code(code)
         except Exception as e:
             raise FailedRunningCode(e)
         return self.read_output_file()

@@ -36,6 +36,7 @@ class Conversation(list):
         if not should_print:
             return
         color = ASSISTANT_COLOR if role is Role.ASSISTANT else USER_COLOR
+        print()
         print(color + '----- ' + role.name + ' ' + '-' * (TEXT_WIDTH - len(role.name) - 7))
         message = wrap_string(message, width=TEXT_WIDTH)
         print(message, colorama.Style.RESET_ALL)
