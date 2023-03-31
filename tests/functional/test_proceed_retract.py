@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 
 from scientistgtp.proceed_retract import ProceedRetract, FuncAndRetractions
 
@@ -12,12 +12,10 @@ class CounterProceedRetract(ProceedRetract):
 
     def __init__(self,
                  execution_plan: List[FuncAndRetractions] = None,
-                 saved_states: List[Dict] = None,
-                 current_step: int = -1,
                  data: List[int] = None,
                  should_fail: List[List[int]] = None):
 
-        super().__init__(execution_plan, saved_states, current_step)
+        super().__init__(execution_plan)
         self.data = data
         self.should_fail = should_fail
         self.step_ran = []

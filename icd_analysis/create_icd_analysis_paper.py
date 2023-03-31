@@ -1,8 +1,8 @@
 from queries import data_description, goal_description
 
-from scientistgtp import ScientistGTP, ANALYSIS_PLAN
+from scientistgtp import ScientistGTP, ScientistGTP_ANALYSIS_PLAN
 
-runner = ScientistGTP(run_plan=ANALYSIS_PLAN,
+runner = ScientistGTP(run_plan=ScientistGTP_ANALYSIS_PLAN,
                       data_description=data_description,
                       goal_description=goal_description)
 

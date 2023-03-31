@@ -1,3 +1,4 @@
+import textwrap
 from enum import Enum
 from scientistgtp.env import OPENAI_API_KEY, MODEL_ENGINE
 
@@ -5,13 +6,15 @@ import openai
 import colorama
 
 # Set up the OpenAI API client
+from scientistgtp.utils import wrap_string
+
 openai.api_key = OPENAI_API_KEY
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
 USER_COLOR = colorama.Fore.GREEN
 ASSISTANT_COLOR = colorama.Fore.CYAN
-
+TEXT_WIDTH = 120
 
 class Role(str, Enum):
     SYSTEM = 'system'
@@ -33,8 +36,9 @@ class Conversation(list):
         if not should_print:
             return
         color = ASSISTANT_COLOR if role is Role.ASSISTANT else USER_COLOR
-        print(color + '----- ' + role.name + ' ' + '-' * (80 - len(role.name)))
-        print(message + '\n', colorama.Style.RESET_ALL)
+        print(color + '----- ' + role.name + ' ' + '-' * (TEXT_WIDTH - len(role.name) - 7))
+        message = wrap_string(message, width=TEXT_WIDTH)
+        print(message, colorama.Style.RESET_ALL)
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
         self.append({'role': role, 'content': message})
