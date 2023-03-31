@@ -1,10 +1,16 @@
 from enum import Enum
-from .env import OPENAI_API_KEY, MODEL_ENGINE
+from scientistgtp.env import OPENAI_API_KEY, MODEL_ENGINE
 
 import openai
+import colorama
 
 # Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY
+
+# noinspection PyUnresolvedReferences
+colorama.just_fix_windows_console()
+USER_COLOR = colorama.Fore.GREEN
+ASSISTANT_COLOR = colorama.Fore.CYAN
 
 
 class Role(str, Enum):
@@ -24,9 +30,11 @@ class Conversation(list):
 
     @staticmethod
     def print_message(role: Role, message: str, should_print: bool = True):
-        if should_print:
-            print('----------------- ', role.value)
-            print('\n' + message + '\n')
+        if not should_print:
+            return
+        color = ASSISTANT_COLOR if role is Role.ASSISTANT else USER_COLOR
+        print(color + '----- ' + role.name + ' ' + '-' * (40 - len(role.name)))
+        print('\n' + message + '\n', colorama.Style.RESET_ALL)
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
         self.append({'role': role, 'content': message})
