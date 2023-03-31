@@ -6,7 +6,9 @@ from typing import Optional
 from scientistgpt.decorators import timeout
 from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
 
-CODE_REGEXPS = ["```python\n(.*?)\n```", "```\n(.*?)\n```"]
+# different code formats that we have been observed in chatgpt responses:
+CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
+
 MAX_EXEC_TIME = 10  # seconds
 
 
