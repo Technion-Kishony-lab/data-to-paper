@@ -22,23 +22,21 @@ class ScientistGPT(ConverserGPT):
         self.goal_description = goal_description
 
     def add_data_description(self):
-        prompt = format_str(f"""
+        prompt = format_str("""
             We have the following data files:
 
-            {self.data_description}
-            """)
+            {}
+            """).format(self.data_description)
         self.conversation.append_user_message(prompt)
         self.conversation.append_assistant_message('ok')
 
     def add_goal_description(self):
-        prompt = format_str(f"""
-            {self.goal_description}
-            """)
+        prompt = self.goal_description
         self.conversation.append_user_message(prompt)
         self.conversation.append_assistant_message('ok')
 
     def request_analysis_plan(self):
-        prompt = format_str(f"""
+        prompt = format_str("""
             Suggest a data analysis plan to achieve the specified goal.
             """)
         self.conversation.append_user_message(prompt)
@@ -56,21 +54,20 @@ class ScientistGPT(ConverserGPT):
         result = debugger.debug_and_run_code()
         self.conversation = debugger.conversation
 
-        prompt = format_str(f"""
-            I ran your code. Here is the content of the output file ({self.OUTPUT_FILENAME}):
+        prompt = format_str("""
+            I ran your code. Here is the content of the output file ({}):
             ```
-            {result}
+            {}
             ```
             
             Do these results make sense, or do you suspect any problems, bugs or artifacts in the analysis code?
             
             If you suspect a problem, please provide a new full compete code which correctly resolves the problem.
-            """)
+            """).format(self.OUTPUT_FILENAME, result)
         self.conversation.append_user_message(prompt)
 
     def get_gpt_response_to_analysis(self):
         return self.conversation.get_response_from_chatgpt()
-
 
 
 ScientistGPT_ANALYSIS_PLAN: RunPlan = [

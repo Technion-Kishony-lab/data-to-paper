@@ -1,7 +1,7 @@
 import re
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, List
 
 
 class ScientistGPTException(Exception, metaclass=ABCMeta):
@@ -27,9 +27,24 @@ class FailedExtractingCode(RunCodeException):
 @dataclass
 class FailedRunningCode(RunCodeException):
     exception: Exception
+    tb: List
+    code: str
+    fake_file_name = "my_analysis.py"
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
+
+    def get_traceback_message(self):
+        """
+        returns a fake traceback message, simulating as if the code ran in a real file.
+        the line causing the exception is extracted from the ran `code`.
+        """
+        filenames = [t[0] for t in self.tb]
+        index = filenames.index('<string>')
+        filename, lineno, funcname, text = self.tb[index]
+        return f'  File "{self.fake_file_name}", line {lineno}, in <module>"\n' + \
+               f'    {self.code.splitlines()[lineno - 1]}\n' + \
+               f'{type(self.exception).__name__}: {self.exception}'
 
 
 class FailedLoadingOutput(RunCodeException, FileNotFoundError):
