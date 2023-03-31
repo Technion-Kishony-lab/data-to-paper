@@ -85,11 +85,11 @@ class ProceedRetract:
             setattr(self, attr, copy.deepcopy(value))
         self.current_step = step
 
-    def run_all(self):
+    def run_all(self, annotate: bool = False):
         while self.current_step < self.num_steps:
-            self.run_next_step()
+            self.run_next_step(annotate)
 
-    def run_next_step(self):
+    def run_next_step(self, annotate: bool = False):
         step = self.current_step
         if step == -1:
             self.initialize()
@@ -98,9 +98,19 @@ class ProceedRetract:
         func_and_retractions = self.execution_plan[step]
         try:
             func = getattr(self, func_and_retractions.func_name)
+            if annotate:
+                print(f'Running {func_and_retractions.func_name} ...')
             func()
-        except func_and_retractions.exception:
+        except func_and_retractions.exception as e:
             num_backward_steps = func_and_retractions.retractions_on_failure[self.num_failures[step]]
+            if annotate:
+                print(f'Failed with: {e}')
+                if num_backward_steps == 0:
+                    print('Retrying.')
+                elif num_backward_steps == 1:
+                    print('Retracting to prior step.')
+                else:
+                    print(f'Retracting {num_backward_steps} backwards.')
             self.go_to_step(step - num_backward_steps)
             self.num_failures[step] += 1
             if self.num_failures[step] > len(func_and_retractions.retractions_on_failure):

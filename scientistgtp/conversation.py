@@ -33,8 +33,8 @@ class Conversation(list):
         if not should_print:
             return
         color = ASSISTANT_COLOR if role is Role.ASSISTANT else USER_COLOR
-        print(color + '----- ' + role.name + ' ' + '-' * (40 - len(role.name)))
-        print('\n' + message + '\n', colorama.Style.RESET_ALL)
+        print(color + '----- ' + role.name + ' ' + '-' * (80 - len(role.name)))
+        print(message + '\n', colorama.Style.RESET_ALL)
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
         self.append({'role': role, 'content': message})
