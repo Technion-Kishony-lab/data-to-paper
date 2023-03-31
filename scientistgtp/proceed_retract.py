@@ -44,7 +44,8 @@ class ProceedRetract:
                        retract 2 steps upon failure of func[2]
 
     STATE_ATTRS:  list of all the attributes that define the data manipulated by the funcs.
-    run_plan:     list of FuncAndRetractions, specifying the order of the functions to run and how many steps backwards
+    execution_plan:
+                  list of FuncAndRetractions, specifying the order of the functions to run and how many steps backwards
                   to retract to upon failure.
     saved_state:  list of dicts containing the state at each successful step.
     current_step: -1 - uninitiated. 0 - after copying the initial step to saved_step. 1 - after running step 0.
@@ -53,17 +54,17 @@ class ProceedRetract:
     STATE_ATTRS: List[str] = []
 
     def __init__(self,
-                 run_plan: RunPlan = None,
+                 execution_plan: RunPlan = None,
                  saved_states: List[Dict] = None,
                  current_step: int = -1):
-        self.run_plan = run_plan or []
+        self.execution_plan = execution_plan or []
         self.saved_states = saved_states or []
         self.current_step = current_step
         self.num_failures = [0] * self.num_steps  # the number of time each step failed since last success.
 
     @property
     def num_steps(self):
-        return len(self.run_plan)
+        return len(self.execution_plan)
 
     def initialize(self):
         self.saved_states = []
@@ -94,7 +95,7 @@ class ProceedRetract:
             self.initialize()
             return
 
-        func_and_retractions = self.run_plan[step]
+        func_and_retractions = self.execution_plan[step]
         try:
             func = getattr(self, func_and_retractions.func_name)
             func()
