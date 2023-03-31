@@ -5,7 +5,7 @@ from typing import Optional
 from scientistgpt.decorators import timeout
 from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
 
-CODE_REGEXP = "```python\n(.*?)\n```"
+CODE_REGEXPS = ["```python\n(.*?)\n```", "```\n(.*?)\n```"]
 MAX_EXEC_TIME = 10  # seconds
 
 
@@ -32,10 +32,11 @@ class CodeRunner:
         self.code = None
 
     def extract_code(self):
-        matches = re.findall(CODE_REGEXP, self.response, re.DOTALL)
-        if len(matches) != 1:
-            raise FailedExtractingCode(len(matches))
-        return matches[0].strip()
+        for regexp in CODE_REGEXPS:
+            matches = re.findall(regexp, self.response, re.DOTALL)
+            if len(matches) == 1:
+                return matches[0].strip()
+        raise FailedExtractingCode(len(matches))
 
     def read_output_file(self):
         if self.output_file is None:
