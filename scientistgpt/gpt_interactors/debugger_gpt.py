@@ -30,34 +30,34 @@ class DebuggerGPT(ConverserGPT):
                           ).run_code()
 
     def _specify_allowed_packages(self, error_message: str):
-        prompt = format_str(f"""
+        prompt = format_str("""
             I ran the code and got the following error message:
-             ```
-             {error_message}
-             ```
-            Please rewrite the code using only {', '.join(SUPPORTED_PACKAGES)}. 
-            """)
+            ```
+            {}
+            ```
+            Please rewrite the code using only these packages: {}. 
+            """).format(error_message, ', '.join(SUPPORTED_PACKAGES))
         self.conversation.append_user_message(prompt)
 
     def _specify_error_message(self, error_message: str):
-        prompt = format_str(f"""
+        prompt = format_str("""
             I ran the code and got the following error message:
-             ```
-             {error_message}
-             ```
+            ```
+            {}
+            ```
             Please rewrite the complete code again with this error corrected. 
-            """)
+            """).format(error_message)
         self.conversation.append_user_message(prompt)
 
     def _specify_missing_output(self):
-        prompt = format_str(f"""
-            I ran the code, but it didn't generate the desired output file ({self.OUTPUT_FILENAME}).
+        prompt = format_str("""
+            I ran the code, but it didn't generate the desired output file ({}).
             Please rewrite the complete code again with this error corrected. 
-            """)
+            """).format(self.OUTPUT_FILENAME)
         self.conversation.append_user_message(prompt)
 
     def _specify_timeout(self):
-        prompt = format_str(f"""
+        prompt = format_str("""
             I ran the code, but it just ran forever...
             Please fix and rewrite the complete code again so that it doesn't get stuck. 
             """)
@@ -98,7 +98,7 @@ class DebuggerGPT(ConverserGPT):
                     else:
                         # the code failed on other errors.
                         # indicate error message to chatgpt.
-                        self._specify_error_message(str(e.exception))
+                        self._specify_error_message(e.get_traceback_message())
                 except FailedLoadingOutput:
                     # Code ran, but the output file was not created.
                     self._specify_missing_output()

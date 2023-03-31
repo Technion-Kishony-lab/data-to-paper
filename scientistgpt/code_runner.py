@@ -1,5 +1,6 @@
 import re
 import os
+import traceback
 from typing import Optional
 
 from scientistgpt.decorators import timeout
@@ -15,7 +16,11 @@ def run_code(code: str):
     Run the provided code and terminate if runtime is too long.
     Raises a TimeoutError exception.
     """
-    exec(code)
+    try:
+        exec(code)
+    except Exception as e:
+        tb = traceback.extract_tb(e.__traceback__)
+        raise FailedRunningCode(exception=e, tb=tb, code=code)
 
 
 class CodeRunner:
@@ -56,8 +61,5 @@ class CodeRunner:
     def run_code(self):
         code = self.extract_code()
         self.delete_output_file()
-        try:
-            run_code(code)
-        except Exception as e:
-            raise FailedRunningCode(e)
+        run_code(code)
         return self.read_output_file()
