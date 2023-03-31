@@ -11,13 +11,13 @@ class CounterProceedRetract(ProceedRetract):
     STATE_ATTRS: List[str] = ['data']
 
     def __init__(self,
-                 func_retries: List[FuncAndRetractions] = None,
+                 run_plan: List[FuncAndRetractions] = None,
                  saved_states: List[Dict] = None,
                  current_step: int = -1,
                  data: List[int] = None,
                  should_fail: List[List[int]] = None):
 
-        super().__init__(func_retries, saved_states, current_step)
+        super().__init__(run_plan, saved_states, current_step)
         self.data = data
         self.should_fail = should_fail
         self.step_ran = []
@@ -38,7 +38,7 @@ class CounterProceedRetract(ProceedRetract):
         self._step_or_fail(2)
 
 
-FUNC_RETRIES: List[FuncAndRetractions] = [
+RUN_PLAN: List[FuncAndRetractions] = [
     FuncAndRetractions('step0', StepFailed, [0, 0, ]),
     FuncAndRetractions('step1', StepFailed, [0, 1, ]),
     FuncAndRetractions('step2', StepFailed, [0, 2, ]),
@@ -53,7 +53,7 @@ should_fail = \
 
 def test_proceed_retract_run_correct_steps():
     runner = CounterProceedRetract(
-        func_retries=FUNC_RETRIES,
+        run_plan=RUN_PLAN,
         data=[0, 0, 0],
         should_fail=should_fail,
     )

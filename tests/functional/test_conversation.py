@@ -13,12 +13,12 @@ def conversation():
 
 def test_conversation_gpt_response(conversation):
     assert len(conversation) == 2, "sanity"
-    response = conversation.get_response(should_print=False, should_append=True)
+    response = conversation.get_response_from_chatgpt(should_print=False, should_append=True)
     assert len(response)
     assert len(conversation) == 3
 
 
 def test_conversation_gpt_response_without_appending(conversation):
-    response = conversation.get_response(should_print=False, should_append=False)
+    response = conversation.get_response_from_chatgpt(should_print=False, should_append=False)
     assert len(response)
     assert len(conversation) == 2

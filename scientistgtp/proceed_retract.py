@@ -1,5 +1,5 @@
 import copy
-from typing import List, NamedTuple, Dict, Type
+from typing import List, NamedTuple, Dict, Type, Union, Tuple
 
 from .exceptions import FailedRunningStep
 
@@ -11,12 +11,12 @@ class FuncAndRetractions(NamedTuple):
 
     func_name: str
     """
-    Name of method to run
+    Name of method to run.
     """
 
-    exception: Type[Exception]
+    exception: Union[Type[Exception], Tuple[Type[Exception], ...]]
     """
-    Expected exception upon failure
+    Expected exception(s) upon failure.
     """
 
     retractions_on_failure: List[int]

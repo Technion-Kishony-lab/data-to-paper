@@ -21,6 +21,7 @@ class Conversation(list):
     1. appending user queries.
     2. getting and appending gpt response.
     """
+
     @staticmethod
     def print_message(message: str, should_print: bool = True):
         if should_print:
@@ -31,9 +32,15 @@ class Conversation(list):
         self.append({'role': role, 'content': message})
         self.print_message(message, should_print)
 
-    def get_response(self,
-                     should_print: bool = True,
-                     should_append: bool = True) -> str:
+    def append_user_message(self, message: str, should_print: bool = False):
+        self.append_message(role=Role.USER, message=message, should_print=should_print)
+
+    def append_assistant_message(self, message: str, should_print: bool = False):
+        self.append_message(role=Role.ASSISTANT, message=message, should_print=should_print)
+
+    def get_response_from_chatgpt(self,
+                                  should_print: bool = True,
+                                  should_append: bool = True) -> str:
         response = openai.ChatCompletion.create(
             model=MODEL_ENGINE,
             messages=self,
@@ -43,3 +50,7 @@ class Conversation(list):
             self.append_message(Role.ASSISTANT, response_message)
         self.print_message(response_message, should_print)
         return response_message
+
+    def get_last_response(self):
+        assert self[-1]['role'] == Role.ASSISTANT
+        return self[-1]['content']
