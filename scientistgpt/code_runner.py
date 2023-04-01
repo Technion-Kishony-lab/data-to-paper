@@ -5,7 +5,7 @@ from typing import Optional
 from scientistgpt.dynamic_code import run_code_from_file
 from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput
 
-# different code formats that we have been observed in chatgpt responses:
+# different code formats that we have observed in chatgpt responses:
 CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
 
 
@@ -20,12 +20,10 @@ class CodeRunner:
     def __init__(self,
                  response: str,
                  output_file: Optional[str],
-                 script_file: str,
-                 delete_code_after_run: bool = False):
+                 script_file: Optional[str] = None):
         self.response = response
         self.output_file = output_file
         self.script_file = script_file
-        self.delete_code_after_run = delete_code_after_run
 
     def extract_code(self):
         num_block_edges = self.response.count('```')
@@ -54,5 +52,5 @@ class CodeRunner:
     def run_code(self):
         code = self.extract_code()
         self.delete_output_file()
-        run_code_from_file(code, self.script_file, self.delete_code_after_run)
+        run_code_from_file(code, self.script_file)
         return self.read_output_file()
