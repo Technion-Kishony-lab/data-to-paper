@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional
 
 import colorama
@@ -47,10 +48,12 @@ class DebuggerGPT(ConverserGPT):
         script_file = self.script_file
         if self.new_file_for_each_try:
             script_file += f'_{self._debug_iteration}'
-        return CodeRunner(response=self.conversation.get_last_response(),
-                          output_file=self.OUTPUT_FILENAME,
-                          script_file=script_file,
-                          ).run_code()
+        result = CodeRunner(response=self.conversation.get_last_response(),
+                            output_file=self.OUTPUT_FILENAME,
+                            script_file=script_file,
+                            ).run_code()
+        os.rename(self.OUTPUT_FILENAME, script_file + '.txt')
+        return result
 
     def _specify_allowed_packages(self, error_message: str):
         prompt = format_str("""
