@@ -10,7 +10,25 @@ from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT
 
 
+# NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
+#       and can be integrated within the class functions.
+#       Any preceding spaces are removed with format_str().
+#       Note though that this notation does not work with f-string formatting especially when the dynamically
+#       added text includes multiple lines.
+#       We therefore use instead the triple-quote with the .format() notation to get a dynamic, yet structured and
+#       readable, multi-line text.
+
 class ScientistGPT(ConverserGPT):
+    """
+    Create a conversation with chatgpt with interactive analysis of data.
+
+    The user needs to provide:
+    data_description: a comprehensive description of the data files available for the project.
+                      It is recommended that this description includes a few-line header of each file.
+    goal_description: a description of the goal of the analysis.
+
+    ScientistGPT will interact with chatgpt to create analysis code and interpret the results.
+    """
     def __init__(self,
                  run_plan: List[FuncAndRetractions] = None,
                  conversation: Optional[Conversation] = None,
@@ -70,13 +88,20 @@ class ScientistGPT(ConverserGPT):
         return self.conversation.get_response_from_chatgpt()
 
 
+upon_code_failure = [1, 1, 2, 1, 1]
+# This means that if the code failed despite debugging attempts (as defined by DebuggerGPT),
+# we go back 1 step (to request_analysis_code). If it fails again, we go back again 1 step. If it then fails for
+# the third time, we go back 2 steps (to request_analysis_plan, thus revising the whole plan).
+# We then try again the same process on the new plan (going back 1 step for two failures [1, 1]).
+# If it still fails, we end and raise an exception.
+
 ScientistGPT_ANALYSIS_PLAN: RunPlan = [
     FuncAndRetractions('initialize_conversation', (), []),
     FuncAndRetractions('add_data_description', (), []),
     FuncAndRetractions('add_goal_description', (), []),
     FuncAndRetractions('request_analysis_plan', (), []),
     FuncAndRetractions('request_analysis_code', (), []),
-    FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', DebuggingFailedException, [1, 1, 2, 1, 1, 2]),
+    FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', DebuggingFailedException, upon_code_failure),
     FuncAndRetractions('get_gpt_response_to_analysis', (), []),
 ]
 

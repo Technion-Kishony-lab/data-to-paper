@@ -15,12 +15,16 @@ MAX_ITERATIONS_PER_ATTEMPT = 5
 
 class DebuggerGPT(ConverserGPT):
     """
-    Starting with a conversation which ends with a code-request from the user, DebuggerGPT interacts with chatgpt to
-    get a functional code, which creates a desired output file.
+    Interact with chatgpt to debug a code that needs to create an output file.
 
-    Interactions include:
+    Starting with a conversation which ends with a code-request from the user, DebuggerGPT interacts with chatgpt to
+    enhance the code until it runs properly and creates a desired output file.
+
+    Interactions with chatgpt include adequate reporting of:
     * missing packages
-    * error messages
+    * syntax errors
+    * runtime exceptions
+    * too long runs (timeout)
     * output file not created
     """
 
