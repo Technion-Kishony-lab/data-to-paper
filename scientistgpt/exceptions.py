@@ -43,8 +43,8 @@ class FailedRunningCode(RunCodeException):
             text = self.exception.text
             msg = self.exception.msg
         else:
-            from scientistgpt.dynamic_code import module_file
-            index = next((i for i, t in enumerate(self.tb) if t[0].endswith(module_file)), None)
+            from scientistgpt.dynamic_code import module_filename
+            index = next((i for i, t in enumerate(self.tb) if t[0].endswith(module_filename)), None)
             if index is None:
                 return ''
             filename, lineno, funcname, text = self.tb[index]
