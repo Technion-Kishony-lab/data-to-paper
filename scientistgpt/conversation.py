@@ -1,12 +1,13 @@
+import re
 from enum import Enum
 from typing import NamedTuple
 
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
+from scientistgpt.utils.text_utils import print_wrapped_text_with_code_blocks, print_red
 
 import openai
 import colorama
 
-from scientistgpt.utils.text_utils import print_wrapped_text_with_code_blocks
 
 # Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY
@@ -26,6 +27,11 @@ ASSISTANT_STYLE = ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, 
 TEXT_WIDTH = 120
 
 
+# Use unique patterns, not likely to occur in conversation:
+SAVE_START = '>>>>> '
+SAVE_END = '\n<<<<<\n'
+
+
 class Role(str, Enum):
     SYSTEM = 'system'
     USER = 'user'
@@ -41,6 +47,7 @@ class Conversation(list):
     1. appending user queries.
     2. getting and appending chatgpt response.
     3. print colored-styled messages of user and assistant.
+    4. save/load messages as text file.
     """
 
     @staticmethod
@@ -68,6 +75,7 @@ class Conversation(list):
     def _get_chatgpt_completion(self):
         # We start with the entire conversation, but if we get an exception from openai, we gradually remove old
         # prompts.
+        # TODO: this solution is SLOW. Better figure out in advance how many messages are ok to send to openai.
         for starting_index in range(len(self)):
             try:
                 return openai.ChatCompletion.create(
@@ -75,7 +83,8 @@ class Conversation(list):
                     messages=self[starting_index:],
                 )
             except openai.error.InvalidRequestError:
-                pass
+                print_red(f'InvalidRequestError, when sending messages {starting_index} - {len(self)}.\n'
+                          f'Retrying with messages {starting_index + 1} - {len(self)}')
         raise RuntimeError("Cannot get openai response.")
 
     def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True) -> str:
@@ -88,3 +97,30 @@ class Conversation(list):
     def get_last_response(self):
         assert self[-1]['role'] == Role.ASSISTANT
         return self[-1]['content']
+
+    def save(self, filename: str):
+        with open(filename, 'w') as f:
+            for exchange in self:
+                role = exchange['role']
+                message = exchange['content']
+                f.write(SAVE_START + role + '\n')
+                f.write(message)
+                f.write(SAVE_END + '\n\n')
+
+    def load(self, filename: str):
+        self.clear()
+        with open(filename, 'r') as f:
+            entire_file = f.read()
+            matches = re.findall(SAVE_START + "(.*?)" + SAVE_END, entire_file, re.DOTALL)
+            for match in matches:
+                first_break = match.index('\n')
+                role = Role(match[:first_break])
+
+                message = match[first_break + 1:]
+                self.append_message(role, message)
+
+    @classmethod
+    def from_file(cls, filename: str):
+        self = cls()
+        self.load(filename)
+        return self
