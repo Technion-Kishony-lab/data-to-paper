@@ -29,6 +29,8 @@ def run_code_from_file(code: str):
     """
     Run the provided code and terminate if runtime is too long.
     Raises a TimeoutError exception.
+
+    To run the code, we save it to a .py file and ise the importlib to import it.
     """
     save_to_module_file(code)
     try:

@@ -34,11 +34,13 @@ class Role(str, Enum):
 
 class Conversation(list):
     """
-    a list of message exchange between user and chatgpt.
 
-    a Conversation instance allows:
+    Maintain a list of message exchange between user and chatgpt.
+    Takes care of adding messages and communicating with openai, including:
+
     1. appending user queries.
     2. getting and appending chatgpt response.
+    3. print colored-styled messages of user and assistant.
     """
 
     @staticmethod

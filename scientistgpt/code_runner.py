@@ -11,10 +11,10 @@ CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n
 
 class CodeRunner:
     """
-    CodeRunner facilitates running code from chatGPT response:
+    CodeRunner facilitates extracting and running Python code from chatGPT response::
     1. Extract code from GPT response.
-    2. Run code
-    3. Read file created by the run.
+    2. Run code, raise a relevant exception with text to send to chatGPT.
+    3. Read the output file created by the run if successful.
     """
     
     def __init__(self, response: str, output_file: Optional[str]):

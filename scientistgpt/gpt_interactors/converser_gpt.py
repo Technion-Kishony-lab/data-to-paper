@@ -6,7 +6,9 @@ from scientistgpt.proceed_retract import ProceedRetract, FuncAndRetractions
 
 class ConverserGPT(ProceedRetract):
     """
-    Base class for an agent interacting with chatgpt
+    A base class for agents interacting logically with chatgpt to add and retract to a chat-conversation.
+
+    Based on ProceedRetract, it allows going back upon to upstream states upon downstream failures.
     """
     STATE_ATTRS: List[str] = ['conversation']
     OUTPUT_FILENAME = 'results.txt'
