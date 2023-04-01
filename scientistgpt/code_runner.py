@@ -1,28 +1,12 @@
 import re
 import os
-import traceback
 from typing import Optional
 
-from scientistgpt.decorators import timeout
-from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput, FailedRunningCode
+from scientistgpt.dynamic_code import run_code_from_file
+from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have been observed in chatgpt responses:
 CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
-
-MAX_EXEC_TIME = 10  # seconds
-
-
-@timeout(MAX_EXEC_TIME)
-def run_code(code: str):
-    """
-    Run the provided code and terminate if runtime is too long.
-    Raises a TimeoutError exception.
-    """
-    try:
-        exec(code)
-    except Exception as e:
-        tb = traceback.extract_tb(e.__traceback__)
-        raise FailedRunningCode(exception=e, tb=tb, code=code)
 
 
 class CodeRunner:
@@ -63,5 +47,5 @@ class CodeRunner:
     def run_code(self):
         code = self.extract_code()
         self.delete_output_file()
-        run_code(code)
+        run_code_from_file(code)
         return self.read_output_file()

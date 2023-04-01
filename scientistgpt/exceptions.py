@@ -39,12 +39,21 @@ class FailedRunningCode(RunCodeException):
         returns a fake traceback message, simulating as if the code ran in a real file.
         the line causing the exception is extracted from the ran `code`.
         """
-        filenames = [t[0] for t in self.tb]
-        index = filenames.index('<string>')
-        filename, lineno, funcname, text = self.tb[index]
+        if isinstance(self.exception, SyntaxError):
+            lineno = self.exception.lineno
+            text = self.exception.text
+            msg = self.exception.msg
+        else:
+            from scientistgpt.dynamic_code import module_file
+            index = next((i for i, t in enumerate(self.tb) if t[0].endswith(module_file)), None)
+            if index is None:
+                return ''
+            filename, lineno, funcname, text = self.tb[index]
+            msg = self.exception
+
         return f'  File "{self.fake_file_name}", line {lineno}, in <module>"\n' + \
-               f'    {self.code.splitlines()[lineno - 1]}\n' + \
-               f'{type(self.exception).__name__}: {self.exception}'
+               f'    {text}\n' + \
+               f'{type(self.exception).__name__}: {msg}'
 
 
 class FailedLoadingOutput(RunCodeException, FileNotFoundError):
