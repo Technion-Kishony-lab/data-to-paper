@@ -1,10 +1,8 @@
 import copy
 from typing import List, NamedTuple, Dict, Type, Union, Tuple, Any, Optional, Callable
 
-from .exceptions import FailedRunningStep
-import colorama
-
-from .utils.text_utils import print_red
+from scientistgpt.exceptions import FailedRunningStep
+from scientistgpt.utils.text_utils import print_red
 
 
 class FuncAndRetractions(NamedTuple):
@@ -76,12 +74,6 @@ class ProceedRetract:
                         <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
                                     2nd failure
 
-    STATE_ATTRS:  list of all the attributes that define the data manipulated by the funcs.
-    execution_plan:
-                  list of FuncAndRetractions, specifying the order of the functions to run and how many steps backwards
-                  to retract to upon failure.
-    saved_state:  list of dicts containing the state at each successful step.
-    current_step: -1 - uninitiated. 0 - after copying the initial step to saved_step. 1 - after running step 0.
     """
 
     STATE_ATTRS: List[str] = []
