@@ -7,7 +7,7 @@ from scientistgpt.code_runner import CodeRunner
 from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     FailedDebuggingException
 from scientistgpt.env import SUPPORTED_PACKAGES
-from scientistgpt.utils import format_str
+from scientistgpt.utils.text_utils import format_str, print_red
 from scientistgpt.conversation import Conversation
 from scientistgpt.proceed_retract import FuncAndRetractions
 
@@ -100,9 +100,7 @@ class DebuggerGPT(ConverserGPT):
         for debug_attempt in range(MAX_DEBUGGING_ATTEMPTS):
             self.reset_state_to('initial')
             if debug_attempt > 0:
-                print(colorama.Fore.RED +
-                      f'Debugging failed. Retrying from scratch({debug_attempt}/{MAX_DEBUGGING_ATTEMPTS}).' +
-                      colorama.Style.RESET_ALL)
+                print_red(f'DEBUGGER: Debugging failed. Retrying from scratch({debug_attempt}/{MAX_DEBUGGING_ATTEMPTS}).')
             for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
                 self.conversation.get_response_from_chatgpt()
                 try:
@@ -111,26 +109,29 @@ class DebuggerGPT(ConverserGPT):
                     # no code, or multiple code snippets, were found.
                     # remove the last gpt response to re-generate:
                     self.conversation.pop(-1)
-                    print(colorama.Fore.RED +
-                          'Failed extracting code from gpt response. Regenerating response...' +
-                          colorama.Style.RESET_ALL)
+                    print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...')
                 except FailedRunningCode as e:
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support
+                        print_red('DEBUGGER: Import error detected. Notifying chatgpt...')
                         self._specify_allowed_packages(str(e.exception))
                     elif isinstance(e.exception, TimeoutError):
                         # code took too long to run
+                        print_red('DEBUGGER: Code timed out. Notifying chatgpt...')
                         self._specify_timeout()
                     else:
                         # the code failed on other errors.
                         # indicate error message to chatgpt.
+                        print_red('DEBUGGER: Runtime exception. Notifying chatgpt...')
                         self._specify_error_message(e.get_traceback_message())
                 except FailedLoadingOutput:
                     # Code ran, but the output file was not created.
+                    print_red('DEBUGGER: Code completed successfully, but output file not created. Notifying chatgpt...')
                     self._specify_missing_output()
                 except Exception:
                     raise
                 else:
                     # The code ran just fine.
+                    print_red("DEBUGGER: Code completed successfully. Returning analysis results to ScientistGPT.")
                     return result
         raise FailedDebuggingException()

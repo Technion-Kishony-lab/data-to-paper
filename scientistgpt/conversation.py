@@ -7,7 +7,7 @@ import openai
 import colorama
 
 # Set up the OpenAI API client
-from scientistgpt.utils import wrap_string
+from scientistgpt.utils.text_utils import wrap_string
 
 openai.api_key = OPENAI_API_KEY
 
@@ -48,10 +48,10 @@ class Conversation(list):
             return
         style = ASSISTANT_STYLE if role is Role.ASSISTANT else USER_STYLE
         sep = style.seperator
-        print()
         print(style.color + sep * 7 + ' ' + role.name + ' ' + sep * (TEXT_WIDTH - len(role.name) - 9))
         print(wrap_string(message, width=TEXT_WIDTH))
         print(sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
+        print()
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
         self.append({'role': role, 'content': message})

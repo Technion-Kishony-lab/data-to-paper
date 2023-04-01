@@ -4,7 +4,7 @@ from typing import Optional, List
 from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
 from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.conversation import Conversation
-from scientistgpt.utils import format_str
+from scientistgpt.utils.text_utils import format_str, print_red
 
 from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT
@@ -71,12 +71,14 @@ class ScientistGPT(ConverserGPT):
         self.conversation.append_user_message(prompt)
 
     def run_gpt_code_and_add_output_to_conversation(self):
+        print_red('Transfer control to DebuggerGPT to debug and get a functional code ...')
         self._run_code_attempt += 1
         debugger = DebuggerGPT(conversation=copy.deepcopy(self.conversation),
                                script_file=f"{GPT_SCRIPT_FILENAME}_{self._run_code_attempt}",
                                new_file_for_each_try=True)
         result = debugger.debug_and_run_code()
         self.conversation = debugger.conversation
+        print_red("Code ran successfully! Let's see what chatgpt think of the results ...")
 
         prompt = format_str("""
             I ran your code. Here is the content of the output file ({}):

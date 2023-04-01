@@ -1,5 +1,7 @@
 import textwrap
 
+import colorama
+
 
 def format_str(s: str):
     """
@@ -29,3 +31,7 @@ def wrap_string(input_string, width=40, indent=0):
         wrapped_string = textwrap.indent(wrapped_string, ' ' * indent)
 
     return wrapped_string
+
+
+def print_red(text: str):
+    print(colorama.Fore.RED + text + colorama.Style.RESET_ALL)

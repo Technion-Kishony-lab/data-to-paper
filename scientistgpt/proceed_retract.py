@@ -4,6 +4,8 @@ from typing import List, NamedTuple, Dict, Type, Union, Tuple, Any, Optional, Ca
 from .exceptions import FailedRunningStep
 import colorama
 
+from .utils.text_utils import print_red
+
 
 class FuncAndRetractions(NamedTuple):
     """
@@ -151,18 +153,18 @@ class ProceedRetract:
         try:
             func = getattr(self, func_and_retractions.func_name)
             if annotate:
-                print(colorama.Fore.RED + f'Running {func_and_retractions.func_name} ...' + colorama.Style.RESET_ALL)
+                print_red(f'Running {func_and_retractions.func_name} ...')
             func()
         except func_and_retractions.exception as e:
             num_backward_steps = func_and_retractions.retractions_on_failure[self._num_failures[step]]
             if annotate:
                 print(e)
                 if num_backward_steps == 0:
-                    print('Retrying.')
+                    print_red('ProceedRetract: Retrying failed step.')
                 elif num_backward_steps == 1:
-                    print('Retracting one step backwards.')
+                    print_red('ProceedRetract: Retracting one step backwards.')
                 else:
-                    print(f'Retracting {num_backward_steps} steps backwards.')
+                    print_red(f'ProceedRetract: Retracting {num_backward_steps} steps backwards.')
                 print()
             self.reset_state_to(step - num_backward_steps)
             self._num_failures[step] += 1
