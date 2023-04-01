@@ -60,4 +60,3 @@ def test_proceed_retract_run_correct_steps():
 
     assert runner.step_ran == expected_sequence
     assert runner.data == [1, 1, 1]
-

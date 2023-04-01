@@ -10,14 +10,18 @@ MODULE_NAMES_TO_MODULES = {}
 MAX_EXEC_TIME = 10  # seconds
 
 
-def save_code_to_module_file(code: str, module_name: str):
+def get_module_filename(module_name: str) -> str:
     module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
-    with open(os.path.join(module_dir, module_name) + ".py", "w") as f:
+    return os.path.join(module_dir, module_name) + ".py"
+
+
+def save_code_to_module_file(code: str, module_name: str):
+    with open(get_module_filename(module_name), "w") as f:
         f.write(code)
 
 
 @timeout(MAX_EXEC_TIME)
-def run_code_from_file(code: str, module_name: str):
+def run_code_from_file(code: str, module_name: str, delete_code_after_run: bool = False):
     """
     Run the provided code by saving to a file and importing.
 
@@ -40,3 +44,6 @@ def run_code_from_file(code: str, module_name: str):
     except Exception as e:
         tb = traceback.extract_tb(e.__traceback__)
         raise FailedRunningCode(exception=e, tb=tb, code=code)
+    finally:
+        if delete_code_after_run:
+            os.remove(get_module_filename(module_name))

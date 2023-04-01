@@ -1,4 +1,3 @@
-import textwrap
 from enum import Enum
 from typing import NamedTuple
 
@@ -73,9 +72,9 @@ class Conversation(list):
                     model=MODEL_ENGINE,
                     messages=self[starting_index:],
                 )
-            except openai.error.InvalidRequestError as e:
+            except openai.error.InvalidRequestError:
                 pass
-        raise e
+        raise RuntimeError("Cannot get openai response.")
 
     def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True) -> str:
         response = self._get_chatgpt_completion()
