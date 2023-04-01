@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const socket = new WebSocket('ws://' + window.location.host + '/ws/scientistgpt/');
+
+            socket.onmessage = function (e) {
+                const data = JSON.parse(e.data);
+                const step_status = data.step_status;
+                const conversation = data.conversation;
+
+                // Update the conversation div with the latest conversation
+                $('#conversation').html(conversation.replace(/\n/g, "<br>"));
+
+                if (step_status === 'failure') {
+                    // Display an error message or some indicator when a step fails
+                }
+            };
+
+            socket.onclose = function (e) {
+                console.error('Chat socket closed unexpectedly');
+            };
+
+            $('#experiment-form').on('submit', function (event) {
+                event.preventDefault();
+                const data_description = $('#data-description').val();
+                const goal_description = $('#goal-description').val();
+
+                socket.send(JSON.stringify({
+                    'data_description': data_description,
+                    'goal_description': goal_description
+                }));
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Scientist GPT</h1>
+    <form id="experiment-form">
+        <label for="data-description">Data Description:</label>
+        <textarea id="data-description" rows="4" cols="50"></textarea>
+        <br>
+        <label for="goal-description">Goal Description:</label>
+        <textarea id="goal-description" rows="4" cols="50"></textarea>
+        <br>
+        <button type="submit">Run Experiment</button>
+    </form>
+    <div id="conversation"></div>
+</body>
+</html>
