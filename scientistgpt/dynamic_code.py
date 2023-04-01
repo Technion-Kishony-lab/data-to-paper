@@ -1,27 +1,34 @@
 import os
 import importlib
 import traceback
+from typing import Optional
+
 import chatgpt_created_scripts
 
 from scientistgpt.decorators import timeout
 from scientistgpt.exceptions import FailedRunningCode
 
-MODULE_NAMES_TO_MODULES = {}
+MODULE_NAME = 'script_to_run'
 MAX_EXEC_TIME = 10  # seconds
 
 
-def get_module_filename(module_name: str) -> str:
-    module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
-    return os.path.join(module_dir, module_name) + ".py"
+module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
+module_filename = MODULE_NAME + ".py"
+module_filepath = os.path.join(module_dir, module_filename)
 
 
-def save_code_to_module_file(code: str, module_name: str):
-    with open(get_module_filename(module_name), "w") as f:
+def save_code_to_module_file(code: str):
+    with open(module_filepath, "w") as f:
         f.write(code)
 
 
+# create module from empty file:
+save_code_to_module_file('# empty module\n')
+module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+
+
 @timeout(MAX_EXEC_TIME)
-def run_code_from_file(code: str, module_name: str, delete_code_after_run: bool = False):
+def run_code_from_file(code: str, save_as: Optional[str]):
     """
     Run the provided code by saving to a file and importing.
 
@@ -29,21 +36,18 @@ def run_code_from_file(code: str, module_name: str, delete_code_after_run: bool 
 
     To run the code, we save it to a .py file and use the importlib to import it.
     If the file was already imported before, we use importlib.reload.
+
+    save_as: name of file to save the code.  None to skip saving.
     """
 
-    save_code_to_module_file(code, module_name)
+    save_code_to_module_file(code)
     try:
-        if module_name in MODULE_NAMES_TO_MODULES:
-            # File was already imported. Need to reload:
-            module = MODULE_NAMES_TO_MODULES[module_name]
-            importlib.reload(module)
-        else:
-            # Importing a new module:
-            module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + module_name)
-            MODULE_NAMES_TO_MODULES[module_name] = module
+        importlib.reload(module)
     except Exception as e:
         tb = traceback.extract_tb(e.__traceback__)
         raise FailedRunningCode(exception=e, tb=tb, code=code)
     finally:
-        if delete_code_after_run:
-            os.remove(get_module_filename(module_name))
+        if save_as is None:
+            os.remove(module_filepath)
+        else:
+            os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
