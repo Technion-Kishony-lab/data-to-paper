@@ -23,11 +23,13 @@ class CodeRunner:
         self.code = None
 
     def extract_code(self):
-        for regexp in CODE_REGEXPS:
-            matches = re.findall(regexp, self.response, re.DOTALL)
-            if len(matches) == 1:
-                return matches[0].strip()
-        raise FailedExtractingCode(len(matches))
+        num_block_edges = self.response.count('```')
+        if num_block_edges == 2:
+            for regexp in CODE_REGEXPS:
+                matches = re.findall(regexp, self.response, re.DOTALL)
+                if len(matches) == 1:
+                    return matches[0].strip()
+        raise FailedExtractingCode(num_block_edges // 2)
 
     def read_output_file(self):
         if self.output_file is None:
