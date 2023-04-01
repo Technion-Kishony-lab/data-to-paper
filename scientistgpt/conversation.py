@@ -51,11 +51,21 @@ class Conversation(list):
     def append_assistant_message(self, message: str, should_print: bool = True):
         self.append_message(role=Role.ASSISTANT, message=message, should_print=should_print)
 
+    def _get_chatgpt_completion(self):
+        # We start with the entire conversation, but if we get an exception from openai, we gradually remove old
+        # prompts.
+        for starting_index in range(len(self)):
+            try:
+                return openai.ChatCompletion.create(
+                    model=MODEL_ENGINE,
+                    messages=self[starting_index:],
+                )
+            except openai.error.InvalidRequestError as e:
+                pass
+        raise e
+
     def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True) -> str:
-        response = openai.ChatCompletion.create(
-            model=MODEL_ENGINE,
-            messages=self,
-        )
+        response = self._get_chatgpt_completion()
         response_message = response['choices'][0]['message']['content']
         if should_append:
             self.append_message(Role.ASSISTANT, response_message, should_print)
