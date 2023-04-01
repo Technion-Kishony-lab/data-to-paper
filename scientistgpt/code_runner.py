@@ -17,10 +17,13 @@ class CodeRunner:
     3. Read the output file created by the run if successful.
     """
     
-    def __init__(self, response: str, output_file: Optional[str]):
+    def __init__(self, 
+                 response: str, 
+                 output_file: Optional[str],
+                 script_file: str):
         self.response = response
         self.output_file = output_file
-        self.code = None
+        self.script_file = script_file
 
     def extract_code(self):
         num_block_edges = self.response.count('```')
@@ -49,5 +52,5 @@ class CodeRunner:
     def run_code(self):
         code = self.extract_code()
         self.delete_output_file()
-        run_code_from_file(code)
+        run_code_from_file(code, self.script_file)
         return self.read_output_file()

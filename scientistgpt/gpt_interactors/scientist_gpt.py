@@ -9,14 +9,8 @@ from scientistgpt.utils import format_str
 from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT
 
+GPT_SCRIPT_FILENAME = 'gpt_analysis'
 
-# NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
-#       and can be integrated within the class functions.
-#       Any preceding spaces are removed with format_str().
-#       Note though that this notation does not work with f-string formatting especially when the dynamically
-#       added text includes multiple lines.
-#       We therefore use instead the triple-quote with the .format() notation to get a dynamic, yet structured and
-#       readable, multi-line text.
 
 class ScientistGPT(ConverserGPT):
     """
@@ -29,6 +23,14 @@ class ScientistGPT(ConverserGPT):
 
     ScientistGPT will interact with chatgpt to create analysis code and interpret the results.
     """
+
+    # NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
+    #       and can be integrated within the class functions.
+    #       Any preceding spaces are removed with format_str().
+    #       Note though that this notation does not work with f-string formatting especially when the dynamically
+    #       added text includes multiple lines.
+    #       We therefore use instead the triple-quote with the .format() notation to get a dynamic, yet structured and
+    #       readable, multi-line text.
     def __init__(self,
                  run_plan: List[FuncAndRetractions] = None,
                  conversation: Optional[Conversation] = None,
@@ -38,6 +40,7 @@ class ScientistGPT(ConverserGPT):
         super().__init__(run_plan, conversation)
         self.data_description = data_description
         self.goal_description = goal_description
+        self._run_code_attempt = 0
 
     def add_data_description(self):
         prompt = format_str("""
@@ -68,7 +71,10 @@ class ScientistGPT(ConverserGPT):
         self.conversation.append_user_message(prompt)
 
     def run_gpt_code_and_add_output_to_conversation(self):
-        debugger = DebuggerGPT(conversation=copy.deepcopy(self.conversation))
+        self._run_code_attempt += 1
+        debugger = DebuggerGPT(conversation=copy.deepcopy(self.conversation),
+                               script_file=f"{GPT_SCRIPT_FILENAME}_{self._run_code_attempt}",
+                               new_file_for_each_try=True)
         result = debugger.debug_and_run_code()
         self.conversation = debugger.conversation
 
