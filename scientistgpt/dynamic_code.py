@@ -1,5 +1,7 @@
+import os
 import importlib
 import traceback
+import chatgpt_created_scripts
 
 from scientistgpt.decorators import timeout
 from scientistgpt.exceptions import FailedRunningCode
@@ -9,14 +11,17 @@ module_file = MODULE_NAME + ".py"
 MAX_EXEC_TIME = 10  # seconds
 
 
+chatgpt_created_scripts_dir = os.path.dirname(chatgpt_created_scripts.__file__)
+
+
 def save_to_module_file(code: str):
-    with open(module_file, "w") as f:
+    with open(os.path.join(chatgpt_created_scripts_dir, module_file), "w") as f:
         f.write(code)
 
 
 # create a module that we can vary dynamically:
 save_to_module_file('# empty module\n')
-dynamic_module = importlib.import_module(MODULE_NAME)
+dynamic_module = importlib.import_module('chatgpt_created_scripts.' + MODULE_NAME)
 
 
 @timeout(MAX_EXEC_TIME)
