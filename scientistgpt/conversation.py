@@ -1,5 +1,7 @@
 import textwrap
 from enum import Enum
+from typing import NamedTuple
+
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 
 import openai
@@ -12,9 +14,17 @@ openai.api_key = OPENAI_API_KEY
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
-USER_COLOR = colorama.Fore.GREEN
-ASSISTANT_COLOR = colorama.Fore.CYAN
+
+
+class ResponseStyle(NamedTuple):
+    color: str
+    seperator: str
+
+
+USER_STYLE = ResponseStyle(colorama.Fore.GREEN, '-')
+ASSISTANT_STYLE = ResponseStyle(colorama.Fore.CYAN, '=')
 TEXT_WIDTH = 120
+
 
 class Role(str, Enum):
     SYSTEM = 'system'
@@ -35,11 +45,12 @@ class Conversation(list):
     def print_message(role: Role, message: str, should_print: bool = True):
         if not should_print:
             return
-        color = ASSISTANT_COLOR if role is Role.ASSISTANT else USER_COLOR
+        style = ASSISTANT_STYLE if role is Role.ASSISTANT else USER_STYLE
+        sep = style.seperator
         print()
-        print(color + '----- ' + role.name + ' ' + '-' * (TEXT_WIDTH - len(role.name) - 7))
-        message = wrap_string(message, width=TEXT_WIDTH)
-        print(message, colorama.Style.RESET_ALL)
+        print(style.color + sep * 7 + ' ' + role.name + ' ' + sep * (TEXT_WIDTH - len(role.name) - 9))
+        print(wrap_string(message, width=TEXT_WIDTH))
+        print(sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
         self.append({'role': role, 'content': message})
