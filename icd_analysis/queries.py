@@ -1,3 +1,5 @@
+# flake8: noqa
+
 data_description = """
 (1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient. 
 Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical diagnostic. 

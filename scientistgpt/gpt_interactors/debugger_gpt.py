@@ -4,7 +4,7 @@ import colorama
 
 from scientistgpt.code_runner import CodeRunner
 from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
-    DebuggingFailedException
+    FailedDebuggingException
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils import format_str
 from scientistgpt.conversation import Conversation
@@ -30,7 +30,7 @@ class DebuggerGPT(ConverserGPT):
     * too long runs (timeout)
     * output file not created
     """
-    
+
     def __init__(self,
                  run_plan: List[FuncAndRetractions] = None,
                  conversation: Optional[Conversation] = None,
@@ -104,7 +104,7 @@ class DebuggerGPT(ConverserGPT):
                 self.conversation.get_response_from_chatgpt()
                 try:
                     result = self._run_code_from_last_response()
-                except FailedExtractingCode as e:
+                except FailedExtractingCode:
                     # no code, or multiple code snippets, were found.
                     # remove the last gpt response to re-generate:
                     self.conversation.pop(-1)
@@ -130,4 +130,4 @@ class DebuggerGPT(ConverserGPT):
                 else:
                     # The code ran just fine.
                     return result
-        raise DebuggingFailedException()
+        raise FailedDebuggingException()

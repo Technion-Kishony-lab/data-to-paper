@@ -2,7 +2,7 @@ import copy
 from typing import Optional, List
 
 from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
-from scientistgpt.exceptions import RunCodeException, DebuggingFailedException
+from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.conversation import Conversation
 from scientistgpt.utils import format_str
 
@@ -83,9 +83,9 @@ class ScientistGPT(ConverserGPT):
             ```
             {}
             ```
-            
+
             Do these results make sense, or do you suspect any problems, bugs or artifacts in the analysis code?
-            
+
             If you suspect a problem, please provide a new full compete code which correctly resolves the problem.
             """).format(self.OUTPUT_FILENAME, result)
         self.conversation.append_user_message(prompt)
@@ -107,7 +107,6 @@ ScientistGPT_ANALYSIS_PLAN: RunPlan = [
     FuncAndRetractions('add_goal_description', (), []),
     FuncAndRetractions('request_analysis_plan', (), []),
     FuncAndRetractions('request_analysis_code', (), []),
-    FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', DebuggingFailedException, upon_code_failure),
+    FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', FailedDebuggingException, upon_code_failure),
     FuncAndRetractions('get_gpt_response_to_analysis', (), []),
 ]
-

@@ -1,7 +1,6 @@
-import re
 from abc import abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import Callable, List
+from typing import List
 
 
 class ScientistGPTException(Exception, metaclass=ABCMeta):
@@ -75,6 +74,6 @@ class FailedRunningStep(ScientistGPTException):
         return f"Failed running {self.func_name} (step {self.step})"
 
 
-class DebuggingFailedException(ScientistGPTException):
+class FailedDebuggingException(ScientistGPTException):
     def __str__(self):
         return f"Failed debugging chatgpt code."

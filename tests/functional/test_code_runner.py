@@ -7,9 +7,7 @@ from scientistgpt.code_runner import CodeRunner, FailedExtractingCode, FailedLoa
 
 OUTPUT_FILE = "output.txt"
 
-code_encoded_in_response = \
-f"""with open("{OUTPUT_FILE}", "w") as f:
-    f.write('hello')"""
+code_encoded_in_response = f'with open("{OUTPUT_FILE}", "w") as f:\n    f.write("hello")'
 
 valid_response = f"""
 Here is a code that does what you want:
@@ -37,22 +35,26 @@ txt = 'hello'
 
 @fixture()
 def valid_runner():
-    return CodeRunner(response=valid_response, output_file='output.txt', script_file='test')
+    return CodeRunner(response=valid_response, output_file='output.txt', script_file='test',
+                      delete_code_after_run=True)
 
 
 @fixture()
 def invalid_file_name_runner():
-    return CodeRunner(response=valid_response, output_file='wrong_output.txt', script_file='test')
+    return CodeRunner(response=valid_response, output_file='wrong_output.txt', script_file='test',
+                      delete_code_after_run=True)
 
 
 @fixture()
 def invalid_two_codes_runner():
-    return CodeRunner(response=two_codes_response, output_file='output.txt', script_file='test')
+    return CodeRunner(response=two_codes_response, output_file='output.txt', script_file='test',
+                      delete_code_after_run=True)
 
 
 @fixture()
 def invalid_no_code_runner():
-    return CodeRunner(response=no_code_response, output_file='output.txt', script_file='test')
+    return CodeRunner(response=no_code_response, output_file='output.txt', script_file='test',
+                      delete_code_after_run=True)
 
 
 def test_runner_correctly_extract_code_to_run(valid_runner):
