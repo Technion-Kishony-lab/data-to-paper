@@ -35,3 +35,20 @@ def wrap_string(input_string, width=40, indent=0):
 
 def print_red(text: str):
     print(colorama.Fore.RED + text + colorama.Style.RESET_ALL)
+
+
+def print_wrapped_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int):
+
+    def print_color(is_cd: bool):
+        print(code_color if is_cd else text_color, end='')
+
+    text = wrap_string(text, width=width)
+    is_code = False
+    print_color(is_code)
+    for line in text.splitlines():
+        if '```' in line:
+            is_code = not is_code
+            print_color(is_code)
+        else:
+            print(line)
+    print(colorama.Style.RESET_ALL, end='')

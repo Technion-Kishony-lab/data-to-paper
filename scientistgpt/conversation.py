@@ -6,9 +6,9 @@ from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 import openai
 import colorama
 
-# Set up the OpenAI API client
-from scientistgpt.utils.text_utils import wrap_string
+from scientistgpt.utils.text_utils import print_wrapped_text_with_code_blocks
 
+# Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY
 
 # noinspection PyUnresolvedReferences
@@ -17,11 +17,12 @@ colorama.just_fix_windows_console()
 
 class ResponseStyle(NamedTuple):
     color: str
+    code_color: str
     seperator: str
 
 
-USER_STYLE = ResponseStyle(colorama.Fore.GREEN, '-')
-ASSISTANT_STYLE = ResponseStyle(colorama.Fore.CYAN, '=')
+USER_STYLE = ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-')
+ASSISTANT_STYLE = ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '=')
 TEXT_WIDTH = 120
 
 
@@ -49,8 +50,9 @@ class Conversation(list):
         style = ASSISTANT_STYLE if role is Role.ASSISTANT else USER_STYLE
         sep = style.seperator
         print(style.color + sep * 7 + ' ' + role.name + ' ' + sep * (TEXT_WIDTH - len(role.name) - 9))
-        print(wrap_string(message, width=TEXT_WIDTH))
-        print(sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
+        print_wrapped_text_with_code_blocks(text=message, text_color=style.color,
+                                            code_color=style.code_color, width=TEXT_WIDTH)
+        print(style.color + sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
         print()
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
