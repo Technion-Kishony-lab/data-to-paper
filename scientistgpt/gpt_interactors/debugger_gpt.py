@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 import colorama
 
 from scientistgpt.code_runner import CodeRunner
@@ -5,9 +7,10 @@ from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, Fai
     DebuggingFailedException
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils import format_str
+from scientistgpt.conversation import Conversation
+from scientistgpt.proceed_retract import FuncAndRetractions
 
 from .converser_gpt import ConverserGPT
-
 
 MAX_DEBUGGING_ATTEMPTS = 3
 MAX_ITERATIONS_PER_ATTEMPT = 5
@@ -27,10 +30,26 @@ class DebuggerGPT(ConverserGPT):
     * too long runs (timeout)
     * output file not created
     """
+    
+    def __init__(self,
+                 run_plan: List[FuncAndRetractions] = None,
+                 conversation: Optional[Conversation] = None,
+                 script_file: str = None,
+                 new_file_for_each_try: bool = True,
+                 ):
+        super().__init__(run_plan, conversation)
+        self.script_file = script_file
+        self.new_file_for_each_try = new_file_for_each_try
+        self._debug_iteration = 0
 
     def _run_code_from_last_response(self):
+        self._debug_iteration += 1
+        script_file = self.script_file
+        if self.new_file_for_each_try:
+            script_file += f'_{self._debug_iteration}'
         return CodeRunner(response=self.conversation.get_last_response(),
                           output_file=self.OUTPUT_FILENAME,
+                          script_file=script_file,
                           ).run_code()
 
     def _specify_allowed_packages(self, error_message: str):

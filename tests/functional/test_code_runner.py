@@ -37,22 +37,22 @@ txt = 'hello'
 
 @fixture()
 def valid_runner():
-    return CodeRunner(response=valid_response, output_file='output.txt')
+    return CodeRunner(response=valid_response, output_file='output.txt', script_file='test')
 
 
 @fixture()
 def invalid_file_name_runner():
-    return CodeRunner(response=valid_response, output_file='wrong_output.txt')
+    return CodeRunner(response=valid_response, output_file='wrong_output.txt', script_file='test')
 
 
 @fixture()
 def invalid_two_codes_runner():
-    return CodeRunner(response=two_codes_response, output_file='output.txt')
+    return CodeRunner(response=two_codes_response, output_file='output.txt', script_file='test')
 
 
 @fixture()
 def invalid_no_code_runner():
-    return CodeRunner(response=no_code_response, output_file='output.txt')
+    return CodeRunner(response=no_code_response, output_file='output.txt', script_file='test')
 
 
 def test_runner_correctly_extract_code_to_run(valid_runner):
