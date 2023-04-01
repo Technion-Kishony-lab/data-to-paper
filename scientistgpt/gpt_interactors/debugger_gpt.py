@@ -100,7 +100,8 @@ class DebuggerGPT(ConverserGPT):
         for debug_attempt in range(MAX_DEBUGGING_ATTEMPTS):
             self.reset_state_to('initial')
             if debug_attempt > 0:
-                print_red(f'DEBUGGER: Debugging failed. Retrying from scratch({debug_attempt}/{MAX_DEBUGGING_ATTEMPTS}).')
+                print_red(f'DEBUGGER: Debugging failed. Retrying from scratch '
+                          f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).')
             for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
                 self.conversation.get_response_from_chatgpt()
                 try:
