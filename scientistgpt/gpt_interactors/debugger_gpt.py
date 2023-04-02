@@ -117,7 +117,12 @@ class DebuggerGPT(ConverserGPT):
                 except FailedExtractingCode:
                     # no code, or multiple code snippets, were found.
                     # remove the last gpt response to re-generate:
-                    # self.conversation.pop(-1)
+                    #
+                    # TODO: I think it is better to just regenerate response:
+                    #  self.conversation.delete_last_response()
+                    #  This way, we don't get the conversation longer.
+                    #  I think these failures are not due to long code - it is just that chatgpt sometimes
+                    #  fails in the middle even in short codes.
                     print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...')
                     self._specify_code_too_long()
                 except FailedRunningCode as e:
