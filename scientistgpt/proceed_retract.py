@@ -106,6 +106,11 @@ class ProceedRetract:
         self.saved_states_by_name[name] = self.get_copy_of_current_state()
 
     def reset_state_to(self, step_or_name: Union[int, str]):
+        """
+        Reset to a saved state.
+
+        step_or_name: can be an int for steps saved sequentially, or a str for states saved by name.
+        """
         if isinstance(step_or_name, int):
             self.saved_states_by_step = self.saved_states_by_step[: step_or_name + 1]
             new_state = self.saved_states_by_step[step_or_name]
