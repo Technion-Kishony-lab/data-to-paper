@@ -22,8 +22,6 @@ class ResponseStyle(NamedTuple):
     seperator: str
 
 
-USER_STYLE = ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-')
-ASSISTANT_STYLE = ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '=')
 TEXT_WIDTH = 120
 
 # Use unique patterns, not likely to occur in conversation:
@@ -35,6 +33,15 @@ class Role(str, Enum):
     SYSTEM = 'system'
     USER = 'user'
     ASSISTANT = 'assistant'
+    COMMENTER = 'commenter'
+
+
+ROLE_TO_STYLE = {
+    Role.SYSTEM: ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-'),
+    Role.USER: ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-'),
+    Role.ASSISTANT: ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '='),
+    Role.COMMENTER: ResponseStyle(colorama.Fore.RED, colorama.Fore.LIGHTRED_EX, ''),
+}
 
 
 class Message(TypedDict):
@@ -59,9 +66,10 @@ class Conversation(list[Message]):
         if not should_print:
             return
         role, content = message['role'], message['content']
-        style = ASSISTANT_STYLE if role is Role.ASSISTANT else USER_STYLE
+        style = ROLE_TO_STYLE[role]
         sep = style.seperator
-        print(style.color + sep * 7 + ' ' + role.name + ' ' + sep * (TEXT_WIDTH - len(role.name) - 9))
+        if role is not Role.COMMENTER:
+            print(style.color + sep * 7 + ' ' + role.name + ' ' + sep * (TEXT_WIDTH - len(role.name) - 9))
         print_wrapped_text_with_code_blocks(text=content, text_color=style.color,
                                             code_color=style.code_color, width=TEXT_WIDTH)
         print(style.color + sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
@@ -78,20 +86,26 @@ class Conversation(list[Message]):
     def append_assistant_message(self, content: str, should_print: bool = True):
         self.append_message(role=Role.ASSISTANT, content=content, should_print=should_print)
 
-    def _get_chatgpt_completion(self, **kwargs) -> dict:
+    def add_comment(self, content: str, should_print: bool = True):
+        self.append_message(role=Role.COMMENTER, content=content, should_print=should_print)
+
+    def get_messages_without_comments(self):
+        return [message for message in self if message['role'] is not Role.COMMENTER]
+
+    def _get_chatgpt_completion(self):
         # We start with the entire conversation, but if we get an exception from openai, we gradually remove old
         # prompts.
         # TODO: this solution is SLOW. Better figure out in advance how many messages are ok to send to openai.
-        for starting_index in range(len(self)):
+        messages = self.get_messages_without_comments()
+        for starting_index in range(len(messages)):
             try:
                 return openai.ChatCompletion.create(
                     model=MODEL_ENGINE,
-                    messages=self[starting_index:],
-                    **kwargs,
+                    messages=messages[starting_index:],
                 )
             except openai.error.InvalidRequestError:
-                print_red(f'InvalidRequestError, when sending messages {starting_index} - {len(self)}.\n'
-                          f'Retrying with messages {starting_index + 1} - {len(self)}')
+                print_red(f'InvalidRequestError, when sending messages {starting_index} - {len(messages)}.\n'
+                          f'Retrying with messages {starting_index + 1} - {len(messages)}')
         raise RuntimeError("Cannot get openai response.")
 
     def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True) -> str:
