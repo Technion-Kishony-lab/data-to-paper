@@ -19,6 +19,7 @@ SYSTEM_PROMPT = format_str("""
         """)
 MAX_ANALYSIS_REVISIONS = 2
 
+
 class ScientistGPT(ConverserGPT):
     """
     Create a conversation with chatgpt with interactive analysis of data.

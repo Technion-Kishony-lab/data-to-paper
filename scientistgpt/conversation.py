@@ -1,7 +1,7 @@
 import copy
 import re
 from enum import Enum
-from typing import NamedTuple, Optional, Callable
+from typing import NamedTuple, TypedDict
 
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 from scientistgpt.utils.text_utils import print_wrapped_text_with_code_blocks, print_red
@@ -37,7 +37,12 @@ class Role(str, Enum):
     ASSISTANT = 'assistant'
 
 
-class Conversation(list):
+class Message(TypedDict):
+    role: Role
+    content: str
+
+
+class Conversation(list[Message]):
     """
 
     Maintain a list of message exchange between user and chatgpt.
@@ -49,40 +54,29 @@ class Conversation(list):
     4. save/load messages as text file.
     """
 
-    def __init__(self, message_callback: Optional[Callable] = None, **kwargs):
-        super().__init__(**kwargs)
-        self.message_callback = message_callback
-
-    def __deepcopy__(self, memo):
-        new_instance = Conversation()
-        for message in self:
-            new_instance.append_message(message['role'], message['content'], should_print=False)
-        new_instance.message_callback = self.message_callback
-        return new_instance
-
-    def print_message(self, role: Role, message: str, should_print: bool = True):
+    @staticmethod
+    def print_message(message: Message, should_print: bool = True):
         if not should_print:
             return
+        role, content = message['role'], message['content']
         style = ASSISTANT_STYLE if role is Role.ASSISTANT else USER_STYLE
         sep = style.seperator
         print(style.color + sep * 7 + ' ' + role.name + ' ' + sep * (TEXT_WIDTH - len(role.name) - 9))
-        print_wrapped_text_with_code_blocks(text=message, text_color=style.color,
+        print_wrapped_text_with_code_blocks(text=content, text_color=style.color,
                                             code_color=style.code_color, width=TEXT_WIDTH)
         print(style.color + sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
         print()
 
-        if self.message_callback:
-            self.message_callback(role, message)
+    def append_message(self, role: Role, content: str, should_print: bool = False):
+        message = Message(role=role, content=content)
+        self.append(message)
+        self.print_message(message, should_print)
 
-    def append_message(self, role: Role, message: str, should_print: bool = False):
-        self.append({'role': role, 'content': message})
-        self.print_message(role, message, should_print)
+    def append_user_message(self, content: str, should_print: bool = True):
+        self.append_message(role=Role.USER, content=content, should_print=should_print)
 
-    def append_user_message(self, message: str, should_print: bool = True):
-        self.append_message(role=Role.USER, message=message, should_print=should_print)
-
-    def append_assistant_message(self, message: str, should_print: bool = True):
-        self.append_message(role=Role.ASSISTANT, message=message, should_print=should_print)
+    def append_assistant_message(self, content: str, should_print: bool = True):
+        self.append_message(role=Role.ASSISTANT, content=content, should_print=should_print)
 
     def _get_chatgpt_completion(self, **kwargs) -> dict:
         # We start with the entire conversation, but if we get an exception from openai, we gradually remove old
@@ -100,12 +94,12 @@ class Conversation(list):
                           f'Retrying with messages {starting_index + 1} - {len(self)}')
         raise RuntimeError("Cannot get openai response.")
 
-    def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True, **kwargs) -> str:
-        response = self._get_chatgpt_completion(**kwargs)
-        response_message = response['choices'][0]['message']['content']
+    def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True) -> str:
+        response = self._get_chatgpt_completion()
+        response_content = response['choices'][0]['message']['content']
         if should_append:
-            self.append_message(Role.ASSISTANT, response_message, should_print)
-        return response_message
+            self.append_assistant_message(response_content, should_print)
+        return response_content
 
     def get_last_response(self):
         assert self[-1]['role'] == Role.ASSISTANT
@@ -117,11 +111,9 @@ class Conversation(list):
 
     def save(self, filename: str):
         with open(filename, 'w') as f:
-            for exchange in self:
-                role = exchange['role']
-                message = exchange['content']
-                f.write(SAVE_START + role + '\n')
-                f.write(message)
+            for message in self:
+                f.write(SAVE_START + message['role'] + '\n')
+                f.write(message['content'])
                 f.write(SAVE_END + '\n\n')
 
     def load(self, filename: str):
@@ -143,5 +135,5 @@ class Conversation(list):
         return self
 
     def print_all_messages(self):
-        for exchange in self:
-            self.print_message(exchange['role'], exchange['content'])
+        for message in self:
+            self.print_message(message)
