@@ -100,7 +100,7 @@ class DebuggerGPT(ConverserGPT):
         for debug_attempt in range(MAX_DEBUGGING_ATTEMPTS):
             self.reset_state_to('initial')
             if debug_attempt > 0:
-                print_red(f'DEBUGGER: Debugging failed. Retrying from scratch '
+                print_red(f'DEBUGGER: Debugging failed. Restarting chatgpt communication from scratch.'
                           f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).')
             for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
                 self.conversation.get_response_from_chatgpt()
@@ -114,25 +114,26 @@ class DebuggerGPT(ConverserGPT):
                 except FailedRunningCode as e:
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support
-                        print_red('DEBUGGER: Import error detected. Notifying chatgpt...')
+                        print_red('DEBUGGER: ImportError detected in gpt code. Notifying chatgpt...')
                         self._specify_allowed_packages(str(e.exception))
                     elif isinstance(e.exception, TimeoutError):
                         # code took too long to run
-                        print_red('DEBUGGER: Code timed out. Notifying chatgpt...')
+                        print_red('DEBUGGER: GPT code has timed out. Notifying chatgpt...')
                         self._specify_timeout()
                     else:
                         # the code failed on other errors.
                         # indicate error message to chatgpt.
-                        print_red('DEBUGGER: Runtime exception. Notifying chatgpt...')
+                        print_red('DEBUGGER: Runtime exception in GPT code. Notifying chatgpt...')
                         self._specify_error_message(e.get_traceback_message())
                 except FailedLoadingOutput:
                     # Code ran, but the output file was not created.
-                    print_red('DEBUGGER: Code completed successfully, but output file not created. Notifying chatgpt...')
+                    print_red('DEBUGGER: GPT code completed successfully, '
+                              'but output file not created. Notifying chatgpt...')
                     self._specify_missing_output()
                 except Exception:
                     raise
                 else:
                     # The code ran just fine.
-                    print_red("DEBUGGER: Code completed successfully. Returning analysis results to ScientistGPT.")
+                    print_red("DEBUGGER: GPT code completed successfully. Returning results to ScientistGPT.")
                     return result
         raise FailedDebuggingException()
