@@ -13,7 +13,7 @@ Set folders
 """
 DATA_FOLDER = 'data_for_analysis'
 MESSAGES_FILENAME = 'openai_exchange.txt'
-OUTPUTS_FOLDER = 'run3'
+OUTPUTS_FOLDER = 'run1'
 
 # Get absolute paths:
 absolute_output_path = Path(OUTPUTS_FOLDER).absolute()

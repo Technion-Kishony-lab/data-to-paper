@@ -4,8 +4,10 @@ from django.shortcuts import render
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Experiment
-from scientistgpt import ScientistGPT, ScientistGPT_ANALYSIS_PLAN
+import sys
+sys.path.append("..")
 
+from scientistgpt import ScientistGPT, ScientistGPT_ANALYSIS_PLAN
 
 def index(request):
     if request.method == "POST":

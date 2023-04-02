@@ -9,28 +9,28 @@ The file has 4 columns:
 #2 Subject ID (subject_id)
 #3 Hospital admission ID (hadm_id)
 #4 a sequential number of the diagnostic for each subject (seq_num)
-#5 The diagnostic ICD9 code (icd9_code)
+#5 The diagnostic ICD9 code, formatted without dots (icd9_code)
 
 Here for example is the head of the file:
 ```  
-row_id,subject_id,hadm_id,seq_num,icd9_code
-112344,10006,142345,1,99591
-112345,10006,142345,2,99662
-112346,10006,142345,3,5672
+ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
+1297,109,172335,1,"40301"
+1298,109,172335,2,"486"
+1299,109,172335,3,"58281"
 ```
 
 (2) PATIENTS.csv: a text file containing patient demographics. 
 Each line indicates a patient. 
 
-The file has 7 columns, the important ones for us are the second third columns that provide the patient id (patient_id)
-and the gender.
+The file has 7 columns, the important ones for us are the second and third columns that provide the patient id (SUBJECT_ID)
+and the gender (GENDER).
 
 Here for example is the head of the file:
 ```
-row_id,subject_id,gender,dob,dod,dod_hosp,dod_ssn,expire_flag
-9467,10006,F,2094-03-05 00:00:00,2165-08-12 00:00:00,2165-08-12 00:00:00,2165-08-12 00:00:00,1
-9472,10011,F,2090-06-05 00:00:00,2126-08-28 00:00:00,2126-08-28 00:00:00,,1
-9474,10013,F,2038-09-03 00:00:00,2125-10-07 00:00:00,2125-10-07 00:00:00,2125-10-07 00:00:00,1
+ROW_ID, SUBJECT_ID, GENDER, DOB, DOD, DOD_HOSP, DOD_SSN, EXPIRE_FLAG
+631,668,"F",2096-08-18 00:00:00,2183-07-10 00:00:00,2183-07-10 00:00:00,2183-07-10 00:00:00,1
+632,669,"M",2121-10-20 00:00:00,2182-07-31 00:00:00,2182-07-31 00:00:00,2182-07-31 00:00:00,1
+633,670,"M",2080-09-30 00:00:00,2161-02-15 00:00:00,2161-02-15 00:00:00,2161-02-22 00:00:00,1
 ```
 """
 

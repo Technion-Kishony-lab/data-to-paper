@@ -89,6 +89,14 @@ class DebuggerGPT(ConverserGPT):
             """)
         self.conversation.append_user_message(prompt)
 
+    def _specify_code_too_long(self):
+        prompt = format_str("""
+            I couldn't extract the code from your last response because it was not complete.
+            Please rewrite the complete code again in a shorter version that will fit one response. 
+            """)
+        self.conversation.append_user_message(prompt)
+
+
     def debug_and_run_code(self):
         """
         Interact with chatgpt until getting a functional code that can run locally and produce desired output file.
@@ -109,8 +117,9 @@ class DebuggerGPT(ConverserGPT):
                 except FailedExtractingCode:
                     # no code, or multiple code snippets, were found.
                     # remove the last gpt response to re-generate:
-                    self.conversation.pop(-1)
+                    # self.conversation.pop(-1)
                     print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...')
+                    self._specify_code_too_long()
                 except FailedRunningCode as e:
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support

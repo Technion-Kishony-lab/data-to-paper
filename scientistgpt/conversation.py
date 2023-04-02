@@ -98,6 +98,10 @@ class Conversation(list):
         assert self[-1]['role'] == Role.ASSISTANT
         return self[-1]['content']
 
+    def delete_last_response(self):
+        assert self[-1]['role'] == Role.ASSISTANT
+        self.pop()
+
     def save(self, filename: str):
         with open(filename, 'w') as f:
             for exchange in self:
