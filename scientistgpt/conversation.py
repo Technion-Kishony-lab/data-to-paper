@@ -124,3 +124,7 @@ class Conversation(list):
         self = cls()
         self.load(filename)
         return self
+
+    def print_all_messages(self):
+        for exchange in self:
+            self.print_message(exchange['role'], exchange['content'])

@@ -23,4 +23,4 @@ class ConverserGPT(ProceedRetract):
     def initialize_conversation(self):
         prompt = f'You are a {self.ROLE}.'
         self.conversation = Conversation()
-        self.conversation.append_message(Role.SYSTEM, prompt)
+        self.conversation.append_message(Role.SYSTEM, prompt, should_print=True)
