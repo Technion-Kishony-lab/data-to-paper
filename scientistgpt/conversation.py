@@ -72,7 +72,7 @@ class Conversation(list):
     def append_assistant_message(self, message: str, should_print: bool = True):
         self.append_message(role=Role.ASSISTANT, message=message, should_print=should_print)
 
-    def _get_chatgpt_completion(self):
+    def _get_chatgpt_completion(self, **kwargs) -> dict:
         # We start with the entire conversation, but if we get an exception from openai, we gradually remove old
         # prompts.
         # TODO: this solution is SLOW. Better figure out in advance how many messages are ok to send to openai.
@@ -81,14 +81,15 @@ class Conversation(list):
                 return openai.ChatCompletion.create(
                     model=MODEL_ENGINE,
                     messages=self[starting_index:],
+                    **kwargs,
                 )
             except openai.error.InvalidRequestError:
                 print_red(f'InvalidRequestError, when sending messages {starting_index} - {len(self)}.\n'
                           f'Retrying with messages {starting_index + 1} - {len(self)}')
         raise RuntimeError("Cannot get openai response.")
 
-    def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True) -> str:
-        response = self._get_chatgpt_completion()
+    def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True, **kwargs) -> str:
+        response = self._get_chatgpt_completion(**kwargs)
         response_message = response['choices'][0]['message']['content']
         if should_append:
             self.append_message(Role.ASSISTANT, response_message, should_print)

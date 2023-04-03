@@ -34,17 +34,17 @@ class ReviewerGPT(ConverserGPT):
 
     def _review_plan_last_plan(self, plan: str):
         self._review_iteration += 1
-        prompt = format_str(f"""
+        prompt = format_str("""
         This is the plan for the analysis:
         
-        {plan}
+        {}
         
         Is this plan satisfactory? (yes/no)
         If no, please specify what needs to be changed.
         If yes, reply yes in one word only.
-        """)
+        """).format(plan)
         self.conversation.append_user_message(prompt)
-        response = self.conversation.get_response_from_chatgpt()
+        response = self.conversation.get_response_from_chatgpt(temperature=0, max_tokens=1)
         return response
 
     def review_plan(self, analysis_plan: str):
@@ -54,7 +54,7 @@ class ReviewerGPT(ConverserGPT):
         num_review_attempts = 0
         for review_attempt in range(MAX_REVIEW_ATTEMPTS):
             response = self._review_plan_last_plan(analysis_plan)
-            if response == 'yes':
+            if response.lower().__contains__('yes'):
                 break
             else:
                 prompt = format_str(f"""

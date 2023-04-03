@@ -1,5 +1,5 @@
 from typing import Optional, List
-
+import abc
 from scientistgpt.conversation import Conversation, Role
 from scientistgpt.proceed_retract import ProceedRetract, FuncAndRetractions
 
@@ -20,6 +20,9 @@ class ConverserGPT(ProceedRetract):
         super().__init__(run_plan)
         self.conversation = conversation
 
+    # define initialize abstract method to be implemented by subclasses
+
+    @abc.abstractmethod
     def initialize_conversation(self):
         prompt = f'You are a {self.ROLE}.'
         self.conversation = Conversation()

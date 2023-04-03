@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
 from scientistgpt.exceptions import FailedDebuggingException
-from scientistgpt.conversation import Conversation
+from scientistgpt.conversation import Conversation, Role
 from scientistgpt.utils.text_utils import format_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
 from .reviewer_gpt import ReviewerGPT
@@ -12,6 +12,11 @@ from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT
 
 GPT_SCRIPT_FILENAME = 'gpt_analysis'
+SYSTEM_PROMPT = format_str("""
+        You are a scientist. You are given a data set and a goal. You need to come up with analysis plan.
+        You need to write a efficient short code to perform the analysis plan.
+        You need to interpret the results and write a summary of the results.
+        """)
 MAX_ANALYSIS_REVISIONS = 2
 
 class ScientistGPT(ConverserGPT):
@@ -39,12 +44,22 @@ class ScientistGPT(ConverserGPT):
                  data_description: Optional[str] = None,
                  goal_description: Optional[str] = None,
                  analysis_plan: Optional[str] = None,
+                 results_summary: Optional[str] = None,
+                 output_file_content: Optional[str] = None,
                  ):
         super().__init__(run_plan, conversation)
         self.data_description = data_description
         self.goal_description = goal_description
         self.analysis_plan = analysis_plan
+        self.results_summary = results_summary
+        self.output_file_content = output_file_content
+        self.pre_paper_conversation = None
         self._run_code_attempt = 0
+
+    def initialize_conversation(self):
+        prompt = SYSTEM_PROMPT
+        self.conversation = Conversation()
+        self.conversation.append_message(Role.SYSTEM, prompt, should_print=True)
 
     def add_data_description(self):
         prompt = format_str("""
@@ -70,12 +85,12 @@ class ScientistGPT(ConverserGPT):
         return reply
 
     def request_analysis_code(self):
-        prompt = format_str(f"""
+        prompt = format_str("""
             Write a complete Python code to perform the analysis you suggested.
-            Use only the packages: {SUPPORTED_PACKAGES} to perform the analysis.
-            The output of the code should be a text file named `{self.OUTPUT_FILENAME}`.
+            Use only the packages: {} to perform the analysis.
+            The output of the code should be a text file named `{}`.
             The plots should be saved as image files and not displayed to screen.
-            """)
+            """).format(SUPPORTED_PACKAGES, self.OUTPUT_FILENAME)
         self.conversation.append_user_message(prompt)
 
     def review_analysis_plan(self):
@@ -94,6 +109,7 @@ class ScientistGPT(ConverserGPT):
                                script_file=f"{GPT_SCRIPT_FILENAME}_{self._run_code_attempt}",
                                new_file_for_each_try=True)
         result = debugger.debug_and_run_code()
+        self.output_file_content = result
         self.conversation = debugger.conversation
         print_red("Code ran successfully! Let's see what chatgpt think of the results ...")
 
@@ -107,35 +123,73 @@ class ScientistGPT(ConverserGPT):
             1. I am satisfied with the analysis and the results, I am ready to write a paper about them.
             2. I need to write additional code the code and try again before writing a paper.
             
-            Answer with the number of the option you choose only, e.g. "1".
+            Answer with the number of the option you choose only, i.e "1" or "2".
             """).format(self.OUTPUT_FILENAME, result)
         self.conversation.append_user_message(prompt)
 
-    def get_gpt_response_to_analysis(self):
+    def get_gpt_improvement_to_analysis(self):
         analysis_revises = 0
         while analysis_revises < MAX_ANALYSIS_REVISIONS:
-            result = self.conversation.get_response_from_chatgpt(should_append=False)
+            result = self.conversation.get_response_from_chatgpt()
             if result == '1':
+                print_red('ChatGPT declared "I am satisfied with the analysis and the results, I am ready to write a paper about them."')
                 break
 
             if result == '2':
+                print_red(
+                    'ChatGPT declared "I need to write additional code the code and try again before writing a paper."')
                 prompt = format_str("""
-                Write additional code to improve the analysis and try again. write any additional results to the output file.
+                Write additional code to improve the analysis and try again. Append any additional results to the output file.
                 """)
                 self.conversation.append_user_message(prompt)
                 self.conversation.get_response_from_chatgpt()
                 self.run_gpt_code_and_add_output_to_conversation()
             analysis_revises += 1
 
-def write_paper(self):
-    # TODO: take data description, goal description, analysis plan and code and results and create a paper
-    prompt = format_str("""
-    Write the paper, write abstract, introduction, methods, results, discussion and acknowledgments.
-    In addition you are required to state where to add the figure of you created during the analysis by using
-    FIGURE@#@ name_of_figure @#@ where name_of_figure is the name of the figure you want to enter.
-    """)
-    self.conversation.append_user_message(prompt)
-    self.conversation.get_response_from_chatgpt()
+    def get_gpt_response_to_analysis(self):
+        # ask chatgpt to summarize the results
+        prompt = format_str("""
+            The results file contains the following content:
+            ```
+            {}
+            ```
+            Summarize the results of the analysis. Include comments about plots you generated.
+            """).format(self.output_file_content)
+        self.conversation.append_user_message(prompt)
+        self.results_summary = self.conversation.get_response_from_chatgpt()
+
+    def prepare_pre_paper_conversation(self):
+        print_red('Preparing the pre-paper conversation ...')
+        paper_conversation = Conversation()
+        paper_conversation.append_message(role=Role.SYSTEM, message='You are a helpful scientist that able to write scientific papers.')
+        paper_conversation.append_user_message('This is the data description\n\n' + self.data_description)
+        paper_conversation.append_assistant_message('acknowledged')
+        paper_conversation.append_user_message('This is the research goal description\n\n' + self.goal_description)
+        paper_conversation.append_assistant_message('acknowledged')
+        paper_conversation.append_user_message('This is the analysis plan description\n\n' + self.analysis_plan)
+        paper_conversation.append_assistant_message('acknowledged')
+        paper_conversation.append_user_message('This is the analysis results description\n\n' + self.results_summary)
+        paper_conversation.append_assistant_message('acknowledged')
+        print_red('Pre-paper conversation is ready! Let\'s write the paper ...')
+        self.pre_paper_conversation = paper_conversation
+
+
+    def write_paper(self):
+        prompt = format_str("""
+        Write paper - write abstract, introduction, methods, results, discussion and acknowledgments.
+        Use markdown to format the paper.
+        In addition you are required to state where to enter the figure of you created during the analysis by using
+        FIGURE@#@ name_of_figure @#@ where name_of_figure is the name of the figure you want to enter.
+        Add references to the paper if applicable.
+        """)
+        self.pre_paper_conversation.append_user_message(prompt)
+        self.pre_paper_conversation.get_response_from_chatgpt()
+        paper = self.pre_paper_conversation.get_last_response()
+        self.conversation.append_user_message(prompt)
+        self.conversation.append_assistant_message(paper)
+        # save the paper to file
+        with open('paper.txt', 'w') as f:
+            f.write(paper)
 
 
 upon_code_failure = [1, 1, 2, 1, 1]
@@ -154,5 +208,6 @@ ScientistGPT_ANALYSIS_PLAN: RunPlan = [
     FuncAndRetractions('request_analysis_code', (), []),
     FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', FailedDebuggingException, upon_code_failure),
     FuncAndRetractions('get_gpt_response_to_analysis', (), []),
-
+    FuncAndRetractions('prepare_pre_paper_conversation', (), []),
+    FuncAndRetractions('write_paper', (), []),
 ]
