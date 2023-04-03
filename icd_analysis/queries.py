@@ -32,13 +32,15 @@ ROW_ID, SUBJECT_ID, GENDER, DOB, DOD, DOD_HOSP, DOD_SSN, EXPIRE_FLAG
 632,669,"M",2121-10-20 00:00:00,2182-07-31 00:00:00,2182-07-31 00:00:00,2182-07-31 00:00:00,1
 633,670,"M",2080-09-30 00:00:00,2161-02-15 00:00:00,2161-02-15 00:00:00,2161-02-22 00:00:00,1
 ```
+
+```
+
 """
 
 goal_description = """
 I am interested identifying diagnostic codes that have different "clinical meaning" for males vs females.  
 In particular, I would like to find codes that have gender-dependent context (GDC codes), namely diagnostic codes that 
 are used in different clinical context in men versus women. 
-For example, a code X is a GDC code if it tends to appear in proximity to code Y in female and in proximity
- to a different code Z in males. 
-Note that a code can be GDC, despite being used in similar frequencies in males and in females. 
+For example, a code X is a GDC code if it tends to appear in proximity to code Y in female and in proximity to a different code Z in males.  
+Note that a code can be GDC, despite being used in similar frequencies in males and in females.
 """

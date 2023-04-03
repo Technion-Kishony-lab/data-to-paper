@@ -13,7 +13,7 @@ Set folders
 """
 DATA_FOLDER = 'data_for_analysis'
 MESSAGES_FILENAME = 'openai_exchange.txt'
-OUTPUTS_FOLDER = 'run1'
+OUTPUTS_FOLDER = 'run3'
 
 # Get absolute paths:
 absolute_output_path = Path(OUTPUTS_FOLDER).absolute()
@@ -52,4 +52,12 @@ for file in glob.glob(str(absolute_data_path / (GPT_SCRIPT_FILENAME + '*.txt')))
 
 # Move all gpt analysis scripts to output folder:
 for file in glob.glob(str(Path(module_dir) / (GPT_SCRIPT_FILENAME + '*.py'))):
+    shutil.move(file, absolute_output_path)
+
+# Move all gpt generated plots to output folder:
+for file in glob.glob(str(absolute_data_path / '*.png')):
+    shutil.move(file, absolute_output_path)
+
+# Move gpt generated txt files to output folder:
+for file in glob.glob(str(absolute_data_path / '*.txt')):
     shutil.move(file, absolute_output_path)

@@ -89,12 +89,12 @@ class DebuggerGPT(ConverserGPT):
             """)
         self.conversation.append_user_message(prompt)
 
-    def _specify_code_too_long(self):
-        prompt = format_str("""
-            I couldn't extract the code from your last response because it was not complete.
-            Please rewrite the complete code again in a shorter version that will fit one response. 
-            """)
-        self.conversation.append_user_message(prompt)
+    # def _specify_code_cant_be_extracted(self):
+    #     prompt = format_str("""
+    #         I wasn't able to run the code.
+    #         Please rewrite the complete code again.
+    #         """)
+    #     self.conversation.append_user_message(prompt)
 
 
     def debug_and_run_code(self):
@@ -115,16 +115,9 @@ class DebuggerGPT(ConverserGPT):
                 try:
                     result = self._run_code_from_last_response()
                 except FailedExtractingCode:
-                    # no code, or multiple code snippets, were found.
-                    # remove the last gpt response to re-generate:
-                    #
-                    # TODO: I think it is better to just regenerate response:
-                    #  self.conversation.delete_last_response()
-                    #  This way, we don't get the conversation longer.
-                    #  I think these failures are not due to long code - it is just that chatgpt sometimes
-                    #  fails in the middle even in short codes.
+                    self.conversation.delete_last_response()
                     print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...')
-                    self._specify_code_too_long()
+                    self.conversation.get_response_from_chatgpt()
                 except FailedRunningCode as e:
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support
