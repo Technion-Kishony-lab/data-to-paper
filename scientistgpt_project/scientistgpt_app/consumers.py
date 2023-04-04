@@ -1,19 +1,17 @@
 import json
-import asyncio
 import os
 import shutil
 import glob
-import sys
 from pathlib import Path
 
 from scientistgpt.dynamic_code import module_dir
 from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME, ScientistGPT, ScientistGPT_ANALYSIS_PLAN
 
 
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
 
 
-class ScientistGPTConsumer(AsyncWebsocketConsumer):
+class ScientistGPTConsumer(WebsocketConsumer):
     def __init__(self):
         super().__init__()
         self.scientist_gpt = None
@@ -24,10 +22,10 @@ class ScientistGPTConsumer(AsyncWebsocketConsumer):
         self.absolute_home_path = Path().absolute()
         self.absolute_output_path = None
 
-    async def handle_message(self, role, message):
-        await self.send(text_data=json.dumps({"role": role, "message": message}))
+    def handle_message(self, role, message):
+        self.send(text_data=json.dumps({"role": role, "message": message}))
 
-    async def connect(self):
+    def connect(self):
         self.experiment_id = self.scope['url_route']['kwargs']['experiment_id']
 
 
@@ -46,10 +44,10 @@ class ScientistGPTConsumer(AsyncWebsocketConsumer):
 
         self.scientist_gpt = ScientistGPT(run_plan=ScientistGPT_ANALYSIS_PLAN, message_callback=self.handle_message)
 
-        await self.accept()
+        self.accept()
 
 
-    async def receive(self, text_data):
+    def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message_type = text_data_json['type']
 
@@ -60,11 +58,11 @@ class ScientistGPTConsumer(AsyncWebsocketConsumer):
             # Update self.scientist_gpt with the new data_description and goal_description
             self.scientist_gpt.data_description = data_description
             self.scientist_gpt.goal_description = goal_description
-            await self.start_run_all()
+            self.start_run_all()
 
-    async def start_run_all(self):
+    def start_run_all(self):
 
-        await self.scientist_gpt.run_all(annotate=True)
+        self.scientist_gpt.run_all(annotate=True)
 
         os.chdir(self.absolute_home_path)
 
@@ -90,5 +88,5 @@ class ScientistGPTConsumer(AsyncWebsocketConsumer):
         for file in glob.glob(str(self.absolute_data_path / '*.txt')):
             shutil.move(file, self.absolute_output_path)
 
-    async def disconnect(self, close_code):
+    def disconnect(self, close_code):
         pass

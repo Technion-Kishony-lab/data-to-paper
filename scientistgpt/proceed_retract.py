@@ -1,8 +1,6 @@
 import copy
 from typing import List, NamedTuple, Dict, Type, Union, Tuple, Any, Optional, Callable
 
-from channels.generic.websocket import AsyncWebsocketConsumer
-
 from scientistgpt.exceptions import FailedRunningStep
 from scientistgpt.utils.text_utils import print_red
 
@@ -97,6 +95,7 @@ class ProceedRetract:
         self.save_current_state_by_step()
 
     def get_copy_of_current_state(self):
+        # print([(attr, getattr(self, attr)) for attr in self.STATE_ATTRS])
         return {attr: copy.deepcopy(getattr(self, attr)) for attr in self.STATE_ATTRS}
 
     def save_current_state_by_step(self):
@@ -122,7 +121,7 @@ class ProceedRetract:
         for attr, value in new_state.items():
             setattr(self, attr, copy.deepcopy(value))
 
-    async def run_all(self, annotate: bool = False):
+    def run_all(self, annotate: bool = False):
         while self.current_step < self.num_steps:
             self.run_next_step(annotate)
 

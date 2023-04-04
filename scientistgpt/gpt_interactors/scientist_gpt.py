@@ -102,7 +102,7 @@ class ScientistGPT(ConverserGPT):
         self.analysis_plan = result
         # replace the last message with the updated plan
         self.conversation.delete_last_response()
-        self.conversation.append_assistant_message(self.analysis_plan)
+        self.conversation.append_assistant_message(self.analysis_plan, should_print=False)
 
     def run_gpt_code_and_add_output_to_conversation(self):
         print_red('Transfer control to DebuggerGPT to debug and get a functional code ...')

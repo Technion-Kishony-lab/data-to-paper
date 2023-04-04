@@ -1,3 +1,4 @@
+import copy
 import re
 from enum import Enum
 from typing import NamedTuple, Optional, Callable
@@ -51,6 +52,13 @@ class Conversation(list):
     def __init__(self, message_callback: Optional[Callable] = None, **kwargs):
         super().__init__(**kwargs)
         self.message_callback = message_callback
+
+    def __deepcopy__(self, memo):
+        new_instance = Conversation()
+        for message in self:
+            new_instance.append_message(message['role'], message['content'], should_print=False)
+        new_instance.message_callback = self.message_callback
+        return new_instance
 
     def print_message(self, role: Role, message: str, should_print: bool = True):
         if not should_print:
