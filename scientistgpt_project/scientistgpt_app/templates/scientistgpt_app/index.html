@@ -2,65 +2,165 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Chat Room</title>
+    <title>ScientistGPT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #2c2c2c;
+            color: #f1f1f1;
+        }
+        h1 {
+            font-size: 2rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin: 20px 0 10px 0;
+        }
+        textarea {
+            font-size: 20px;
+            width: 100%;
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            flex-grow: 1;
         }
         .data-upload {
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             margin-bottom: 20px;
         }
-        .data-upload input[type="text"] {
+        .data-upload label {
+            display: block;
             margin-bottom: 10px;
         }
+        .data-upload input[type="file"] {
+            display: inline-block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #0f9d58;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .data-upload textarea {
+            resize: vertical;
+            min-height: 100px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #404040;
+            color: #f1f1f1;
+            border: none;
+        }
+        .data-upload button {
+            background-color: #0f9d58;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .data-upload button:hover {
+            background-color: #0a773e;
+        }
         .chat-window {
-            border: 1px solid #ccc;
+            border: 1px solid #444;
             border-radius: 5px;
             padding: 10px;
             width: 100%;
-            max-width: 600px;
-            height: 300px;
+            height: 100%;
             overflow-y: scroll;
+            background-color: #333;
         }
         .chat-message {
             margin-bottom: 10px;
-            font-size: 14px;
+            font-size: 20px;
+            padding: 10px;
+            border-radius: 5px;
         }
         .system {
             color: #fcb000;
-            font-weight: bold;
+            background-color: #5a5a5a;
         }
         .assistant {
             color: #1e90ff;
-            font-weight: bold;
+            background-color: #5a5a5a;
         }
         .user {
             color: #32cd32;
-            font-weight: bold;
+            background-color: #5a5a5a;
         }
         .notification {
             color: #fc0000;
-            font-weight: bold;
+        }
+        .code {
+            display: inline-block;
+            font-family: monospace;
+            background-color: #444;
+            padding: 3px;
+            border-radius: 3px;
+        }
+        .instructions {
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
+    <h1>ScientistGPT</h1>
     <div class="container">
+        <div class="instructions">
+            <h2>How to Use</h2>
+            <ol>
+                <li>Upload your data as a zip file.</li>
+                <li>Describe the data in a format similar to the example below:</li>
+                <p>
+                (1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient.
+                Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical diagnostic.
+
+                The file has 4 columns:
+                <ul>
+                    <li>#1 row ID (row_id)</li>
+                    <li>#2 Subject ID (subject_id)</li>
+                    <li>#3 Hospital admission ID (hadm_id)</li>
+                    <li>#4 a sequential number of the diagnostic for each subject (seq_num)</li>
+                    <li>#5 The diagnostic ICD9 code, formatted without dots (icd9_code)</li>
+                </ul>
+                </p>
+                Head of the dataset as example:
+                <pre>
+                ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
+                1297,109,172335,1,"40301"
+                1298,109,172335,2,"486"
+                1299,109,172335,3,"58281"
+                </pre>
+                <li>Describe the research question and the final goal of the analysis as precisely as you can.</li>
+            </ol>
+        </div>
         <div class="data-upload">
             <input id="data-file" type="file" accept=".zip">
-            <input id="data-description" type="text" placeholder="Data Description">
-            <input id="goal-description" type="text" placeholder="Goal Description">
+            <textarea id="data-description" placeholder="Data Description"></textarea>
+            <textarea id="goal-description" placeholder="Goal Description"></textarea>
             <button id="start-button">Start</button>
         </div>
         <div class="chat-window" id="chat-window"></div>
@@ -80,9 +180,9 @@
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             const chatWindow = document.querySelector('#chat-window');
-            const message = document.createElement('div');
-            message.classList.add('chat-message');
-            message.innerHTML = '<span class="' + data.role + '">' + data.role + ':</span> ' + data.message;
+                        const message = document.createElement('div');
+            message.classList.add('chat-message', data.role);
+            message.innerHTML = '<span class="' + data.role + '">' + data.role + ':</span> ' + data.message.replace(/`([^`]+)`/g, '<span class="code">$1</span>').replace(/\n/g, '<br>');
             chatWindow.appendChild(message);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         };
@@ -91,17 +191,17 @@
             console.error('Chat socket closed unexpectedly');
         };
         const startButton = document.querySelector("#start-button");
-    startButton.addEventListener("click", () => {
-        const dataDescription = document.querySelector("#data-description").value;
-        const goalDescription = document.querySelector("#goal-description").value;
+        startButton.addEventListener("click", () => {
+            const dataDescription = document.querySelector("#data-description").value;
+            const goalDescription = document.querySelector("#goal-description").value;
 
-        // Send the 'start_run_all' message to the WebSocket server
-        chatSocket.send(JSON.stringify({
-            type: "start_run_all",
-            data_description: dataDescription,
-            goal_description: goalDescription
-        }));
-    });
+            // Send the 'start_run_all' message to the WebSocket server
+            chatSocket.send(JSON.stringify({
+                type: "start_run_all",
+                data_description: dataDescription,
+                goal_description: goalDescription
+            }));
+        });
     </script>
 </body>
 </html>

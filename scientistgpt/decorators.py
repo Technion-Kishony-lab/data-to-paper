@@ -1,5 +1,6 @@
 import functools
 import signal
+import threading
 
 
 def confirm_output(prompt='DO YOU APPROVE?'):
@@ -35,27 +36,62 @@ def confirm_output(prompt='DO YOU APPROVE?'):
     return decorator_confirm_output
 
 
+# def timeout(seconds):
+#     """
+#     Decorator to terminate a function if runtime is too long.
+#     """
+#     def decorator(func):
+#         def wrapper(*args, **kwargs):
+#             def signal_handler(signum, frame):
+#                 raise TimeoutError(f"Function {func.__name__} timed out after {seconds} seconds")
+#
+#             # Set the signal handler and alarm for the specified number of seconds
+#             signal.signal(signal.SIGALRM, signal_handler)
+#             signal.alarm(seconds)
+#
+#             try:
+#                 # Call the function with the provided arguments
+#                 result = func(*args, **kwargs)
+#             finally:
+#                 # Cancel the alarm when the function completes
+#                 signal.alarm(0)
+#
+#             return result
+#
+#         return wrapper
+#
+#     return decorator
+
+
+class TimeoutError(Exception):
+    pass
+
 def timeout(seconds):
-    """
-    Decorator to terminate a function if runtime is too long.
-    """
     def decorator(func):
         def wrapper(*args, **kwargs):
-            def signal_handler(signum, frame):
+            result_container = {'result': None}
+            exception_container = {'exception': None}
+            stop_event = threading.Event()
+
+            def target():
+                try:
+                    result_container['result'] = func(*args, **kwargs)
+                except Exception as e:
+                    exception_container['exception'] = e
+                finally:
+                    stop_event.set()
+
+            worker_thread = threading.Thread(target=target)
+            worker_thread.start()
+            worker_thread.join(timeout=seconds)
+
+            if not stop_event.is_set():
                 raise TimeoutError(f"Function {func.__name__} timed out after {seconds} seconds")
 
-            # Set the signal handler and alarm for the specified number of seconds
-            signal.signal(signal.SIGALRM, signal_handler)
-            signal.alarm(seconds)
+            if exception_container['exception'] is not None:
+                raise exception_container['exception']
 
-            try:
-                # Call the function with the provided arguments
-                result = func(*args, **kwargs)
-            finally:
-                # Cancel the alarm when the function completes
-                signal.alarm(0)
-
-            return result
+            return result_container['result']
 
         return wrapper
 
