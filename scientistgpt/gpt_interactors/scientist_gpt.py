@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
 from scientistgpt.exceptions import FailedDebuggingException
@@ -46,6 +46,7 @@ class ScientistGPT(ConverserGPT):
                  analysis_plan: Optional[str] = None,
                  results_summary: Optional[str] = None,
                  output_file_content: Optional[str] = None,
+                 message_callback: Optional[Callable] = None
                  ):
         super().__init__(run_plan, conversation)
         self.data_description = data_description
@@ -55,10 +56,11 @@ class ScientistGPT(ConverserGPT):
         self.output_file_content = output_file_content
         self.pre_paper_conversation = None
         self._run_code_attempt = 0
+        self.message_callback = message_callback
 
     def initialize_conversation(self):
         prompt = SYSTEM_PROMPT
-        self.conversation = Conversation()
+        self.conversation = Conversation(self.message_callback)
         self.conversation.append_message(Role.SYSTEM, prompt, should_print=True)
 
     def add_data_description(self):

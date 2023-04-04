@@ -20,8 +20,6 @@ class ConverserGPT(ProceedRetract):
         super().__init__(run_plan)
         self.conversation = conversation
 
-    # define initialize abstract method to be implemented by subclasses
-
     @abc.abstractmethod
     def initialize_conversation(self):
         prompt = f'You are a {self.ROLE}.'

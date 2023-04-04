@@ -1,53 +1,107 @@
-{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            const socket = new WebSocket('ws://' + window.location.host + '/ws/scientistgpt/');
-
-            socket.onmessage = function (e) {
-                const data = JSON.parse(e.data);
-                const step_status = data.step_status;
-                const conversation = data.conversation;
-
-                // Update the conversation div with the latest conversation
-                $('#conversation').html(conversation.replace(/\n/g, "<br>"));
-
-                if (step_status === 'failure') {
-                    // Display an error message or some indicator when a step fails
-                }
-            };
-
-            socket.onclose = function (e) {
-                console.error('Chat socket closed unexpectedly');
-            };
-
-            $('#experiment-form').on('submit', function (event) {
-                event.preventDefault();
-                const data_description = $('#data-description').val();
-                const goal_description = $('#goal-description').val();
-
-                socket.send(JSON.stringify({
-                    'data_description': data_description,
-                    'goal_description': goal_description
-                }));
-            });
-        });
-    </script>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .data-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .data-upload input[type="text"] {
+            margin-bottom: 10px;
+        }
+        .chat-window {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .system {
+            color: #fcb000;
+            font-weight: bold;
+        }
+        .assistant {
+            color: #1e90ff;
+            font-weight: bold;
+        }
+        .user {
+            color: #32cd32;
+            font-weight: bold;
+        }
+        .notification {
+            color: #fc0000;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Scientist GPT</h1>
-    <form id="experiment-form">
-        <label for="data-description">Data Description:</label>
-        <textarea id="data-description" rows="4" cols="50"></textarea>
-        <br>
-        <label for="goal-description">Goal Description:</label>
-        <textarea id="goal-description" rows="4" cols="50"></textarea>
-        <br>
-        <button type="submit">Run Experiment</button>
-    </form>
-    <div id="conversation"></div>
+    <div class="container">
+        <div class="data-upload">
+            <input id="data-file" type="file" accept=".zip">
+            <input id="data-description" type="text" placeholder="Data Description">
+            <input id="goal-description" type="text" placeholder="Goal Description">
+            <button id="start-button">Start</button>
+        </div>
+        <div class="chat-window" id="chat-window"></div>
+    </div>
+    {{ experiment_id|json_script:"experiment-id" }}
+    <script>
+        const experimentId = JSON.parse(document.getElementById('experiment-id').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/scientistgpt/'
+            + experimentId
+            + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const chatWindow = document.querySelector('#chat-window');
+            const message = document.createElement('div');
+            message.classList.add('chat-message');
+            message.innerHTML = '<span class="' + data.role + '">' + data.role + ':</span> ' + data.message;
+            chatWindow.appendChild(message);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+        const startButton = document.querySelector("#start-button");
+    startButton.addEventListener("click", () => {
+        const dataDescription = document.querySelector("#data-description").value;
+        const goalDescription = document.querySelector("#goal-description").value;
+
+        // Send the 'start_run_all' message to the WebSocket server
+        chatSocket.send(JSON.stringify({
+            type: "start_run_all",
+            data_description: dataDescription,
+            goal_description: goalDescription
+        }));
+    });
+    </script>
 </body>
 </html>
