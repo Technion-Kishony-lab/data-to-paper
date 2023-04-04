@@ -1,13 +1,12 @@
 import re
 from enum import Enum
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Callable
 
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 from scientistgpt.utils.text_utils import print_wrapped_text_with_code_blocks, print_red
 
 import openai
 import colorama
-
 
 # Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY
@@ -25,7 +24,6 @@ class ResponseStyle(NamedTuple):
 USER_STYLE = ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-')
 ASSISTANT_STYLE = ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '=')
 TEXT_WIDTH = 120
-
 
 # Use unique patterns, not likely to occur in conversation:
 SAVE_START = '>>>>> '
@@ -50,8 +48,11 @@ class Conversation(list):
     4. save/load messages as text file.
     """
 
-    @staticmethod
-    def print_message(role: Role, message: str, should_print: bool = True):
+    def __init__(self, message_callback: Optional[Callable] = None, **kwargs):
+        super().__init__(**kwargs)
+        self.message_callback = message_callback
+
+    def print_message(self, role: Role, message: str, should_print: bool = True):
         if not should_print:
             return
         style = ASSISTANT_STYLE if role is Role.ASSISTANT else USER_STYLE
@@ -61,6 +62,9 @@ class Conversation(list):
                                             code_color=style.code_color, width=TEXT_WIDTH)
         print(style.color + sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
         print()
+
+        if self.message_callback:
+            self.message_callback(role, message)
 
     def append_message(self, role: Role, message: str, should_print: bool = False):
         self.append({'role': role, 'content': message})

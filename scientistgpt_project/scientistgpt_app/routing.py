@@ -1,7 +1,7 @@
-from django.urls import path
+from django.urls import re_path
 
 from . import consumers
 
 websocket_urlpatterns = [
-    path("ws/scientistgpt/", consumers.ScientistGPTConsumer.as_asgi()),
+    re_path(r"ws/scientistgpt/(?P<experiment_id>\w+)/$", consumers.ScientistGPTConsumer.as_asgi()),
 ]

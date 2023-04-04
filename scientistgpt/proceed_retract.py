@@ -1,6 +1,8 @@
 import copy
 from typing import List, NamedTuple, Dict, Type, Union, Tuple, Any, Optional, Callable
 
+from channels.generic.websocket import AsyncWebsocketConsumer
+
 from scientistgpt.exceptions import FailedRunningStep
 from scientistgpt.utils.text_utils import print_red
 
@@ -78,13 +80,12 @@ class ProceedRetract:
 
     STATE_ATTRS: List[str] = []
 
-    def __init__(self, execution_plan: RunPlan = None, callback: Optional[Callable] = None):
+    def __init__(self, execution_plan: RunPlan = None):
         self.saved_states_by_name: Dict[str: State] = {}
         self.execution_plan = execution_plan or []
         self.saved_states_by_step: List[State] = []
         self.current_step: int = -1
         self._num_failures: List[int] = [0] * self.num_steps  # the number of time each step failed since last success.
-        self.callback = callback
 
     @property
     def num_steps(self):
@@ -121,16 +122,9 @@ class ProceedRetract:
         for attr, value in new_state.items():
             setattr(self, attr, copy.deepcopy(value))
 
-    def run_all(self, annotate: bool = False):
+    async def run_all(self, annotate: bool = False):
         while self.current_step < self.num_steps:
-            try:
-                self.run_next_step(annotate)
-                step_status = "success"
-            except Exception as e:
-                step_status = str(e)
-
-            if self.callback:
-                self.callback(self, step_status)
+            self.run_next_step(annotate)
 
     def run_next_step(self, annotate: bool = False):
         """

@@ -3,5 +3,6 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("ws/scientistgpt/", views.ScientistGPT, name="scientistgpt"),
+    # in the tutorial, this is the example: path("<str:room_name>/", views.room, name="room"),
+    path("<str:experiment_id>/", views.index, name="scientistgpt"),
 ]
