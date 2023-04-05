@@ -124,6 +124,13 @@
             margin-bottom: 20px;
             line-height: 1.5;
         }
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -158,7 +165,12 @@
             </ol>
         </div>
         <div class="data-upload">
-            <input id="data-file" type="file" accept=".zip">
+            <form action="{% url 'upload_data' experiment_id %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input id="data-file" type="file" accept=".zip" name="data_file">
+                <button id="submit" type="submit">Upload Data</button>
+            </form>
+            <div id="file-upload-status"></div>
             <textarea id="data-description" placeholder="Data Description"></textarea>
             <textarea id="goal-description" placeholder="Goal Description"></textarea>
             <button id="start-button">Start</button>
@@ -168,6 +180,29 @@
     {{ experiment_id|json_script:"experiment-id" }}
     <script>
         const experimentId = JSON.parse(document.getElementById('experiment-id').textContent);
+
+        const fileUpload = JSON.parse(document.getElementById('upload-data').textContent);
+        const fileUploadStatus = document.getElementById("file-upload-status");
+
+        if (fileUpload === true) {
+            fileUploadStatus.textContent = "File uploaded successfully.";
+            fileUploadStatus.classList.add("success");
+        } else if (fileUpload === false) {
+            fileUploadStatus.textContent = "There was a problem uploading the file. Please check the file format and size.";
+            fileUploadStatus.classList.add("error");
+        }
+
+        var uploadForm = document.querySelector("form");
+
+        uploadForm.addEventListener("submit", function (event) {
+            var dataFile = document.getElementById("data-file");
+
+            if (dataFile.files[0].size > 52428800) {
+                alert("File is too big, please upload a file smaller than 50MiB");
+                dataFile.value = "";
+                event.preventDefault(); // Prevent form submission
+            }
+        });
 
         const chatSocket = new WebSocket(
             'ws://'
@@ -191,9 +226,11 @@
             console.error('Chat socket closed unexpectedly');
         };
         const startButton = document.querySelector("#start-button");
+        {#const dataUploadForm = document.querySelector("#data-upload-form");#}
         startButton.addEventListener("click", () => {
             const dataDescription = document.querySelector("#data-description").value;
             const goalDescription = document.querySelector("#goal-description").value;
+            {#dataUploadForm.submit();#}
 
             // Send the 'start_run_all' message to the WebSocket server
             chatSocket.send(JSON.stringify({
