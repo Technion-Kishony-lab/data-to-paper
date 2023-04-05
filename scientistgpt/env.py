@@ -3,3 +3,5 @@ SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'seaborn', 'skle
 OPENAI_API_KEY = "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"
 
 MODEL_ENGINE = "gpt-3.5-turbo"
+
+TEXT_WIDTH = 120
