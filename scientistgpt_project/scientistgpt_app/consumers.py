@@ -6,8 +6,7 @@ from pathlib import Path
 
 from scientistgpt.dynamic_code import module_dir
 from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME, ScientistGPT, ScientistGPT_ANALYSIS_PLAN
-
-
+from django.conf import settings
 from channels.generic.websocket import WebsocketConsumer
 
 
@@ -16,11 +15,9 @@ class ScientistGPTConsumer(WebsocketConsumer):
         super().__init__()
         self.scientist_gpt = None
         self.experiment_id = None
-        self.data_folder = 'data_for_analysis'
+        self.experiment_folder = None
+        self.experiment_data_folder = None
         self.message_filename = 'openai_exchange.txt'
-        self.absolute_data_path = Path(self.data_folder).absolute()
-        self.absolute_home_path = Path().absolute()
-        self.absolute_output_path = None
 
     def handle_message(self, role, message):
         self.send(text_data=json.dumps({"role": role, "message": message}))
@@ -28,24 +25,21 @@ class ScientistGPTConsumer(WebsocketConsumer):
     def connect(self):
         self.experiment_id = self.scope['url_route']['kwargs']['experiment_id']
 
-
-        """
-        instantiate ScientistGPT
-        """
-        OUTPUTS_FOLDER = self.experiment_id
-        self.absolute_output_path = Path(OUTPUTS_FOLDER).absolute()
-        # Create empty output folder (delete if exists):
-        if os.path.exists(self.absolute_output_path):
-            shutil.rmtree(self.absolute_output_path)
-        os.makedirs(self.absolute_output_path)
+        # Create experiment folder in experiment folder:
+        self.experiment_folder = os.path.join(settings.BASE_DIR, self.experiment_id)
+        self.experiment_data_folder = os.path.join(self.experiment_folder, 'data')
+        if not os.path.exists(self.experiment_folder):
+            os.makedirs(self.experiment_folder)
+            # copy default data folder to experiment folder
+            default_data_folder = os.path.join(settings.BASE_DIR, 'default_data')
+            shutil.copytree(default_data_folder, self.experiment_data_folder)
 
         # we run in the data folder, so that chatgpt finds out files:
-        os.chdir(self.absolute_data_path)
+        os.chdir(os.path.join(self.experiment_folder, 'data'))
 
         self.scientist_gpt = ScientistGPT(run_plan=ScientistGPT_ANALYSIS_PLAN, message_callback=self.handle_message)
 
         self.accept()
-
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -64,29 +58,29 @@ class ScientistGPTConsumer(WebsocketConsumer):
 
         self.scientist_gpt.run_all(annotate=True)
 
-        os.chdir(self.absolute_home_path)
+        os.chdir(self.experiment_folder)
 
         """
         Save results
         """
         # Save conversation to text file:
-        self.scientist_gpt.conversation.save(self.absolute_output_path / self.message_filename)
+        self.scientist_gpt.conversation.save(self.experiment_folder / self.message_filename)
 
         # Move all gpt analysis result files to output folder:
-        for file in glob.glob(str(self.absolute_data_path / (GPT_SCRIPT_FILENAME + '*.txt'))):
-            shutil.move(file, self.absolute_output_path)
+        for file in glob.glob(str(self.experiment_data_folder / (GPT_SCRIPT_FILENAME + '*.txt'))):
+            shutil.move(file, self.experiment_folder)
 
         # Move all gpt analysis scripts to output folder:
         for file in glob.glob(str(Path(module_dir) / (GPT_SCRIPT_FILENAME + '*.py'))):
-            shutil.move(file, self.absolute_output_path)
+            shutil.move(file, self.experiment_folder)
 
-        # Move all gpt generated plots to output folder:
-        for file in glob.glob(str(self.absolute_data_path / '*.png')):
-            shutil.move(file, self.absolute_output_path)
+        # # Move all gpt generated plots to output folder:
+        for file in glob.glob(str(self.experiment_data_folder / '*.png')):
+            shutil.move(file, self.experiment_folder)
 
         # Move gpt generated txt files to output folder:
-        for file in glob.glob(str(self.absolute_data_path / '*.txt')):
-            shutil.move(file, self.absolute_output_path)
+        for file in glob.glob(str(self.experiment_data_folder / '*.txt')):
+            shutil.move(file, self.experiment_folder)
 
     def disconnect(self, close_code):
         pass
