@@ -112,7 +112,7 @@ class ResetToTag(Action):
         del conversation[index:]
 
 
-class RegenerateLastResponse(Action):
+class RegenerateLastResponse(AddChatgptResponse):
     """
     Delete the last chatgpt response and regenerate.
     """
@@ -120,8 +120,8 @@ class RegenerateLastResponse(Action):
         return 'Regenerating chatgpt response.'
 
     def apply(self, conversation: Conversation):
-        # TODO: need to implement
-        pass
+        conversation.delete_last_response()
+        super().apply(conversation)
 
 
 @dataclass(frozen=True)

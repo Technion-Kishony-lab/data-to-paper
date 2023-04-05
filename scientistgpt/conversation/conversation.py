@@ -19,7 +19,7 @@ class Conversation(List[Message]):
     2. print colored-styled messages.
     """
 
-    def get_chosen_messages(self, removed_messages: list[int] = None) -> List[Tuple[int, Message]]:
+    def get_chosen_indices_and_messages(self, removed_messages: list[int] = None) -> List[Tuple[int, Message]]:
         """
         Return sub-list of messages.
         Remove messages indicated in `removed_messages` as well as commenter messages.
