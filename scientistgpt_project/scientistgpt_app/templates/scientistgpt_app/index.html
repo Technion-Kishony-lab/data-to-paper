@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    {% load static %}
     <meta charset="utf-8"/>
     <title>ScientistGPT</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
@@ -41,6 +42,7 @@
         }
 
         .data-upload {
+            font-family: 'Roboto', Arial, sans-serif;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -100,17 +102,52 @@
             border: 1px solid #444;
             border-radius: 5px;
             padding: 10px;
-            width: 100%;
+            width: 90%;
             height: 100%;
             overflow-y: scroll;
             background-color: #333;
         }
 
         .chat-message {
+            font-family: 'Roboto', Arial, sans-serif;
             margin-bottom: 10px;
             font-size: 20px;
             padding: 10px;
             border-radius: 5px;
+        }
+
+        .chat-message .User {
+            font-weight: bold;
+        }
+
+        .chat-message .System {
+            font-weight: bold;
+        }
+
+        .chat-message .Assistant {
+            font-weight: bold;
+        }
+
+        .role-icon::before {
+            content: "";
+            display: inline-block;
+            width: 20px; /* Adjust the width as needed */
+            height: 20px; /* Adjust the height as needed */
+            background-size: contain;
+            background-repeat: no-repeat;
+            margin-right: 5px;
+        }
+
+        .icon-User::before {
+            background-image: url('{% static "user.svg" %}');
+        }
+
+        .icon-System::before {
+            background-image: url('{% static "system.svg" %}');
+        }
+
+        .icon-Assistant::before {
+            background-image: url('{% static "assistant.webp" %}');
         }
 
         .system {
@@ -160,6 +197,7 @@
         }
 
         .success {
+            font-family: 'Roboto', Arial, sans-serif;
             font-size: 20px;
             color: green;
             margin-left: 20px; /* Add margin to the left of the message */
@@ -167,6 +205,7 @@
         }
 
         .error {
+            font-family: 'Roboto', Arial, sans-serif;
             font-size: 20px;
             color: red;
             margin-left: 20px; /* Add margin to the left of the message */
@@ -284,39 +323,81 @@
         + '/'
     );
 
-chatSocket.onmessage = function (e) {
-    const data = JSON.parse(e.data);
-    const chatWindow = document.querySelector('#chat-window');
-    const message = document.createElement('div');
-    message.classList.add('chat-message', data.role);
-    message.innerHTML = `<span class="${data.role}">${data.role}:</span> `;
+    async function typeMessage(element, messageText, delay) {
+        const regex = /<[^>]*>/;
+        let isTag = false;
+        let tag = '';
 
-    // Extract code snippets and other text parts
-    const parts = data.message.split(/(```[^```]+```|`[^`]+`)/g);
-
-    parts.forEach(part => {
-        if (part.startsWith('```') && part.endsWith('```')) {
-            // Add code snippet
-            const codeSnippet = document.createElement('pre');
-            codeSnippet.classList.add('code');
-            const code = document.createElement('code');
-            code.textContent = part.slice(3, -3);
-            codeSnippet.appendChild(code);
-            message.appendChild(codeSnippet);
-        } else if (part.startsWith('`') && part.endsWith('`')) {
-            // Add inline variable
-            const variableText = `<span class="code">${part.slice(1, -1)}</span>`;
-            message.insertAdjacentHTML('beforeend', variableText);
-        } else {
-            // Add plain text
-            const text = part.replace(/\n/g, '<br>');
-            message.insertAdjacentHTML('beforeend', text);
+        for (let i = 0; i < messageText.length; i++) {
+            const char = messageText[i];
+            if (char === '<') {
+                isTag = true;
+                tag += char;
+            } else if (char === '>') {
+                isTag = false;
+                tag += char;
+                element.insertAdjacentHTML('beforeend', tag);
+                tag = '';
+            } else if (isTag) {
+                tag += char;
+            } else {
+                element.insertAdjacentHTML('beforeend', char);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
         }
-    });
+    }
 
-    chatWindow.appendChild(message);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-};
+    // Keep track of the last message typing Promise
+    let lastMessagePromise = Promise.resolve();
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        lastMessagePromise = lastMessagePromise.then(async () => {
+            const chatWindow = document.querySelector('#chat-window');
+            const message = document.createElement('div');
+            message.classList.add('chat-message', data.role);
+            const roleSpan = document.createElement('span');
+            roleSpan.className = data.role;
+            roleSpan.innerHTML = `<strong>${data.role.charAt(0).toUpperCase() + data.role.slice(1)}:</strong> `;
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = `icon-${data.role}`; // Change this line
+            message.appendChild(iconSpan);
+
+            message.appendChild(roleSpan);
+            message.insertAdjacentHTML('beforeend', '<br><br>'); // Insert <br><br> tags as HTML
+            chatWindow.appendChild(message);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Extract code snippets and other text parts
+            const parts = data.message.split(/(```[^```]+```|`[^`]+`)/g);
+
+            const typingDelay = 15; // Adjust the delay (in ms) between characters as needed
+
+            for (const part of parts) {
+                if (part.startsWith('```') && part.endsWith('```')) {
+                    // Add code snippet
+                    const codeSnippet = document.createElement('pre');
+                    codeSnippet.classList.add('code');
+                    const code = document.createElement('code');
+                    code.textContent = part.slice(3, -3);
+                    codeSnippet.appendChild(code);
+                    message.appendChild(codeSnippet);
+                } else if (part.startsWith('`') && part.endsWith('`')) {
+                    // Add inline variable
+                    const variableText = `<span class="code">${part.slice(1, -1)}</span>`;
+                    await typeMessage(message, variableText, typingDelay);
+                } else {
+                    // Add plain text
+                    const text = part.replace(/\n/g, '<br>');
+                    await typeMessage(message, text, typingDelay);
+                }
+            }
+
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+    };
 
     chatSocket.onclose = function (e) {
         console.error('Chat socket closed unexpectedly');

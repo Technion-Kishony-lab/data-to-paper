@@ -44,7 +44,7 @@ class ReviewerGPT(ConverserGPT):
         If yes, reply yes in one word only.
         """).format(plan)
         self.conversation.append_user_message(prompt)
-        response = self.conversation.get_response_from_chatgpt(temperature=0, max_tokens=1)
+        response = self.conversation.get_response_from_chatgpt(temperature=0)
         return response
 
     def review_plan(self, analysis_plan: str):
@@ -57,14 +57,14 @@ class ReviewerGPT(ConverserGPT):
             if response.lower().__contains__('yes'):
                 break
             else:
-                prompt = format_str(f"""
+                prompt = format_str("""
                 Fix the plan according to the following feedback:
                 
-                {response}
+                {}
                 
                 Return the fixed plan as is, i.e., without mentioning that it's revised.
-                you have {MAX_REVIEW_ATTEMPTS - num_review_attempts} attempts left to fix the plan.
-                """)
+                you have {} attempts left to fix the plan.
+                """).format(response, MAX_REVIEW_ATTEMPTS - num_review_attempts)
                 self.conversation.append_user_message(prompt)
                 analysis_plan = self.conversation.get_response_from_chatgpt()
                 num_review_attempts += 1
