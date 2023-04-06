@@ -59,6 +59,16 @@ class AppendMessage(Action):
         return super().pretty_repr(conversation_name, is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
 
     def apply(self, conversation: Conversation):
+        """
+        Append a message to the conversation.
+        Reset the conversation to the previous tag if the tag already exists.
+        """
+        if self.message.tag is not None:
+            try:
+                index = SingleMessageDesignation(self.message.tag).get_message_num(conversation)
+                del conversation[index:]
+            except ValueError:
+                pass
         conversation.append(self.message)
 
 
@@ -92,7 +102,13 @@ class FailedChatgptResponse(BaseChatgptResponse):
     exception: Exception = None
 
     def default_comment(self) -> str:
-        return super().default_comment() + ', CHATGPT FAILED'
+        s = super().default_comment()
+        e = 'CHATGPT FAILED'
+        if s:
+            return s + ' ' + e
+        else:
+            return e
+
 
     def apply(self, conversation: Conversation):
         pass

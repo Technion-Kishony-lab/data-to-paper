@@ -1,3 +1,4 @@
+import openai
 from _pytest.fixtures import fixture
 
 from scientistgpt import Conversation, Role, Message
@@ -16,3 +17,6 @@ def conversation():
     return conversation
 
 
+@fixture()
+def openai_exception():
+    return openai.error.InvalidRequestError(param='prompt', message='The prompt must be a string.')

@@ -7,10 +7,11 @@ from scientistgpt import Conversation, Role, Message
 from tests.utils import mock_openai
 
 
-def test_failed_gpt_response(conversation):
+def test_failed_gpt_response(conversation, openai_exception):
     with mock_openai(
             ['I am okay.',
-             openai.error.InvalidRequestError(param='prompt', message='The prompt must be a string.')]):
+             openai_exception,
+             ]):
         assert conversation.try_get_chatgpt_response() == 'I am okay.'
         assert isinstance(conversation.try_get_chatgpt_response(), openai.error.InvalidRequestError)
 

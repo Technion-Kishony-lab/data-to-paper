@@ -5,7 +5,7 @@ from enum import Enum
 from typing import NamedTuple, Optional
 
 from scientistgpt.env import TEXT_WIDTH
-from scientistgpt.utils.text_utils import wrap_text_with_code_blocks
+from scientistgpt.utils.text_utils import format_text_with_code_blocks
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -53,7 +53,7 @@ class Message(NamedTuple):
         * Highlighting code blocks
         """
         role, content, tag = self
-        tag_text = f'({tag}) ' if tag else ''
+        tag_text = f'<{tag}> ' if tag else ''
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
         sep = style.seperator
@@ -69,7 +69,7 @@ class Message(NamedTuple):
             + sep * (TEXT_WIDTH - len(role.name) - len(tag_text) - 9 - 2) + '\n'
 
         # content:
-        s += wrap_text_with_code_blocks(text=content, text_color=text_color, code_color=code_color, width=TEXT_WIDTH)
+        s += format_text_with_code_blocks(text=content, text_color=text_color, code_color=code_color, width=TEXT_WIDTH)
         s += '\n'
         s += text_color + sep * TEXT_WIDTH + reset_color
         return s

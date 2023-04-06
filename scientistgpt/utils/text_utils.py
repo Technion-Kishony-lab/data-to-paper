@@ -45,7 +45,7 @@ def print_red(text: str, **kwargs):
     print(colored_text(text, colorama.Fore.RED), **kwargs)
 
 
-def wrap_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
+def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
 
     def get_color(is_cd: bool):
         return code_color if is_cd else text_color
