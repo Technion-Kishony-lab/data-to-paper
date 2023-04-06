@@ -23,19 +23,6 @@ class ScientistGPTConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({"role": role, "message": message}))
 
     def connect(self):
-        self.experiment_id = self.scope['url_route']['kwargs']['experiment_id']
-
-        # Create experiment folder in experiment folder:
-        self.experiment_folder = os.path.join(settings.BASE_DIR, self.experiment_id)
-        self.experiment_data_folder = os.path.join(self.experiment_folder, 'data')
-        if not os.path.exists(self.experiment_folder):
-            os.makedirs(self.experiment_folder)
-            # copy default data folder to experiment folder
-            default_data_folder = os.path.join(settings.BASE_DIR, 'default_data')
-            shutil.copytree(default_data_folder, self.experiment_data_folder)
-
-        # we run in the data folder, so that chatgpt finds out files:
-        os.chdir(os.path.join(self.experiment_folder, 'data'))
 
         self.scientist_gpt = ScientistGPT(run_plan=ScientistGPT_ANALYSIS_PLAN, message_callback=self.handle_message)
 
@@ -52,13 +39,26 @@ class ScientistGPTConsumer(WebsocketConsumer):
             # Update self.scientist_gpt with the new data_description and goal_description
             self.scientist_gpt.data_description = data_description
             self.scientist_gpt.goal_description = goal_description
+
+            self.experiment_id = self.scope['url_route']['kwargs']['experiment_id']
+
+            # Create experiment folder in experiment folder:
+            self.experiment_folder = os.path.join(settings.BASE_DIR, self.experiment_id)
+            self.experiment_data_folder = os.path.join(self.experiment_folder, 'data')
+            if not os.path.exists(self.experiment_folder):
+                os.makedirs(self.experiment_folder)
+                # copy default data folder to experiment folder
+                default_data_folder = os.path.join(settings.BASE_DIR, 'default_data')
+                shutil.copytree(default_data_folder, self.experiment_data_folder)
+
             self.start_run_all()
 
     def start_run_all(self):
 
         self.scientist_gpt.run_all(annotate=True)
 
-        os.chdir(self.experiment_folder)
+        # we run in the data folder, so that chatgpt finds out files:
+        os.chdir(self.experiment_data_folder)
 
         """
         Save results

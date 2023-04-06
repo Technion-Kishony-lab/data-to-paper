@@ -1,7 +1,7 @@
 # flake8: noqa
 
 data_description = """
-(1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient. 
+(1) DIAGNOSES_ICD.csv: a csv file containing clinical diagnostic codes for each patient. 
 Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical diagnostic. 
 
 The file has 4 columns: 
@@ -19,7 +19,7 @@ ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
 1299,109,172335,3,"58281"
 ```
 
-(2) PATIENTS.csv: a text file containing patient demographics. 
+(2) PATIENTS.csv: a csv file containing patient demographics. 
 Each line indicates a patient. 
 
 The file has 7 columns, the important ones for us are the second and third columns that provide the patient id (SUBJECT_ID)

@@ -15,19 +15,23 @@
             background-color: #2c2c2c;
             color: #f1f1f1;
         }
+
         h1 {
             font-size: 2rem;
             margin: 10px 0;
             text-align: center;
         }
+
         h2 {
             font-size: 1.5rem;
             margin: 20px 0 10px 0;
         }
+
         textarea {
             font-size: 20px;
             width: 100%;
         }
+
         .container {
             display: flex;
             flex-direction: column;
@@ -35,20 +39,23 @@
             padding: 20px;
             flex-grow: 1;
         }
+
         .data-upload {
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-bottom: 40px; /* Increase margin between data-upload and chat-window */
         }
+
         .data-upload label {
             display: block;
             margin-bottom: 10px;
         }
+
         .data-upload input[type="file"] {
             display: inline-block;
-            margin-bottom: 10px;
+            margin-bottom: 40px;
             padding: 10px;
             background-color: #0f9d58;
             color: #fff;
@@ -61,6 +68,7 @@
             text-overflow: ellipsis;
             max-width: 100%;
         }
+
         .data-upload textarea {
             resize: vertical;
             min-height: 100px;
@@ -72,6 +80,7 @@
             color: #f1f1f1;
             border: none;
         }
+
         .data-upload button {
             background-color: #0f9d58;
             color: #fff;
@@ -79,10 +88,14 @@
             padding: 10px;
             border-radius: 3px;
             cursor: pointer;
+            margin-bottom: 40px;
+            margin-left: 10px;
         }
+
         .data-upload button:hover {
             background-color: #0a773e;
         }
+
         .chat-window {
             border: 1px solid #444;
             border-radius: 5px;
@@ -92,153 +105,236 @@
             overflow-y: scroll;
             background-color: #333;
         }
+
         .chat-message {
             margin-bottom: 10px;
             font-size: 20px;
             padding: 10px;
             border-radius: 5px;
         }
+
         .system {
             color: #fcb000;
             background-color: #5a5a5a;
         }
+
         .assistant {
             color: #1e90ff;
             background-color: #5a5a5a;
         }
+
         .user {
             color: #32cd32;
             background-color: #5a5a5a;
         }
+
         .notification {
             color: #fc0000;
         }
-        .code {
+
+        .pre {
             display: inline-block;
-            font-family: monospace;
-            background-color: #444;
-            padding: 3px;
-            border-radius: 3px;
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+            border: none;
         }
+
+        .code {
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
         .instructions {
             margin-bottom: 20px;
             line-height: 1.5;
         }
+
+        .file-upload-wrapper {
+            display: flex;
+            align-items: center;
+            margin: auto;
+        }
+
         .success {
+            font-size: 20px;
             color: green;
+            margin-left: 20px; /* Add margin to the left of the message */
+            margin-bottom: 40px;
         }
 
         .error {
+            font-size: 20px;
             color: red;
+            margin-left: 20px; /* Add margin to the left of the message */
+            margin-bottom: 40px;
         }
     </style>
 </head>
 <body>
-    <h1>ScientistGPT</h1>
-    <div class="container">
-        <div class="instructions">
-            <h2>How to Use</h2>
-            <ol>
-                <li>Upload your data as a zip file.</li>
-                <li>Describe the data in a format similar to the example below:</li>
-                <p>
+<h1>ScientistGPT</h1>
+<div class="container">
+    <div class="instructions">
+        <h2>How to Use</h2>
+        <ol>
+            <li>Upload your data as a zip file.</li>
+            <li>Describe the data in a format similar to the example below:</li>
+            <p>
                 (1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient.
-                Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical diagnostic.
+                Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical
+                diagnostic.
 
                 The file has 4 columns:
-                <ul>
-                    <li>#1 row ID (row_id)</li>
-                    <li>#2 Subject ID (subject_id)</li>
-                    <li>#3 Hospital admission ID (hadm_id)</li>
-                    <li>#4 a sequential number of the diagnostic for each subject (seq_num)</li>
-                    <li>#5 The diagnostic ICD9 code, formatted without dots (icd9_code)</li>
-                </ul>
-                </p>
-                Head of the dataset as example:
-                <pre>
+            <ul>
+                <li>#1 row ID (row_id)</li>
+                <li>#2 Subject ID (subject_id)</li>
+                <li>#3 Hospital admission ID (hadm_id)</li>
+                <li>#4 a sequential number of the diagnostic for each subject (seq_num)</li>
+                <li>#5 The diagnostic ICD9 code, formatted without dots (icd9_code)</li>
+            </ul>
+            </p>
+            Head of the dataset as example:
+            <pre>
                 ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
                 1297,109,172335,1,"40301"
                 1298,109,172335,2,"486"
                 1299,109,172335,3,"58281"
                 </pre>
-                <li>Describe the research question and the final goal of the analysis as precisely as you can.</li>
-            </ol>
-        </div>
-        <div class="data-upload">
-            <form action="{% url 'upload_data' experiment_id %}" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
+            <li>Describe the research question and the final goal of the analysis as precisely as you can.</li>
+        </ol>
+    </div>
+    <div class="data-upload">
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="file-upload-wrapper">
                 <input id="data-file" type="file" accept=".zip" name="data_file">
                 <button id="submit" type="submit">Upload Data</button>
-            </form>
-            <div id="file-upload-status"></div>
-            <textarea id="data-description" placeholder="Data Description"></textarea>
-            <textarea id="goal-description" placeholder="Goal Description"></textarea>
-            <button id="start-button">Start</button>
-        </div>
-        <div class="chat-window" id="chat-window"></div>
+                <div id="file-upload-status"></div>
+            </div>
+        </form>
+        <textarea id="data-description" placeholder="Data Description"></textarea>
+        <textarea id="goal-description" placeholder="Goal Description"></textarea>
+        <button id="start-button">Start</button>
     </div>
-    {{ experiment_id|json_script:"experiment-id" }}
-    <script>
-        const experimentId = JSON.parse(document.getElementById('experiment-id').textContent);
+    <div class="chat-window" id="chat-window"></div>
+</div>
+{{ experiment_id|json_script:"experiment-id" }}
+{{ upload_data|json_script:"upload-data" }}
+<script>
+    const experimentId = JSON.parse(document.getElementById('experiment-id').textContent);
+    const fileUpload = JSON.parse(document.getElementById('upload-data').textContent);
 
-        const fileUpload = JSON.parse(document.getElementById('upload-data').textContent);
-        const fileUploadStatus = document.getElementById("file-upload-status");
+    document.getElementById("upload-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-        if (fileUpload === true) {
-            fileUploadStatus.textContent = "File uploaded successfully.";
-            fileUploadStatus.classList.add("success");
-        } else if (fileUpload === false) {
-            fileUploadStatus.textContent = "There was a problem uploading the file. Please check the file format and size.";
-            fileUploadStatus.classList.add("error");
-        }
+        const formData = new FormData(event.target);
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-        var uploadForm = document.querySelector("form");
+        try {
+            const response = await fetch(`/upload_data/${experimentId}/`, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                },
+            });
 
-        uploadForm.addEventListener("submit", function (event) {
-            var dataFile = document.getElementById("data-file");
-
-            if (dataFile.files[0].size > 52428800) {
-                alert("File is too big, please upload a file smaller than 50MiB");
-                dataFile.value = "";
-                event.preventDefault(); // Prevent form submission
+            if (!response.ok) {
+                const errorData = await response.json();
+                displayErrorMessage(errorData.error);
+            } else {
+                const successData = await response.json();
+                displaySuccessMessage(successData.message);
             }
-        });
+        } catch (error) {
+            displayErrorMessage("An error occurred while uploading the file.");
+        }
+    });
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/scientistgpt/'
-            + experimentId
-            + '/'
-        );
+    function displayErrorMessage(message) {
+        const fileUploadStatus = document.getElementById("file-upload-status");
+        fileUploadStatus.innerHTML = `<p class="error">${message}</p>`;
+    }
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            const chatWindow = document.querySelector('#chat-window');
-                        const message = document.createElement('div');
-            message.classList.add('chat-message', data.role);
-            message.innerHTML = '<span class="' + data.role + '">' + data.role + ':</span> ' + data.message.replace(/`([^`]+)`/g, '<span class="code">$1</span>').replace(/\n/g, '<br>');
-            chatWindow.appendChild(message);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        };
+    function displaySuccessMessage(message) {
+        const fileUploadStatus = document.getElementById("file-upload-status");
+        fileUploadStatus.innerHTML = `<p class="success">${message}</p>`;
+    }
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-        const startButton = document.querySelector("#start-button");
-        {#const dataUploadForm = document.querySelector("#data-upload-form");#}
-        startButton.addEventListener("click", () => {
-            const dataDescription = document.querySelector("#data-description").value;
-            const goalDescription = document.querySelector("#goal-description").value;
-            {#dataUploadForm.submit();#}
+    var uploadForm = document.querySelector("form");
 
-            // Send the 'start_run_all' message to the WebSocket server
-            chatSocket.send(JSON.stringify({
-                type: "start_run_all",
-                data_description: dataDescription,
-                goal_description: goalDescription
-            }));
-        });
-    </script>
+    uploadForm.addEventListener("submit", function (event) {
+        var dataFile = document.getElementById("data-file");
+
+        if (dataFile.files[0].size > 52428800) {
+            alert("File is too big, please upload a file smaller than 50MiB");
+            dataFile.value = "";
+            event.preventDefault(); // Prevent form submission
+        }
+    });
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/scientistgpt/'
+        + experimentId
+        + '/'
+    );
+
+chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const chatWindow = document.querySelector('#chat-window');
+    const message = document.createElement('div');
+    message.classList.add('chat-message', data.role);
+    message.innerHTML = `<span class="${data.role}">${data.role}:</span> `;
+
+    // Extract code snippets and other text parts
+    const parts = data.message.split(/(```[^```]+```|`[^`]+`)/g);
+
+    parts.forEach(part => {
+        if (part.startsWith('```') && part.endsWith('```')) {
+            // Add code snippet
+            const codeSnippet = document.createElement('pre');
+            codeSnippet.classList.add('code');
+            const code = document.createElement('code');
+            code.textContent = part.slice(3, -3);
+            codeSnippet.appendChild(code);
+            message.appendChild(codeSnippet);
+        } else if (part.startsWith('`') && part.endsWith('`')) {
+            // Add inline variable
+            const variableText = `<span class="code">${part.slice(1, -1)}</span>`;
+            message.insertAdjacentHTML('beforeend', variableText);
+        } else {
+            // Add plain text
+            const text = part.replace(/\n/g, '<br>');
+            message.insertAdjacentHTML('beforeend', text);
+        }
+    });
+
+    chatWindow.appendChild(message);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+};
+
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+    const startButton = document.querySelector("#start-button");
+    {#const dataUploadForm = document.querySelector("#data-upload-form");#}
+    startButton.addEventListener("click", () => {
+        const dataDescription = document.querySelector("#data-description").value;
+        const goalDescription = document.querySelector("#goal-description").value;
+        {#dataUploadForm.submit();#}
+
+        // Send the 'start_run_all' message to the WebSocket server
+        chatSocket.send(JSON.stringify({
+            type: "start_run_all",
+            data_description: dataDescription,
+            goal_description: goalDescription
+        }));
+    });
+</script>
 </body>
 </html>
