@@ -1,8 +1,18 @@
 import os.path
 
+import openai
 from _pytest.fixtures import fixture
 
 from scientistgpt import Conversation, Role, Message
+from tests.utils import mock_openai
+
+
+def test_failed_gpt_response(conversation):
+    with mock_openai(
+            ['I am okay.',
+             openai.error.InvalidRequestError(param='prompt', message='The prompt must be a string.')]):
+        assert conversation.try_get_chatgpt_response() == 'I am okay.'
+        assert isinstance(conversation.try_get_chatgpt_response(), openai.error.InvalidRequestError)
 
 
 def test_conversation_gpt_response(conversation):

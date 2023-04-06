@@ -10,9 +10,15 @@ from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 openai.api_key = OPENAI_API_KEY
 
 
-# String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
-SAVE_START = 'START>>>>> '
-SAVE_END = '\n<<<<<END\n'
+def _get_chatgpt_response(messages: List[Message]) -> str:
+    """
+    Connect with openai to get response to conversation.
+    """
+    response = openai.ChatCompletion.create(
+        model=MODEL_ENGINE,
+        messages=[message.to_chatgpt_dict() for message in messages],
+    )
+    return response['choices'][0]['message']['content']
 
 
 class Conversation(List[Message]):
@@ -24,6 +30,11 @@ class Conversation(List[Message]):
     1. save/load to text.
     2. print colored-styled messages.
     """
+
+    # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
+    SAVE_START = 'START>>>>> '
+    SAVE_END = '\n<<<<<END\n'
+
     def append_message(self, role: Role, content: str, tag: str = '') -> Message:
         message = Message(role, content, tag)
         self.append(message)
@@ -55,13 +66,13 @@ class Conversation(List[Message]):
     def save(self, filename: str):
         with open(filename, 'w') as f:
             for message in self:
-                f.write(f'{SAVE_START}{message.convert_to_text()}{SAVE_END}\n\n')
+                f.write(f'{self.SAVE_START}{message.convert_to_text()}{self.SAVE_END}\n\n')
 
     def load(self, filename: str):
         self.clear()
         with open(filename, 'r') as f:
             entire_file = f.read()
-            matches = re.findall(SAVE_START + "(.*?)" + SAVE_END, entire_file, re.DOTALL)
+            matches = re.findall(self.SAVE_START + "(.*?)" + self.SAVE_END, entire_file, re.DOTALL)
             for match in matches:
                 self.append(Message.from_text(match))
 
@@ -89,19 +100,8 @@ class Conversation(List[Message]):
         indices_and_messages = self.get_chosen_indices_and_messages(hidden_messages)
         messages = [message for _, message in indices_and_messages]
         try:
-            return self._get_chatgpt_response(messages)
+            return _get_chatgpt_response(messages)
         except openai.error.InvalidRequestError as e:
             return e
         except Exception:
             raise RuntimeError("Failed accessing openai.")
-
-    @staticmethod
-    def _get_chatgpt_response(messages: List[Message]) -> str:
-        """
-        Connect with openai to get response to conversation.
-        """
-        response = openai.ChatCompletion.create(
-            model=MODEL_ENGINE,
-            messages=[message.to_chatgpt_dict() for message in messages],
-        )
-        return response['choices'][0]['message']['content']
