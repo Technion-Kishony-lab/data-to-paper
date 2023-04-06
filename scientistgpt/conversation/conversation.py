@@ -1,6 +1,6 @@
 import openai
 import re
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation
@@ -76,7 +76,7 @@ class Conversation(List[Message]):
             print(message.pretty_repr())
             print()
 
-    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
+    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None) -> Union[str, Exception]:
         """
         Try to get a response from openai to a specified conversation.
 
@@ -91,7 +91,7 @@ class Conversation(List[Message]):
         try:
             return self._get_chatgpt_response(messages)
         except openai.error.InvalidRequestError as e:
-            return None
+            return e
         except Exception:
             raise RuntimeError("Failed accessing openai.")
 

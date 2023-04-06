@@ -1,10 +1,12 @@
+from abc import ABC
 from dataclasses import dataclass
 from typing import Union, Optional, List
 
-from scientistgpt.utils.text_utils import print_red
+from scientistgpt.utils.text_utils import print_red, red_text
 from .message import Message
 from .conversation import Conversation
-from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, RangeMessageDesignation
+from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, RangeMessageDesignation, \
+    convert_general_message_designation_to_int_list
 
 NoneType = type(None)
 
@@ -24,10 +26,20 @@ class Action:
     def default_comment(self) -> str:
         return ''
 
-    def display(self, conversation_name: Optional[str]):
+    def pretty_repr(self, conversation_name: Optional[str], is_color: bool = True) -> str:
+        s = ''
         if self.agent:
-            print_red(f'{self.agent}: ', end='')
-        print_red(f'{type(self)}->{conversation_name}. {self.default_comment()} {self.comment}')
+            s += f'{self.agent}: '
+        s += f'{type(self).__name__}'
+        if conversation_name:
+            s += f' -> {conversation_name}'
+        if self.default_comment():
+            s += f', {self.default_comment()}'
+        if self.comment:
+            s += f', {self.comment}'
+        if is_color:
+            s = red_text(s)
+        return s
 
     def apply(self, conversation: Conversation):
         pass
@@ -43,9 +55,8 @@ class AppendMessage(Action):
     """
     message: Message = None
     
-    def display(self, conversation_name: Optional[str]):
-        super().display(conversation_name)
-        self.message.display()
+    def pretty_repr(self, conversation_name: Optional[str], is_color: bool = True) -> str:
+        return super().pretty_repr(conversation_name, is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
 
     def apply(self, conversation: Conversation):
         conversation.append(self.message)
@@ -58,15 +69,16 @@ class BaseChatgptResponse(Action):
     """
 
     hidden_messages: GeneralMessageDesignation = None
-    "list of message indices to remove when approaching chatGPT"
+    "list of message to remove from the conversation when sending to ChatGPT"
 
     def default_comment(self) -> str:
-        return f'Message {self.hidden_messages} were hidden. ' if self.hidden_messages else ''
+        return f'HIDING MESSAGES: {self.hidden_messages}' if self.hidden_messages else ''
 
 
-class AddChatgptResponse(AppendMessage, BaseChatgptResponse):
+@dataclass(frozen=True)
+class AppendChatgptResponse(AppendMessage, BaseChatgptResponse):
     """
-    Get a response from chatgpt and append to the conversation.
+    Add a response from chatgpt.
     """
     pass
 
@@ -80,19 +92,31 @@ class FailedChatgptResponse(BaseChatgptResponse):
     exception: Exception = None
 
     def default_comment(self) -> str:
-        return super().default_comment() + ' Failed getting ChatGPT response.'
+        return super().default_comment() + ', CHATGPT FAILED'
 
     def apply(self, conversation: Conversation):
         pass
 
 
-class AddComment(Action):
+class NoAction(Action):
     """
     Add a comment to the action list.
 
     The conversation is not affected by comments.
     """
     pass
+
+
+class RegenerateLastResponse(AppendChatgptResponse):
+    """
+    Delete the last chatgpt response and regenerate.
+    """
+    def default_comment(self) -> str:
+        return 'Regenerating chatgpt response.'
+
+    def apply(self, conversation: Conversation):
+        conversation.delete_last_response()
+        super().apply(conversation)
 
 
 @dataclass(frozen=True)
@@ -112,18 +136,6 @@ class ResetToTag(Action):
         del conversation[index:]
 
 
-class RegenerateLastResponse(AddChatgptResponse):
-    """
-    Delete the last chatgpt response and regenerate.
-    """
-    def default_comment(self) -> str:
-        return 'Regenerating chatgpt response.'
-
-    def apply(self, conversation: Conversation):
-        conversation.delete_last_response()
-        super().apply(conversation)
-
-
 @dataclass(frozen=True)
 class DeleteMessages(Action):
     """
@@ -131,12 +143,11 @@ class DeleteMessages(Action):
 
     start/end can be int (message number), or str (message tag).
     """
-    start: Optional[Union[str, int, SingleMessageDesignation]] = None
-    end: Optional[Union[str, int, SingleMessageDesignation]] = None
+    message_designation: GeneralMessageDesignation = None
 
     def default_comment(self) -> str:
-        return f'Deleting all messages from {self.start} to {self.end}.'
+        return f'Deleting messages: {self.message_designation}.'
 
     def apply(self, conversation: Conversation):
-        for index in RangeMessageDesignation(start=self.start, end=self.end).get_message_num(conversation):
-            del conversation[index: index + 1]
+        for index in convert_general_message_designation_to_int_list(self.message_designation, conversation)[-1::-1]:
+            conversation.pop(index)

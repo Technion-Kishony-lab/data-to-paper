@@ -40,7 +40,7 @@ class SingleMessageDesignation(MessageDesignation):
     def get_message_num(self, conversation: Conversation) -> int:
         tag = self.tag if isinstance(self.tag, int) else [message.tag for message in conversation].index(self.tag)
         if tag < 0:
-            tag = len(conversation) + tag + 1
+            tag = len(conversation) + tag
         return tag + self.off_set
 
     def get_message_nums(self, conversation: Conversation) -> List[int]:

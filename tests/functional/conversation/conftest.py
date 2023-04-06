@@ -7,7 +7,7 @@ from scientistgpt import Conversation, Role, Message
 def conversation():
     conversation = Conversation()
     conversation.append(Message(Role.SYSTEM, 'You are a helpful assistant.'))
-    conversation.append(Message(Role.USER, 'Write a short code.', 'write code'))
+    conversation.append(Message(Role.USER, 'Write a short code.', 'write_code'))
     conversation.append_assistant_message('Here is my code:\n\n'
                                           '```python\n'
                                           'print(7)\n'
