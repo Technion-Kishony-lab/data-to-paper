@@ -4,7 +4,7 @@ from typing import Union, Optional, List
 from scientistgpt.utils.text_utils import print_red
 from .message import Message
 from .conversation import Conversation
-from .message_designation import MessageDesignation, SingleMessageDesignation, RangeMessageDesignation
+from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, RangeMessageDesignation
 
 NoneType = type(None)
 
@@ -57,11 +57,11 @@ class BaseChatgptResponse(Action):
     Base class for an action of getting a response from chatgpt.
     """
 
-    removed_messages: List[MessageDesignation] = None
+    hidden_messages: GeneralMessageDesignation = None
     "list of message indices to remove when approaching chatGPT"
 
     def default_comment(self) -> str:
-        return f'Message {self.removed_messages} were hidden. ' if self.removed_messages else ''
+        return f'Message {self.hidden_messages} were hidden. ' if self.hidden_messages else ''
 
 
 class AddChatgptResponse(AppendMessage, BaseChatgptResponse):

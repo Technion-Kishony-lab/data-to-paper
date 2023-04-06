@@ -33,7 +33,7 @@ ROLE_TO_STYLE = {
 class Message(NamedTuple):
     role: Role
     content: str
-    tag: str
+    tag: str = ''
 
     def to_chatgpt_dict(self):
         return {'role': self.role, 'content': self.content}
