@@ -1,8 +1,11 @@
+from __future__ import annotations
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import NamedTuple, Union, Optional, List
 
-from scientistgpt import Conversation
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from scientistgpt import Conversation
 
 
 @dataclass(frozen=True)
@@ -58,7 +61,7 @@ class RangeMessageDesignation(MessageDesignation):
         return list(range(start.get_message_nums(conversation)[0], end.get_message_nums(conversation)[0]))
 
 
-GeneralMessageDesignation = Optional[Union[MessageDesignation, str, int, List[MessageDesignation, str, int]]]
+GeneralMessageDesignation = Optional[Union[MessageDesignation, str, int, List[Union[MessageDesignation, str, int]]]]
 
 
 def convert_general_message_designation_to_list(designations: GeneralMessageDesignation
