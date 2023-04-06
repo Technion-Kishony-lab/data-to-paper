@@ -21,6 +21,10 @@ class MessageDesignation(ABC):
         """
         pass
 
+    @abstractmethod
+    def __str__(self):
+        pass
+
 
 @dataclass(frozen=True)
 class SingleMessageDesignation(MessageDesignation):
@@ -28,16 +32,25 @@ class SingleMessageDesignation(MessageDesignation):
     Indicates a single message by its tag or position.
 
     tag: indicates message tag (str), or position (int).
+         negative values indicates counting from the end (-1 is the last message).
     """
     tag: Union[str, int]
     off_set: int = 0
 
     def get_message_num(self, conversation: Conversation) -> int:
         tag = self.tag if isinstance(self.tag, int) else [message.tag for message in conversation].index(self.tag)
+        if tag < 0:
+            tag = len(conversation) + tag + 1
         return tag + self.off_set
 
     def get_message_nums(self, conversation: Conversation) -> List[int]:
         return [self.get_message_num(conversation)]
+
+    def __str__(self):
+        if self.off_set:
+            return f"<{self.tag}>{self.off_set:+d}"
+        else:
+            return f"<{self.tag}>"
 
 
 @dataclass(frozen=True)
@@ -48,17 +61,26 @@ class RangeMessageDesignation(MessageDesignation):
     start: first message, indicated, by tag (str), by index (int) or as SingleMessageDesignation.
     end: last message (not including), indicated, by tag (str), by index (int) or as SingleMessageDesignation.
     """
-    start: Optional[Union[str, int, SingleMessageDesignation]] = None
-    end: Optional[Union[str, int, SingleMessageDesignation]] = None
+    start: SingleMessageDesignation
+    end: SingleMessageDesignation
 
     def get_message_nums(self, conversation: Conversation) -> List[int]:
-        start = 0 if self.start is None else self.start
+        return list(range(self.start.get_message_num(conversation), self.end.get_message_num(conversation)))
+
+    def __str__(self):
+        return f"{self.start}-{self.end}"
+
+    @classmethod
+    def from_(cls,
+              start: Optional[Union[str, int, SingleMessageDesignation]] = None,
+              end: Optional[Union[str, int, SingleMessageDesignation]] = None):
+        start = 0 if start is None else start
         if not isinstance(start, SingleMessageDesignation):
             start = SingleMessageDesignation(start)
-        end = len(conversation) if self.end is None else self.end
+        end = -1 if end is None else end
         if not isinstance(end, SingleMessageDesignation):
             end = SingleMessageDesignation(end)
-        return list(range(start.get_message_nums(conversation)[0], end.get_message_nums(conversation)[0]))
+        return cls(start, end)
 
 
 GeneralMessageDesignation = Optional[Union[MessageDesignation, str, int, List[Union[MessageDesignation, str, int]]]]
@@ -79,7 +101,7 @@ def convert_general_message_designation_to_int_list(designations: GeneralMessage
     for designation in convert_general_message_designation_to_list(designations):
         if not isinstance(designation, MessageDesignation):
             designation = SingleMessageDesignation(designation)
-        indices |= designation.get_message_nums(conversation)
+        indices |= set(designation.get_message_nums(conversation))
     indices = list(indices)
     indices.sort()
     return indices

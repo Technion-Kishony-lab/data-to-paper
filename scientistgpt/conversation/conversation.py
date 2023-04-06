@@ -74,6 +74,7 @@ class Conversation(List[Message]):
     def print_all_messages(self):
         for message in self:
             print(message.pretty_repr())
+            print()
 
     def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
         """
