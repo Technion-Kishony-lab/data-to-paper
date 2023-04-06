@@ -33,8 +33,16 @@ def wrap_string(input_string, width=40, indent=0):
     return wrapped_string
 
 
+def colored_text(text: str, color: str, is_color: bool = True) -> str:
+    return color + text + colorama.Style.RESET_ALL if is_color else text
+
+
+def red_text(text: str, is_color: bool = True) -> str:
+    return colored_text(text, colorama.Fore.RED, is_color)
+
+
 def print_red(text: str, **kwargs):
-    print(colorama.Fore.RED + text + colorama.Style.RESET_ALL, **kwargs)
+    print(colored_text(text, colorama.Fore.RED), **kwargs)
 
 
 def wrap_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
@@ -50,7 +58,7 @@ def wrap_text_with_code_blocks(text: str, text_color: str, code_color: str, widt
             is_code = not is_code
             s += get_color(is_code)
         else:
-            s += line
+            s += line + '\n'
     if text_color or code_color:
         s += colorama.Style.RESET_ALL
     return s
