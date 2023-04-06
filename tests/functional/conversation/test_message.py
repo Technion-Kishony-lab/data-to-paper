@@ -1,3 +1,4 @@
+import pytest
 from _pytest.fixtures import fixture
 
 from scientistgpt import Role, Message
@@ -13,8 +14,11 @@ def message_without_tag():
     return Message(Role.USER, 'Hello')
 
 
-def test_message_display(message_with_tag):
-    s = message_with_tag.pretty_repr(731)
+@pytest.mark.parametrize('is_color', [
+    True, False,
+])
+def test_message_display(message_with_tag, is_color):
+    s = message_with_tag.pretty_repr(731, is_color=is_color)
     print()
     print(s)
     assert message_with_tag.role.name in s
