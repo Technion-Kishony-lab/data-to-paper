@@ -9,5 +9,5 @@ def file_size(value):
 
 
 class UploadFileForm(forms.Form):
-    title = forms.CharField(max_length=50)
-    file = forms.FileField(required=True, validators=[file_size])
+    # title = forms.CharField(max_length=50)
+    file = forms.FileField(required=False, validators=[file_size])
