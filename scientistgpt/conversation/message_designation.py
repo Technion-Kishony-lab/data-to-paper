@@ -1,10 +1,12 @@
 from abc import abstractmethod, ABC
+from dataclasses import dataclass
 from typing import NamedTuple, Union, Optional, List
 
 from scientistgpt import Conversation
 
 
-class MessageDesignation(NamedTuple, ABC):
+@dataclass(frozen=True)
+class MessageDesignation(ABC):
     """
     a base class for indicating specific messages, or range of messages, within a conversation.
     """
@@ -17,7 +19,8 @@ class MessageDesignation(NamedTuple, ABC):
         pass
 
 
-class SingleMessageDesignation(NamedTuple, MessageDesignation):
+@dataclass(frozen=True)
+class SingleMessageDesignation(MessageDesignation):
     """
     Indicates a single message by its tag or position.
 
@@ -34,7 +37,8 @@ class SingleMessageDesignation(NamedTuple, MessageDesignation):
         return [self.get_message_num(conversation)]
 
 
-class RangeMessageDesignation(NamedTuple, MessageDesignation):
+@dataclass(frozen=True)
+class RangeMessageDesignation(MessageDesignation):
     """
     Indicates a range of messages.
 
@@ -54,14 +58,25 @@ class RangeMessageDesignation(NamedTuple, MessageDesignation):
         return list(range(start.get_message_nums(conversation)[0], end.get_message_nums(conversation)[0]))
 
 
-class MultiRangeMessageDesignation(NamedTuple, MessageDesignation):
-    """
-    Indicates a union of ranges of messages.
-    """
-    designations: List[RangeMessageDesignation, SingleMessageDesignation]
-    
-    def get_message_nums(self, conversation) -> List[int]:
-        chosen = []
-        for designation in self.designations:
-            chosen.extend(designation.get_message_nums(conversation))
-        return chosen
+GeneralMessageDesignation = Optional[Union[MessageDesignation, str, int, List[MessageDesignation, str, int]]]
+
+
+def convert_general_message_designation_to_list(designations: GeneralMessageDesignation
+                                                ) -> List[Union[MessageDesignation, str, int]]:
+    if designations is None:
+        return []
+    if isinstance(designations, list):
+        return designations
+    return [designations]
+
+
+def convert_general_message_designation_to_int_list(designations: GeneralMessageDesignation,
+                                                    conversation: Conversation) -> List[int]:
+    indices = set()
+    for designation in convert_general_message_designation_to_list(designations):
+        if not isinstance(designation, MessageDesignation):
+            designation = SingleMessageDesignation(designation)
+        indices |= designation.get_message_nums(conversation)
+    indices = list(indices)
+    indices.sort()
+    return indices

@@ -2,14 +2,14 @@ import os.path
 
 from _pytest.fixtures import fixture
 
-from scientistgpt import Conversation, Role
+from scientistgpt import Conversation, Role, Message
 
 
 @fixture()
 def conversation():
     conversation = Conversation()
-    conversation.append_message(Role.SYSTEM, 'You are a helpful assistant.')
-    conversation.append_user_message('Write a short code.')
+    conversation.append(Message(Role.SYSTEM, 'You are a helpful assistant.'))
+    conversation.append(Message(Role.USER, 'Write a short code.'))
     conversation.append_assistant_message('Here is my code:\n\n'
                                           '```python\n'
                                           'print(7)\n'
