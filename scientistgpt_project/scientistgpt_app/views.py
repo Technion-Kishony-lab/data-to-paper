@@ -14,9 +14,11 @@ def index(request, experiment_id=None):
 
 
 def handle_uploaded_file(file, experiment_id):
-    # check if file is valid zip file
-    # if yes, create experiment folder and data folder in it and extract zip file to data folder
-    # if no, return error
+    """
+    check if file is valid zip file
+    if yes, create experiment folder and data folder in it and extract zip file to data folder
+    if no, return raise error
+    """
     try:
         with zipfile.ZipFile(file, 'r') as zip_ref:
             data_folder = os.path.join(settings.BASE_DIR, experiment_id, 'data')
