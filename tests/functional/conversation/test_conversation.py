@@ -5,28 +5,13 @@ from _pytest.fixtures import fixture
 from scientistgpt import Conversation, Role, Message
 
 
-@fixture()
-def conversation():
-    conversation = Conversation()
-    conversation.append(Message(Role.SYSTEM, 'You are a helpful assistant.'))
-    conversation.append(Message(Role.USER, 'Write a short code.'))
-    conversation.append_assistant_message('Here is my code:\n\n'
-                                          '```python\n'
-                                          'print(7)\n'
-                                          '```\n')
-    conversation.append_user_message('How are you?')
-    return conversation
-
-
 def test_conversation_gpt_response(conversation):
-    assert len(conversation) == 4, "sanity"
-    response = conversation.get_response_from_chatgpt(should_print=False, should_append=True)
-    assert len(response)
-    assert len(conversation) == 5
+    response = conversation.try_get_chatgpt_response()
+    assert isinstance(response, str) and len(response)
 
 
 def test_conversation_gpt_response_without_appending(conversation):
-    response = conversation.get_response_from_chatgpt(should_print=False, should_append=False)
+    response = conversation.try_get_chatgpt_response()
     assert len(response)
     assert len(conversation) == 4
 
@@ -46,3 +31,19 @@ def test_conversation_from_file(conversation, tmpdir):
     new_conversation = Conversation.from_file(filename)
 
     assert new_conversation == conversation
+
+
+def test_conversation_print(conversation):
+    conversation.print_all_messages()
+
+
+def test_conversation_get_last_response(conversation):
+    conversation.append_assistant_message('Hello!')
+    assert conversation.get_last_response() == 'Hello!'
+
+
+def test_conversation_delete_last_response(conversation):
+    conversation.append_assistant_message('Hello!')
+    original_len = len(conversation)
+    conversation.delete_last_response()
+    assert len(conversation) == original_len - 1

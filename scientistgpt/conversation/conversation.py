@@ -1,8 +1,14 @@
+import openai
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation
+
+# Set up the OpenAI API client
+from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
+openai.api_key = OPENAI_API_KEY
+
 
 # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
 SAVE_START = 'START>>>>> '
@@ -67,4 +73,34 @@ class Conversation(List[Message]):
 
     def print_all_messages(self):
         for message in self:
-            message.display()
+            print(message.pretty_repr())
+
+    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
+        """
+        Try to get a response from openai to a specified conversation.
+
+        The conversation is sent to openai after removing comment messages and any messages indicated
+        in `hidden_messages`.
+
+        If getting a response is successful then return response string.
+        If failed due to openai exception, return None.
+        """
+        indices_and_messages = self.get_chosen_indices_and_messages(hidden_messages)
+        messages = [message for _, message in indices_and_messages]
+        try:
+            return self._get_chatgpt_response(messages)
+        except openai.error.InvalidRequestError as e:
+            return None
+        except Exception:
+            raise RuntimeError("Failed accessing openai.")
+
+    @staticmethod
+    def _get_chatgpt_response(messages: List[Message]) -> str:
+        """
+        Connect with openai to get response to conversation.
+        """
+        response = openai.ChatCompletion.create(
+            model=MODEL_ENGINE,
+            messages=[message.to_chatgpt_dict() for message in messages],
+        )
+        return response['choices'][0]['message']['content']

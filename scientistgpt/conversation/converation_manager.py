@@ -1,16 +1,11 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, NamedTuple
-import openai
 
 from .conversation import Conversation
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, AddComment, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AddChatgptResponse, FailedChatgptResponse
-
-# Set up the OpenAI API client
-from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
-openai.api_key = OPENAI_API_KEY
 
 
 class ConversationNameAndAction(NamedTuple):
@@ -124,7 +119,7 @@ class ConversationManager:
         last_action = self.get_actions_for_conversation(conversation_name)[-1]
         assert isinstance(last_action, AddChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
-        content = self.try_get_chatgpt_response(conversation_name, last_action.hidden_messages + [-1])
+        content = self.get_conversation(conversation_name).try_get_chatgpt_response(last_action.hidden_messages + [-1])
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             action=RegenerateLastResponse(agent=last_action.agent,
@@ -135,26 +130,6 @@ class ConversationManager:
                                           hidden_messages=last_action.hidden_messages),
             conversation_name=conversation_name,
         )
-
-    def try_get_chatgpt_response(self,
-                                 conversation_name: Optional[str] = None,
-                                 hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
-        """
-        Try to get a response from openai to a specified conversation.
-
-        The conversation is sent to openai after removing the messages with indices listed in hidden_messages.
-
-        If getting a response is successful then return response string.
-        If failed due to openai exception, return None.
-        """
-        indices_and_messages = self.get_conversation(conversation_name).get_chosen_indices_and_messages(hidden_messages)
-        messages = [message for _, message in indices_and_messages]
-        try:
-            return self._get_chatgpt_response(messages)
-        except openai.error.InvalidRequestError as e:
-            return None
-        except Exception:
-            raise RuntimeError("Failed accessing openai.")
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str],
                                             agent: Optional[str] = None,
@@ -169,7 +144,7 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return None.
         """
-        content = self.try_get_chatgpt_response(conversation_name, hidden_messages)
+        content = self.get_conversation(conversation_name).try_get_chatgpt_response(hidden_messages)
         if content is None:
             action = FailedChatgptResponse(agent=agent, comment=comment, hidden_messages=hidden_messages)
         else:
@@ -181,13 +156,3 @@ class ConversationManager:
         self._append_and_apply_action(action=action, conversation_name=conversation_name)
         return content
 
-    @staticmethod
-    def _get_chatgpt_response(messages: List[Message]) -> str:
-        """
-        Connect with openai to get response to conversation.
-        """
-        response = openai.ChatCompletion.create(
-            model=MODEL_ENGINE,
-            messages=[message.to_chatgpt_dict() for message in messages],
-        )
-        return response['choices'][0]['message']['content']

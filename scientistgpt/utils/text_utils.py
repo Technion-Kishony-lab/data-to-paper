@@ -37,18 +37,20 @@ def print_red(text: str, **kwargs):
     print(colorama.Fore.RED + text + colorama.Style.RESET_ALL, **kwargs)
 
 
-def print_wrapped_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int):
+def wrap_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
 
-    def print_color(is_cd: bool):
-        print(code_color if is_cd else text_color, end='')
+    def get_color(is_cd: bool):
+        return code_color if is_cd else text_color
 
     text = wrap_string(text, width=width)
     is_code = False
-    print_color(is_code)
+    s = get_color(is_code)
     for line in text.splitlines():
         if '```' in line:
             is_code = not is_code
-            print_color(is_code)
+            s += get_color(is_code)
         else:
-            print(line)
-    print(colorama.Style.RESET_ALL, end='')
+            s += line
+    if text_color or code_color:
+        s += colorama.Style.RESET_ALL
+    return s

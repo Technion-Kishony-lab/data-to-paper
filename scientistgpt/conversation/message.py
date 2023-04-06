@@ -1,9 +1,11 @@
+from dataclasses import dataclass
+
 import colorama
 from enum import Enum
 from typing import NamedTuple, Optional
 
 from scientistgpt.env import TEXT_WIDTH
-from scientistgpt.utils.text_utils import print_wrapped_text_with_code_blocks
+from scientistgpt.utils.text_utils import wrap_text_with_code_blocks
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -38,9 +40,9 @@ class Message(NamedTuple):
     def to_chatgpt_dict(self):
         return {'role': self.role, 'content': self.content}
 
-    def display(self, number: Optional[int] = None):
+    def pretty_repr(self, number: Optional[int] = None, is_color: bool = True) -> str:
         """
-        Display the message with color and heading.
+        Returns a pretty repr of the message with color and heading.
 
         number: message sequential number in the conversation.
 
@@ -55,11 +57,22 @@ class Message(NamedTuple):
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
         sep = style.seperator
-        print(style.color + num_text + sep * (9 - len(num_text)) + ' ' + role.name + ' ' + tag_text
-              + sep * (TEXT_WIDTH - len(role.name) - len(tag_text) - 9 - 2))
-        print_wrapped_text_with_code_blocks(text=content, text_color=style.color,
-                                            code_color=style.code_color, width=TEXT_WIDTH)
-        print(style.color + sep * TEXT_WIDTH, colorama.Style.RESET_ALL)
+        if is_color:
+            text_color = style.color
+            code_color = style.code_color
+            reset_color = colorama.Style.RESET_ALL
+        else:
+            text_color = code_color = reset_color = ''
+
+        # header:
+        s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role.name + ' ' + tag_text \
+            + sep * (TEXT_WIDTH - len(role.name) - len(tag_text) - 9 - 2) + '\n'
+
+        # content:
+        s += wrap_text_with_code_blocks(text=content, text_color=text_color, code_color=code_color, width=TEXT_WIDTH)
+        s += '\n'
+        s += text_color + sep * TEXT_WIDTH + reset_color
+        return s
 
     def convert_to_text(self):
         return f'{self.role}<{self.tag}>\n{self.content}'
