@@ -3,7 +3,7 @@ import textwrap
 import colorama
 
 
-def format_str(s: str):
+def dedent_triple_quote_str(s: str):
     """
     Format a triple-quote string to remove extra indentation and leading newline.
     """

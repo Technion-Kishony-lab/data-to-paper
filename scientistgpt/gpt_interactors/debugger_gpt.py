@@ -7,7 +7,7 @@ from scientistgpt.code_runner import CodeRunner
 from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     FailedDebuggingException
 from scientistgpt.env import SUPPORTED_PACKAGES
-from scientistgpt.utils.text_utils import format_str, print_red
+from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.conversation import Conversation
 from scientistgpt.proceed_retract import FuncAndRetractions
 
@@ -56,7 +56,7 @@ class DebuggerGPT(ConverserGPT):
         return result
 
     def _specify_allowed_packages(self, error_message: str):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
             {}
@@ -66,7 +66,7 @@ class DebuggerGPT(ConverserGPT):
         self.conversation.append_user_message(prompt)
 
     def _specify_error_message(self, error_message: str):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
             {}
@@ -76,14 +76,14 @@ class DebuggerGPT(ConverserGPT):
         self.conversation.append_user_message(prompt)
 
     def _specify_missing_output(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             I ran the code, but it didn't generate the desired output file ({}).
             Please rewrite the complete code again with this error corrected. 
             """).format(self.OUTPUT_FILENAME)
         self.conversation.append_user_message(prompt)
 
     def _specify_timeout(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             I ran the code, but it just ran forever...
             Please fix and rewrite the complete code again so that it doesn't get stuck. 
             """)

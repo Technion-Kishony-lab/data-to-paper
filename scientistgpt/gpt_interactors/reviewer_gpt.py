@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 
-from scientistgpt.utils.text_utils import format_str, print_red
+from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.conversation import Conversation
 from scientistgpt.proceed_retract import FuncAndRetractions
 
@@ -34,7 +34,7 @@ class ReviewerGPT(ConverserGPT):
 
     def _review_plan_last_plan(self, plan: str):
         self._review_iteration += 1
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
         This is the plan for the analysis:
         
         {}
@@ -57,7 +57,7 @@ class ReviewerGPT(ConverserGPT):
             if response.lower().__contains__('yes'):
                 break
             else:
-                prompt = format_str("""
+                prompt = dedent_triple_quote_str("""
                 Fix the plan according to the following feedback:
                 
                 {}
