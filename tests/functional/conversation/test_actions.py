@@ -2,7 +2,8 @@ from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
-    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, CopyMessagesBetweenConversations
+    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, \
+    CopyMessagesBetweenConversations, CreateConversation
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
@@ -15,6 +16,13 @@ def user_message():
 @fixture()
 def assistant_message():
     return Message(Role.ASSISTANT, 'The answer is 5.', 'answer')
+
+
+def test_create_conversation():
+    action = CreateConversation(agent='tester', comment='this is a test', conversation_name='new_conversation')
+    conversation_manager = ConversationManager()
+    action.apply(conversation=None, conversation_manager=conversation_manager)
+    assert conversation_manager.conversations.keys() == {'new_conversation'}
 
 
 def test_append_message(conversation, user_message):
@@ -87,12 +95,15 @@ def test_replace_last_response(conversation, assistant_message):
 
 def test_copy_messages_between_conversations():
     manager = ConversationManager(conversation_name='conversation_1')
-    conversation1 = manager.create_conversation()
+    manager.create_conversation()
     manager.append_system_message('You are a helpful assistant.')
     manager.append_user_message('Write a short code.', 'write_code')
+    conversation1 = manager.get_conversation()
 
     manager.conversation_name = 'conversation_2'
-    conversation2 = manager.create_conversation()
+    manager.create_conversation()
+    conversation2 = manager.get_conversation()
+
     assert conversation1 != conversation2, "sanity"
     action = CopyMessagesBetweenConversations(source_conversation_name='conversation_1',
                                               message_designation=RangeMessageDesignation.from_(0, -1))
