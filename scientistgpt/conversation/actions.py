@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
@@ -6,6 +7,10 @@ from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .converation_manager import ConversationManager
 
 NoneType = type(None)
 
@@ -40,7 +45,7 @@ class Action:
             s = red_text(s)
         return s
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         pass
 
 
@@ -57,7 +62,7 @@ class AppendMessage(Action):
     def pretty_repr(self, conversation_name: Optional[str], is_color: bool = True) -> str:
         return super().pretty_repr(conversation_name, is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         """
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
@@ -108,7 +113,7 @@ class FailedChatgptResponse(BaseChatgptResponse):
         else:
             return e
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         pass
 
 
@@ -128,7 +133,7 @@ class RegenerateLastResponse(AppendChatgptResponse):
     def default_comment(self) -> str:
         return 'Regenerating chatgpt response.'
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         conversation.delete_last_response()
         super().apply(conversation)
 
@@ -145,7 +150,7 @@ class ResetToTag(Action):
         off_set_test = '' if self.off_set == 0 else f'{self.off_set:+d}'
         return f'Resetting conversation to tag <{self.tag}>' + off_set_test + '.'
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         index = SingleMessageDesignation(tag=self.tag, off_set=self.off_set).get_message_num(conversation)
         del conversation[index:]
 
@@ -162,7 +167,7 @@ class DeleteMessages(Action):
     def default_comment(self) -> str:
         return f'Deleting messages: {self.message_designation}.'
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         for index in convert_general_message_designation_to_int_list(self.message_designation, conversation)[-1::-1]:
             conversation.pop(index)
 
@@ -177,6 +182,25 @@ class ReplaceLastResponse(AppendMessage):
     def default_comment(self) -> str:
         return f'Replacing last chatgpt response.'
 
-    def apply(self, conversation: Conversation):
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
         conversation.delete_last_response()
         super().apply(conversation)
+
+
+@dataclass(frozen=True)
+class CopyMessagesBetweenConversations(Action):
+    """
+    Copy messages from a source conversation to current conversation.
+    """
+    source_conversation_name: str = None
+    message_designation: GeneralMessageDesignation = None
+
+    def default_comment(self) -> str:
+        return f'Copying messages {self.message_designation} from conversation "{self.source_conversation_name}".'
+
+    def apply(self, conversation: Conversation, conversation_manager: ConversationManager = None):
+        with conversation_manager.temporary_set_conversation_name(self.source_conversation_name):
+            source_conversation = conversation_manager.get_conversation()
+        for index in convert_general_message_designation_to_int_list(self.message_designation,
+                                                                     source_conversation):
+            conversation.append(source_conversation[index])

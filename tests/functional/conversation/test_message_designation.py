@@ -15,9 +15,9 @@ def test_single_message_designation(conversation):
 
 
 @pytest.mark.parametrize('start, end, expected', [
-    (1, 3, [1, 2]),
-    (None, 'code', [0, 1]),
-    (None, SingleMessageDesignation('code', 1), [0, 1, 2]),
+    (1, 3, [1, 2, 3]),
+    (None, 'code', [0, 1, 2]),
+    (None, SingleMessageDesignation('code', 1), [0, 1, 2, 3]),
 ])
 def test_range_message_designation(conversation, start, end, expected):
     assert RangeMessageDesignation.from_(start, end).get_message_nums(conversation) == expected

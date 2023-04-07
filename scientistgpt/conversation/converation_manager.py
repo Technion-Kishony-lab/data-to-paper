@@ -6,7 +6,7 @@ from .conversation import Conversation
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
-    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse
+    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations
 
 
 class ConversationNameAndAction(NamedTuple):
@@ -53,8 +53,10 @@ class ConversationManager:
         yield
         self.conversation_name = old_conversation_name
 
-    def create_conversation(self):
-        self.conversations[self.conversation_name] = Conversation()
+    def create_conversation(self) -> Conversation:
+        new_conversation = Conversation()
+        self.conversations[self.conversation_name] = new_conversation
+        return new_conversation
 
     def get_conversation(self) -> Conversation:
         return self.conversations[self.conversation_name]
@@ -64,7 +66,7 @@ class ConversationManager:
         Apply an action to a conversation and append to the actions list.
         """
         self.conversation_names_and_actions.append(ConversationNameAndAction(self.conversation_name, action))
-        action.apply(self.get_conversation())
+        action.apply(self.get_conversation(), self)
         if self.should_print:
             print(action.pretty_repr(self.conversation_name))
 
@@ -81,7 +83,7 @@ class ConversationManager:
                               agent: Optional[str] = None,
                               comment: Optional[str] = None):
         """
-        Append a user-message to a specified conversation.
+        Append a system-message to a specified conversation.
         """
         self.append_message(Role.SYSTEM, content, tag, agent, comment)
 
@@ -208,3 +210,16 @@ class ConversationManager:
         self._append_and_apply_action(
             ReplaceLastResponse(agent=agent, comment=comment,
                                 message=Message(role=Role.ASSISTANT, content=content, tag=tag)))
+
+    def copy_messages_from_another_conversations(self, source_conversation_name: str,
+                                                 message_designation: GeneralMessageDesignation,
+                                                 agent: Optional[str] = None,
+                                                 comment: Optional[str] = None,
+                                                 ):
+        """
+        Copy messages from one conversation to another.
+        """
+        self._append_and_apply_action(
+            CopyMessagesBetweenConversations(agent=agent, comment=comment,
+                                             source_conversation_name=source_conversation_name,
+                                             message_designation=message_designation))
