@@ -1,8 +1,8 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
-from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse,\
-    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages
+from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
+    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse
 
 
 @fixture()
@@ -68,5 +68,14 @@ def test_delete_messages(conversation, assistant_message):
     action = DeleteMessages(message_designation=['write_code', -1])
     action.apply(conversation)
     conversation.print_all_messages()
+    assert conversation == expected
+    print('\n' + action.pretty_repr(conversation_name='test_conversation'))
+
+
+def test_replace_last_response(conversation, assistant_message):
+    conversation.append_assistant_message('bad response. to be replaced')
+    expected = conversation[:-1] + [assistant_message]
+    action = ReplaceLastResponse(message=assistant_message, agent='tester', comment='this is a test')
+    action.apply(conversation)
     assert conversation == expected
     print('\n' + action.pretty_repr(conversation_name='test_conversation'))
