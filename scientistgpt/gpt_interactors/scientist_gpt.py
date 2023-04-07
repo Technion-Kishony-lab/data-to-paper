@@ -4,7 +4,7 @@ from typing import Optional, List, Callable
 from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
 from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.conversation import Conversation, Role
-from scientistgpt.utils.text_utils import format_str, print_red
+from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
 from .reviewer_gpt import ReviewerGPT
 
@@ -12,7 +12,7 @@ from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT
 
 GPT_SCRIPT_FILENAME = 'gpt_analysis'
-SYSTEM_PROMPT = format_str("""
+SYSTEM_PROMPT = dedent_triple_quote_str("""
         You are a scientist. You are given a data set and a goal. You need to come up with analysis plan.
         You need to write a efficient short code to perform the analysis plan.
         You need to interpret the results and write a summary of the results.
@@ -65,7 +65,7 @@ class ScientistGPT(ConverserGPT):
         self.conversation.append_message(Role.SYSTEM, prompt, should_print=True)
 
     def add_data_description(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             We have the following data files:
 
             {}
@@ -79,7 +79,7 @@ class ScientistGPT(ConverserGPT):
         self.conversation.append_assistant_message('ok')
 
     def request_analysis_plan(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             Suggest a data analysis plan to achieve the specified goal.
             """)
         self.conversation.append_user_message(prompt)
@@ -88,7 +88,7 @@ class ScientistGPT(ConverserGPT):
         return reply
 
     def request_analysis_code(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             Write a complete Python code to perform the analysis you suggested.
             Use only the packages: {} to perform the analysis.
             The output of the code should be a text file named `{}`.
@@ -116,7 +116,7 @@ class ScientistGPT(ConverserGPT):
         self.conversation = debugger.conversation
         print_red("Code ran successfully! Let's see what chatgpt think of the results ...")
 
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             I ran your code. Here is the content of the output file ({}):
             ```
             {}
@@ -141,7 +141,7 @@ class ScientistGPT(ConverserGPT):
             if result == '2':
                 print_red(
                     'ChatGPT declared "I need to write additional code the code and try again before writing a paper."')
-                prompt = format_str("""
+                prompt = dedent_triple_quote_str("""
                 Write additional code to improve the analysis and try again. Append any additional results to the output file.
                 """)
                 self.conversation.append_user_message(prompt)
@@ -151,7 +151,7 @@ class ScientistGPT(ConverserGPT):
 
     def get_gpt_response_to_analysis(self):
         # ask chatgpt to summarize the results
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             The results file contains the following content:
             ```
             {}
@@ -178,7 +178,7 @@ class ScientistGPT(ConverserGPT):
 
 
     def write_paper(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
         Write paper - write abstract, introduction, methods, results, discussion and acknowledgments.
         Use markdown to format the paper.
         In addition you are required to state where to enter the figure of you created during the analysis by using
