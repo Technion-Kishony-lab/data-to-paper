@@ -1,7 +1,7 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
-from scientistgpt.conversation.actions import RegenerateLastResponse, ReplaceLastResponse
+from scientistgpt.conversation.actions import ReplaceLastResponse
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from tests.utils import mock_openai

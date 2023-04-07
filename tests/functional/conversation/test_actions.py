@@ -23,7 +23,8 @@ def test_append_message(conversation, user_message):
 
 
 def test_add_chatgpt_response(conversation, assistant_message):
-    action = AppendChatgptResponse(message=assistant_message, agent='tester', comment='this is a test', hidden_messages=[1, 3])
+    action = AppendChatgptResponse(message=assistant_message, agent='tester', comment='this is a test',
+                                   hidden_messages=[1, 3])
     action.apply(conversation)
     assert conversation[-1] is assistant_message
     print('\n' + action.pretty_repr(conversation_name='test_conversation'))
@@ -48,7 +49,8 @@ def test_no_action(conversation):
 def test_regenerate_last_response(conversation, assistant_message):
     conversation.pop(-1)  # so that we have an assistant message last, to regenerate
     original_length = len(conversation)
-    action = RegenerateLastResponse(agent='tester', comment='this is a test', hidden_messages=[1, 3], message=assistant_message)
+    action = RegenerateLastResponse(agent='tester', comment='this is a test', hidden_messages=[1, 3],
+                                    message=assistant_message)
     action.apply(conversation)
     assert len(conversation) == original_length
     conversation[-1] = assistant_message
@@ -56,7 +58,7 @@ def test_regenerate_last_response(conversation, assistant_message):
 
 
 def test_reset_to_tag(conversation, assistant_message):
-    assert len(conversation) == 4,  "sanity"
+    assert len(conversation) == 4, "sanity"
     action = ResetToTag(agent='tester', comment='we are going back', tag='write_code')
     action.apply(conversation)
     assert len(conversation) == 1
