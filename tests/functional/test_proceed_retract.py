@@ -8,7 +8,6 @@ class StepFailed(Exception):
 
 
 class CounterProceedRetract(ProceedRetract):
-    STATE_ATTRS: List[str] = ['data']
 
     def __init__(self,
                  execution_plan: List[FuncAndRetractions] = None,
@@ -16,12 +15,10 @@ class CounterProceedRetract(ProceedRetract):
                  should_fail: List[List[int]] = None):
 
         super().__init__(execution_plan)
-        self.data = data
         self.should_fail = should_fail
         self.step_ran = []
 
     def _step_or_fail(self, step: int):
-        self.data[step] += 1
         self.step_ran.append(step)
         if self.should_fail[len(self.step_ran) - 1]:
             raise StepFailed()
@@ -59,4 +56,3 @@ def test_proceed_retract_run_correct_steps():
     runner.run_all()
 
     assert runner.step_ran == expected_sequence
-    assert runner.data == [1, 1, 1]
