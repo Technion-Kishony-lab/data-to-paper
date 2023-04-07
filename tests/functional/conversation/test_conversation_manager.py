@@ -39,7 +39,7 @@ def test_conversation_manager_regenerate_response(manager):
         manager.regenerate_previous_response()
 
     assert len(manager.get_conversation()) == 3
-    assert len(manager.conversation_names_and_actions) == 4  # 3 actions
+    assert len(manager.conversation_names_and_actions) == 5
     assert manager.get_conversation()[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
 
 
@@ -54,7 +54,7 @@ def test_conversation_manager_retry_response(manager, openai_exception):
         manager.get_and_append_assistant_message(tag='math answer')
 
     assert len(manager.get_conversation()) == 5
-    assert len(manager.conversation_names_and_actions) == 6  # there is one more action, because one failed
+    assert len(manager.conversation_names_and_actions) == 7  # 5 + create + failed
     assert manager.get_conversation()[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
     # message #1 was hidden after the first failed attempt:
     assert manager.conversation_names_and_actions[-1].action.hidden_messages == [1]
@@ -107,7 +107,8 @@ def test_conversation_manager_copy_messages_from_another_conversations():
     manager.append_user_message('m4')
 
     with manager.temporary_set_conversation_name('another conversation'):
-        conversation2 = manager.create_conversation()
+        manager.create_conversation()
+        conversation2 = manager.get_conversation()
         manager.copy_messages_from_another_conversations(
             message_designation=RangeMessageDesignation.from_('tag2', -1),
             source_conversation_name='primary conversation',

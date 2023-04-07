@@ -6,7 +6,8 @@ from .conversation import Conversation
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
-    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations
+    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
+    CreateConversation
 
 
 class ConversationNameAndAction(NamedTuple):
@@ -53,13 +54,8 @@ class ConversationManager:
         yield
         self.conversation_name = old_conversation_name
 
-    def create_conversation(self) -> Conversation:
-        new_conversation = Conversation()
-        self.conversations[self.conversation_name] = new_conversation
-        return new_conversation
-
     def get_conversation(self) -> Conversation:
-        return self.conversations[self.conversation_name]
+        return self.conversations.get(self.conversation_name, None)
 
     def _append_and_apply_action(self, action: Action):
         """
@@ -70,6 +66,9 @@ class ConversationManager:
         if self.should_print:
             print(action.pretty_repr(self.conversation_name))
 
+    def create_conversation(self):
+        self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name))
+
     def append_message(self, role: Role, content: str, tag: Optional[str],
                        agent: Optional[str] = None,
                        comment: Optional[str] = None):
@@ -77,7 +76,7 @@ class ConversationManager:
         Append a message to a specified conversation.
         """
         message = Message(role=role, content=content, tag=tag)
-        self._append_and_apply_action(action=AppendMessage(agent=agent, comment=comment, message=message))
+        self._append_and_apply_action(AppendMessage(agent=agent, comment=comment, message=message))
 
     def append_system_message(self, content: str, tag: Optional[str] = None,
                               agent: Optional[str] = None,
