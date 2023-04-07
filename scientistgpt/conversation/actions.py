@@ -82,7 +82,7 @@ class BaseChatgptResponse(Action):
     "list of message to remove from the conversation when sending to ChatGPT"
 
     def default_comment(self) -> str:
-        return f'HIDING MESSAGES: {self.hidden_messages}' if self.hidden_messages else ''
+        return f'HIDING MESSAGES: {self.hidden_messages}.' if self.hidden_messages else ''
 
 
 @dataclass(frozen=True)
@@ -103,12 +103,11 @@ class FailedChatgptResponse(BaseChatgptResponse):
 
     def default_comment(self) -> str:
         s = super().default_comment()
-        e = 'CHATGPT FAILED'
+        e = 'CHATGPT FAILED.'
         if s:
             return s + ' ' + e
         else:
             return e
-
 
     def apply(self, conversation: Conversation):
         pass
@@ -145,7 +144,7 @@ class ResetToTag(Action):
 
     def default_comment(self) -> str:
         off_set_test = '' if self.off_set == 0 else f'{self.off_set:+d}'
-        return f'Resetting conversation to tag <{self.tag}>' + off_set_test
+        return f'Resetting conversation to tag <{self.tag}>' + off_set_test + '.'
 
     def apply(self, conversation: Conversation):
         index = SingleMessageDesignation(tag=self.tag, off_set=self.off_set).get_message_num(conversation)
@@ -167,3 +166,18 @@ class DeleteMessages(Action):
     def apply(self, conversation: Conversation):
         for index in convert_general_message_designation_to_int_list(self.message_designation, conversation)[-1::-1]:
             conversation.pop(index)
+
+
+@dataclass(frozen=True)
+class ReplaceLastResponse(AppendMessage):
+    """
+    Replace the last chatgpt response with a new message.
+    """
+    message: Message = None
+
+    def default_comment(self) -> str:
+        return f'Replacing last chatgpt response.'
+
+    def apply(self, conversation: Conversation):
+        conversation.delete_last_response()
+        super().apply(conversation)

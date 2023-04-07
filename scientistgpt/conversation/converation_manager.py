@@ -5,7 +5,7 @@ from .conversation import Conversation
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, NoAction, DeleteMessages, ResetToTag, RegenerateLastResponse, \
-    AppendChatgptResponse, FailedChatgptResponse
+    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse
 
 
 class ConversationNameAndAction(NamedTuple):
@@ -195,4 +195,17 @@ class ConversationManager:
         Delete messages from a conversation.
         """
         action = DeleteMessages(agent=agent, comment=comment, message_designation=message_designation)
+        self._append_and_apply_action(action=action, conversation_name=conversation_name)
+
+    def replace_last_response(self, content: str,
+                              agent: Optional[str] = None,
+                              conversation_name: Optional[str] = None,
+                              comment: Optional[str] = None,
+                              tag: Optional[str] = None,
+                              ):
+        """
+        Replace the last response with the specified content.
+        """
+        action = ReplaceLastResponse(agent=agent, comment=comment,
+                                     message=Message(role=Role.ASSISTANT, content=content, tag=tag))
         self._append_and_apply_action(action=action, conversation_name=conversation_name)

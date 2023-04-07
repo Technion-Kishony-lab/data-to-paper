@@ -1,7 +1,7 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
-from scientistgpt.conversation.actions import RegenerateLastResponse
+from scientistgpt.conversation.actions import RegenerateLastResponse, ReplaceLastResponse
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from tests.utils import mock_openai
@@ -87,3 +87,12 @@ def test_conversation_manager_delete_messages(manager):
     manager.delete_messages(message_designation=RangeMessageDesignation.from_('tag2', -1))
 
     assert [m.content for m in manager.get_conversation()[1:]] == ['m1', 'm4']
+
+
+def test_conversation_manager_replace_last_response(manager):
+    manager.append_provided_assistant_message('preliminary message. to be replaced')
+    original_len = len(manager.get_conversation())
+    manager.replace_last_response('new response')
+    assert manager.get_conversation().get_last_response() == 'new response'
+    assert isinstance(manager.conversation_names_and_actions[-1].action, ReplaceLastResponse)
+    assert len(manager.get_conversation()) == original_len
