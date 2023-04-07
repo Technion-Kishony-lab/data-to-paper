@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html>
+{% load static %}
 <head>
-    {% load static %}
     <meta charset="utf-8"/>
     <title>ScientistGPT</title>
+    <div class="header">
+    <img src="{% static 'scientistgpt_app/scientistgpt.svg' %}" alt="Logo" class="logo">
+    </div>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body {
@@ -32,7 +35,16 @@
             font-size: 20px;
             width: 100%;
         }
-
+        .logo {
+            width: 150px; /* Adjust the width as needed */
+            height: auto;
+            flex: fit-content;
+            display: flex;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+        }
         .container {
             display: flex;
             flex-direction: column;
@@ -99,6 +111,7 @@
         }
 
         .chat-window {
+            font-family: 'Roboto', sans-serif;
             border: 1px solid #444;
             border-radius: 5px;
             padding: 10px;
@@ -109,7 +122,7 @@
         }
 
         .chat-message {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin-bottom: 10px;
             font-size: 20px;
             padding: 10px;
@@ -117,14 +130,17 @@
         }
 
         .chat-message .User {
+            font-family: 'Roboto', sans-serif;
             font-weight: bold;
         }
 
         .chat-message .System {
+            font-family: 'Roboto', sans-serif;
             font-weight: bold;
         }
 
         .chat-message .Assistant {
+            font-family: 'Roboto', sans-serif;
             font-weight: bold;
         }
 
@@ -139,15 +155,15 @@
         }
 
         .icon-User::before {
-            background-image: url('{% static "user.svg" %}');
+            background-image: url('{% static "scientistgpt_app/user.svg" %}');
         }
 
         .icon-System::before {
-            background-image: url('{% static "system.svg" %}');
+            background-image: url('{% static "scientistgpt_app/system.svg" %}');
         }
 
         .icon-Assistant::before {
-            background-image: url('{% static "assistant.webp" %}');
+            background-image: url('{% static "scientistgpt_app/assistant.webp" %}');
         }
 
         .system {
@@ -180,7 +196,7 @@
         .code {
             font-family: monospace;
             white-space: pre-wrap;
-            background-color: #f0f0f0;
+            background-color: #4f4a4a;
             padding: 2px 4px;
             border-radius: 4px;
         }
@@ -214,7 +230,7 @@
     </style>
 </head>
 <body>
-<h1>ScientistGPT</h1>
+{#<h1>ScientistGPT</h1>#}
 <div class="container">
     <div class="instructions">
         <h2>How to Use</h2>
@@ -305,7 +321,7 @@
 
     var uploadForm = document.querySelector("form");
 
-    uploadForm.addEventListener("submit", function (event) {
+    uploadForm.addEventListener("submit", async function (event) {
         var dataFile = document.getElementById("data-file");
 
         if (dataFile.files[0].size > 52428800) {
@@ -350,7 +366,7 @@
     // Keep track of the last message typing Promise
     let lastMessagePromise = Promise.resolve();
 
-    chatSocket.onmessage = function (e) {
+    chatSocket.onmessage = async function (e) {
         const data = JSON.parse(e.data);
 
         lastMessagePromise = lastMessagePromise.then(async () => {
@@ -361,9 +377,9 @@
             roleSpan.className = data.role;
             roleSpan.innerHTML = `<strong>${data.role.charAt(0).toUpperCase() + data.role.slice(1)}:</strong> `;
 
-            const iconSpan = document.createElement('span');
-            iconSpan.className = `icon-${data.role}`; // Change this line
-            message.appendChild(iconSpan);
+            {#const iconSpan = document.createElement('span');#}
+            {#iconSpan.className = `icon-${data.role} role-icon`; // Change this line#}
+            {#message.appendChild(iconSpan);#}
 
             message.appendChild(roleSpan);
             message.insertAdjacentHTML('beforeend', '<br><br>'); // Insert <br><br> tags as HTML
