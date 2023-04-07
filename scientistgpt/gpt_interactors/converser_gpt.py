@@ -1,6 +1,6 @@
 from typing import Optional, List
-import abc
-from scientistgpt.conversation import Conversation, Role
+
+from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.proceed_retract import ProceedRetract, FuncAndRetractions
 
 
@@ -10,18 +10,17 @@ class ConverserGPT(ProceedRetract):
 
     Based on ProceedRetract, it allows going back upon to upstream states upon downstream failures.
     """
-    STATE_ATTRS: List[str] = ['conversation']
     OUTPUT_FILENAME = 'results.txt'
     ROLE = 'helpful scientist'
 
     def __init__(self,
                  run_plan: List[FuncAndRetractions] = None,
-                 conversation: Optional[Conversation] = None):
+                 conversation_manager: Optional[ConversationManager] = None):
         super().__init__(run_plan)
-        self.conversation = conversation
+        self.conversation_manager = conversation_manager
 
-    @abc.abstractmethod
     def initialize_conversation(self):
         prompt = f'You are a {self.ROLE}.'
-        self.conversation = Conversation()
-        self.conversation.append_message(Role.SYSTEM, prompt, should_print=True)
+        self.conversation_manager = ConversationManager()
+        self.conversation_manager.create_conversation()
+        self.conversation_manager.append_system_message(prompt)
