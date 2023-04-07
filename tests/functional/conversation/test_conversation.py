@@ -57,3 +57,9 @@ def test_conversation_delete_last_response(conversation):
     original_len = len(conversation)
     conversation.delete_last_response()
     assert len(conversation) == original_len - 1
+
+
+def test_conversation_get_message_content_by_tag(conversation):
+    conversation.append_assistant_message('Hello!', tag='hello')
+    assert conversation.get_message_content_by_tag('hello') == 'Hello!'
+    assert conversation.get_message_content_by_tag('not-hello') is None

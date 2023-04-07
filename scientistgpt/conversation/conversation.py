@@ -59,6 +59,12 @@ class Conversation(List[Message]):
         assert self[-1].role is Role.ASSISTANT
         return self[-1].content
 
+    def get_message_content_by_tag(self, tag):
+        for message in self:
+            if message.tag == tag:
+                return message.content
+        return None
+
     def delete_last_response(self):
         assert self[-1].role is Role.ASSISTANT
         self.pop()
