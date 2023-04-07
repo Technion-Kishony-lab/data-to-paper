@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 import colorama
 from enum import Enum
 from typing import NamedTuple, Optional

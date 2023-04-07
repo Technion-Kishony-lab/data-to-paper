@@ -1,6 +1,6 @@
 import openai
 import re
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Union
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation

@@ -1,11 +1,10 @@
-from abc import ABC
 from dataclasses import dataclass
-from typing import Union, Optional, List
+from typing import Optional
 
-from scientistgpt.utils.text_utils import print_red, red_text
+from scientistgpt.utils.text_utils import red_text
 from .message import Message
 from .conversation import Conversation
-from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, RangeMessageDesignation, \
+from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 
 NoneType = type(None)
@@ -54,7 +53,7 @@ class AppendMessage(Action):
     If `tag` already exists, conversation will reset to the previous tag.
     """
     message: Message = None
-    
+
     def pretty_repr(self, conversation_name: Optional[str], is_color: bool = True) -> str:
         return super().pretty_repr(conversation_name, is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
 

@@ -1,9 +1,8 @@
 import os.path
 
 import openai
-from _pytest.fixtures import fixture
 
-from scientistgpt import Conversation, Role, Message
+from scientistgpt import Conversation
 from tests.utils import mock_openai
 
 

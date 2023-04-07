@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, NamedTuple
 from .conversation import Conversation
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
-from .actions import Action, AppendMessage, NoAction, DeleteMessages, ResetToTag, RegenerateLastResponse, \
+from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse
 
 
