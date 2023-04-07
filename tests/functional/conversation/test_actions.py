@@ -2,7 +2,9 @@ from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
-    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse
+    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, CopyMessagesBetweenConversations
+from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
 
 @fixture()
@@ -80,4 +82,20 @@ def test_replace_last_response(conversation, assistant_message):
     action = ReplaceLastResponse(message=assistant_message, agent='tester', comment='this is a test')
     action.apply(conversation)
     assert conversation == expected
+    print('\n' + action.pretty_repr(conversation_name='test_conversation'))
+
+
+def test_copy_messages_between_conversations():
+    manager = ConversationManager(conversation_name='conversation_1')
+    conversation1 = manager.create_conversation()
+    manager.append_system_message('You are a helpful assistant.')
+    manager.append_user_message('Write a short code.', 'write_code')
+
+    manager.conversation_name = 'conversation_2'
+    conversation2 = manager.create_conversation()
+    assert conversation1 != conversation2, "sanity"
+    action = CopyMessagesBetweenConversations(source_conversation_name='conversation_1',
+                                              message_designation=RangeMessageDesignation.from_(0, -1))
+    action.apply(conversation2, manager)
+    assert conversation1 == conversation2
     print('\n' + action.pretty_repr(conversation_name='test_conversation'))

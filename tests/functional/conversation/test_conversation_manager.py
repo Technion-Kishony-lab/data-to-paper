@@ -84,7 +84,7 @@ def test_conversation_manager_delete_messages(manager):
     manager.append_user_message('m2', tag='tag2')
     manager.append_user_message('m3')
     manager.append_user_message('m4')
-    manager.delete_messages(message_designation=RangeMessageDesignation.from_('tag2', -1))
+    manager.delete_messages(message_designation=RangeMessageDesignation.from_('tag2', -2))
 
     assert [m.content for m in manager.get_conversation()[1:]] == ['m1', 'm4']
 
@@ -96,3 +96,20 @@ def test_conversation_manager_replace_last_response(manager):
     assert manager.get_conversation().get_last_response() == 'new response'
     assert isinstance(manager.conversation_names_and_actions[-1].action, ReplaceLastResponse)
     assert len(manager.get_conversation()) == original_len
+
+
+def test_conversation_manager_copy_messages_from_another_conversations():
+    manager = ConversationManager(conversation_name='primary conversation')
+    manager.create_conversation()
+    manager.append_user_message('m1')
+    manager.append_user_message('m2', tag='tag2')
+    manager.append_user_message('m3')
+    manager.append_user_message('m4')
+
+    with manager.temporary_set_conversation_name('another conversation'):
+        conversation2 = manager.create_conversation()
+        manager.copy_messages_from_another_conversations(
+            message_designation=RangeMessageDesignation.from_('tag2', -1),
+            source_conversation_name='primary conversation',
+        )
+        assert [m.content for m in conversation2] == ['m2', 'm3', 'm4']

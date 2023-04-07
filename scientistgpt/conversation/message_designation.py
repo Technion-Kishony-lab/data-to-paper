@@ -61,11 +61,12 @@ class RangeMessageDesignation(MessageDesignation):
     start: first message, indicated, by tag (str), by index (int) or as SingleMessageDesignation.
     end: last message (not including), indicated, by tag (str), by index (int) or as SingleMessageDesignation.
     """
+
     start: SingleMessageDesignation
     end: SingleMessageDesignation
 
     def get_message_nums(self, conversation: Conversation) -> List[int]:
-        return list(range(self.start.get_message_num(conversation), self.end.get_message_num(conversation)))
+        return list(range(self.start.get_message_num(conversation), self.end.get_message_num(conversation) + 1))
 
     def __str__(self):
         return f"{self.start}-{self.end}"
