@@ -1,6 +1,6 @@
 import openai
 import re
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation
@@ -34,6 +34,10 @@ class Conversation(List[Message]):
     # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
     SAVE_START = 'START>>>>> '
     SAVE_END = '\n<<<<<END\n'
+
+    def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.conversation_name = conversation_name
 
     def append_message(self, role: Role, content: str, tag: str = '') -> Message:
         message = Message(role, content, tag)
