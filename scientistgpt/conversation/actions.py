@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict
 
 from scientistgpt.utils.text_utils import red_text
 from .message import Message
@@ -8,11 +8,13 @@ from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .converation_manager import ConversationManager
-
 NoneType = type(None)
+
+
+CONVERSATION_NAMES_TO_CONVERSATIONS: Dict[str, Conversation] = {}
+"""
+a dict containing all managed conversations, by name. 
+"""
 
 
 @dataclass(frozen=True)
@@ -21,22 +23,29 @@ class Action:
     Base class for actions performed on a chatgpt conversation.
     """
 
+    conversation_name: Optional[str] = None
+    "The name of the conversation to perform the action on."
+
     agent: Optional[str] = None
     "The agent/algorithm performing the action."
 
     comment: Optional[str] = None
     "A comment explaining why action is performed."
 
+    @property
+    def conversation(self) -> Conversation:
+        return CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name]
+
     def default_comment(self) -> str:
         return ''
 
-    def pretty_repr(self, conversation_name: Optional[str], is_color: bool = True) -> str:
+    def pretty_repr(self, is_color: bool = True) -> str:
         s = ''
         if self.agent:
             s += f'{self.agent}: '
         s += f'{type(self).__name__}'
-        if conversation_name:
-            s += f' -> {conversation_name}'
+        if self.conversation_name:
+            s += f' -> {self.conversation_name}'
         if self.default_comment():
             s += f', {self.default_comment()}'
         if self.comment:
@@ -45,7 +54,7 @@ class Action:
             s = red_text(s)
         return s
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
+    def apply(self):
         pass
 
 
@@ -54,13 +63,13 @@ class CreateConversation(Action):
     """
     Create a new conversation.
     """
-    conversation_name: str = None
-    
+
     def default_comment(self) -> str:
         return f'CREATING CONVERSATION: {self.conversation_name}.'
     
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
-        conversation_manager.conversations[self.conversation_name] = Conversation()
+    def apply(self):
+        CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
+            Conversation(conversation_name=self.conversation_name)
         
 
 @dataclass(frozen=True)
@@ -73,21 +82,21 @@ class AppendMessage(Action):
     """
     message: Message = None
 
-    def pretty_repr(self, conversation_name: Optional[str], is_color: bool = True) -> str:
-        return super().pretty_repr(conversation_name, is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
+    def pretty_repr(self, is_color: bool = True) -> str:
+        return super().pretty_repr(is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
+    def apply(self):
         """
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
         """
         if self.message.tag is not None:
             try:
-                index = SingleMessageDesignation(self.message.tag).get_message_num(conversation)
-                del conversation[index:]
+                index = SingleMessageDesignation(self.message.tag).get_message_num(self.conversation)
+                del self.conversation[index:]
             except ValueError:
                 pass
-        conversation.append(self.message)
+        self.conversation.append(self.message)
 
 
 @dataclass(frozen=True)
@@ -127,7 +136,7 @@ class FailedChatgptResponse(BaseChatgptResponse):
         else:
             return e
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
+    def apply(self):
         pass
 
 
@@ -147,9 +156,9 @@ class RegenerateLastResponse(AppendChatgptResponse):
     def default_comment(self) -> str:
         return 'Regenerating chatgpt response.'
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
-        conversation.delete_last_response()
-        super().apply(conversation)
+    def apply(self):
+        self.conversation.delete_last_response()
+        super().apply()
 
 
 @dataclass(frozen=True)
@@ -164,9 +173,9 @@ class ResetToTag(Action):
         off_set_test = '' if self.off_set == 0 else f'{self.off_set:+d}'
         return f'Resetting conversation to tag <{self.tag}>' + off_set_test + '.'
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
-        index = SingleMessageDesignation(tag=self.tag, off_set=self.off_set).get_message_num(conversation)
-        del conversation[index:]
+    def apply(self):
+        index = SingleMessageDesignation(tag=self.tag, off_set=self.off_set).get_message_num(self.conversation)
+        del self.conversation[index:]
 
 
 @dataclass(frozen=True)
@@ -181,9 +190,10 @@ class DeleteMessages(Action):
     def default_comment(self) -> str:
         return f'Deleting messages: {self.message_designation}.'
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
-        for index in convert_general_message_designation_to_int_list(self.message_designation, conversation)[-1::-1]:
-            conversation.pop(index)
+    def apply(self):
+        for index in convert_general_message_designation_to_int_list(self.message_designation,
+                                                                     self.conversation)[-1::-1]:
+            self.conversation.pop(index)
 
 
 @dataclass(frozen=True)
@@ -196,9 +206,9 @@ class ReplaceLastResponse(AppendMessage):
     def default_comment(self) -> str:
         return f'Replacing last chatgpt response.'
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
-        conversation.delete_last_response()
-        super().apply(conversation)
+    def apply(self):
+        self.conversation.delete_last_response()
+        super().apply()
 
 
 @dataclass(frozen=True)
@@ -209,12 +219,14 @@ class CopyMessagesBetweenConversations(Action):
     source_conversation_name: str = None
     message_designation: GeneralMessageDesignation = None
 
+    @property
+    def source_conversation(self) -> Conversation:
+        return CONVERSATION_NAMES_TO_CONVERSATIONS[self.source_conversation_name]
+
     def default_comment(self) -> str:
         return f'Copying messages {self.message_designation} from conversation "{self.source_conversation_name}".'
 
-    def apply(self, conversation: Conversation = None, conversation_manager: ConversationManager = None):
-        with conversation_manager.temporary_set_conversation_name(self.source_conversation_name):
-            source_conversation = conversation_manager.get_conversation()
+    def apply(self):
         for index in convert_general_message_designation_to_int_list(self.message_designation,
-                                                                     source_conversation):
-            conversation.append(source_conversation[index])
+                                                                     self.source_conversation):
+            self.conversation.append(self.source_conversation[index])

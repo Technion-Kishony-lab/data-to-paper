@@ -2,7 +2,7 @@ from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import ReplaceLastResponse
-from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.conversation.converation_manager import ConversationManager, APPLIED_ACTIONS
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from tests.utils import mock_openai
 
@@ -39,7 +39,7 @@ def test_conversation_manager_regenerate_response(manager):
         manager.regenerate_previous_response()
 
     assert len(manager.get_conversation()) == 3
-    assert len(manager.conversation_names_and_actions) == 5
+    assert len(APPLIED_ACTIONS) == 5
     assert manager.get_conversation()[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
 
 
@@ -54,10 +54,10 @@ def test_conversation_manager_retry_response(manager, openai_exception):
         manager.get_and_append_assistant_message(tag='math answer')
 
     assert len(manager.get_conversation()) == 5
-    assert len(manager.conversation_names_and_actions) == 7  # 5 + create + failed
+    assert len(APPLIED_ACTIONS) == 7  # 5 + create + failed
     assert manager.get_conversation()[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
     # message #1 was hidden after the first failed attempt:
-    assert manager.conversation_names_and_actions[-1].action.hidden_messages == [1]
+    assert APPLIED_ACTIONS[-1].hidden_messages == [1]
 
 
 def test_conversation_manager_reset_to_tag_when_tag_repeats(manager):
@@ -94,23 +94,22 @@ def test_conversation_manager_replace_last_response(manager):
     original_len = len(manager.get_conversation())
     manager.replace_last_response('new response')
     assert manager.get_conversation().get_last_response() == 'new response'
-    assert isinstance(manager.conversation_names_and_actions[-1].action, ReplaceLastResponse)
+    assert isinstance(APPLIED_ACTIONS[-1], ReplaceLastResponse)
     assert len(manager.get_conversation()) == original_len
 
 
 def test_conversation_manager_copy_messages_from_another_conversations():
-    manager = ConversationManager(conversation_name='primary conversation')
-    manager.create_conversation()
-    manager.append_user_message('m1')
-    manager.append_user_message('m2', tag='tag2')
-    manager.append_user_message('m3')
-    manager.append_user_message('m4')
+    manager1 = ConversationManager(conversation_name='conversation1')
+    manager1.create_conversation()
+    manager1.append_user_message('m1')
+    manager1.append_user_message('m2', tag='tag2')
+    manager1.append_user_message('m3')
+    manager1.append_user_message('m4')
 
-    with manager.temporary_set_conversation_name('another conversation'):
-        manager.create_conversation()
-        conversation2 = manager.get_conversation()
-        manager.copy_messages_from_another_conversations(
-            message_designation=RangeMessageDesignation.from_('tag2', -1),
-            source_conversation_name='primary conversation',
-        )
-        assert [m.content for m in conversation2] == ['m2', 'm3', 'm4']
+    manager2 = ConversationManager(conversation_name='conversation2')
+    manager2.create_conversation()
+    manager2.copy_messages_from_another_conversations(
+        message_designation=RangeMessageDesignation.from_('tag2', -1),
+        source_conversation_name='conversation1',
+    )
+    assert [m.content for m in manager2.get_conversation()] == ['m2', 'm3', 'm4']
