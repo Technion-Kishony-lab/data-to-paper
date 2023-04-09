@@ -1,7 +1,8 @@
+from dataclasses import dataclass
 from typing import List, NamedTuple, Type, Union, Tuple, Optional, Callable
 
 from scientistgpt.exceptions import FailedRunningStep
-from scientistgpt.utils.text_utils import print_red
+from scientistgpt.utils.text_utils import print_red, print_magenta
 
 
 class FuncAndRetractions(NamedTuple):
@@ -26,9 +27,10 @@ class FuncAndRetractions(NamedTuple):
     """
 
 
-RunPlan = List[FuncAndRetractions]
+ExecutionPlan = List[FuncAndRetractions]
 
 
+@dataclass
 class ProceedRetract:
     """
     Allows running analysis steps sequentially manipulate the object state.
@@ -63,17 +65,17 @@ class ProceedRetract:
 
     """
 
-    def __init__(self, execution_plan: RunPlan = None, callback: Optional[Callable] = None,
-                 should_print_comments: bool = True):
-        self.execution_plan = execution_plan or []
+    execution_plan: ExecutionPlan = None
+    print_level: int = 1  # 0 - no printing, 1 - print retractions, 2 - print all
+    callback: Optional[Callable] = None
+
+    def __post_init__(self):
         self.current_step: int = 0
         self._num_failures: List[int] = [0] * self.num_steps  # the number of time each step failed since last success.
-        self.callback = callback
-        self.should_print_comments = True
 
-    def print_comment(self, comment: str):
-        if self.should_print_comments:
-            print_red(comment)
+    def print_comment(self, comment: str, action: str):
+        if action == 'proceed' and self.print_level >= 2 or action == 'retract' and self.print_level >= 1:
+            print_magenta(comment)
 
     @property
     def num_steps(self):
@@ -95,11 +97,11 @@ class ProceedRetract:
         func_and_retractions = self.execution_plan[step]
         try:
             func = getattr(self, func_and_retractions.func_name)
-            self.print_comment(f'Running {func_and_retractions.func_name} ...')
+            self.print_comment(f'Running {func_and_retractions.func_name} ...', 'proceed')
             func()
         except func_and_retractions.exception as e:
             num_backward_steps = func_and_retractions.retractions_on_failure[self._num_failures[step]]
-            self.print_comment(str(e) + '\n' + self._retraction_comment(num_backward_steps))
+            self.print_comment(str(e) + '\n' + self._retraction_comment(num_backward_steps), 'retract')
             self.current_step = step - num_backward_steps
             self._num_failures[step] += 1
             if self._num_failures[step] > len(func_and_retractions.retractions_on_failure):

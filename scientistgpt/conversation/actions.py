@@ -44,10 +44,10 @@ class Action:
         if self.agent:
             s += f'{self.agent}: '
         s += f'{type(self).__name__}'
+        if self.default_comment():
+            s += f'({self.default_comment()})'
         if self.conversation_name:
             s += f' -> {self.conversation_name}'
-        if self.default_comment():
-            s += f', {self.default_comment()}'
         if self.comment:
             s += f', {self.comment}'
         if is_color:
@@ -64,9 +64,6 @@ class CreateConversation(Action):
     Create a new conversation.
     """
 
-    def default_comment(self) -> str:
-        return f'CREATING CONVERSATION: {self.conversation_name}.'
-    
     def apply(self):
         CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
             Conversation(conversation_name=self.conversation_name)
@@ -83,7 +80,12 @@ class AppendMessage(Action):
     message: Message = None
 
     def pretty_repr(self, is_color: bool = True) -> str:
-        return super().pretty_repr(is_color) + '\n' + self.message.pretty_repr(is_color=is_color)
+        # Note: the conversation len assumes this method is called right after the message is appended.
+        return super().pretty_repr(is_color) + '\n' + \
+               self.message.pretty_repr(number=len(self.conversation), is_color=is_color)
+
+    def default_comment(self) -> str:
+        return f'{self.message.role}'
 
     def apply(self):
         """
