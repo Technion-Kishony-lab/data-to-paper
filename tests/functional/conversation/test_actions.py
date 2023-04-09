@@ -104,11 +104,11 @@ def test_copy_messages_between_conversations():
     manager.create_conversation()
     manager.append_system_message('You are a helpful assistant.')
     manager.append_user_message('Write a short code.', 'write_code')
-    conversation1 = manager.get_conversation()
+    conversation1 = manager.conversation
 
     manager.conversation_name = 'conversation_2'
     manager.create_conversation()
-    conversation2 = manager.get_conversation()
+    conversation2 = manager.conversation
 
     assert conversation1 != conversation2, "sanity"
     action = CopyMessagesBetweenConversations(
