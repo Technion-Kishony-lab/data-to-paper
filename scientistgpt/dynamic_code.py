@@ -27,7 +27,7 @@ save_code_to_module_file('# empty module\n')
 module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
-@timeout(MAX_EXEC_TIME)
+# @timeout(MAX_EXEC_TIME)
 def run_code_from_file(code: str, save_as: Optional[str]):
     """
     Run the provided code by saving to a file and importing.
