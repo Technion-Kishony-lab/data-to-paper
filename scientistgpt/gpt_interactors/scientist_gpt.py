@@ -19,6 +19,7 @@ SYSTEM_PROMPT = format_str("""
         """)
 MAX_ANALYSIS_REVISIONS = 2
 
+
 class ScientistGPT(ConverserGPT):
     """
     Create a conversation with chatgpt with interactive analysis of data.
@@ -96,7 +97,7 @@ class ScientistGPT(ConverserGPT):
         self.conversation.append_user_message(prompt)
 
     def review_analysis_plan(self):
-        print_red('Ask ReviewerGPT to find flaws within the plan  ...')
+        print_red('Ask ReviewerGPT to find flaws within the plan  ...', message_callback=self.message_callback)
         reviewer = ReviewerGPT(conversation=copy.deepcopy(self.conversation))
         result = reviewer.review_plan(self.analysis_plan)
         self.analysis_plan = result
@@ -105,15 +106,16 @@ class ScientistGPT(ConverserGPT):
         self.conversation.append_assistant_message(self.analysis_plan, should_print=False)
 
     def run_gpt_code_and_add_output_to_conversation(self):
-        print_red('Transfer control to DebuggerGPT to debug and get a functional code ...')
+        print_red('Transfer control to DebuggerGPT to debug and get a functional code ...', message_callback=self.message_callback)
         self._run_code_attempt += 1
         debugger = DebuggerGPT(conversation=copy.deepcopy(self.conversation),
                                script_file=f"{GPT_SCRIPT_FILENAME}_{self._run_code_attempt}",
-                               new_file_for_each_try=True)
+                               new_file_for_each_try=True,
+                               message_callback=self.message_callback)
         result = debugger.debug_and_run_code()
         self.output_file_content = result
         self.conversation = debugger.conversation
-        print_red("Code ran successfully! Let's see what chatgpt think of the results ...")
+        print_red("Code ran successfully! Let's see what chatgpt think of the results ...", message_callback=self.message_callback)
 
         prompt = format_str("""
             I ran your code. Here is the content of the output file ({}):
@@ -134,12 +136,14 @@ class ScientistGPT(ConverserGPT):
         while analysis_revises < MAX_ANALYSIS_REVISIONS:
             result = self.conversation.get_response_from_chatgpt()
             if result == '1':
-                print_red('ChatGPT declared "I am satisfied with the analysis and the results, I am ready to write a paper about them."')
+                print_red('ReviewerGPT declared "I am satisfied with the analysis and the results, I am ready to '
+                          'write a paper about them."', message_callback=self.message_callback)
                 break
 
             if result == '2':
                 print_red(
-                    'ChatGPT declared "I need to write additional code the code and try again before writing a paper."')
+                    'ReviewerGPT declared "I need to write additional code the code and try again before writing a '
+                    'paper."', message_callback=self.message_callback)
                 prompt = format_str("""
                 Write additional code to improve the analysis and try again. Append any additional results to the output file.
                 """)
@@ -161,7 +165,7 @@ class ScientistGPT(ConverserGPT):
         self.results_summary = self.conversation.get_response_from_chatgpt()
 
     def prepare_pre_paper_conversation(self):
-        print_red('Preparing the pre-paper conversation ...')
+        print_red('Preparing the pre-paper conversation ...', message_callback=self.message_callback)
         paper_conversation = Conversation()
         paper_conversation.append_message(role=Role.SYSTEM, message='You are a helpful scientist that able to write scientific papers.')
         paper_conversation.append_user_message('This is the data description\n\n' + self.data_description)
@@ -172,7 +176,7 @@ class ScientistGPT(ConverserGPT):
         paper_conversation.append_assistant_message('acknowledged')
         paper_conversation.append_user_message('This is the analysis results description\n\n' + self.results_summary)
         paper_conversation.append_assistant_message('acknowledged')
-        print_red('Pre-paper conversation is ready! Let\'s write the paper ...')
+        print_red('Pre-paper conversation is ready! Let\'s write the paper ...', message_callback=self.message_callback)
         self.pre_paper_conversation = paper_conversation
 
 

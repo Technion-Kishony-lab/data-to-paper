@@ -97,7 +97,7 @@ class Conversation(list):
                 )
             except openai.error.InvalidRequestError:
                 print_red(f'InvalidRequestError, when sending messages {starting_index} - {len(self)}.\n'
-                          f'Retrying with messages {starting_index + 1} - {len(self)}')
+                          f'Retrying with messages {starting_index + 1} - {len(self)}' , message_callback=self.message_callback)
         raise RuntimeError("Cannot get openai response.")
 
     def get_response_from_chatgpt(self, should_print: bool = True, should_append: bool = True, **kwargs) -> str:

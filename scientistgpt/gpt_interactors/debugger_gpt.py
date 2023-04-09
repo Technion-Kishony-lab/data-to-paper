@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 import colorama
 
@@ -37,11 +37,13 @@ class DebuggerGPT(ConverserGPT):
                  conversation: Optional[Conversation] = None,
                  script_file: str = None,
                  new_file_for_each_try: bool = True,
+                 message_callback: Optional[Callable] = None,
                  ):
         super().__init__(run_plan, conversation)
         self.script_file = script_file
         self.new_file_for_each_try = new_file_for_each_try
         self._debug_iteration = 0
+        self.message_callback = message_callback
 
     def _run_code_from_last_response(self):
         self._debug_iteration += 1
@@ -109,38 +111,38 @@ class DebuggerGPT(ConverserGPT):
             self.reset_state_to('initial')
             if debug_attempt > 0:
                 print_red(f'DEBUGGER: Debugging failed. Restarting chatgpt communication from scratch.'
-                          f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).')
+                          f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).', message_callback=self.message_callback)
             for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
                 self.conversation.get_response_from_chatgpt()
                 try:
                     result = self._run_code_from_last_response()
                 except FailedExtractingCode:
                     self.conversation.delete_last_response()
-                    print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...')
+                    print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...', message_callback=self.message_callback)
                     self.conversation.get_response_from_chatgpt()
                 except FailedRunningCode as e:
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support
-                        print_red('DEBUGGER: ImportError detected in gpt code. Notifying chatgpt...')
+                        print_red('DEBUGGER: ImportError detected in gpt code. Notifying chatgpt...', message_callback=self.message_callback)
                         self._specify_allowed_packages(str(e.exception))
                     elif isinstance(e.exception, TimeoutError):
                         # code took too long to run
-                        print_red('DEBUGGER: GPT code has timed out. Notifying chatgpt...')
+                        print_red('DEBUGGER: GPT code has timed out. Notifying chatgpt...', message_callback=self.message_callback)
                         self._specify_timeout()
                     else:
                         # the code failed on other errors.
                         # indicate error message to chatgpt.
-                        print_red('DEBUGGER: Runtime exception in GPT code. Notifying chatgpt...')
+                        print_red('DEBUGGER: Runtime exception in GPT code. Notifying chatgpt...', message_callback=self.message_callback)
                         self._specify_error_message(e.get_traceback_message())
                 except FailedLoadingOutput:
                     # Code ran, but the output file was not created.
                     print_red('DEBUGGER: GPT code completed successfully, '
-                              'but output file not created. Notifying chatgpt...')
+                              'but output file not created. Notifying chatgpt...', message_callback=self.message_callback)
                     self._specify_missing_output()
                 except Exception:
                     raise
                 else:
                     # The code ran just fine.
-                    print_red("DEBUGGER: GPT code completed successfully. Returning results to ScientistGPT.")
+                    print_red("DEBUGGER: GPT code completed successfully. Returning results to ScientistGPT.", message_callback=self.message_callback)
                     return result
         raise FailedDebuggingException()
