@@ -35,11 +35,15 @@ class ReviewerGPT(ConverserGPT):
     def _review_plan_last_plan(self, plan: str):
         self._review_iteration += 1
         prompt = format_str("""
-        This is the plan for the analysis:
-        
+        Review the following plan:
+                
         {}
         
         Is this plan satisfactory? (yes/no)
+        Think about the following:
+        * Is the plan has the ability to answer the research question?
+        * Is the plan tests the results for statistical significance?
+        * Is the plan has the ability to generate figures to support the analysis?
         If no, please specify what needs to be changed.
         If yes, reply yes in one word only.
         """).format(plan)

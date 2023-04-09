@@ -33,8 +33,10 @@ def wrap_string(input_string, width=40, indent=0):
     return wrapped_string
 
 
-def print_red(text: str):
+def print_red(text: str, message_callback=None):
     print(colorama.Fore.RED + text + colorama.Style.RESET_ALL)
+    if message_callback:
+        message_callback('Information', text)
 
 
 def print_wrapped_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int):

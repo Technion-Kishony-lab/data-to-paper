@@ -5,12 +5,12 @@
     <meta charset="utf-8"/>
     <title>ScientistGPT</title>
     <div class="header">
-    <img src="{% static 'scientistgpt_app/scientistgpt.svg' %}" alt="Logo" class="logo">
+        <!-- <img src="{% static 'scientistgpt_app/scientistgpt.svg' %}" alt="Logo" class="logo"> -->
     </div>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -32,9 +32,27 @@
         }
 
         textarea {
-            font-size: 20px;
+            font-family: 'Roboto', sans-serif;
+            resize: vertical;
+            min-height: 100px;
             width: 100%;
+            max-width: 600px;
+            margin-bottom: 10px;
+            font-size: 20px;
+            padding: 5px;
+            color: #f1f1f1;
+            border: none;
         }
+
+        hr {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 1000px;
+            color: #f1f1f1;
+        }
+
         .logo {
             width: 150px; /* Adjust the width as needed */
             height: auto;
@@ -45,29 +63,39 @@
             margin-right: auto;
             margin-top: 20px;
         }
+
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 40px;
             flex-grow: 1;
         }
 
         .data-upload {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
             width: 100%;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 40px; /* Increase margin between data-upload and chat-window */
+            align-items: center;
+            margin-bottom: 10px; /* Increase margin between data-upload and chat-window */
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .data-upload label {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
             display: block;
             margin-bottom: 10px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .data-upload input[type="file"] {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
             display: inline-block;
             margin-bottom: 40px;
             padding: 10px;
@@ -81,21 +109,29 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .data-upload textarea {
-            resize: vertical;
-            min-height: 100px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 15px;
+            resize: none;
+            min-height: 200px;
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             margin-bottom: 10px;
             padding: 5px;
             background-color: #404040;
             color: #f1f1f1;
             border: none;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .data-upload button {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
             background-color: #0f9d58;
             color: #fff;
             border: none;
@@ -103,10 +139,11 @@
             border-radius: 3px;
             cursor: pointer;
             margin-bottom: 40px;
-            margin-left: 10px;
+            margin-left: 20px;
         }
 
         .data-upload button:hover {
+            font-family: 'Roboto', sans-serif;
             background-color: #0a773e;
         }
 
@@ -115,7 +152,8 @@
             border: 1px solid #444;
             border-radius: 5px;
             padding: 10px;
-            width: 90%;
+            width: 100%;
+            max-width: 800px;
             height: 100%;
             overflow-y: scroll;
             background-color: #333;
@@ -144,6 +182,11 @@
             font-weight: bold;
         }
 
+        .chat-message .Information {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+        }
+
         .role-icon::before {
             content: "";
             display: inline-block;
@@ -167,30 +210,40 @@
         }
 
         .system {
+            font-family: 'Roboto', sans-serif;
             color: #fcb000;
             background-color: #5a5a5a;
         }
 
         .assistant {
+            font-family: 'Roboto', sans-serif;
             color: #1e90ff;
             background-color: #5a5a5a;
         }
 
         .user {
+            font-family: 'Roboto', sans-serif;
             color: #32cd32;
             background-color: #5a5a5a;
         }
 
-        .notification {
-            color: #fc0000;
+        .information {
+            font-family: 'Roboto', sans-serif;
+            color: #cd3232;
+            background-color: #5a5a5a;
+            font-style: italic;
         }
 
         .pre {
-            display: inline-block;
+            font-family: 'Roboto', sans-serif;
+            display: inline;
             margin: 0;
             padding: 0;
             background-color: transparent;
             border: none;
+            font-size: 20px;
+            align-content: flex-start;
+            white-space: pre-wrap; /* To maintain line breaks and spaces */
         }
 
         .code {
@@ -202,64 +255,87 @@
         }
 
         .instructions {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
             margin-bottom: 20px;
             line-height: 1.5;
         }
 
         .file-upload-wrapper {
+            font-family: 'Roboto', sans-serif;
             display: flex;
             align-items: center;
-            margin: auto;
+            margin-bottom: 10px
         }
 
         .success {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             font-size: 20px;
             color: green;
             margin-left: 20px; /* Add margin to the left of the message */
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         .error {
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             font-size: 20px;
             color: red;
             margin-left: 20px; /* Add margin to the left of the message */
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
+
+        .example {
+            font-family: 'Roboto', sans-serif;
+            font-size: 20px;
+            color: #f1f1f1;
+            margin-left: 20px; /* Add margin to the left of the message */
+            /* margin-bottom: 40px; */
+            background-color: #404040;
+            padding: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+
     </style>
 </head>
 <body>
-{#<h1>ScientistGPT</h1>#}
+<h1>ScientistGPT</h1>
 <div class="container">
     <div class="instructions">
-        <h2>How to Use</h2>
+        <hr/>
+        <h2>How to Use?</h2>
         <ol>
             <li>Upload your data as a zip file.</li>
             <li>Describe the data in a format similar to the example below:</li>
-            <p>
-                (1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient.
-                Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical
-                diagnostic.
+            <div class="example">
 
-                The file has 4 columns:
-            <ul>
-                <li>#1 row ID (row_id)</li>
-                <li>#2 Subject ID (subject_id)</li>
-                <li>#3 Hospital admission ID (hadm_id)</li>
-                <li>#4 a sequential number of the diagnostic for each subject (seq_num)</li>
-                <li>#5 The diagnostic ICD9 code, formatted without dots (icd9_code)</li>
-            </ul>
-            </p>
-            Head of the dataset as example:
-            <pre>
-                ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
-                1297,109,172335,1,"40301"
-                1298,109,172335,2,"486"
-                1299,109,172335,3,"58281"
-                </pre>
+                <p>
+                    (1) DIAGNOSES_ICD.csv: a text file containing clinical diagnostic codes for each patient.
+                    Each line indicates a diagnostic event where a given patient was diagnosed with a specific clinical
+                    diagnostic.
+
+                    The file has 4 columns:
+                <ul>
+                    <li>#1 row ID (row_id)</li>
+                    <li>#2 Subject ID (subject_id)</li>
+                    <li>#3 Hospital admission ID (hadm_id)</li>
+                    <li>#4 a sequential number of the diagnostic for each subject (seq_num)</li>
+                    <li>#5 The diagnostic ICD9 code, formatted without dots (icd9_code)</li>
+                </ul>
+                </p>
+                Head of the dataset as example:
+                <pre>
+ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
+1297,109,172335,1,"40301"
+1298,109,172335,2,"486"
+1299,109,172335,3,"58281"</pre>
+            </div>
             <li>Describe the research question and the final goal of the analysis as precisely as you can.</li>
+            <li>Click on the "Generate Paper!" button, follow the conversation, eventually a paper will be produced for
+                you.
+            </li>
         </ol>
+        <hr/>
     </div>
     <div class="data-upload">
         <form id="upload-form" method="post" enctype="multipart/form-data">
@@ -267,12 +343,19 @@
             <div class="file-upload-wrapper">
                 <input id="data-file" type="file" accept=".zip" name="data_file">
                 <button id="submit" type="submit">Upload Data</button>
-                <div id="file-upload-status"></div>
+                <br>
             </div>
+            <div id="file-upload-status"></div>
         </form>
         <textarea id="data-description" placeholder="Data Description"></textarea>
         <textarea id="goal-description" placeholder="Goal Description"></textarea>
-        <button id="start-button">Start</button>
+        <button id="start-button">Generate Paper!</button>
+    </div>
+    <div class="container">
+        <div class="instructions">
+            <hr/>
+            <h2>Chat</h2>
+        </div>
     </div>
     <div class="chat-window" id="chat-window"></div>
 </div>
@@ -340,7 +423,6 @@
     );
 
     async function typeMessage(element, messageText, delay) {
-        const regex = /<[^>]*>/;
         let isTag = false;
         let tag = '';
 
@@ -377,10 +459,6 @@
             roleSpan.className = data.role;
             roleSpan.innerHTML = `<strong>${data.role.charAt(0).toUpperCase() + data.role.slice(1)}:</strong> `;
 
-            {#const iconSpan = document.createElement('span');#}
-            {#iconSpan.className = `icon-${data.role} role-icon`; // Change this line#}
-            {#message.appendChild(iconSpan);#}
-
             message.appendChild(roleSpan);
             message.insertAdjacentHTML('beforeend', '<br><br>'); // Insert <br><br> tags as HTML
             chatWindow.appendChild(message);
@@ -389,21 +467,21 @@
             // Extract code snippets and other text parts
             const parts = data.message.split(/(```[^```]+```|`[^`]+`)/g);
 
-            const typingDelay = 15; // Adjust the delay (in ms) between characters as needed
+            const typingDelay = 10; // Adjust the delay (in ms) between characters as needed
 
             for (const part of parts) {
                 if (part.startsWith('```') && part.endsWith('```')) {
-                    // Add code snippet
-                    const codeSnippet = document.createElement('pre');
-                    codeSnippet.classList.add('code');
-                    const code = document.createElement('code');
-                    code.textContent = part.slice(3, -3);
-                    codeSnippet.appendChild(code);
-                    message.appendChild(codeSnippet);
+                    // Add code block
+                    const codeBlock = document.createElement('pre');
+                    codeBlock.classList.add('code');
+                    codeBlock.textContent = part.slice(3, -3);
+                    message.appendChild(codeBlock);
                 } else if (part.startsWith('`') && part.endsWith('`')) {
-                    // Add inline variable
-                    const variableText = `<span class="code">${part.slice(1, -1)}</span>`;
-                    await typeMessage(message, variableText, typingDelay);
+                    // Add inline code
+                    const inlineCode = `<span class="code">${part.slice(1, -1)}</span>`;
+                    // show inline code with proper formatting immediately
+                    message.insertAdjacentHTML('beforeend', inlineCode);
+                    {#await typeMessage(message, inlineCode, typingDelay);#}
                 } else {
                     // Add plain text
                     const text = part.replace(/\n/g, '<br>');
@@ -413,7 +491,7 @@
 
             chatWindow.scrollTop = chatWindow.scrollHeight;
         });
-    };
+    }
 
     chatSocket.onclose = function (e) {
         console.error('Chat socket closed unexpectedly');

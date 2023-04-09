@@ -1,13 +1,16 @@
+import threading
 import json
 import os
 import shutil
 import glob
 from pathlib import Path
 
+
 from scientistgpt.dynamic_code import module_dir
 from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME, ScientistGPT, ScientistGPT_ANALYSIS_PLAN
 from django.conf import settings
 from channels.generic.websocket import WebsocketConsumer
+from default_data.queries import DATA_DESCRIPTION, GOAL_DESCRIPTION
 
 
 class ScientistGPTConsumer(WebsocketConsumer):
@@ -36,6 +39,12 @@ class ScientistGPTConsumer(WebsocketConsumer):
             data_description = text_data_json.get('data_description')
             goal_description = text_data_json.get('goal_description')
 
+            if data_description == '':
+                data_description = DATA_DESCRIPTION
+
+            if goal_description == '':
+                goal_description = GOAL_DESCRIPTION
+
             # Update self.scientist_gpt with the new data_description and goal_description
             self.scientist_gpt.data_description = data_description
             self.scientist_gpt.goal_description = goal_description
@@ -51,7 +60,7 @@ class ScientistGPTConsumer(WebsocketConsumer):
                 default_data_folder = os.path.join(settings.BASE_DIR, 'default_data')
                 shutil.copytree(default_data_folder, self.experiment_data_folder)
 
-            self.start_run_all()
+            threading.Thread(target=self.start_run_all).start()
 
     def start_run_all(self):
 
