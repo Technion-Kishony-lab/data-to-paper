@@ -467,7 +467,7 @@ ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
             // Extract code snippets and other text parts
             const parts = data.message.split(/(```[^```]+```|`[^`]+`)/g);
 
-            const typingDelay = 10; // Adjust the delay (in ms) between characters as needed
+            const typingDelay = 5; // Adjust the delay (in ms) between characters as needed
 
             for (const part of parts) {
                 if (part.startsWith('```') && part.endsWith('```')) {

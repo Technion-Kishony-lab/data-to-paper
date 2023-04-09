@@ -63,8 +63,8 @@ def confirm_output(prompt='DO YOU APPROVE?'):
 #     return decorator
 
 
-class TimeoutError(Exception):
-    pass
+# class TimeoutError(Exception):
+#     pass
 
 def timeout(seconds):
     def decorator(func):

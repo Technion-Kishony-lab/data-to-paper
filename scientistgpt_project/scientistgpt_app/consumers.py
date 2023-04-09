@@ -64,32 +64,33 @@ class ScientistGPTConsumer(WebsocketConsumer):
 
     def start_run_all(self):
 
-        self.scientist_gpt.run_all(annotate=True)
-
         # we run in the data folder, so that chatgpt finds out files:
         os.chdir(self.experiment_data_folder)
+
+        self.scientist_gpt.run_all(annotate=True)
+
 
         """
         Save results
         """
         # Save conversation to text file:
-        self.scientist_gpt.conversation.save(self.experiment_folder / self.message_filename)
-
-        # Move all gpt analysis result files to output folder:
-        for file in glob.glob(str(self.experiment_data_folder / (GPT_SCRIPT_FILENAME + '*.txt'))):
-            shutil.move(file, self.experiment_folder)
+        self.scientist_gpt.conversation.save(os.path.join(self.experiment_folder, self.message_filename))
 
         # Move all gpt analysis scripts to output folder:
-        for file in glob.glob(str(Path(module_dir) / (GPT_SCRIPT_FILENAME + '*.py'))):
+        for file in glob.glob('/' + str(Path(module_dir)) + '/' + (GPT_SCRIPT_FILENAME + '*.py')):
             shutil.move(file, self.experiment_folder)
 
-        # # Move all gpt generated plots to output folder:
-        for file in glob.glob(str(self.experiment_data_folder / '*.png')):
+        # # Move all gpt generated files to output folder:
+        for file in glob.glob('/' + str(self.experiment_data_folder) + '/' + '*'):
             shutil.move(file, self.experiment_folder)
+
+        # Move all gpt analysis result files to output folder:
+        # for file in glob.glob('/' + str(self.experiment_data_folder) + '/' + (GPT_SCRIPT_FILENAME + '*.txt')):
+        #     shutil.move(file, self.experiment_folder)
 
         # Move gpt generated txt files to output folder:
-        for file in glob.glob(str(self.experiment_data_folder / '*.txt')):
-            shutil.move(file, self.experiment_folder)
+        # for file in glob.glob('/' + str(self.experiment_data_folder) + '/' + '*.txt'):
+        #     shutil.move(file, self.experiment_folder)
 
     def disconnect(self, close_code):
         pass

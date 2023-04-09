@@ -10,11 +10,13 @@ from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils.text_utils import format_str, print_red
 from scientistgpt.conversation import Conversation
 from scientistgpt.proceed_retract import FuncAndRetractions
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from .converser_gpt import ConverserGPT
 
 MAX_DEBUGGING_ATTEMPTS = 3
-MAX_ITERATIONS_PER_ATTEMPT = 5
+MAX_ITERATIONS_PER_ATTEMPT = 2
+MAX_EXEC_TIME = 900
 
 
 class DebuggerGPT(ConverserGPT):
@@ -115,12 +117,16 @@ class DebuggerGPT(ConverserGPT):
             for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
                 self.conversation.get_response_from_chatgpt()
                 try:
-                    result = self._run_code_from_last_response()
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        future = executor.submit(self._run_code_from_last_response)
+                        result = future.result(timeout=MAX_EXEC_TIME)
+                    # result = self._run_code_from_last_response()
                 except FailedExtractingCode:
                     self.conversation.delete_last_response()
                     print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...', message_callback=self.message_callback)
                     self.conversation.get_response_from_chatgpt()
                 except FailedRunningCode as e:
+                    print(f"DEBUGGER: Caught exception: {type(e.exception)}")
                     if isinstance(e.exception, ImportError):
                         # chatgpt tried using a package we do not support
                         print_red('DEBUGGER: ImportError detected in gpt code. Notifying chatgpt...', message_callback=self.message_callback)
