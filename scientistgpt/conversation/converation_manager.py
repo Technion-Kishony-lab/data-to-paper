@@ -99,13 +99,17 @@ class ConversationManager:
 
         # we try to get a response. if we fail we gradually remove messages from the top,
         # starting at message 1 (message 0 is the system message).
-        for index, _ in indices_and_messages[1:]:
+        while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, agent=agent,
-                                                               comment=comment, hidden_messages=actual_hidden_messages)
+                                                               comment=comment,
+                                                               hidden_messages=actual_hidden_messages)
             if isinstance(content, str):
                 return content
+            if len(indices_and_messages) <= 1:
+                # we tried removing all messages and failed.
+                raise RuntimeError('Failed accessing openai despite removing all messages.')
+            index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
-        raise RuntimeError('Failed accessing openai despite removing all messages.')
 
     def get_actions_for_conversation(self) -> List[Action]:
         return [action for action in APPLIED_ACTIONS if action.conversation_name == self.conversation_name]
