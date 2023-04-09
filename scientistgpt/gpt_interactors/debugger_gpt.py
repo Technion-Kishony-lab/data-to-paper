@@ -141,6 +141,6 @@ class DebuggerGPT(ConverserGPT):
                     raise
                 else:
                     # The code ran just fine.
-                    print_red("DEBUGGER: GPT code completed successfully. Returning results to ScientistGPT.")
+                    print_red("DEBUGGER: GPT code completed successfully. Returning results to MentorGPT.")
                     return result
         raise FailedDebuggingException()

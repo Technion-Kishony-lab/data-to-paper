@@ -110,6 +110,6 @@ def test_conversation_manager_copy_messages_from_another_conversations():
     manager2.create_conversation()
     manager2.copy_messages_from_another_conversations(
         message_designation=RangeMessageDesignation.from_('tag2', -1),
-        source_conversation_name='conversation1',
+        source_conversation=manager1.conversation,
     )
     assert [m.content for m in manager2.conversation] == ['m2', 'm3', 'm4']

@@ -5,7 +5,7 @@ import glob
 from pathlib import Path
 
 from scientistgpt.dynamic_code import module_dir
-from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME, ScientistGPT, ScientistGPT_ANALYSIS_PLAN
+from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME, ScientistGPT, ScientistGPT_EXECUTION_PLAN
 from django.conf import settings
 from channels.generic.websocket import WebsocketConsumer
 
@@ -24,7 +24,7 @@ class ScientistGPTConsumer(WebsocketConsumer):
 
     def connect(self):
 
-        self.scientist_gpt = ScientistGPT(run_plan=ScientistGPT_ANALYSIS_PLAN, message_callback=self.handle_message)
+        self.scientist_gpt = ScientistGPT(run_plan=ScientistGPT_EXECUTION_PLAN, message_callback=self.handle_message)
 
         self.accept()
 

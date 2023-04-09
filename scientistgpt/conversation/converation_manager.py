@@ -39,6 +39,7 @@ class ConversationManager:
         action.apply()
         if self.should_print:
             print(action.pretty_repr())
+            print()
 
     def create_conversation(self):
         self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name))
@@ -180,7 +181,7 @@ class ConversationManager:
                 conversation_name=self.conversation_name, agent=agent, comment=comment,
                 message=Message(role=Role.ASSISTANT, content=content, tag=tag)))
 
-    def copy_messages_from_another_conversations(self, source_conversation_name: str,
+    def copy_messages_from_another_conversations(self, source_conversation: Conversation,
                                                  message_designation: GeneralMessageDesignation,
                                                  agent: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -189,5 +190,5 @@ class ConversationManager:
         self._append_and_apply_action(
             CopyMessagesBetweenConversations(
                 conversation_name=self.conversation_name, agent=agent, comment=comment,
-                source_conversation_name=source_conversation_name,
+                source_conversation_name=source_conversation.conversation_name,
                 message_designation=message_designation))

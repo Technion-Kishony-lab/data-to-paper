@@ -4,9 +4,8 @@ import glob
 from pathlib import Path
 from queries import data_description, goal_description
 
-from scientistgpt import ScientistGPT, ScientistGPT_ANALYSIS_PLAN
+from scientistgpt import ScientificMentorGPT, ScientistGPT_EXECUTION_PLAN
 from scientistgpt.dynamic_code import module_dir
-from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME
 
 """
 Set folders
@@ -27,16 +26,16 @@ os.makedirs(absolute_output_path)
 
 
 """
-Run ScientistGPT
+Run ScientificMentorGPT
 """
 # we run in the data folder, so that chatgpt finds out files:
 os.chdir(absolute_data_path)
 
-runner = ScientistGPT(run_plan=ScientistGPT_ANALYSIS_PLAN,
-                      data_description=data_description,
-                      goal_description=goal_description)
+runner = ScientificMentorGPT(execution_plan=ScientistGPT_EXECUTION_PLAN,
+                             data_description=data_description,
+                             goal_description=goal_description)
 
-runner.run_all(annotate=True)
+runner.run_all()
 
 os.chdir(absolute_home_path)
 
@@ -47,11 +46,11 @@ Save results
 runner.conversation.save(absolute_output_path / MESSAGES_FILENAME)
 
 # Move all gpt analysis result files to output folder:
-for file in glob.glob(str(absolute_data_path / (GPT_SCRIPT_FILENAME + '*.txt'))):
+for file in glob.glob(str(absolute_data_path / (ScientificMentorGPT.gpt_script_filename + '*.txt'))):
     shutil.move(file, absolute_output_path)
 
 # Move all gpt analysis scripts to output folder:
-for file in glob.glob(str(Path(module_dir) / (GPT_SCRIPT_FILENAME + '*.py'))):
+for file in glob.glob(str(Path(module_dir) / (ScientificMentorGPT.gpt_script_filename + '*.py'))):
     shutil.move(file, absolute_output_path)
 
 # Move all gpt generated plots to output folder:
