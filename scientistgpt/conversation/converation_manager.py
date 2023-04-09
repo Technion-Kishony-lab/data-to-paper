@@ -32,7 +32,8 @@ class ConversationManager:
 
     conversation_name: Optional[str] = None
 
-    def get_conversation(self) -> Conversation:
+    @property
+    def conversation(self) -> Conversation:
         return CONVERSATION_NAMES_TO_CONVERSATIONS.get(self.conversation_name, None)
 
     def _append_and_apply_action(self, action: Action):
@@ -97,7 +98,7 @@ class ConversationManager:
         If failed, retry while removing more messages upstream.
         """
         hidden_messages = convert_general_message_designation_to_list(hidden_messages)
-        indices_and_messages = self.get_conversation().get_chosen_indices_and_messages(hidden_messages)
+        indices_and_messages = self.conversation.get_chosen_indices_and_messages(hidden_messages)
         actual_hidden_messages = hidden_messages.copy()
 
         # we try to get a response. if we fail we gradually remove messages from the top,
@@ -117,7 +118,7 @@ class ConversationManager:
         last_action = self.get_actions_for_conversation()[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
-        content = self.get_conversation().try_get_chatgpt_response(last_action.hidden_messages + [-1])
+        content = self.conversation.try_get_chatgpt_response(last_action.hidden_messages + [-1])
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             RegenerateLastResponse(
@@ -139,7 +140,7 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return the exception.
         """
-        content = self.get_conversation().try_get_chatgpt_response(hidden_messages)
+        content = self.conversation.try_get_chatgpt_response(hidden_messages)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
                 conversation_name=self.conversation_name, agent=agent, comment=comment,
