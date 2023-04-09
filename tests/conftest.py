@@ -1,10 +1,8 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt.conversation.actions import CONVERSATION_NAMES_TO_CONVERSATIONS
-from scientistgpt.conversation.converation_manager import APPLIED_ACTIONS
+from scientistgpt.conversation.replay import clear_actions_and_conversations
 
 
 @fixture(autouse=True)
 def reset_conversations_and_actions():
-    CONVERSATION_NAMES_TO_CONVERSATIONS.clear()
-    APPLIED_ACTIONS.clear()
+    clear_actions_and_conversations()

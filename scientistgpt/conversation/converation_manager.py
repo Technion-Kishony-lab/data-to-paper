@@ -1,6 +1,5 @@
-import contextlib
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, NamedTuple
+from dataclasses import dataclass
+from typing import List, Optional
 
 from .conversation import Conversation
 from .message import Message, Role
@@ -8,11 +7,7 @@ from .message_designation import GeneralMessageDesignation, convert_general_mess
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
     CreateConversation, CONVERSATION_NAMES_TO_CONVERSATIONS
-
-APPLIED_ACTIONS: List[Action] = []
-"""
-a list of actions applied to conversations by order in which they were applied.
-"""
+from .replay import APPLIED_ACTIONS
 
 
 @dataclass
