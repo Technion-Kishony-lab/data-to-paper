@@ -32,7 +32,7 @@ class Conversation(List[Message]):
     """
 
     # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
-    SAVE_START = 'START>>>>> '
+    SAVE_START = 'START>>>>>\n'
     SAVE_END = '\n<<<<<END\n'
 
     def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
