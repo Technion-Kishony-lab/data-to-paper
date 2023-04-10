@@ -5,7 +5,7 @@ from pathlib import Path
 from queries import data_description, goal_description
 
 from scientistgpt import ScientificMentorGPT, ScientistGPT_EXECUTION_PLAN
-from scientistgpt.dynamic_code import module_dir
+from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 """
 Set folders

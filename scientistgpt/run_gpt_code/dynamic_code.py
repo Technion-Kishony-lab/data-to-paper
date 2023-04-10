@@ -5,9 +5,10 @@ from typing import Optional
 
 import chatgpt_created_scripts
 
-from scientistgpt.decorators import timeout
 from scientistgpt.env import MAX_EXEC_TIME
-from scientistgpt.exceptions import FailedRunningCode
+
+from .runtime_decorators import timeout
+from .exceptions import FailedRunningCode
 
 MODULE_NAME = 'script_to_run'
 

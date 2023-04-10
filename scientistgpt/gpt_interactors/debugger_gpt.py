@@ -1,13 +1,12 @@
 import os
 from dataclasses import dataclass
 
-from scientistgpt.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils.text_utils import dedent_triple_quote_str
-from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
-    FailedDebuggingException
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, FailedDebuggingException
 
-from .converser_gpt import CodeWritingGPT
+from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
 
 MAX_DEBUGGING_ATTEMPTS = 3
 MAX_ITERATIONS_PER_ATTEMPT = 2
