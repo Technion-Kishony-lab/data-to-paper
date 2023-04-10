@@ -1,6 +1,6 @@
 from typing import List
 
-from scientistgpt.proceed_retract import ProceedRetract, FuncAndRetractions
+from scientistgpt.gpt_interactors.proceed_retract import ProceedRetract, FuncAndRetractions
 
 
 class StepFailed(Exception):

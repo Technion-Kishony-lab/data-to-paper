@@ -6,7 +6,7 @@ import glob
 from pathlib import Path
 
 
-from scientistgpt.dynamic_code import module_dir
+from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from scientistgpt.gpt_interactors.scientist_gpt import GPT_SCRIPT_FILENAME, ScientistGPT, ScientistGPT_EXECUTION_PLAN
 from django.conf import settings
 from channels.generic.websocket import WebsocketConsumer
