@@ -123,7 +123,7 @@ class BaseChatgptResponse(Action):
     "list of message to remove from the conversation when sending to ChatGPT"
 
     def default_comment(self) -> str:
-        return f'HIDING MESSAGES: {self.hidden_messages}.' if self.hidden_messages else ''
+        return f'HIDING MESSAGES: {self.hidden_messages}' if self.hidden_messages else ''
 
 
 @dataclass(frozen=True)
@@ -141,14 +141,6 @@ class FailedChatgptResponse(BaseChatgptResponse):
     """
 
     exception: Exception = None
-
-    def default_comment(self) -> str:
-        s = super().default_comment()
-        e = 'CHATGPT FAILED.'
-        if s:
-            return s + ' ' + e
-        else:
-            return e
 
     def apply(self):
         pass
@@ -168,7 +160,7 @@ class RegenerateLastResponse(AppendChatgptResponse):
     Delete the last chatgpt response and regenerate.
     """
     def default_comment(self) -> str:
-        return 'Regenerating chatgpt response.'
+        return ''
 
     def apply(self):
         self.conversation.delete_last_response()
@@ -179,17 +171,19 @@ class RegenerateLastResponse(AppendChatgptResponse):
 class ResetToTag(Action):
     """
     Reset the conversation back to the specified tag.
+
+    By default, off_set is 0, which means the message with the specified tag will not be deleted.
     """
     tag: Optional[str] = None
     off_set: int = 0
 
     def default_comment(self) -> str:
         off_set_test = '' if self.off_set == 0 else f'{self.off_set:+d}'
-        return f'Resetting conversation to tag <{self.tag}>' + off_set_test + '.'
+        return f'<{self.tag}>' + off_set_test
 
     def apply(self):
         index = SingleMessageDesignation(tag=self.tag, off_set=self.off_set).get_message_num(self.conversation)
-        del self.conversation[index:]
+        del self.conversation[index + 1:]
 
 
 @dataclass(frozen=True)
@@ -202,7 +196,7 @@ class DeleteMessages(Action):
     message_designation: GeneralMessageDesignation = None
 
     def default_comment(self) -> str:
-        return f'Deleting messages: {self.message_designation}.'
+        return f'{self.message_designation}'
 
     def apply(self):
         for index in convert_general_message_designation_to_int_list(self.message_designation,
@@ -218,7 +212,7 @@ class ReplaceLastResponse(AppendMessage):
     message: Message = None
 
     def default_comment(self) -> str:
-        return f'Replacing last chatgpt response.'
+        return ''
 
     def apply(self):
         self.conversation.delete_last_response()
@@ -238,7 +232,7 @@ class CopyMessagesBetweenConversations(Action):
         return CONVERSATION_NAMES_TO_CONVERSATIONS[self.source_conversation_name]
 
     def default_comment(self) -> str:
-        return f'Copying messages {self.message_designation} from conversation "{self.source_conversation_name}".'
+        return f'messages {self.message_designation} from conversation "{self.source_conversation_name}"'
 
     def apply(self):
         for index in convert_general_message_designation_to_int_list(self.message_designation,

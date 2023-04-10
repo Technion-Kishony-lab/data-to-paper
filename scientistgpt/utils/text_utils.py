@@ -1,5 +1,5 @@
 import textwrap
-
+import re
 import colorama
 
 
@@ -66,3 +66,10 @@ def format_text_with_code_blocks(text: str, text_color: str, code_color: str, wi
     if text_color or code_color:
         s += colorama.Style.RESET_ALL
     return s
+
+
+def word_count(text):
+    """
+    Count the number of words in provided test.
+    """
+    return len(re.findall(r'\w+', text))

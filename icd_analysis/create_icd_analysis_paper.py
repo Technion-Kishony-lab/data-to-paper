@@ -28,7 +28,7 @@ os.makedirs(absolute_output_path)
 """
 Run ScientificMentorGPT
 """
-# we run in the data folder, so that chatgpt finds out files:
+# we run in the data folder, so that chatgpt finds our files:
 os.chdir(absolute_data_path)
 
 runner = ScientificMentorGPT(execution_plan=ScientistGPT_EXECUTION_PLAN,

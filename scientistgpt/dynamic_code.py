@@ -6,10 +6,10 @@ from typing import Optional
 import chatgpt_created_scripts
 
 from scientistgpt.decorators import timeout
+from scientistgpt.env import MAX_EXEC_TIME
 from scientistgpt.exceptions import FailedRunningCode
 
 MODULE_NAME = 'script_to_run'
-MAX_EXEC_TIME = 900  # seconds
 
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
