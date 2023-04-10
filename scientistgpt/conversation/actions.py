@@ -1,20 +1,17 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Optional
 
 from scientistgpt.utils.text_utils import red_text
+
+from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
 from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 
+
 NoneType = type(None)
-
-
-CONVERSATION_NAMES_TO_CONVERSATIONS: Dict[str, Conversation] = {}
-"""
-a dict containing all managed conversations, by name. 
-"""
 
 
 def get_name_with_new_number(conversation_name: str) -> str:
@@ -79,7 +76,7 @@ class CreateConversation(Action):
     def apply(self):
         CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
             Conversation(conversation_name=self.conversation_name)
-        
+
 
 @dataclass(frozen=True)
 class AppendMessage(Action):

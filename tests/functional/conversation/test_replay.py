@@ -1,14 +1,16 @@
 from scientistgpt import Role
-from scientistgpt.conversation.actions import AppendMessage, Message, AppendChatgptResponse, \
-    CONVERSATION_NAMES_TO_CONVERSATIONS
+from scientistgpt.conversation.actions import AppendMessage, Message, AppendChatgptResponse
+from scientistgpt.conversation.actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from scientistgpt.conversation.converation_manager import ConversationManager
-from scientistgpt.conversation.replay import APPLIED_ACTIONS, save_actions_to_file, load_actions_from_file, \
+from scientistgpt.conversation.replay import save_actions_to_file, load_actions_from_file, \
     clear_actions_and_conversations, replay_actions
 
 
 def test_save_load_actions(tmpdir):
-    APPLIED_ACTIONS.append(AppendMessage(conversation_name='default', message=Message(role=Role.USER, content='what is 2 + 3 ?')))
-    APPLIED_ACTIONS.append(AppendChatgptResponse(conversation_name='default', message=Message(role=Role.ASSISTANT, content='the answer is 5')))
+    APPLIED_ACTIONS.append(AppendMessage(conversation_name='default',
+                                         message=Message(role=Role.USER, content='what is 2 + 3 ?')))
+    APPLIED_ACTIONS.append(AppendChatgptResponse(conversation_name='default',
+                                                 message=Message(role=Role.ASSISTANT, content='the answer is 5')))
     old_actions = APPLIED_ACTIONS.copy()
     save_actions_to_file(tmpdir.join('actions.pkl'))
 

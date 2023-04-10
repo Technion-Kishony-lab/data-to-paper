@@ -204,5 +204,3 @@ class CodeWritingGPT(ConverserGPT):
     """
     The base name of the pythin file in which the code written by gpt is saved. 
     """
-
-

@@ -1,10 +1,9 @@
-import re
 from dataclasses import dataclass
 
 from scientistgpt.utils.text_utils import dedent_triple_quote_str
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
-from .converser_gpt import DialogConverserGPT, ConstructiveReviewDialogConverserGPT
-from ..conversation.message_designation import RangeMessageDesignation
+from .converser_gpt import DialogConverserGPT
 
 
 COMPLETION_PHRASE = 'I hereby approve the analysis plan'
@@ -100,4 +99,3 @@ class ReviewerDialogConverserGPT(DialogConverserGPT):
                 tag=reviewer_tag)
             self.conversation_manager.get_and_append_assistant_message(tag=scientist_tag)
         return revised_plan
-

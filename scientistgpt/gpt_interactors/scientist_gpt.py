@@ -1,20 +1,20 @@
-import copy
 from dataclasses import dataclass
-from typing import Optional, List, Callable
+from typing import Optional, Callable
 
 from scientistgpt.proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
 from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
-from .plan_reviewer_gpt import ReviewerDialogConverserGPT
+from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
+from .plan_reviewer_gpt import ReviewerDialogConverserGPT
 from .debugger_gpt import DebuggerGPT
-from .converser_gpt import ConverserGPT, CodeWritingGPT
+from .converser_gpt import CodeWritingGPT
 from .text_extractors import extract_analysis_plan_from_response
-from ..conversation.converation_manager import ConversationManager
-from ..conversation.message_designation import RangeMessageDesignation
 
 MAX_ANALYSIS_REVISIONS = 2
+
 
 # NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
 #       and can be integrated within the class functions.
@@ -191,7 +191,8 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
     def prepare_pre_paper_conversation(self):
         print_red('Preparing the pre-paper conversation ...', message_callback=self.message_callback)
         paper_conversation = Conversation()
-        paper_conversation.append_message(role=Role.SYSTEM, message='You are a helpful scientist that able to write scientific papers.')
+        paper_conversation.append_message(role=Role.SYSTEM,
+                                          message='You are a helpful scientist that able to write scientific papers.')
         paper_conversation.append_user_message('This is the data description\n\n' + self.data_description)
         paper_conversation.append_assistant_message('acknowledged')
         paper_conversation.append_user_message('This is the research goal description\n\n' + self.goal_description)
@@ -202,7 +203,6 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
         paper_conversation.append_assistant_message('acknowledged')
         print_red('Pre-paper conversation is ready! Let\'s write the paper ...', message_callback=self.message_callback)
         self.pre_paper_conversation = paper_conversation
-
 
     def write_paper(self):
         prompt = dedent_triple_quote_str("""
