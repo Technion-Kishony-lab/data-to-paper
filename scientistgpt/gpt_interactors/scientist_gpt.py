@@ -2,15 +2,14 @@ from dataclasses import dataclass
 from typing import Optional, Callable
 
 from scientistgpt.proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
-from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
 from .plan_reviewer_gpt import ReviewerDialogConverserGPT
-from .debugger_gpt import DebuggerGPT
 from .converser_gpt import CodeWritingGPT
+from .debugger_gpt import DebuggerGPT, FailedDebuggingException
 from .text_extractors import extract_analysis_plan_from_response
 
 MAX_ANALYSIS_REVISIONS = 2

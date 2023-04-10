@@ -1,42 +1,8 @@
-import functools
 import signal
 import threading
 import os
 
-from scientistgpt.exceptions import CodeTimeoutException
-
-
-def confirm_output(prompt='DO YOU APPROVE?'):
-    """
-    A decorator that presents the output of a function to the user, asks for approval,
-    and raises an exception if the output is not approved.
-
-    Args:
-        prompt (str): The prompt message to be presented to the user.
-
-    Returns:
-        The decorated function.
-    """
-
-    def decorator_confirm_output(func):
-
-        @functools.wraps(func)
-        def wrapper_confirm_output(*args, **kwargs):
-            output = func(*args, **kwargs)
-            print("-------------")
-            print(output)
-            while True:
-                response = input(prompt + '(y/n)').lower()
-                if response == 'y':
-                    return output
-                elif response == 'n':
-                    raise ValueError("Output not approved.")
-                else:
-                    print("Invalid response. Please enter 'y' or 'n'.")
-
-        return wrapper_confirm_output
-
-    return decorator_confirm_output
+from .exceptions import CodeTimeoutException
 
 
 def timeout(seconds):
