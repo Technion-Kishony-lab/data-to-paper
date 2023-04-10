@@ -1,0 +1,9 @@
+START>>>>>
+'''And I love machine learning!'''
+<<<<<END
+
+START>>>>>
+The extracted text within a triple-quoted string is:
+
+"""And I love machine learning!"""
+<<<<<END

@@ -1,6 +1,9 @@
 import functools
 import signal
 import threading
+import os
+
+from scientistgpt.exceptions import CodeTimeoutException
 
 
 def confirm_output(prompt='DO YOU APPROVE?'):
@@ -36,37 +39,43 @@ def confirm_output(prompt='DO YOU APPROVE?'):
     return decorator_confirm_output
 
 
-# def timeout(seconds):
-#     """
-#     Decorator to terminate a function if runtime is too long.
-#     """
-#     def decorator(func):
-#         def wrapper(*args, **kwargs):
-#             def signal_handler(signum, frame):
-#                 raise TimeoutError(f"Function {func.__name__} timed out after {seconds} seconds")
-#
-#             # Set the signal handler and alarm for the specified number of seconds
-#             signal.signal(signal.SIGALRM, signal_handler)
-#             signal.alarm(seconds)
-#
-#             try:
-#                 # Call the function with the provided arguments
-#                 result = func(*args, **kwargs)
-#             finally:
-#                 # Cancel the alarm when the function completes
-#                 signal.alarm(0)
-#
-#             return result
-#
-#         return wrapper
-#
-#     return decorator
-
-
-# class TimeoutError(Exception):
-#     pass
-
 def timeout(seconds):
+    """
+    Decorator to terminate a function if runtime is too long.
+    """
+
+    # return different decorator depending on the operating system
+    if os.name == 'nt':
+        return timeout_windows(seconds)
+    else:
+        return timeout_unix(seconds)
+
+
+def timeout_unix(seconds):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            def signal_handler(signum, frame):
+                raise CodeTimeoutException(f"Function {func.__name__} timed out after {seconds} seconds")
+
+            # Set the signal handler and alarm for the specified number of seconds
+            signal.signal(signal.SIGALRM, signal_handler)
+            signal.alarm(seconds)
+
+            try:
+                # Call the function with the provided arguments
+                result = func(*args, **kwargs)
+            finally:
+                # Cancel the alarm when the function completes
+                signal.alarm(0)
+
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def timeout_windows(seconds):
     def decorator(func):
         def wrapper(*args, **kwargs):
             result_container = {'result': None}
@@ -86,7 +95,7 @@ def timeout(seconds):
             worker_thread.join(timeout=seconds)
 
             if not stop_event.is_set():
-                raise TimeoutError(f"Function {func.__name__} timed out after {seconds} seconds")
+                raise CodeTimeoutException(f"Function {func.__name__} timed out after {seconds} seconds")
 
             if exception_container['exception'] is not None:
                 raise exception_container['exception']
