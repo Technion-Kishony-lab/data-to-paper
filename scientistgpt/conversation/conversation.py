@@ -29,6 +29,8 @@ class Conversation(List[Message]):
 
     1. save/load to text.
     2. print colored-styled messages.
+
+    DO NOT ALTER CONVERSATION INSTANCE DIRECTLY. USE `ConversationManager` INSTEAD.
     """
 
     # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
@@ -59,9 +61,19 @@ class Conversation(List[Message]):
         return [(i, message) for i, message in enumerate(self)
                 if i not in hidden_messages and message.role is not Role.COMMENTER]
 
-    def get_last_response(self):
-        assert self[-1].role is Role.ASSISTANT
-        return self[-1].content
+    def get_last_response(self) -> str:
+        """
+        Return the last response from the assistant.
+
+        will skip over any COMMENTER messages.
+        """
+        i = len(self) - 1
+        while i >= 0:
+            if self[i].role is Role.ASSISTANT:
+                return self[i].content
+            if self[i].role is Role.USER:
+                raise ValueError('Last response is USER rather than ASSISTANT.')
+            i -= 1
 
     def get_message_content_by_tag(self, tag):
         for message in self:

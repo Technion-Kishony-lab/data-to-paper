@@ -1,23 +1,20 @@
 import os
-from typing import List, Optional
-
-import colorama
+from dataclasses import dataclass
 
 from scientistgpt.code_runner import CodeRunner
 from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     FailedDebuggingException
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
-from scientistgpt.conversation import Conversation
-from scientistgpt.proceed_retract import FuncAndRetractions
 
-from .converser_gpt import ConverserGPT
+from .converser_gpt import CodeWritingGPT
 
 MAX_DEBUGGING_ATTEMPTS = 3
 MAX_ITERATIONS_PER_ATTEMPT = 5
 
 
-class DebuggerGPT(ConverserGPT):
+@dataclass
+class DebuggerGPT(CodeWritingGPT):
     """
     Interact with chatgpt to debug a code that needs to create an output file.
 
@@ -32,70 +29,68 @@ class DebuggerGPT(ConverserGPT):
     * output file not created
     """
 
-    def __init__(self,
-                 run_plan: List[FuncAndRetractions] = None,
-                 conversation: Optional[Conversation] = None,
-                 script_file: str = None,
-                 new_file_for_each_try: bool = True,
-                 ):
-        super().__init__(run_plan, conversation)
-        self.script_file = script_file
-        self.new_file_for_each_try = new_file_for_each_try
-        self._debug_iteration = 0
+    agent: str = 'DEBUGGER'
+    _debug_iteration: int = 0
 
-    def _run_code_from_last_response(self):
+    def _run_code_from_response(self, response: str):
         self._debug_iteration += 1
-        script_file = self.script_file
-        if self.new_file_for_each_try:
-            script_file += f'_{self._debug_iteration}'
-        result = CodeRunner(response=self.conversation.get_last_response(),
-                            output_file=self.OUTPUT_FILENAME,
+        script_file = f'{self.gpt_script_filename}_{self._debug_iteration}'
+        result = CodeRunner(response=response,
+                            output_file=self.output_filename,
                             script_file=script_file,
                             ).run_code()
-        os.rename(self.OUTPUT_FILENAME, script_file + '.txt')
+        os.rename(self.output_filename, script_file + '.txt')
         return result
 
     def _specify_allowed_packages(self, error_message: str):
-        prompt = dedent_triple_quote_str("""
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
             {}
             ```
             Please rewrite the code using only these packages: {}. 
-            """).format(error_message, ', '.join(SUPPORTED_PACKAGES))
-        self.conversation.append_user_message(prompt)
+            """).format(error_message, ', '.join(SUPPORTED_PACKAGES)),
+            comment='ImportError detected in gpt code. Notifying chatgpt...')
+
+    def _specify_file_not_found(self, error_message: str):
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code and got the following error message:
+            ```
+            {}
+            ```
+            Please note that we only have the files that I noted in the data description above. 
+            All of these files are in the same directory as the code. 
+            """).format(error_message),
+            comment='FileNotFound detected in gpt code. Notifying chatgpt...')
 
     def _specify_error_message(self, error_message: str):
-        prompt = dedent_triple_quote_str("""
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
             {}
             ```
             Please rewrite the complete code again with this error corrected. 
-            """).format(error_message)
-        self.conversation.append_user_message(prompt)
+            """).format(error_message),
+            comment='Runtime exception in GPT code. Notifying chatgpt...')
 
     def _specify_missing_output(self):
-        prompt = dedent_triple_quote_str("""
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
             I ran the code, but it didn't generate the desired output file ({}).
             Please rewrite the complete code again with this error corrected. 
-            """).format(self.OUTPUT_FILENAME)
-        self.conversation.append_user_message(prompt)
+            """).format(self.output_filename),
+            comment='GPT code completed successfully, but output file not created. Notifying chatgpt...')
 
     def _specify_timeout(self):
-        prompt = dedent_triple_quote_str("""
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
             I ran the code, but it just ran forever...
             Please fix and rewrite the complete code again so that it doesn't get stuck. 
-            """)
-        self.conversation.append_user_message(prompt)
-
-    # def _specify_code_cant_be_extracted(self):
-    #     prompt = format_str("""
-    #         I wasn't able to run the code.
-    #         Please rewrite the complete code again.
-    #         """)
-    #     self.conversation.append_user_message(prompt)
-
+            """),
+            comment='GPT code has timed out. Notifying chatgpt...')
 
     def debug_and_run_code(self):
         """
@@ -103,44 +98,47 @@ class DebuggerGPT(ConverserGPT):
         :return: content of the file produced by the gpt code.
         """
 
-        self.save_current_state_by_name('initial')
-
+        start_tag = self.conversation[-1].tag
+        assert start_tag is not None
         for debug_attempt in range(MAX_DEBUGGING_ATTEMPTS):
-            self.reset_state_to('initial')
+            self.conversation_manager.reset_back_to_tag(start_tag)
             if debug_attempt > 0:
-                print_red(f'DEBUGGER: Debugging failed. Restarting chatgpt communication from scratch.'
-                          f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).')
+                self.conversation_manager.append_commenter_message(
+                    f'Debugging failed. Restarting debugging from scratch '
+                    f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).')
             for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
-                self.conversation.get_response_from_chatgpt()
+                response = self.conversation_manager.get_and_append_assistant_message()
                 try:
-                    result = self._run_code_from_last_response()
+                    result = self._run_code_from_response(response)
                 except FailedExtractingCode:
-                    self.conversation.delete_last_response()
-                    print_red('DEBUGGER: Failed extracting code from gpt response. Regenerating response...')
-                    self.conversation.get_response_from_chatgpt()
+                    self.conversation_manager.delete_messages(
+                        message_designation=-1,  # last message
+                        comment='Failed extracting code from gpt response. Delete response and retry...'
+                    )
                 except FailedRunningCode as e:
-                    if isinstance(e.exception, ImportError):
+                    try:
+                        raise e.exception
+                    except ImportError:
                         # chatgpt tried using a package we do not support
-                        print_red('DEBUGGER: ImportError detected in gpt code. Notifying chatgpt...')
                         self._specify_allowed_packages(str(e.exception))
-                    elif isinstance(e.exception, TimeoutError):
+                    except TimeoutError:
                         # code took too long to run
-                        print_red('DEBUGGER: GPT code has timed out. Notifying chatgpt...')
                         self._specify_timeout()
-                    else:
+                    except FileNotFoundError:
+                        # the code tried to load file that we do not have.
+                        self._specify_file_not_found(str(e.exception))
+                    except Exception:
                         # the code failed on other errors.
                         # indicate error message to chatgpt.
-                        print_red('DEBUGGER: Runtime exception in GPT code. Notifying chatgpt...')
                         self._specify_error_message(e.get_traceback_message())
                 except FailedLoadingOutput:
                     # Code ran, but the output file was not created.
-                    print_red('DEBUGGER: GPT code completed successfully, '
-                              'but output file not created. Notifying chatgpt...')
                     self._specify_missing_output()
                 except Exception:
                     raise
                 else:
                     # The code ran just fine.
-                    print_red("DEBUGGER: GPT code completed successfully. Returning results to MentorGPT.")
+                    self.conversation_manager.append_commenter_message(
+                        "GPT code completed successfully. Returning results to MentorGPT.")
                     return result
         raise FailedDebuggingException()
