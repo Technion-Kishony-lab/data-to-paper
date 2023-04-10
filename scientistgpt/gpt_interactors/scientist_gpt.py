@@ -6,12 +6,13 @@ from scientistgpt.proceed_retract import FuncAndRetractions, ExecutionPlan, Proc
 from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
-from .plan_reviewer_gpt import PlanReviewerGPT
+from .plan_reviewer_gpt import ReviewerDialogConverserGPT
 
 from .debugger_gpt import DebuggerGPT
 from .converser_gpt import ConverserGPT, CodeWritingGPT
+from .text_extractors import extract_analysis_plan_from_response
 from ..conversation.converation_manager import ConversationManager
-
+from ..conversation.message_designation import RangeMessageDesignation
 
 MAX_ANALYSIS_REVISIONS = 2
 
@@ -47,7 +48,7 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
     """
 
     # override the default system_prompt
-    system_prompt = dedent_triple_quote_str("""
+    system_prompt: str = dedent_triple_quote_str("""
         You are a scientist. You are given a dataset and a goal. You will need to:
         1. design a data analysis plan.
         2. write an efficient short code to perform the analysis plan.
@@ -55,13 +56,13 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
         """)
 
     # override the default conversation_name
-    conversation_name = 'ScientificMentorGPT'
+    conversation_name: str = 'ScientificMentorGPT'
 
     data_description: Optional[str] = None,
     goal_description: Optional[str] = None,
     message_callback: Optional[Callable] = None
 
-    analysis_plan_reviewing_cycles: int = 0  # max number of cycles of plan reviewing. 0 means no plan review.
+    analysis_plan_reviewing_cycles: int = 2  # max number of cycles of plan reviewing. 0 means no plan review.
 
     def __post_init__(self):
         CodeWritingGPT.__post_init__(self)
@@ -97,21 +98,27 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
         prompt = dedent_triple_quote_str("""
             Suggest a data analysis plan to achieve the specified goal.
             """)
-        self.conversation_manager.append_user_message(prompt, 'request_analysis_plan')
+        self.conversation_manager.append_user_message(prompt, tag='request_analysis_plan')
         self.conversation_manager.get_and_append_assistant_message(tag='analysis_plan')
+
+    def extract_analysis_plan(self):
+        analysis_plan_response = self.conversation_manager.conversation.get_message_content_by_tag(tag='analysis_plan')
+        self.analysis_plan = extract_analysis_plan_from_response(analysis_plan_response)
 
     def review_analysis_plan(self):
         if self.analysis_plan_reviewing_cycles == 0:
             return
         self.conversation_manager.append_commenter_message(
             'Asking PlanReviewerGPT for feedback on the analysis plan...')
-        enhanced_plan = PlanReviewerGPT(
-            other_conversation_name=self.conversation.conversation_name,
+        enhanced_plan = ReviewerDialogConverserGPT(
+            conversation_name=self.conversation.conversation_name,
             max_review_cycles=self.analysis_plan_reviewing_cycles,
         ).review_plan()
 
         # by giving the same tag. we trim the conversation back, as if the improved plan was the original plan:
-        self.conversation_manager.append_provided_assistant_message(enhanced_plan, tag='analysis_plan')
+        self.conversation_manager.append_provided_assistant_message(
+            content=enhanced_plan, tag='analysis_plan',
+            comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
 
     def request_analysis_code(self):
         prompt = dedent_triple_quote_str("""
@@ -120,20 +127,22 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
             The output of your code should be a text file named `{}`.
             Any plots produced should be saved as image files and should not display to screen.
             """).format(SUPPORTED_PACKAGES, self.output_filename)
-        self.conversation.append_user_message(prompt)
+        self.conversation_manager.append_user_message(prompt)
 
     def run_gpt_code_and_add_output_to_conversation(self):
-        print_red('Transfer control to DebuggerGPT to debug and get a functional code ...')
+        self.conversation_manager.append_commenter_message(
+            'Transfer control to DebuggerGPT to debug and get a functional code ...', tag='start_debugger')
         self._run_code_attempt += 1
-        debugger = DebuggerGPT(conversation=copy.deepcopy(self.conversation),
-                               script_file=f"{GPT_SCRIPT_FILENAME}_{self._run_code_attempt}",
-                               new_file_for_each_try=True)
+        debugger = DebuggerGPT(conversation_name=self.conversation.conversation_name,
+                               gpt_script_filename=f"{self.gpt_script_filename}_{self._run_code_attempt}")
         result = debugger.debug_and_run_code()
         self.output_file_content = result
-        # self.conversation = debugger.conversation
-        print_red("Code ran successfully! Let's see what chatgpt think of the results ...")
+        self.conversation_manager.delete_messages(
+            message_designation=RangeMessageDesignation.from_(start='start_debugger', end=-2),
+            comment='Deleting all debugging messages, keeping only the last code from the debugger')
 
-        prompt = dedent_triple_quote_str("""
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
             I ran your code. Here is the content of the output file ({}):
             ```
             {}
@@ -141,11 +150,11 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
             
             You are obliged to choose one of the following options:
             1. I am satisfied with the analysis and the results, I am ready to write a paper about them.
-            2. I need to write additional code the code and try again before writing a paper.
+            2. I need to write additional code and try again before writing a paper.
             
             Answer with the number of the option you choose only, i.e "1" or "2".
-            """).format(self.OUTPUT_FILENAME, result)
-        self.conversation.append_user_message(prompt)
+            """).format(self.output_filename, result),
+            tag='output_file_content')
 
     def get_gpt_improvement_to_analysis(self):
         analysis_revises = 0
@@ -227,7 +236,7 @@ ScientistGPT_EXECUTION_PLAN: ExecutionPlan = [
     FuncAndRetractions('review_analysis_plan', (), []),
     FuncAndRetractions('request_analysis_code', (), []),
     FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', FailedDebuggingException, upon_code_failure),
-    FuncAndRetractions('get_gpt_response_to_analysis', (), []),
-    FuncAndRetractions('prepare_pre_paper_conversation', (), []),
-    FuncAndRetractions('write_paper', (), []),
+    # FuncAndRetractions('get_gpt_response_to_analysis', (), []),
+    # FuncAndRetractions('prepare_pre_paper_conversation', (), []),
+    # FuncAndRetractions('write_paper', (), []),
 ]

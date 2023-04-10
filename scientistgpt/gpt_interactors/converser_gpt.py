@@ -165,12 +165,17 @@ class ConstructiveReviewDialogConverserGPT(RoleReversalDialogConverserGPT):
         """
         return response + f'\n\nPlease correct your response and send back a complete rewrite of the {self.goal_noun}.'
 
+    def _pre_populate_conversation(self):
+        self.conversation_manager.append_user_message(
+            f'Hello {self.reviewee}. Please {self.goal_verb} {self.goal_noun}.')
+
     def initialize_dialog(self):
         self.initialize_conversation()
         self.initialize_other_conversation()
-        self.conversation_manager.append_user_message(
-            f'Hello {self.reviewee}. Please {self.goal_verb} {self.goal_noun}.')
+
+        # Disable printing of the other_conversation because one is the same of the other (except for role reversal)
         self.other_conversation_manager.should_print = False
+        self._pre_populate_conversation()
 
     def is_completed(self):
         return len(self.other_conversation_manager.conversation) > 1 and \
@@ -190,12 +195,12 @@ class CodeWritingGPT(ConverserGPT):
     Interact with chatgpt to write a code that needs to create an output file.
     """
 
-    output_filename = 'results.txt'
+    output_filename: str = 'results.txt'
     """
     The name of the file that gpt code is instructed to save the results to.
     """
 
-    gpt_script_filename = 'gpt_code'
+    gpt_script_filename: str = 'gpt_code'
     """
     The base name of the pythin file in which the code written by gpt is saved. 
     """
