@@ -17,7 +17,7 @@ def test_text_extractor():
 def test_extract_analysis_plan_from_response():
     response = """
     Here is the analysis plan:
-    
+
     1. Load the files
     2. Clean the data
     3. Analyze the data

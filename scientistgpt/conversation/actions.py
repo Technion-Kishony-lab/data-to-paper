@@ -76,7 +76,7 @@ class CreateConversation(Action):
     def apply(self):
         CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
             Conversation(conversation_name=self.conversation_name)
-        
+
 
 @dataclass(frozen=True)
 class AppendMessage(Action):

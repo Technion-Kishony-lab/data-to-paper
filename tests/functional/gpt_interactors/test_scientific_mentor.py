@@ -13,5 +13,3 @@ def test_scientific_mentor():
                          'the height of a person.',
         goal_description='I am interested whether there is a significant height difference between females and males')
     runner.run_all()
-
-

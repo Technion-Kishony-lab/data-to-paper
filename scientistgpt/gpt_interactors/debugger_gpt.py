@@ -24,6 +24,7 @@ class DebuggerGPT(CodeWritingGPT):
 
     Interactions with chatgpt include adequate reporting of:
     * missing packages
+    * trying to load wrong files
     * syntax errors
     * runtime exceptions
     * too long runs (timeout)
