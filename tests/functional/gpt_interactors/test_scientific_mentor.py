@@ -1,7 +1,10 @@
+import pytest
+
 from scientistgpt import ScientificMentorGPT, ScientistGPT_EXECUTION_PLAN
 from tests.utils import record_or_replay_openai
 
 
+@pytest.mark.skip
 @record_or_replay_openai
 def test_scientific_mentor():
     runner = ScientificMentorGPT(

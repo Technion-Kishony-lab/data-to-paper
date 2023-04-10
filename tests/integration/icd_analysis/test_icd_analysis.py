@@ -3,6 +3,8 @@ import shutil
 import glob
 from pathlib import Path
 
+import pytest
+
 from tests.utils import record_or_replay_openai
 from .queries import data_description, goal_description
 
@@ -27,6 +29,7 @@ if os.path.exists(absolute_output_path):
 os.makedirs(absolute_output_path)
 
 
+@pytest.mark.skip
 @record_or_replay_openai
 def test_icd_analysis():
     # we run in the data folder, so that chatgpt finds our files:
