@@ -13,8 +13,13 @@ class ConverserGPT:
 
     conversation_name: str = 'default'
 
+    agent: str = ''
+
     def __post_init__(self):
-        self.conversation_manager = ConversationManager(conversation_name=self.conversation_name)
+        self.conversation_manager = ConversationManager(
+            conversation_name=self.conversation_name,
+            agent=self.agent
+        )
 
     @property
     def _system_prompt(self):
@@ -41,7 +46,10 @@ class DialogConverserGPT(ConverserGPT):
 
     def __post_init__(self):
         super().__post_init__()
-        self.other_conversation_manager = ConversationManager(conversation_name=self.other_conversation_name)
+        self.other_conversation_manager = ConversationManager(
+            conversation_name=self.other_conversation_name,
+            agent=self.agent
+        )
 
     @property
     def _other_system_prompt(self):
