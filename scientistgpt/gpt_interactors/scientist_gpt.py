@@ -1,18 +1,17 @@
-import copy
 from dataclasses import dataclass
-from typing import Optional, List, Callable
+from typing import Optional, Callable
 
 from scientistgpt.proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
 from scientistgpt.exceptions import FailedDebuggingException
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
-from .plan_reviewer_gpt import ReviewerDialogConverserGPT
+from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
+from .plan_reviewer_gpt import ReviewerDialogConverserGPT
 from .debugger_gpt import DebuggerGPT
-from .converser_gpt import ConverserGPT, CodeWritingGPT
+from .converser_gpt import CodeWritingGPT
 from .text_extractors import extract_analysis_plan_from_response
-from ..conversation.converation_manager import ConversationManager
-from ..conversation.message_designation import RangeMessageDesignation
 
 MAX_ANALYSIS_REVISIONS = 2
 
