@@ -2,10 +2,10 @@ import os
 from dataclasses import dataclass
 
 from scientistgpt.code_runner import CodeRunner
+from scientistgpt.env import SUPPORTED_PACKAGES
+from scientistgpt.utils.text_utils import dedent_triple_quote_str
 from scientistgpt.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     FailedDebuggingException
-from scientistgpt.env import SUPPORTED_PACKAGES
-from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 
 from .converser_gpt import CodeWritingGPT
 
@@ -24,6 +24,7 @@ class DebuggerGPT(CodeWritingGPT):
 
     Interactions with chatgpt include adequate reporting of:
     * missing packages
+    * trying to load wrong files
     * syntax errors
     * runtime exceptions
     * too long runs (timeout)

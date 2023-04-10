@@ -64,4 +64,3 @@ def test_icd_analysis():
     # Move gpt generated txt files to output folder:
     for file in glob.glob(str(absolute_data_path / '*.txt')):
         shutil.move(file, absolute_output_path)
-

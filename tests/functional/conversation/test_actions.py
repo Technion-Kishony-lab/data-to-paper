@@ -3,7 +3,8 @@ from _pytest.fixtures import fixture
 from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
     NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, \
-    CopyMessagesBetweenConversations, CreateConversation, CONVERSATION_NAMES_TO_CONVERSATIONS
+    CopyMessagesBetweenConversations, CreateConversation
+from scientistgpt.conversation.actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
