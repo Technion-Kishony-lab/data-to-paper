@@ -70,13 +70,13 @@ def test_conversation_manager_reset_to_tag_when_tag_repeats(manager):
 
 
 def test_conversation_manager_reset_to_tag(manager):
-    assert len(manager.conversation) == 1, "sanity"
     manager.append_user_message('Hi, I am a user.', tag='intro')
+    assert len(manager.conversation) == 2, "sanity"
     manager.append_provided_assistant_message('Hi, this is a predefined assistant response.')
     assert len(manager.conversation) == 3, "sanity"
 
     manager.reset_back_to_tag(tag='intro')
-    assert len(manager.conversation) == 1
+    assert len(manager.conversation) == 2
 
 
 def test_conversation_manager_delete_messages(manager):

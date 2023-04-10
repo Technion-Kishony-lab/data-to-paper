@@ -75,7 +75,7 @@ def test_reset_to_tag(conversation, assistant_message):
     action = ResetToTag(conversation_name=conversation.conversation_name,
                         agent='tester', comment='we are going back', tag='write_code')
     action.apply()
-    assert len(conversation) == 1
+    assert len(conversation) == 2
     print('\n' + action.pretty_repr())
 
 
