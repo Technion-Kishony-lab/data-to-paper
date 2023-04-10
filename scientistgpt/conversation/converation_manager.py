@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -27,6 +28,11 @@ class ConversationManager:
 
     conversation_name: Optional[str] = None
 
+    agent: str = ''
+    """
+    Name of the agent/algorithm that is instructing this conversation manager.
+    """
+
     @property
     def conversation(self) -> Conversation:
         return CONVERSATION_NAMES_TO_CONVERSATIONS.get(self.conversation_name, None)
@@ -38,55 +44,49 @@ class ConversationManager:
         APPLIED_ACTIONS.append(action)
         action.apply()
         if self.should_print:
-            print(action.pretty_repr())
-            print()
+            print(action.pretty_repr(), flush=True)
+            print(flush=True)
+            sys.stdout.flush()
 
     def create_conversation(self):
         self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name))
 
-    def append_message(self, role: Role, content: str, tag: Optional[str],
-                       agent: Optional[str] = None, comment: Optional[str] = None):
+    def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None):
         """
         Append a message to a specified conversation.
         """
         message = Message(role=role, content=content, tag=tag)
         self._append_and_apply_action(
-            AppendMessage(conversation_name=self.conversation_name, agent=agent, comment=comment, message=message))
+            AppendMessage(conversation_name=self.conversation_name, agent=self.agent, comment=comment, message=message))
 
-    def append_system_message(self, content: str, tag: Optional[str] = None,
-                              agent: Optional[str] = None,
-                              comment: Optional[str] = None):
+    def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a system-message to a specified conversation.
         """
-        self.append_message(Role.SYSTEM, content, tag, agent, comment)
+        self.append_message(Role.SYSTEM, content, tag, comment)
 
-    def append_user_message(self, content: str, tag: Optional[str] = None,
-                            agent: Optional[str] = None, comment: Optional[str] = None):
+    def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a user-message to a specified conversation.
         """
-        self.append_message(Role.USER, content, tag, agent, comment)
+        self.append_message(Role.USER, content, tag, comment)
 
-    def append_commenter_message(self, content: str, tag: Optional[str] = None,
-                                 agent: Optional[str] = None, comment: Optional[str] = None):
+    def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a commenter-message to a specified conversation.
 
         Commenter messages are messages that are not sent to chatgpt,
         rather they are just used as comments to the chat.
         """
-        self.append_message(Role.COMMENTER, content, tag, agent, comment)
+        self.append_message(Role.COMMENTER, content, tag, comment)
 
-    def append_provided_assistant_message(self, content: str, tag: Optional[str] = None,
-                                          agent: Optional[str] = None, comment: Optional[str] = None):
+    def append_provided_assistant_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.append_message(Role.ASSISTANT, content, tag, agent, comment)
+        self.append_message(Role.ASSISTANT, content, tag, comment)
 
-    def get_and_append_assistant_message(self, tag: Optional[str] = None,
-                                         agent: Optional[str] = None, comment: Optional[str] = None,
+    def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None) -> str:
         """
         Get and append a response from openai to a specified conversation.
@@ -100,8 +100,7 @@ class ConversationManager:
         # we try to get a response. if we fail we gradually remove messages from the top,
         # starting at message 1 (message 0 is the system message).
         while True:
-            content = self.try_get_and_append_chatgpt_response(tag=tag, agent=agent,
-                                                               comment=comment,
+            content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
                                                                hidden_messages=actual_hidden_messages)
             if isinstance(content, str):
                 return content
@@ -114,7 +113,7 @@ class ConversationManager:
     def get_actions_for_conversation(self) -> List[Action]:
         return [action for action in APPLIED_ACTIONS if action.conversation_name == self.conversation_name]
 
-    def regenerate_previous_response(self):
+    def regenerate_previous_response(self, comment: Optional[str] = None):
         last_action = self.get_actions_for_conversation()[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
@@ -122,15 +121,14 @@ class ConversationManager:
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             RegenerateLastResponse(
-                conversation_name=self.conversation_name, agent=last_action.agent, comment=last_action.comment,
+                conversation_name=self.conversation_name, agent=last_action.agent, comment=comment,
                 message=Message(role=last_action.message.role,
                                 content=content,
                                 tag=last_action.message.tag),
                 hidden_messages=last_action.hidden_messages),
         )
 
-    def try_get_and_append_chatgpt_response(self, tag: Optional[str],
-                                            agent: Optional[str] = None, comment: Optional[str] = None,
+    def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
         """
         Try to get and append a response from openai to a specified conversation.
@@ -143,12 +141,12 @@ class ConversationManager:
         content = self.conversation.try_get_chatgpt_response(hidden_messages)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
-                conversation_name=self.conversation_name, agent=agent, comment=comment,
+                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 hidden_messages=hidden_messages,
                 exception=content)
         else:
             action = AppendChatgptResponse(
-                conversation_name=self.conversation_name, agent=agent, comment=comment,
+                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 hidden_messages=hidden_messages,
                 message=Message(role=Role.ASSISTANT,
                                 content=content,
@@ -156,43 +154,41 @@ class ConversationManager:
         self._append_and_apply_action(action)
         return content
 
-    def reset_back_to_tag(self, tag: str,
-                          agent: Optional[str] = None, comment: Optional[str] = None):
+    def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
         """
         Reset the conversation to the last message with the specified tag.
+        All messages following the message with the specified tag will be deleted.
+        The message with the specified tag will be kept.
         """
         self._append_and_apply_action(ResetToTag(
-            conversation_name=self.conversation_name, agent=agent, comment=comment, tag=tag))
+            conversation_name=self.conversation_name, agent=self.agent, comment=comment, tag=tag))
 
-    def delete_messages(self, message_designation: GeneralMessageDesignation,
-                        agent: Optional[str] = None, comment: Optional[str] = None):
+    def delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):
         """
         Delete messages from a conversation.
         """
         self._append_and_apply_action(
             DeleteMessages(
-                conversation_name=self.conversation_name, agent=agent, comment=comment,
+                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 message_designation=message_designation))
 
-    def replace_last_response(self, content: str,
-                              agent: Optional[str] = None, comment: Optional[str] = None,
-                              tag: Optional[str] = None):
+    def replace_last_response(self, content: str, comment: Optional[str] = None, tag: Optional[str] = None):
         """
         Replace the last response with the specified content.
         """
         self._append_and_apply_action(
             ReplaceLastResponse(
-                conversation_name=self.conversation_name, agent=agent, comment=comment,
+                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 message=Message(role=Role.ASSISTANT, content=content, tag=tag)))
 
     def copy_messages_from_another_conversations(self, source_conversation: Conversation,
                                                  message_designation: GeneralMessageDesignation,
-                                                 agent: Optional[str] = None, comment: Optional[str] = None):
+                                                 comment: Optional[str] = None):
         """
         Copy messages from one conversation to another.
         """
         self._append_and_apply_action(
             CopyMessagesBetweenConversations(
-                conversation_name=self.conversation_name, agent=agent, comment=comment,
+                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 source_conversation_name=source_conversation.conversation_name,
                 message_designation=message_designation))
