@@ -15,6 +15,7 @@ from .text_extractors import extract_analysis_plan_from_response
 
 MAX_ANALYSIS_REVISIONS = 2
 
+
 # NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
 #       and can be integrated within the class functions.
 #       Any preceding spaces are removed with dedent_triple_quote_str().
@@ -190,7 +191,8 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
     def prepare_pre_paper_conversation(self):
         print_red('Preparing the pre-paper conversation ...', message_callback=self.message_callback)
         paper_conversation = Conversation()
-        paper_conversation.append_message(role=Role.SYSTEM, message='You are a helpful scientist that able to write scientific papers.')
+        paper_conversation.append_message(role=Role.SYSTEM,
+                                          message='You are a helpful scientist that able to write scientific papers.')
         paper_conversation.append_user_message('This is the data description\n\n' + self.data_description)
         paper_conversation.append_assistant_message('acknowledged')
         paper_conversation.append_user_message('This is the research goal description\n\n' + self.goal_description)
@@ -201,7 +203,6 @@ class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
         paper_conversation.append_assistant_message('acknowledged')
         print_red('Pre-paper conversation is ready! Let\'s write the paper ...', message_callback=self.message_callback)
         self.pre_paper_conversation = paper_conversation
-
 
     def write_paper(self):
         prompt = dedent_triple_quote_str("""

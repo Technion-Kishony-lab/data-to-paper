@@ -99,4 +99,3 @@ class ReviewerDialogConverserGPT(DialogConverserGPT):
                 tag=reviewer_tag)
             self.conversation_manager.get_and_append_assistant_message(tag=scientist_tag)
         return revised_plan
-

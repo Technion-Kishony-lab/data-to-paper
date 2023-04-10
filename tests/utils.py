@@ -4,7 +4,6 @@ import re
 import os
 
 from contextlib import contextmanager
-from typing import Optional
 
 from scientistgpt import Message, Conversation
 from scientistgpt.conversation import conversation
@@ -101,4 +100,3 @@ def record_or_replay_openai(func):
         if new_responses_and_exceptions['exception']:
             raise new_responses_and_exceptions['exception']
     return wrapper
-

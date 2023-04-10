@@ -7,8 +7,10 @@ from scientistgpt.conversation.replay import save_actions_to_file, load_actions_
 
 
 def test_save_load_actions(tmpdir):
-    APPLIED_ACTIONS.append(AppendMessage(conversation_name='default', message=Message(role=Role.USER, content='what is 2 + 3 ?')))
-    APPLIED_ACTIONS.append(AppendChatgptResponse(conversation_name='default', message=Message(role=Role.ASSISTANT, content='the answer is 5')))
+    APPLIED_ACTIONS.append(AppendMessage(conversation_name='default',
+                                         message=Message(role=Role.USER, content='what is 2 + 3 ?')))
+    APPLIED_ACTIONS.append(AppendChatgptResponse(conversation_name='default',
+                                                 message=Message(role=Role.ASSISTANT, content='the answer is 5')))
     old_actions = APPLIED_ACTIONS.copy()
     save_actions_to_file(tmpdir.join('actions.pkl'))
 
