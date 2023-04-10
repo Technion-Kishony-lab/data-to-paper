@@ -1,123 +1,148 @@
 import copy
+from dataclasses import dataclass
 from typing import Optional, List, Callable
 
-from scientistgpt.proceed_retract import FuncAndRetractions, RunPlan
+from scientistgpt.proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
 from scientistgpt.exceptions import FailedDebuggingException
-from scientistgpt.conversation import Conversation, Role
-from scientistgpt.utils.text_utils import format_str, print_red
+from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
-from .reviewer_gpt import ReviewerGPT
+from .plan_reviewer_gpt import ReviewerDialogConverserGPT
 
 from .debugger_gpt import DebuggerGPT
-from .converser_gpt import ConverserGPT
+from .converser_gpt import ConverserGPT, CodeWritingGPT
+from .text_extractors import extract_analysis_plan_from_response
+from ..conversation.converation_manager import ConversationManager
+from ..conversation.message_designation import RangeMessageDesignation
 
-GPT_SCRIPT_FILENAME = 'gpt_analysis'
-SYSTEM_PROMPT = format_str("""
-        You are a scientist. You are given a data set and a goal. You need to come up with analysis plan.
-        You need to write a efficient short code to perform the analysis plan.
-        You need to interpret the results and write a summary of the results.
-        """)
 MAX_ANALYSIS_REVISIONS = 2
 
+# NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
+#       and can be integrated within the class functions.
+#       Any preceding spaces are removed with dedent_triple_quote_str().
+#       Note though that this notation does not work with f-string formatting especially when the dynamically
+#       added text includes multiple lines.
+#       We therefore use instead the triple-quote with the .format() notation to get a dynamic, yet structured and
+#       readable, multi-line text.
 
-class ScientistGPT(ConverserGPT):
+
+@dataclass
+class ScientificMentorGPT(CodeWritingGPT, ProceedRetract):
     """
-    Create a conversation with chatgpt with interactive analysis of data.
+    Acts as a mentor to a scientist-gpt.
+    Create a conversation with chatgpt provoking a structured scientific research involving analysis of data.
 
     The user needs to provide:
+
     data_description: a comprehensive description of the data files available for the project.
                       It is recommended that this description includes a few-line header of each file.
+
     goal_description: a description of the goal of the analysis.
 
-    ScientistGPT will interact with chatgpt to create analysis code and interpret the results.
+    ScientificMentorGPT will interact with chatgpt to:
+    1. Create analysis plan.
+       Send the scientist-gpt to a PlanReviewerGPT to review and enhance the plan.
+    2. Implement the plan. Ask the scientist-gpt to write a code to implement the plan.
+       Send the scientist-gpt to a CodeReviewerGPT to review and enhance the code.
+    3. Review results
+    4. Write a scientific paper
     """
 
-    # NOTE: For the text of gpt prompt, we use the triple-quote notation because it elegantly takes care of newlines
-    #       and can be integrated within the class functions.
-    #       Any preceding spaces are removed with format_str().
-    #       Note though that this notation does not work with f-string formatting especially when the dynamically
-    #       added text includes multiple lines.
-    #       We therefore use instead the triple-quote with the .format() notation to get a dynamic, yet structured and
-    #       readable, multi-line text.
-    def __init__(self,
-                 run_plan: List[FuncAndRetractions] = None,
-                 conversation: Optional[Conversation] = None,
-                 data_description: Optional[str] = None,
-                 goal_description: Optional[str] = None,
-                 analysis_plan: Optional[str] = None,
-                 results_summary: Optional[str] = None,
-                 output_file_content: Optional[str] = None,
-                 message_callback: Optional[Callable] = None
-                 ):
-        super().__init__(run_plan, conversation)
-        self.data_description = data_description
-        self.goal_description = goal_description
-        self.analysis_plan = analysis_plan
-        self.results_summary = results_summary
-        self.output_file_content = output_file_content
-        self.pre_paper_conversation = None
-        self._run_code_attempt = 0
-        self.message_callback = message_callback
+    # override the default system_prompt
+    system_prompt: str = dedent_triple_quote_str("""
+        You are a scientist. You are given a dataset and a goal. You will need to:
+        1. design a data analysis plan.
+        2. write an efficient short code to perform the analysis plan.
+        3. interpret the results and write a summary of the findings.
+        """)
 
-    def initialize_conversation(self):
-        prompt = SYSTEM_PROMPT
-        self.conversation = Conversation(self.message_callback)
-        self.conversation.append_message(Role.SYSTEM, prompt, should_print=True)
+    # override the default conversation_name
+    conversation_name: str = 'ScientificMentorGPT'
+
+    data_description: Optional[str] = None,
+    goal_description: Optional[str] = None,
+    message_callback: Optional[Callable] = None
+
+    analysis_plan_reviewing_cycles: int = 2  # max number of cycles of plan reviewing. 0 means no plan review.
+
+    def __post_init__(self):
+        CodeWritingGPT.__post_init__(self)
+        ProceedRetract.__post_init__(self)
+        self._run_code_attempt = 0
+        self._conversation_manager: ConversationManager = ConversationManager(conversation_name=self.conversation_name)
+        self.analysis_plan: Optional[str] = None
+        self.results_summary: Optional[str] = None
+        self.output_file_content: Optional[str] = None
+        self.pre_paper_conversation = None
 
     def add_data_description(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             We have the following data files:
 
             {}
             """).format(self.data_description)
-        self.conversation.append_user_message(prompt)
-        self.conversation.append_assistant_message('ok')
+        self.conversation_manager.append_user_message(prompt, 'data_description')
+
+        response = dedent_triple_quote_str("""
+            Thank you for the description of the dataset.
+            Please also specify the data analysis goal.
+            """)
+        self.conversation_manager.append_provided_assistant_message(response)
 
     def add_goal_description(self):
         prompt = self.goal_description
-        self.conversation.append_user_message(prompt)
-        self.conversation.append_assistant_message('ok')
+        self.conversation_manager.append_user_message(prompt, tag='goal_description')
+        self.conversation_manager.append_provided_assistant_message('Thank you for the goal description.',
+                                                                    tag='ok_goal_description')
 
     def request_analysis_plan(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             Suggest a data analysis plan to achieve the specified goal.
             """)
-        self.conversation.append_user_message(prompt)
-        reply = self.conversation.get_response_from_chatgpt()
-        self.analysis_plan = self.conversation.get_last_response()
-        return reply
+        self.conversation_manager.append_user_message(prompt, tag='request_analysis_plan')
+        self.conversation_manager.get_and_append_assistant_message(tag='analysis_plan')
 
-    def request_analysis_code(self):
-        prompt = format_str("""
-            Write a complete Python code to perform the analysis you suggested.
-            Use only the packages: {} to perform the analysis.
-            The output of the code should be a text file named `{}`.
-            The plots should be saved as image files and not displayed to screen.
-            """).format(SUPPORTED_PACKAGES, self.OUTPUT_FILENAME)
-        self.conversation.append_user_message(prompt)
+    def extract_analysis_plan(self):
+        analysis_plan_response = self.conversation_manager.conversation.get_message_content_by_tag(tag='analysis_plan')
+        self.analysis_plan = extract_analysis_plan_from_response(analysis_plan_response)
 
     def review_analysis_plan(self):
-        print_red('Ask ReviewerGPT to find flaws within the plan  ...', message_callback=self.message_callback)
-        reviewer = ReviewerGPT(conversation=copy.deepcopy(self.conversation))
-        result = reviewer.review_plan(self.analysis_plan)
-        self.analysis_plan = result
-        # replace the last message with the updated plan
-        self.conversation.delete_last_response()
-        self.conversation.append_assistant_message(self.analysis_plan, should_print=False)
+        if self.analysis_plan_reviewing_cycles == 0:
+            return
+        self.conversation_manager.append_commenter_message(
+            'Asking PlanReviewerGPT for feedback on the analysis plan...')
+        enhanced_plan = ReviewerDialogConverserGPT(
+            conversation_name=self.conversation.conversation_name,
+            max_review_cycles=self.analysis_plan_reviewing_cycles,
+        ).review_plan()
+
+        # by giving the same tag. we trim the conversation back, as if the improved plan was the original plan:
+        self.conversation_manager.append_provided_assistant_message(
+            content=enhanced_plan, tag='analysis_plan',
+            comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
+
+    def request_analysis_code(self):
+        prompt = dedent_triple_quote_str("""
+            Write a complete Python code to perform the analysis you suggested.
+            Use only the packages: {} to perform the analysis.
+            The output of your code should be a text file named `{}`.
+            Any plots produced should be saved as image files and should not display to screen.
+            """).format(SUPPORTED_PACKAGES, self.output_filename)
+        self.conversation_manager.append_user_message(prompt)
 
     def run_gpt_code_and_add_output_to_conversation(self):
-        print_red('Transfer control to DebuggerGPT to debug and get a functional code ...', message_callback=self.message_callback)
+        self.conversation_manager.append_commenter_message(
+            'Transfer control to DebuggerGPT to debug and get a functional code ...', tag='start_debugger')
         self._run_code_attempt += 1
-        debugger = DebuggerGPT(conversation=copy.deepcopy(self.conversation),
-                               script_file=f"{GPT_SCRIPT_FILENAME}_{self._run_code_attempt}",
-                               new_file_for_each_try=True,
-                               message_callback=self.message_callback)
+        debugger = DebuggerGPT(conversation_name=self.conversation.conversation_name,
+                               gpt_script_filename=f"{self.gpt_script_filename}_{self._run_code_attempt}")
         result = debugger.debug_and_run_code()
         self.output_file_content = result
-        self.conversation = debugger.conversation
-        print_red("Code ran successfully! Let's see what chatgpt think of the results ...", message_callback=self.message_callback)
+        self.conversation_manager.delete_messages(
+            message_designation=RangeMessageDesignation.from_(start='start_debugger', end=-2),
+            comment='Deleting all debugging messages, keeping only the last code from the debugger')
 
-        prompt = format_str("""
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
             I ran your code. Here is the content of the output file ({}):
             ```
             {}
@@ -125,11 +150,11 @@ class ScientistGPT(ConverserGPT):
             
             You are obliged to choose one of the following options:
             1. I am satisfied with the analysis and the results, I am ready to write a paper about them.
-            2. I need to write additional code the code and try again before writing a paper.
+            2. I need to write additional code and try again before writing a paper.
             
             Answer with the number of the option you choose only, i.e "1" or "2".
-            """).format(self.OUTPUT_FILENAME, result)
-        self.conversation.append_user_message(prompt)
+            """).format(self.output_filename, result),
+            tag='output_file_content')
 
     def get_gpt_improvement_to_analysis(self):
         analysis_revises = 0
@@ -142,9 +167,8 @@ class ScientistGPT(ConverserGPT):
 
             if result == '2':
                 print_red(
-                    'ReviewerGPT declared "I need to write additional code the code and try again before writing a '
-                    'paper."', message_callback=self.message_callback)
-                prompt = format_str("""
+                    'ChatGPT declared "I need to write additional code the code and try again before writing a paper."')
+                prompt = dedent_triple_quote_str("""
                 Write additional code to improve the analysis and try again. Append any additional results to the output file.
                 """)
                 self.conversation.append_user_message(prompt)
@@ -154,7 +178,7 @@ class ScientistGPT(ConverserGPT):
 
     def get_gpt_response_to_analysis(self):
         # ask chatgpt to summarize the results
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
             The results file contains the following content:
             ```
             {}
@@ -181,7 +205,7 @@ class ScientistGPT(ConverserGPT):
 
 
     def write_paper(self):
-        prompt = format_str("""
+        prompt = dedent_triple_quote_str("""
         Write paper - write abstract, introduction, methods, results, discussion and acknowledgments.
         Use markdown to format the paper.
         In addition you are required to state where to enter the figure of you created during the analysis by using
@@ -205,7 +229,7 @@ upon_code_failure = [1, 1, 2, 1, 1]
 # We then try again the same process on the new plan (going back 1 step for two failures [1, 1]).
 # If it still fails, we end and raise an exception.
 
-ScientistGPT_ANALYSIS_PLAN: RunPlan = [
+ScientistGPT_EXECUTION_PLAN: ExecutionPlan = [
     FuncAndRetractions('initialize_conversation', (), []),
     FuncAndRetractions('add_data_description', (), []),
     FuncAndRetractions('add_goal_description', (), []),
@@ -213,7 +237,7 @@ ScientistGPT_ANALYSIS_PLAN: RunPlan = [
     FuncAndRetractions('review_analysis_plan', (), []),
     FuncAndRetractions('request_analysis_code', (), []),
     FuncAndRetractions('run_gpt_code_and_add_output_to_conversation', FailedDebuggingException, upon_code_failure),
-    FuncAndRetractions('get_gpt_response_to_analysis', (), []),
-    FuncAndRetractions('prepare_pre_paper_conversation', (), []),
-    FuncAndRetractions('write_paper', (), []),
+    # FuncAndRetractions('get_gpt_response_to_analysis', (), []),
+    # FuncAndRetractions('prepare_pre_paper_conversation', (), []),
+    # FuncAndRetractions('write_paper', (), []),
 ]

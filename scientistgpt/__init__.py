@@ -1,2 +1,2 @@
-from .conversation import Conversation, Role
-from .gpt_interactors.scientist_gpt import ScientistGPT, ScientistGPT_ANALYSIS_PLAN
+from .conversation import Conversation, Role, Message
+from .gpt_interactors.scientist_gpt import ScientificMentorGPT, ScientistGPT_EXECUTION_PLAN
