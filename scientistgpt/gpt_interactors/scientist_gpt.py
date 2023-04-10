@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional, Callable
 
-from scientistgpt.proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, print_red
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
+from .proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
 from .plan_reviewer_gpt import ReviewerDialogConverserGPT
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT, FailedDebuggingException
