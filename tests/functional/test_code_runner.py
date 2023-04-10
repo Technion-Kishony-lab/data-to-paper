@@ -3,7 +3,7 @@ import os
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
+from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
 
 OUTPUT_FILE = "output.txt"
 

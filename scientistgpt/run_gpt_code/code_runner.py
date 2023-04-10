@@ -2,8 +2,9 @@ import re
 import os
 from typing import Optional
 
-from scientistgpt.dynamic_code import run_code_from_file
-from scientistgpt.exceptions import FailedExtractingCode, FailedLoadingOutput
+from scientistgpt.run_gpt_code.dynamic_code import run_code_from_file
+
+from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have observed in chatgpt responses:
 CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
