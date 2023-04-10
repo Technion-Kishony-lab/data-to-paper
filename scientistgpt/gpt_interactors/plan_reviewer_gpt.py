@@ -1,10 +1,9 @@
-import re
 from dataclasses import dataclass
 
 from scientistgpt.utils.text_utils import dedent_triple_quote_str
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
-from .converser_gpt import DialogConverserGPT, ConstructiveReviewDialogConverserGPT
-from ..conversation.message_designation import RangeMessageDesignation
+from .converser_gpt import DialogConverserGPT
 
 
 COMPLETION_PHRASE = 'I hereby approve the analysis plan'

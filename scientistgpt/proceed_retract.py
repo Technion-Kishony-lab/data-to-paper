@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List, NamedTuple, Type, Union, Tuple, Optional, Callable
 
 from scientistgpt.exceptions import FailedRunningStep
-from scientistgpt.utils.text_utils import print_red, print_magenta
+from scientistgpt.utils.text_utils import print_magenta
 
 
 class FuncAndRetractions(NamedTuple):

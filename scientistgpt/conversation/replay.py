@@ -1,14 +1,10 @@
 from __future__ import annotations
-import json
 import pickle
-from typing import List, TYPE_CHECKING
-from dataclasses import asdict
 
-from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
-    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation
+from typing import List
 
-from. actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
+from .actions import Action
+from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 
 
 def save_actions_to_file(file_path: str):

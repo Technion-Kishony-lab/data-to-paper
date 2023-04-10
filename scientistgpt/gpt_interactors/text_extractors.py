@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from scientistgpt.conversation.actions import get_name_with_new_number
-from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
+
+from .converser_gpt import ConverserGPT
 
 
 @dataclass

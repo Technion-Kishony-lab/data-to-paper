@@ -2,15 +2,13 @@ import sys
 from dataclasses import dataclass
 from typing import List, Optional
 
-from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
+from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .conversation import Conversation
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
     CreateConversation
-
-from .actions_and_conversations import APPLIED_ACTIONS
 
 
 @dataclass

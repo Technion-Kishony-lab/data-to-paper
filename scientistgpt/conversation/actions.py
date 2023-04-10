@@ -1,8 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Optional
 
 from scientistgpt.utils.text_utils import red_text
+
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
 from .message import Message
 from .conversation import Conversation
