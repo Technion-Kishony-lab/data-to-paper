@@ -7,7 +7,6 @@ from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
 from .proceed_retract import FuncAndRetractions, ExecutionPlan, ProceedRetract
-from .plan_reviewer_gpt import ReviewerDialogConverserGPT
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT, FailedDebuggingException
 from .text_extractors import extract_analysis_plan_from_response

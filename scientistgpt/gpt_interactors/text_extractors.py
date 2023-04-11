@@ -31,7 +31,7 @@ class TextExtractorGPT(ConverserGPT):
         Extract text from the response.
         """
 
-        self.initialize_conversation()
+        self.initialize_conversation_if_needed()
         self.conversation_manager.append_user_message(
             f'Below is a triple-quoted text, from which you need to extract {self.description_of_text_to_extract}.\n'
             f'Please provide the extracted text within a triple-quoted string.\n\n'
