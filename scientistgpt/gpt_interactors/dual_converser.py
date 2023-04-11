@@ -4,6 +4,7 @@ from typing import Optional
 from scientistgpt.conversation import Role, ConversationManager
 
 from .converser_gpt import ConverserGPT
+from ..utils.text_utils import dedent_triple_quote_str
 
 
 @dataclass
@@ -69,7 +70,7 @@ class DialogDualConverserGPT(DualConverserGPT):
     A phrase used by the 'other' chatgpt to terminate the conversation.
     """
 
-    max_rounds: int = 5
+    max_rounds: int = 3
 
     def __post_init__(self):
         super().__post_init__()
@@ -153,45 +154,47 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     The interaction proceeds in repeated cycles of the reviwee performing the task and the reviewer providing feedback.
     """
 
-    # Properties that should be set by each instance according to the task we want to perform:
+    # *** Properties that should be set according to the task we want to perform ***
+
+    # roles:
     reviewee: str = 'scientist'
     reviewer: str = 'scientific reviewer'
 
-    goal_noun: str = 'a one-paragraph summary on the solar system'
-    """
-    The goal of the reviewee. To fit the default formatting of the system prompts above, the goal should be specified 
-    as a noun.
-    """
+    # goal_noun: the desired output of the conversation (expressed as a singular noun).
+    goal_noun: str = 'one-paragraph summary on the solar system'
 
+    # goal_verb: a verb applied to achieve the goal, like 'write', 'draw', 'build', 'code', etc.
     goal_verb: str = 'write'
+
+    # *** Properties that are more generic (adjust only if needed) ***
+
+    system_prompt: str = """
+    You are a {reviewee} who needs to {goal_verb} a {goal_noun}.
+    I will be your {reviewer}.
     """
-    The verb applied to the goal noun, like 'write', 'draw', 'build', 'code', etc.
+
+    user_initiation_prompt: str = """
+    Hello {reviewee}. Please {goal_verb} a {goal_noun}.
     """
 
-    # Properties that are more generic (can adjust if needed):
-    system_prompt: str = \
-        'You are a {reviewee} who needs to {goal_verb} {goal_noun}.\n' \
-        'I will be your {reviewer}.'
+    other_system_prompt: str = """
+    You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
+    Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles
+    of improvements and feedback.
 
-    user_initiation_prompt: str = \
-        'Hello {reviewee}. Please {goal_verb} {goal_noun}.'
+    When you feel that the goal has been achieved and you cannot advise of additional improvements, then
+    respond explicitly with: "{termination_phrase}".
+    """
 
-    other_system_prompt: str = \
-        'You are a {reviewer} for a {reviewee} who needs to {goal_verb} {goal_noun}.\n' \
-        'Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles ' \
-        'of improvements and feedback.\n' \
-        'When you feel that the goal has been achieved and you cannot advise of additional improvements, then ' \
-        'respond explicitly with: "{termination_phrase}".\n' \
-        '\n' \
-        'I will be the {reviewee} that you advise.'
+    sentence_to_add_at_the_end_of_reviewer_response: str = """
+    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+    Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
+    """
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = \
-        'Please correct your response and send back a complete rewrite of the {goal_noun}.'
-
-    def _format_prompt(self, system_prompt):
-        return system_prompt.format(reviewee=self.reviewee, reviewer=self.reviewer,
-                                    termination_phrase=self.termination_phrase,
-                                    goal_noun=self.goal_noun, goal_verb=self.goal_verb)
+    def _format_prompt(self, prompt):
+        return dedent_triple_quote_str(prompt.format(
+            reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
+            goal_noun=self.goal_noun, goal_verb=self.goal_verb))
 
     @property
     def _system_prompt(self):
@@ -205,6 +208,9 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewer_response)
 
     def _pre_populate_conversations(self):
+        """
+        After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
+        """
         self.conversation_manager.append_user_message(self._format_prompt(self.user_initiation_prompt))
 
     def initialize_dialog(self, suppress_printing_of_other: bool = True):
