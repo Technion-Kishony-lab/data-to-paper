@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from scientistgpt.utils.text_utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
-from .converser_gpt import DialogConverserGPT, DialogConverserGPT
+from .dual_converser import DualConverserGPT
 
 
 COMPLETION_PHRASE = 'I hereby approve the analysis plan'
@@ -14,9 +14,9 @@ def _is_answer_affirmative(answer: str) -> bool:
 
 
 @dataclass
-class ReviewerDialogConverserGPT(DialogConverserGPT):
+class ReviewerDialogConverserGPT(DualConverserGPT):
     """
-    Create a conversation between two chatgtps: the scientist and the reviewer.
+    Create a conversation between a scientist gpt and a reviewer gpt.
 
     `conversation`: The conversation where the chatgpt is the scientist.
     `other_conversation`: The conversation where the chatgpt is the reviewer.
