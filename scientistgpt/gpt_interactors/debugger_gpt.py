@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils.text_utils import dedent_triple_quote_str
-from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, FailedDebuggingException
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+    FailedDebuggingException
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
 
