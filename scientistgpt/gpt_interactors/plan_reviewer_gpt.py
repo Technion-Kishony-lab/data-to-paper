@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from scientistgpt.utils.text_utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
-from .converser_gpt import DialogConverserGPT
+from .converser_gpt import DialogConverserGPT, DialogConverserGPT
 
 
 COMPLETION_PHRASE = 'I hereby approve the analysis plan'
@@ -44,7 +44,7 @@ class ReviewerDialogConverserGPT(DialogConverserGPT):
         user: I will now provide my analysis plan. Please review it.
         assistant: Please specify your current research plan and I will review it.
         """
-        self.initialize_other_conversation()
+        self.initialize_other_conversation_if_needed()
         self.other_conversation_manager.copy_messages_from_another_conversations(
             source_conversation=self.conversation,
             message_designation=RangeMessageDesignation.from_(start='data_description', end='ok_goal_description')
