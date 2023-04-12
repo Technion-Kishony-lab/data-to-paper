@@ -12,7 +12,7 @@ The file has 4 columns:
 #5 The diagnostic ICD9 code, formatted without dots (icd9_code)
 
 Here for example is the head of the file:
-```  
+```
 ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
 1297,109,172335,1,"40301"
 1298,109,172335,2,"486"

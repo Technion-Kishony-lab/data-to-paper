@@ -9,15 +9,19 @@ from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from tests.utils import record_or_replay_openai
 
+# local_path.py is git ignored. It should be created locally, and contain:
+# DATA_FOLDER: absolute path to a directory where the data files are located
+# OUTPUTS_FOLDER: absolute path to a directory where the output files will be saved
+
+from icd_analysis.local_paths import DATA_FOLDER, OUTPUT_FOLDER
+
 """
 Set folders
 """
-DATA_FOLDER = 'data_for_analysis'
 ACTIONS_FILENAME = 'openai_exchange.txt'
-OUTPUTS_FOLDER = 'run3'
 
 # Get absolute paths:
-absolute_output_path = Path(OUTPUTS_FOLDER).absolute()
+absolute_output_path = Path(OUTPUT_FOLDER).absolute()
 absolute_data_path = Path(DATA_FOLDER).absolute()
 absolute_home_path = Path().absolute()
 
@@ -30,20 +34,19 @@ os.makedirs(absolute_output_path)
 """
 Run ScientificGPT
 """
-# we run in the data folder, so that chatgpt finds our files:
-os.chdir(absolute_data_path)
 
 runner = ScientificGPT(data_description=data_description, goal_description=goal_description)
 
 
 @record_or_replay_openai
 def run_all():
+    # we run in the data folder, so that chatgpt finds our files:
+    os.chdir(absolute_data_path)
     runner.run_all()
+    os.chdir(absolute_home_path)
 
 
 run_all()
-
-os.chdir(absolute_home_path)
 
 """
 Save results
