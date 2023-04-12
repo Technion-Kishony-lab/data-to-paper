@@ -1,13 +1,14 @@
 from __future__ import annotations
 import pickle
+from pathlib import Path
 
-from typing import List
+from typing import List, Union
 
 from .actions import Action
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 
 
-def save_actions_to_file(file_path: str):
+def save_actions_to_file(file_path: Union[str, Path]):
     """
     Save the primary list of actions to a json file.
     """

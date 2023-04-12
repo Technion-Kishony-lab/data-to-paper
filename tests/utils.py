@@ -30,7 +30,7 @@ def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_
     conversation._get_chatgpt_response = mock_chatgpt_response
     try:
         yield new_responses_and_exceptions
-    except Exception as e:
+    except (Exception, KeyboardInterrupt) as e:
         new_responses_and_exceptions['exception'] = e
     finally:
         conversation._get_chatgpt_response = original_method
