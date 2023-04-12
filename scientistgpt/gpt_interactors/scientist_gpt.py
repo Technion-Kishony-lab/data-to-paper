@@ -135,21 +135,25 @@ class ScientificGPT(CodeWritingGPT):
         self.conversation_manager.append_commenter_message(
             'Asking PlanReviewerGPT for feedback on the analysis plan...', tag='start_reviewing_analysis_plan')
 
-        enhanced_plan = PlanReviewDialogDualConverserGPT(
+        enhanced_plan_response = PlanReviewDialogDualConverserGPT(
             conversation_name=self.conversation.conversation_name,
             other_conversation_name='PlanReviewer',
             max_rounds=MAX_PLAN_REVIEW_ROUNDS,
         ).initialize_and_run_dialog()
 
-        # by giving the same tag. we trim the conversation back, as if the improved plan was the original plan:
-        self.conversation_manager.append_provided_assistant_message(
-            content=enhanced_plan, tag='analysis_plan',
-            comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
-        self.scientific_products.analysis_plan = self._extract_analysis_plan()
+        enhanced_plan = extract_analysis_plan_from_response(enhanced_plan_response)
 
-    def _extract_analysis_plan(self) -> str:
-        analysis_plan_response = self.conversation_manager.conversation.get_message_content_by_tag(tag='analysis_plan')
-        return extract_analysis_plan_from_response(analysis_plan_response)
+        # We rewind the conversation to the point where we asked the user to suggest an analysis plan (by giving
+        # the same tag), but we replace the original plan with the improved plan that we got from PlanReviewerGPT.
+        self.conversation_manager.append_provided_assistant_message(
+            content=dedent_triple_quote_str("""
+            Sure, here is a possible data analysis plan:
+            
+            {}            
+            """).format(enhanced_plan),
+            tag='analysis_plan',
+            comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
+        self.scientific_products.analysis_plan = enhanced_plan
 
     def request_analysis_code(self):
         code_revision = self.number_of_successful_code_revisions
@@ -190,10 +194,11 @@ class ScientificGPT(CodeWritingGPT):
         max_attempts = MAX_CODING_ATTEMPTS_PER_REVISION[code_revision]
         for attempt in range(max_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
+            revision_and_attempt = f"Revision {code_revision + 1} (attempt {attempt + 1} / {max_attempts})"
             self.conversation_manager.append_commenter_message(
-                'Transfer control to DebuggerGPT to help gpt debug the code and make it functional ...', tag=tag)
+                f'Transfer to DebuggerGPT to debug the code. {revision_and_attempt}.', tag=tag)
 
-            # we now call teh debugger that will try to run and provide feedback in multiple iterations:
+            # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 conversation_name=self.conversation.conversation_name,
@@ -203,7 +208,7 @@ class ScientificGPT(CodeWritingGPT):
             if code_and_output is None:
                 # debugging failed
                 self.conversation_manager.append_commenter_message(
-                    f'Debugging failed. Code revision {code_revision + 1} (attempt {attempt + 1} / {max_attempts}).')
+                    f'Debugging failed. {revision_and_attempt}.')
             else:
                 # debugging succeeded
                 self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
