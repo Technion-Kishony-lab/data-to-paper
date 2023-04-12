@@ -105,7 +105,7 @@ class ScientificGPT(CodeWritingGPT):
             Thank you for the description of the dataset.
             Please also specify the data analysis goal.
             """)
-        self.conversation_manager.append_provided_assistant_message(assistant_response)
+        self.conversation_manager.append_surrogate_message(assistant_response)
 
     def add_goal_description(self):
         user_prompt = dedent_triple_quote_str("""
@@ -118,7 +118,7 @@ class ScientificGPT(CodeWritingGPT):
         assistant_response = dedent_triple_quote_str("""
             Thank you for the goal description.
         """)
-        self.conversation_manager.append_provided_assistant_message(assistant_response, tag='ok_goal_description')
+        self.conversation_manager.append_surrogate_message(assistant_response, tag='ok_goal_description')
 
     def devise_analysis_plan(self):
         user_prompt = dedent_triple_quote_str("""
@@ -145,14 +145,11 @@ class ScientificGPT(CodeWritingGPT):
 
         # We rewind the conversation to the point where we asked the user to suggest an analysis plan (by giving
         # the same tag), but we replace the original plan with the improved plan that we got from PlanReviewerGPT.
-        self.conversation_manager.append_provided_assistant_message(
-            content=dedent_triple_quote_str("""
+        self.conversation_manager.append_surrogate_message(content=dedent_triple_quote_str("""
             Sure, here is a possible data analysis plan:
-            
             {}            
-            """).format(enhanced_plan),
-            tag='analysis_plan',
-            comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
+            """).format(enhanced_plan), tag='analysis_plan',
+                                                           comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
         self.scientific_products.analysis_plan = enhanced_plan
 
     def request_analysis_code(self):
@@ -289,8 +286,7 @@ class ScientificGPT(CodeWritingGPT):
             3. Describe the limitations of the analysis.
             """)
         self.conversation_manager.append_user_message(prompt)
-        self.conversation_manager.append_provided_assistant_message(
-            'ok, what should I start with?')
+        self.conversation_manager.append_surrogate_message('ok, what should I start with?')
 
         self.conversation_manager.append_user_message(
             'Please start by writing a comprehensive description of the results of the analysis.')

@@ -13,7 +13,14 @@ class Role(str, Enum):
     SYSTEM = 'system'
     USER = 'user'
     ASSISTANT = 'assistant'
+    SURROGATE = 'surrogate'
     COMMENTER = 'commenter'
+
+    def is_assistant_or_surrogate(self):
+        return self in [Role.ASSISTANT, Role.SURROGATE]
+
+    def is_not_commenter(self):
+        return self is not Role.COMMENTER
 
 
 class ResponseStyle(NamedTuple):
@@ -26,6 +33,7 @@ ROLE_TO_STYLE = {
     Role.SYSTEM: ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-'),
     Role.USER: ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-'),
     Role.ASSISTANT: ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '='),
+    Role.SURROGATE: ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '='),
     Role.COMMENTER: ResponseStyle(colorama.Fore.BLUE, colorama.Fore.LIGHTBLUE_EX, ' '),
 }
 
@@ -36,7 +44,7 @@ class Message(NamedTuple):
     tag: str = ''
 
     def to_chatgpt_dict(self):
-        return {'role': self.role, 'content': self.content}
+        return {'role': Role.ASSISTANT if self.role.is_assistant_or_surrogate() else self.role, 'content': self.content}
 
     def pretty_repr(self, number: Optional[int] = None, conversation_name: str = '', is_color: bool = True) -> str:
         """

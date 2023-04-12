@@ -53,7 +53,7 @@ class PlanReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         Otherwise, please provide a constructive bullet-point feedback.
         """))
 
-        self.other_conversation_manager.append_provided_assistant_message(self._format_prompt("""
+        self.other_conversation_manager.append_surrogate_message(self._format_prompt("""
         Please specify your current research plan and I will review it. 
         If the plan is satisfactory, I will reply with "{termination_phrase}". 
         Otherwise, if the plan needs improvements. I will provide a constructive feedback 
