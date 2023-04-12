@@ -24,8 +24,8 @@ class CodeRunner:
     """
 
     response: str
-    script_file: str
-    output_file: Optional[str] = None
+    output_file: Optional[str]
+    script_file: Optional[str] = None
 
     def extract_code(self):
         num_block_edges = self.response.count('```')

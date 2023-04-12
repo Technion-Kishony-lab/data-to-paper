@@ -8,7 +8,7 @@ import pytest
 from tests.utils import record_or_replay_openai
 from .queries import data_description, goal_description
 
-from scientistgpt import ScientificGPT, ScientistGPT_EXECUTION_PLAN
+from scientistgpt import ScientificGPT
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 """
@@ -35,9 +35,7 @@ def test_icd_analysis():
     # we run in the data folder, so that chatgpt finds our files:
     os.chdir(absolute_data_path)
 
-    runner = ScientificGPT(execution_plan=ScientistGPT_EXECUTION_PLAN,
-                           data_description=data_description,
-                           goal_description=goal_description)
+    runner = ScientificGPT(data_description=data_description, goal_description=goal_description)
 
     runner.run_all()
 
