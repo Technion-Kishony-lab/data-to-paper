@@ -4,7 +4,7 @@ import glob
 from pathlib import Path
 from queries import data_description, goal_description
 
-from scientistgpt import ScientificGPT
+from scientistgpt import ScientistGPT
 from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from tests.utils import record_or_replay_openai
@@ -32,10 +32,10 @@ os.makedirs(absolute_output_path)
 
 
 """
-Run ScientificGPT
+Run ScientistGPT
 """
 
-runner = ScientificGPT(data_description=data_description, goal_description=goal_description)
+runner = ScientistGPT(data_description=data_description, goal_description=goal_description)
 
 
 @record_or_replay_openai
@@ -55,11 +55,11 @@ Save results
 save_actions_to_file(absolute_output_path / ACTIONS_FILENAME)
 
 # Move all gpt analysis result files to output folder:
-for file in glob.glob(str(absolute_data_path / (ScientificGPT.gpt_script_filename + '*.txt'))):
+for file in glob.glob(str(absolute_data_path / (ScientistGPT.gpt_script_filename + '*.txt'))):
     shutil.move(file, absolute_output_path)
 
 # Move all gpt analysis scripts to output folder:
-for file in glob.glob(str(Path(module_dir) / (ScientificGPT.gpt_script_filename + '*.py'))):
+for file in glob.glob(str(Path(module_dir) / (ScientistGPT.gpt_script_filename + '*.py'))):
     shutil.move(file, absolute_output_path)
 
 # Move all gpt generated plots to output folder:
