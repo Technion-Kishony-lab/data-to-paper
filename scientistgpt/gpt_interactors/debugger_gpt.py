@@ -29,9 +29,14 @@ class DebuggerGPT(CodeWritingGPT):
 
     agent: str = 'DEBUGGER'
     max_debug_iterations: int = 5
+    debug_iteration = 0
 
-    def _run_code_from_response(self, response: str, debug_iteration: int) -> CodeAndOutput:
-        script_file = f'{self.gpt_script_filename}_{debug_iteration}'
+    @property
+    def iteration_str(self):
+        return f'Iteration {self.debug_iteration} / {self.max_debug_iterations}'
+
+    def _run_code_from_response(self, response: str) -> CodeAndOutput:
+        script_file = f'{self.gpt_script_filename}_{self.debug_iteration}'
         result = CodeRunner(response=response,
                             output_file=self.output_filename,
                             script_file=script_file,
@@ -48,7 +53,7 @@ class DebuggerGPT(CodeWritingGPT):
             ```
             Please rewrite the code using only these packages: {}. 
             """).format(error_message, ', '.join(SUPPORTED_PACKAGES)),
-            comment='ImportError detected in gpt code. Notifying chatgpt...')
+            comment=f'ImportError detected in gpt code. {self.debug_iteration}')
 
     def _specify_file_not_found(self, error_message: str):
         self.conversation_manager.append_user_message(
@@ -60,7 +65,7 @@ class DebuggerGPT(CodeWritingGPT):
             Please note that we only have the files that I noted in the data description above. 
             All of these files are in the same directory as the code. 
             """).format(error_message),
-            comment='FileNotFound detected in gpt code. Notifying chatgpt...')
+            comment=f'FileNotFound detected in gpt code. {self.debug_iteration}')
 
     def _specify_error_message(self, error_message: str):
         self.conversation_manager.append_user_message(
@@ -71,7 +76,7 @@ class DebuggerGPT(CodeWritingGPT):
             ```
             Please rewrite the complete code again with this error corrected. 
             """).format(error_message),
-            comment='Runtime exception in GPT code. Notifying chatgpt...')
+            comment=f'Runtime exception in GPT code. {self.debug_iteration}')
 
     def _specify_missing_output(self):
         self.conversation_manager.append_user_message(
@@ -79,7 +84,7 @@ class DebuggerGPT(CodeWritingGPT):
             I ran the code, but it didn't generate the desired output file ({}).
             Please rewrite the complete code again with this error corrected. 
             """).format(self.output_filename),
-            comment='GPT code completed successfully, but output file not created. Notifying chatgpt...')
+            comment=f'Code completed, but no output file created. {self.debug_iteration}')
 
     def _specify_timeout(self):
         self.conversation_manager.append_user_message(
@@ -87,22 +92,52 @@ class DebuggerGPT(CodeWritingGPT):
             I ran the code, but it just ran forever...
             Please fix and rewrite the complete code again so that it doesn't get stuck. 
             """),
-            comment='GPT code has timed out. Notifying chatgpt...')
+            comment=f'GPT code has timed out. {self.debug_iteration}')
 
-    def _get_and_run_code(self, debug_iteration: int) -> Optional[CodeAndOutput]:
+    def _respond_to_missing_or_incomplete_code(self, number_of_code_edges: int):
+        """
+        We notify missing or incomplete code to chatgpt.
+        If the conversation already has this notification, we regenerate gpt response instead.
+        """
+        if number_of_code_edges == 0:
+            response = dedent_triple_quote_str("""
+            You did not send any code. 
+            Please try again, make sure your code is inside a triple-quoted code block (```).
+            """)
+            tag = 'no_code'
+        elif number_of_code_edges % 2 == 1:
+            response = dedent_triple_quote_str("""
+            Your code is incomplete. Please try again with a shorter code.
+            """)
+            tag = 'incomplete_code'
+        else:
+            response = dedent_triple_quote_str("""
+            Please send your code in a single code block.
+            """)
+            tag = 'multiple_code_blocks'
+        if self.conversation.get_message_content_by_tag(tag) is None:
+            self.conversation_manager.append_user_message(
+                content=response,
+                tag=tag,
+                comment=f'Failed extracting code from gpt response. Notifying. {self.iteration_str}'
+            )
+        else:
+            # tag already exists, so we delete the last message to regenerate
+            self.conversation_manager.delete_messages(
+                message_designation=-1,  # last message
+                comment=f'Failed extracting code from gpt response. Regenerating. {self.iteration_str}'
+            )
+
+    def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
-
         response = self.conversation_manager.get_and_append_assistant_message()
         try:
-            code_and_output = self._run_code_from_response(response, debug_iteration=debug_iteration)
-        except FailedExtractingCode:
-            self.conversation_manager.delete_messages(
-                message_designation=-1,  # last message
-                comment='Failed extracting code from gpt response. Regenerating...'
-            )
+            code_and_output = self._run_code_from_response(response)
+        except FailedExtractingCode as e:
+            self._respond_to_missing_or_incomplete_code(e.number_of_code_edges)
         except FailedRunningCode as e:
             try:
                 raise e.exception
@@ -140,8 +175,8 @@ class DebuggerGPT(CodeWritingGPT):
         self.conversation_manager.append_commenter_message(
             "Starting a debugging process.")
 
-        for debug_iteration in range(self.max_debug_iterations):
-            code_and_output = self._get_and_run_code(debug_iteration)
+        for self.debug_iteration in range(1, self.max_debug_iterations + 1):
+            code_and_output = self._get_and_run_code()
             if code_and_output is not None:
                 return code_and_output
         return None

@@ -34,7 +34,7 @@ class CodeRunner:
                 matches = re.findall(regexp, self.response, re.DOTALL)
                 if len(matches) == 1:
                     return matches[0].strip()
-        raise FailedExtractingCode(num_block_edges // 2)
+        raise FailedExtractingCode(num_block_edges)
 
     def read_output_file(self) -> Optional[str]:
         """
