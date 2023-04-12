@@ -54,7 +54,7 @@ class FailedStepException(ScientistGPTException):
 
 
 @dataclass
-class ScientificGPT(CodeWritingGPT):
+class ScientistGPT(CodeWritingGPT):
     """
     Acts as a mentor to a scientist-gpt.
     Create a conversation with chatgpt guiding it through a structured scientific research and analysis of data.
@@ -66,7 +66,7 @@ class ScientificGPT(CodeWritingGPT):
 
     goal_description: a description of the goal of the analysis.
 
-    ScientificGPT will interact with chatgpt to:
+    ScientistGPT will interact with chatgpt to:
     1. Create analysis plan.
        Send the scientist-gpt to a PlanReviewerGPT to review and enhance the plan.
     2. Implement the plan. Ask the scientist-gpt to write a code to implement the plan.
@@ -84,7 +84,7 @@ class ScientificGPT(CodeWritingGPT):
         c. Interpret the results and write a scientific paper about the findings.
         """)
 
-    conversation_name: str = 'ScientificGPT'
+    conversation_name: str = 'ScientistGPT'
 
     data_description: Optional[str] = None,
     goal_description: Optional[str] = None,
@@ -193,7 +193,7 @@ class ScientificGPT(CodeWritingGPT):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {code_revision + 1} (attempt {attempt + 1} / {max_attempts})"
             self.conversation_manager.append_commenter_message(
-                f'Transfer to DebuggerGPT to debug the code. {revision_and_attempt}.', tag=tag)
+                f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(

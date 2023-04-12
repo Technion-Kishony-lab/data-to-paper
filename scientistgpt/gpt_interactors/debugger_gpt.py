@@ -101,7 +101,7 @@ class DebuggerGPT(CodeWritingGPT):
         except FailedExtractingCode:
             self.conversation_manager.delete_messages(
                 message_designation=-1,  # last message
-                comment='Failed extracting code from gpt response. Delete response and regenerate...'
+                comment='Failed extracting code from gpt response. Regenerating...'
             )
         except FailedRunningCode as e:
             try:
