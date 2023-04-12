@@ -92,9 +92,17 @@ class AppendMessage(Action):
         # Note: the conversation len assumes this method is called right after the message is appended.
         # Note: we are adding the text from the super method because the action and the message
         #       contain redundant information.
-        return self.message.pretty_repr(number=len(self.conversation),
-                                        conversation_name=self.conversation_name,
-                                        is_color=is_color)
+        if self.comment:
+            s = self.comment
+            if is_color:
+                s = red_text(s)
+            s += '\n'
+        else:
+            s = ''
+        s += self.message.pretty_repr(number=len(self.conversation),
+                                      conversation_name=self.conversation_name,
+                                      is_color=is_color)
+        return s
 
     def default_comment(self) -> str:
         return f'{self.message.role}'
