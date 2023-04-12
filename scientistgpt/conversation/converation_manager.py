@@ -80,11 +80,11 @@ class ConversationManager:
         """
         self.append_message(Role.COMMENTER, content, tag, comment)
 
-    def append_provided_assistant_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.append_message(Role.ASSISTANT, content, tag, comment)
+        self.append_message(Role.SURROGATE, content, tag, comment)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None) -> str:
@@ -179,7 +179,7 @@ class ConversationManager:
         self._append_and_apply_action(
             ReplaceLastResponse(
                 conversation_name=self.conversation_name, agent=self.agent, comment=comment,
-                message=Message(role=Role.ASSISTANT, content=content, tag=tag)))
+                message=Message(role=Role.SURROGATE, content=content, tag=tag)))
 
     def copy_messages_from_another_conversations(self, source_conversation: Conversation,
                                                  message_designation: GeneralMessageDesignation,
