@@ -1,17 +1,13 @@
 import os
 from dataclasses import dataclass
+from typing import Optional
 
-from scientistgpt.run_gpt_code.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES
-from scientistgpt.utils.text_utils import dedent_triple_quote_str
-from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
-    FailedDebuggingException
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
-
-MAX_DEBUGGING_ATTEMPTS = 3
-MAX_ITERATIONS_PER_ATTEMPT = 2
-MAX_EXEC_TIME = 900
 
 
 @dataclass
@@ -32,11 +28,10 @@ class DebuggerGPT(CodeWritingGPT):
     """
 
     agent: str = 'DEBUGGER'
-    _debug_iteration: int = 0
+    max_debug_iterations: int = 5
 
-    def _run_code_from_response(self, response: str):
-        self._debug_iteration += 1
-        script_file = f'{self.gpt_script_filename}_{self._debug_iteration}'
+    def _run_code_from_response(self, response: str, debug_iteration: int) -> CodeAndOutput:
+        script_file = f'{self.gpt_script_filename}_{debug_iteration}'
         result = CodeRunner(response=response,
                             output_file=self.output_filename,
                             script_file=script_file,
@@ -94,53 +89,59 @@ class DebuggerGPT(CodeWritingGPT):
             """),
             comment='GPT code has timed out. Notifying chatgpt...')
 
-    def debug_and_run_code(self):
+    def _get_and_run_code(self, debug_iteration: int) -> Optional[CodeAndOutput]:
         """
-        Interact with chatgpt until getting a functional code that can run locally and produce desired output file.
-        :return: content of the file produced by the gpt code.
+        Get a code from chatgpt, run it and return code and result.
+        If the code fails, notify chatgpt and return None.
         """
 
-        start_tag = self.conversation[-1].tag
-        assert start_tag is not None
-        for debug_attempt in range(MAX_DEBUGGING_ATTEMPTS):
-            self.conversation_manager.reset_back_to_tag(start_tag)
-            if debug_attempt > 0:
-                self.conversation_manager.append_commenter_message(
-                    f'Debugging failed. Restarting debugging from scratch '
-                    f'({debug_attempt + 1}/{MAX_DEBUGGING_ATTEMPTS}).')
-            for iteration_num in range(MAX_ITERATIONS_PER_ATTEMPT):
-                response = self.conversation_manager.get_and_append_assistant_message()
-                try:
-                    result = self._run_code_from_response(response)
-                except FailedExtractingCode:
-                    self.conversation_manager.delete_messages(
-                        message_designation=-1,  # last message
-                        comment='Failed extracting code from gpt response. Delete response and retry...'
-                    )
-                except FailedRunningCode as e:
-                    try:
-                        raise e.exception
-                    except ImportError:
-                        # chatgpt tried using a package we do not support
-                        self._specify_allowed_packages(str(e.exception))
-                    except TimeoutError:
-                        # code took too long to run
-                        self._specify_timeout()
-                    except FileNotFoundError:
-                        # the code tried to load file that we do not have.
-                        self._specify_file_not_found(str(e.exception))
-                    except Exception:
-                        # the code failed on other errors.
-                        # indicate error message to chatgpt.
-                        self._specify_error_message(e.get_traceback_message())
-                except FailedLoadingOutput:
-                    # Code ran, but the output file was not created.
-                    self._specify_missing_output()
-                except Exception:
-                    raise
-                else:
-                    # The code ran just fine.
-                    self.conversation_manager.append_commenter_message(
-                        "GPT code completed successfully. Returning results to MentorGPT.")
-                    return result
-        raise FailedDebuggingException()
+        response = self.conversation_manager.get_and_append_assistant_message()
+        try:
+            code_and_output = self._run_code_from_response(response, debug_iteration=debug_iteration)
+        except FailedExtractingCode:
+            self.conversation_manager.delete_messages(
+                message_designation=-1,  # last message
+                comment='Failed extracting code from gpt response. Delete response and regenerate...'
+            )
+        except FailedRunningCode as e:
+            try:
+                raise e.exception
+            except ImportError:
+                # chatgpt tried using a package we do not support
+                self._specify_allowed_packages(str(e.exception))
+            except TimeoutError:
+                # code took too long to run
+                self._specify_timeout()
+            except FileNotFoundError:
+                # the code tried to load file that we do not have
+                self._specify_file_not_found(str(e.exception))
+            except Exception:
+                # the code failed on other errors
+                # we will indicate to chatgpt the error message that we got
+                self._specify_error_message(e.get_traceback_message())
+        except FailedLoadingOutput:
+            # Code ran, but the output file was not created.
+            self._specify_missing_output()
+        except Exception:
+            raise
+        else:
+            # The code ran successfully
+            self.conversation_manager.append_commenter_message(
+                "GPT code completed successfully. Returning results to MentorGPT.")
+            return code_and_output
+        return None  # code failed
+
+    def run_debugging(self) -> Optional[CodeAndOutput]:
+        """
+        Run the debugging process.
+        If debugging did not converge to a running code within the max_debug_iterations, return None.
+        Otherwise, return the code and output.
+        """
+        self.conversation_manager.append_commenter_message(
+            "Starting a debugging process.")
+
+        for debug_iteration in range(self.max_debug_iterations):
+            code_and_output = self._get_and_run_code(debug_iteration)
+            if code_and_output is not None:
+                return code_and_output
+        return None

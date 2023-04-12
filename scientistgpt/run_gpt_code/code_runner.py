@@ -1,6 +1,6 @@
 import re
 import os
-from typing import Optional
+from typing import Optional, NamedTuple
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_from_file
 
@@ -8,6 +8,9 @@ from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have observed in chatgpt responses:
 CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
+
+
+CodeAndOutput = NamedTuple('CodeAndOutput', [('code', str), ('output', str)])
 
 
 class CodeRunner:
@@ -35,7 +38,10 @@ class CodeRunner:
                     return matches[0].strip()
         raise FailedExtractingCode(num_block_edges // 2)
 
-    def read_output_file(self):
+    def read_output_file(self) -> Optional[str]:
+        """
+        Return the content of the output file created by the run if successful.
+        """
         if self.output_file is None:
             return None
         try:
@@ -50,8 +56,11 @@ class CodeRunner:
         except FileNotFoundError:
             pass
 
-    def run_code(self):
+    def run_code(self) -> CodeAndOutput:
+        """
+        Run code from GPT response, and return the output and the code.
+        """
         code = self.extract_code()
         self.delete_output_file()
         run_code_from_file(code, self.script_file)
-        return self.read_output_file()
+        return CodeAndOutput(code, self.read_output_file())
