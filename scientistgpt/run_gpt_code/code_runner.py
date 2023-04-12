@@ -1,5 +1,6 @@
 import re
 import os
+from dataclasses import dataclass
 from typing import Optional, NamedTuple
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_from_file
@@ -13,6 +14,7 @@ CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n
 CodeAndOutput = NamedTuple('CodeAndOutput', [('code', str), ('output', str)])
 
 
+@dataclass
 class CodeRunner:
     """
     CodeRunner facilitates extracting and running Python code from chatGPT response::
@@ -21,13 +23,9 @@ class CodeRunner:
     3. Read the output file created by the run if successful.
     """
 
-    def __init__(self,
-                 response: str,
-                 output_file: Optional[str],
-                 script_file: Optional[str] = None):
-        self.response = response
-        self.output_file = output_file
-        self.script_file = script_file
+    response: str
+    script_file: str
+    output_file: Optional[str] = None
 
     def extract_code(self):
         num_block_edges = self.response.count('```')
