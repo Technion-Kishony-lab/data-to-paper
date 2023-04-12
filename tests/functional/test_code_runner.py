@@ -59,7 +59,7 @@ def test_runner_correctly_extract_code_to_run(valid_runner):
 
 def test_runner_correctly_run_extracted_code(valid_runner, tmpdir):
     os.chdir(tmpdir)
-    assert valid_runner.run_code() == 'hello'
+    assert valid_runner.run_code().output == 'hello'
 
 
 def test_runner_raises_when_output_not_found(invalid_file_name_runner, tmpdir):

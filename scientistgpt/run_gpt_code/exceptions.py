@@ -5,11 +5,6 @@ from typing import List
 from scientistgpt.exceptions import ScientistGPTException
 
 
-class FailedDebuggingException(ScientistGPTException):
-    def __str__(self):
-        return f"Failed debugging chatgpt code."
-
-
 class RunCodeException(ScientistGPTException, metaclass=ABCMeta):
     """
     Base class for all exceptions related to running gpt provided code.
