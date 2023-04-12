@@ -54,9 +54,12 @@ class TextExtractorGPT(ConverserGPT):
         """
         Extract the text between triple-quoted strings.
         """
-        if text.count('"""') != 2:
-            raise ValueError(f'Expected exactly two triple-quoted strings.')
-        return text.split('"""')[1]
+        for quote in ['"""', "'''", "```"]:
+            if text.count(quote) == 2:
+                return text.split(quote)[1]
+            if text.count(quote) != 0:
+                raise ValueError(f'Expected exactly two triple-quoted strings.')
+        raise ValueError(f'Did not find any triple-quoted strings.')
 
 
 def extract_analysis_plan_from_response(response: str, max_number_of_attempts: int = 3,
