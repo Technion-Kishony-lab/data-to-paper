@@ -133,7 +133,7 @@ class ScientificGPT(CodeWritingGPT):
         if MAX_PLAN_REVIEW_ROUNDS == 0:
             return
         self.conversation_manager.append_commenter_message(
-            'Asking PlanReviewerGPT for feedback on the analysis plan...', tag='start_reviewing_analysis_plan')
+            'Asking PlanReviewerGPT for feedback on the plan...', tag='start_reviewing_analysis_plan')
 
         enhanced_plan_response = PlanReviewDialogDualConverserGPT(
             conversation_name=self.conversation.conversation_name,
