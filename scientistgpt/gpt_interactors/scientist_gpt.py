@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Any
+from typing import Optional, List
 
 from scientistgpt.utils import dedent_triple_quote_str, TaggedState
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -29,7 +29,7 @@ MAX_REGENERATING_BINARY_RESPONSES = 3
 
 
 @dataclass
-class ScientificProducts(TaggedState):
+class ScientificProducts:
     """
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated and refined by the ScientistGPT.
@@ -118,15 +118,15 @@ class ScientificGPT(CodeWritingGPT):
         assistant_response = dedent_triple_quote_str("""
             Thank you for the goal description.
         """)
-        self.conversation_manager.append_provided_assistant_message(assistant_response)
+        self.conversation_manager.append_provided_assistant_message(assistant_response, tag='ok_goal_description')
 
     def devise_analysis_plan(self):
-        self._save_state_by_tag_or_reset_back_if_tag_exists(tag='start_analysis_plan', comment='Starting analysis plan')
-
         user_prompt = dedent_triple_quote_str("""
             Suggest a data analysis plan to achieve the specified goal.
             """)
-        self.conversation_manager.append_user_message(user_prompt)
+        self.scientific_products.analysis_plan = None
+        self.scientific_products.analysis_codes_and_outputs = []
+        self.conversation_manager.append_user_message(user_prompt, tag='request_analysis_plan')
         self.conversation_manager.get_and_append_assistant_message(tag='analysis_plan')
 
     def review_analysis_plan(self):
@@ -139,7 +139,7 @@ class ScientificGPT(CodeWritingGPT):
             conversation_name=self.conversation.conversation_name,
             other_conversation_name='PlanReviewer',
             max_rounds=MAX_PLAN_REVIEW_ROUNDS,
-        ).run_dialog()
+        ).initialize_and_run_dialog()
 
         # by giving the same tag. we trim the conversation back, as if the improved plan was the original plan:
         self.conversation_manager.append_provided_assistant_message(
@@ -155,7 +155,7 @@ class ScientificGPT(CodeWritingGPT):
         code_revision = self.number_of_successful_code_revisions
         if code_revision == 0:
             user_prompt = dedent_triple_quote_str("""
-                Write a complete Python code to perform the analysis you suggested.
+                Write a complete short Python code to perform the analysis you suggested.
                 Please only use the following packages for your code: {}.
                 The output of your code should be a text file named `{}`.
                 You can also produce one or more matplotlib figure and save them as image files (".png").
@@ -185,10 +185,6 @@ class ScientificGPT(CodeWritingGPT):
         Attempt to create and debug the analysis code of the current revision.
         Return True if the code was successfully created and debugged, False otherwise.
         """
-        self._save_state_by_tag_or_reset_back_if_tag_exists(
-            tag=f'code_revision_{self.number_of_successful_code_revisions}',
-            comment=f'Starting code revision {self.number_of_successful_code_revisions + 1}')
-
         code_revision = self.number_of_successful_code_revisions
         tag = f'analysis_code_revision{code_revision}'
         max_attempts = MAX_CODING_ATTEMPTS_PER_REVISION[code_revision]
@@ -241,7 +237,7 @@ class ScientificGPT(CodeWritingGPT):
             tag=f'output_file_content_{self.number_of_successful_code_revisions}')
 
         response = self.conversation_manager.get_and_append_assistant_message()
-        for _ in range(MAX_REGENERATING_BINARY_RESPONSES):
+        for num_tries in range(MAX_REGENERATING_BINARY_RESPONSES):
             if '1' in response and '2' not in response and len(response) < 5:
                 self.conversation_manager.append_commenter_message(
                     'ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
@@ -260,8 +256,9 @@ class ScientificGPT(CodeWritingGPT):
                 self.conversation.append_user_message(user_prompt)
                 return 2
             else:
-                self.conversation_manager.regenerate_previous_response(
-                    comment='ScientistGPT did not choose a valid option. Regenerating response.')
+                if num_tries < MAX_REGENERATING_BINARY_RESPONSES - 1:
+                    response = self.conversation_manager.regenerate_previous_response(
+                        comment='ScientistGPT did not choose a valid option. Regenerating response.')
         return None
 
     def get_gpt_response_to_analysis(self):
@@ -302,10 +299,6 @@ class ScientificGPT(CodeWritingGPT):
             'Very good. Now, please describe any limitations of the analysis and results.')
         self.scientific_products.limitations = self.conversation_manager.get_and_append_assistant_message()
 
-    def _save_state_by_tag_or_reset_back_if_tag_exists(self, tag: str, comment: str = 'Milestone tag'):
-        self.conversation_manager.append_commenter_message(comment=comment, tag=tag)
-        self.scientific_products.create_or_reset_to_tag(tag)
-
     def run_cycles_of_code_and_results(self) -> bool:
         total_code_attempts_for_current_plan = 0
         while True:
@@ -313,45 +306,36 @@ class ScientificGPT(CodeWritingGPT):
             if total_code_attempts_for_current_plan > MAX_CODE_ATTEMPTS_PER_PLAN:
                 return False
             self.request_analysis_code()
-            is_code_ok = self.create_and_debug_analysis_code_for_current_revision()
-            if not is_code_ok:
+            if self.create_and_debug_analysis_code_for_current_revision():
+                # code ran successfully
+                if self.number_of_successful_code_revisions == MAX_CODE_REVISIONS:
+                    return True
+                answer = self.ask_chatgpt_whether_further_code_revisions_are_needed()
+                if answer == '1':  # chatgpt is satisfied with the analysis
+                    return True
+                elif answer == '2':  # chatgpt wants to write another code revision
+                    continue
+                return False
+            else:
+                # code failed
                 if self.number_of_successful_code_revisions == 0:
                     # if we can't even get the first code revision to work, we need a new analysis plan
                     return False
                 else:
                     # if we can't get a secondary code revision, we try a new attempt of the first code revision
+                    # of the current plan
                     self.scientific_products.analysis_codes_and_outputs.clear()
-                continue
-            # code ran successfully:
-            if self.number_of_successful_code_revisions == MAX_CODE_REVISIONS:
-                return True
-            answer = self.ask_chatgpt_whether_further_code_revisions_are_needed()
-            if answer == '1':  # chatgpt is satisfied with the analysis
-                return True
-            elif answer == '2':  # chatgpt wants to write another code revision
-                pass
-            else:
-                self.scientific_products.analysis_codes_and_outputs.clear()
+                    continue
 
     def run_all(self) -> bool:
-        analysis_plan_round = 0
-        step = 1
-        while True:
-            if step == 1:  # describe the data and the goal
-                self.initialize_conversation_if_needed()
-                self.add_data_description()
-                self.add_goal_description()
-            elif step == 2:  # devise and review analysis plan
-                analysis_plan_round += 1
-                if analysis_plan_round > MAX_ANALYSIS_PLAN_ROUNDS:
-                    return False
-                self.devise_analysis_plan()
-                self.review_analysis_plan()
-            elif step == 3:  # write and debug the analysis code
-                if not self.run_cycles_of_code_and_results():
-                    step = 2
-                    continue
-            elif step == 4:
-                self.get_gpt_response_to_analysis()
-                return True
-            step += 1
+        self.initialize_conversation_if_needed()
+        self.add_data_description()
+        self.add_goal_description()
+        for analysis_plan_round in range(MAX_ANALYSIS_PLAN_ROUNDS):
+            self.devise_analysis_plan()
+            self.review_analysis_plan()
+            if self.run_cycles_of_code_and_results():
+                break
+            if analysis_plan_round == MAX_ANALYSIS_PLAN_ROUNDS - 1:
+                return False
+        self.get_gpt_response_to_analysis()

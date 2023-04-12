@@ -13,5 +13,4 @@ def test_role_reversal_dialog_converser():
         goal_verb='write',
     )
     print()
-    converser.initialize_dialog()
-    converser.run_dialog()
+    converser.initialize_and_run_dialog()
