@@ -8,7 +8,7 @@ import pytest
 from tests.utils import record_or_replay_openai
 from .queries import data_description, goal_description
 
-from scientistgpt import ScientificMentorGPT, ScientistGPT_EXECUTION_PLAN
+from scientistgpt import ScientificGPT, ScientistGPT_EXECUTION_PLAN
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 """
@@ -35,9 +35,9 @@ def test_icd_analysis():
     # we run in the data folder, so that chatgpt finds our files:
     os.chdir(absolute_data_path)
 
-    runner = ScientificMentorGPT(execution_plan=ScientistGPT_EXECUTION_PLAN,
-                                 data_description=data_description,
-                                 goal_description=goal_description)
+    runner = ScientificGPT(execution_plan=ScientistGPT_EXECUTION_PLAN,
+                           data_description=data_description,
+                           goal_description=goal_description)
 
     runner.run_all()
 
@@ -50,11 +50,11 @@ def test_icd_analysis():
     runner.conversation.save(absolute_output_path / MESSAGES_FILENAME)
 
     # Move all gpt analysis result files to output folder:
-    for file in glob.glob(str(absolute_data_path / (ScientificMentorGPT.gpt_script_filename + '*.txt'))):
+    for file in glob.glob(str(absolute_data_path / (ScientificGPT.gpt_script_filename + '*.txt'))):
         shutil.move(file, absolute_output_path)
 
     # Move all gpt analysis scripts to output folder:
-    for file in glob.glob(str(Path(module_dir) / (ScientificMentorGPT.gpt_script_filename + '*.py'))):
+    for file in glob.glob(str(Path(module_dir) / (ScientificGPT.gpt_script_filename + '*.py'))):
         shutil.move(file, absolute_output_path)
 
     # Move all gpt generated plots to output folder:
