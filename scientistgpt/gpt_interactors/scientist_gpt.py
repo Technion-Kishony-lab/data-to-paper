@@ -21,7 +21,7 @@ MAX_ANALYSIS_PLAN_ROUNDS = 2
 MAX_PLAN_REVIEW_ROUNDS = 2
 MAX_CODE_ATTEMPTS_PER_PLAN = 7
 MAX_CODE_REVISIONS = 3
-MAX_DEBUG_ITERATIONS_PER_ATTEMPT = 5
+MAX_DEBUG_ITERATIONS_PER_ATTEMPT = 12
 MAX_CODING_ATTEMPTS_PER_REVISION = [3, 1, 1]
 assert len(MAX_CODING_ATTEMPTS_PER_REVISION) == MAX_CODE_REVISIONS
 
@@ -77,7 +77,7 @@ class ScientistGPT(CodeWritingGPT):
 
     # override the default system_prompt
     system_prompt: str = dedent_triple_quote_str("""
-        You are a scientist. I will give you a dataset and a goal. 
+        You are a scientist. I will give you a dataset and a research goal. 
         I will then guide you to perform research in the following steps:
         a. Design a data analysis plan.
         b. Write a data analysis code to perform the analysis plan.
@@ -93,10 +93,8 @@ class ScientistGPT(CodeWritingGPT):
 
     def add_data_description(self):
         user_prompt = dedent_triple_quote_str("""
-            DESCRIPTION OF OUR DATASET:
-            
+            DESCRIPTION OF OUR DATASET.
             We have the following data files:
-
             {}
             """).format(self.data_description)
         self.conversation_manager.append_user_message(user_prompt, tag='data_description')
@@ -109,8 +107,7 @@ class ScientistGPT(CodeWritingGPT):
 
     def add_goal_description(self):
         user_prompt = dedent_triple_quote_str("""
-            DESCRIPTION OF OUR RESEARCH GOAL:
-            
+            DESCRIPTION OF OUR RESEARCH GOAL.
             {}
             """).format(self.goal_description)
         self.conversation_manager.append_user_message(user_prompt, tag='goal_description')
@@ -145,11 +142,12 @@ class ScientistGPT(CodeWritingGPT):
 
         # We rewind the conversation to the point where we asked the user to suggest an analysis plan (by giving
         # the same tag), but we replace the original plan with the improved plan that we got from PlanReviewerGPT.
-        self.conversation_manager.append_surrogate_message(content=dedent_triple_quote_str("""
+        self.conversation_manager.append_surrogate_message(
+            content=dedent_triple_quote_str("""
             Sure, here is a possible data analysis plan:
             {}            
             """).format(enhanced_plan), tag='analysis_plan',
-                                                           comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
+            comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
         self.scientific_products.analysis_plan = enhanced_plan
 
     def request_analysis_code(self):
@@ -191,7 +189,8 @@ class ScientistGPT(CodeWritingGPT):
         max_attempts = MAX_CODING_ATTEMPTS_PER_REVISION[code_revision]
         for attempt in range(max_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
-            revision_and_attempt = f"Revision {code_revision + 1} (attempt {attempt + 1} / {max_attempts})"
+            revision_and_attempt = f"Revision {code_revision + 1} / {MAX_CODE_REVISIONS} " \
+                                   f"(attempt {attempt + 1} / {max_attempts})"
             self.conversation_manager.append_commenter_message(
                 f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
