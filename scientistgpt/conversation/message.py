@@ -80,7 +80,8 @@ class Message(NamedTuple):
             + sep * (TEXT_WIDTH - len(role_conversation_tag) - 9 - 1) + '\n'
 
         # content:
-        s += format_text_with_code_blocks(text=content, text_color=text_color, code_color=code_color, width=TEXT_WIDTH)
+        s += format_text_with_code_blocks(text=content, text_color=text_color, code_color=code_color, width=TEXT_WIDTH,
+                                          is_python=role.is_assistant_or_surrogate())
 
         # footer:
         s += text_color + sep * TEXT_WIDTH + reset_color

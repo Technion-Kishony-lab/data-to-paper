@@ -2,6 +2,19 @@ import textwrap
 import re
 import colorama
 
+from pygments.lexers import PythonLexer
+from pygments.formatters import Terminal256Formatter
+from pygments.styles import get_style_by_name
+from pygments import highlight
+
+
+style = get_style_by_name("monokai")
+python_formatter = Terminal256Formatter(style=style)
+
+
+def highlight_python_code(code_str: str):
+    return highlight(code_str, PythonLexer(), python_formatter)
+
 
 def dedent_triple_quote_str(s: str):
     """
@@ -49,21 +62,21 @@ def print_magenta(text: str, **kwargs):
     print(colored_text(text, colorama.Fore.MAGENTA), **kwargs)
 
 
-def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
-    def get_color(is_cd: bool):
-        return code_color if is_cd else text_color
+def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int,
+                                 is_python: bool = True) -> str:
 
-    text = wrap_string(text, width=width)
-    is_code = False
-    s = get_color(is_code)
-    for line in text.splitlines():
-        if '```' in line:
-            is_code = not is_code
-            s += get_color(is_code)
+    sections = text.split("```")
+    s = ''
+    in_text_block = True
+    for section in sections:
+        if in_text_block:
+            s += text_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL + '\n'
         else:
-            s += line + '\n'
-    if text_color or code_color:
-        s += colorama.Style.RESET_ALL
+            if is_python:
+                s += highlight(section, PythonLexer(), Terminal256Formatter())
+            else:
+                s += code_color + section + colorama.Style.RESET_ALL
+        in_text_block = not in_text_block
     return s
 
 
