@@ -4,6 +4,7 @@ import os
 from _pytest.fixtures import fixture
 
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
+from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 
 OUTPUT_FILE = "output.txt"
 
@@ -32,6 +33,13 @@ txt = 'hello'
 ```
 """
 
+code_using_print = f"""
+Here is a code that does what you want:
+```python
+print('hello')
+```
+"""
+
 
 @fixture()
 def valid_runner():
@@ -51,6 +59,11 @@ def invalid_two_codes_runner():
 @fixture()
 def invalid_no_code_runner():
     return CodeRunner(response=no_code_response, output_file='output.txt')
+
+
+@fixture()
+def invalid_code_using_print_runner():
+    return CodeRunner(response=code_using_print, output_file='output.txt')
 
 
 def test_runner_correctly_extract_code_to_run(valid_runner):
@@ -76,3 +89,15 @@ def test_runner_raises_when_no_code_is_found(invalid_no_code_runner):
 def test_runner_raises_when_multiple_codes_are_found(invalid_two_codes_runner):
     with pytest.raises(FailedExtractingCode):
         invalid_two_codes_runner.run_code()
+
+
+def test_runner_raises_when_code_use_forbidden_functions(invalid_code_using_print_runner):
+    try:
+        invalid_code_using_print_runner.run_code()
+    except FailedRunningCode as e:
+        assert isinstance(e.exception, CodeUsesForbiddenFunctions)
+        assert 'print' == e.exception.func
+    else:
+        assert False, "FailedRunningCode was not raised"
+
+
