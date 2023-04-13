@@ -113,7 +113,7 @@ class ConversationManager:
     def get_actions_for_conversation(self) -> List[Action]:
         return [action for action in APPLIED_ACTIONS if action.conversation_name == self.conversation_name]
 
-    def regenerate_previous_response(self, comment: Optional[str] = None):
+    def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
         last_action = self.get_actions_for_conversation()[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
@@ -127,6 +127,7 @@ class ConversationManager:
                                 tag=last_action.message.tag),
                 hidden_messages=last_action.hidden_messages),
         )
+        return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
