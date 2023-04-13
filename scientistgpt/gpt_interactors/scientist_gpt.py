@@ -18,7 +18,7 @@ from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
 #           debug iterations (recurrent run trials and debugging messages to fix the code, 5X per code attempt)
 
 MAX_ANALYSIS_PLAN_ROUNDS = 2
-MAX_PLAN_REVIEW_ROUNDS = 2
+MAX_PLAN_REVIEW_ROUNDS = 0
 MAX_CODE_ATTEMPTS_PER_PLAN = 7
 MAX_CODE_REVISIONS = 3
 MAX_DEBUG_ITERATIONS_PER_ATTEMPT = 12
@@ -119,7 +119,7 @@ class ScientistGPT(CodeWritingGPT):
 
     def devise_analysis_plan(self):
         user_prompt = dedent_triple_quote_str("""
-            Suggest a data analysis plan to achieve the specified goal.
+            Suggest a simple data analysis plan to achieve the specified goal.
             """)
         self.scientific_products.analysis_plan = None
         self.scientific_products.analysis_codes_and_outputs = []
@@ -189,8 +189,8 @@ class ScientistGPT(CodeWritingGPT):
         max_attempts = MAX_CODING_ATTEMPTS_PER_REVISION[code_revision]
         for attempt in range(max_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
-            revision_and_attempt = f"Revision {code_revision + 1} / {MAX_CODE_REVISIONS} " \
-                                   f"(attempt {attempt + 1} / {max_attempts})"
+            revision_and_attempt = f"Revision {code_revision + 1}/{MAX_CODE_REVISIONS} " \
+                                   f"(attempt {attempt + 1}/{max_attempts})"
             self.conversation_manager.append_commenter_message(
                 f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
@@ -246,7 +246,7 @@ class ScientistGPT(CodeWritingGPT):
             elif '2' in response and '1' not in response and len(response) < 5:
                 self.conversation_manager.append_commenter_message(
                     f'ScientistGPT declared it needs to revise the code. '
-                    f'Starting a new revision ({self.number_of_successful_code_revisions + 1} / {MAX_CODE_REVISIONS}).')
+                    f'Starting a new revision ({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
 
                 user_prompt = dedent_triple_quote_str("""
                     ok. 
