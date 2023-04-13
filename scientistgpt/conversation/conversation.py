@@ -10,13 +10,14 @@ from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 openai.api_key = OPENAI_API_KEY
 
 
-def _get_chatgpt_response(messages: List[Message]) -> str:
+def _get_chatgpt_response(messages: List[Message], **kw) -> str:
     """
     Connect with openai to get response to conversation.
     """
     response = openai.ChatCompletion.create(
         model=MODEL_ENGINE,
         messages=[message.to_chatgpt_dict() for message in messages],
+        **kw,
     )
     return response['choices'][0]['message']['content']
 
@@ -108,7 +109,7 @@ class Conversation(List[Message]):
             print(message.pretty_repr())
             print()
 
-    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None) -> Union[str, Exception]:
+    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Union[str, Exception]:
         """
         Try to get a response from openai to a specified conversation.
 
@@ -121,7 +122,7 @@ class Conversation(List[Message]):
         indices_and_messages = self.get_chosen_indices_and_messages(hidden_messages)
         messages = [message for _, message in indices_and_messages]
         try:
-            return _get_chatgpt_response(messages)
+            return _get_chatgpt_response(messages, **kwargs)
         except openai.error.InvalidRequestError as e:
             return e
         except Exception:

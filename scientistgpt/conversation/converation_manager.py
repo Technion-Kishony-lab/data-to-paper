@@ -87,7 +87,7 @@ class ConversationManager:
         self.append_message(Role.SURROGATE, content, tag, comment)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
-                                         hidden_messages: GeneralMessageDesignation = None) -> str:
+                                         hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         """
         Get and append a response from openai to a specified conversation.
 
@@ -101,7 +101,8 @@ class ConversationManager:
         # starting at message 1 (message 0 is the system message).
         while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
-                                                               hidden_messages=actual_hidden_messages)
+                                                               hidden_messages=actual_hidden_messages,
+                                                               **kwargs)
             if isinstance(content, str):
                 return content
             if len(indices_and_messages) <= 1:
@@ -130,7 +131,7 @@ class ConversationManager:
         return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
-                                            hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
+                                            hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Optional[str]:
         """
         Try to get and append a response from openai to a specified conversation.
 
@@ -139,7 +140,7 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return the exception.
         """
-        content = self.conversation.try_get_chatgpt_response(hidden_messages)
+        content = self.conversation.try_get_chatgpt_response(hidden_messages, **kwargs)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
                 conversation_name=self.conversation_name, agent=self.agent, comment=comment,
