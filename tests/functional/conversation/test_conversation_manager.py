@@ -4,7 +4,7 @@ from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import ReplaceLastResponse
 from scientistgpt.conversation.converation_manager import ConversationManager, APPLIED_ACTIONS
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
-from tests.utils import mock_openai
+from tests.utils import mock_openai, record_or_replay_openai
 
 
 @fixture()
@@ -29,6 +29,7 @@ def test_conversation_manager_adding_messages(manager):
     assert manager.conversation.get_last_response() == 'The answer is 4'
 
 
+@record_or_replay_openai()
 def test_conversation_manager_adding_messages_with_kwargs(manager):
     manager.append_user_message('Hi, I am a user.')
     manager.append_surrogate_message('Hi, this is a predefined assistant response.')
@@ -48,6 +49,7 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
 
     assert len(manager.conversation) == 5
     assert manager.conversation.get_last_response() in ['a', 'b', 'c']
+
 
 def test_conversation_manager_regenerate_response(manager):
     with mock_openai([

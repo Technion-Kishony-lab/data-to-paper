@@ -14,7 +14,7 @@ from scientistgpt.conversation.actions import BaseChatgptResponse, AppendChatgpt
 
 @contextmanager
 def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_all_responses_used=True):
-    def mock_chatgpt_response(messages: list[Message]):
+    def mock_chatgpt_response(messages: list[Message], *args, **kwargs):
         if not responses:
             if record_more_from_openai_if_needed:
                 response = original_method(messages)
