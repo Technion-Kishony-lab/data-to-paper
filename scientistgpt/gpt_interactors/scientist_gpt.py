@@ -157,7 +157,6 @@ class ScientistGPT(CodeWritingGPT):
                 Write a complete short Python code to perform the analysis you suggested.
                 Please only use the following packages for your code: {}.
                 The output of your code should be a text file named `{}`.
-                You can also produce one or more matplotlib figure and save them as image files (".png").
                 """).format(SUPPORTED_PACKAGES, self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""

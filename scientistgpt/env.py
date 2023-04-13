@@ -1,5 +1,5 @@
 # SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'seaborn', 'sklearn']
-SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib']
+SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy']
 
 OPENAI_API_KEY = "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"
 
