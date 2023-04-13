@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.utils.text_utils import print_red
 
 
 @dataclass
@@ -34,6 +36,15 @@ class ConverserGPT:
             self.conversation_manager.create_conversation()
         if len(self.conversation) == 0:
             self.conversation_manager.append_system_message(self._system_prompt)
+
+    def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True):
+        """
+        Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
+        """
+        if as_action:
+            self.conversation_manager.append_commenter_message(comment, tag=tag)
+        else:
+            print_red(comment)
 
 
 @dataclass

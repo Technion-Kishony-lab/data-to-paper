@@ -2,7 +2,7 @@ from scientistgpt.gpt_interactors.text_extractors import TextExtractorGPT, extra
 from tests.utils import record_or_replay_openai
 
 
-@record_or_replay_openai
+@record_or_replay_openai()
 def test_text_extractor():
     extracted_text = TextExtractorGPT(
         text='I love data science.\nI love machine learning.\nI start enjoying chatgpt.',
@@ -13,7 +13,7 @@ def test_text_extractor():
     assert 'enjoying' not in extracted_text
 
 
-@record_or_replay_openai
+@record_or_replay_openai()
 def test_extract_analysis_plan_from_response():
     response = """
     Here is the analysis plan:

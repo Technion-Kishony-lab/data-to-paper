@@ -54,9 +54,12 @@ class TextExtractorGPT(ConverserGPT):
         """
         Extract the text between triple-quoted strings.
         """
-        if text.count('"""') != 2:
-            raise ValueError(f'Expected exactly two triple-quoted strings.')
-        return text.split('"""')[1]
+        for quote in ['"""', "'''", "```"]:
+            if text.count(quote) == 2:
+                return text.split(quote)[1]
+            if text.count(quote) != 0:
+                raise ValueError(f'Expected exactly two triple-quoted strings.')
+        raise ValueError(f'Did not find any triple-quoted strings.')
 
 
 def extract_analysis_plan_from_response(response: str, max_number_of_attempts: int = 3,
@@ -68,6 +71,6 @@ def extract_analysis_plan_from_response(response: str, max_number_of_attempts: i
         text=response,
         description_of_text_to_extract='analysis plan',
         max_number_of_attempts=max_number_of_attempts,
-        system_prompt='You are a helpful scientist.',
+        system_prompt='You are a helpful assistant.',
         conversation_name=get_name_with_new_number(base_conversation_name),
     ).extract_text()

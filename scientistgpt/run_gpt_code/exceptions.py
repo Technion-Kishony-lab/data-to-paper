@@ -5,11 +5,6 @@ from typing import List
 from scientistgpt.exceptions import ScientistGPTException
 
 
-class FailedDebuggingException(ScientistGPTException):
-    def __str__(self):
-        return f"Failed debugging chatgpt code."
-
-
 class RunCodeException(ScientistGPTException, metaclass=ABCMeta):
     """
     Base class for all exceptions related to running gpt provided code.
@@ -19,12 +14,15 @@ class RunCodeException(ScientistGPTException, metaclass=ABCMeta):
 
 @dataclass
 class FailedExtractingCode(RunCodeException):
-    number_of_codes: int
+    number_of_code_edges: int
 
     def __str__(self):
-        if self.number_of_codes == 0:
-            return "No code was found."
-        return "More than one code snippet were found."
+        if self.number_of_code_edges == 0:
+            return "No code block was found."
+        elif self.number_of_code_edges % 2 == 1:
+            return "Code block is not closed."
+        else:
+            return "Multiple code blocks identified."
 
 
 @dataclass
@@ -42,6 +40,8 @@ class FailedRunningCode(RunCodeException):
         returns a fake traceback message, simulating as if the code ran in a real file.
         the line causing the exception is extracted from the ran `code`.
         """
+        from scientistgpt.run_gpt_code.code_runner import LINES_ADDED_BY_MODIFYING_CODE
+
         if isinstance(self.exception, SyntaxError):
             lineno = self.exception.lineno
             text = self.exception.text
@@ -54,7 +54,7 @@ class FailedRunningCode(RunCodeException):
             filename, lineno, funcname, text = self.tb[index]
             msg = self.exception
 
-        return f'  File "{self.fake_file_name}", line {lineno}, in <module>"\n' + \
+        return f'  File "{self.fake_file_name}", line {lineno - LINES_ADDED_BY_MODIFYING_CODE}, in <module>"\n' + \
                f'    {text}\n' + \
                f'{type(self.exception).__name__}: {msg}'
 
@@ -67,3 +67,11 @@ class FailedLoadingOutput(RunCodeException, FileNotFoundError):
 class CodeTimeoutException(RunCodeException, TimeoutError):
     def __str__(self):
         return "Code took too long to run."
+
+
+@dataclass
+class CodeUsesForbiddenFunctions(RunCodeException):
+    func: str
+
+    def __str__(self):
+        return f"Code uses a forbidden function {self.func}."

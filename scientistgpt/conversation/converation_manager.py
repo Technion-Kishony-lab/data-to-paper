@@ -80,11 +80,11 @@ class ConversationManager:
         """
         self.append_message(Role.COMMENTER, content, tag, comment)
 
-    def append_provided_assistant_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.append_message(Role.ASSISTANT, content, tag, comment)
+        self.append_message(Role.SURROGATE, content, tag, comment)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None) -> str:
@@ -113,7 +113,7 @@ class ConversationManager:
     def get_actions_for_conversation(self) -> List[Action]:
         return [action for action in APPLIED_ACTIONS if action.conversation_name == self.conversation_name]
 
-    def regenerate_previous_response(self, comment: Optional[str] = None):
+    def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
         last_action = self.get_actions_for_conversation()[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
@@ -127,6 +127,7 @@ class ConversationManager:
                                 tag=last_action.message.tag),
                 hidden_messages=last_action.hidden_messages),
         )
+        return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None) -> Optional[str]:
@@ -179,7 +180,7 @@ class ConversationManager:
         self._append_and_apply_action(
             ReplaceLastResponse(
                 conversation_name=self.conversation_name, agent=self.agent, comment=comment,
-                message=Message(role=Role.ASSISTANT, content=content, tag=tag)))
+                message=Message(role=Role.SURROGATE, content=content, tag=tag)))
 
     def copy_messages_from_another_conversations(self, source_conversation: Conversation,
                                                  message_designation: GeneralMessageDesignation,

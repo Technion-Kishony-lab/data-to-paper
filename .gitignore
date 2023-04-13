@@ -10,3 +10,4 @@ __pycache__/
 *.so
 
 .DS_Store
+icd_analysis/local_paths.py

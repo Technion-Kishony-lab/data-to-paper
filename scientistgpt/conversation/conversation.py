@@ -67,13 +67,12 @@ class Conversation(List[Message]):
 
         will skip over any COMMENTER messages.
         """
-        i = len(self) - 1
-        while i >= 0:
-            if self[i].role is Role.ASSISTANT:
+        for i in range(len(self) - 1, -1, -1):
+            if self[i].role.is_assistant_or_surrogate():
                 return self[i].content
             if self[i].role is Role.USER:
-                raise ValueError('Last response is USER rather than ASSISTANT.')
-            i -= 1
+                raise ValueError('Last response is USER rather than ASSISTANT/SURROGATE.')
+        raise ValueError('No response found.')
 
     def get_message_content_by_tag(self, tag):
         for message in self:
@@ -82,7 +81,7 @@ class Conversation(List[Message]):
         return None
 
     def delete_last_response(self):
-        assert self[-1].role is Role.ASSISTANT
+        assert self[-1].role.is_assistant_or_surrogate()
         self.pop()
 
     def save(self, filename: str):

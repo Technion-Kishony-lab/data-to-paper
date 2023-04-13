@@ -221,3 +221,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         if suppress_printing_of_other:
             self.other_conversation_manager.should_print = False
         self._pre_populate_conversations()
+
+    def initialize_and_run_dialog(self, suppress_printing_of_other: bool = True):
+        self.initialize_dialog(suppress_printing_of_other)
+        return self.run_dialog()

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, NamedTuple, Type, Union, Tuple, Optional, Callable
+from typing import List, NamedTuple, Type, Union, Tuple
 
 from scientistgpt.exceptions import FailedRunningStep
 from scientistgpt.utils.text_utils import print_magenta
@@ -23,7 +23,8 @@ class FuncAndRetractions(NamedTuple):
     retractions_on_failure: List[int]
     """
     A list containing the number of backward steps to retract upon consecutive failures of the function.
-    Value of 0 indicates re-running the same step, value 1 indicates going one step backwards, etc.
+    Value of 0 indicates re-running the same step; 
+    Value of 1 indicates going one step backwards, etc.
     """
 
 
@@ -33,16 +34,18 @@ ExecutionPlan = List[FuncAndRetractions]
 @dataclass
 class ProceedRetract:
     """
-    Allows running analysis steps sequentially manipulate the object state.
-    The steps to run may be impure functions (results can change with repeated calls, like when we approach chatgpt).
-    These steps may also fail, raise exceptions (for example, when we try to run a code produced by chatgpt).
+    Run analysis steps sequentially and retract to earlier steps upon downstream failures.
+
+    The steps to run may be impure functions (results can change with repeated calls, e.g. when we approach chatgpt).
+    Steps may also fail, raise exceptions (for example, when we try to run a code produced by chatgpt).
 
     execution_plan: a list of FuncAndRetractions specifying the order of methods to run, which exception types to
-                    expect from each method, and what to do upon exception. In particular, the retractions_on_failure
-                    attribute of each FuncAndRetractions specifies how many steps to go back upon consecutive failures.
+                    expect from each method upon failure, and what to do when such failures occur. In particular,
+                    the retractions_on_failure attribute of each FuncAndRetractions specifies how many steps to go back
+                    upon consecutive failures. The class keeps track of the number of consecutive failures for each
+                    step (this number resets upon successful completion of a step).
 
-    current_step:   indicates where we are in the execution plan.
-                    -1 - uninitiated. 0 - after copying the initial step to saved_step. 1 - after running step 0.
+    current_step:   indicates where we are in the execution plan. 0 - before the first step.
 
 
     Here is an example of an execution plan:
@@ -67,11 +70,15 @@ class ProceedRetract:
 
     execution_plan: ExecutionPlan = None
     print_level: int = 1  # 0 - no printing, 1 - print retractions, 2 - print all
-    callback: Optional[Callable] = None
 
     def __post_init__(self):
         self.current_step: int = 0
-        self._num_failures: List[int] = [0] * self.num_steps  # the number of time each step failed since last success.
+
+        # Number of times each step has failed since the last time it succeeded:
+        self._num_failures: List[int] = [0] * self.num_steps
+
+        # Total number of times each step has been tried
+        self._num_tries: List[int] = [0] * self.num_steps
 
     def print_comment(self, comment: str, action: str):
         if action == 'proceed' and self.print_level >= 2 or action == 'retract' and self.print_level >= 1:
@@ -84,6 +91,15 @@ class ProceedRetract:
     def run_all(self):
         while self.current_step < self.num_steps:
             self.run_next_step()
+
+    def get_total_number_of_tries_for_current_step(self) -> int:
+        return self._num_tries[self.current_step]
+
+    def get_number_of_successive_failures_for_current_step(self) -> int:
+        return self._num_failures[self.current_step]
+
+    def get_allowed_number_of_successive_failures_for_current_step(self) -> int:
+        return len(self.execution_plan[self.current_step].retractions_on_failure)
 
     def run_next_step(self):
         """
@@ -98,6 +114,7 @@ class ProceedRetract:
         try:
             func = getattr(self, func_and_retractions.func_name)
             self.print_comment(f'Running {func_and_retractions.func_name} ...', 'proceed')
+            self._num_tries[step] += 1
             func()
         except func_and_retractions.exception as e:
             num_backward_steps = func_and_retractions.retractions_on_failure[self._num_failures[step]]
