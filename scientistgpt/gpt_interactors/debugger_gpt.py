@@ -143,6 +143,14 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(func),
             comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
 
+    def _specify_empty_output(self):
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code, it created the output file {}, but the file is just empty! 
+            Please rewrite the complete code again to correct this error. 
+            """).format(self.output_filename),
+            comment=f'{self.iteration_str}: Code completed, output file is empty.')
+
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
@@ -180,8 +188,13 @@ class DebuggerGPT(CodeWritingGPT):
             raise
         else:
             # The code ran successfully
-            self.comment("GPT code completed successfully. Returning results to MentorGPT.")
-            return code_and_output
+            if not code_and_output.output or code_and_output.output.isspace():
+                # The code ran successfully, but the output file is empty.
+                self._specify_empty_output()
+            else:
+                self.comment("GPT code completed successfully. Returning results to MentorGPT.")
+                return code_and_output
+
         # if code was extracted ok, we clean up a bit, deleting the previous debug iterations
         if not failed_extracting_code:
             self.conversation_manager.delete_messages(
