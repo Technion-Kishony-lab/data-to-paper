@@ -33,8 +33,6 @@ class ScientificProducts:
     """
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated and refined by the ScientistGPT.
-
-    Allows saving state and rewinding to tagged states
     """
     analysis_plan: Optional[str] = None
     analysis_codes_and_outputs: List[CodeAndOutput] = field(default_factory=list)
