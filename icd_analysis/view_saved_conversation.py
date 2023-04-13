@@ -1,5 +1,7 @@
-from scientistgpt.user_utils.inspect import view_saved_conversation
+from scientistgpt import replay_actions
+from local_paths import OUTPUT_FOLDER
+from pathlib import Path
 
-filename = 'run1/openai_exchange.txt'
+filename = Path(OUTPUT_FOLDER) / 'conversation_actions'
 
-view_saved_conversation(filename)
+replay_actions(filename)
