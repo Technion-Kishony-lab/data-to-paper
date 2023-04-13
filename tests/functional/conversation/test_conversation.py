@@ -14,13 +14,13 @@ def test_failed_gpt_response(conversation, openai_exception):
         assert isinstance(conversation.try_get_chatgpt_response(), openai.error.InvalidRequestError)
 
 
-@record_or_replay_openai
+@record_or_replay_openai()
 def test_conversation_gpt_response(conversation):
     response = conversation.try_get_chatgpt_response()
     assert isinstance(response, str) and len(response)
 
 
-@record_or_replay_openai
+@record_or_replay_openai()
 def test_conversation_gpt_response_without_appending(conversation):
     response = conversation.try_get_chatgpt_response()
     assert len(response)

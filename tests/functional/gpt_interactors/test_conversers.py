@@ -2,7 +2,7 @@ from scientistgpt.gpt_interactors.dual_converser import ReviewDialogDualConverse
 from tests.utils import record_or_replay_openai
 
 
-@record_or_replay_openai
+@record_or_replay_openai()
 def test_role_reversal_dialog_converser():
     converser = ReviewDialogDualConverserGPT(
         reviewee='scientist',

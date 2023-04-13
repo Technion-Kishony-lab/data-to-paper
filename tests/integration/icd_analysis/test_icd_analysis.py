@@ -30,7 +30,7 @@ os.makedirs(absolute_output_path)
 
 
 @pytest.mark.skip
-@record_or_replay_openai
+@record_or_replay_openai()
 def test_icd_analysis():
     # we run in the data folder, so that chatgpt finds our files:
     os.chdir(absolute_data_path)
