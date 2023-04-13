@@ -227,12 +227,13 @@ class ScientistGPT(CodeWritingGPT):
 
             Please choose one of the following options:
 
-            1. I am satisfied with the analysis and the results, I am ready to write a paper about them.
+            a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
-            2. I need to adjust some parameters in the code, or make some other modifications, and then look at 
+            b. I need to adjust some parameters in the code, or make some other modifications, and then look at 
                 the new results again before I can say whether they are interesting enough for a paper.
 
-            Answer with just the number of the option you choose (only type a single character: "1" or "2").            
+            Answer with just the number of the option you choose (only type a single character: "a" or "b").
+            Under any circumstances, answer with just one character matching the option you choose, nothing else.            
             """).format(self.get_output_filename(after_completion=True),
                         self.scientific_products.analysis_codes_and_outputs[-1].output)
 
@@ -240,12 +241,12 @@ class ScientistGPT(CodeWritingGPT):
             content=user_prompt,
             tag=f'output_file_content_{self.number_of_successful_code_revisions}')
 
-        response = self.conversation_manager.get_and_append_assistant_message(temperature=0, max_tokens=1)
+        response = self.conversation_manager.get_and_append_assistant_message()
         for num_tries in range(MAX_REGENERATING_BINARY_RESPONSES):
-            if '1' in response and '2' not in response and len(response) < 5:
+            if 'a' in response and 'b' not in response and len(response) < 5:
                 self.comment('ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
                 return 1
-            elif '2' in response and '1' not in response and len(response) < 5:
+            elif 'b' in response and 'a' not in response and len(response) < 5:
                 self.comment(f'ScientistGPT declared it needs to revise the code. Starting a new revision '
                              f'({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
 
@@ -260,8 +261,8 @@ class ScientistGPT(CodeWritingGPT):
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")
                 response = self.conversation_manager.replace_last_response(
-                    content='2',
-                    comment='ChatGPT sent code instead of "1"/"2". We assume it wants to change the code ("2").')
+                    content='b',
+                    comment='ChatGPT sent code instead of "a"/"b". We assume it wants to change the code ("b").')
             else:
                 if num_tries < MAX_REGENERATING_BINARY_RESPONSES - 1:
                     response = self.conversation_manager.regenerate_previous_response(
