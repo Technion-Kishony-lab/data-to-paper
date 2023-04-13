@@ -85,8 +85,9 @@ class DebuggerGPT(CodeWritingGPT):
     def _specify_missing_output(self):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it didn't generate the desired output file ({}).
-            Please rewrite the complete code again with this error corrected. 
+            I ran the code. It ran fine without raising any exception, 
+            but it didn't generate the desired output file ({}).
+            Please rewrite the complete code again so that the output file is correctly created. 
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
@@ -192,7 +193,7 @@ class DebuggerGPT(CodeWritingGPT):
                 # The code ran successfully, but the output file is empty.
                 self._specify_empty_output()
             else:
-                self.comment("GPT code completed successfully. Returning results to MentorGPT.")
+                self.comment("GPT code completed successfully. Returning results to ScientistGPT.")
                 return code_and_output
 
         # if code was extracted ok, we clean up a bit, deleting the previous debug iterations
