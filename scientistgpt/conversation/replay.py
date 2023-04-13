@@ -16,7 +16,7 @@ def save_actions_to_file(file_path: Union[str, Path]):
         pickle.dump(APPLIED_ACTIONS, f)
 
 
-def load_actions_from_file(file_path: str) -> List[Action]:
+def load_actions_from_file(file_path: Union[str, Path]) -> List[Action]:
     """
     Load a list of actions from a json file.
     """
@@ -32,7 +32,7 @@ def clear_actions_and_conversations():
     CONVERSATION_NAMES_TO_CONVERSATIONS.clear()
 
 
-def replay_actions(file_path: str):
+def replay_actions(file_path: Union[str, Path], should_print: bool = True):
     """
     Replay a list of actions on conversations.
     """
@@ -42,3 +42,8 @@ def replay_actions(file_path: str):
     for action in new_actions:
         action.apply()
         APPLIED_ACTIONS.append(action)
+        if should_print:
+            print(action.pretty_repr())
+            print()
+
+    return new_actions
