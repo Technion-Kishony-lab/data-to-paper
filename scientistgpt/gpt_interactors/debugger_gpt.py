@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
+from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils import dedent_triple_quote_str
@@ -29,11 +30,13 @@ class DebuggerGPT(CodeWritingGPT):
 
     agent: str = 'DEBUGGER'
     max_debug_iterations: int = 5
+
     debug_iteration = 0
+    initiation_tag: Optional[str] = None
 
     @property
     def iteration_str(self):
-        return f'Iteration {self.debug_iteration} / {self.max_debug_iterations}'
+        return f'Debug iteration {self.debug_iteration}/{self.max_debug_iterations}'
 
     def _run_code_from_response(self, response: str) -> CodeAndOutput:
         script_file = f'{self.gpt_script_filename}_{self.debug_iteration}'
@@ -53,7 +56,7 @@ class DebuggerGPT(CodeWritingGPT):
             ```
             Please rewrite the code using only these packages: {}. 
             """).format(error_message, ', '.join(SUPPORTED_PACKAGES)),
-            comment=f'ImportError detected in gpt code. {self.debug_iteration}')
+            comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
     def _specify_file_not_found(self, error_message: str):
         self.conversation_manager.append_user_message(
@@ -65,7 +68,7 @@ class DebuggerGPT(CodeWritingGPT):
             Please note that we only have the files that I noted in the data description above. 
             All of these files are in the same directory as the code. 
             """).format(error_message),
-            comment=f'FileNotFound detected in gpt code. {self.debug_iteration}')
+            comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _specify_error_message(self, error_message: str):
         self.conversation_manager.append_user_message(
@@ -76,7 +79,7 @@ class DebuggerGPT(CodeWritingGPT):
             ```
             Please rewrite the complete code again with this error corrected. 
             """).format(error_message),
-            comment=f'Runtime exception in GPT code. {self.debug_iteration}')
+            comment=f'{self.iteration_str}: Runtime exception in GPT code.')
 
     def _specify_missing_output(self):
         self.conversation_manager.append_user_message(
@@ -84,7 +87,7 @@ class DebuggerGPT(CodeWritingGPT):
             I ran the code, but it didn't generate the desired output file ({}).
             Please rewrite the complete code again with this error corrected. 
             """).format(self.output_filename),
-            comment=f'Code completed, but no output file created. {self.debug_iteration}')
+            comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
     def _specify_timeout(self):
         self.conversation_manager.append_user_message(
@@ -92,7 +95,7 @@ class DebuggerGPT(CodeWritingGPT):
             I ran the code, but it just ran forever...
             Please fix and rewrite the complete code again so that it doesn't get stuck. 
             """),
-            comment=f'GPT code has timed out. {self.debug_iteration}')
+            comment=f'{self.iteration_str}: GPT code has timed out.')
 
     def _respond_to_missing_or_incomplete_code(self, number_of_code_edges: int):
         """
@@ -115,18 +118,13 @@ class DebuggerGPT(CodeWritingGPT):
             Please send your code in a single code block.
             """)
             tag = 'multiple_code_blocks'
-        if self.conversation.get_message_content_by_tag(tag) is None:
-            self.conversation_manager.append_user_message(
-                content=response,
-                tag=tag,
-                comment=f'Failed extracting code from gpt response. Notifying. {self.iteration_str}'
-            )
-        else:
-            # tag already exists, so we delete the last message to regenerate
-            self.conversation_manager.delete_messages(
-                message_designation=-1,  # last message
-                comment=f'Failed extracting code from gpt response. Regenerating. {self.iteration_str}'
-            )
+
+        # We use a tagged message to rewind back in case the same problem repeats
+        self.conversation_manager.append_user_message(
+            content=response,
+            tag=tag,
+            comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
+        )
 
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
@@ -134,9 +132,11 @@ class DebuggerGPT(CodeWritingGPT):
         If the code fails, notify chatgpt and return None.
         """
         response = self.conversation_manager.get_and_append_assistant_message()
+        failed_extracting_code = False
         try:
             code_and_output = self._run_code_from_response(response)
         except FailedExtractingCode as e:
+            failed_extracting_code = True
             self._respond_to_missing_or_incomplete_code(e.number_of_code_edges)
         except FailedRunningCode as e:
             try:
@@ -164,7 +164,24 @@ class DebuggerGPT(CodeWritingGPT):
             self.conversation_manager.append_commenter_message(
                 "GPT code completed successfully. Returning results to MentorGPT.")
             return code_and_output
+        # if code was extracted ok, we clean up a bit, deleting the previous debug iterations
+        if not failed_extracting_code:
+            self.conversation_manager.delete_messages(
+                message_designation=RangeMessageDesignation.from_(
+                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -3),  # keeps the last 2 messages
+                comment="Deleting previous debug iterations.")
         return None  # code failed
+
+    def _get_or_create_tag(self):
+        """
+        If the last message has a tag, use it as the initiation tag.
+        Otherwise, create a new tag tagged comment and use it as the initiation tag.
+        """
+        if self.initiation_tag is None:
+            if self.conversation[-1].tag:
+                self.initiation_tag = self.conversation[-1].tag
+            else:
+                raise ValueError("The last message must have a tag.")
 
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """
@@ -172,9 +189,7 @@ class DebuggerGPT(CodeWritingGPT):
         If debugging did not converge to a running code within the max_debug_iterations, return None.
         Otherwise, return the code and output.
         """
-        self.conversation_manager.append_commenter_message(
-            "Starting a debugging process.")
-
+        self._get_or_create_tag()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             code_and_output = self._get_and_run_code()
             if code_and_output is not None:
