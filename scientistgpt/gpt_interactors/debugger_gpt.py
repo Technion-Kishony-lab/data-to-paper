@@ -180,8 +180,7 @@ class DebuggerGPT(CodeWritingGPT):
             raise
         else:
             # The code ran successfully
-            self.conversation_manager.append_commenter_message(
-                "GPT code completed successfully. Returning results to MentorGPT.")
+            self.comment("GPT code completed successfully. Returning results to MentorGPT.")
             return code_and_output
         # if code was extracted ok, we clean up a bit, deleting the previous debug iterations
         if not failed_extracting_code:
