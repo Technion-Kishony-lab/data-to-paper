@@ -1,3 +1,6 @@
+
+# TODO: write the PaperWritingGPT class
+
 def prepare_pre_paper_conversation(self):
     print_red('Preparing the pre-paper conversation ...', message_callback=self.message_callback)
     paper_conversation = Conversation()
