@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, NamedTuple, Type, Union, Tuple, Optional, Callable
+from typing import List, NamedTuple, Type, Union, Tuple
 
 from scientistgpt.exceptions import FailedRunningStep
 from scientistgpt.utils.text_utils import print_magenta
@@ -100,7 +100,6 @@ class ProceedRetract:
 
     def get_allowed_number_of_successive_failures_for_current_step(self) -> int:
         return len(self.execution_plan[self.current_step].retractions_on_failure)
-
 
     def run_next_step(self):
         """

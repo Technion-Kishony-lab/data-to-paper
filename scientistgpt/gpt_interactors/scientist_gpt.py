@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from scientistgpt.utils import dedent_triple_quote_str, TaggedState
+from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.exceptions import ScientistGPTException
@@ -33,7 +33,7 @@ class ScientificProducts:
     """
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated and refined by the ScientistGPT.
-    
+
     Allows saving state and rewinding to tagged states
     """
     analysis_plan: Optional[str] = None
@@ -228,8 +228,7 @@ class ScientistGPT(CodeWritingGPT):
             2. I need to adjust some parameters in the code, or make some other modifications, and then look at 
                 the new results again before I can say whether they are interesting enough for a paper.
 
-            Answer with just the number of the option you choose (only type a single character: "1" or "2").
-            
+            Answer with just the number of the option you choose (only type a single character: "1" or "2").            
             """).format(self.get_output_filename(after_completion=True),
                         self.scientific_products.analysis_codes_and_outputs[-1].output)
 
@@ -269,12 +268,12 @@ class ScientistGPT(CodeWritingGPT):
 
         for code_revision in range(self.number_of_successful_code_revisions):
             prompt += dedent_triple_quote_str("""
-            
+
             Here is the content of the output file ({}): 
             ```
             {}
             ```
-            
+
             """).format(self.get_output_filename(revision_number=code_revision),
                         self.scientific_products.analysis_codes_and_outputs[code_revision].output)
 
