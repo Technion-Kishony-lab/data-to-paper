@@ -29,6 +29,26 @@ def test_conversation_manager_adding_messages(manager):
     assert manager.conversation.get_last_response() == 'The answer is 4'
 
 
+def test_conversation_manager_adding_messages_with_kwargs(manager):
+    manager.append_user_message('Hi, I am a user.')
+    manager.append_surrogate_message('Hi, this is a predefined assistant response.')
+    manager.append_user_message("""                       
+            Please choose one of the following options:
+
+            a. I really like the number one.
+
+            b. I think that number two is very nice.
+            
+            c. Number three is beautiful.
+
+            Answer with just the number of the option you choose (only type a single character: "a", "b" or "c")
+            Since it's just a dummy question to see if I can transfer kwargs to my function you can reply with any of the options.
+            """)
+    manager.get_and_append_assistant_message(temperature=0, max_tokens=1)
+
+    assert len(manager.conversation) == 5
+    assert manager.conversation.get_last_response() in ['a', 'b', 'c']
+
 def test_conversation_manager_regenerate_response(manager):
     with mock_openai([
         'The answer is ...',
