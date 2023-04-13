@@ -40,6 +40,8 @@ class FailedRunningCode(RunCodeException):
         returns a fake traceback message, simulating as if the code ran in a real file.
         the line causing the exception is extracted from the ran `code`.
         """
+        from scientistgpt.run_gpt_code.code_runner import LINES_ADDED_BY_MODIFYING_CODE
+
         if isinstance(self.exception, SyntaxError):
             lineno = self.exception.lineno
             text = self.exception.text
@@ -52,7 +54,7 @@ class FailedRunningCode(RunCodeException):
             filename, lineno, funcname, text = self.tb[index]
             msg = self.exception
 
-        return f'  File "{self.fake_file_name}", line {lineno}, in <module>"\n' + \
+        return f'  File "{self.fake_file_name}", line {lineno - LINES_ADDED_BY_MODIFYING_CODE}, in <module>"\n' + \
                f'    {text}\n' + \
                f'{type(self.exception).__name__}: {msg}'
 
@@ -65,3 +67,11 @@ class FailedLoadingOutput(RunCodeException, FileNotFoundError):
 class CodeTimeoutException(RunCodeException, TimeoutError):
     def __str__(self):
         return "Code took too long to run."
+
+
+@dataclass
+class CodeUsesForbiddenFunctions(RunCodeException):
+    func: str
+
+    def __str__(self):
+        return f"Code uses a forbidden function {self.func}."

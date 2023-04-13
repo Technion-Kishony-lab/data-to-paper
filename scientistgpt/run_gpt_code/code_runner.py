@@ -14,6 +14,9 @@ CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n
 CodeAndOutput = NamedTuple('CodeAndOutput', [('code', str), ('output', str)])
 
 
+LINES_ADDED_BY_MODIFYING_CODE = 1
+
+
 @dataclass
 class CodeRunner:
     """
@@ -27,7 +30,7 @@ class CodeRunner:
     output_file: Optional[str]
     script_file: Optional[str] = None
 
-    def extract_code(self):
+    def extract_code(self) -> str:
         num_block_edges = self.response.count('```')
         if num_block_edges == 2:
             for regexp in CODE_REGEXPS:
@@ -35,6 +38,23 @@ class CodeRunner:
                 if len(matches) == 1:
                     return matches[0].strip()
         raise FailedExtractingCode(num_block_edges)
+
+    def modify_extracted_code(self, code: str) -> str:
+        """
+        Modify the extracted code before running it.
+        """
+        # add imports of fake forbidden functions:
+        code = 'from scientistgpt.run_gpt_code.fake_functions import *\n' + code
+        return code
+
+    def extract_and_modify_code(self) -> str:
+        """
+        Extract code from GPT response, and modify it before running it.
+        """
+        code = self.extract_code()
+        modified_code = self.modify_extracted_code(code)
+        assert len(code.splitlines()) == len(modified_code.splitlines()) - LINES_ADDED_BY_MODIFYING_CODE
+        return modified_code
 
     def read_output_file(self) -> Optional[str]:
         """
@@ -58,7 +78,7 @@ class CodeRunner:
         """
         Run code from GPT response, and return the output and the code.
         """
-        code = self.extract_code()
+        code = self.extract_and_modify_code()
         self.delete_output_file()
         run_code_from_file(code, self.script_file)
         return CodeAndOutput(code, self.read_output_file())

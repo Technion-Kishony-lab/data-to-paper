@@ -6,7 +6,8 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+    CodeUsesForbiddenFunctions
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
 
@@ -126,6 +127,22 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
         )
 
+    def _notify_forbidden_functions(self, func: str):
+        if func == 'print':
+            self.conversation_manager.append_user_message(
+                content=dedent_triple_quote_str("""
+                Please do not use the `print` function. 
+                Anything you want to print, must be written to the output file. 
+                """),
+                comment=f'{self.iteration_str}: Code uses `print`.')
+            return
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code, but it used the function `{}` which is not allowed.
+            Please rewrite the complete code again without using this function. 
+            """).format(func),
+            comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
+
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
@@ -150,6 +167,8 @@ class DebuggerGPT(CodeWritingGPT):
             except FileNotFoundError:
                 # the code tried to load file that we do not have
                 self._specify_file_not_found(str(e.exception))
+            except CodeUsesForbiddenFunctions as f:
+                self._notify_forbidden_functions(f.func)
             except Exception:
                 # the code failed on other errors
                 # we will indicate to chatgpt the error message that we got
