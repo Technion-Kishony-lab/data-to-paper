@@ -129,8 +129,7 @@ class ScientistGPT(CodeWritingGPT):
     def review_analysis_plan(self):
         if MAX_PLAN_REVIEW_ROUNDS == 0:
             return
-        self.conversation_manager.append_commenter_message(
-            'Asking PlanReviewerGPT for feedback on the plan...', tag='start_reviewing_analysis_plan')
+        self.comment('Asking PlanReviewerGPT for feedback on the plan...', tag='start_reviewing_analysis_plan')
 
         enhanced_plan_response = PlanReviewDialogDualConverserGPT(
             conversation_name=self.conversation.conversation_name,
@@ -190,8 +189,7 @@ class ScientistGPT(CodeWritingGPT):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {code_revision + 1}/{MAX_CODE_REVISIONS} " \
                                    f"(attempt {attempt + 1}/{max_attempts})"
-            self.conversation_manager.append_commenter_message(
-                f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
+            self.comment(f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
@@ -202,8 +200,7 @@ class ScientistGPT(CodeWritingGPT):
 
             if code_and_output is None:
                 # debugging failed
-                self.conversation_manager.append_commenter_message(
-                    f'Debugging failed. {revision_and_attempt}.')
+                self.comment(f'Debugging failed. {revision_and_attempt}.')
             else:
                 # debugging succeeded
                 self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
@@ -238,13 +235,11 @@ class ScientistGPT(CodeWritingGPT):
         response = self.conversation_manager.get_and_append_assistant_message()
         for num_tries in range(MAX_REGENERATING_BINARY_RESPONSES):
             if '1' in response and '2' not in response and len(response) < 5:
-                self.conversation_manager.append_commenter_message(
-                    'ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
+                self.comment('ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
                 return 1
             elif '2' in response and '1' not in response and len(response) < 5:
-                self.conversation_manager.append_commenter_message(
-                    f'ScientistGPT declared it needs to revise the code. '
-                    f'Starting a new revision ({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
+                self.comment(f'ScientistGPT declared it needs to revise the code. Starting a new revision '
+                             f'({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
 
                 user_prompt = dedent_triple_quote_str("""
                     ok. 
@@ -318,11 +313,15 @@ class ScientistGPT(CodeWritingGPT):
                 # code failed
                 if self.number_of_successful_code_revisions == 0:
                     # if we can't even get the first code revision to work, we need a new analysis plan
+                    self.comment('Reached max debug attempts for Revision 1. Giving up.')
                     return False
                 else:
                     # if we can't get a secondary code revision, we try a new attempt of the first code revision
                     # of the current plan
                     self.scientific_products.analysis_codes_and_outputs.clear()
+                    self.comment(
+                        f'Reached max debug attempts for Revision {self.number_of_successful_code_revisions + 1}. '
+                        f'Trying to go back to revision 1.')
                     continue
 
     def run_all(self) -> bool:
@@ -333,7 +332,9 @@ class ScientistGPT(CodeWritingGPT):
             self.devise_analysis_plan()
             self.review_analysis_plan()
             if self.run_cycles_of_code_and_results():
+                self.comment('Analysis plan succeeded. Proceeding to result summary.')
                 break
             if analysis_plan_round == MAX_ANALYSIS_PLAN_ROUNDS - 1:
+                self.comment('Reached max analysis plan rounds. Giving up.')
                 return False
         self.get_gpt_response_to_analysis()
