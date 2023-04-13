@@ -230,7 +230,7 @@ class ScientistGPT(CodeWritingGPT):
             content=user_prompt,
             tag=f'output_file_content_{self.number_of_successful_code_revisions}')
 
-        response = self.conversation_manager.get_and_append_assistant_message()
+        response = self.conversation_manager.get_and_append_assistant_message(temperature=0, max_tokens=1)
         for num_tries in range(MAX_REGENERATING_BINARY_RESPONSES):
             if '1' in response and '2' not in response and len(response) < 5:
                 self.comment('ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
