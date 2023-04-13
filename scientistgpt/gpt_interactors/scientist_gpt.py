@@ -309,9 +309,9 @@ class ScientistGPT(CodeWritingGPT):
                 if self.number_of_successful_code_revisions == MAX_CODE_REVISIONS:
                     return True
                 answer = self.ask_chatgpt_whether_further_code_revisions_are_needed()
-                if answer == '1':  # chatgpt is satisfied with the analysis
+                if answer == 1:  # chatgpt is satisfied with the analysis
                     return True
-                elif answer == '2':  # chatgpt wants to write another code revision
+                elif answer == 2:  # chatgpt wants to write another code revision
                     continue
                 return False
             else:
