@@ -24,8 +24,8 @@ def test_replay_actions(tmpdir):
     conversation_manager2.create_conversation()
     conversation_manager1.append_user_message('what is 2 + 3 ?')
     conversation_manager2.append_user_message('what is 10 - 3 ?')
-    conversation_manager2.append_provided_assistant_message('the answer is 7')
-    conversation_manager1.append_provided_assistant_message('the answer is 5')
+    conversation_manager2.append_surrogate_message('the answer is 7')
+    conversation_manager1.append_surrogate_message('the answer is 5')
 
     old_conversations = CONVERSATION_NAMES_TO_CONVERSATIONS.copy()
     assert len(old_conversations) == 2

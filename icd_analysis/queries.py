@@ -12,7 +12,7 @@ The file has 4 columns:
 #5 The diagnostic ICD9 code, formatted without dots (icd9_code)
 
 Here for example is the head of the file:
-```  
+```
 ROW_ID, SUBJECT_ID, HADM_ID, SEQ_NUM, ICD9_CODE
 1297,109,172335,1,"40301"
 1298,109,172335,2,"486"
@@ -32,7 +32,6 @@ ROW_ID, SUBJECT_ID, GENDER, DOB, DOD, DOD_HOSP, DOD_SSN, EXPIRE_FLAG
 632,669,"M",2121-10-20 00:00:00,2182-07-31 00:00:00,2182-07-31 00:00:00,2182-07-31 00:00:00,1
 633,670,"M",2080-09-30 00:00:00,2161-02-15 00:00:00,2161-02-15 00:00:00,2161-02-22 00:00:00,1
 ```
-
 """
 
 goal_description = """
