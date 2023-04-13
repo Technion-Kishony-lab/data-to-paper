@@ -181,6 +181,7 @@ class ConversationManager:
             ReplaceLastResponse(
                 conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 message=Message(role=Role.SURROGATE, content=content, tag=tag)))
+        return content
 
     def copy_messages_from_another_conversations(self, source_conversation: Conversation,
                                                  message_designation: GeneralMessageDesignation,
