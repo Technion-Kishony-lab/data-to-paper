@@ -11,3 +11,4 @@ __pycache__/
 
 .DS_Store
 icd_analysis/local_paths.py
+covid_vaccine_analysis/local_paths.py
