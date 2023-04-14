@@ -61,9 +61,9 @@ class PaperAuthorGPT(PaperWritingGPT):
                     'result_summary', 'implications', 'limitations']:
             prompt = dedent_triple_quote_str("""
             This is the {} part:
-            
+
             {}
-            
+
             """).format(tag, getattr(self.scientific_products, tag))
             self.conversation_manager.append_user_message(prompt, tag=f'adding {tag} to pre_paper_conversation')
             self.conversation_manager.append_surrogate_message(content=f'Great! I now know about the {tag}.')
@@ -143,11 +143,13 @@ class PaperAuthorGPT(PaperWritingGPT):
             # if there is, raise an error
             elif '\\section' in latex_content:
                 raise ValueError(
-                    'Expected to find only \\begin{abstract} and \\end{abstract} in the response, but found other sections.')
+                    'Expected to find only \\begin{abstract} and \\end{abstract} in the response, but found other '
+                    'sections.')
         else:
             if not latex_content.startswith(f'\\section{{{section.capitalize()}}}'):
                 raise ValueError(
-                    f'Expected the answer to begin with \\section{{{section.capitalize()}}} in the response, but did not find it.')
+                    f'Expected the answer to begin with \\section{{{section.capitalize()}}} in the response, but did '
+                    f'not find it.')
             # find if there is any other section within the response of the assistant using the \section command
         return latex_content
 

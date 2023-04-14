@@ -317,15 +317,18 @@ class ScientistGPT(CodeWritingGPT):
 
         self.conversation_manager.append_user_message(
             'Please start by writing a comprehensive description of the results of the analysis.')
-        self.scientific_products.result_summary = self.conversation_manager.get_and_append_assistant_message(tag='result_summary')
+        self.scientific_products.result_summary = self.conversation_manager.\
+            get_and_append_assistant_message(tag='result_summary')
 
         self.conversation_manager.append_user_message(
             'Perfect. Now, please describe the implications of the results to the goal of the study.')
-        self.scientific_products.implications = self.conversation_manager.get_and_append_assistant_message(tag='implications')
+        self.scientific_products.implications = self.conversation_manager.\
+            get_and_append_assistant_message(tag='implications')
 
         self.conversation_manager.append_user_message(
             'Very good. Now, please describe any limitations of the analysis and results.')
-        self.scientific_products.limitations = self.conversation_manager.get_and_append_assistant_message(tag='limitations')
+        self.scientific_products.limitations = self.conversation_manager.\
+            get_and_append_assistant_message(tag='limitations')
 
     def run_cycles_of_code_and_results(self) -> bool:
         total_code_attempts_for_current_plan = 0
