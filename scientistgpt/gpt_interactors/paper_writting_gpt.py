@@ -3,7 +3,6 @@ from typing import Optional
 
 from scientistgpt.gpt_interactors.converser_gpt import PaperWritingGPT
 from scientistgpt.gpt_interactors.scientist_gpt import ScientificProducts
-from scientistgpt.gpt_interactors.text_extractors import extract_latex_text_from_response
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -44,51 +43,26 @@ class PaperAuthorGPT(PaperWritingGPT):
 
     def _populate_conversation(self):
         self.conversation_manager.append_system_message(dedent_triple_quote_str("""
-        You are a scientist that able to write full length sound scientific papers.
-        Your will:
-        1. Write every part of the paper in scientific language, in `.tex` format.
+        You are a scientist that able to write sound scientific papers.
+        Your will need to:
+        1. Write every part of the paper in scientific language.
         2. Write the paper section by section.
         3. Write the paper in a way that is consistent with the scientific products you have.
         """))
         for tag in ['data_description', 'goal_description', 'analysis_plan',
                     'result_summary', 'implications', 'limitations']:
             prompt = dedent_triple_quote_str("""
-            This is the {} part:
             
-            {}
-            
-            """).format(tag, getattr(self.scientific_products, tag))
-            self.conversation_manager.append_user_message(prompt, tag=f'adding {tag} to pre_paper_conversation')
-            self.conversation_manager.append_surrogate_message(content=f'Great! I now know about the {tag}.')
-        self.conversation_manager.append_surrogate_message('I have everything I need to start writing the different '
-                                                           'sections of the paper.', tag='ready_to_abstract')
+            """)
+            getattr(self.scientific_products, tag)
 
     def write_paper_section(self, section: str):
-        prompt = f"Please write the {section} section of the paper, remember to write that in .tex format"
-        self.conversation_manager.append_user_message(prompt, tag=f'request_{section}')
+        user_prompt = f"Please write the {section} section of the paper."
+        self.conversation_manager.append_user_message(user_prompt, tag=f'request_{section}')
 
         assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section}')
-        # extract only the tex content of the assistant
-        latex_content = extract_latex_text_from_response(assistant_response)
-        setattr(self.scientific_products, section, latex_content)
+        setattr(self.scientific_products, section, assistant_response)
 
-    def write_paper_step_by_step(self):
-        """
-        write the paper section by section, after each section restart conversation to the abstract.
-        """
-        # write the abstract
-        self.write_paper_section('abstract')
-        # write the rest of the paper
-        for section in ['introduction', 'methods', 'results', 'discussion', 'conclusion']:
-            self.write_paper_section(section)
-            self.conversation_manager.reset_back_to_tag('abstract')
-
-    def assemble_paper(self):
-        """
-        assemble the paper from the different sections.
-        """
-        # TODO: assemble the paper from the different sections
-        pass
 
 
     # conversation_name: str = 'pre_paper_conversation'
