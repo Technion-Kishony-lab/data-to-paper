@@ -45,26 +45,20 @@ class PaperAuthorGPT(PaperWritingGPT):
         self.conversation_manager.append_system_message(dedent_triple_quote_str("""
         You are a scientist that able to write sound scientific papers.
         Your will need to:
-        1. Write every part of the paper in scientific language in `.tex` format.
+        1. Write every part of the paper in scientific language.
         2. Write the paper section by section.
         3. Write the paper in a way that is consistent with the scientific products you have.
         """))
         for tag in ['data_description', 'goal_description', 'analysis_plan',
                     'result_summary', 'implications', 'limitations']:
             prompt = dedent_triple_quote_str("""
-            This is the {} part:
             
-            {}
-            
-            """).format(tag, getattr(self.scientific_products, tag))
-            self.conversation_manager.append_user_message(prompt, tag=f'adding {tag} to pre_paper_conversation')
-            self.conversation_manager.append_surrogate_message(content=f'Great! I now know about the {tag}.')
-        self.conversation_manager.append_surrogate_message('I have everything I need to start writing the different '
-                                                           'sections of the paper.', tag='ready_to_abstract')
+            """)
+            getattr(self.scientific_products, tag)
 
     def write_paper_section(self, section: str):
-        prompt = f"Please write the {section} section of the paper."
-        self.conversation_manager.append_user_message(prompt, tag=f'request_{section}')
+        user_prompt = f"Please write the {section} section of the paper."
+        self.conversation_manager.append_user_message(user_prompt, tag=f'request_{section}')
 
         assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section}')
         setattr(self.scientific_products, section, assistant_response)
