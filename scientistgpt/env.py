@@ -14,3 +14,4 @@ MAX_EXEC_TIME = 200
 # Defining: compaction_code_diff = num_lines(new_code) - num_lines(code_diff)
 # We show code diff if compaction_code_diff > MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF
 MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF = 20  # Use 0 to always show code diff, or None to always show full code
+HIDE_INCOMPLETE_CODE = True  # DO bot show incomplete code sent by chatgpt

@@ -73,7 +73,11 @@ def format_text_with_code_blocks(text: str, text_color: str, code_color: str, wi
             s += text_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL + '\n'
         else:
             if is_python:
-                s += highlight(section, PythonLexer(), Terminal256Formatter())
+                highlighted_code = highlight_python_code(section)
+                # check if the first line is the language name
+                if 'python' in highlighted_code.splitlines()[0].lower():
+                    highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
+                s += highlighted_code
             else:
                 s += code_color + section + colorama.Style.RESET_ALL
         in_text_block = not in_text_block

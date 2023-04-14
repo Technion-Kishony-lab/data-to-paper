@@ -155,6 +155,16 @@ class CodeMessage(Message):
                     content = content.replace(
                         self.extracted_code,
                         "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff)
+        elif HIDE_INCOMPLETE_CODE:
+            # if we failed to extract the code, we check if there is a single incomplete code replace
+            # and replace it with a message:
+            sections = self.content.split('```')
+            if len(sections) == 2:
+                partial_code = sections[1]
+                content = content.replace(
+                    partial_code,
+                    f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHAT GPT\n```\n")
+
         return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
 
 
