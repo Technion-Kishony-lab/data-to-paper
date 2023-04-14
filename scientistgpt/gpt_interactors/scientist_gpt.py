@@ -316,7 +316,8 @@ class ScientistGPT(CodeWritingGPT):
         self.conversation_manager.append_surrogate_message('ok, what should I start with?')
 
         self.conversation_manager.append_user_message(
-            'Please start by writing a comprehensive description of the results of the analysis.')
+            'Please start by writing a comprehensive description of the results of the analysis. '
+            'in addition finish with a short summary of the code packages and other tools used for the analysis.')
         self.scientific_products.result_summary = self.conversation_manager.\
             get_and_append_assistant_message(tag='result_summary')
 
