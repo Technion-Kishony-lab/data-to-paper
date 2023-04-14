@@ -55,6 +55,7 @@ class ScientificProducts:
     methods: Optional[str] = None
     results: Optional[str] = None
     discussion: Optional[str] = None
+    conclusions: Optional[str] = None
     references: Optional[str] = None
 
 
