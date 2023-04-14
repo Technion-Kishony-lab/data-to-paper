@@ -381,4 +381,5 @@ class ScientistGPT(CodeWritingGPT):
                 self.comment('Reached max analysis plan rounds. Giving up.')
                 return False
         self.get_gpt_response_to_analysis()
+        # TODO: check what happens if creating one of the sections fails or compiling the pdf fails!
         self.write_and_compile_paper()
