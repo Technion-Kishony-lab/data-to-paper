@@ -99,5 +99,3 @@ def test_runner_raises_when_code_use_forbidden_functions(invalid_code_using_prin
         assert 'print' == e.exception.func
     else:
         assert False, "FailedRunningCode was not raised"
-
-

@@ -39,11 +39,12 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
             a. I really like the number one.
 
             b. I think that number two is very nice.
-            
+
             c. Number three is beautiful.
 
             Answer with just the number of the option you choose (only type a single character: "a", "b" or "c")
-            Since it's just a dummy question to see if I can transfer kwargs to my function you can reply with any of the options.
+            Since it's just a dummy question to see if I can transfer kwargs to my function you can reply with 
+            any of the options.
             """)
     manager.get_and_append_assistant_message(temperature=0, max_tokens=1)
 

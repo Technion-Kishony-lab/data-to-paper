@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .conversation import Conversation
-from .message import Message, Role, CodeMessage, create_message, create_message_from_other_message
+from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
@@ -132,7 +132,8 @@ class ConversationManager:
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             is_code: bool = False, previous_code: Optional[str] = None,
-                                            hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Optional[str]:
+                                            hidden_messages: GeneralMessageDesignation = None, **kwargs
+                                            ) -> Optional[str]:
         """
         Try to get and append a response from openai to a specified conversation.
 
