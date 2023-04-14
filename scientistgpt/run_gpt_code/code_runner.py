@@ -27,7 +27,7 @@ class CodeRunner:
     """
 
     response: str
-    output_file: Optional[str]
+    output_file: Optional[str] = None
     script_file: Optional[str] = None
 
     def extract_code(self) -> str:
