@@ -74,3 +74,8 @@ class PaperWritingGPT(ConverserGPT):
     """
     The name of the file that gpt code is instructed to save the results to.
     """
+
+    paper_template_filename: str = 'paper_template.tex'
+    """
+    The name of the file that holds the template for the paper.
+    """

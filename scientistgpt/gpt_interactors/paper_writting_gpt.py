@@ -1,8 +1,10 @@
+import os
 from dataclasses import dataclass, field
 from typing import Optional
 
 from scientistgpt.gpt_interactors.converser_gpt import PaperWritingGPT
 from scientistgpt.gpt_interactors.scientist_gpt import ScientificProducts
+from scientistgpt.gpt_interactors.text_extractors import extract_latex_text_from_response
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -35,6 +37,8 @@ class PaperAuthorGPT(PaperWritingGPT):
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
 
+    parts_to_write = ['abstract', 'title', 'introduction', 'methods', 'results', 'discussion', 'conclusion']
+
     def __post_init__(self):
         super().__post_init__()
 
@@ -43,9 +47,9 @@ class PaperAuthorGPT(PaperWritingGPT):
 
     def _populate_conversation(self):
         self.conversation_manager.append_system_message(dedent_triple_quote_str("""
-        You are a scientist that able to write sound scientific papers.
-        Your will need to:
-        1. Write every part of the paper in scientific language in `.tex` format.
+        You are a scientist that able to write full length sound scientific papers.
+        Your will:
+        1. Write every part of the paper in scientific language, in `.tex` format.
         2. Write the paper section by section.
         3. Write the paper in a way that is consistent with the scientific products you have.
         """))
@@ -63,13 +67,85 @@ class PaperAuthorGPT(PaperWritingGPT):
                                                            'sections of the paper.', tag='ready_to_abstract')
 
     def write_paper_section(self, section: str):
-        prompt = f"Please write the {section} section of the paper."
+        prompt = f"Please write only the {section} of the paper, do not write any other parts yet!" \
+                 f"remember to write that in .tex format," \
+                 f"don't add any additional commands like the \\begin{{document}} and \\end{{document}}."
         self.conversation_manager.append_user_message(prompt, tag=f'request_{section}')
 
         assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section}')
-        setattr(self.scientific_products, section, assistant_response)
+        # extract only the tex content of the assistant and make sure it is correct
+        latex_content = self.extract_correct_part_from_response(assistant_response, section)
+        setattr(self.scientific_products, section, latex_content)
 
+    def extract_correct_part_from_response(self, response: str, section: str):
+        """
+        extract the correct part of the response, i.e. the latex content of the response.
+        """
+        # extract only the tex content of the assistant
+        try:
+            latex_content = extract_latex_text_from_response(response)
+            # check that the response has the right part of the paper
+            if section == 'title':
+                if not latex_content.startswith('\\title'):
+                    raise ValueError(f'Expected to find \\title in the response, but did not find it.')
+                # find if there is any other section within the response of the assistant using the \section command
+                # if there is, raise an error
+                elif '\\section' in latex_content:
+                    raise ValueError(f'Expected to find only \\title in the response, but found other parts.')
+            elif section == 'abstract':
+                if not latex_content.startswith('\\begin{abstract}'):
+                    raise ValueError(f'Expected the answer to begin with \\begin{{abstract}} in the response, but did not find it.')
+                elif not latex_content.endswith('\\end{abstract}'):
+                    raise ValueError(f'Expected the answer to end with \\end{{abstract}} in the response, but did not find it.')
+                # find if there is any other section within the response of the assistant using the \section command
+                # if there is, raise an error
+                elif '\\section' in latex_content:
+                    raise ValueError(f'Expected to find only \\begin{{abstract}} in the response, but found other parts.')
+            else:
+                if not latex_content.startswith(f'\\section{{{section}}}'):
+                    raise ValueError(f'Expected the answer to begin with \\section{{{section}}} in the response, but did not find it.')
+        except ValueError as e:
+            self.conversation_manager.append_user_message(
+                dedent_triple_quote_str("""
+                I checked your response and it seems that it does not contain the correct part of the paper.
+                The error I got is:
+                {}
+                Please rewrite the {section} again with the error fixed.
+                """).format(str(e)), section)
+            # TODO: fix the logic of message recreation
+            latex_content = self.conversation_manager.get_and_append_assistant_message(tag=f'{section}')
+        return latex_content
 
+    def write_paper_step_by_step(self):
+        """
+        write the paper section by section, after each section restart conversation to the abstract.
+        """
+        # write the abstract
+        self.write_paper_section('abstract')
+        # write the rest of the paper
+        for section in ['title', 'introduction', 'methods', 'results', 'discussion', 'conclusion']:
+            self.write_paper_section(section)
+            self.conversation_manager.reset_back_to_tag('abstract')
+
+    def assemble_paper(self):
+        """
+        assemble the paper from the different sections.
+        """
+        with open(self.paper_template_filename, 'r') as f:
+            paper_template = f.read()
+        # replace each section with the corresponding section, in the paper template the sections are marked with
+        # @@@section_name@@@
+        for section in self.parts_to_write:
+            paper_template = paper_template.replace(f'@@@{section}@@@', getattr(self.scientific_products, section))
+        # write the paper to a file
+        with open(self.paper_filename, 'w') as f:
+            f.write(paper_template)
+        # compile the paper
+        os.system(f'pdflatex {self.paper_filename}')
+
+    def write_paper(self):
+        self.write_paper_step_by_step()
+        self.assemble_paper()
 
     # conversation_name: str = 'pre_paper_conversation'
 
