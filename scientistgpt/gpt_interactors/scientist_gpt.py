@@ -49,6 +49,12 @@ class ScientificProducts:
     results: Optional[str] = None
     discussion: Optional[str] = None
     conclusions: Optional[str] = None
+    title: Optional[str] = None
+    abstract: Optional[str] = None
+    introduction: Optional[str] = None
+    methods: Optional[str] = None
+    results: Optional[str] = None
+    discussion: Optional[str] = None
     references: Optional[str] = None
 
 
