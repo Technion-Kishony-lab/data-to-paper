@@ -35,17 +35,25 @@ class DebuggerGPT(CodeWritingGPT):
     debug_iteration = 0
     initiation_tag: Optional[str] = None
 
+    _previous_code: Optional[str] = None
+
     @property
     def iteration_str(self):
         return f'Debug iteration {self.debug_iteration}/{self.max_debug_iterations}'
 
-    def _run_code_from_response(self, response: str) -> CodeAndOutput:
-        script_file = f'{self.gpt_script_filename}_{self.debug_iteration}'
-        result = CodeRunner(response=response,
-                            output_file=self.output_filename,
-                            script_file=script_file,
-                            ).run_code()
-        os.rename(self.output_filename, script_file + '.txt')
+    @property
+    def script_filename(self):
+        return f'{self.gpt_script_filename}_{self.debug_iteration}'
+
+    def _get_code_runner(self, response: str) -> CodeRunner:
+        return CodeRunner(response=response,
+                          output_file=self.output_filename,
+                          script_file=self.script_filename,
+                          )
+
+    def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:
+        result = code_runner.run_code()
+        os.rename(self.output_filename, self.script_filename + '.txt')
         return result
 
     def _specify_allowed_packages(self, error_message: str):
@@ -157,14 +165,19 @@ class DebuggerGPT(CodeWritingGPT):
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
-        response = self.conversation_manager.get_and_append_assistant_message()
+        response = self.conversation_manager.get_and_append_assistant_message(is_code=True,
+                                                                              previous_code=self._previous_code)
         failed_extracting_code = False
+        code_runner = self._get_code_runner(response)
         try:
-            code_and_output = self._run_code_from_response(response)
+            code_and_output = self._run_code_runner(code_runner)
         except FailedExtractingCode as e:
+            # code is missing or incomplete
             failed_extracting_code = True
             self._respond_to_missing_or_incomplete_code(e.number_of_code_edges)
         except FailedRunningCode as e:
+            # We were able to extract the code, but it failed to run
+            self._previous_code = code_runner.extract_code()
             try:
                 raise e.exception
             except ImportError:

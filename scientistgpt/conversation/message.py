@@ -5,9 +5,10 @@ import colorama
 from enum import Enum
 from typing import NamedTuple, Optional
 
-from scientistgpt.env import TEXT_WIDTH
+from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
-from scientistgpt.utils.text_utils import format_text_with_code_blocks
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
+from scientistgpt.utils import format_text_with_code_blocks, line_count
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -84,6 +85,8 @@ class Message:
 
         # content:
         s += self.pretty_content(text_color, code_color, width=TEXT_WIDTH)
+        if s[-1] != '\n':
+            s += '\n'
 
         # footer:
         s += text_color + sep * TEXT_WIDTH + reset_color
@@ -94,7 +97,7 @@ class Message:
         Returns a pretty repr of just the message content.
         """
         return format_text_with_code_blocks(text=self.content, text_color=text_color,
-                                            code_color=code_color, width=width)
+                                            code_color=code_color, width=width, is_python=False)
 
     def convert_to_text(self):
         return f'{self.role}<{self.tag}>\n{self.content}'
@@ -119,29 +122,39 @@ class CodeMessage(Message):
     "The code from the previous response, to which this code should be compared"
 
     @property
-    def extracted_code(self) -> str:
+    def extracted_code(self) -> Optional[str]:
         """
         Extract the code from the response.
         """
-        return CodeRunner(response=self.content).extract_code()
+        try:
+            return CodeRunner(response=self.content).extract_code()
+        except FailedExtractingCode:
+            return None
 
     def get_code_diff(self) -> str:
         """
         Get the difference between the code from the previous response and the code from this response.
         """
-        diff = difflib.unified_diff(self.extracted_code, self.previous_code, lineterm='')
+        diff = difflib.unified_diff(self.previous_code.strip().splitlines(),
+                                    self.extracted_code.strip().splitlines(),
+                                    lineterm='', n=0)
+        # we remove the first 3 lines, which are the header of the diff:
+        diff = list(diff)[3:]
         return '\n'.join(diff)
 
     def pretty_content(self, text_color, code_color, width):
         """
         We override this method to replace the code within the message with the diff.
         """
-        if self.previous_code:
-            # we need to replace the code within the message with the diff
-            diff = self.get_code_diff()
-            content = self.content.replace(self.extracted_code, diff)
-        else:
-            content = self.content
+        content = self.content
+        if self.extracted_code:
+            if self.previous_code:
+                diff = self.get_code_diff()
+                if line_count(self.extracted_code) - line_count(diff) > MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF:
+                    # if the code diff is substantially shorter than the code, we replace the code with the diff:
+                    content = content.replace(
+                        self.extracted_code,
+                        "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff)
         return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
 
 
