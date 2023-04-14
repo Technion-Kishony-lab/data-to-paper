@@ -35,13 +35,12 @@ class ScientificProducts:
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated and refined by the ScientistGPT.
     """
-    data_description: Optional[str] = None
-    goal_description: Optional[str] = None
     analysis_plan: Optional[str] = None
     analysis_codes_and_outputs: List[CodeAndOutput] = field(default_factory=list)
     result_summary: Optional[str] = None
     implications: Optional[str] = None
     limitations: Optional[str] = None
+    conclusions: Optional[str] = None
     title: Optional[str] = None
     abstract: Optional[str] = None
     introduction: Optional[str] = None
@@ -118,8 +117,6 @@ class ScientistGPT(CodeWritingGPT):
             Please also specify the data analysis goal.
             """)
         self.conversation_manager.append_surrogate_message(assistant_response)
-        # add the data description to the scientific products
-        self.scientific_products.data_description = self.data_description
 
     def add_goal_description(self):
         user_prompt = dedent_triple_quote_str("""
@@ -132,8 +129,6 @@ class ScientistGPT(CodeWritingGPT):
             Thank you for the goal description.
         """)
         self.conversation_manager.append_surrogate_message(assistant_response, tag='ok_goal_description')
-        # add the goal description to the scientific products
-        self.scientific_products.goal_description = self.goal_description
 
     def devise_analysis_plan(self):
         user_prompt = dedent_triple_quote_str("""
