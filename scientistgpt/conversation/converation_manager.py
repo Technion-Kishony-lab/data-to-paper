@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .conversation import Conversation
-from .message import Message, Role
+from .message import Message, Role, CodeMessage, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
@@ -87,6 +87,7 @@ class ConversationManager:
         self.append_message(Role.SURROGATE, content, tag, comment)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
+                                         is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         """
         Get and append a response from openai to a specified conversation.
@@ -101,6 +102,7 @@ class ConversationManager:
         # starting at message 1 (message 0 is the system message).
         while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
+                                                               is_code=is_code, previous_code=previous_code,
                                                                hidden_messages=actual_hidden_messages,
                                                                **kwargs)
             if isinstance(content, str):
@@ -123,14 +125,13 @@ class ConversationManager:
         self._append_and_apply_action(
             RegenerateLastResponse(
                 conversation_name=self.conversation_name, agent=last_action.agent, comment=comment,
-                message=Message(role=last_action.message.role,
-                                content=content,
-                                tag=last_action.message.tag),
+                message=create_message_from_other_message(last_action.message, content=content),
                 hidden_messages=last_action.hidden_messages),
         )
         return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
+                                            is_code: bool = False, previous_code: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Optional[str]:
         """
         Try to get and append a response from openai to a specified conversation.
@@ -150,9 +151,8 @@ class ConversationManager:
             action = AppendChatgptResponse(
                 conversation_name=self.conversation_name, agent=self.agent, comment=comment,
                 hidden_messages=hidden_messages,
-                message=Message(role=Role.ASSISTANT,
-                                content=content,
-                                tag=tag))
+                message=create_message(role=Role.ASSISTANT, content=content, tag=tag,
+                                       is_code=is_code, previous_code=previous_code))
         self._append_and_apply_action(action)
         return content
 

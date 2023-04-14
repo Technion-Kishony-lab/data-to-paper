@@ -1,9 +1,14 @@
+import difflib
+from dataclasses import dataclass
+
 import colorama
 from enum import Enum
 from typing import NamedTuple, Optional
 
-from scientistgpt.env import TEXT_WIDTH
-from scientistgpt.utils.text_utils import format_text_with_code_blocks
+from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
+from scientistgpt.run_gpt_code.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
+from scientistgpt.utils import format_text_with_code_blocks, line_count
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -38,7 +43,8 @@ ROLE_TO_STYLE = {
 }
 
 
-class Message(NamedTuple):
+@dataclass(frozen=True)
+class Message:
     role: Role
     content: str
     tag: str = ''
@@ -58,15 +64,13 @@ class Message(NamedTuple):
         * Indenting text
         * Highlighting code blocks
         """
-        role, content, tag = self
+        role, content, tag = self.role, self.content, self.tag
         tag_text = f'<{tag}> ' if tag else ''
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
         sep = style.seperator
         if is_color:
-            text_color = style.color
-            code_color = style.code_color
-            reset_color = colorama.Style.RESET_ALL
+            text_color, code_color, reset_color = style.color, style.code_color, colorama.Style.RESET_ALL
         else:
             text_color = code_color = reset_color = ''
 
@@ -80,12 +84,20 @@ class Message(NamedTuple):
             + sep * (TEXT_WIDTH - len(role_conversation_tag) - 9 - 1) + '\n'
 
         # content:
-        s += format_text_with_code_blocks(text=content, text_color=text_color, code_color=code_color, width=TEXT_WIDTH,
-                                          is_python=role.is_assistant_or_surrogate())
+        s += self.pretty_content(text_color, code_color, width=TEXT_WIDTH)
+        if s[-1] != '\n':
+            s += '\n'
 
         # footer:
         s += text_color + sep * TEXT_WIDTH + reset_color
         return s
+
+    def pretty_content(self, text_color, code_color, width):
+        """
+        Returns a pretty repr of just the message content.
+        """
+        return format_text_with_code_blocks(text=self.content, text_color=text_color,
+                                            code_color=code_color, width=width, is_python=False)
 
     def convert_to_text(self):
         return f'{self.role}<{self.tag}>\n{self.content}'
@@ -98,3 +110,73 @@ class Message(NamedTuple):
         tag = text[first_lt + 1: first_break - 1]
         content = text[first_break + 1:]
         return cls(role=role, content=content, tag=tag)
+
+
+@dataclass(frozen=True)
+class CodeMessage(Message):
+    """
+    A message that contains code.
+    """
+
+    previous_code: str = None
+    "The code from the previous response, to which this code should be compared"
+
+    @property
+    def extracted_code(self) -> Optional[str]:
+        """
+        Extract the code from the response.
+        """
+        try:
+            return CodeRunner(response=self.content).extract_code()
+        except FailedExtractingCode:
+            return None
+
+    def get_code_diff(self) -> str:
+        """
+        Get the difference between the code from the previous response and the code from this response.
+        """
+        diff = difflib.unified_diff(self.previous_code.strip().splitlines(),
+                                    self.extracted_code.strip().splitlines(),
+                                    lineterm='', n=0)
+        # we remove the first 3 lines, which are the header of the diff:
+        diff = list(diff)[3:]
+        return '\n'.join(diff)
+
+    def pretty_content(self, text_color, code_color, width):
+        """
+        We override this method to replace the code within the message with the diff.
+        """
+        content = self.content
+        if self.extracted_code:
+            if self.previous_code:
+                diff = self.get_code_diff()
+                if line_count(self.extracted_code) - line_count(diff) > MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF:
+                    # if the code diff is substantially shorter than the code, we replace the code with the diff:
+                    content = content.replace(
+                        self.extracted_code,
+                        "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff)
+        elif HIDE_INCOMPLETE_CODE:
+            # if we failed to extract the code, we check if there is a single incomplete code replace
+            # and replace it with a message:
+            sections = self.content.split('```')
+            if len(sections) == 2:
+                partial_code = sections[1]
+                content = content.replace(
+                    partial_code,
+                    f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHAT GPT\n```\n")
+
+        return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
+
+
+def create_message(role: Role, content: str, tag: str = '',
+                   is_code: bool = False, previous_code: str = None) -> Message:
+    if is_code:
+        return CodeMessage(role=role, content=content, tag=tag, previous_code=previous_code)
+    else:
+        return Message(role=role, content=content, tag=tag)
+
+
+def create_message_from_other_message(other_message: Message, content: str) -> Message:
+    return create_message(role=other_message.role, content=content, tag=other_message.tag,
+                          is_code=isinstance(other_message, CodeMessage),
+                          previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None)
