@@ -124,7 +124,7 @@ class AppendMessage(Action):
 @dataclass(frozen=True)
 class BaseChatgptResponse(Action):
     """
-    Base class for an action of getting a response from chatgpt.
+    Base class for an action involving getting a response from chatgpt.
     """
 
     hidden_messages: GeneralMessageDesignation = None

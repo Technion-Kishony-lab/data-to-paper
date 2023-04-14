@@ -109,7 +109,8 @@ class Conversation(List[Message]):
             print(message.pretty_repr())
             print()
 
-    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Union[str, Exception]:
+    def try_get_chatgpt_response(self, hidden_messages: GeneralMessageDesignation = None,
+                                 **kwargs) -> Union[str, Exception]:
         """
         Try to get a response from openai to a specified conversation.
 
