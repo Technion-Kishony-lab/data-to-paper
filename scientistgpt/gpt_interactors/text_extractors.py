@@ -74,3 +74,17 @@ def extract_analysis_plan_from_response(response: str, max_number_of_attempts: i
         system_prompt='You are a helpful assistant.',
         conversation_name=get_name_with_new_number(base_conversation_name),
     ).extract_text()
+
+
+def extract_latex_text_from_response(response: str, max_number_of_attempts: int = 3,
+                                     base_conversation_name: str = 'extract_latex_text') -> str:
+    """
+    Extract the latex text from a response.
+    """
+    return TextExtractorGPT(
+        text=response,
+        description_of_text_to_extract='latex text',
+        max_number_of_attempts=max_number_of_attempts,
+        system_prompt='You are a helpful assistant.',
+        conversation_name=get_name_with_new_number(base_conversation_name),
+    ).extract_text()
