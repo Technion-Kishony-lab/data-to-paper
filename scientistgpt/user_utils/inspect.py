@@ -74,3 +74,7 @@ def save_all_files_to_output_folder(output_directory, absolute_data_path):
     # Move gpt generated txt files to output folder:
     for file in glob.glob(str(absolute_data_path / '*.txt')):
         shutil.move(file, output_directory)
+
+    # Move gpt generated pdf files to output folder:
+    for file in glob.glob(str(absolute_data_path / '*.pdf')):
+        shutil.move(file, output_directory)

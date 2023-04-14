@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -7,7 +7,9 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.exceptions import ScientistGPTException
 
 from .converser_gpt import CodeWritingGPT
-from .debugger_gpt import DebuggerGPT, CodeAndOutput
+from .debugger_gpt import DebuggerGPT
+from .paper_writting_gpt import PaperAuthorGPT
+from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
 from .. import Role
@@ -356,10 +358,11 @@ class ScientistGPT(CodeWritingGPT):
                         f'Reached max debug attempts for Revision {self.number_of_successful_code_revisions + 1}. '
                         f'Trying to go back to revision 1.')
                     continue
-    def write_paper_step_by_step(self):
-        self.comment('Starting the paper writing process.')
-    # TODO: write this function
 
+    def write_and_compile_paper(self):
+        self.comment('Starting the paper writing process.')
+        paper_author = PaperAuthorGPT(scientific_products=self.scientific_products)
+        paper_author.write_paper()
 
     def run_all(self) -> bool:
         self.initialize_conversation_if_needed()
@@ -375,3 +378,4 @@ class ScientistGPT(CodeWritingGPT):
                 self.comment('Reached max analysis plan rounds. Giving up.')
                 return False
         self.get_gpt_response_to_analysis()
+        self.write_and_compile_paper()

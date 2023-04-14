@@ -1,12 +1,16 @@
+import os
+from icd_analysis.local_paths import DATA_FOLDER, OUTPUT_FOLDER
+
+
 from scientistgpt.gpt_interactors.paper_writting_gpt import PaperAuthorGPT
-from scientistgpt.gpt_interactors.scientist_gpt import ScientificProducts
+from scientistgpt.gpt_interactors.scientific_products import ScientificProducts
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 
 from tests.utils import record_or_replay_openai
 
 
 @record_or_replay_openai()
-def test_paper_author_gpt_pre_paper_conv_populate():
+def test_paper_author_gpt():
     # create a scientific mentor with some random scientific products to test the paper author
     # pre_paper_conversation population
     scientific_products = ScientificProducts(
@@ -31,5 +35,10 @@ def test_paper_author_gpt_pre_paper_conv_populate():
     )
     author = PaperAuthorGPT(scientific_products=scientific_products)
 
+    author.write_paper()
+
     # check the conversation name
     assert author.conversation_manager.conversation_name == 'pre_paper_conversation'
+
+    # check that the paper was created
+    assert author.paper_filename + '.pdf' in os.listdir()
