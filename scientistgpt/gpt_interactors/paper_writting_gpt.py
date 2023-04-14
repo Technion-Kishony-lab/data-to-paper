@@ -162,9 +162,9 @@ class PaperAuthorGPT(PaperWritingGPT):
         self.conversation_manager.reset_back_to_tag('ready_to_abstract')
         abstract_prompt = dedent_triple_quote_str("""
         The abstract of the paper is:
-        
+
         {}
-        
+
         """).format(self.scientific_products.abstract)
         self.conversation_manager.append_user_message(abstract_prompt, tag='abstract_written')
         # write the rest of the paper
