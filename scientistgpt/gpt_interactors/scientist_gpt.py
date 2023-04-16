@@ -145,6 +145,8 @@ class ScientistGPT(CodeWritingGPT):
         self.scientific_products.analysis_codes_and_outputs = []
         self.conversation_manager.append_user_message(user_prompt, tag='request_analysis_plan')
         self.conversation_manager.get_and_append_assistant_message(tag='analysis_plan')
+        self.scientific_products.analysis_plan = extract_analysis_plan_from_response(
+            self.conversation_manager.conversation.get_last_response())
 
     def review_analysis_plan(self):
         if MAX_PLAN_REVIEW_ROUNDS == 0:

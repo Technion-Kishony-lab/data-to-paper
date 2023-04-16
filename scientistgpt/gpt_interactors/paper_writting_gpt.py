@@ -4,7 +4,6 @@ from typing import Optional
 
 from scientistgpt.gpt_interactors.converser_gpt import PaperWritingGPT
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts
-from scientistgpt.gpt_interactors.text_extractors import extract_latex_text_from_response
 from scientistgpt.utils import dedent_triple_quote_str
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
@@ -123,33 +122,55 @@ class PaperAuthorGPT(PaperWritingGPT):
         extract the correct part of the response, i.e. the latex content of the response.
         """
         # extract only the tex content of the assistant
-        latex_content = extract_latex_text_from_response(response).strip()
+        # latex_content = extract_latex_text_from_response(response).strip()
         # check that the response has the right part of the paper
         if section == 'title':
-            if not latex_content.startswith('\\title'):
+            try:
+                title = response.split('\\title{')[1].split('}')[0]
+                if title == '':
+                    raise ValueError(f'I got an empty title.')
+                latex_content = '\\title{' + title + '}'
+            except Exception:
                 raise ValueError(f'Expected to find \\title in the response, but did not find it.')
             # find if there is any other section within the response of the assistant using the \section command
             # if there is, raise an error
-            elif '\\section' in latex_content:
-                raise ValueError(f'Expected to find only \\title in the response, but found other parts.')
+            # elif '\\section' in latex_content:
+            #     raise ValueError(f'Expected to find only \\title in the response, but found other parts.')
         elif section == 'abstract':
-            if not latex_content.startswith('\\begin{abstract}'):
-                raise ValueError(
-                    'Expected the answer to begin with \\begin{abstract} in the response, but did not find it.')
-            elif not latex_content.endswith('\\end{abstract}'):
-                raise ValueError(
-                    'Expected the answer to end with \\end{abstract} in the response, but did not find it.')
+            try:
+                abstract = response.split('\\begin{abstract}')[1].split('\\end{abstract}')[0]
+                if abstract == '':
+                    raise ValueError(f'I got an empty abstract.')
+                latex_content = '\\begin{abstract}' + abstract + \
+                                '\\end{abstract}'
+            except Exception:
+                raise ValueError(f'Expected to find \\begin{{abstract}} and \\end{{abstract}} in the response, '
+                                 f'but did not find it.')
+            # if not latex_content.startswith('\\begin{abstract}'):
+            #     raise ValueError(
+            #         'Expected the answer to begin with \\begin{abstract} in the response, but did not find it.')
+            # elif not latex_content.endswith('\\end{abstract}'):
+            #     raise ValueError(
+            #         'Expected the answer to end with \\end{abstract} in the response, but did not find it.')
             # find if there is any other section within the response of the assistant using the \section command
             # if there is, raise an error
-            elif '\\section' in latex_content:
-                raise ValueError(
-                    'Expected to find only \\begin{abstract} and \\end{abstract} in the response, but found other '
-                    'sections.')
+            # elif '\\section' in latex_content:
+            #     raise ValueError(
+            #         'Expected to find only \\begin{abstract} and \\end{abstract} in the response, but found other '
+            #         'sections.')
         else:
-            if not latex_content.startswith(f'\\section{{{section.capitalize()}}}'):
+            try:
+                section_content = response.split(f'\\section{{{section.capitalize()}}}')[1]
+                if section_content == '':
+                    raise ValueError(f'I got an empty {section} section.')
+                latex_content = f'\\section{{{section.capitalize()}}}' + section_content
+            except Exception:
                 raise ValueError(
-                    f'Expected the answer to begin with \\section{{{section.capitalize()}}} in the response, but did '
-                    f'not find it.')
+                    f'Expected to find \\section{{{section.capitalize()}}} in the response, but did not find it.')
+            # if not latex_content.startswith(f'\\section{{{section.capitalize()}}}'):
+            #     raise ValueError(
+            #         f'Expected the answer to begin with \\section{{{section.capitalize()}}} in the response, but did '
+            #         f'not find it.')
             # find if there is any other section within the response of the assistant using the \section command
         return latex_content
 
