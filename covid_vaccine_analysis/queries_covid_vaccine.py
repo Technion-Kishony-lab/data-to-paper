@@ -5,13 +5,13 @@ data_description = """
 that were reported by medical staff.
 Each line indicates a side effect event where a patient was reported to have an effect event after vaccination. 
 
-The file has 4 columns: 
+The file has 6 columns: 
 #1 PortionNum - the number of portion of the vaccine, 1, 2, 3 or 4
 #2 SideEffectStartTime - number of units of time that passed since the vaccination was administered
 #3 DetailsStartTimeType - the type of unit of time that passed since the vaccination was administered (minutes, hours, days, weeks, months, unknown)
 #4 SideEffectDurationTime - number of units of time that passed since the side effect was affecting the patient
 #5 DetailsDurationTimeType - the type of unit of time that passed since the side effect was affecting the patient (minutes, hours, days, weeks, months, continuous, unknown)
-#5 Effect - the side effect that was reported by the medical staff
+#6 Effect - the side effect that was reported by the medical staff
 
 Here for example is the head of the file:
 ```
