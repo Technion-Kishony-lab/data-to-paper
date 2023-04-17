@@ -165,8 +165,14 @@ class PaperAuthorGPT(PaperWritingGPT):
                     raise ValueError(f'I got an empty {section} section.')
                 latex_content = f'\\section{{{section.capitalize()}}}' + section_content
             except Exception:
-                raise ValueError(
-                    f'Expected to find \\section{{{section.capitalize()}}} in the response, but did not find it.')
+                if response.startswith(f'\\section*{{{section.capitalize()}}}'):
+                    section_content = response.split(f'\\section*{{{section.capitalize()}}}')[1]
+                    if section_content == '':
+                        raise ValueError(f'I got an empty {section} section.')
+                    latex_content = f'\\section{{{section.capitalize()}}}' + section_content
+                else:
+                    raise ValueError(
+                        f'Expected to find \\section{{{section.capitalize()}}} in the response, but did not find it.')
             # if not latex_content.startswith(f'\\section{{{section.capitalize()}}}'):
             #     raise ValueError(
             #         f'Expected the answer to begin with \\section{{{section.capitalize()}}} in the response, but did '
