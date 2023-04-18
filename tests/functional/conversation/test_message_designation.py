@@ -10,7 +10,7 @@ def test_single_message_designation(conversation):
     assert d.get_message_nums(conversation) == [2]
 
     d = SingleMessageDesignation('code', 1)
-    assert str(d) == '<code>+1'
+    assert str(d) == '<code +1>'
     assert d.get_message_nums(conversation) == [3]
 
 
@@ -24,9 +24,9 @@ def test_range_message_designation(conversation, start, end, expected):
 
 
 @pytest.mark.parametrize('start, end, expected', [
-    (1, 3, '<1>-<3>'),
-    (None, 'code', '<0>-<code>'),
-    (None, SingleMessageDesignation('code', 1), '<0>-<code>+1'),
+    (1, 3, '<1> - <3>'),
+    (None, 'code', '<0> - <code>'),
+    (None, SingleMessageDesignation('code', 1), '<0> - <code +1>'),
 ])
 def test_range_message_designation_repr(start, end, expected):
     assert str(RangeMessageDesignation.from_(start, end)) == expected
