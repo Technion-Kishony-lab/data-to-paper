@@ -59,7 +59,7 @@ class RangeMessageDesignation(MessageDesignation):
     Indicates a range of messages.
 
     start: first message, indicated, by tag (str), by index (int) or as SingleMessageDesignation.
-    end: last message (not including), indicated, by tag (str), by index (int) or as SingleMessageDesignation.
+    end: last message (including), indicated, by tag (str), by index (int) or as SingleMessageDesignation.
     """
 
     start: SingleMessageDesignation
