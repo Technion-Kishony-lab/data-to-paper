@@ -3,13 +3,14 @@ from typing import Optional, List
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
-from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.exceptions import ScientistGPTException
 
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT, CodeAndOutput
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
+from .. import Role
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -147,9 +148,12 @@ class ScientistGPT(CodeWritingGPT):
             comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
         self.scientific_products.analysis_plan = enhanced_plan
 
+    @property
+    def _code_revision_tag(self):
+        return f'code_revision_{self.number_of_successful_code_revisions}'
+
     def request_analysis_code(self):
-        code_revision = self.number_of_successful_code_revisions
-        if code_revision == 0:
+        if self.number_of_successful_code_revisions == 0:
             user_prompt = dedent_triple_quote_str("""
                 Write a complete short Python code to perform the analysis you suggested.
                 Please only use the following packages for your code: {}.
@@ -161,7 +165,7 @@ class ScientistGPT(CodeWritingGPT):
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
                 """).format(self.get_output_filename())
-        self.conversation_manager.append_user_message(user_prompt, tag=f'request_analysis_code_{code_revision}')
+        self.conversation_manager.append_user_message(user_prompt, tag=self._code_revision_tag)
 
     @property
     def number_of_successful_code_revisions(self):
@@ -201,10 +205,16 @@ class ScientistGPT(CodeWritingGPT):
                 self.comment(f'Debugging failed. {revision_and_attempt}.')
             else:
                 # debugging succeeded
-                self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
                 self.conversation_manager.delete_messages(
-                    message_designation=RangeMessageDesignation.from_(start=tag, end=-2),
+                    message_designation=RangeMessageDesignation.from_(start=SingleMessageDesignation(tag, off_set=1),
+                                                                      end=-3),
                     comment='Deleting all debugging correspondence, keeping only the functional code.')
+                # after deletions of all intermediate debugging state, the conversation should look like this:
+                assert self.conversation[-4].tag == self._code_revision_tag  # ask for code
+                assert self.conversation[-3].tag == tag  # Transfer to DebuggerGPT
+                assert self.conversation[-2].role is Role.ASSISTANT  # the code
+                assert self.conversation[-1].role is Role.COMMENTER  # GPT code completed successfully.
+                self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
                 return True
         return False
 
