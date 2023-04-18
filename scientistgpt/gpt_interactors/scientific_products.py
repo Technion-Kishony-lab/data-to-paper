@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Optional, List
 
@@ -17,6 +18,13 @@ class ScientificProducts:
     result_summary: Optional[str] = None
     implications: Optional[str] = None
     limitations: Optional[str] = None
+
+
+@dataclass
+class PaperSections:
+    """
+    Contains the different sections of a scientific paper.
+    """
     abstract: Optional[str] = None
     title: Optional[str] = None
     introduction: Optional[str] = None
@@ -24,3 +32,7 @@ class ScientificProducts:
     results: Optional[str] = None
     discussion: Optional[str] = None
     conclusion: Optional[str] = None
+
+
+SCIENTIFIC_PRODUCT_FIELD_NAMES = [field.name for field in dataclasses.fields(ScientificProducts)]
+PAPER_SECTION_FIELD_NAMES = [field.name for field in dataclasses.fields(PaperSections)]

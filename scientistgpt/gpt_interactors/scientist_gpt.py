@@ -31,36 +31,6 @@ assert len(MAX_CODING_ATTEMPTS_PER_REVISION) == MAX_CODE_REVISIONS
 MAX_REGENERATING_BINARY_RESPONSES = 3
 
 
-@dataclass
-class ScientificProducts:
-    """
-    Contains the different scientific outcomes of the research.
-    These outcomes are gradually populated and refined by the ScientistGPT.
-    """
-    data_description: Optional[str] = None
-    goal_description: Optional[str] = None
-    analysis_plan: Optional[str] = None
-    analysis_codes_and_outputs: List[CodeAndOutput] = field(default_factory=list)
-    result_summary: Optional[str] = None
-    implications: Optional[str] = None
-    limitations: Optional[str] = None
-    title: Optional[str] = None
-    abstract: Optional[str] = None
-    introduction: Optional[str] = None
-    methods: Optional[str] = None
-    results: Optional[str] = None
-    discussion: Optional[str] = None
-    conclusions: Optional[str] = None
-    title: Optional[str] = None
-    abstract: Optional[str] = None
-    introduction: Optional[str] = None
-    methods: Optional[str] = None
-    results: Optional[str] = None
-    discussion: Optional[str] = None
-    conclusions: Optional[str] = None
-    references: Optional[str] = None
-
-
 @dataclass(frozen=True)
 class FailedStepException(ScientistGPTException):
     message: str
@@ -166,7 +136,7 @@ class ScientistGPT(CodeWritingGPT):
         self.conversation_manager.append_surrogate_message(
             content=dedent_triple_quote_str("""
             Sure, here is a possible data analysis plan:
-            {}            
+            {}
             """).format(enhanced_plan), tag='analysis_plan',
             comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
         self.scientific_products.analysis_plan = enhanced_plan
