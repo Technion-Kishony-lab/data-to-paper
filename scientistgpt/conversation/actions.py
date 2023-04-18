@@ -96,6 +96,9 @@ class AppendMessage(Action):
             return None
 
     def _get_message_index(self):
+        """
+        Return the index of the message that will be appended to the conversation.
+        """
         tag_index = self._get_index_of_tag()
         if tag_index is None:
             return len(self.conversation)
