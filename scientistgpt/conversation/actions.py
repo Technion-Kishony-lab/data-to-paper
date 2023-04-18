@@ -4,7 +4,7 @@ from typing import Optional
 
 from scientistgpt.utils.text_utils import red_text
 
-from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
+from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
@@ -12,6 +12,14 @@ from .message_designation import GeneralMessageDesignation, SingleMessageDesigna
 
 
 NoneType = type(None)
+
+
+def apply_action(action, should_print: bool = True, is_color: bool = True):
+    APPLIED_ACTIONS.append(action)
+    if should_print:
+        print(action.pretty_repr())
+        print()
+    action.apply()
 
 
 @dataclass(frozen=True)
