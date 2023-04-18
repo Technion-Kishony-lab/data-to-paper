@@ -28,35 +28,35 @@ def test_create_conversation():
 def test_append_message(conversation, user_message):
     action = AppendMessage(conversation_name=conversation.conversation_name,
                            message=user_message, agent='tester', comment='this is a test')
+    print('\n' + action.pretty_repr())
     action.apply()
     assert conversation[-1] is user_message
-    print('\n' + action.pretty_repr())
 
 
 def test_add_chatgpt_response(conversation, assistant_message):
     action = AppendChatgptResponse(conversation_name=conversation.conversation_name,
                                    message=assistant_message, agent='tester', comment='this is a test',
                                    hidden_messages=[1, 3])
+    print('\n' + action.pretty_repr())
     action.apply()
     assert conversation[-1] is assistant_message
-    print('\n' + action.pretty_repr())
 
 
 def test_failed_chatgpt_response(conversation, assistant_message):
     original_length = len(conversation)
     action = FailedChatgptResponse(conversation_name=conversation.conversation_name,
                                    agent='tester', comment='this is a test', hidden_messages=-1)
+    print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length
-    print('\n' + action.pretty_repr())
 
 
 def test_no_action(conversation):
     original_length = len(conversation)
     action = NoAction(conversation_name=conversation.conversation_name, agent='tester', comment='no action was taken')
+    print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length
-    print('\n' + action.pretty_repr())
 
 
 def test_regenerate_last_response(conversation, assistant_message):
@@ -65,29 +65,29 @@ def test_regenerate_last_response(conversation, assistant_message):
     action = RegenerateLastResponse(conversation_name=conversation.conversation_name,
                                     agent='tester', comment='this is a test', hidden_messages=[1, 3],
                                     message=assistant_message)
+    print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length
     conversation[-1] = assistant_message
-    print('\n' + action.pretty_repr())
 
 
 def test_reset_to_tag(conversation, assistant_message):
     assert len(conversation) == 4, "sanity"
     action = ResetToTag(conversation_name=conversation.conversation_name,
                         agent='tester', comment='we are going back', tag='write_code')
+    print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == 2
-    print('\n' + action.pretty_repr())
 
 
 def test_delete_messages(conversation, assistant_message):
     expected = conversation[0::2]
     action = DeleteMessages(conversation_name=conversation.conversation_name,
                             message_designation=['write_code', -1])
+    print('\n' + action.pretty_repr())
     action.apply()
     conversation.print_all_messages()
     assert conversation == expected
-    print('\n' + action.pretty_repr())
 
 
 def test_replace_last_response(conversation, assistant_message):
@@ -95,9 +95,9 @@ def test_replace_last_response(conversation, assistant_message):
     expected = conversation[:-1] + [assistant_message]
     action = ReplaceLastResponse(conversation_name=conversation.conversation_name,
                                  message=assistant_message, agent='tester', comment='this is a test')
+    print('\n' + action.pretty_repr())
     action.apply()
     assert conversation == expected
-    print('\n' + action.pretty_repr())
 
 
 def test_copy_messages_between_conversations():
@@ -116,6 +116,6 @@ def test_copy_messages_between_conversations():
         conversation_name='conversation_2',
         source_conversation_name='conversation_1',
         message_designation=RangeMessageDesignation.from_(0, -1))
+    print('\n' + action.pretty_repr())
     action.apply()
     assert conversation1 == conversation2
-    print('\n' + action.pretty_repr())
