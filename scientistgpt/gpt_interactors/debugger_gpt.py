@@ -56,7 +56,7 @@ class DebuggerGPT(CodeWritingGPT):
         os.rename(self.output_filename, self.script_filename + '.txt')
         return result
 
-    def _specify_allowed_packages(self, error_message: str):
+    def _respond_to_allowed_packages(self, error_message: str):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
@@ -67,7 +67,7 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(error_message, ', '.join(SUPPORTED_PACKAGES)),
             comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
-    def _specify_file_not_found(self, error_message: str):
+    def _respond_to_file_not_found(self, error_message: str):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
@@ -79,7 +79,7 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(error_message),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
-    def _specify_error_message(self, error_message: str):
+    def _respond_to_error_message(self, error_message: str):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
@@ -90,7 +90,7 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(error_message),
             comment=f'{self.iteration_str}: Runtime exception in GPT code.')
 
-    def _specify_missing_output(self):
+    def _respond_to_missing_output(self):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code. It ran fine without raising any exception, 
@@ -99,7 +99,7 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
-    def _specify_timeout(self):
+    def _respond_to_timeout(self):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, but it just ran forever...
@@ -136,7 +136,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
         )
 
-    def _notify_forbidden_functions(self, func: str):
+    def _respond_to_forbidden_functions(self, func: str):
         if func == 'print':
             self.conversation_manager.append_user_message(
                 content=dedent_triple_quote_str("""
@@ -152,7 +152,7 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(func),
             comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
 
-    def _specify_empty_output(self):
+    def _respond_to_empty_output(self):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is just empty! 
@@ -182,30 +182,31 @@ class DebuggerGPT(CodeWritingGPT):
                 raise e.exception
             except ImportError:
                 # chatgpt tried using a package we do not support
-                self._specify_allowed_packages(str(e.exception))
+                self._respond_to_allowed_packages(str(e.exception))
             except TimeoutError:
                 # code took too long to run
-                self._specify_timeout()
+                self._respond_to_timeout()
             except FileNotFoundError:
                 # the code tried to load file that we do not have
-                self._specify_file_not_found(str(e.exception))
+                self._respond_to_file_not_found(str(e.exception))
             except CodeUsesForbiddenFunctions as f:
-                self._notify_forbidden_functions(f.func)
+                self._respond_to_forbidden_functions(f.func)
             except Exception:
                 # the code failed on other errors
                 # we will indicate to chatgpt the error message that we got
-                self._specify_error_message(e.get_traceback_message())
+                self._respond_to_error_message(e.get_traceback_message())
         except FailedLoadingOutput:
             # Code ran, but the output file was not created.
-            self._specify_missing_output()
+            self._respond_to_missing_output()
         except Exception:
             raise
         else:
-            # The code ran successfully
+            # The code ran without raising exceptions
             if not code_and_output.output or code_and_output.output.isspace():
                 # The code ran successfully, but the output file is empty.
-                self._specify_empty_output()
+                self._respond_to_empty_output()
             else:
+                # All good!
                 self.comment("GPT code completed successfully. Returning results to ScientistGPT.")
                 return code_and_output
 
@@ -217,7 +218,7 @@ class DebuggerGPT(CodeWritingGPT):
                 comment="Deleting previous debug iterations.")
         return None  # code failed
 
-    def _get_or_create_tag(self):
+    def _get_tag(self):
         """
         If the last message has a tag, use it as the initiation tag.
         Otherwise, create a new tag tagged comment and use it as the initiation tag.
@@ -234,7 +235,7 @@ class DebuggerGPT(CodeWritingGPT):
         If debugging did not converge to a running code within the max_debug_iterations, return None.
         Otherwise, return the code and output.
         """
-        self._get_or_create_tag()
+        self._get_tag()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             code_and_output = self._get_and_run_code()
             if code_and_output is not None:

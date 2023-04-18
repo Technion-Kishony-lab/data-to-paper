@@ -77,7 +77,7 @@ class Message:
         role_conversation_tag = f'{role.name} -> {conversation_name} {tag_text}'
 
         if role == Role.COMMENTER:
-            return text_color + num_text + role_conversation_tag + ': ' + content + reset_color + '\n'
+            return text_color + num_text + role_conversation_tag + ': ' + content + reset_color
 
         # header:
         s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role_conversation_tag \
@@ -163,7 +163,7 @@ class CodeMessage(Message):
                 partial_code = sections[1]
                 content = content.replace(
                     partial_code,
-                    f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHAT GPT\n```\n")
+                    f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
 
         return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
 

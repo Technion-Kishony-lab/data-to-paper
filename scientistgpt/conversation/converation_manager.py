@@ -1,4 +1,3 @@
-import sys
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -8,7 +7,7 @@ from .message import Message, Role, create_message, create_message_from_other_me
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation
+    CreateConversation, apply_action
 
 
 @dataclass
@@ -41,12 +40,7 @@ class ConversationManager:
         """
         Apply an action to a conversation and append to the actions list.
         """
-        APPLIED_ACTIONS.append(action)
-        action.apply()
-        if self.should_print:
-            print(action.pretty_repr(), flush=True)
-            print(flush=True)
-            sys.stdout.flush()
+        apply_action(action, should_print=self.should_print, is_color=True)
 
     def create_conversation(self):
         self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name))
