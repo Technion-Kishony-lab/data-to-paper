@@ -1,10 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from scientistgpt.utils.text_utils import red_text
 
-from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
+from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
@@ -14,16 +14,12 @@ from .message_designation import GeneralMessageDesignation, SingleMessageDesigna
 NoneType = type(None)
 
 
-def get_name_with_new_number(conversation_name: str) -> str:
-    """
-    Return a new conversation name, which is not already taken, by appending a new number to the provided name.
-    """
-    i = 1
-    while True:
-        new_name = f'{conversation_name}_{i}'
-        if new_name not in CONVERSATION_NAMES_TO_CONVERSATIONS:
-            return new_name
-        i += 1
+def apply_action(action, should_print: bool = True, is_color: bool = True):
+    APPLIED_ACTIONS.append(action)
+    if should_print:
+        print(action.pretty_repr())
+        print()
+    action.apply()
 
 
 @dataclass(frozen=True)
@@ -45,17 +41,17 @@ class Action:
     def conversation(self) -> Conversation:
         return CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name]
 
-    def default_comment(self) -> str:
+    def _pretty_attrs(self) -> str:
         return ''
 
-    def pretty_repr(self, is_color: bool = True) -> str:
+    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
         s = ''
         if self.agent:
             s += f'{self.agent}: '
         s += f'{type(self).__name__}'
-        if self.default_comment():
-            s += f'({self.default_comment()})'
-        if self.conversation_name:
+        if self._pretty_attrs():
+            s += f'({self._pretty_attrs()})'
+        if with_conversation_name and self.conversation_name:
             s += f' -> {self.conversation_name}'
         if self.comment:
             s += f', {self.comment}'
@@ -88,36 +84,54 @@ class AppendMessage(Action):
     """
     message: Message = None
 
-    def pretty_repr(self, is_color: bool = True) -> str:
-        # Note: the conversation len assumes this method is called right after the message is appended.
-        # Note: we are adding the text from the super method because the action and the message
-        #       contain redundant information.
-        if self.comment:
-            s = self.comment
-            if is_color:
-                s = red_text(s)
-            s += '\n'
-        else:
-            s = ''
-        s += self.message.pretty_repr(number=len(self.conversation),
+    def _get_index_of_tag(self) -> Optional[int]:
+        """
+        Return the index of the message with the provided tag.
+        """
+        if self.message.tag is None:
+            return None
+        try:
+            return SingleMessageDesignation(self.message.tag).get_message_num(self.conversation)
+        except ValueError:
+            return None
+
+    def _get_message_index(self):
+        """
+        Return the index of the message that will be appended to the conversation.
+        """
+        tag_index = self._get_index_of_tag()
+        if tag_index is None:
+            return len(self.conversation)
+        return tag_index
+
+    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
+        # Note 1: the conversation len assumes this method is called right before the message is appended.
+        # Note 2: we are only adding the text from the super method we have comments or are rewinding. Otherwise, we
+        #         the message we print has the other information (conversation name and role).
+        s = ''
+        if self.comment or self._pretty_attrs():
+            s += super().pretty_repr(is_color=is_color, with_conversation_name=False) + '\n'
+        s += self.message.pretty_repr(number=self._get_message_index() + 1,
                                       conversation_name=self.conversation_name,
                                       is_color=is_color)
         return s
 
-    def default_comment(self) -> str:
-        return f'{self.message.role}'
+    def _pretty_attrs(self) -> str:
+        index = self._get_index_of_tag()
+        if index is None:
+            return ''
+        num_deleted = len(self.conversation) - index
+        return f'REWINDING {num_deleted} MESSAGES'
 
     def apply(self):
         """
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
         """
-        if self.message.tag is not None:
-            try:
-                index = SingleMessageDesignation(self.message.tag).get_message_num(self.conversation)
-                del self.conversation[index:]
-            except ValueError:
-                pass
+        index = self._get_index_of_tag()
+        if index is not None:
+            del self.conversation[index:]
+        assert len(self.conversation) == self._get_message_index()
         self.conversation.append(self.message)
 
 
@@ -130,7 +144,7 @@ class BaseChatgptResponse(Action):
     hidden_messages: GeneralMessageDesignation = None
     "list of message to remove from the conversation when sending to ChatGPT"
 
-    def default_comment(self) -> str:
+    def _pretty_attrs(self) -> str:
         return f'HIDING MESSAGES: {self.hidden_messages}' if self.hidden_messages else ''
 
 
@@ -167,8 +181,8 @@ class RegenerateLastResponse(AppendChatgptResponse):
     """
     Delete the last chatgpt response and regenerate.
     """
-    def default_comment(self) -> str:
-        return ''
+    def _pretty_attrs(self) -> str:
+        return ' '  # not empty, to invoke printing the comment line in pretty_repr()
 
     def apply(self):
         self.conversation.delete_last_response()
@@ -178,20 +192,27 @@ class RegenerateLastResponse(AppendChatgptResponse):
 @dataclass(frozen=True)
 class ResetToTag(Action):
     """
-    Reset the conversation back to the specified tag.
+    Reset the conversation back to right after the specified tag.
 
     By default, off_set is 0, which means the message with the specified tag will not be deleted.
     """
     tag: Optional[str] = None
     off_set: int = 0
 
-    def default_comment(self) -> str:
-        off_set_test = '' if self.off_set == 0 else f'{self.off_set:+d}'
-        return f'<{self.tag}>' + off_set_test
+    @property
+    def _single_message_designation(self) -> SingleMessageDesignation:
+        return SingleMessageDesignation(tag=self.tag, off_set=self.off_set)
+
+    @property
+    def _message_num(self) -> int:
+        return self._single_message_designation.get_message_num(self.conversation)
+
+    def _pretty_attrs(self) -> str:
+        num_messages_deleted = len(self.conversation) - self._message_num - 1
+        return f'{self._single_message_designation} [REWINDING {num_messages_deleted} MESSAGES]'
 
     def apply(self):
-        index = SingleMessageDesignation(tag=self.tag, off_set=self.off_set).get_message_num(self.conversation)
-        del self.conversation[index + 1:]
+        del self.conversation[self._message_num + 1:]
 
 
 @dataclass(frozen=True)
@@ -203,12 +224,17 @@ class DeleteMessages(Action):
     """
     message_designation: GeneralMessageDesignation = None
 
-    def default_comment(self) -> str:
-        return f'{self.message_designation}'
+    def _get_indices_to_delete(self) -> List[int]:
+        """
+        Return the indices of the messages to delete in reverse order (to allow consistent popping).
+        """
+        return convert_general_message_designation_to_int_list(self.message_designation, self.conversation)[-1::-1]
+
+    def _pretty_attrs(self) -> str:
+        return f'{self.message_designation} [{len(self._get_indices_to_delete())} MESSAGES]'
 
     def apply(self):
-        for index in convert_general_message_designation_to_int_list(self.message_designation,
-                                                                     self.conversation)[-1::-1]:
+        for index in self._get_indices_to_delete():
             self.conversation.pop(index)
 
 
@@ -219,7 +245,7 @@ class ReplaceLastResponse(AppendMessage):
     """
     message: Message = None
 
-    def default_comment(self) -> str:
+    def _pretty_attrs(self) -> str:
         return ''
 
     def apply(self):
@@ -239,10 +265,16 @@ class CopyMessagesBetweenConversations(Action):
     def source_conversation(self) -> Conversation:
         return CONVERSATION_NAMES_TO_CONVERSATIONS[self.source_conversation_name]
 
-    def default_comment(self) -> str:
-        return f'messages {self.message_designation} from conversation "{self.source_conversation_name}"'
+    def _get_indices_to_copy(self) -> List[int]:
+        """
+        Return the indices of the messages to copy.
+        """
+        return convert_general_message_designation_to_int_list(self.message_designation, self.source_conversation)
+
+    def _pretty_attrs(self) -> str:
+        return f'{self.message_designation} from "{self.source_conversation_name}", ' \
+               f'[{len(self._get_indices_to_copy())} MESSAGES]'
 
     def apply(self):
-        for index in convert_general_message_designation_to_int_list(self.message_designation,
-                                                                     self.source_conversation):
+        for index in self._get_indices_to_copy():
             self.conversation.append(self.source_conversation[index])

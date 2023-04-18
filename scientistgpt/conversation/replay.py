@@ -4,7 +4,7 @@ from pathlib import Path
 
 from typing import List, Union
 
-from .actions import Action
+from .actions import Action, apply_action
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 
 
@@ -32,7 +32,7 @@ def clear_actions_and_conversations():
     CONVERSATION_NAMES_TO_CONVERSATIONS.clear()
 
 
-def replay_actions(file_path: Union[str, Path], should_print: bool = True):
+def replay_actions(file_path: Union[str, Path], should_print: bool = True, is_color: bool = True):
     """
     Replay a list of actions on conversations.
     """
@@ -40,10 +40,6 @@ def replay_actions(file_path: Union[str, Path], should_print: bool = True):
 
     new_actions = load_actions_from_file(file_path)
     for action in new_actions:
-        action.apply()
-        APPLIED_ACTIONS.append(action)
-        if should_print:
-            print(action.pretty_repr())
-            print()
+        apply_action(action, should_print=should_print, is_color=is_color)
 
     return new_actions
