@@ -48,7 +48,7 @@ class SingleMessageDesignation(MessageDesignation):
 
     def __str__(self):
         if self.off_set:
-            return f"<{self.tag}>{self.off_set:+d}"
+            return f"<{self.tag} {self.off_set:+d}>"
         else:
             return f"<{self.tag}>"
 
@@ -69,7 +69,7 @@ class RangeMessageDesignation(MessageDesignation):
         return list(range(self.start.get_message_num(conversation), self.end.get_message_num(conversation) + 1))
 
     def __str__(self):
-        return f"{self.start}-{self.end}"
+        return f"{self.start} - {self.end}"
 
     @classmethod
     def from_(cls,
