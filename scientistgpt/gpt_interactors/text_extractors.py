@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from scientistgpt.conversation.actions import get_name_with_new_number
+from scientistgpt.conversation.actions_and_conversations import get_name_with_new_number
 
 from .converser_gpt import ConverserGPT
 
