@@ -45,11 +45,12 @@ class ConversationManager:
     def create_conversation(self):
         self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name))
 
-    def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None):
+    def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
+                       is_code: bool = False, previous_code: Optional[str] = None):
         """
         Append a message to a specified conversation.
         """
-        message = Message(role=role, content=content, tag=tag)
+        message = create_message(role=role, content=content, tag=tag, is_code=is_code, previous_code=previous_code)
         self._append_and_apply_action(
             AppendMessage(conversation_name=self.conversation_name, agent=self.agent, comment=comment, message=message))
 
@@ -59,11 +60,12 @@ class ConversationManager:
         """
         self.append_message(Role.SYSTEM, content, tag, comment)
 
-    def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+                            is_code: bool = False, previous_code: Optional[str] = None):
         """
         Append a user-message to a specified conversation.
         """
-        self.append_message(Role.USER, content, tag, comment)
+        self.append_message(Role.USER, content, tag, comment, is_code, previous_code)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -74,11 +76,12 @@ class ConversationManager:
         """
         self.append_message(Role.COMMENTER, content, tag, comment)
 
-    def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+                                 is_code: bool = False, previous_code: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.append_message(Role.SURROGATE, content, tag, comment)
+        self.append_message(Role.SURROGATE, content, tag, comment, is_code, previous_code)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
