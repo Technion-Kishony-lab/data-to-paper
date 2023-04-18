@@ -31,13 +31,15 @@ def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_
     new_responses_and_exceptions = {'new_responses': new_responses, 'exception': None}
     original_method = conversation._get_chatgpt_response
     conversation._get_chatgpt_response = mock_chatgpt_response
+    keyboard_interrupt_occurred = False
     try:
         yield new_responses_and_exceptions
     except (Exception, KeyboardInterrupt) as e:
         new_responses_and_exceptions['exception'] = e
+        keyboard_interrupt_occurred = isinstance(e, KeyboardInterrupt)
     finally:
         conversation._get_chatgpt_response = original_method
-    if responses and fail_if_not_all_responses_used:
+    if fail_if_not_all_responses_used and responses and not keyboard_interrupt_occurred:
         raise AssertionError(f'Not all responses were used: {responses}')
 
 
