@@ -14,18 +14,6 @@ from .message_designation import GeneralMessageDesignation, SingleMessageDesigna
 NoneType = type(None)
 
 
-def get_name_with_new_number(conversation_name: str) -> str:
-    """
-    Return a new conversation name, which is not already taken, by appending a new number to the provided name.
-    """
-    i = 1
-    while True:
-        new_name = f'{conversation_name}_{i}'
-        if new_name not in CONVERSATION_NAMES_TO_CONVERSATIONS:
-            return new_name
-        i += 1
-
-
 @dataclass(frozen=True)
 class Action:
     """

@@ -25,3 +25,15 @@ APPLIED_ACTIONS: List[Action] = []
 """
 a list of actions applied to conversations by order in which actions were applied.
 """
+
+
+def get_name_with_new_number(conversation_name: str) -> str:
+    """
+    Return a new conversation name, which is not already taken, by appending a new number to the provided name.
+    """
+    i = 1
+    while True:
+        new_name = f'{conversation_name}_{i}'
+        if new_name not in CONVERSATION_NAMES_TO_CONVERSATIONS:
+            return new_name
+        i += 1
