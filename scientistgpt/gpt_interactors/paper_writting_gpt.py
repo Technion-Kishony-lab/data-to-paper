@@ -3,7 +3,9 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from scientistgpt.gpt_interactors.converser_gpt import PaperWritingGPT
-from scientistgpt.gpt_interactors.scientific_products import ScientificProducts
+from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, PaperSections, \
+    SCIENTIFIC_PRODUCT_FIELD_NAMES, PAPER_SECTION_FIELD_NAMES
+from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
@@ -33,31 +35,24 @@ class PaperAuthorGPT(PaperWritingGPT):
     - write a conclusion
     """
     agent: str = 'Author'
-    # set conversation names:
     conversation_name: str = 'pre_paper_conversation'
 
-    # scientific_products is a field that cannot stay None
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
 
-    parts_to_write = ['abstract', 'title', 'introduction', 'methods', 'results', 'discussion', 'conclusion']
-
-    def __post_init__(self):
-        super().__post_init__()
-
-        self.conversation_manager.create_conversation()
-        self._populate_conversation()
+    paper_sections: Optional[PaperSections] = field(default_factory=PaperSections)
 
     def _populate_conversation(self):
         self.conversation_manager.append_system_message(dedent_triple_quote_str("""
-        You are a scientist that able to write full length sound scientific papers.
+        You are a scientist that is able to write full length sound scientific papers.
         Your will:
         1. Write every part of the paper in scientific language, in `.tex` format.
         2. Write the paper section by section.
         3. Write the paper in a way that is consistent with the scientific products you have.
         4. Do not cite any papers.
         """))
-        for tag in ['data_description', 'goal_description', 'analysis_plan',
-                    'result_summary', 'implications', 'limitations']:
+        for tag in SCIENTIFIC_PRODUCT_FIELD_NAMES:
+            if tag == 'analysis_codes_and_outputs':
+                continue
             prompt = dedent_triple_quote_str("""
             This is the {} part:
 
@@ -66,140 +61,67 @@ class PaperAuthorGPT(PaperWritingGPT):
             """).format(tag, getattr(self.scientific_products, tag))
             self.conversation_manager.append_user_message(prompt, tag=f'adding {tag} to pre_paper_conversation')
             self.conversation_manager.append_surrogate_message(content=f'Great! I now know about the {tag}.')
-        self.conversation_manager.append_surrogate_message('I have everything I need to start writing the different '
-                                                           'sections of the paper.', tag='ready_to_abstract')
 
-    def write_paper_section(self, section: str):
-        prompt = f"Please write only the {section} of the paper, do not write any other parts! " \
-                 f"remember to write that in .tex format including any math or symbols that needs escapes! " \
-                 f"don't add \\begin{{document}} and \\end{{document}} commands as I will add them manually."
+        self.comment("Added all scientific products to the conversation.", tag='after_scientific_products')
+
+    def _write_paper_section(self, section: str):
+        prompt = dedent_triple_quote_str("""
+            Please write only the `{}` of the paper, do not write any other parts!
+            Remember to write the section in tex format including any math or symbols that needs tax escapes.
+            """).format(section)
         self.conversation_manager.append_user_message(prompt, tag=f'request_{section}')
-        latex_content = None
         max_attempts = MAX_SECTION_RECREATION_ATTEMPTS
         for attempt in range(max_attempts):
+            assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section}')
             try:
-                assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section}')
-                # extract only the tex content of the assistant and make sure it is correct
-                latex_content = self.extract_correct_part_from_response(assistant_response, section)
-            except ValueError as e:
-                self.comment(f"The {section} was not written correctly, trying again, attempt "
-                             f"{attempt + 1} out of {max_attempts}")
+                latex_content = extract_latex_section_from_response(assistant_response, section)
+            except FailedToExtractLatexContent as e:
                 self.conversation_manager.append_user_message(
-                    dedent_triple_quote_str("""
-                    I checked your response and it seems that it does not contain the correct part of the paper 
-                    or that there is problem with the latex formatting.
-                    The error I got is:
-
-                    {}
-
-                    Please rewrite the {} part completely again with the error fixed.
-                    """).format(str(e), section))
-            except Exception as e:
-                self.comment(f"There was unknown problem in creating {section}, trying again, attempt "
-                             f"{attempt + 1} out of {max_attempts}")
-                self.conversation_manager.append_user_message(
-                    dedent_triple_quote_str("""
-                    I checked your response and it seems that there is problem with the section you created.
-                    The error I got is:
-
-                    {}
-
-                    Please rewrite the {} part completely again with the error fixed.
-                    """).format(str(e), section))
+                    content=dedent_triple_quote_str("""
+                    Your response is not correctly latex formatted. 
+                    In particular: {}
+                    
+                    Please rewrite the {} part again with the correct latex formatting.
+                    """).format(e, section),
+                    comment=f"The {section} had a latex formatting error (attempt {attempt + 1} / {max_attempts})"
+                )
             else:
                 # no error was raised, save the content of the section
+                # TODO: we should try to format the latex and report formatting errors to chatgpt
                 self.comment(f"{section} section of the paper successfully created.")
-                setattr(self.scientific_products, section, latex_content)
+                setattr(self.paper_sections, section, latex_content)
                 return latex_content
-        if latex_content is None:
-            # if we got here, it means that we failed to create the section
+        else:
+            # we failed to create the section
             self.comment(f"Failed to create the {section} section of the paper after {max_attempts} attempts.")
             return False
 
-    @staticmethod
-    def extract_correct_part_from_response(response: str, section: str):
-        """
-        extract the correct part of the response, i.e. the latex content of the response.
-        """
-        # extract only the tex content of the assistant
-        # latex_content = extract_latex_text_from_response(response).strip()
-        # check that the response has the right part of the paper
-        if section == 'title':
-            try:
-                title = response.split('\\title{')[1].split('}')[0]
-                if title == '':
-                    raise ValueError(f'I got an empty title.')
-                latex_content = '\\title{' + title + '}'
-            except Exception:
-                raise ValueError(f'Expected to find \\title in the response, but did not find it.')
-            # find if there is any other section within the response of the assistant using the \section command
-            # if there is, raise an error
-            # elif '\\section' in latex_content:
-            #     raise ValueError(f'Expected to find only \\title in the response, but found other parts.')
-        elif section == 'abstract':
-            try:
-                abstract = response.split('\\begin{abstract}')[1].split('\\end{abstract}')[0]
-                if abstract == '':
-                    raise ValueError(f'I got an empty abstract.')
-                latex_content = '\\begin{abstract}' + abstract + \
-                                '\\end{abstract}'
-            except Exception:
-                raise ValueError(f'Expected to find \\begin{{abstract}} and \\end{{abstract}} in the response, '
-                                 f'but did not find it.')
-            # if not latex_content.startswith('\\begin{abstract}'):
-            #     raise ValueError(
-            #         'Expected the answer to begin with \\begin{abstract} in the response, but did not find it.')
-            # elif not latex_content.endswith('\\end{abstract}'):
-            #     raise ValueError(
-            #         'Expected the answer to end with \\end{abstract} in the response, but did not find it.')
-            # find if there is any other section within the response of the assistant using the \section command
-            # if there is, raise an error
-            # elif '\\section' in latex_content:
-            #     raise ValueError(
-            #         'Expected to find only \\begin{abstract} and \\end{abstract} in the response, but found other '
-            #         'sections.')
-        else:
-            try:
-                section_content = response.split(f'\\section{{{section.capitalize()}}}')[1]
-                if section_content == '':
-                    raise ValueError(f'I got an empty {section} section.')
-                latex_content = f'\\section{{{section.capitalize()}}}' + section_content
-            except Exception:
-                if f'\\section*{{{section.capitalize()}}}' in response:
-                    section_content = response.split(f'\\section*{{{section.capitalize()}}}')[1]
-                    if section_content == '':
-                        raise ValueError(f'I got an empty {section} section.')
-                    latex_content = f'\\section{{{section.capitalize()}}}' + section_content
-                else:
-                    raise ValueError(
-                        f'Expected to find \\section{{{section.capitalize()}}} in the response, but did not find it.')
-            # if not latex_content.startswith(f'\\section{{{section.capitalize()}}}'):
-            #     raise ValueError(
-            #         f'Expected the answer to begin with \\section{{{section.capitalize()}}} in the response, but did '
-            #         f'not find it.')
-            # find if there is any other section within the response of the assistant using the \section command
-        return latex_content
-
-    def write_paper_step_by_step(self):
+    def _write_paper_step_by_step(self):
         """
         write the paper section by section, after each section restart conversation to the abstract.
         """
+
+        # TODO: ultimately, we might want to designate for each section we are writing what are sections to present.
+        #  These other presented sections can be presented in full or as summaries.
+
         # write the abstract
-        self.write_paper_section('abstract')
-        self.conversation_manager.reset_back_to_tag('ready_to_abstract')
+        self._write_paper_section('abstract')
+        self.conversation_manager.reset_back_to_tag('ready_for_abstract')
         abstract_prompt = dedent_triple_quote_str("""
         The abstract of the paper is:
 
         {}
 
-        """).format(self.scientific_products.abstract)
+        """).format(self.paper_sections.abstract)
         self.conversation_manager.append_user_message(abstract_prompt, tag='abstract_written')
         # write the rest of the paper
-        for section in ['title', 'introduction', 'methods', 'results', 'discussion', 'conclusion']:
-            self.write_paper_section(section)
+        for section in PAPER_SECTION_FIELD_NAMES:
+            if section == 'abstract':
+                continue
+            self._write_paper_section(section)
             self.conversation_manager.reset_back_to_tag('abstract_written')
 
-    def assemble_paper(self):
+    def _assemble_paper(self):
         """
         assemble the paper from the different sections.
         """
@@ -207,7 +129,7 @@ class PaperAuthorGPT(PaperWritingGPT):
             paper_template = f.read()
         # replace each section with the corresponding section, in the paper template the sections are marked with
         # @@@section_name@@@
-        for section in self.parts_to_write:
+        for section in PAPER_SECTION_FIELD_NAMES:
             paper_template = paper_template.replace(f'@@@{section}@@@', getattr(self.scientific_products, section))
         # write the paper to a file
         with open(self.paper_filename, 'w') as f:
@@ -216,5 +138,7 @@ class PaperAuthorGPT(PaperWritingGPT):
         os.system(f'pdflatex {self.paper_filename}')
 
     def write_paper(self):
-        self.write_paper_step_by_step()
-        self.assemble_paper()
+        self.conversation_manager.create_conversation()
+        self._populate_conversation()
+        self._write_paper_step_by_step()
+        self._assemble_paper()
