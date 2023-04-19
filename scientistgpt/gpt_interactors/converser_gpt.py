@@ -62,20 +62,3 @@ class CodeWritingGPT(ConverserGPT):
     """
     The base name of the pythin file in which the code written by gpt is saved. 
     """
-
-
-@dataclass
-class PaperWritingGPT(ConverserGPT):
-    """
-    Interact with chatgpt to write a latex format paper.
-    """
-
-    paper_filename: str = 'paper.tex'
-    """
-    The name of the file that gpt code is instructed to save the results to.
-    """
-
-    paper_template_filename: str = 'standard_paper.tex'
-    """
-    The name of the file that holds the template for the paper.
-    """

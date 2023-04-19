@@ -8,7 +8,7 @@ from scientistgpt.exceptions import ScientistGPTException
 
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
-from .paper_writting_gpt import PaperAuthorGPT
+from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
