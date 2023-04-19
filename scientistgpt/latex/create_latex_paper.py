@@ -12,7 +12,7 @@ def load_paper_template(template_filename: str):
     return paper_template
 
 
-def assemble_latex_paper_from_sections(template_name: str, section_names_to_content: Dict[str, str]) -> str
+def assemble_latex_paper_from_sections(template_name: str, section_names_to_content: Dict[str, str]) -> str:
     """
     Assemble a paper from the different sections.
     """

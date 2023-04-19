@@ -2,6 +2,10 @@ from typing import Optional, List, Dict, NamedTuple
 
 
 class TagPairs(NamedTuple):
+    """
+    end strings to extract from text.
+    if right_tag=None - extract to the end.
+    """
     left_tag: str
     right_tag: Optional[str]
 
@@ -12,7 +16,7 @@ class TagPairs(NamedTuple):
             return f'`{self.left_tag}` and `{self.right_tag}`'
 
 
-SECTIONS_TO_TAG_PAIR_OPTIONS: Dict[str: List[TagPairs]] = {
+SECTIONS_TO_TAG_PAIR_OPTIONS: Dict[str, List[TagPairs]] = {
     'title': [TagPairs('\\title{', '}')],
     'abstract': [TagPairs('\\begin{abstract}', '\\end{abstract}')]
 }
