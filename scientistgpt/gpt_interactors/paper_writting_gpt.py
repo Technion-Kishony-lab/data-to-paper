@@ -5,7 +5,8 @@ from typing import Optional
 from scientistgpt.gpt_interactors.converser_gpt import PaperWritingGPT
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, PaperSections, \
     SCIENTIFIC_PRODUCT_FIELD_NAMES, PAPER_SECTION_FIELD_NAMES
-from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
+from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent, \
+    assemble_latex_paper_from_sections, save_latex_and_compile_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
@@ -123,19 +124,12 @@ class PaperAuthorGPT(PaperWritingGPT):
 
     def _assemble_paper(self):
         """
-        assemble the paper from the different sections.
+        Assemble the paper from the different sections.
         """
-        with open(self.paper_template_filename, 'r') as f:
-            paper_template = f.read()
-        # replace each section with the corresponding section, in the paper template the sections are marked with
-        # @@@section_name@@@
-        for section in PAPER_SECTION_FIELD_NAMES:
-            paper_template = paper_template.replace(f'@@@{section}@@@', getattr(self.scientific_products, section))
-        # write the paper to a file
-        with open(self.paper_filename, 'w') as f:
-            f.write(paper_template)
-        # compile the paper
-        os.system(f'pdflatex {self.paper_filename}')
+        latex_paper = assemble_latex_paper_from_sections(
+            self.paper_template_filename,
+            {section: getattr(self.paper_sections, section) for section in PAPER_SECTION_FIELD_NAMES})
+        save_latex_and_compile_to_pdf(latex_paper, self.paper_filename)
 
     def write_paper(self):
         self.conversation_manager.create_conversation()
