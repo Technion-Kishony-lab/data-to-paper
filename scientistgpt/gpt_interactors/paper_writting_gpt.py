@@ -105,7 +105,7 @@ class PaperAuthorGPT(PaperWritingGPT):
 
         # write the abstract
         self._write_paper_section('abstract')
-        self.conversation_manager.reset_back_to_tag('ready_for_abstract')
+        self.conversation_manager.reset_back_to_tag('after_scientific_products')
         abstract_prompt = dedent_triple_quote_str("""
         The abstract of the paper is:
 
