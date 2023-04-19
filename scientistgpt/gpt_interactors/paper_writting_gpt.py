@@ -65,7 +65,7 @@ class PaperAuthorGPT(PaperWritingGPT):
 
         self.comment("Added all scientific products to the conversation.", tag='after_scientific_products')
 
-    def _write_paper_section(self, section: str):
+    def _write_paper_section(self, section: str) -> str:
         prompt = dedent_triple_quote_str("""
             Please write only the `{}` of the paper, do not write any other parts!
             Remember to write the section in tex format including any math or symbols that needs tax escapes.
@@ -88,14 +88,12 @@ class PaperAuthorGPT(PaperWritingGPT):
                 )
             else:
                 # no error was raised, save the content of the section
-                # TODO: we should try to format the latex and report formatting errors to chatgpt
                 self.comment(f"{section} section of the paper successfully created.")
                 setattr(self.paper_sections, section, latex_content)
                 return latex_content
         else:
             # we failed to create the section
-            self.comment(f"Failed to create the {section} section of the paper after {max_attempts} attempts.")
-            return False
+            assert False, f"Failed to create the {section} section of the paper after {max_attempts} attempts."
 
     def _write_paper_step_by_step(self):
         """
@@ -127,8 +125,9 @@ class PaperAuthorGPT(PaperWritingGPT):
         Assemble the paper from the different sections.
         """
         latex_paper = assemble_latex_paper_from_sections(
-            self.paper_template_filename,
-            {section: getattr(self.paper_sections, section) for section in PAPER_SECTION_FIELD_NAMES})
+            template_name=self.paper_template_filename,
+            section_names_to_content={section: getattr(self.paper_sections, section)
+                                      for section in PAPER_SECTION_FIELD_NAMES})
         save_latex_and_compile_to_pdf(latex_paper, self.paper_filename)
 
     def write_paper(self):
