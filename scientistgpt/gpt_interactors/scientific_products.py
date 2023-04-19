@@ -1,5 +1,4 @@
-import dataclasses
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Optional, List
 
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
@@ -20,19 +19,4 @@ class ScientificProducts:
     limitations: Optional[str] = None
 
 
-@dataclass
-class PaperSections:
-    """
-    Contains the different sections of a scientific paper.
-    """
-    abstract: Optional[str] = None
-    title: Optional[str] = None
-    introduction: Optional[str] = None
-    methods: Optional[str] = None
-    results: Optional[str] = None
-    discussion: Optional[str] = None
-    conclusion: Optional[str] = None
-
-
-SCIENTIFIC_PRODUCT_FIELD_NAMES = [field.name for field in dataclasses.fields(ScientificProducts)]
-PAPER_SECTION_FIELD_NAMES = [field.name for field in dataclasses.fields(PaperSections)]
+SCIENTIFIC_PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(ScientificProducts)]
