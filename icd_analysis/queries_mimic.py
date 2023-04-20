@@ -41,3 +41,7 @@ are used in different clinical context in men versus women.
 For example, a code X is a GDC code if it tends to appear in proximity to code Y in female and in proximity to a different code Z in males.  
 Note that a code can be GDC, despite being used in similar frequencies in males and in females.
 """
+
+simpler_goal_description = """
+I am interested identifying diagnostic codes that are gender biased, namely that are man-enriched or woman-enriched.  
+"""
