@@ -17,12 +17,12 @@ class ConverserGPT:
 
     conversation_name: str = 'default'
 
-    agent: str = ''
+    driver: str = ''
 
     def __post_init__(self):
         self.conversation_manager = ConversationManager(
             conversation_name=self.conversation_name,
-            agent=self.agent
+            driver=self.driver if self.driver is not None else type(self).__name__
         )
 
     @property

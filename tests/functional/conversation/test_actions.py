@@ -20,14 +20,14 @@ def assistant_message():
 
 
 def test_create_conversation():
-    action = CreateConversation(agent='tester', comment='this is a test', conversation_name='new_conversation')
+    action = CreateConversation(comment='this is a test', conversation_name='new_conversation')
     action.apply()
     assert CONVERSATION_NAMES_TO_CONVERSATIONS.keys() == {'new_conversation'}
 
 
 def test_append_message(conversation, user_message):
     action = AppendMessage(conversation_name=conversation.conversation_name,
-                           message=user_message, agent='tester', comment='this is a test')
+                           message=user_message, comment='this is a test')
     print('\n' + action.pretty_repr())
     action.apply()
     assert conversation[-1] is user_message
@@ -35,7 +35,7 @@ def test_append_message(conversation, user_message):
 
 def test_add_chatgpt_response(conversation, assistant_message):
     action = AppendChatgptResponse(conversation_name=conversation.conversation_name,
-                                   message=assistant_message, agent='tester', comment='this is a test',
+                                   message=assistant_message, comment='this is a test',
                                    hidden_messages=[1, 3])
     print('\n' + action.pretty_repr())
     action.apply()
@@ -45,7 +45,7 @@ def test_add_chatgpt_response(conversation, assistant_message):
 def test_failed_chatgpt_response(conversation, assistant_message):
     original_length = len(conversation)
     action = FailedChatgptResponse(conversation_name=conversation.conversation_name,
-                                   agent='tester', comment='this is a test', hidden_messages=-1)
+                                   comment='this is a test', hidden_messages=-1)
     print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length
@@ -53,7 +53,7 @@ def test_failed_chatgpt_response(conversation, assistant_message):
 
 def test_no_action(conversation):
     original_length = len(conversation)
-    action = NoAction(conversation_name=conversation.conversation_name, agent='tester', comment='no action was taken')
+    action = NoAction(conversation_name=conversation.conversation_name, comment='no action was taken')
     print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length
@@ -63,7 +63,7 @@ def test_regenerate_last_response(conversation, assistant_message):
     conversation.pop(-1)  # so that we have an assistant message last, to regenerate
     original_length = len(conversation)
     action = RegenerateLastResponse(conversation_name=conversation.conversation_name,
-                                    agent='tester', comment='this is a test', hidden_messages=[1, 3],
+                                    comment='this is a test', hidden_messages=[1, 3],
                                     message=assistant_message)
     print('\n' + action.pretty_repr())
     action.apply()
@@ -74,7 +74,7 @@ def test_regenerate_last_response(conversation, assistant_message):
 def test_reset_to_tag(conversation, assistant_message):
     assert len(conversation) == 4, "sanity"
     action = ResetToTag(conversation_name=conversation.conversation_name,
-                        agent='tester', comment='we are going back', tag='write_code')
+                        comment='we are going back', tag='write_code')
     print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == 2
@@ -94,7 +94,7 @@ def test_replace_last_response(conversation, assistant_message):
     conversation.append_assistant_message('bad response. to be replaced')
     expected = conversation[:-1] + [assistant_message]
     action = ReplaceLastResponse(conversation_name=conversation.conversation_name,
-                                 message=assistant_message, agent='tester', comment='this is a test')
+                                 message=assistant_message, comment='this is a test')
     print('\n' + action.pretty_repr())
     action.apply()
     assert conversation == expected

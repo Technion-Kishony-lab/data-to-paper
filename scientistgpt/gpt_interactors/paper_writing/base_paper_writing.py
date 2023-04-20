@@ -34,8 +34,6 @@ class PaperWritingGPT(ConverserGPT, ABC):
     Allows writing the paper section by section and assembling the sections into a paper.
     """
 
-    agent: str = 'Author'
-
     paper_filename: str = 'paper'
     """
     The name of the file that gpt code is instructed to save the results to.
