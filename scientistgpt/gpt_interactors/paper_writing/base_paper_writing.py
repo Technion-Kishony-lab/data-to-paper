@@ -1,7 +1,7 @@
 import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
-from plistlib import Dict
+from typing import Dict
 
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
@@ -10,7 +10,9 @@ from scientistgpt.utils import dedent_triple_quote_str
 @dataclass
 class PaperWritingGPT(ConverserGPT, ABC):
     """
-    Base class for agents interacting with chatgpt to write a paper.
+    Base class for agents interacting with chatgpt to write a latex/pdf paper.
+
+    Allows writing the paper section by section and assembling the sections into a paper.
     """
 
     agent: str = 'Author'

@@ -1,10 +1,8 @@
-import os
 from dataclasses import dataclass, field
-from typing import Optional, Dict
+from typing import Optional
 
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
-from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent, \
-    assemble_latex_paper_from_sections, save_latex_and_compile_to_pdf
+from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 from .base_paper_writing import PaperWritingGPT
 
@@ -16,23 +14,16 @@ class PaperAuthorGPT(PaperWritingGPT):
     """
     Interact with chatgpt to write a scientific paper.
 
-    the context we need for the paper writing process is:
-    - data description
-    - goal description
-    - analysis plan
-    - analysis results description
-    - implications of results
-    - limitations of results
+    the context we need for the paper writing process is the `scientific_products`, including:
+    data description, goal description, analysis plan, analysis results description, implications of results,
+    and limitations of results.
 
     the paper writing process is:
     - write an abstract
-    - add abstract to the context, i.e. conversation
-    - write an introduction
-    - write a methods section
-    - write a results section
-    - write a discussion section
-    - create figures supporting the results
-    - write a conclusion
+    - add abstract to the conversation
+    - based on the abstract, write all other sections (title, introduction, methods, results, discussions, conclusions)
+    - create figures supporting the results (TBD)
+    - assemble the sections into a paper
     """
 
     conversation_name: str = 'pre_paper_conversation'
@@ -106,6 +97,7 @@ class PaperAuthorGPT(PaperWritingGPT):
 
         """).format(self.paper_sections['abstract'])
         self.conversation_manager.append_user_message(abstract_prompt, tag='abstract_written')
+
         # write the rest of the paper
         for section_name in self.paper_section_names:
             if section_name in self.paper_sections:
