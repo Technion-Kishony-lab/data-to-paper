@@ -162,7 +162,7 @@ class CitationGPT(ConverserGPT):
         """
         Choose the most appropriate citations for the sentence, if any.
         """
-        citations_ids = [citation['bibtex'].split('{')[1].split('}')[0] for citation in sentence_citations]
+        citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
         citation_abstracts = [citation['abstract'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
         Choose the most appropriate citations for the sentence: 
@@ -222,7 +222,7 @@ class CitationGPT(ConverserGPT):
             As a reminder, the citations papers titles are: "{}".
             The citation ids you should enter in a smart and correct position maintaining good sentence flow are: "{}".
             Please rewrite the sentence with the citations using the citations ids given.
-            You should use \\cite{}, i.e., keep on correct .tex format to insert the citation, 
+            You should use \\cite{{}}, i.e., keep on correct .tex format to insert the citation, 
             do not reply with any other text beside the rewritten sentence.
             """).format(sentence, citations_titles, citations_ids))
         new_sentence = self.conversation_manager.get_and_append_assistant_message()
@@ -305,12 +305,13 @@ def create_bibtex(item):
         'issue': 'number',
         'page': 'pages',
         'published-print': 'year',
+        'published': 'year',
         'DOI': 'doi',
     }
 
     bibtex_type = type_mapping.get(item['type'], 'misc')
     if item['authors']:
-        bibtex_id = item['authors'][0].split(" ")[-1] + item.get('year', '')
+        bibtex_id = item['authors'][0].split(" ")[-1] + (str(item.get("year")) if item.get("year") else "")
     else:
         # get the first 3 words of the title if they exist otherwise use the first two, otherwise use the first one
         title_words = item['title'].split(" ")
@@ -321,7 +322,7 @@ def create_bibtex(item):
         else:
             bibtex_id = title_words[0]
         # add the year if it exists
-        bibtex_id += item.get('year', '')
+        bibtex_id += str(item.get("year")) if item.get("year") else ""
 
     fields = [f"author = {{{' and '.join(item['authors'])}}}"]
 
@@ -341,7 +342,7 @@ def remove_tags(text):
     return text.strip()  # Remove leading and trailing whitespace
 
 
-def crossref_search(query, rows=5):
+def crossref_search(query, rows=4):
     url = "https://api.crossref.org/works"
     headers = {
         "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
@@ -349,14 +350,13 @@ def crossref_search(query, rows=5):
     params = {
         "query": query,
         "rows": rows,
-        "sort": "relevance",
-        "order": "desc",
-        "filter": "has-abstract:true,has-title:true,type:journal-article,type:book,type:posted-content,type:proceedings-article"
+        "filter": "has-abstract:true,type:journal-article,type:book,type:posted-content,type:proceedings-article",
+        "select": "title,author,container-title,published-print,DOI,abstract,type,published",
     }
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code != 200:
-        raise Exception(f"Request failed with status code {response.status_code}")
+        raise Exception(f"Request failed with status code {response.status_code}, error: {response.text}")
 
     data = response.json()
     items = data['message']['items']
@@ -368,7 +368,8 @@ def crossref_search(query, rows=5):
             "title": item["title"][0],
             "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
                         item.get("author", [])],
-            "year": item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
+            # get year from published, if not available, get it from published-print
+            "year": item["published"]["date-parts"][0][0] if "published" in item else item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
             "journal": item.get("container-title", [None])[0],
             "doi": item["DOI"],
             "abstract": item["abstract"],
