@@ -24,11 +24,13 @@ class NotInSectionError(Exception):
     """
     pass
 
+
 class NotInCitations(Exception):
     """
     Error raised when the user did not return the citations that are inside the possible citations.
     """
     pass
+
 
 class ServerError(Exception):
     """
@@ -47,8 +49,6 @@ def validate_citation_ids(response, citations_ids):
     if not all(citation_id in citations_ids for citation_id in response):
         raise NotInCitations(response)
     return response
-
-
 
 
 def validate_type_of_response(sentences_queries, format_type):
@@ -124,6 +124,7 @@ class CitationGPT(ConverserGPT):
                 # check if the response can be parsed as a list of sentences:
                 return self._check_all_sentences_are_in_section(validate_type_of_response(eval(
                     '{' + extract_text_between_tags(response, *self.dict_tag_pairs) + '}'), Dict[str, str]))
+            # TODO:  dedent_triple_quote_str
             except SyntaxError:
                 self.conversation_manager.append_user_message(
                     f'eval(response) mentioned "invalid syntax". \n'
@@ -184,9 +185,9 @@ class CitationGPT(ConverserGPT):
         for sentence_number, sentence in enumerate(sentences_queries):
             for number_of_tries in range(self.max_number_of_api_calls):
                 try:
-                    self.conversation_manager.append_commenter_message(f'Finding citations for sentence '
-                                                                       f'{sentence_number + 1}, try number '
-                                                                       f'{number_of_tries + 1}')
+                    self.comment(f'Finding citations for sentence '
+                                 f'{sentence_number + 1}, try number '
+                                 f'{number_of_tries + 1}')
                     sentence_citations = crossref_search(sentences_queries[sentence])
                     sentences_citations.append(sentence_citations)
                     break
@@ -194,6 +195,7 @@ class CitationGPT(ConverserGPT):
                     if number_of_tries == self.max_number_of_api_calls - 1:
                         raise e
         return sentences_citations
+
     def _choose_citations_for_sentence(self, sentence, sentence_citations):
         """
         Choose the most appropriate citations for the sentence, if any.
@@ -297,6 +299,8 @@ class CitationGPT(ConverserGPT):
         sentences_possible_citations = self._find_citations_for_sentences(sentences_queries)
         updated_sentences = []
         all_citations_bibtexes = []
+        #  TODO:  add switch whether we call chatgpt
+        #  TODO: make it sound like a conversartion (give me the sentences you want to cross ref. I corssref and this is what i got..."
         for sentence, sentence_citations in zip(sentences_queries, sentences_possible_citations):
             chosen_citations_ids, chosen_citations_indices = self._choose_citations_for_sentence(sentence,
                                                                                                  sentence_citations)
@@ -309,6 +313,7 @@ class CitationGPT(ConverserGPT):
                 all_citations_bibtexes.append([sentence_citations[index]['bibtex'] for index in chosen_citations_indices])
             else:
                 updated_sentences.append(sentence)
+            # TODO:  probably no need to reset:
             self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
         # replace the section with the updated sentences
@@ -321,27 +326,14 @@ class CitationGPT(ConverserGPT):
 
         return updated_section, all_citations_bibtexes
 
-
-    def _save_citations_bibtexes_to_file(self, all_citations_bibtexes):
-        """
-        Save all the citations bibtexes to a .bib file.
-        """
-        # create the bibtex file if it does not exist and write the bibtexes to it, if exists append the bibtexes to it
-        if not os.path.exists(self.bibtex_file_path):
-            with open(self.bibtex_file_path, 'w') as f:
-                f.write('')
-        with open(self.bibtex_file_path, 'a') as f:
-            for citations_bibtexes in all_citations_bibtexes:
-                for citation_bibtex in citations_bibtexes:
-                    f.write(citation_bibtex)
-
     def rewrite_section_with_citations(self):
         """
         Rewrite the section with the citations and save all the citations bibtexes to a .bib file.
         """
         updated_section, all_citations_bibtexes = self._rewrite_section_with_citations_and_return_bibtexes()
-        self._save_citations_bibtexes_to_file(all_citations_bibtexes)
-        return updated_section
+        return updated_section, all_citations_bibtexes
+
+
 def create_bibtex(item):
     bibtex_template = '@{type}{{{id},\n{fields}}}\n'
 

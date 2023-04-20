@@ -122,6 +122,19 @@ class PaperWritingGPT(ConverserGPT, ABC):
         """
         save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, self.bib_filename, should_compile_to_pdf)
 
+    def _save_references_to_bib_file(self, references: Dict[str, str]):
+        """
+        Save all the citations bibtexes to a .bib file.
+        """
+        # TODO:  need to adjust
+        if not os.path.exists(self.bibtex_file_path):
+            with open(self.bibtex_file_path, 'w') as f:
+                f.write('')
+        with open(self.bibtex_file_path, 'a') as f:
+            for citations_bibtexes in all_citations_bibtexes:
+                for citation_bibtex in citations_bibtexes:
+                    f.write(citation_bibtex)
+
     def write_paper(self, should_compile_to_pdf: bool = True):
         self.initialize_conversation_if_needed()
         self._pre_populate_conversation()
@@ -138,9 +151,10 @@ class PaperWritingGPT(ConverserGPT, ABC):
         Add citations to all the relevant sections of the paper and add any necessary bibtex
         references to the .bib file.
         """
+        all_references = set()
         for section_name, section_content in self.paper_sections.items():
             if section_name in ['title', 'abstract']:
                 continue
-            citation_agent = CitationGPT(section=section_content)
-            updated_section = citation_agent.rewrite_section_with_citations()
-            self.paper_sections[section_name] = updated_section
+            self.paper_sections[section_name], references = \
+                CitationGPT(section=section_content).rewrite_section_with_citations()
+            all_references |= set(references)
