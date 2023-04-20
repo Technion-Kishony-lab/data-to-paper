@@ -21,18 +21,19 @@ module_filename = MODULE_NAME + ".py"
 module_filepath = os.path.join(module_dir, module_filename)
 
 
-def save_code_to_module_file(code: str):
+def save_code_to_module_file(code: str = None):
+    code = code or '# empty module\n'
     with open(module_filepath, "w") as f:
         f.write(code)
 
 
 # create module from empty file:
-save_code_to_module_file('# empty module\n')
+save_code_to_module_file()
 module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
 @timeout(MAX_EXEC_TIME)
-def run_code_using_module_reload(code: str, save_as: Optional[str]):
+def run_code_using_module_reload(code: str, save_as: Optional[str] = None):
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -58,6 +59,6 @@ def run_code_using_module_reload(code: str, save_as: Optional[str]):
             raise FailedRunningCode(exception=e, tb=tb, code=code)
         finally:
             if save_as is None:
-                os.remove(module_filepath)
+                save_code_to_module_file()
             else:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
