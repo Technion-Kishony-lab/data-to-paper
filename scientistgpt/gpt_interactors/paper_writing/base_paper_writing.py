@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict
 
 from scientistgpt.exceptions import ScientistGPTException
+from scientistgpt.gpt_interactors.citations_gpt import CitationGPT
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.latex import save_latex_and_compile_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str
@@ -125,5 +126,18 @@ class PaperWritingGPT(ConverserGPT, ABC):
             self._get_paper_sections()
         except FailedCreatingPaperSection as e:
             raise FailedCreatingPaper(e)
+        self._add_citations_to_paper()
         self._assemble_latex_paper_from_sections()
         self._save_latex_and_compile_to_pdf(should_compile_to_pdf)
+
+    def _add_citations_to_paper(self):
+        """
+        Add citations to all the relevant sections of the paper and add any necessary bibtex
+        references to the .bib file.
+        """
+        for section_name, section_content in self.paper_sections.items():
+            if section_name in ['title', 'abstract']:
+                continue
+            citation_agent = CitationGPT(section=section_content)
+            updated_section = citation_agent.rewrite_section_with_citations()
+            self.paper_sections[section_name] = updated_section
