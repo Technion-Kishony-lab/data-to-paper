@@ -39,6 +39,5 @@ def test_paper_author_gpt(tmpdir):
     assert author.conversation_manager.conversation_name == 'pre_paper_conversation'
 
     # check that the paper was created
-    assert author.paper_filename + '.tex' in os.listdir()
-    # assert author.paper_filename + '.pdf' in os.listdir()
-    # TODO: check that pdf is created
+    assert os.path.exists(author.latex_filename)
+    assert os.path.exists(author.pdf_filename)

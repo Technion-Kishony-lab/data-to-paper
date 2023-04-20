@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict
 
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
+from scientistgpt.latex import latex_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -100,7 +101,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
         with open(self.latex_filename, 'w') as f:
             f.write(self.latex_paper)
         if should_compile_to_pdf:
-            os.system(f'pdflatex {self.latex_filename}')
+            latex_to_pdf(self.latex_paper, self.pdf_filename)
 
     def write_paper(self):
         self.initialize_conversation_if_needed()
