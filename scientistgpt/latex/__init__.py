@@ -1,2 +1,3 @@
 from .exceptions import FailedToExtractLatexContent
 from .latex_extractor import extract_latex_section_from_response
+from .latex_to_pdf import latex_to_pdf
