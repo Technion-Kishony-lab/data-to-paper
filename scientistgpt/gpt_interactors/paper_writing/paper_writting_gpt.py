@@ -4,8 +4,9 @@ from typing import Optional, List
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
-from .base_paper_writing import PaperWritingGPT
-from ...utils.text_utils import concat_words_with_commas_and_and
+from scientistgpt.utils.text_utils import concat_words_with_commas_and_and
+
+from .base_paper_writing import PaperWritingGPT, FailedCreatingPaperSection
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
 
@@ -76,7 +77,7 @@ class PaperAuthorGPT(PaperWritingGPT):
                 self.comment(f'Section "{section_names}" successfully created.')
                 return
         # we failed to create the sections after max attempts
-        assert False, f"Failed to create the {section_names} section of the paper after {max_attempts} attempts."
+        raise FailedCreatingPaperSection(section_names[0])
 
     def _get_paper_sections(self):
         """
@@ -99,5 +100,5 @@ class PaperAuthorGPT(PaperWritingGPT):
         for section_name in self.paper_section_names:
             if section_name in self.paper_sections:
                 continue
-            self._write_specified_paper_sections(section_name)
+            self._write_specified_paper_sections([section_name])
             self.conversation_manager.reset_back_to_tag('title_and_abstract')
