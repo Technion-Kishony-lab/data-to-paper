@@ -31,8 +31,8 @@ class Action:
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
 
-    agent: Optional[str] = None
-    "The agent/algorithm performing the action."
+    driver: Optional[str] = None
+    "The algorithm performing the action."
 
     comment: Optional[str] = None
     "A comment explaining why action is performed."
@@ -46,8 +46,8 @@ class Action:
 
     def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
         s = ''
-        if self.agent:
-            s += f'{self.agent}: '
+        if self.driver:
+            s += f'{self.driver}: '
         s += f'{type(self).__name__}'
         if self._pretty_attrs():
             s += f'({self._pretty_attrs()})'

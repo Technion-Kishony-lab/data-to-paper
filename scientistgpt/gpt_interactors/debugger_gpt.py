@@ -29,7 +29,6 @@ class DebuggerGPT(CodeWritingGPT):
     * output file not created
     """
 
-    agent: str = 'DEBUGGER'
     max_debug_iterations: int = 5
 
     debug_iteration = 0

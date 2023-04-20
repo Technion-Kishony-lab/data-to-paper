@@ -21,7 +21,7 @@ class DualConverserGPT(ConverserGPT):
         super().__post_init__()
         self.other_conversation_manager = ConversationManager(
             conversation_name=self.other_conversation_name,
-            agent=self.agent
+            driver=self.driver if self.driver is not None else type(self).__name__,
         )
 
     @property

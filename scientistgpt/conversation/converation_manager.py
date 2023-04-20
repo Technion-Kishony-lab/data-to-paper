@@ -27,9 +27,9 @@ class ConversationManager:
 
     conversation_name: Optional[str] = None
 
-    agent: str = ''
+    driver: str = ''
     """
-    Name of the agent/algorithm that is instructing this conversation manager.
+    Name of the algorithm that is instructing this conversation manager.
     """
 
     @property
@@ -52,7 +52,7 @@ class ConversationManager:
         """
         message = create_message(role=role, content=content, tag=tag, is_code=is_code, previous_code=previous_code)
         self._append_and_apply_action(
-            AppendMessage(conversation_name=self.conversation_name, agent=self.agent, comment=comment, message=message))
+            AppendMessage(conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -121,7 +121,7 @@ class ConversationManager:
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             RegenerateLastResponse(
-                conversation_name=self.conversation_name, agent=last_action.agent, comment=comment,
+                conversation_name=self.conversation_name, driver=last_action.driver, comment=comment,
                 message=create_message_from_other_message(last_action.message, content=content),
                 hidden_messages=last_action.hidden_messages),
         )
@@ -142,12 +142,12 @@ class ConversationManager:
         content = self.conversation.try_get_chatgpt_response(hidden_messages, **kwargs)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
-                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
+                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 exception=content)
         else:
             action = AppendChatgptResponse(
-                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
+                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 message=create_message(role=Role.ASSISTANT, content=content, tag=tag,
                                        is_code=is_code, previous_code=previous_code))
@@ -161,7 +161,7 @@ class ConversationManager:
         The message with the specified tag will be kept.
         """
         self._append_and_apply_action(ResetToTag(
-            conversation_name=self.conversation_name, agent=self.agent, comment=comment, tag=tag))
+            conversation_name=self.conversation_name, driver=self.driver, comment=comment, tag=tag))
 
     def delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):
         """
@@ -169,7 +169,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             DeleteMessages(
-                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
+                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 message_designation=message_designation))
 
     def replace_last_response(self, content: str, comment: Optional[str] = None, tag: Optional[str] = None):
@@ -178,7 +178,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             ReplaceLastResponse(
-                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
+                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 message=Message(role=Role.SURROGATE, content=content, tag=tag)))
         return content
 
@@ -190,6 +190,6 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             CopyMessagesBetweenConversations(
-                conversation_name=self.conversation_name, agent=self.agent, comment=comment,
+                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 source_conversation_name=source_conversation.conversation_name,
                 message_designation=message_designation))
