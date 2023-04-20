@@ -1,7 +1,8 @@
 import os
 import importlib
 import traceback
-from typing import Optional
+import warnings
+from typing import Optional, List, Type
 
 import chatgpt_created_scripts
 
@@ -12,6 +13,8 @@ from .exceptions import FailedRunningCode
 
 MODULE_NAME = 'script_to_run'
 
+WARNINGS_TO_RAISE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
+WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filename = MODULE_NAME + ".py"
@@ -31,7 +34,7 @@ module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE
 @timeout(MAX_EXEC_TIME)
 def run_code_using_module_reload(code: str, save_as: Optional[str]):
     """
-    Run the provided code by saving to a file and importing.
+    Run the provided code and report exceptions or specific warnings.
 
     Raises a TimeoutError exception if runs too long.
 
@@ -42,13 +45,19 @@ def run_code_using_module_reload(code: str, save_as: Optional[str]):
     """
 
     save_code_to_module_file(code)
-    try:
-        importlib.reload(module)
-    except Exception as e:
-        tb = traceback.extract_tb(e.__traceback__)
-        raise FailedRunningCode(exception=e, tb=tb, code=code)
-    finally:
-        if save_as is None:
-            os.remove(module_filepath)
-        else:
-            os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
+    with warnings.catch_warnings():
+        for warning in WARNINGS_TO_IGNORE:
+            warnings.filterwarnings("ignore", category=warning)
+        for warning in WARNINGS_TO_RAISE:
+            warnings.filterwarnings("error", category=warning)
+
+        try:
+            importlib.reload(module)
+        except Exception as e:
+            tb = traceback.extract_tb(e.__traceback__)
+            raise FailedRunningCode(exception=e, tb=tb, code=code)
+        finally:
+            if save_as is None:
+                os.remove(module_filepath)
+            else:
+                os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
