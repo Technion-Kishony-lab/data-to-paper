@@ -96,7 +96,7 @@ class Message:
         """
         Returns a pretty repr of just the message content.
         """
-        return format_text_with_code_blocks(text=self.content, text_color=text_color,
+        return format_text_with_code_blocks(text=self.content.strip(), text_color=text_color,
                                             code_color=code_color, width=width, is_python=False)
 
     def convert_to_text(self):
@@ -154,7 +154,8 @@ class CodeMessage(Message):
                     # if the code diff is substantially shorter than the code, we replace the code with the diff:
                     content = content.replace(
                         self.extracted_code,
-                        "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff)
+                        "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
+                        else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
         elif HIDE_INCOMPLETE_CODE:
             # if we failed to extract the code, we check if there is a single incomplete code replace
             # and replace it with a message:
