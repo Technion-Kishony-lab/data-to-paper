@@ -5,6 +5,61 @@ import re
 
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.user_utils.tag_pairs import TagPairs
+from scientistgpt.utils.text_utils import extract_text_between_tags
+
+
+class WrongFormatError(Exception):
+    """
+    Error raised when the user did not return the results in the correct format.
+    """
+    pass
+
+
+class NotInSectionError(Exception):
+    """
+    Error raised when the user did not return the results in the correct format.
+    """
+    pass
+
+
+class NotInCitationsWrongFormatError(Exception):
+    pass
+
+
+def _validate_citation_ids(response, citations_ids):
+    """
+    Validate that the response is in the correct format and all ids are existing ones.
+    """
+    if response == 'no_citations':
+        return []
+    # check that the response is in the correct format "id1", "id1,id2" or similar
+    response = response.split(',')
+    if not all(citation_id in citations_ids for citation_id in response):
+        raise NotInCitationsWrongFormatError(response)
+    return response
+
+
+def _find_citations_for_sentences(sentences_queries):
+    """
+    Find citations for the sentences using the queries.
+    """
+    sentences_citations = []
+    for sentence in sentences_queries:
+        sentence_citations = crossref_search(sentences_queries[sentence])
+        sentences_citations.append(sentence_citations)
+    return sentences_citations
+
+
+def _validate_type_of_response(sentences_queries):
+    """
+    Validate that the response is a dict of str: str. if not raise WrongFormatError.
+    """
+    if not isinstance(sentences_queries, dict) or not all(isinstance(k, str) and isinstance(v, str)
+                                                          for k, v in sentences_queries.items()):
+        raise WrongFormatError(f'object is not of type: Dict[str: str]')
+    else:
+        return sentences_queries
 
 
 @dataclass
@@ -19,7 +74,7 @@ class CitationGPT(ConverserGPT):
                             You will be provided with list of possible citations, and you should select the most 
                             appropriate one for each of the sentences.
                             You will rewrite the sentences with the citations.
-                            The citations will be inserted to the text using \cite{}.
+                            The citations will be inserted to the text using \\cite{}.
                             """
 
     section: str = None
@@ -27,41 +82,166 @@ class CitationGPT(ConverserGPT):
     A section to add citations to.
     """
 
+    dict_tag_pairs: TagPairs = TagPairs('{', '}')
 
     max_number_of_attempts: int = 3
 
+    def _remove_mistake_citations_in_section(self):
+        """
+        Remove the citations that were inserted by mistake.
+        """
+        self.section = re.sub(r'\\cite\{.*?}', '', self.section)
 
     def _choose_sentences_that_need_citations(self):
         """
         choose sentences that need citations from the section.
         """
 
-        self.initialize_conversation_if_needed()
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
-        Below is a written section, from which you should extract the sentences that need to be cited. 
-        You need to return the list of this sentences in this format: 
-        { 1:  "This is sentence that need to be cited", 
-          2:  "This is another important claim", 
-          3:  "This is the last sentence that need to be cited"
-        ... } 
-        Identify as many sentences as you think that need to be cited.
-        
-        This is the section:
-        
-        {self.section}
-        """))
+        Extract from the given section the sentences that we need to add citations to them. 
+        For each of the sentence, create the best query possible for the citation search for this sentence.
+        You need to return the list of this sentences and the queries in this format: 
+        {
+         "This is sentence that need to have reference": "This is the query for this sentence", 
+         "This is another important claim": "Some important keywords for this sentence", 
+         "This is the another sentence that need to get a source": "This is the best query for this sentence",
+         } 
+        This just an example, identify as many sentences as you think that need get update with references.
+        return only dict of "sentence:query" pairs, without any other text.
+        """), tag='select_sentences')
 
-        # TODO: continue here
         for attempt_num in range(self.max_number_of_attempts):
             response = self.conversation_manager.get_and_append_assistant_message()
             try:
-                return self.extract_triplet_quoted_text(response)
+                # check if the response can be parsed as a list of sentences:
+                return self._check_all_sentences_are_in_section(_validate_type_of_response(eval(
+                    '{' + extract_text_between_tags(response, *self.dict_tag_pairs) + '}')))
             except ValueError:
                 self.conversation_manager.append_user_message(
-                    f'You did not extract the {self.description_of_text_to_extract} correctly. \n'
-                    f'Please try again making sure the extracted text is flanked by triple quotes, \n'
-                    f'like this """extracted text""".', tag='explicit_instruction')
-        raise ValueError(f'Could not extract text after {self.max_number_of_attempts} attempts.')
+                    f'I could not find "{self.dict_tag_pairs.left_tag}" and "{self.dict_tag_pairs.right_tag}" '
+                    f'in your result. \n'
+                    f'Please try again making sure you return the results with the correct format, \n'
+                    f'like this "{{"sentence 1":"query 1", "sentence 2": "query2"}}', tag='wrong_format_no_brackets')
+            except AssertionError:
+                self.conversation_manager.append_user_message(
+                    f'eval(response) did not return object of type: Dict[str: str]. \n'
+                    f'Please try again making sure you return the results with the correct format, \n'
+                    f'like this "{{"sentence 1":"query 1", "sentence 2": "query2"}}', tag='wrong_format_wrong_type')
+            except NotInSectionError as e:
+                self.conversation_manager.append_user_message(
+                    f'You returned a sentences that are not in the section: {e}. \n'
+                    f'Rewrite the answer and make sure to give only sentences that found in the section.',
+                    tag='not_in_section')
+        raise ValueError(f'Could not find sentences after {self.max_number_of_attempts} attempts.')
+
+    def _check_all_sentences_are_in_section(self, sentences_queries):
+        """
+        Check that all sentences (keys of the dict) are in the section.
+        """
+        sentences_not_in_section = []
+        for sentence in sentences_queries:
+            if sentence not in self.section:
+                sentences_not_in_section.append(sentence)
+
+        if sentences_not_in_section:
+            raise NotInSectionError(f'Sentences: {sentences_not_in_section} are not in the section.')
+
+        return sentences_queries
+
+    def _choose_citations_for_sentence(self, sentence, sentence_citations):
+        """
+        Choose the most appropriate citations for the sentence, if any.
+        """
+        citations_ids = [citation['bibtex'].split('{')[1].split('}')[0] for citation in sentence_citations]
+        citation_abstracts = [citation['abstract'] for citation in sentence_citations]
+        # TODO: fix this prompt because the model don't understand it and return something that looks like dict.
+        self.conversation_manager.append_user_message(dedent_triple_quote_str("""
+        Choose the most appropriate citations for the sentence: 
+        
+        {}
+        
+        Choose from the following citations, by reading their abstracts:
+        
+        {}
+        
+        Reply in the following format: "id1,id2" (without the quotes) to choose the citations with the given ids.
+        You can choose one or more, or choose to not add any citations to this sentence by replying with "no_citations".
+        """).format(sentence,
+                    '\n'.join(
+                        [f"id: '{citation_id}', abstract: '{citation_abstract}'" for citation_id, citation_abstract in
+                         zip(citations_ids, citation_abstracts)])
+                    ), tag='choose_citations')
+        for attempt_num in range(self.max_number_of_attempts):
+            response = self.conversation_manager.get_and_append_assistant_message()
+            try:
+                chosen_citations_ids = _validate_citation_ids(response, citations_ids)
+            except NotInCitationsWrongFormatError as e:
+                self.conversation_manager.append_user_message(
+                    f'You returned a citation id that is not in the citations: {e}. \n'
+                    f'Rewrite the answer and make sure to reply with only the citations ids and only ones that exists.',
+                    tag='not_in_citations_or_wrong_format')
+            else:
+                if not chosen_citations_ids:
+                    return [], []
+                # find the indices of the chosen citations
+                chosen_citations_indices = [citations_ids.index(citation_id) for citation_id in chosen_citations_ids]
+                # return the chosen citations
+                return chosen_citations_ids, chosen_citations_indices
+
+    def _rewrite_sentence_with_citation(self, sentence, citations_titles, citations_ids):
+        """
+        Rewrite the sentence with the citation.
+        """
+        self.conversation_manager.append_user_message(
+            dedent_triple_quote_str("""
+            The sentence you need to rewrite is: "{}".
+            As a reminder, the citations papers titles are: "{}".
+            The citation ids you should enter in a smart and correct position maintaining good sentence flow are: "{}".
+            Please rewrite the sentence with the citations using the citations ids given.
+            You should use \\cite{} to insert the citation, 
+            do not reply with any other text beside the rewritten sentence.
+            """).format(sentence, citations_titles, citations_ids))
+        new_sentence = self.conversation_manager.get_and_append_assistant_message()
+        return new_sentence
+
+    def rewrite_section_with_citations(self):
+        """
+        Rewrite the section with the citations.
+        """
+        self._remove_mistake_citations_in_section()
+        self.initialize_conversation_if_needed()
+        self.conversation_manager.append_user_message(dedent_triple_quote_str("""
+        This is the section you need to rewrite with citations:
+        
+        {}
+        """).format(self.section), tag='add_section')
+        self.conversation_manager.append_surrogate_message('Great, thanks for giving me the section!',
+                                                           tag='add_section_surrogate')
+        sentences_queries = self._choose_sentences_that_need_citations()
+        self.conversation_manager.reset_back_to_tag('add_section_surrogate')
+        sentences_possible_citations = _find_citations_for_sentences(sentences_queries)
+        updated_sentences = []
+        for sentence, sentence_citations in zip(sentences_queries, sentences_possible_citations):
+            chosen_citations_ids, chosen_citations_indices = self._choose_citations_for_sentence(sentence,
+                                                                                                 sentence_citations)
+            # get the chosen citations titles
+            chosen_citations_titles = [sentence_citations[index]['title'] for index in chosen_citations_indices]
+            if chosen_citations_ids:
+                updated_sentence = self._rewrite_sentence_with_citation(sentence, chosen_citations_titles,
+                                                                        chosen_citations_ids)
+                updated_sentences.append(updated_sentence)
+            else:
+                updated_sentences.append(sentence)
+            self.conversation_manager.reset_back_to_tag('add_section_surrogate')
+
+        # replace the section with the updated sentences
+        updated_section = self.section
+        for idx, sentence in enumerate(sentences_queries):
+            updated_section = updated_section.replace(sentence, updated_sentences[idx])
+
+        # TODO: save also the relevant bibtex citations in a .bib file to be used in the paper
+        return updated_section
+
 
 def create_bibtex(item):
     bibtex_template = '@{type}{{{id},\n{fields}}}\n'
@@ -89,8 +269,7 @@ def create_bibtex(item):
     bibtex_id = item.get('DOI', f"{item['title']}_{item.get('published-print', {}).get('date-parts', [['']])[0][0]}")
     bibtex_id = re.sub(r'\W+', '_', bibtex_id)
 
-    fields = []
-    fields.append(f"author = {{{' and '.join(item['authors'])}}}")
+    fields = [f"author = {{{' and '.join(item['authors'])}}}"]
 
     for key, value in item.items():
         if key in field_mapping:
@@ -99,12 +278,14 @@ def create_bibtex(item):
 
     return bibtex_template.format(type=bibtex_type, id=bibtex_id, fields=',\n'.join(fields))
 
+
 def remove_tags(text):
     text = re.sub(r'<[^>]+>', '', text)  # Remove HTML tags
     text = re.sub(r'&lt;|&gt;', '', text)  # Remove &lt; and &gt;
     text = re.sub(r'^Abstract', 'Abstract ', text)  # Add space after "Abstract" at the beginning
     text = re.sub(r'^p|/p$', '', text)  # Remove "p" and "/p" at the beginning and end
     return text.strip()  # Remove leading and trailing whitespace
+
 
 def crossref_search(query, rows=5):
     url = "https://api.crossref.org/works"
@@ -131,7 +312,8 @@ def crossref_search(query, rows=5):
         item["abstract"] = remove_tags(item.get("abstract"))
         citation = {
             "title": item["title"][0],
-            "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in item.get("author", [])],
+            "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
+                        item.get("author", [])],
             "year": item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
             "journal": item.get("container-title", [None])[0],
             "doi": item["DOI"],
@@ -143,12 +325,3 @@ def crossref_search(query, rows=5):
         citations.append(citation)
 
     return citations
-
-
-query = "word2vec"
-citations = crossref_search(query)
-for citation in citations:
-    print("bibtex:")
-    print(citation["bibtex"] + "\n")
-    print("abstract:")
-    print(citation["abstract"])
