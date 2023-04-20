@@ -65,7 +65,7 @@ class PaperAuthorGPT(PaperWritingGPT):
                     content=dedent_triple_quote_str("""
                     Your response is not correctly latex formatted. 
                     In particular: {}
-                    
+
                     Please rewrite the {} part again with the correct latex formatting.
                     """).format(e, section_name),
                     comment=f"Latex formatting error detected (attempt {attempt + 1} / {max_attempts})"
