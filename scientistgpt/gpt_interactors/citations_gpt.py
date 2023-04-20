@@ -58,15 +58,14 @@ def validate_type_of_response(sentences_queries, format_type):
     """
     Validate that the response is given in the correct format. if not raise WrongFormatError.
     """
-    if format_type == Dict[str: str]:
+    if format_type == Dict[str, str]:
         if not isinstance(sentences_queries, dict) or not all(isinstance(k, str) and isinstance(v, str)
                                                               for k, v in sentences_queries.items()):
             raise WrongFormatError(f'object is not of type: {format_type}')
     elif format_type == List[str]:
         if not isinstance(sentences_queries, list) or not all(isinstance(k, str) for k in sentences_queries):
             raise WrongFormatError(f'object is not of type: {format_type}')
-    else:
-        return sentences_queries
+    return sentences_queries
 
 
 @dataclass
@@ -76,13 +75,14 @@ class CitationGPT(ConverserGPT):
     """
 
     # override the default system prompt:
-    system_prompt: str = """You are a citation expert. 
-                            You are given a section of a paper, you should mention what sentences need to be cited.
-                            You will be provided with list of possible citations, and you should select the most 
-                            appropriate one for each of the sentences.
-                            You will rewrite the sentences with the citations.
-                            The citations will be inserted to the text using \\cite{}.
-                            """
+    system_prompt: str = """
+    You are a citation expert. 
+    You are given a section of a paper, you should mention what sentences need to be cited.
+    You will be provided with list of possible citations, and you should select the most 
+    appropriate one for each of the sentences.
+    You will rewrite the sentences with the citations.
+    The citations will be inserted to the text using \\cite{}.
+    """
 
     section: str = None
     """
@@ -125,7 +125,7 @@ class CitationGPT(ConverserGPT):
             try:
                 # check if the response can be parsed as a list of sentences:
                 return self._check_all_sentences_are_in_section(validate_type_of_response(eval(
-                    '{' + extract_text_between_tags(response, *self.dict_tag_pairs) + '}'), Dict[str: str]))
+                    '{' + extract_text_between_tags(response, *self.dict_tag_pairs) + '}'), Dict[str, str]))
             except ValueError:
                 self.conversation_manager.append_user_message(
                     f'I could not find "{self.dict_tag_pairs.left_tag}" and "{self.dict_tag_pairs.right_tag}" '
@@ -154,7 +154,7 @@ class CitationGPT(ConverserGPT):
                 sentences_not_in_section.append(sentence)
 
         if sentences_not_in_section:
-            raise NotInSectionError(f'Sentences: {sentences_not_in_section} are not in the section.')
+            raise NotInSectionError(sentences_not_in_section)
 
         return sentences_queries
 
@@ -309,7 +309,20 @@ def create_bibtex(item):
     }
 
     bibtex_type = type_mapping.get(item['type'], 'misc')
-    bibtex_id = item.get('author', [{}])[0].get('family', item['title'].strip().split()[0]) + item['issued']['date-parts'][0][0]
+    if item['authors']:
+        bibtex_id = item['authors'][0].split(" ")[-1] + item.get('year', '')
+    else:
+        # get the first 3 words of the title if they exist otherwise use the first two, otherwise use the first one
+        title_words = item['title'].split(" ")
+        if len(title_words) > 3:
+            bibtex_id = "".join(title_words[:3])
+        elif len(title_words) > 2:
+            bibtex_id = "".join(title_words[:2])
+        else:
+            bibtex_id = title_words[0]
+        # add the year if it exists
+        bibtex_id += item.get('year', '')
+
     fields = [f"author = {{{' and '.join(item['authors'])}}}"]
 
     for key, value in item.items():
@@ -338,7 +351,7 @@ def crossref_search(query, rows=5):
         "rows": rows,
         "sort": "relevance",
         "order": "desc",
-        "filter": "has-abstract:true,type:journal-article,type:book,type:posted-content,type:proceedings-article"
+        "filter": "has-abstract:true,has-title:true,type:journal-article,type:book,type:posted-content,type:proceedings-article"
     }
     response = requests.get(url, headers=headers, params=params)
 
