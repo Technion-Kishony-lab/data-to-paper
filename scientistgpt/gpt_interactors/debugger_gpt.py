@@ -4,7 +4,7 @@ from typing import Optional
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
-from scientistgpt.env import SUPPORTED_PACKAGES
+from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions
@@ -158,7 +158,15 @@ class DebuggerGPT(CodeWritingGPT):
             I ran the code, it created the output file {}, but the file is just empty! 
             Please rewrite the complete code again to correct this error. 
             """).format(self.output_filename),
-            comment=f'{self.iteration_str}: Code completed, output file is empty.')
+            comment=f'{self.iteration_str}: Code completed, but output file is empty.')
+
+    def _respond_to_large_output(self):
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code, it created the output file {}, but the file is too long!
+            Please rewrite the complete code so that only sensible output is written to the file. 
+            """).format(self.output_filename),
+            comment=f'{self.iteration_str}: Code completed, but output file is too long.')
 
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
@@ -202,9 +210,13 @@ class DebuggerGPT(CodeWritingGPT):
             raise
         else:
             # The code ran without raising exceptions
-            if not code_and_output.output or code_and_output.output.isspace():
+            output = code_and_output.output
+            if len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()
+            elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE:
+                # The code ran successfully, but the output file is too large.
+                self._respond_to_large_output()
             else:
                 # All good!
                 self.comment("GPT code completed successfully. Returning results to ScientistGPT.")
