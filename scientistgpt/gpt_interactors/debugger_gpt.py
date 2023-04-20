@@ -182,7 +182,7 @@ class DebuggerGPT(CodeWritingGPT):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is too long!
-            Please rewrite the complete code so that only sensible output is written to the file. 
+            Please rewrite the complete code so that only sensible length output is written to the file. 
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but output file is too long.')
 

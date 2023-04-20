@@ -40,7 +40,10 @@ class PaperWritingGPT(ConverserGPT, ABC):
     """
     The name of the file that gpt code is instructed to save the results to.
     """
-
+    bib_filename: str = 'citations.bib'
+    """
+    The name of the file that gpt code is instructed to save the bibliography to.
+    """
     paper_template_filename: str = 'standard_paper.tex'
     """
     The name of the file that holds the template for the paper.
@@ -117,7 +120,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
         """
         Save the latex paper to .tex file and compile to pdf file.
         """
-        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, should_compile_to_pdf)
+        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, self.bib_filename, should_compile_to_pdf)
 
     def write_paper(self, should_compile_to_pdf: bool = True):
         self.initialize_conversation_if_needed()

@@ -30,6 +30,12 @@ class NotInCitations(Exception):
     """
     pass
 
+class ServerError(Exception):
+    """
+    Error raised server wasn't able to respond.
+    """
+    pass
+
 
 def validate_citation_ids(response, citations_ids):
     """
@@ -43,15 +49,6 @@ def validate_citation_ids(response, citations_ids):
     return response
 
 
-def find_citations_for_sentences(sentences_queries):
-    """
-    Find citations for the sentences using the queries.
-    """
-    sentences_citations = []
-    for sentence in sentences_queries:
-        sentence_citations = crossref_search(sentences_queries[sentence])
-        sentences_citations.append(sentence_citations)
-    return sentences_citations
 
 
 def validate_type_of_response(sentences_queries, format_type):
@@ -93,6 +90,7 @@ class CitationGPT(ConverserGPT):
     list_tag_pairs: TagPairs = TagPairs('[', ']')
 
     max_number_of_attempts: int = 3
+    max_number_of_api_calls: int = 3
 
     bibtex_file_path = 'citations.bib'
 
@@ -126,22 +124,42 @@ class CitationGPT(ConverserGPT):
                 # check if the response can be parsed as a list of sentences:
                 return self._check_all_sentences_are_in_section(validate_type_of_response(eval(
                     '{' + extract_text_between_tags(response, *self.dict_tag_pairs) + '}'), Dict[str, str]))
+            except SyntaxError:
+                self.conversation_manager.append_user_message(
+                    f'eval(response) mentioned "invalid syntax". \n'
+                    f'Please try again making sure you return the results with the correct format, i.e., as a dict, \n'
+                    f'like this "{{"example sentence":"query of the key sentence", '
+                    f'"another example sentence": "the query of this sentence"}}"', tag='wrong_format_on_eval')
+            except NameError:
+                self.conversation_manager.append_user_message(
+                    f'eval(response) mentioned "name not defined". \n'
+                    f'Please try again making sure you return the results with the correct format, i.e., as a dict, \n'
+                    f'like this "{{"example sentence":"query of the key sentence", '
+                    f'"another example sentence": "the query of this sentence"}}"', tag='wrong_format_on_eval')
             except ValueError:
                 self.conversation_manager.append_user_message(
                     f'I could not find "{self.dict_tag_pairs.left_tag}" and "{self.dict_tag_pairs.right_tag}" '
                     f'in your result. \n'
-                    f'Please try again making sure you return the results with the correct format, \n'
-                    f'like this "{{"sentence 1":"query 1", "sentence 2": "query2"}}"', tag='wrong_format_no_brackets')
+                    f'Please try again making sure you return the results with the correct format, i.e., as a dict, \n'
+                    f'like this "{{"example sentence":"query of the key sentence", '
+                    f'"another example sentence": "the query of this sentence"}}"', tag='wrong_format_no_brackets')
             except WrongFormatError as e:
                 self.conversation_manager.append_user_message(
                     f'eval(response) got the error {e}. \n'
-                    f'Please try again making sure you return the results with the correct format, \n'
-                    f'like this "{{"sentence 1":"query 1", "sentence 2": "query2"}}', tag='wrong_format_wrong_type')
+                    f'Please try again making sure you return the results with the correct format, i.e., as a dict, \n'
+                    f'like this "{{"example sentence":"query of the key sentence", '
+                    f'"another example sentence": "the query of this sentence"}}"', tag='wrong_format_wrong_type')
             except NotInSectionError as e:
                 self.conversation_manager.append_user_message(
                     f'You returned a sentences that are not in the section: {e}. \n'
                     f'Rewrite the answer and make sure to give only sentences that found in the section.',
                     tag='not_in_section')
+            except Exception as e:
+                self.conversation_manager.append_user_message(
+                    f'Got the error {e}. \n'
+                    f'Please try again making sure you return the results with the correct format, i.e., as a dict, \n'
+                    f'like this "{{"example sentence":"query of the key sentence", '
+                    f'"another example sentence": "the query of this sentence"}}"', tag='wrong_format_wrong_type')
         raise ValueError(f'Could not find sentences after {self.max_number_of_attempts} attempts.')
 
     def _check_all_sentences_are_in_section(self, sentences_queries):
@@ -158,6 +176,24 @@ class CitationGPT(ConverserGPT):
 
         return sentences_queries
 
+    def _find_citations_for_sentences(self, sentences_queries):
+        """
+        Find citations for the sentences using the queries.
+        """
+        sentences_citations = []
+        for sentence_number, sentence in enumerate(sentences_queries):
+            for number_of_tries in range(self.max_number_of_api_calls):
+                try:
+                    self.conversation_manager.append_commenter_message(f'Finding citations for sentence '
+                                                                       f'{sentence_number + 1}, try number '
+                                                                       f'{number_of_tries + 1}')
+                    sentence_citations = crossref_search(sentences_queries[sentence])
+                    sentences_citations.append(sentence_citations)
+                    break
+                except ServerError as e:
+                    if number_of_tries == self.max_number_of_api_calls - 1:
+                        raise e
+        return sentences_citations
     def _choose_citations_for_sentence(self, sentence, sentence_citations):
         """
         Choose the most appropriate citations for the sentence, if any.
@@ -174,8 +210,8 @@ class CitationGPT(ConverserGPT):
         {}
         
         Reply in the following format: 
-        ['id1', 'id4',...]
-        where id1 and id4 are the ids of the citations you choose.
+        "["AuthorX2022", "AuthorY2009"]"
+        where AuthorX2022 and AuthorY2009 are the ids of the citations you choose.
         You can choose one or more, or choose to not add any citations to this sentence by replying with "[]".
         """).format(sentence,
                     '\n'.join(
@@ -187,22 +223,37 @@ class CitationGPT(ConverserGPT):
             try:
                 chosen_citations_ids = validate_citation_ids(validate_type_of_response(eval(
                     '[' + extract_text_between_tags(response, *self.list_tag_pairs) + ']'), List[str]), citations_ids)
+            except SyntaxError:
+                self.conversation_manager.append_user_message(
+                    f'eval(response) mentioned "invalid syntax". \n'
+                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
+                    f'like this "["AuthorX2022", "AuthorY2009"]"', tag='wrong_format_on_eval')
+            except NameError:
+                self.conversation_manager.append_user_message(
+                    f'eval(response) mentioned "name not defined". \n'
+                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
+                    f'like this "["AuthorX2022"]"', tag='wrong_format_on_eval')
             except ValueError:
                 self.conversation_manager.append_user_message(
                     f'I could not find "{self.list_tag_pairs.left_tag}" and "{self.list_tag_pairs.right_tag}" '
                     f'in your result. \n'
-                    f'Please try again making sure you return the results with the correct format, \n'
-                    f'like this "["id3", "id2"]"', tag='wrong_format_no_brackets')
+                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
+                    f'like this "["AuthorX2022", "AuthorY2009"]"', tag='wrong_format_no_brackets')
             except WrongFormatError as e:
                 self.conversation_manager.append_user_message(
                     f'eval(response) got the error {e}. \n'
-                    f'Please try again making sure you return the results with the correct format, \n'
-                    f'like this "["id3", "id2"]"', tag='wrong_format_wrong_type')
+                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
+                    f'like this "["AuthorX2022", "AuthorY2009"]"', tag='wrong_format_wrong_type')
             except NotInCitations as e:
                 self.conversation_manager.append_user_message(
                     f'You returned a citation id that is not in the citations: {e}. \n'
                     f'Rewrite the answer and make sure to reply with only the citations ids and only ones that exists.',
                     tag='not_in_citations_or_wrong_format')
+            except Exception as e:
+                self.conversation_manager.append_user_message(
+                    f'Got the error {e}. \n'
+                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
+                    f'like this "["AuthorX2022", "AuthorY2009"]"', tag='wrong_format')
 
             else:
                 if not chosen_citations_ids:
@@ -243,7 +294,7 @@ class CitationGPT(ConverserGPT):
                                                            tag='add_section_surrogate')
         sentences_queries = self._choose_sentences_that_need_citations()
         self.conversation_manager.reset_back_to_tag('add_section_surrogate')
-        sentences_possible_citations = find_citations_for_sentences(sentences_queries)
+        sentences_possible_citations = self._find_citations_for_sentences(sentences_queries)
         updated_sentences = []
         all_citations_bibtexes = []
         for sentence, sentence_citations in zip(sentences_queries, sentences_possible_citations):
@@ -261,6 +312,9 @@ class CitationGPT(ConverserGPT):
             self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
         # replace the section with the updated sentences
+        self.conversation_manager.append_commenter_message(f'Finished rewriting the section with citations, '
+                                                        f'replacing the sentences with the rewritten ones.',
+                                                        tag='done_rewriting_section')
         updated_section = self.section
         for idx, sentence in enumerate(sentences_queries):
             updated_section = updated_section.replace(sentence, updated_sentences[idx])
@@ -350,7 +404,7 @@ def crossref_search(query, rows=4):
         "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
     }
     params = {
-        "query": query,
+        "query.bibliographic": query,
         "rows": rows,
         "filter": "has-abstract:true,type:journal-article,type:book,type:posted-content,type:proceedings-article",
         "select": "title,author,container-title,published-print,DOI,abstract,type,published",
@@ -358,7 +412,7 @@ def crossref_search(query, rows=4):
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code != 200:
-        raise Exception(f"Request failed with status code {response.status_code}, error: {response.text}")
+        raise ServerError(f"Request failed with status code {response.status_code}, error: {response.text}")
 
     data = response.json()
     items = data['message']['items']
