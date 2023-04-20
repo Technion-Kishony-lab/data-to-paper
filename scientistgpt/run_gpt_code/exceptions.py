@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from scientistgpt.exceptions import ScientistGPTException
 
@@ -28,7 +28,7 @@ class FailedExtractingCode(RunCodeException):
 @dataclass
 class FailedRunningCode(RunCodeException):
     exception: Exception
-    tb: List
+    tb: Optional[List]
     code: str
     fake_file_name = "my_analysis.py"
 
