@@ -25,7 +25,7 @@ class DualConverserGPT(ConverserGPT):
         )
 
     @property
-    def _other_system_prompt(self):
+    def actual_other_system_prompt(self):
         return self.other_system_prompt
 
     @property
@@ -36,7 +36,7 @@ class DualConverserGPT(ConverserGPT):
         if self.other_conversation_manager.conversation is None:
             self.other_conversation_manager.create_conversation()
         if len(self.other_conversation) == 0:
-            self.other_conversation_manager.append_system_message(self._other_system_prompt)
+            self.other_conversation_manager.append_system_message(self.actual_other_system_prompt)
 
 
 @dataclass
@@ -197,11 +197,11 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             goal_noun=self.goal_noun, goal_verb=self.goal_verb))
 
     @property
-    def _system_prompt(self):
+    def actual_system_prompt(self):
         return self._format_prompt(self.system_prompt)
 
     @property
-    def _other_system_prompt(self):
+    def actual_other_system_prompt(self):
         return self._format_prompt(self.other_system_prompt)
 
     def _alter_other_response(self, response: str) -> str:

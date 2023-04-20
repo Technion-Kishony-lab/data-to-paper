@@ -24,7 +24,7 @@ class ConverserGPT:
         )
 
     @property
-    def _system_prompt(self):
+    def actual_system_prompt(self):
         return self.system_prompt
 
     @property
@@ -35,7 +35,7 @@ class ConverserGPT:
         if self.conversation_manager.conversation is None:
             self.conversation_manager.create_conversation()
         if len(self.conversation) == 0:
-            self.conversation_manager.append_system_message(self._system_prompt)
+            self.conversation_manager.append_system_message(self.actual_system_prompt)
 
     def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True):
         """
