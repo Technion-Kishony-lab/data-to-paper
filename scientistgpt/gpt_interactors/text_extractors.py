@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from scientistgpt.conversation.actions_and_conversations import get_name_with_new_number
+from .cast import Agent
 
 from .converser_gpt import ConverserGPT
 
@@ -68,6 +69,8 @@ def extract_analysis_plan_from_response(response: str, max_number_of_attempts: i
     Extract the analysis plan from a response.
     """
     return TextExtractorGPT(
+        assistant_agent=Agent.Secretary,
+        user_agent=Agent.Student,
         text=response,
         description_of_text_to_extract='analysis plan',
         max_number_of_attempts=max_number_of_attempts,

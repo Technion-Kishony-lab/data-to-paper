@@ -74,6 +74,9 @@ class DialogDualConverserGPT(DualConverserGPT):
 
     def __post_init__(self):
         super().__post_init__()
+        # reverse roles:
+        self.other_conversation_manager.assistant_agent = self.user_agent
+        self.other_conversation_manager.user_agent = self.assistant_agent
         self.round_num = 0
 
     def get_response_from_other_in_response_to_response_from_self(self, self_response: str) -> str:

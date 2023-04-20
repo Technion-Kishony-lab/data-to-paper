@@ -5,6 +5,7 @@ from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.exceptions import ScientistGPTException
+from .cast import Agent
 
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
@@ -71,6 +72,9 @@ class ScientistGPT(CodeWritingGPT):
 
     conversation_name: str = 'ScientistGPT'
 
+    list_of_data_files: Optional[List[str]] = None,
+    assistant_agent: Agent = Agent.Student
+    user_agent: Agent = Agent.Mentor
     goal_description: Optional[str] = None,
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)

@@ -6,6 +6,8 @@ from scientistgpt.conversation.message_designation import GeneralMessageDesignat
 from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.utils.text_utils import print_red
 
+from .cast import Agent
+
 
 @dataclass
 class ConverserGPT:
@@ -15,6 +17,9 @@ class ConverserGPT:
 
     system_prompt: str = 'You are a helpful scientist.'
 
+    assistant_agent: Agent = Agent.Student
+    user_agent: Agent = Agent.Mentor
+
     conversation_name: str = 'default'
 
     driver: str = ''
@@ -22,7 +27,9 @@ class ConverserGPT:
     def __post_init__(self):
         self.conversation_manager = ConversationManager(
             conversation_name=self.conversation_name,
-            driver=self.driver if self.driver is not None else type(self).__name__
+            driver=self.driver if self.driver is not None else type(self).__name__,
+            assistant_agent=self.assistant_agent,
+            user_agent=self.user_agent,
         )
 
     @property

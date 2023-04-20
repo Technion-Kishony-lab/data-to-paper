@@ -7,6 +7,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.text_utils import concat_words_with_commas_and_and
 
 from .base_paper_writing import PaperWritingGPT, FailedCreatingPaperSection
+from ..cast import Agent
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
 
@@ -31,6 +32,9 @@ class PaperAuthorGPT(PaperWritingGPT):
     conversation_name: str = 'pre_paper_conversation'
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
+
+    assistant_agent: Agent = Agent.Writer
+    user_agent: Agent = Agent.Student
 
     def _pre_populate_conversation(self):
         for tag in SCIENTIFIC_PRODUCT_FIELD_NAMES:
