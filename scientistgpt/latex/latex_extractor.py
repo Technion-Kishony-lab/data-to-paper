@@ -4,7 +4,7 @@ from .exceptions import FailedToExtractLatexContent
 from .latex_section_tags import get_list_of_tag_pairs_for_section
 
 
-def extract_latex_section_from_response(response: str, section: str):
+def extract_latex_section_from_response(response: str, section: str, as_latex: bool = True):
     """
     Extract specified latex part from chatgpt response.
     Report errors if the latex part is not found or is empty.
@@ -12,16 +12,17 @@ def extract_latex_section_from_response(response: str, section: str):
     list_of_tag_pairs = get_list_of_tag_pairs_for_section(section)
     for tag_pair in list_of_tag_pairs:
         try:
-            latex_content = extract_text_between_tags(response, *tag_pair)
+            content = extract_text_between_tags(response, *tag_pair)
         except ValueError:
             pass
         else:
-            if latex_content == '':
+            if content == '':
                 raise FailedToExtractLatexContent(f'The provided {section} is empty.')
 
             # TODO: we should try to format the latex and report formatting errors to chatgpt
-
-            return tag_pair[0] + latex_content + (tag_pair[1] or '')
+            if as_latex:
+                return tag_pair[0] + content + (tag_pair[1] or '')
+            return content
 
     raise FailedToExtractLatexContent(f'Failed to extract {section} from response. '
                                       f'The response does not contain: {list_of_tag_pairs[0]}.')
