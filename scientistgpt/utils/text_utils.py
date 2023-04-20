@@ -115,3 +115,16 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None):
         raise ValueError('right tag missing')
 
     return after_left_tag.split(right_tag)[0]
+
+
+def concat_words_with_commas_and_and(words: list):
+    """
+    Concatenate a list of words with commas and an 'and' at the end.
+    """
+    if len(words) == 0:
+        return ''
+    if len(words) == 1:
+        return words[0]
+    if len(words) == 2:
+        return words[0] + ' and ' + words[1]
+    return ', '.join(words[:-1]) + ', and ' + words[-1]

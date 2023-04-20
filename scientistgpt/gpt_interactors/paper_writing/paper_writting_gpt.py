@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List
 
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 from .base_paper_writing import PaperWritingGPT
+from ...utils.text_utils import concat_words_with_commas_and_and
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
 
@@ -46,61 +47,57 @@ class PaperAuthorGPT(PaperWritingGPT):
 
         self.comment("All scientific products have been added to the conversation.", tag='after_scientific_products')
 
-    def _write_paper_section(self, section_name: str) -> str:
+    def _write_specified_paper_sections(self, section_names: List[str], prompt: str = None):
         """
-        Write a specific section of the paper.
+        Write the specific section(s) of the paper.
         """
-        prompt = dedent_triple_quote_str("""
+        prompt = prompt or dedent_triple_quote_str("""
             Please write only the `{}` of the paper. Do not write any other parts!
-            Remember to write the section in tex format including any math or symbols that needs tax escapes.
-            """).format(section_name)
-        self.conversation_manager.append_user_message(prompt, tag=f'request_{section_name}')
+            Remember to write in tex format including any math or symbols that needs tax escapes.
+            """).format(concat_words_with_commas_and_and(section_names))
+        self.conversation_manager.append_user_message(prompt)
         max_attempts = MAX_SECTION_RECREATION_ATTEMPTS
         for attempt in range(max_attempts):
-            assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section_name}')
+            assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section_names}')
             try:
-                latex_content = extract_latex_section_from_response(assistant_response, section_name)
+                for section_name in section_names:
+                    self.paper_sections[section_name] = \
+                        extract_latex_section_from_response(assistant_response, section_name)
             except FailedToExtractLatexContent as e:
                 self.conversation_manager.append_user_message(
                     content=dedent_triple_quote_str("""
-                    Your response is not correctly latex formatted. 
-                    In particular: {}
+                        {}
 
-                    Please rewrite the {} part again with the correct latex formatting.
-                    """).format(e, section_name),
-                    comment=f"Latex formatting error detected (attempt {attempt + 1} / {max_attempts})"
-                )
+                        Please rewrite the {} part again with the correct latex formatting.
+                        """).format(e, concat_words_with_commas_and_and(section_names)),
+                    comment=f"Latex formatting error (attempt {attempt + 1} / {max_attempts})")
             else:
-                # no error was raised, save the content of the section
-                self.comment(f'Section "{section_name}" successfully created.')
-                self.paper_sections[section_name] = latex_content
-                return latex_content
-        else:
-            # we failed to create the section
-            assert False, f"Failed to create the {section_name} section of the paper after {max_attempts} attempts."
+                # we successfully created all the sections
+                self.comment(f'Section "{section_names}" successfully created.')
+                return
+        # we failed to create the sections after max attempts
+        assert False, f"Failed to create the {section_names} section of the paper after {max_attempts} attempts."
 
     def _get_paper_sections(self):
         """
         Fill all the paper sections in paper_sections
         """
 
-        # TODO: ultimately, we might want to designate for each section we are writing what are sections to present.
-        #  These other presented sections can be presented in full or as summaries.
-
-        # write the abstract
-        self._write_paper_section('abstract')
+        # We start with the title and abstract:
+        self._write_specified_paper_sections(['title', 'abstract'])
         self.conversation_manager.reset_back_to_tag('after_scientific_products')
         abstract_prompt = dedent_triple_quote_str("""
-        The abstract of the paper is:
+        Here are the title and abstract of the paper:
 
         {}
+        
+        {}
+        """).format(self.paper_sections['title'], self.paper_sections['abstract'])
+        self.conversation_manager.append_user_message(abstract_prompt, tag='title_and_abstract')
 
-        """).format(self.paper_sections['abstract'])
-        self.conversation_manager.append_user_message(abstract_prompt, tag='abstract_written')
-
-        # write the rest of the paper
+        # We then write each of the other sections in light of the title and abstract:
         for section_name in self.paper_section_names:
             if section_name in self.paper_sections:
                 continue
-            self._write_paper_section(section_name)
-            self.conversation_manager.reset_back_to_tag('abstract_written')
+            self._write_specified_paper_sections(section_name)
+            self.conversation_manager.reset_back_to_tag('title_and_abstract')
