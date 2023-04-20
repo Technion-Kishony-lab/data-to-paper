@@ -4,7 +4,7 @@ import shutil
 
 from pathlib import Path
 
-from scientistgpt import Conversation, ScientistGPT
+from scientistgpt import Conversation
 from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from tests.utils import record_or_replay_openai
