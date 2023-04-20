@@ -2,12 +2,13 @@ from enum import Enum
 from typing import Dict
 
 
-class Agent(str, Enum):
+class Agent(Enum):
     Student = ("Joe", "student, me")
     Mentor = ("Prof. Smith", "my mentor")
     PlanReviewer = ("Prof. Jones", "my research plan reviewer")
     Secretary = ("Mr. Smart", "our department secretary")
-    CodeReviewer = ("Dan", "my code-hacker friend")
+    Debugger = ("Dan", "my code-hacker friend")
+    Writer = ("Jane", "my writing coach")
 
     def get_name(self):
         return self.value[0]

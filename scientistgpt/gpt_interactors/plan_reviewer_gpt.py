@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from .cast import Agent
 
 from .dual_converser import ReviewDialogDualConverserGPT
 
@@ -20,6 +21,9 @@ class PlanReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     reviewer: str = 'scientific reviewer'
     goal_noun: str = 'a data analysis research plan'
     termination_phrase: str = 'I hereby approve the analysis plan'
+
+    user_agent: Agent = Agent.Student
+    assistant_agent: Agent = Agent.PlanReviewer
 
     # set conversation names:
     conversation_name: str = 'Scientist'

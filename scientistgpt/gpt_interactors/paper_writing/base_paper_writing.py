@@ -54,7 +54,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
     system_prompt: str = dedent_triple_quote_str("""
         You are a scientist capable of writing full-length, scientifically sound research papers.
 
-        Your should:
+        You should:
         1. Write every part of the paper in scientific language, in `.tex` format.
         2. Write the paper section by section.
         3. Write the paper in a way that is consistent with the scientific products provided to you.

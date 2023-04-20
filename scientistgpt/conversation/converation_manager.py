@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+from scientistgpt.gpt_interactors.cast import Agent
+
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
@@ -21,16 +23,18 @@ class ConversationManager:
     """
 
     should_print: bool = True
-    """
-    Indicates whether to print added actions to the console.
-    """
+    "Indicates whether to print added actions to the console."
 
     conversation_name: Optional[str] = None
 
     driver: str = ''
-    """
-    Name of the algorithm that is instructing this conversation manager.
-    """
+    "Name of the algorithm that is instructing this conversation manager."
+
+    assistant_agent: Agent = None
+    "The agent who is playing the assistant in the conversation."
+
+    user_agent: Agent = None
+    "The agent who is playing the user in the conversation."
 
     @property
     def conversation(self) -> Conversation:
@@ -50,9 +54,10 @@ class ConversationManager:
         """
         Append a message to a specified conversation.
         """
-        message = create_message(role=role, content=content, tag=tag, is_code=is_code, previous_code=previous_code)
-        self._append_and_apply_action(
-            AppendMessage(conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
+        message = create_message(role=role, content=content, tag=tag, is_code=is_code, previous_code=previous_code,
+                                 agent=self.assistant_agent if role.is_assistant_or_surrogate() else self.user_agent)
+        self._append_and_apply_action(AppendMessage(
+            conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
