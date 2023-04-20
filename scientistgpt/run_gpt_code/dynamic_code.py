@@ -8,7 +8,7 @@ import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 
-from .runtime_decorators import timeout
+from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode
 
 MODULE_NAME = 'script_to_run'
@@ -32,8 +32,7 @@ save_code_to_module_file()
 module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
-@timeout(MAX_EXEC_TIME)
-def run_code_using_module_reload(code: str, save_as: Optional[str] = None):
+def run_code_using_module_reload(code: str, save_as: Optional[str] = None, timeout_sec: int = MAX_EXEC_TIME):
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -53,7 +52,11 @@ def run_code_using_module_reload(code: str, save_as: Optional[str] = None):
             warnings.filterwarnings("error", category=warning)
 
         try:
-            importlib.reload(module)
+            with timeout_context(timeout_sec):
+                importlib.reload(module)
+        except TimeoutError as e:
+            # TODO:  add traceback to TimeoutError
+            raise FailedRunningCode(exception=e, tb=None, code=code)
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
             raise FailedRunningCode(exception=e, tb=tb, code=code)
