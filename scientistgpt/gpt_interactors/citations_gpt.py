@@ -267,6 +267,20 @@ class CitationGPT(ConverserGPT):
 
         return updated_section, all_citations_bibtexes
 
+
+    def _save_citations_bibtexes_to_file(self, all_citations_bibtexes):
+        """
+        Save all the citations bibtexes to a .bib file.
+        """
+        # create the bibtex file if it does not exist and write the bibtexes to it, if exists append the bibtexes to it
+        if not os.path.exists(self.bibtex_file_path):
+            with open(self.bibtex_file_path, 'w') as f:
+                f.write('')
+        with open(self.bibtex_file_path, 'a') as f:
+            for citations_bibtexes in all_citations_bibtexes:
+                for citation_bibtex in citations_bibtexes:
+                    f.write(citation_bibtex)
+
     def rewrite_section_with_citations(self):
         """
         Rewrite the section with the citations and save all the citations bibtexes to a .bib file.
@@ -274,18 +288,6 @@ class CitationGPT(ConverserGPT):
         updated_section, all_citations_bibtexes = self._rewrite_section_with_citations_and_return_bibtexes()
         self._save_citations_bibtexes_to_file(all_citations_bibtexes)
         return updated_section
-
-    def _save_citations_bibtexes_to_file(self, all_citations_bibtexes):
-        """
-        Save all the citations bibtexes to a .bib file.
-        """
-        # create the bibtex file
-        bibtex_file = os.path.join(self.bibtex_file_path)
-        with open(bibtex_file, 'w') as f:
-            for citations_bibtexes in all_citations_bibtexes:
-                for bibtex in citations_bibtexes:
-                    f.write(bibtex)
-
 def create_bibtex(item):
     bibtex_template = '@{type}{{{id},\n{fields}}}\n'
 
