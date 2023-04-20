@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -7,7 +7,9 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.exceptions import ScientistGPTException
 
 from .converser_gpt import CodeWritingGPT
-from .debugger_gpt import DebuggerGPT, CodeAndOutput
+from .debugger_gpt import DebuggerGPT
+from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
+from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
 from .. import Role
@@ -27,21 +29,6 @@ MAX_CODING_ATTEMPTS_PER_REVISION = [3, 1, 1, 1]
 assert len(MAX_CODING_ATTEMPTS_PER_REVISION) == MAX_CODE_REVISIONS
 
 MAX_REGENERATING_BINARY_RESPONSES = 3
-
-
-@dataclass
-class ScientificProducts:
-    """
-    Contains the different scientific outcomes of the research.
-    These outcomes are gradually populated and refined by the ScientistGPT.
-    """
-    analysis_plan: Optional[str] = None
-    analysis_codes_and_outputs: List[CodeAndOutput] = field(default_factory=list)
-    result_summary: Optional[str] = None
-    implications: Optional[str] = None
-    limitations: Optional[str] = None
-    conclusions: Optional[str] = None
-    title: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -103,6 +90,8 @@ class ScientistGPT(CodeWritingGPT):
             Please also specify the data analysis goal.
             """)
         self.conversation_manager.append_surrogate_message(assistant_response)
+        # add the data description to the scientific products
+        self.scientific_products.data_description = self.data_description
 
     def add_goal_description(self):
         user_prompt = dedent_triple_quote_str("""
@@ -115,6 +104,8 @@ class ScientistGPT(CodeWritingGPT):
             Thank you for the goal description.
         """)
         self.conversation_manager.append_surrogate_message(assistant_response, tag='ok_goal_description')
+        # add the goal description to the scientific products
+        self.scientific_products.goal_description = self.goal_description
 
     def devise_analysis_plan(self):
         user_prompt = dedent_triple_quote_str("""
@@ -124,6 +115,8 @@ class ScientistGPT(CodeWritingGPT):
         self.scientific_products.analysis_codes_and_outputs = []
         self.conversation_manager.append_user_message(user_prompt, tag='request_analysis_plan')
         self.conversation_manager.get_and_append_assistant_message(tag='analysis_plan')
+        self.scientific_products.analysis_plan = extract_analysis_plan_from_response(
+            self.conversation_manager.conversation.get_last_response())
 
     def review_analysis_plan(self):
         if MAX_PLAN_REVIEW_ROUNDS == 0:
@@ -143,7 +136,7 @@ class ScientistGPT(CodeWritingGPT):
         self.conversation_manager.append_surrogate_message(
             content=dedent_triple_quote_str("""
             Sure, here is a possible data analysis plan:
-            {}            
+            {}
             """).format(enhanced_plan), tag='analysis_plan',
             comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
         self.scientific_products.analysis_plan = enhanced_plan
@@ -227,12 +220,13 @@ class ScientistGPT(CodeWritingGPT):
 
             Please choose one of the following options:
 
-            1. I am satisfied with the analysis and the results, I am ready to write a paper about them.
+            a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
-            2. I need to adjust some parameters in the code, or make some other modifications, and then look at 
+            b. I need to adjust some parameters in the code, or make some other modifications, and then look at 
                 the new results again before I can say whether they are interesting enough for a paper.
 
-            Answer with just the number of the option you choose (only type a single character: "1" or "2").            
+            Answer with just the number of the option you choose (only type a single character: "a" or "b").
+            Under any circumstances, answer with just one character matching the option you choose, nothing else.            
             """).format(self.get_output_filename(after_completion=True),
                         self.scientific_products.analysis_codes_and_outputs[-1].output)
 
@@ -240,12 +234,12 @@ class ScientistGPT(CodeWritingGPT):
             content=user_prompt,
             tag=f'output_file_content_{self.number_of_successful_code_revisions}')
 
-        response = self.conversation_manager.get_and_append_assistant_message(temperature=0, max_tokens=1)
+        response = self.conversation_manager.get_and_append_assistant_message()
         for num_tries in range(MAX_REGENERATING_BINARY_RESPONSES):
-            if '1' in response and '2' not in response and len(response) < 5:
+            if 'a' in response and 'b' not in response and len(response) < 5:
                 self.comment('ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
                 return 1
-            elif '2' in response and '1' not in response and len(response) < 5:
+            elif 'b' in response and 'a' not in response and len(response) < 5:
                 self.comment(f'ScientistGPT declared it needs to revise the code. Starting a new revision '
                              f'({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
 
@@ -260,8 +254,8 @@ class ScientistGPT(CodeWritingGPT):
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")
                 response = self.conversation_manager.replace_last_response(
-                    content='2',
-                    comment='ChatGPT sent code instead of "1"/"2". We assume it wants to change the code ("2").')
+                    content='b',
+                    comment='ChatGPT sent code instead of "a"/"b". We assume it wants to change the code ("b").')
             else:
                 if num_tries < MAX_REGENERATING_BINARY_RESPONSES - 1:
                     response = self.conversation_manager.regenerate_previous_response(
@@ -294,16 +288,20 @@ class ScientistGPT(CodeWritingGPT):
         self.conversation_manager.append_surrogate_message('ok, what should I start with?')
 
         self.conversation_manager.append_user_message(
-            'Please start by writing a comprehensive description of the results of the analysis.')
-        self.scientific_products.result_summary = self.conversation_manager.get_and_append_assistant_message()
+            'Please start by writing a comprehensive description of the results of the analysis. '
+            'in addition finish with a short summary of the code packages and other tools used for the analysis.')
+        self.scientific_products.result_summary = self.conversation_manager.\
+            get_and_append_assistant_message(tag='result_summary')
 
         self.conversation_manager.append_user_message(
             'Perfect. Now, please describe the implications of the results to the goal of the study.')
-        self.scientific_products.implications = self.conversation_manager.get_and_append_assistant_message()
+        self.scientific_products.implications = self.conversation_manager.\
+            get_and_append_assistant_message(tag='implications')
 
         self.conversation_manager.append_user_message(
             'Very good. Now, please describe any limitations of the analysis and results.')
-        self.scientific_products.limitations = self.conversation_manager.get_and_append_assistant_message()
+        self.scientific_products.limitations = self.conversation_manager.\
+            get_and_append_assistant_message(tag='limitations')
 
     def run_cycles_of_code_and_results(self) -> bool:
         total_code_attempts_for_current_plan = 0
@@ -337,6 +335,11 @@ class ScientistGPT(CodeWritingGPT):
                         f'Trying to go back to revision 1.')
                     continue
 
+    def write_and_compile_paper(self):
+        self.comment('Starting the paper writing process.')
+        paper_author = PaperAuthorGPT(scientific_products=self.scientific_products)
+        paper_author.write_paper()
+
     def run_all(self) -> bool:
         self.initialize_conversation_if_needed()
         self.add_data_description()
@@ -351,3 +354,5 @@ class ScientistGPT(CodeWritingGPT):
                 self.comment('Reached max analysis plan rounds. Giving up.')
                 return False
         self.get_gpt_response_to_analysis()
+        # TODO: check what happens if creating one of the sections fails or compiling the pdf fails!
+        self.write_and_compile_paper()

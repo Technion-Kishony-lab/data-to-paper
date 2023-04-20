@@ -96,3 +96,22 @@ def line_count(text: str) -> int:
     Count the number of lines in provided test.
     """
     return len(text.splitlines())
+
+
+def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None):
+    """
+    Extract text between two tags.
+    If the right tag is None, then extract text from the left tag to the end of the text.
+    """
+    if left_tag not in text:
+        raise ValueError('left tag missing')
+
+    after_left_tag = text.split(left_tag)[1]
+
+    if right_tag is None:
+        return after_left_tag
+
+    if right_tag not in after_left_tag:
+        raise ValueError('right tag missing')
+
+    return after_left_tag.split(right_tag)[0]
