@@ -3,7 +3,7 @@ from typing import Optional
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
-from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.exceptions import ScientistGPTException
 
 from .converser_gpt import CodeWritingGPT
@@ -12,7 +12,7 @@ from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCre
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
-from .. import Role
+
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -142,7 +142,7 @@ class ScientistGPT(CodeWritingGPT):
         self.scientific_products.analysis_plan = enhanced_plan
 
     @property
-    def _code_revision_tag(self):
+    def _request_code_tag(self):
         return f'code_revision_{self.number_of_successful_code_revisions}'
 
     def request_analysis_code(self):
@@ -158,7 +158,7 @@ class ScientistGPT(CodeWritingGPT):
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
                 """).format(self.get_output_filename())
-        self.conversation_manager.append_user_message(user_prompt, tag=self._code_revision_tag)
+        self.conversation_manager.append_user_message(user_prompt, tag=self._request_code_tag)
 
     @property
     def number_of_successful_code_revisions(self):
@@ -178,7 +178,7 @@ class ScientistGPT(CodeWritingGPT):
         Return True if the code was successfully created and debugged, False otherwise.
         """
         code_revision = self.number_of_successful_code_revisions
-        tag = f'analysis_code_revision{code_revision}'
+        tag = self._request_code_tag + '_debugging'
         max_attempts = MAX_CODING_ATTEMPTS_PER_REVISION[code_revision]
         for attempt in range(max_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
@@ -197,16 +197,35 @@ class ScientistGPT(CodeWritingGPT):
                 # debugging failed
                 self.comment(f'Debugging failed. {revision_and_attempt}.')
             else:
-                # debugging succeeded
+                # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
                 self.conversation_manager.delete_messages(
-                    message_designation=RangeMessageDesignation.from_(start=SingleMessageDesignation(tag, off_set=1),
-                                                                      end=-3),
-                    comment='Deleting all debugging correspondence, keeping only the functional code.')
-                # after deletions of all intermediate debugging state, the conversation should look like this:
-                assert self.conversation[-4].tag == self._code_revision_tag  # ask for code
-                assert self.conversation[-3].tag == tag  # Transfer to DebuggerGPT
-                assert self.conversation[-2].role is Role.ASSISTANT  # the code
-                assert self.conversation[-1].role is Role.COMMENTER  # GPT code completed successfully.
+                    message_designation=RangeMessageDesignation.from_(start=tag, end=-1),
+                    comment='Deleting all debugging correspondence.')
+                assert self.conversation[-1].tag == self._request_code_tag
+
+                self.conversation_manager.append_surrogate_message(
+                    content=dedent_triple_quote_str("""
+                    Here is the code to perform the analysis:
+                    ```python
+                    {}
+                    ```
+                    """).format(code_and_output.code),
+                    comment='Adding the debugged code as if it was the original response.',
+                    is_code=True,
+                )
+                # the conversation is now at a point as if chatgpt immediately sent the correct code in response to
+                # the request for code. However, the code is now given without any explanation.
+                # We therefore ask chatgpt to explain the code:
+
+                self.conversation_manager.append_user_message(
+                    content=dedent_triple_quote_str("""
+                    Please explain what your code does (Do not make new comments in the code itself, 
+                    just explain what the code does).
+
+                    Also explain what does the code writes into the {} file, and what do we expect to see in that file.
+                    """).format(self.get_output_filename()),
+                )
+                self.conversation_manager.get_and_append_assistant_message()
                 self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
                 return True
         return False
