@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -93,7 +94,7 @@ class CitationGPT(ConverserGPT):
 
     max_number_of_attempts: int = 3
 
-
+    bibtex_file_path = 'citations.bib'
 
     def _remove_citations_in_section(self):
         """
@@ -221,13 +222,13 @@ class CitationGPT(ConverserGPT):
             As a reminder, the citations papers titles are: "{}".
             The citation ids you should enter in a smart and correct position maintaining good sentence flow are: "{}".
             Please rewrite the sentence with the citations using the citations ids given.
-            You should use \\cite{} to insert the citation, 
+            You should use \\cite{}, i.e., keep on correct .tex format to insert the citation, 
             do not reply with any other text beside the rewritten sentence.
             """).format(sentence, citations_titles, citations_ids))
         new_sentence = self.conversation_manager.get_and_append_assistant_message()
         return new_sentence
 
-    def rewrite_section_with_citations(self):
+    def _rewrite_section_with_citations_and_return_bibtexes(self):
         """
         Rewrite the section with the citations.
         """
@@ -244,6 +245,7 @@ class CitationGPT(ConverserGPT):
         self.conversation_manager.reset_back_to_tag('add_section_surrogate')
         sentences_possible_citations = find_citations_for_sentences(sentences_queries)
         updated_sentences = []
+        all_citations_bibtexes = []
         for sentence, sentence_citations in zip(sentences_queries, sentences_possible_citations):
             chosen_citations_ids, chosen_citations_indices = self._choose_citations_for_sentence(sentence,
                                                                                                  sentence_citations)
@@ -253,6 +255,7 @@ class CitationGPT(ConverserGPT):
                 updated_sentence = self._rewrite_sentence_with_citation(sentence, chosen_citations_titles,
                                                                         chosen_citations_ids)
                 updated_sentences.append(updated_sentence)
+                all_citations_bibtexes.append([sentence_citations[index]['bibtex'] for index in chosen_citations_indices])
             else:
                 updated_sentences.append(sentence)
             self.conversation_manager.reset_back_to_tag('add_section_surrogate')
@@ -262,9 +265,26 @@ class CitationGPT(ConverserGPT):
         for idx, sentence in enumerate(sentences_queries):
             updated_section = updated_section.replace(sentence, updated_sentences[idx])
 
-        # TODO: save also the relevant bibtex citations in a .bib file to be used in the paper
+        return updated_section, all_citations_bibtexes
+
+    def rewrite_section_with_citations(self):
+        """
+        Rewrite the section with the citations and save all the citations bibtexes to a .bib file.
+        """
+        updated_section, all_citations_bibtexes = self._rewrite_section_with_citations_and_return_bibtexes()
+        self._save_citations_bibtexes_to_file(all_citations_bibtexes)
         return updated_section
 
+    def _save_citations_bibtexes_to_file(self, all_citations_bibtexes):
+        """
+        Save all the citations bibtexes to a .bib file.
+        """
+        # create the bibtex file
+        bibtex_file = os.path.join(self.bibtex_file_path)
+        with open(bibtex_file, 'w') as f:
+            for citations_bibtexes in all_citations_bibtexes:
+                for bibtex in citations_bibtexes:
+                    f.write(bibtex)
 
 def create_bibtex(item):
     bibtex_template = '@{type}{{{id},\n{fields}}}\n'
@@ -289,9 +309,7 @@ def create_bibtex(item):
     }
 
     bibtex_type = type_mapping.get(item['type'], 'misc')
-    bibtex_id = item.get('DOI', f"{item['title']}_{item.get('published-print', {}).get('date-parts', [['']])[0][0]}")
-    bibtex_id = re.sub(r'\W+', '_', bibtex_id)
-
+    bibtex_id = item.get('author', [{}])[0].get('family', item['title'].strip().split()[0]) + item['issued']['date-parts'][0][0]
     fields = [f"author = {{{' and '.join(item['authors'])}}}"]
 
     for key, value in item.items():
