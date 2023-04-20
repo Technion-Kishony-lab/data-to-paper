@@ -29,7 +29,7 @@ module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE
 
 
 @timeout(MAX_EXEC_TIME)
-def run_code_from_file(code: str, save_as: Optional[str]):
+def run_code_using_module_reload(code: str, save_as: Optional[str]):
     """
     Run the provided code by saving to a file and importing.
 

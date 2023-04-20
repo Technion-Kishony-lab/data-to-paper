@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass
 from typing import Optional, NamedTuple
 
-from scientistgpt.run_gpt_code.dynamic_code import run_code_from_file
+from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 
 from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
@@ -80,5 +80,5 @@ class CodeRunner:
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        run_code_from_file(code, self.script_file)
+        run_code_using_module_reload(code, self.script_file)
         return CodeAndOutput(code, self.read_output_file())
