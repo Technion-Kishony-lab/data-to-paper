@@ -19,7 +19,7 @@ def test_paper_author_gpt(tmpdir):
             """python
             import pandas as pd
             import numpy as np
-            
+
             df = pd.read_csv('data.csv')
         """,
             """The results are:

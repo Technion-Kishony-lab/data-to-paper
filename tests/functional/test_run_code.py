@@ -27,7 +27,7 @@ def test_run_code_correctly_reports_exception():
         assert e.code == code
         assert e.tb[-1].lineno == 3
     else:
-        raise AssertionError('Expected to fail')
+        assert False, 'Expected to fail'
 
 
 def test_run_code_catches_warning():
@@ -43,6 +43,23 @@ def test_run_code_catches_warning():
         assert e.code == code
         assert e.tb[-1].lineno == 2
     else:
-        raise AssertionError('Expected to fail')
+        assert False, 'Expected to fail'
     finally:
         WARNINGS_TO_RAISE.remove(UserWarning)
+
+
+def test_run_code_timeout():
+    code = dedent_triple_quote_str("""
+        import time
+        # line 2
+        time.sleep(2)
+        # line 4
+        """)
+    try:
+        run_code_using_module_reload(code, timeout_sec=1)
+    except FailedRunningCode as e:
+        assert isinstance(e.exception, TimeoutError)
+        assert e.code == code
+        assert e.tb is None  # we currently do not get a traceback for timeout
+    else:
+        assert False, 'Expected to fail'
