@@ -18,9 +18,10 @@ class TestPaperWritingGPT(PaperWritingGPT):
             'conclusion': r'\section{Conclusion}{content of conclusion}',
         }
 
+
 def test_paper_writing_gpt(tmpdir):
     paper_writing_gpt = TestPaperWritingGPT()
-    # os.chdir(tmpdir)
+    os.chdir(tmpdir)
     paper_writing_gpt.write_paper()
     assert 'content of title' in paper_writing_gpt.latex_paper
     assert os.path.exists(paper_writing_gpt.latex_filename)
