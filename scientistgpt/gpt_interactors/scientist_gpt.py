@@ -8,7 +8,7 @@ from scientistgpt.exceptions import ScientistGPTException
 
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
-from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
+from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCreatingPaper
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
@@ -335,24 +335,32 @@ class ScientistGPT(CodeWritingGPT):
                         f'Trying to go back to revision 1.')
                     continue
 
-    def write_and_compile_paper(self):
+    def call_paper_author_to_write_and_compile_paper(self) -> bool:
         self.comment('Starting the paper writing process.')
         paper_author = PaperAuthorGPT(scientific_products=self.scientific_products)
-        paper_author.write_paper()
+        try:
+            paper_author.write_paper()
+            return True
+        except FailedCreatingPaper:
+            return False
 
     def run_all(self) -> bool:
         self.initialize_conversation_if_needed()
         self.add_data_description()
         self.add_goal_description()
         for analysis_plan_round in range(MAX_ANALYSIS_PLAN_ROUNDS):
+            if analysis_plan_round > 0:
+                self.comment(f'Rethinking analysis plan (round {analysis_plan_round + 1}/{MAX_ANALYSIS_PLAN_ROUNDS}).')
             self.devise_analysis_plan()
             self.review_analysis_plan()
-            if self.run_cycles_of_code_and_results():
-                self.comment('Analysis plan succeeded. Proceeding to result summary.')
-                break
-            if analysis_plan_round == MAX_ANALYSIS_PLAN_ROUNDS - 1:
-                self.comment('Reached max analysis plan rounds. Giving up.')
-                return False
-        self.get_gpt_response_to_analysis()
-        # TODO: check what happens if creating one of the sections fails or compiling the pdf fails!
-        self.write_and_compile_paper()
+            if not self.run_cycles_of_code_and_results():
+                continue  # try a new analysis plan
+            self.get_gpt_response_to_analysis()
+            if not self.call_paper_author_to_write_and_compile_paper():
+                continue  # try a new analysis plan
+            break
+        else:
+            self.comment('Reached max analysis plan rounds. Manuscript NOT created. Giving up.')
+            return False
+        self.comment('Manuscript created successfully.')
+        return True

@@ -3,9 +3,26 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from typing import Dict
 
+from scientistgpt.exceptions import ScientistGPTException
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.latex import save_latex_and_compile_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str
+
+
+@dataclass
+class FailedCreatingPaperSection(ScientistGPTException):
+    section: str
+
+    def __str__(self):
+        return f'Failed to create the {self.section} section of the paper.'
+
+
+@dataclass
+class FailedCreatingPaper(ScientistGPTException):
+    exception: Exception
+
+    def __str__(self):
+        return f'Failed to create the paper because of\n{self.exception}'
 
 
 @dataclass
@@ -81,6 +98,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
     def _get_paper_sections(self):
         """
         Fill all the paper sections in paper_sections
+        Should raise FailedCreatingPaperSection if failed to create a section.
         """
         pass
 
@@ -103,6 +121,9 @@ class PaperWritingGPT(ConverserGPT, ABC):
     def write_paper(self, should_compile_to_pdf: bool = True):
         self.initialize_conversation_if_needed()
         self._pre_populate_conversation()
-        self._get_paper_sections()
+        try:
+            self._get_paper_sections()
+        except FailedCreatingPaperSection as e:
+            raise FailedCreatingPaper(e)
         self._assemble_latex_paper_from_sections()
         self._save_latex_and_compile_to_pdf(should_compile_to_pdf)
