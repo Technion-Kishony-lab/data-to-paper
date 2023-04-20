@@ -1,20 +1,6 @@
-from typing import Optional, List, Dict, NamedTuple
+from typing import List, Dict
 
-
-class TagPairs(NamedTuple):
-    """
-    end strings to extract from text.
-    if right_tag=None - extract to the end.
-    """
-    left_tag: str
-    right_tag: Optional[str]
-
-    def __str__(self):
-        if self.right_tag is None:
-            return f'`{self.left_tag}`'
-        else:
-            return f'`{self.left_tag}` and `{self.right_tag}`'
-
+from scientistgpt.user_utils.tag_pairs import TagPairs
 
 SECTIONS_TO_TAG_PAIR_OPTIONS: Dict[str, List[TagPairs]] = {
     'title': [TagPairs('\\title{', '}')],
