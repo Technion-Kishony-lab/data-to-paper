@@ -335,7 +335,7 @@ class ScientistGPT(CodeWritingGPT):
                         f'Trying to go back to revision 1.')
                     continue
 
-    def write_and_compile_paper(self):
+    def call_paper_author_to_write_and_compile_paper(self):
         self.comment('Starting the paper writing process.')
         paper_author = PaperAuthorGPT(scientific_products=self.scientific_products)
         paper_author.write_paper()
@@ -355,4 +355,4 @@ class ScientistGPT(CodeWritingGPT):
                 return False
         self.get_gpt_response_to_analysis()
         # TODO: check what happens if creating one of the sections fails or compiling the pdf fails!
-        self.write_and_compile_paper()
+        self.call_paper_author_to_write_and_compile_paper()
