@@ -1,19 +1,17 @@
-import requests
+import os
 
 
-def latex_to_pdf(latex_content: str, filename: str):
-    """
-    Convert a LaTeX file to PDF using latexonline.cc server and save the PDF as a local file.
-    """
-    assert filename.endswith('.pdf'), 'The filename should end with .pdf'
+def compile_latex_file_to_pdf(latex_file_path: str):
+    latex_file_path = os.path.abspath(latex_file_path)
+    os.system(f'pdflatex -output-directory {os.path.dirname(latex_file_path)} {latex_file_path}')
+    # pdflatex creates some additional files we don't need:
+    for ext in ['.aux', '.log', '.out']:
+        if os.path.exists(latex_file_path.replace('.tex', ext)):
+            os.remove(latex_file_path.replace('.tex', ext))
 
-    url = 'https://latexonline.cc/compile'
-    data = {
-        'text': latex_content,
-        'compiler': 'pdflatex'
-    }
 
-    response = requests.post(url, data=data)
-
-    with open(filename, 'wb') as f:
-        f.write(response.content)
+def save_latex_and_compile_to_pdf(latex_content: str, file_path: str, should_compile_to_pdf: bool = True):
+    with open(file_path + '.tex', 'w') as f:
+        f.write(latex_content)
+    if should_compile_to_pdf:
+        compile_latex_file_to_pdf(file_path + '.tex')
