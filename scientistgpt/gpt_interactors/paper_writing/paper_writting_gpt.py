@@ -91,7 +91,7 @@ class PaperAuthorGPT(PaperWritingGPT):
         Here are the title and abstract of the paper:
 
         {}
-        
+
         {}
         """).format(self.paper_sections['title'], self.paper_sections['abstract'])
         self.conversation_manager.append_user_message(abstract_prompt, tag='title_and_abstract')
