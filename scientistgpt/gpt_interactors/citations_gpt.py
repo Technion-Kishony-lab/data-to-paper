@@ -201,13 +201,14 @@ class CitationGPT(ConverserGPT):
         Choose the most appropriate citations for the sentence, if any.
         """
         citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
-        citation_abstracts = [citation['abstract'] for citation in sentence_citations]
+        citations_titles = [citation['title'] for citation in sentence_citations]
+        # citation_abstracts = [citation['abstract'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
-        Choose the most appropriate citations for the sentence: 
+        Choose the most appropriate citations to add for the sentence: 
         
         {}
         
-        Choose from the following citations, by reading their abstracts:
+        Choose from the following citations, by reading their titles:
         
         {}
         
@@ -217,8 +218,8 @@ class CitationGPT(ConverserGPT):
         You can choose one or more, or choose to not add any citations to this sentence by replying with "[]".
         """).format(sentence,
                     '\n'.join(
-                        [f"id: '{citation_id}', abstract: '{citation_abstract}'" for citation_id, citation_abstract in
-                         zip(citations_ids, citation_abstracts)])
+                        [f"id: '{citation_id}', title: '{citation_title}'" for citation_id, citation_title in
+                         zip(citations_ids, citations_titles)])
                     ), tag='choose_citations')
         for attempt_num in range(self.max_number_of_attempts):
             response = self.conversation_manager.get_and_append_assistant_message()
@@ -398,8 +399,8 @@ def crossref_search(query, rows=4):
     params = {
         "query.bibliographic": query,
         "rows": rows,
-        "filter": "has-abstract:true,type:journal-article,type:book,type:posted-content,type:proceedings-article",
-        "select": "title,author,container-title,published-print,DOI,abstract,type,published",
+        "filter": "type:journal-article,type:book,type:posted-content,type:proceedings-article",
+        "select": "title,author,container-title,published-print,DOI,type,published",
     }
     response = requests.get(url, headers=headers, params=params)
 
@@ -411,7 +412,7 @@ def crossref_search(query, rows=4):
     citations = []
 
     for item in items:
-        item["abstract"] = remove_tags(item.get("abstract"))
+        # item["abstract"] = remove_tags(item.get("abstract"))
         citation = {
             "title": item["title"][0],
             "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
@@ -420,7 +421,7 @@ def crossref_search(query, rows=4):
             "year": item["published"]["date-parts"][0][0] if "published" in item else item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
             "journal": item.get("container-title", [None])[0],
             "doi": item["DOI"],
-            "abstract": item["abstract"],
+            # "abstract": item["abstract"],
             "type": item["type"]
         }
         bibtex_citation = create_bibtex(citation)

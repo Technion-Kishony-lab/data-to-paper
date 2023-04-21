@@ -30,8 +30,8 @@ To answer these questions, we analyzed the data on side effect reports submitted
     """
     citation_adder = CitationGPT(section=section)
     os.chdir(tmpdir)
-    updated_section = citation_adder.rewrite_section_with_citations()
+    updated_section, all_citations_bibtexes = citation_adder.rewrite_section_with_citations()
 
     # check that we get the output with additional citations
-    assert updated_section.__contains__("\\cite{")
+    assert "\\cite{" in updated_section
 
