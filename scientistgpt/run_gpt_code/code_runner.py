@@ -14,7 +14,7 @@ CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n
 CodeAndOutput = NamedTuple('CodeAndOutput', [('code', str), ('output', str)])
 
 
-LINES_ADDED_BY_MODIFYING_CODE = 1
+LINES_ADDED_BY_MODIFYING_CODE = 0
 
 
 @dataclass
@@ -43,8 +43,6 @@ class CodeRunner:
         """
         Modify the extracted code before running it.
         """
-        # add imports of fake forbidden functions:
-        code = 'from scientistgpt.run_gpt_code.fake_functions import *\n' + code
         return code
 
     def extract_and_modify_code(self) -> str:
