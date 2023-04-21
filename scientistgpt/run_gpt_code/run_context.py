@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from typing import List, Tuple, Any
 
 from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
-    CodeCreatesForbiddenFile, CodeLoadsForbiddenFile
+    CodeWriteForbiddenFile, CodeReadForbiddenFile
 
 
 @contextmanager
@@ -23,9 +23,9 @@ def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files:
         open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
         is_opening_for_writing = open_mode in ['w', 'a', 'x']
         if is_opening_for_writing and allowed_write_files is not None and file_name not in allowed_write_files:
-            raise CodeCreatesForbiddenFile(file=file_name)
+            raise CodeWriteForbiddenFile(file=file_name)
         if not is_opening_for_writing and allowed_read_files is not None and file_name not in allowed_read_files:
-            raise CodeLoadsForbiddenFile(file=file_name)
+            raise CodeReadForbiddenFile(file=file_name)
         return original_open(*args, **kwargs)
 
     builtins.open = open_wrapper

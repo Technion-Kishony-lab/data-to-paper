@@ -1,7 +1,7 @@
 import os
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, WARNINGS_TO_RAISE
-from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeCreatesForbiddenFile
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeWriteForbiddenFile
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -90,7 +90,7 @@ def test_run_code_raises_on_unallowed_files(tmpdir):
         os.chdir(tmpdir)
         run_code_using_module_reload(code, allowed_write_files=[])
     except FailedRunningCode as e:
-        assert isinstance(e.exception, CodeCreatesForbiddenFile)
+        assert isinstance(e.exception, CodeWriteForbiddenFile)
         assert e.code == code
         assert e.tb[-1].lineno == 1
     else:
