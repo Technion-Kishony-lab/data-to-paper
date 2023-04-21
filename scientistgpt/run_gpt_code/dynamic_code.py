@@ -10,7 +10,7 @@ import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 
-from .run_context import prevent_calling
+from .run_context import prevent_calling, prevent_file_open
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 
@@ -45,7 +45,9 @@ def run_code_using_module_reload(
         timeout_sec: int = MAX_EXEC_TIME,
         warnings_to_raise: List[Type[Warning]] = None,
         warnings_to_ignore: List[Type[Warning]] = None,
-        forbidden_modules_and_functions: List[Tuple[Any, str]] = None):
+        forbidden_modules_and_functions: List[Tuple[Any, str]] = None,
+        allowed_read_files: List[str] = None,
+        allowed_write_files: List[str] = None):
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -69,7 +71,9 @@ def run_code_using_module_reload(
             warnings.filterwarnings("error", category=warning)
 
         try:
-            with timeout_context(timeout_sec), prevent_calling(forbidden_modules_and_functions):
+            with timeout_context(timeout_sec), \
+                    prevent_calling(forbidden_modules_and_functions), \
+                    prevent_file_open(allowed_read_files, allowed_write_files):
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError

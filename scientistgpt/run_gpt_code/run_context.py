@@ -1,13 +1,44 @@
+import builtins
+import traceback
 from contextlib import contextmanager
 from typing import List, Tuple, Any
 
-from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions
+from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
+    CodeCreatesForbiddenFile, CodeLoadsForbiddenFile
+
+
+@contextmanager
+def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files: List[str] = None):
+    """
+    Context manager for restricting the code from opening un-allowed files.
+
+    allowed_read_files: list of files that the code is allowed to read from. If None, all files are allowed.
+    allowed_write_files: list of files that the code is allowed to write to. If None, all files are allowed.
+    """
+
+    original_open = builtins.open
+
+    def open_wrapper(*args, **kwargs):
+        file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
+        open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
+        is_opening_for_writing = open_mode in ['w', 'a', 'x']
+        if is_opening_for_writing and allowed_write_files is not None and file_name not in allowed_write_files:
+            raise CodeCreatesForbiddenFile(file=file_name)
+        if not is_opening_for_writing and allowed_read_files is not None and file_name not in allowed_read_files:
+            raise CodeLoadsForbiddenFile(file=file_name)
+        return original_open(*args, **kwargs)
+
+    builtins.open = open_wrapper
+    try:
+        yield
+    finally:
+        builtins.open = original_open
 
 
 @contextmanager
 def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
     """
-    Context manager for catching when the code tries to open file and then checking that the file name is allowed.
+    Context manager for catching when the code tries to use certain forbidden functions.
     """
     modules_and_functions = modules_and_functions or []
 
