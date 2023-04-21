@@ -1,5 +1,7 @@
+import os
+
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, WARNINGS_TO_RAISE
-from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeCreatesForbiddenFile
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -73,8 +75,28 @@ def test_run_code_forbidden_function():
         assert isinstance(e.exception, CodeUsesForbiddenFunctions)
         assert e.code == code
         assert e.tb[-1].lineno == 2
-    except Exception as e:
-        print(e)
-        raise
     else:
         assert False, 'Expected to fail'
+
+
+code = dedent_triple_quote_str("""
+    with open('test.txt', 'w') as f:
+        f.write('hello')
+    """)
+
+
+def test_run_code_raises_on_unallowed_files(tmpdir):
+    try:
+        os.chdir(tmpdir)
+        run_code_using_module_reload(code, allowed_write_files=[])
+    except FailedRunningCode as e:
+        assert isinstance(e.exception, CodeCreatesForbiddenFile)
+        assert e.code == code
+        assert e.tb[-1].lineno == 1
+    else:
+        assert False, 'Expected to fail'
+
+
+def test_run_code_allows_allowed_files(tmpdir):
+    os.chdir(tmpdir)
+    run_code_using_module_reload(code, allowed_write_files=['test.txt'])
