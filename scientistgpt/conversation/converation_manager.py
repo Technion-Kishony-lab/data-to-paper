@@ -54,8 +54,14 @@ class ConversationManager:
         """
         Append a message to a specified conversation.
         """
-        message = create_message(role=role, content=content, tag=tag, is_code=is_code, previous_code=previous_code,
-                                 agent=self.assistant_agent if role.is_assistant_or_surrogate() else self.user_agent)
+        if role in [Role.ASSISTANT, Role.SURROGATE, Role.SYSTEM]:
+            agent = self.assistant_agent
+        elif role == Role.USER:
+            agent = self.user_agent
+        else:
+            agent = None
+        message = create_message(role=role, content=content, tag=tag, agent=agent,
+                                 is_code=is_code, previous_code=previous_code)
         self._append_and_apply_action(AppendMessage(
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
@@ -154,7 +160,7 @@ class ConversationManager:
             action = AppendChatgptResponse(
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
-                message=create_message(role=Role.ASSISTANT, content=content, tag=tag,
+                message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
                                        is_code=is_code, previous_code=previous_code))
         self._append_and_apply_action(action)
         return content
