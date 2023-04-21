@@ -4,7 +4,7 @@ import os
 from _pytest.fixtures import fixture
 
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
-from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
+from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode, CodeCreatesForbiddenFile
 
 OUTPUT_FILE = "output.txt"
 
@@ -40,60 +40,48 @@ print('hello')
 ```
 """
 
-
-@fixture()
-def valid_runner():
-    return CodeRunner(response=valid_response, output_file='output.txt')
-
-
-@fixture()
-def invalid_file_name_runner():
-    return CodeRunner(response=valid_response, output_file='wrong_output.txt')
+code_not_creating_file = f"""
+This code calculates, but does not write to file:
+```python
+txt = 'hello'
+```
+"""
 
 
-@fixture()
-def invalid_two_codes_runner():
-    return CodeRunner(response=two_codes_response, output_file='output.txt')
+def test_runner_correctly_extract_code_to_run():
+    assert CodeRunner(response=valid_response, output_file='output.txt').extract_code() == code_encoded_in_response
 
 
-@fixture()
-def invalid_no_code_runner():
-    return CodeRunner(response=no_code_response, output_file='output.txt')
-
-
-@fixture()
-def invalid_code_using_print_runner():
-    return CodeRunner(response=code_using_print, output_file='output.txt')
-
-
-def test_runner_correctly_extract_code_to_run(valid_runner):
-    assert valid_runner.extract_code() == code_encoded_in_response
-
-
-def test_runner_correctly_run_extracted_code(valid_runner, tmpdir):
+def test_runner_correctly_run_extracted_code(tmpdir):
     os.chdir(tmpdir)
-    assert valid_runner.run_code().output == 'hello'
+    assert CodeRunner(response=valid_response, output_file='output.txt').run_code().output == 'hello'
 
 
-def test_runner_raises_when_output_not_found(invalid_file_name_runner, tmpdir):
+def test_runner_raises_when_output_not_found(tmpdir):
     os.chdir(tmpdir)
     with pytest.raises(FailedLoadingOutput):
-        invalid_file_name_runner.run_code()
+        CodeRunner(response=code_not_creating_file, output_file='wrong_output.txt').run_code()
 
 
-def test_runner_raises_when_no_code_is_found(invalid_no_code_runner):
+def test_runner_raises_when_code_writes_to_wrong_file(tmpdir):
+    os.chdir(tmpdir)
+    with pytest.raises(FailedRunningCode):
+        CodeRunner(response=valid_response, output_file='wrong_output.txt').run_code()
+
+
+def test_runner_raises_when_no_code_is_found():
     with pytest.raises(FailedExtractingCode):
-        invalid_no_code_runner.run_code()
+        CodeRunner(response=no_code_response, output_file='output.txt').run_code()
 
 
-def test_runner_raises_when_multiple_codes_are_found(invalid_two_codes_runner):
+def test_runner_raises_when_multiple_codes_are_found():
     with pytest.raises(FailedExtractingCode):
-        invalid_two_codes_runner.run_code()
+        CodeRunner(response=two_codes_response, output_file='output.txt').run_code()
 
 
-def test_runner_raises_when_code_use_forbidden_functions(invalid_code_using_print_runner):
+def test_runner_raises_when_code_use_forbidden_functions():
     try:
-        invalid_code_using_print_runner.run_code()
+        CodeRunner(response=code_using_print, output_file='output.txt').run_code()
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeUsesForbiddenFunctions)
         assert 'print' == e.exception.func

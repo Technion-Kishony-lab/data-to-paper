@@ -27,6 +27,7 @@ class CodeRunner:
     """
 
     response: str
+    allowed_read_files: Optional[list] = None
     output_file: Optional[str] = None
     script_file: Optional[str] = None
 
@@ -78,5 +79,7 @@ class CodeRunner:
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        run_code_using_module_reload(code, self.script_file)
+        run_code_using_module_reload(code, self.script_file,
+                                     allowed_read_files=self.allowed_read_files,
+                                     allowed_write_files=None if self.output_file is None else [self.output_file])
         return CodeAndOutput(code, self.read_output_file())
