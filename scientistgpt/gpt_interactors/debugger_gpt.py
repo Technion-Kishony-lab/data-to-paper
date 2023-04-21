@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
@@ -32,6 +32,7 @@ class DebuggerGPT(CodeWritingGPT):
     agent: str = 'DEBUGGER'
     max_debug_iterations: int = 5
 
+    list_of_data_files: Optional[List[str]] = None
     debug_iteration = 0
     initiation_tag: Optional[str] = None
 
@@ -47,6 +48,7 @@ class DebuggerGPT(CodeWritingGPT):
 
     def _get_code_runner(self, response: str) -> CodeRunner:
         return CodeRunner(response=response,
+                          allowed_read_files=self.list_of_data_files,
                           output_file=self.output_filename,
                           script_file=self.script_filename,
                           )
