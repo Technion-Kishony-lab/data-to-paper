@@ -12,7 +12,7 @@ from scientistgpt.env import MAX_EXEC_TIME
 
 from .run_context import prevent_calling
 from .runtime_decorators import timeout_context
-from .exceptions import FailedRunningCode
+from .exceptions import FailedRunningCode, BaseRunContextException
 
 MODULE_NAME = 'script_to_run'
 
@@ -61,7 +61,6 @@ def run_code_using_module_reload(
     warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
     forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
 
-    # check that the code does not use forbidden functions
     save_code_to_module_file(code)
     with warnings.catch_warnings():
         for warning in warnings_to_ignore:
@@ -75,6 +74,10 @@ def run_code_using_module_reload(
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError
             raise FailedRunningCode(exception=e, tb=None, code=code)
+        except BaseRunContextException as e:
+            tb = traceback.extract_tb(e.__traceback__)
+            tb.pop()  # remove the line of the context manager
+            raise FailedRunningCode(exception=e, tb=tb, code=code)
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
             raise FailedRunningCode(exception=e, tb=tb, code=code)

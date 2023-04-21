@@ -69,8 +69,12 @@ class CodeTimeoutException(RunCodeException, TimeoutError):
         return "Code took too long to run."
 
 
+class BaseRunContextException(RunCodeException, metaclass=ABCMeta):
+    pass
+
+
 @dataclass
-class CodeUsesForbiddenFunctions(RunCodeException):
+class CodeUsesForbiddenFunctions(BaseRunContextException):
     func: str
 
     def __str__(self):
