@@ -7,7 +7,7 @@ from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
-    CodeUsesForbiddenFunctions
+    CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
 
@@ -154,6 +154,22 @@ class DebuggerGPT(CodeWritingGPT):
             """).format(func),
             comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
 
+    def _respond_to_forbidden_write(self, file: str):
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code, but it tried to write to the file `{}` which is not allowed.
+            Please rewrite the complete code again, making sure it only writes to "{}". 
+            """).format(file, self.output_filename),
+            comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
+
+    def _respond_to_forbidden_read(self, file: str):
+        self.conversation_manager.append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
+            Please rewrite the complete code again, making sure it only reads from the files: {}. 
+            """).format(file, ', '.join(self.list_of_data_files)),
+            comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
+
     def _respond_to_empty_output(self):
         self.conversation_manager.append_user_message(
             content=dedent_triple_quote_str("""
@@ -201,6 +217,10 @@ class DebuggerGPT(CodeWritingGPT):
                 self._respond_to_file_not_found(str(e.exception))
             except CodeUsesForbiddenFunctions as f:
                 self._respond_to_forbidden_functions(f.func)
+            except CodeWriteForbiddenFile as f:
+                self._respond_to_forbidden_write(f.file)
+            except CodeReadForbiddenFile as f:
+                self._respond_to_forbidden_read(f.file)
             except Exception:
                 # the code failed on other errors
                 # we will indicate to chatgpt the error message that we got
