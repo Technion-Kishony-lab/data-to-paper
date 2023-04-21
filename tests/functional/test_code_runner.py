@@ -1,10 +1,8 @@
 import pytest
 import os
 
-from _pytest.fixtures import fixture
-
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
-from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode, CodeWriteForbiddenFile
+from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 
 OUTPUT_FILE = "output.txt"
 

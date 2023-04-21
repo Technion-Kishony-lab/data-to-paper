@@ -22,7 +22,7 @@ FORBIDDEN_MODULES_AND_FUNCTIONS = [
     (builtins, 'print'),
     (builtins, 'input'),
     (plt, 'savefig'),
-    ]
+]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filename = MODULE_NAME + ".py"

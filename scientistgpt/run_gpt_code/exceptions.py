@@ -95,4 +95,3 @@ class CodeReadForbiddenFile(BaseRunContextException):
 
     def __str__(self):
         return f"Code tries to load a forbidden file {self.file}."
-
