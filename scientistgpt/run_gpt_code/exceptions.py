@@ -69,9 +69,29 @@ class CodeTimeoutException(RunCodeException, TimeoutError):
         return "Code took too long to run."
 
 
+class BaseRunContextException(RunCodeException, metaclass=ABCMeta):
+    pass
+
+
 @dataclass
-class CodeUsesForbiddenFunctions(RunCodeException):
+class CodeUsesForbiddenFunctions(BaseRunContextException):
     func: str
 
     def __str__(self):
         return f"Code uses a forbidden function {self.func}."
+
+
+@dataclass
+class CodeWriteForbiddenFile(BaseRunContextException):
+    file: str
+
+    def __str__(self):
+        return f"Code tries to create a forbidden file {self.file}."
+
+
+@dataclass
+class CodeReadForbiddenFile(BaseRunContextException):
+    file: str
+
+    def __str__(self):
+        return f"Code tries to load a forbidden file {self.file}."
