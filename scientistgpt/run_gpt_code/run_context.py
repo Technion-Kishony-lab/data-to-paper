@@ -11,16 +11,24 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
     """
     modules_and_functions = modules_and_functions or []
 
-    def get_upon_raise_function(func_name):
-        def upon_raise(*args, **kwargs):
-            raise CodeUsesForbiddenFunctions(func_name)
-        return upon_raise
+    def get_upon_called(func_name, original_func):
+        from scientistgpt.run_gpt_code.dynamic_code import module_filename
+
+        def upon_called(*args, **kwargs):
+            # We check that the function was called from the module we are running
+            # (functions like print are also called from pytest)
+            frame = traceback.extract_stack()[-2]
+            if frame.filename.endswith(module_filename):
+                raise CodeUsesForbiddenFunctions(func_name)
+            return original_func(*args, **kwargs)
+        return upon_called
 
     original_functions = []
 
     for module, function_name in modules_and_functions:
-        original_functions.append(getattr(module, function_name))
-        setattr(module, function_name, get_upon_raise_function(function_name))
+        original_function = getattr(module, function_name)
+        original_functions.append(original_function)
+        setattr(module, function_name, get_upon_called(function_name, original_function))
 
     try:
         yield
