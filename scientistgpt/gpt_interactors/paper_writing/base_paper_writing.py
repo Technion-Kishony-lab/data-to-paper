@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict
 
 from scientistgpt.exceptions import ScientistGPTException
-from scientistgpt.gpt_interactors.citations_gpt import CitationGPT
+from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.latex import save_latex_and_compile_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str

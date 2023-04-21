@@ -1,6 +1,6 @@
 import os
 
-from scientistgpt.gpt_interactors.citations_gpt import CitationGPT
+from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 
 from tests.utils import record_or_replay_openai
 

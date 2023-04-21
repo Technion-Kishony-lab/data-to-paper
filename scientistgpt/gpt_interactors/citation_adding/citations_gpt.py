@@ -1,76 +1,15 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-import requests
 import re
 
+from scientistgpt.gpt_interactors.citation_adding.citataion_utils import WrongFormatError, NotInSectionError, \
+    NotInCitations, ServerError, validate_citation_ids, validate_type_of_response, choose_first_citation, \
+    crossref_search
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.user_utils.tag_pairs import TagPairs
 from scientistgpt.utils.text_utils import extract_text_between_tags
-
-
-class WrongFormatError(Exception):
-    """
-    Error raised when the user did not return the results in the correct format.
-    """
-    pass
-
-
-class NotInSectionError(Exception):
-    """
-    Error raised when the user did not return the results in the correct format.
-    """
-    pass
-
-
-class NotInCitations(Exception):
-    """
-    Error raised when the user did not return the citations that are inside the possible citations.
-    """
-    pass
-
-
-class ServerError(Exception):
-    """
-    Error raised server wasn't able to respond.
-    """
-    pass
-
-
-def validate_citation_ids(response, citations_ids):
-    """
-    Validate that the response is in the correct format and all ids are existing ones.
-    """
-    if response == '[]':
-        return []
-    # check that the response has only relevant citations ids
-    if not all(citation_id in citations_ids for citation_id in response):
-        raise NotInCitations(response)
-    return response
-
-
-def validate_type_of_response(sentences_queries, format_type):
-    """
-    Validate that the response is given in the correct format. if not raise WrongFormatError.
-    """
-    if format_type == Dict[str, str]:
-        if not isinstance(sentences_queries, dict) or not all(isinstance(k, str) and isinstance(v, str)
-                                                              for k, v in sentences_queries.items()):
-            raise WrongFormatError(f'object is not of type: {format_type}')
-    elif format_type == List[str]:
-        if not isinstance(sentences_queries, list) or not all(isinstance(k, str) for k in sentences_queries):
-            raise WrongFormatError(f'object is not of type: {format_type}')
-    return sentences_queries
-
-
-def choose_first_citation(sentence_citations):
-    """
-    Choose the first citation for the sentence, if any.
-    """
-    chosen_citations_ids = [sentence_citations[0]['bibtex'].split('{')[1].split(',\n')[0]]
-    chosen_citations_indices = [0]
-    return chosen_citations_ids, chosen_citations_indices
 
 
 @dataclass
@@ -83,7 +22,8 @@ class CitationGPT(ConverserGPT):
     system_prompt: str = """
     You are a citation expert. 
     You are given a section of a paper, you should mention what sentences need to be cited.
-    You will be provided with list of possible citations, and you should select the most appropriate one for each of the sentences. 
+    You will be provided with list of possible citations, 
+    and you should select the most appropriate one for each of the sentences. 
     You will rewrite the sentences with the citations.
     The citations will be inserted to the text using \\cite{}.
     """
@@ -105,10 +45,9 @@ class CitationGPT(ConverserGPT):
 
     def _remove_citations_in_section(self):
         """
-        Remove the citations that were inserted by mistake.
-        remove any citation command possible \cite[anithing_here]{...}
+        Remove the citations that were inserted by mistake of ChatGPT.
         """
-        self.section = re.sub(r'\s*\\cite[tp]?(\[.*?\])?(\[.*?\])?\{[^}]*\}(?=\s*\.)?', '', self.section)
+        self.section = re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', self.section)
 
     def _choose_sentences_that_need_citations(self):
         """
@@ -116,7 +55,7 @@ class CitationGPT(ConverserGPT):
         """
 
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
-        Extract from the given section the sentences that we need to add citations to them. 
+        Extract from the given section the factual sentences that we need to add citations to them. 
         For each of the sentence, create the best query possible for the citation search for this sentence.
         You need to return the list of this sentences and the queries in this format: 
         {
@@ -227,13 +166,13 @@ class CitationGPT(ConverserGPT):
         citations_titles = [citation['title'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
-        
+
         {}
-        
+
         Choose from the following citations, by reading their titles:
-        
+
         {}
-        
+
         Reply in the following format: 
         "["AuthorX2022", "AuthorY2009"]"
         where AuthorX2022 and AuthorY2009 are the ids of the citations you choose.
@@ -250,36 +189,47 @@ class CitationGPT(ConverserGPT):
                 chosen_citations_ids = validate_citation_ids(validate_type_of_response(eval(
                     '[' + extract_text_between_tags(response, *self.list_tag_pairs) + ']'), List[str]), citations_ids)
             except SyntaxError:
-                self.conversation_manager.append_user_message(
-                    f'eval(response) mentioned "invalid syntax". \n'
-                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
-                    f'like this "["AuthorX2022Title", "AuthorY2009Title"]"', tag='wrong_format_on_eval')
+                self.conversation_manager.append_user_message(dedent_triple_quote_str(
+                    """
+                    eval(response) mentioned "invalid syntax". 
+                    Please try again making sure you return the results with the correct format, i.e., as a list, 
+                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
+                    """), tag='wrong_format_on_eval')
             except NameError:
-                self.conversation_manager.append_user_message(
-                    f'eval(response) mentioned "name not defined". \n'
-                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
-                    f'like this "["AuthorX2022"]"', tag='wrong_format_on_eval')
+                self.conversation_manager.append_user_message(dedent_triple_quote_str(
+                    """
+                    eval(response) mentioned "name not defined". 
+                    Please try again making sure you return the results with the correct format, i.e., as a list, 
+                    like this "["AuthorX2022"]"
+                    """), tag='wrong_format_on_eval')
             except ValueError:
-                self.conversation_manager.append_user_message(
-                    f'I could not find "{self.list_tag_pairs.left_tag}" and "{self.list_tag_pairs.right_tag}" '
-                    f'in your result. \n'
-                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
-                    f'like this "["AuthorX2022Title", "AuthorY2009Title"]"', tag='wrong_format_no_brackets')
+                self.conversation_manager.append_user_message(dedent_triple_quote_str(
+                    """
+                    I could not find "{}" and "{}" in your result. 
+                    Please try again making sure you return the results with the correct format, i.e., as a list, 
+                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
+                    """).format(self.list_tag_pairs.left_tag, self.list_tag_pairs.right_tag),
+                                                              tag='wrong_format_no_brackets')
             except WrongFormatError as e:
-                self.conversation_manager.append_user_message(
-                    f'eval(response) got the error {e}. \n'
-                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
-                    f'like this "["AuthorX2022Title", "AuthorY2009Title"]"', tag='wrong_format_wrong_type')
+                self.conversation_manager.append_user_message(dedent_triple_quote_str(
+                    """
+                    eval(response) got the error {}. 
+                    Please try again making sure you return the results with the correct format, i.e., as a list, 
+                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
+                    """).format(e), tag='wrong_format_wrong_type')
             except NotInCitations as e:
-                self.conversation_manager.append_user_message(
-                    f'You returned a citation id that is not in the citations: {e}. \n'
-                    f'Rewrite the answer and make sure to reply with only the citations ids and only ones that exists.',
-                    tag='not_in_citations_or_wrong_format')
+                self.conversation_manager.append_user_message(dedent_triple_quote_str(
+                    """
+                    You returned a citation id that is not in the citations: {}. 
+                    Rewrite the answer and make sure to reply with only the citations ids and only ones that exists.
+                    """).format(e), tag='not_in_citations_or_wrong_format')
             except Exception as e:
-                self.conversation_manager.append_user_message(
-                    f'Got the error {e}. \n'
-                    f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
-                    f'like this "["AuthorX2022Title", "AuthorY2009Title"]"', tag='wrong_format')
+                self.conversation_manager.append_user_message(dedent_triple_quote_str(
+                    """
+                    Got the error {}. 
+                    Please try again making sure you return the results with the correct format, i.e., as a list, 
+                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
+                    """).format(e), tag='wrong_format')
             else:
                 if not chosen_citations_ids:
                     return [], []
@@ -314,7 +264,7 @@ class CitationGPT(ConverserGPT):
         self.initialize_conversation_if_needed()
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
         This is the section you need to rewrite with citations:
-        
+
         {}
         """).format(self.section), tag='add_section')
         self.conversation_manager.append_surrogate_message('Great, thanks for giving me the section!',
@@ -340,8 +290,6 @@ class CitationGPT(ConverserGPT):
                 )
             else:
                 updated_sentences.append(sentence)
-            # TODO:  probably no need to reset:
-            # self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
         # replace the section with the updated sentences
         self.conversation_manager.append_commenter_message(f'Finished rewriting the section with citations, '
@@ -359,99 +307,3 @@ class CitationGPT(ConverserGPT):
         """
         updated_section, all_citations_bibtexes = self._rewrite_section_with_citations_and_return_bibtexes()
         return updated_section, all_citations_bibtexes
-
-
-def create_bibtex(item):
-    bibtex_template = '@{type}{{{id},\n{fields}}}\n'
-
-    type_mapping = {
-        'article-journal': 'article',
-        'article': 'article',
-        'book': 'book',
-        'chapter': 'inbook',
-        'proceedings-article': 'inproceedings',
-        'paper-conference': 'inproceedings',
-    }
-
-    field_mapping = {
-        'title': 'title',
-        'container-title': 'journal' if item['type'] in ['article-journal', 'article'] else 'booktitle',
-        'volume': 'volume',
-        'issue': 'number',
-        'page': 'pages',
-        'published-print': 'year',
-        'published': 'year',
-        'DOI': 'doi',
-    }
-
-    bibtex_type = type_mapping.get(item['type'], 'misc')
-    if item['authors']:
-        bibtex_id = item['authors'][0].split(" ")[-1] + (str(item.get("year")) if item.get("year") else "")
-        # add also the first word of the title if it exists
-        bibtex_id += item['title'].split(" ")[0] if item.get("title") else ""
-    else:
-        # get the first 3 words of the title if they exist otherwise use the first two, otherwise use the first one
-        title_words = item['title'].split(" ")
-        if len(title_words) > 3:
-            bibtex_id = "".join(title_words[:3])
-        elif len(title_words) > 2:
-            bibtex_id = "".join(title_words[:2])
-        else:
-            bibtex_id = title_words[0]
-        # add the year if it exists
-        bibtex_id += str(item.get("year")) if item.get("year") else ""
-
-    fields = [f"author = {{{' and '.join(item['authors'])}}}"]
-
-    for key, value in item.items():
-        if key in field_mapping:
-            bibtex_key = field_mapping[key]
-            fields.append(f"{bibtex_key} = {{{value}}}")
-
-    return bibtex_template.format(type=bibtex_type, id=bibtex_id, fields=',\n'.join(fields))
-
-
-def remove_tags(text):
-    text = re.sub(r'<[^>]+>', '', text)  # Remove HTML tags
-    text = re.sub(r'&lt;|&gt;', '', text)  # Remove &lt; and &gt;
-    text = re.sub(r'^Abstract', 'Abstract ', text)  # Add space after "Abstract" at the beginning
-    text = re.sub(r'^p|/p$', '', text)  # Remove "p" and "/p" at the beginning and end
-    return text.strip()  # Remove leading and trailing whitespace
-
-
-def crossref_search(query, rows=4):
-    url = "https://api.crossref.org/works"
-    headers = {
-        "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
-    }
-    params = {
-        "query.bibliographic": query,
-        "rows": rows,
-        "filter": "type:journal-article,type:book,type:posted-content,type:proceedings-article",
-        "select": "title,author,container-title,published-print,DOI,type,published",
-    }
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code != 200:
-        raise ServerError(f"Request failed with status code {response.status_code}, error: {response.text}")
-
-    data = response.json()
-    items = data['message']['items']
-    citations = []
-
-    for item in items:
-        citation = {
-            "title": item["title"][0],
-            "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
-                        item.get("author", [])],
-            "year": item["published"]["date-parts"][0][0] if "published" in item else
-            item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
-            "journal": item.get("container-title", [None])[0],
-            "doi": item["DOI"],
-            "type": item["type"]
-        }
-        bibtex_citation = create_bibtex(citation)
-        citation["bibtex"] = bibtex_citation
-        citations.append(citation)
-
-    return citations
