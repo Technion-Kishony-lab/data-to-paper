@@ -1,4 +1,4 @@
-from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, module, WARNINGS_TO_RAISE
+from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, WARNINGS_TO_RAISE
 from scientistgpt.run_gpt_code.exceptions import FailedRunningCode
 from scientistgpt.utils import dedent_triple_quote_str
 
@@ -9,7 +9,7 @@ def test_run_code_on_legit_code():
             return 'hello'
         """)
     run_code_using_module_reload(code)
-    assert module.f() == 'hello'
+    assert CODE_MODULE.f() == 'hello'
 
 
 def test_run_code_correctly_reports_exception():
