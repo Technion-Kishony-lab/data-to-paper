@@ -31,6 +31,7 @@ def run_scientist_gpt(list_of_data_files: list[str],
     else:
         os.makedirs(output_directory)
 
+    from scientistgpt import ScientistGPT
     runner = ScientistGPT(list_of_data_files=list_of_data_files,
                           data_description=data_description, goal_description=goal_description)
 

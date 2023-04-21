@@ -122,18 +122,12 @@ class PaperWritingGPT(ConverserGPT, ABC):
         """
         save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, self.bib_filename, should_compile_to_pdf)
 
-    def _save_references_to_bib_file(self, references: Dict[str, str]):
+    def _save_references_to_bib_file(self, references: set):
         """
         Save all the citations bibtexes to a .bib file.
         """
-        # TODO:  need to adjust
-        if not os.path.exists(self.bibtex_file_path):
-            with open(self.bibtex_file_path, 'w') as f:
-                f.write('')
-        with open(self.bibtex_file_path, 'a') as f:
-            for citations_bibtexes in all_citations_bibtexes:
-                for citation_bibtex in citations_bibtexes:
-                    f.write(citation_bibtex)
+        with open(self.bib_filename, 'w') as f:
+            f.write('\n\n'.join(references))
 
     def write_paper(self, should_compile_to_pdf: bool = True):
         self.initialize_conversation_if_needed()
@@ -157,4 +151,5 @@ class PaperWritingGPT(ConverserGPT, ABC):
                 continue
             self.paper_sections[section_name], references = \
                 CitationGPT(section=section_content).rewrite_section_with_citations()
-            all_references |= set(references)
+            all_references |= references
+        self._save_references_to_bib_file(all_references)
