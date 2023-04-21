@@ -17,7 +17,8 @@ from .exceptions import FailedRunningCode, BaseRunContextException
 MODULE_NAME = 'script_to_run'
 
 WARNINGS_TO_RAISE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
-WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning]
+WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning,
+                                           FutureWarning]
 FORBIDDEN_MODULES_AND_FUNCTIONS = [
     (builtins, 'print'),
     (builtins, 'input'),
