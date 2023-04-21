@@ -1,5 +1,5 @@
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, WARNINGS_TO_RAISE
-from scientistgpt.run_gpt_code.exceptions import FailedRunningCode
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -35,17 +35,14 @@ def test_run_code_catches_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    WARNINGS_TO_RAISE.append(UserWarning)
     try:
-        run_code_using_module_reload(code)
+        run_code_using_module_reload(code, warnings_to_raise=[UserWarning])
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'be careful'
         assert e.code == code
         assert e.tb[-1].lineno == 2
     else:
         assert False, 'Expected to fail'
-    finally:
-        WARNINGS_TO_RAISE.remove(UserWarning)
 
 
 def test_run_code_timeout():
@@ -61,5 +58,23 @@ def test_run_code_timeout():
         assert isinstance(e.exception, TimeoutError)
         assert e.code == code
         assert e.tb is None  # we currently do not get a traceback for timeout
+    else:
+        assert False, 'Expected to fail'
+
+
+def test_run_code_forbidden_function():
+    code = dedent_triple_quote_str("""
+        a = 1
+        input('')
+        """)
+    try:
+        run_code_using_module_reload(code)
+    except FailedRunningCode as e:
+        assert isinstance(e.exception, CodeUsesForbiddenFunctions)
+        assert e.code == code
+        assert e.tb[-1].lineno == 2
+    except Exception as e:
+        print(e)
+        raise
     else:
         assert False, 'Expected to fail'
