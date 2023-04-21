@@ -1,5 +1,7 @@
 # flake8: noqa
 
+list_of_data_files = ['eng_covid_vaccine_side_effects.csv']
+
 data_description = """
 (1) eng_covid_vaccine_side_effects.csv: a csv file containing information about reports of side effects followed by vaccine
 that were reported by medical staff in israel, the vaccine that was given is "Pfizer BioNTech (BNT162b2) COVID-19 vaccine".

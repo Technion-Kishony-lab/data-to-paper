@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -72,6 +72,7 @@ class ScientistGPT(CodeWritingGPT):
 
     conversation_name: str = 'ScientistGPT'
 
+    list_of_data_files: Optional[List[str]] = None,
     data_description: Optional[str] = None,
     goal_description: Optional[str] = None,
 
@@ -188,6 +189,7 @@ class ScientistGPT(CodeWritingGPT):
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
+                list_of_data_files=self.list_of_data_files,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 conversation_name=self.conversation.conversation_name,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{code_revision}_attempt{attempt}"
