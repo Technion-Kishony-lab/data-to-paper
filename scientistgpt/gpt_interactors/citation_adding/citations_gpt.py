@@ -53,7 +53,7 @@ class CitationGPT(ConverserGPT):
         """
         Choose sentences that need citations from the section.
         """
-        self.conversation_manager.append_user_message(dedent_triple_quote_str("""
+        self.apply_append_user_message(dedent_triple_quote_str("""
             Extract from the given section the factual sentences to which we need to add citations. 
             For each of the chosen sentence, create the best query possible for the citation search for this sentence.
             You need to return a dict of these sentences mapped to their respective queries.
@@ -74,7 +74,7 @@ class CitationGPT(ConverserGPT):
         feedback_message: Optional[str] = None
         for attempt_num in range(self.max_number_of_attempts):
             if feedback_message is not None:
-                self.conversation_manager.append_user_message(feedback_message + dedent_triple_quote_str("""
+                self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
                     Please try again making sure you return the results with the correct format, 
                     like this:
                     ``` 
@@ -82,7 +82,7 @@ class CitationGPT(ConverserGPT):
                     "another sentence extracted from the section": "the query of this sentence"}
                     ```
                     """), tag='wrong_format')
-            response = self.conversation_manager.get_and_append_assistant_message()
+            response = self.apply_get_and_append_assistant_message()
             feedback_message, response_value = extract_python_value_from_response(response, Dict[str, str])
             if feedback_message is not None:
                 continue
@@ -144,7 +144,7 @@ class CitationGPT(ConverserGPT):
             return choose_first_citation(sentence_citations)
         citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
         citations_titles = [citation['title'] for citation in sentence_citations]
-        self.conversation_manager.append_user_message(dedent_triple_quote_str("""
+        self.apply_append_user_message(dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
 
         {}
@@ -166,14 +166,14 @@ class CitationGPT(ConverserGPT):
         feedback_message: Optional[str] = None
         for attempt_num in range(self.max_number_of_attempts):
             if feedback_message is not None:
-                self.conversation_manager.append_user_message(feedback_message + dedent_triple_quote_str("""
+                self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
                     Please try again making sure you return the results with the correct format, 
                     like this:
                     ``` 
                     ["AuthorX2022Title", "AuthorY2009Title"]
                     ```
                     """), tag='wrong_format')
-            response = self.conversation_manager.get_and_append_assistant_message()
+            response = self.apply_get_and_append_assistant_message()
             feedback_message, response_value = extract_python_value_from_response(response, List[str])
             if feedback_message is not None:
                 continue
@@ -204,7 +204,7 @@ class CitationGPT(ConverserGPT):
             # add the citations to the end of the sentence as is.
             return sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(citations_ids) + '.' + '}'
 
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             dedent_triple_quote_str("""
             The sentence you need to rewrite is: "{}".
             The citation ids you should enter in a smart and correct position maintaining good sentence flow are: "{}".
@@ -212,13 +212,13 @@ class CitationGPT(ConverserGPT):
             You should use \\cite{{}}, i.e., keep on correct .tex format to insert the citation. 
             Return only the rewritten sentence, do not return the whole section.
             """).format(sentence, citations_ids))
-        new_sentence = self.conversation_manager.get_and_append_assistant_message()
+        new_sentence = self.apply_get_and_append_assistant_message()
         if len(new_sentence) >= len(self.section):
-            self.conversation_manager.append_user_message(
+            self.apply_append_user_message(
                 dedent_triple_quote_str("""
                 You returned the whole section rewritten, Please return only the rewritten sentence.
                 """))
-            new_sentence = self.conversation_manager.get_and_append_assistant_message()
+            new_sentence = self.apply_get_and_append_assistant_message()
         return new_sentence
 
     def rewrite_section_with_citations(self):
@@ -227,14 +227,14 @@ class CitationGPT(ConverserGPT):
         """
         self._remove_citations_from_section()
         self.initialize_conversation_if_needed()
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             dedent_triple_quote_str("""
                 This is the section you need to reformat with citations:
 
                 {}
                 """).format(self.section),
             tag='add_section')
-        self.conversation_manager.append_surrogate_message(
+        self.apply_append_surrogate_message(
             'Great, thanks for providing me with the section!', tag='add_section_surrogate')
         self.sentences_to_queries = self._choose_sentences_that_need_citations()
         self.conversation_manager.reset_back_to_tag('add_section_surrogate')
@@ -258,7 +258,7 @@ class CitationGPT(ConverserGPT):
             self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
         # replace the section with the updated sentences
-        self.conversation_manager.append_commenter_message(
+        self.comment(
             'Finished rewriting the sentences with citations, replacing the sentences with the rewritten ones.',
             tag='done_rewriting_section')
         updated_section = self.section

@@ -32,18 +32,18 @@ class TextExtractorGPT(ConverserGPT):
         """
 
         self.initialize_conversation_if_needed()
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             f'Below is a triple-quoted text, from which you need to extract {self.description_of_text_to_extract}.\n'
             f'Please provide the extracted text within a triple-quoted string.\n\n'
             f'Here is my text:\n\n'
             f'"""{self.text}"""\n\n')
 
         for attempt_num in range(self.max_number_of_attempts):
-            response = self.conversation_manager.get_and_append_assistant_message()
+            response = self.apply_get_and_append_assistant_message()
             try:
                 return self.extract_triplet_quoted_text(response)
             except ValueError:
-                self.conversation_manager.append_user_message(
+                self.apply_append_user_message(
                     f'You did not extract the {self.description_of_text_to_extract} correctly. \n'
                     f'Please try again making sure the extracted text is flanked by triple quotes, \n'
                     f'like this """extracted text""".', tag='explicit_instruction')

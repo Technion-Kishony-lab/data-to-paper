@@ -88,8 +88,8 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
-        self.conversation_manager.append_user_message(self._alter_other_response(other_response))
-        return self.conversation_manager.get_and_append_assistant_message()
+        self.apply_append_user_message(self._alter_other_response(other_response))
+        return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
         """
@@ -128,7 +128,7 @@ class DialogDualConverserGPT(DualConverserGPT):
 
         # to allow starting either before or after the first self response:
         if self.conversation[-1].role is Role.USER:
-            self_response = self.conversation_manager.get_and_append_assistant_message()
+            self_response = self.apply_get_and_append_assistant_message()
         else:
             self_response = self.conversation.get_last_response()
 
@@ -139,7 +139,7 @@ class DialogDualConverserGPT(DualConverserGPT):
 
         if self.is_completed():
             if append_termination_response_to_self:
-                self.conversation_manager.append_user_message(other_response)
+                self.apply_append_user_message(other_response)
             return self_response
 
         self.get_response_from_self_in_response_to_response_from_other(other_response)
@@ -211,7 +211,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
-        self.conversation_manager.append_user_message(self._format_prompt(self.user_initiation_prompt))
+        self.apply_append_user_message(self._format_prompt(self.user_initiation_prompt))
 
     def initialize_dialog(self, suppress_printing_of_other: bool = True):
         self.initialize_conversation_if_needed()
