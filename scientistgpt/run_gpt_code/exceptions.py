@@ -82,7 +82,7 @@ class CodeUsesForbiddenFunctions(BaseRunContextException):
 
 
 @dataclass
-class CodeCreatesForbiddenFile(BaseRunContextException):
+class CodeWriteForbiddenFile(BaseRunContextException):
     file: str
 
     def __str__(self):
@@ -90,7 +90,7 @@ class CodeCreatesForbiddenFile(BaseRunContextException):
 
 
 @dataclass
-class CodeLoadsForbiddenFile(BaseRunContextException):
+class CodeReadForbiddenFile(BaseRunContextException):
     file: str
 
     def __str__(self):
