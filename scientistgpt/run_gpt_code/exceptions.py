@@ -79,3 +79,20 @@ class CodeUsesForbiddenFunctions(BaseRunContextException):
 
     def __str__(self):
         return f"Code uses a forbidden function {self.func}."
+
+
+@dataclass
+class CodeCreatesForbiddenFile(BaseRunContextException):
+    file: str
+
+    def __str__(self):
+        return f"Code tries to create a forbidden file {self.file}."
+
+
+@dataclass
+class CodeLoadsForbiddenFile(BaseRunContextException):
+    file: str
+
+    def __str__(self):
+        return f"Code tries to load a forbidden file {self.file}."
+
