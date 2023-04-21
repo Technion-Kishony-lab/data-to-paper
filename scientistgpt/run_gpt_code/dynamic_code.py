@@ -1,13 +1,16 @@
+import builtins
+import matplotlib.pyplot as plt
 import os
 import importlib
 import traceback
 import warnings
-from typing import Optional, List, Type
+from typing import Optional, List, Type, Tuple, Any
 
 import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 
+from .run_context import prevent_calling
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode
 
@@ -15,6 +18,11 @@ MODULE_NAME = 'script_to_run'
 
 WARNINGS_TO_RAISE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
 WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning]
+FORBIDDEN_MODULES_AND_FUNCTIONS = [
+    (builtins, 'print'),
+    (builtins, 'input'),
+    (plt, 'savefig'),
+    ]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filename = MODULE_NAME + ".py"
@@ -29,10 +37,15 @@ def save_code_to_module_file(code: str = None):
 
 # create module from empty file:
 save_code_to_module_file()
-module = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
-def run_code_using_module_reload(code: str, save_as: Optional[str] = None, timeout_sec: int = MAX_EXEC_TIME):
+def run_code_using_module_reload(
+        code: str, save_as: Optional[str] = None,
+        timeout_sec: int = MAX_EXEC_TIME,
+        warnings_to_raise: List[Type[Warning]] = None,
+        warnings_to_ignore: List[Type[Warning]] = None,
+        forbidden_modules_and_functions: List[Tuple[Any, str]] = None):
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -44,16 +57,21 @@ def run_code_using_module_reload(code: str, save_as: Optional[str] = None, timeo
     save_as: name of file to save the code.  None to skip saving.
     """
 
+    warnings_to_raise = warnings_to_raise or WARNINGS_TO_RAISE
+    warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
+    forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
+
+    # check that the code does not use forbidden functions
     save_code_to_module_file(code)
     with warnings.catch_warnings():
-        for warning in WARNINGS_TO_IGNORE:
+        for warning in warnings_to_ignore:
             warnings.filterwarnings("ignore", category=warning)
-        for warning in WARNINGS_TO_RAISE:
+        for warning in warnings_to_raise:
             warnings.filterwarnings("error", category=warning)
 
         try:
-            with timeout_context(timeout_sec):
-                importlib.reload(module)
+            with timeout_context(timeout_sec), prevent_calling(forbidden_modules_and_functions):
+                importlib.reload(CODE_MODULE)
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError
             raise FailedRunningCode(exception=e, tb=None, code=code)
