@@ -65,6 +65,15 @@ def validate_type_of_response(sentences_queries, format_type):
     return sentences_queries
 
 
+def choose_first_citation(sentence_citations):
+    """
+    Choose the first citation for the sentence, if any.
+    """
+    chosen_citations_ids = [sentence_citations[0]['bibtex'].split('{')[1].split(',\n')[0]]
+    chosen_citations_indices = [0]
+    return chosen_citations_ids, chosen_citations_indices
+
+
 @dataclass
 class CitationGPT(ConverserGPT):
     """
@@ -89,7 +98,7 @@ class CitationGPT(ConverserGPT):
     dict_tag_pairs: TagPairs = TagPairs('{', '}')
     list_tag_pairs: TagPairs = TagPairs('[', ']')
 
-    max_number_of_attempts: int = 3
+    max_number_of_attempts: int = 4
     max_number_of_api_calls: int = 3
 
     bibtex_file_path = 'citations.bib'
@@ -196,13 +205,15 @@ class CitationGPT(ConverserGPT):
                         raise e
         return sentences_citations
 
-    def _choose_citations_for_sentence(self, sentence, sentence_citations):
+    def _choose_citations_for_sentence(self, sentence, sentence_citations, choose_using_chatgpt=True):
         """
         Choose the most appropriate citations for the sentence, if any.
         """
+        chosen_citations_ids = None
+        if not choose_using_chatgpt:
+            return choose_first_citation(sentence_citations)
         citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
         citations_titles = [citation['title'] for citation in sentence_citations]
-        # citation_abstracts = [citation['abstract'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
         
@@ -257,7 +268,6 @@ class CitationGPT(ConverserGPT):
                     f'Got the error {e}. \n'
                     f'Please try again making sure you return the results with the correct format, i.e., as a list, \n'
                     f'like this "["AuthorX2022", "AuthorY2009"]"', tag='wrong_format')
-
             else:
                 if not chosen_citations_ids:
                     return [], []
@@ -265,6 +275,9 @@ class CitationGPT(ConverserGPT):
                 chosen_citations_indices = [citations_ids.index(citation_id) for citation_id in chosen_citations_ids]
                 # return the chosen citations
                 return chosen_citations_ids, chosen_citations_indices
+        if chosen_citations_ids is None:
+            return choose_first_citation(sentence_citations)
+
 
     def _rewrite_sentence_with_citation(self, sentence, citations_titles, citations_ids):
         """
@@ -300,11 +313,11 @@ class CitationGPT(ConverserGPT):
         sentences_possible_citations = self._find_citations_for_sentences(sentences_queries)
         updated_sentences = []
         all_citations_bibtexes = []
-        #  TODO:  add switch whether we call chatgpt
+        #  TODO: add switch whether we call chatgpt
         #  TODO: make it sound like a conversartion (give me the sentences you want to cross ref. I corssref and this is what i got..."
         for sentence, sentence_citations in zip(sentences_queries, sentences_possible_citations):
-            chosen_citations_ids, chosen_citations_indices = self._choose_citations_for_sentence(sentence,
-                                                                                                 sentence_citations)
+            chosen_citations_ids, chosen_citations_indices = \
+                self._choose_citations_for_sentence(sentence, sentence_citations, choose_using_chatgpt=True)
             # get the chosen citations titles
             chosen_citations_titles = [sentence_citations[index]['title'] for index in chosen_citations_indices]
             if chosen_citations_ids:
@@ -315,7 +328,7 @@ class CitationGPT(ConverserGPT):
             else:
                 updated_sentences.append(sentence)
             # TODO:  probably no need to reset:
-            self.conversation_manager.reset_back_to_tag('add_section_surrogate')
+            # self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
         # replace the section with the updated sentences
         self.conversation_manager.append_commenter_message(f'Finished rewriting the section with citations, '
