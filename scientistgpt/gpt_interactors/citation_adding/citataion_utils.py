@@ -1,11 +1,6 @@
 import re
 from typing import Dict, List
 
-import requests
-
-from .exceptions import ServerErrorCitationException, WrongFormatCitationException, NotInCitationsCitationException
-from ...call_servers import ServerCaller
-
 
 def validate_variable_type(sentences_queries, format_type):
     """
