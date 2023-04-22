@@ -136,7 +136,7 @@ class CitationGPT(ConverserGPT):
         """
         Find citations for the sentences in sentences_to_queries using their search queries.
         """
-        possible_citations = {}
+        sentences_to_citations = {}
         for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
                 try:
@@ -149,7 +149,7 @@ class CitationGPT(ConverserGPT):
             else:
                 self.comment(f"Could not find citations for the sentence:\n{sentence}.")
 
-        return possible_citations
+        return sentences_to_citations
 
     def _choose_citations_for_sentence(self, sentence, sentence_citations):
         """

@@ -1,49 +1,25 @@
 START>>>>>
-{"Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality.": "COVID-19 vaccine efficacy and control of spread", 
-"While the vaccine has been proven to be highly effective in preventing COVID-19 infections, there have been concerns regarding the safety profile of the vaccine.": "Safety of Pfizer BioNTech COVID-19 vaccine", 
-"Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine.": "Side effects of Pfizer BioNTech COVID-19 vaccine",
-"To answer these questions, we analyzed the data on side effect reports submitted by medical staff in Israel following the administration of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine.": "Analysis of side effect reports of Pfizer BioNTech COVID-19 vaccine in Israel", 
-"We used suitable data analysis and visualization tools to provide insights into the differences in side effect profiles across different portions of the vaccine.": "Data analysis and visualization tools for studying side effects of Pfizer BioNTech COVID-19 vaccine across portions"}
+{
+"The COVID-19 pandemic has led to a global health crisis that has affected millions of people around the world.": "COVID-19 pandemic statistics and data",
+"Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality.": "Data on the effectiveness of vaccines in controlling infection and reducing mortality",
+"Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine.": "Studies and reports on side effects associated with the Pfizer BioNTech COVID-19 vaccine",
+}
 <<<<<END
 
 START>>>>>
-["Mukherjee2021What"]
+["Kurihara2022Special", "Shafti2021Vaccine", "Liang2021Truncation", "Wilhelm2022Visual"]
 <<<<<END
 
 START>>>>>
-["Mukherjee2021What"]
+The COVID-19 pandemic has led to a global health crisis that has affected millions of people around the world \cite{Kurihara2022Special, Shafti2021Vaccine, Wilhelm2022Visual, Liang2021Truncation}.
 <<<<<END
 
 START>>>>>
-["Mukherjee2021What: What is mRNA COVID 19 Vaccine and What is the safety and Efficacy of mRNA COVID 19 Vaccine?"]
+["Acharya2021Protection", "Mohammed2022The"]
 <<<<<END
 
 START>>>>>
-["Mukherjee2021What"]
-<<<<<END
-
-START>>>>>
-Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality \cite{A2021SARS-CoV-2}.
-<<<<<END
-
-START>>>>>
-["Korzeniowska2021Safety"]
-<<<<<END
-
-START>>>>>
-["Korzeniowska2021Safety"]
-<<<<<END
-
-START>>>>>
-["Korzeniowska2021Safety"]
-<<<<<END
-
-START>>>>>
-["Korzeniowska2021Safety"]
-<<<<<END
-
-START>>>>>
-While the Pfizer BioNTech COVID-19 vaccine has been proven to be highly effective in preventing COVID-19 infections \cite{Safetyofsecond2022}, there have been concerns regarding the safety profile of the vaccine.
+Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality \cite{Acharya2021Protection, Mohammed2022The}.
 <<<<<END
 
 START>>>>>
@@ -51,58 +27,6 @@ START>>>>>
 <<<<<END
 
 START>>>>>
-["Sadeq2022Side Effects of Pfizer-BioNTech COVID-19 Vaccine among medical staff"]
-<<<<<END
-
-START>>>>>
-["Sadeq2022Side Effects of Pfizer-BioNTech COVID-19 Vaccine among medical staff"]
-<<<<<END
-
-START>>>>>
-["Sadeq2022Side Effects of Pfizer-BioNTech COVID-19 Vaccine among medical staff"]
-<<<<<END
-
-START>>>>>
-Reports of side effects following the administration of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine \cite{Sadeq2022Side} have led to questions regarding the potential risks associated with the vaccine.
-<<<<<END
-
-START>>>>>
-["Covid-19-vaccine-pfizer-biontech2022"]
-<<<<<END
-
-START>>>>>
-["Covid-19-vaccine-pfizer-biontech2022"]
-<<<<<END
-
-START>>>>>
-["Covid-19-vaccine-pfizer-biontech2022"]
-<<<<<END
-
-START>>>>>
-["Covid-19-vaccine-pfizer-biontech2022"]
-<<<<<END
-
-START>>>>>
-To answer these questions, we analyzed the data on side effect reports submitted by medical staff in Israel following the administration of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine \cite{Wise2021Covid-19:}.
-<<<<<END
-
-START>>>>>
-["Sadeq2022Side"]
-<<<<<END
-
-START>>>>>
-["Sadeq2022Side Effects of Pfizer-BioNTech COVID-19 Vaccine among medical staff"]
-<<<<<END
-
-START>>>>>
-["Sadeq2022Side Effects of Pfizer-BioNTech COVID-19 Vaccine among medical staff"]
-<<<<<END
-
-START>>>>>
-["Sadeq2022Side Effects of Pfizer-BioNTech COVID-19 Vaccine among medical staff"]
-<<<<<END
-
-START>>>>>
-We used suitable data analysis and visualization tools to provide insights into the differences in side effect profiles across different portions of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine \cite{Sadeq2022Side}.
+Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine \cite{Sadeq2022Side}.
 <<<<<END
 
