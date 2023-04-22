@@ -10,14 +10,23 @@ from typing import Union
 from scientistgpt import Message, Conversation, load_actions_from_file
 from scientistgpt.conversation import conversation
 from scientistgpt.conversation.actions import BaseChatgptResponse, AppendChatgptResponse
+from scientistgpt.gpt_interactors.citation_adding import citataion_utils
+
+
+def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_all_responses_used=True):
+    return mock_server(conversation, server_calling_func_name='_get_chatgpt_response', responses=responses,
+                       record_more_from_server_if_needed=record_more_from_openai_if_needed,
+                       fail_if_not_all_responses_used=fail_if_not_all_responses_used)
 
 
 @contextmanager
-def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_all_responses_used=True):
-    def mock_chatgpt_response(messages: list[Message], *args, **kwargs):
+def mock_server(module, server_calling_func_name: str,
+                responses, record_more_from_server_if_needed=False, fail_if_not_all_responses_used=True):
+
+    def mock_serve_response(*args, **kwargs):
         if not responses:
-            if record_more_from_openai_if_needed:
-                response = original_method(messages)
+            if record_more_from_server_if_needed:
+                response = original_method(*args, **kwargs)
                 new_responses.append(response)
             else:
                 raise AssertionError('No more responses were mocked')
@@ -29,8 +38,8 @@ def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_
 
     new_responses = []
     new_responses_and_exceptions = {'new_responses': new_responses, 'exception': None}
-    original_method = conversation._get_chatgpt_response
-    conversation._get_chatgpt_response = mock_chatgpt_response
+    original_method = getattr(module, server_calling_func_name)
+    setattr(module, server_calling_func_name, mock_serve_response)
     keyboard_interrupt_occurred = False
     try:
         yield new_responses_and_exceptions
@@ -38,7 +47,7 @@ def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_
         new_responses_and_exceptions['exception'] = e
         keyboard_interrupt_occurred = isinstance(e, KeyboardInterrupt)
     finally:
-        conversation._get_chatgpt_response = original_method
+        setattr(module, server_calling_func_name, original_method)
     if fail_if_not_all_responses_used and responses and not keyboard_interrupt_occurred:
         raise AssertionError(f'Not all responses were used: {responses}')
 
@@ -71,8 +80,18 @@ def record_openai():
 
 
 def record_or_replay_openai(file_path: Union[str, Path] = None, should_mock: bool = True):
+    return record_or_replay_server(module=conversation, server_calling_func_name='_get_chatgpt_response',
+                                   file_path=file_path, should_mock=should_mock)
+
+
+def record_or_replay_crossref(file_path: Union[str, Path] = None, should_mock: bool = True):
+    return record_or_replay_server(module=citataion_utils, server_calling_func_name='crossref_search',
+                                   file_path=file_path, should_mock=should_mock)
+
+
+def record_or_replay_server(module, server_calling_func_name, file_path: Union[str, Path] = None, should_mock: bool = True):
     """
-    Decorator to record or replay openai responses.
+    Decorator to record or replay server responses.
 
     If the file does not exist, then the decorated function will be called
     and the responses will be recorded to the file.
@@ -85,6 +104,8 @@ def record_or_replay_openai(file_path: Union[str, Path] = None, should_mock: boo
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             nonlocal file_path
+
+            # use the file path of the decorated function if not given
             if not file_path:
                 test_file_path = os.path.abspath(inspect.getfile(func))
                 test_dir = os.path.dirname(test_file_path)
@@ -94,6 +115,7 @@ def record_or_replay_openai(file_path: Union[str, Path] = None, should_mock: boo
             if not os.path.exists(os.path.dirname(file_path)):
                 os.makedirs(os.path.dirname(file_path))
 
+            # create an empty response file if not exist
             if not os.path.isfile(file_path):
                 with open(file_path, 'w') as f:
                     f.write('')
@@ -103,10 +125,14 @@ def record_or_replay_openai(file_path: Union[str, Path] = None, should_mock: boo
                 responses = re.findall(Conversation.SAVE_START + "(.*?)" + Conversation.SAVE_END, f.read(), re.DOTALL)
 
             # run the test with the previous responses and record new responses
-            with mock_openai(responses, record_more_from_openai_if_needed=True) as new_responses_and_exceptions:
+            with mock_server(
+                    module=module,
+                    server_calling_func_name=server_calling_func_name,
+                    responses=responses,
+                    record_more_from_server_if_needed=True) as new_responses_and_exceptions:
                 func(*args, **kwargs)
 
-            # add new responses to the file
+            # add new responses, if any, to the responses file
             if new_responses_and_exceptions['new_responses']:
                 with open(file_path, 'a') as f:
                     for response in new_responses_and_exceptions['new_responses']:
