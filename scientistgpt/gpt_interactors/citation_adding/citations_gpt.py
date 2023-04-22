@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 import re
 
@@ -17,16 +17,17 @@ class CitationGPT(ConverserGPT):
     """
     Interact with chatgpt to find citations for a specific section in the paper.
     """
+    agent = 'citation_adding'
 
     # override the default system prompt:
-    system_prompt: str = """
+    system_prompt: str = dedent_triple_quote_str("""
     You are a scientific citation expert. 
     You are given a section of a paper, you should mention what sentences need to be cited.
     You will be provided with list of possible citations, 
     and you should select the most appropriate one for each of the sentences. 
     You will rewrite the sentences with the citations.
     The citations will be inserted to the text using \\cite{}.
-    """
+    """)
 
     section: str = None
     "The section of the paper to which we are adding citations."
@@ -39,7 +40,7 @@ class CitationGPT(ConverserGPT):
     sentences_to_queries: Dict[str, str] = None
 
     current_sentence_citations_ids: Set[str] = field(default_factory=set)
-    sentences_to_add_citations_to: Set[(str, str)] = field(default_factory=set)
+    sentences_to_add_citations_to: Set[Tuple[str, str]] = field(default_factory=set)
 
     def _remove_citations_from_section(self):
         """
@@ -63,6 +64,8 @@ class CitationGPT(ConverserGPT):
              } 
             This is of course just an example. 
             Identify all the sentences that you think we need to add citations to.
+            Remember, you are the author of this paper, you can't cite previous papers of yours, 
+            so "We \\cite{}, showed..." is not a valid citation to add.
 
             Return only a dict of "sentence: query" pairs, without any other text.
             """), tag='select_sentences')
@@ -131,20 +134,20 @@ class CitationGPT(ConverserGPT):
         """
         Find citations for the sentences in sentences_to_queries using their search queries.
         """
-        sentences_to_citations = {}
+        possible_citations = {}
         for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
                 try:
                     self.comment(
                         f'Finding citations for sentence {sentence_number + 1}, try number {number_of_tries + 1}.')
-                    sentences_to_citations[sentence] = crossref_search(query)
+                    possible_citations[sentence] = crossref_search(query)
                     break
                 except ServerErrorCitationException as e:
                     self.comment(f"CrossRef server error: {e}")
             else:
                 self.comment(f"Could not find citations for the sentence:\n{sentence}.")
 
-        return sentences_to_citations
+        return possible_citations
 
     def _choose_citations_for_sentence(self, sentence, sentence_citations):
         """
@@ -208,10 +211,12 @@ class CitationGPT(ConverserGPT):
                 self._validate_citation_ids(response_value, citations_ids)
             except NotInOptionsException as e:
                 feedback_message = \
-                    f'You returned citations that are not in the given option: {e.not_in_options}.' \
-                    f'In your following answer return only these citations ids fixed.'
+                    f'You returned these citations that are not in the given options: {e.not_in_options}. ' \
+                    f'The options are: {citations_ids}.'
                 continue
             self.current_sentence_citations_ids |= set(response_value)
+            provided_choice = True
+            break
         if not provided_choice:
             return choose_first_citation(sentence_citations)
         if not self.current_sentence_citations_ids:
@@ -222,7 +227,7 @@ class CitationGPT(ConverserGPT):
         # return the chosen citations
         return self.current_sentence_citations_ids, chosen_citations_indices
 
-    def _rewrite_sentence_with_citation(self, sentence, citations_titles, citations_ids):
+    def _rewrite_sentence_with_citation(self, sentence, citations_ids):
         """
         Rewrite the sentence with the citation.
         """
@@ -233,13 +238,18 @@ class CitationGPT(ConverserGPT):
         self.conversation_manager.append_user_message(
             dedent_triple_quote_str("""
             The sentence you need to rewrite is: "{}".
-            As a reminder, the citations papers titles are: "{}".
             The citation ids you should enter in a smart and correct position maintaining good sentence flow are: "{}".
             Please rewrite the sentence with the citations using the citations ids given.
-            You should use \\cite{{}}, i.e., keep on correct .tex format to insert the citation, 
-            do not reply with any other text beside the rewritten sentence.
-            """).format(sentence, citations_titles, citations_ids))
+            You should use \\cite{{}}, i.e., keep on correct .tex format to insert the citation. 
+            Return only the rewritten sentence, do not return the whole section.
+            """).format(sentence, citations_ids))
         new_sentence = self.conversation_manager.get_and_append_assistant_message()
+        if len(new_sentence) >= len(self.section):
+            self.conversation_manager.append_user_message(
+                dedent_triple_quote_str("""
+                You returned the whole section rewritten, Please return only the rewritten sentence.
+                """))
+            new_sentence = self.conversation_manager.get_and_append_assistant_message()
         return new_sentence
 
     def rewrite_section_with_citations(self):
@@ -262,26 +272,24 @@ class CitationGPT(ConverserGPT):
         sentences_to_possible_citations = self._find_citations_for_sentences()
         updated_sentences = []
         all_citations_bibtexes = set()
-        #  TODO: make it sound like a conversartion (give me the sentences you want to cross ref.
+        #  TODO: make it sound like a conversation (give me the sentences you want to cross ref.
         #   I corssref and this is what i got..."
         for sentence, sentence_citations in sentences_to_possible_citations.items():
             chosen_citations_ids, chosen_citations_indices = \
                 self._choose_citations_for_sentence(sentence, sentence_citations)
-            # get the chosen citations titles
-            chosen_citations_titles = [sentence_citations[index]['title'] for index in chosen_citations_indices]
             if chosen_citations_ids:
-                updated_sentence = self._rewrite_sentence_with_citation(sentence, chosen_citations_titles,
-                                                                        chosen_citations_ids)
+                updated_sentence = self._rewrite_sentence_with_citation(sentence, chosen_citations_ids)
                 updated_sentences.append(updated_sentence)
                 all_citations_bibtexes.update(
                     [sentence_citations[index]['bibtex'] for index in chosen_citations_indices]
                 )
             else:
                 updated_sentences.append(sentence)
+            self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
         # replace the section with the updated sentences
         self.conversation_manager.append_commenter_message(
-            'Finished rewriting the section with citations, replacing the sentences with the rewritten ones.',
+            'Finished rewriting the sentences with citations, replacing the sentences with the rewritten ones.',
             tag='done_rewriting_section')
         updated_section = self.section
         for idx, sentence in enumerate(self.sentences_to_queries):
@@ -299,6 +307,6 @@ class CitationGPT(ConverserGPT):
         in_citations = [citation_id for citation_id in response if citation_id in citations_ids]
         self.current_sentence_citations_ids |= set(in_citations)
         not_in_citations = [citation_id for citation_id in response if citation_id not in citations_ids]
-        if not not_in_citations:
+        if not_in_citations:
             raise NotInOptionsException(not_in_options=not_in_citations)
         return response

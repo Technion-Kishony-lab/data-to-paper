@@ -2,17 +2,18 @@ import os
 
 from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 
-from tests.utils import record_or_replay_openai
+from tests.utils import record_or_replay_openai, record_or_replay_crossref
 
 
 @record_or_replay_openai()
+# @record_or_replay_crossref()
 def test_citation_gpt(tmpdir):
     # create a scientific mentor with some random scientific products to test the paper author
     # pre_paper_conversation population
     section = """
 \\section{Introduction}
 
-The COVID-19 pandemic has led to a global health crisis that has affected millions of people around the world. Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality. The Pfizer BioNTech (BNT162b2) COVID-19 vaccine has been authorized for emergency use in many countries, including Israel, where it has been administered to millions of people.
+The COVID-19 pandemic has led to a global health crisis that has affected millions of people around the world \\cite{some citation}. Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality. The Pfizer BioNTech (BNT162b2) COVID-19 vaccine has been authorized for emergency use in many countries, including Israel, where it has been administered to millions of people.
 
 While the vaccine has been proven to be highly effective in preventing COVID-19 infections, there have been concerns regarding the safety profile of the vaccine. Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine. 
 
@@ -34,4 +35,3 @@ To answer these questions, we analyzed the data on side effect reports submitted
 
     # check that we get the output with additional citations
     assert "\\cite{" in updated_section
-
