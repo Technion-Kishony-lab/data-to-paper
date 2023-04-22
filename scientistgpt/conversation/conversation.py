@@ -7,6 +7,8 @@ from .message_designation import GeneralMessageDesignation
 
 # Set up the OpenAI API client
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
+from scientistgpt.call_servers import ServerCaller
+
 openai.api_key = OPENAI_API_KEY
 
 # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
@@ -14,13 +16,23 @@ SAVE_START = 'START>>>>>\n'
 SAVE_END = '\n<<<<<END\n'
 
 
-class CallOpenAI:
+class OpenaiSeverCaller(ServerCaller):
     """
     Class to call OpenAI API.
-    Putting get_chatgpt_response in a class allows a safer way to mock it in tests.
     """
+    file_extension = '_openai.txt'
+
     @staticmethod
-    def get_chatgpt_response(messages: List[Message], **kw) -> str:
+    def _save_records(file, records):
+        for response in records:
+            file.write(f'{SAVE_START}{response}{SAVE_END}\n')
+
+    @staticmethod
+    def _load_records(file):
+        return re.findall(SAVE_START + "(.*?)" + SAVE_END, file.read(), re.DOTALL)
+
+    @staticmethod
+    def _get_server_response(messages: List[Message], **kw) -> str:
         """
         Connect with openai to get response to conversation.
         """
@@ -30,6 +42,9 @@ class CallOpenAI:
             **kw,
         )
         return response['choices'][0]['message']['content']
+
+
+OPENAI_SERVER_CALLER = OpenaiSeverCaller()
 
 
 class Conversation(List[Message]):
@@ -129,7 +144,7 @@ class Conversation(List[Message]):
         indices_and_messages = self.get_chosen_indices_and_messages(hidden_messages)
         messages = [message for _, message in indices_and_messages]
         try:
-            return CallOpenAI.get_chatgpt_response(messages, **kwargs)
+            return OPENAI_SERVER_CALLER.get_server_response(messages, **kwargs)
         except openai.error.InvalidRequestError as e:
             return e
         except Exception:
