@@ -1,13 +1,10 @@
 import os
 
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 
-from tests.utils import record_or_replay_openai, record_or_replay_crossref
 
-
-@record_or_replay_crossref()
-@record_or_replay_openai()
-# @record_or_replay_crossref()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_citation_gpt(tmpdir):
     # create a scientific mentor with some random scientific products to test the paper author
     # pre_paper_conversation population

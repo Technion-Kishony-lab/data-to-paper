@@ -1,13 +1,12 @@
 import os
 
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 
-from tests.utils import record_or_replay_openai
 
-
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_paper_author_gpt(tmpdir):
     # create a scientific mentor with some random scientific products to test the paper author
     # pre_paper_conversation population

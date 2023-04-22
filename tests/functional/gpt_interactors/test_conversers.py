@@ -1,8 +1,8 @@
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
-from tests.utils import record_or_replay_openai
 
 
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_role_reversal_dialog_converser():
     converser = ReviewDialogDualConverserGPT(
         reviewee='scientist',
