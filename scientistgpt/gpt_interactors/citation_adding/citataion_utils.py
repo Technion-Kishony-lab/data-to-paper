@@ -3,47 +3,7 @@ from typing import Dict, List
 
 import requests
 
-from scientistgpt.exceptions import ScientistGPTException
-
-
-class WrongFormatError(ScientistGPTException):
-    """
-    Error raised when the user did not return the results in the correct format.
-    """
-    message: str = None
-
-    def __str__(self):
-        return
-
-
-class NotInSectionError(ScientistGPTException):
-    """
-    Error raised when the user did not return the results in the correct format.
-    """
-    message: str = None
-
-    def __str__(self):
-        return
-
-
-class NotInCitations(ScientistGPTException):
-    """
-    Error raised when the user did not return the citations that are inside the possible citations.
-    """
-    message: str = None
-
-    def __str__(self):
-        return
-
-
-class ServerError(ScientistGPTException):
-    """
-    Error raised server wasn't able to respond.
-    """
-    message: str = None
-
-    def __str__(self):
-        return
+from .exceptions import ServerErrorCitationException, WrongFormatCitationException, NotInCitationsCitationException
 
 
 def validate_citation_ids(response, citations_ids):
@@ -54,21 +14,21 @@ def validate_citation_ids(response, citations_ids):
         return []
     # check that the response has only relevant citations ids
     if not all(citation_id in citations_ids for citation_id in response):
-        raise NotInCitations(response)
+        raise NotInCitationsCitationException(response)
     return response
 
 
 def validate_type_of_response(sentences_queries, format_type):
     """
-    Validate that the response is given in the correct format. if not raise WrongFormatError.
+    Validate that the response is given in the correct format. if not raise WrongFormatCitationException.
     """
     if format_type == Dict[str, str]:
         if not isinstance(sentences_queries, dict) or not all(isinstance(k, str) and isinstance(v, str)
                                                               for k, v in sentences_queries.items()):
-            raise WrongFormatError(f'object is not of type: {format_type}')
+            raise WrongFormatCitationException(f'object is not of type: {format_type}')
     elif format_type == List[str]:
         if not isinstance(sentences_queries, list) or not all(isinstance(k, str) for k in sentences_queries):
-            raise WrongFormatError(f'object is not of type: {format_type}')
+            raise WrongFormatCitationException(f'object is not of type: {format_type}')
     return sentences_queries
 
 
@@ -157,7 +117,7 @@ def crossref_search(query, rows=4):
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code != 200:
-        raise ServerError(f"Request failed with status code {response.status_code}, error: {response.text}")
+        raise ServerErrorCitationException(f"Request failed with status code {response.status_code}, error: {response.text}")
 
     data = response.json()
     items = data['message']['items']
