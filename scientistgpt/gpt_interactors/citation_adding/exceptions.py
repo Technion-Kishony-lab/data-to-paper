@@ -5,43 +5,15 @@ from typing import List
 from scientistgpt.exceptions import ScientistGPTException
 
 
-# TODO:  we will not be using this exception anymore. Remove after cleaning up _choose_citations_for_sentence
 @dataclass
-class CitationException(ScientistGPTException):
+class NotInOptionsException(ScientistGPTException):
     """
-    Base class for all citation adding errors.
+    Error raised when the assistant did not choose the one of the possible options.
     """
-    message: str = None
+    not_in_options: List[str] = None
 
     def __str__(self):
-        return self.message
-
-
-# TODO:  we will not be using this exception anymore. Remove after cleaning up _choose_citations_for_sentence
-class WrongFormatCitationException(CitationException):
-    """
-    Error raised when the user did not return the results in the correct format.
-    """
-    pass
-
-
-@dataclass
-class NotInSectionException(ScientistGPTException):
-    """
-    Error raised when the user did not return the results in the correct format.
-    """
-    sentences: List[str] = None
-
-    def __str__(self):
-        return f'The following sentences are not in the specified section: {self.sentences}'
-
-
-# TODO:  we will not be using this exception anymore. Remove after cleaning up _choose_citations_for_sentence
-class NotInCitationsCitationException(CitationException):
-    """
-    Error raised when the user did not return the citations that are inside the possible citations.
-    """
-    pass
+        return self.not_in_options
 
 
 @dataclass

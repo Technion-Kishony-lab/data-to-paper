@@ -7,9 +7,9 @@ from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
 from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
 
-from .exceptions import WrongFormatCitationException, NotInSectionException, NotInCitationsCitationException, \
-    ServerErrorCitationException
+from .exceptions import NotInOptionsException, ServerErrorCitationException
 from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation, crossref_search
+from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 
 
 @dataclass
@@ -96,9 +96,9 @@ class CitationGPT(ConverserGPT):
                 continue
             try:
                 self._check_all_sentences_are_in_section(response_value)
-            except NotInSectionException as e:
+            except NotInOptionsException as e:
                 feedback_message = \
-                    f'You returned sentences that are not in the section: {e.sentences}.'
+                    f'You returned sentences that are not in the section: {e.not_in_options}.'
                 continue
             return response_value
         # TODO:  Need to think how we end the conversation on failure
@@ -114,7 +114,7 @@ class CitationGPT(ConverserGPT):
                 sentences_not_in_section.append(sentence)
 
         if sentences_not_in_section:
-            raise NotInSectionException(sentences=sentences_not_in_section)
+            raise NotInOptionsException(not_in_options=sentences_not_in_section)
 
     def _find_citations_for_sentences(self) -> Dict[str, List[str]]:
         """
@@ -135,17 +135,13 @@ class CitationGPT(ConverserGPT):
 
         return sentences_to_citations
 
-    def _choose_citations_for_sentence(self, sentence, sentence_citations, choose_using_chatgpt=True):
+    def _choose_citations_for_sentence(self, sentence, sentence_citations):
         """
         Choose the most appropriate citations for the sentence, if any.
         """
-
-        # TODO:  Need a global switch (in .env) to turn off the citation choosing part and just return
-        #  the first 2-3 citations
-
-        chosen_citations_ids = None
-        if not choose_using_chatgpt:
+        if not CHOOSE_CITATIONS_USING_CHATGPT:
             return choose_first_citation(sentence_citations)
+        chosen_citations_ids = None
         citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
         citations_titles = [citation['title'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
@@ -167,72 +163,58 @@ class CitationGPT(ConverserGPT):
                         [f"id: '{citation_id}', title: '{citation_title}'" for citation_id, citation_title in
                          zip(citations_ids, citations_titles)])
                     ), tag='choose_citations')
+        feedback_message: Optional[str] = None
         for attempt_num in range(self.max_number_of_attempts):
+            if feedback_message is not None:
+                self.conversation_manager.append_user_message(feedback_message + dedent_triple_quote_str("""
+                    Please try again making sure you return the results with the correct format, 
+                    like this:
+                    ``` 
+                    ["AuthorX2022Title", "AuthorY2009Title"]
+                    ```
+                    """), tag='wrong_format')
             response = self.conversation_manager.get_and_append_assistant_message()
             try:
-
-                # TODO:  Tal, reorganize this part the same way as in _choose_sentences_that_need_citations().
-
-                chosen_citations_ids = validate_citation_ids(validate_variable_type(eval(
-                    '[' + extract_text_between_tags(response, *LIST_TAG_PAIRS) + ']'), List[str]), citations_ids)
-            except SyntaxError:
-                self.conversation_manager.append_user_message(dedent_triple_quote_str(
-                    """
-                    eval(response) mentioned "invalid syntax". 
-                    Please try again making sure you return the results with the correct format, i.e., as a list, 
-                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
-                    """), tag='wrong_format_on_eval')
-            except NameError:
-                self.conversation_manager.append_user_message(dedent_triple_quote_str(
-                    """
-                    eval(response) mentioned "name not defined". 
-                    Please try again making sure you return the results with the correct format, i.e., as a list, 
-                    like this "["AuthorX2022"]"
-                    """), tag='wrong_format_on_eval')
+                response = extract_text_between_tags(response, *LIST_TAG_PAIRS, leave_tags=True)
             except ValueError:
-                self.conversation_manager.append_user_message(dedent_triple_quote_str(
-                    """
-                    I could not find "{}" and "{}" in your result. 
-                    Please try again making sure you return the results with the correct format, i.e., as a list, 
-                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
-                    """).format(*LIST_TAG_PAIRS),
-                                                              tag='wrong_format_no_brackets')
-            except WrongFormatCitationException as e:
-                self.conversation_manager.append_user_message(dedent_triple_quote_str(
-                    """
-                    eval(response) got the error {}. 
-                    Please try again making sure you return the results with the correct format, i.e., as a list, 
-                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
-                    """).format(e), tag='wrong_format_wrong_type')
-            except NotInCitationsCitationException as e:
-                self.conversation_manager.append_user_message(dedent_triple_quote_str(
-                    """
-                    You returned a citation id that is not in the citations: {}. 
-                    Rewrite the answer and make sure to reply with only the citations ids and only ones that exists.
-                    """).format(e), tag='not_in_citations_or_wrong_format')
+                feedback_message = \
+                    'Your response should be formatted as a list, flanked by "[" and "]".'
+                continue
+            try:
+                response_value = eval(response)
             except Exception as e:
-                self.conversation_manager.append_user_message(dedent_triple_quote_str(
-                    """
-                    Got the error {}. 
-                    Please try again making sure you return the results with the correct format, i.e., as a list, 
-                    like this "["AuthorX2022Title", "AuthorY2009Title"]"
-                    """).format(e), tag='wrong_format')
-            else:
-                if not chosen_citations_ids:
-                    return [], []
-                # find the indices of the chosen citations
-                chosen_citations_indices = [citations_ids.index(citation_id) for citation_id in chosen_citations_ids]
-                # return the chosen citations
-                return chosen_citations_ids, chosen_citations_indices
+                feedback_message = \
+                    f'I tried to eval your response, `eval(response)`, but got:\n{e}'
+                continue
+            try:
+                validate_variable_type(response_value, List[str])
+            except TypeError:
+                feedback_message = \
+                    'Your response should be formatted as a list containing only strings.'
+                continue
+            try:
+                validate_citation_ids(response_value, citations_ids)
+            except NotInOptionsException as e:
+                feedback_message = \
+                    f'You returned citations that are not in the given option: {e.not_in_options}.'
+                continue
+            chosen_citations_ids = response_value
         if chosen_citations_ids is None:
             return choose_first_citation(sentence_citations)
+        if not chosen_citations_ids:
+            return [], []
+        # find the indices of the chosen citations
+        chosen_citations_indices = [citations_ids.index(citation_id) for citation_id in chosen_citations_ids]
+        # return the chosen citations
+        return chosen_citations_ids, chosen_citations_indices
 
     def _rewrite_sentence_with_citation(self, sentence, citations_titles, citations_ids):
         """
         Rewrite the sentence with the citation.
         """
-        # TODO:  need a global switch (in .env) to turn off the use of chatgpt for rewriting the sentence.
-        #  If the switch is off, just add the citation to the end of sentence.
+        if not USE_CHATGPT_FOR_CITATION_REWRITING:
+            # add the citations to the end of the sentence as is.
+            return sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(citations_ids) + '.' + '}'
 
         self.conversation_manager.append_user_message(
             dedent_triple_quote_str("""
@@ -270,7 +252,7 @@ class CitationGPT(ConverserGPT):
         #   I corssref and this is what i got..."
         for sentence, sentence_citations in sentences_to_possible_citations.items():
             chosen_citations_ids, chosen_citations_indices = \
-                self._choose_citations_for_sentence(sentence, sentence_citations, choose_using_chatgpt=True)
+                self._choose_citations_for_sentence(sentence, sentence_citations)
             # get the chosen citations titles
             chosen_citations_titles = [sentence_citations[index]['title'] for index in chosen_citations_indices]
             if chosen_citations_ids:
