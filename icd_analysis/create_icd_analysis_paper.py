@@ -12,4 +12,4 @@ run_scientist_gpt(list_of_data_files=list_of_data_files,
                   goal_description=simpler_goal_description,
                   data_directory=DATA_FOLDER,
                   output_directory=OUTPUT_FOLDER,
-                  mock_openai=True)  # <==== use True to mock/record openai responses
+                  mock_servers=True)  # <==== use True to mock/record openai responses

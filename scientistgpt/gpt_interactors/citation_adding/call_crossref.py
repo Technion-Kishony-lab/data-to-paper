@@ -1,5 +1,3 @@
-from scientistgpt.call_servers import ServerCaller
-
 import requests
 
 from scientistgpt.call_servers import ServerCaller
@@ -11,6 +9,7 @@ CROSSREF_URL = "https://api.crossref.org/works"
 HEADERS = {
     "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
 }
+
 
 def create_bibtex(item):
     bibtex_template = '@{type}{{{id},\n{fields}}}\n'
