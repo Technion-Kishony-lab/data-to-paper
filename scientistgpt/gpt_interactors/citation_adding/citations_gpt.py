@@ -7,12 +7,10 @@ from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
 from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
 
-from .exceptions import NotInOptionsException, ServerErrorCitationException
-from .citataion_utils import validate_variable_type, choose_first_citation, crossref_search
+from .exceptions import NotInOptionsException
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
-from .exceptions import WrongFormatCitationException, NotInSectionException, NotInCitationsCitationException, \
-    ServerErrorCitationException
-from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation
+from .exceptions import ServerErrorCitationException
+from .citataion_utils import validate_variable_type, choose_first_citation
 from .call_crossref import CROSSREF_SERVER_CALLER
 
 
