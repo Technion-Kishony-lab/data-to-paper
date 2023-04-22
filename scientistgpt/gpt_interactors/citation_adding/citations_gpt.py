@@ -5,7 +5,7 @@ import re
 
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
-from scientistgpt.user_utils.tag_pairs import TagPairs
+from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
 
 from .exceptions import WrongFormatCitationException, NotInSectionCitationException, NotInCitationsCitationException, \
     ServerErrorCitationException
@@ -20,7 +20,7 @@ class CitationGPT(ConverserGPT):
 
     # override the default system prompt:
     system_prompt: str = """
-    You are a citation expert. 
+    You are a scientific citation expert. 
     You are given a section of a paper, you should mention what sentences need to be cited.
     You will be provided with list of possible citations, 
     and you should select the most appropriate one for each of the sentences. 
@@ -29,12 +29,7 @@ class CitationGPT(ConverserGPT):
     """
 
     section: str = None
-    """
-    A section to add citations to.
-    """
-
-    dict_tag_pairs: TagPairs = TagPairs('{', '}')
-    list_tag_pairs: TagPairs = TagPairs('[', ']')
+    "The section of the paper to which we are adding citations."
 
     max_number_of_attempts: int = 4
     max_number_of_api_calls: int = 3
@@ -71,7 +66,7 @@ class CitationGPT(ConverserGPT):
             response = self.conversation_manager.get_and_append_assistant_message()
             try:
                 return self._check_all_sentences_are_in_section(validate_type_of_response(eval(
-                    '{' + extract_text_between_tags(response, *self.dict_tag_pairs) + '}'), Dict[str, str]))
+                    '{' + extract_text_between_tags(response, *DICT_TAG_PAIRS) + '}'), Dict[str, str]))
             except SyntaxError:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
                     """
@@ -95,7 +90,7 @@ class CitationGPT(ConverserGPT):
                     Please try again making sure you return the results with the correct format, i.e., as a dict, 
                     like this "{{"example sentence":"query of the key sentence", 
                     "another example sentence": "the query of this sentence"}}"
-                    """).format(self.dict_tag_pairs.left_tag, self.dict_tag_pairs.right_tag),
+                    """).format(*DICT_TAG_PAIRS),
                                                               tag='wrong_format_no_brackets')
             except WrongFormatCitationException as e:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
@@ -187,7 +182,7 @@ class CitationGPT(ConverserGPT):
             response = self.conversation_manager.get_and_append_assistant_message()
             try:
                 chosen_citations_ids = validate_citation_ids(validate_type_of_response(eval(
-                    '[' + extract_text_between_tags(response, *self.list_tag_pairs) + ']'), List[str]), citations_ids)
+                    '[' + extract_text_between_tags(response, *LIST_TAG_PAIRS) + ']'), List[str]), citations_ids)
             except SyntaxError:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
                     """
@@ -208,7 +203,7 @@ class CitationGPT(ConverserGPT):
                     I could not find "{}" and "{}" in your result. 
                     Please try again making sure you return the results with the correct format, i.e., as a list, 
                     like this "["AuthorX2022Title", "AuthorY2009Title"]"
-                    """).format(self.list_tag_pairs.left_tag, self.list_tag_pairs.right_tag),
+                    """).format(*LIST_TAG_PAIRS),
                                                               tag='wrong_format_no_brackets')
             except WrongFormatCitationException as e:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(

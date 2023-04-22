@@ -14,3 +14,7 @@ class TagPairs(NamedTuple):
             return f'`{self.left_tag}`'
         else:
             return f'`{self.left_tag}` and `{self.right_tag}`'
+
+
+DICT_TAG_PAIRS = TagPairs('{', '}')
+LIST_TAG_PAIRS = TagPairs('[', ']')
