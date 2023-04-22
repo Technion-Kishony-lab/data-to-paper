@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import requests
 
-from .exceptions import ServerErrorCitationException, WrongFormatCitationException, NotInCitationsCitationException
+from .exceptions import ServerErrorCitationException, NotInOptionsException
 
 
 def validate_citation_ids(response, citations_ids):
@@ -13,8 +13,9 @@ def validate_citation_ids(response, citations_ids):
     if response == '[]':
         return []
     # check that the response has only relevant citations ids
-    if not all(citation_id in citations_ids for citation_id in response):
-        raise NotInCitationsCitationException(response)
+    not_in_citations = [citation_id for citation_id in response if citation_id not in citations_ids]
+    if not not_in_citations:
+        raise NotInOptionsException('citations ids', 'given citations ids', not_in_citations)
     return response
 
 
