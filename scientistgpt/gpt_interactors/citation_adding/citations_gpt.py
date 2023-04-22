@@ -10,6 +10,9 @@ from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
 from .exceptions import NotInOptionsException, ServerErrorCitationException
 from .citataion_utils import validate_variable_type, choose_first_citation, crossref_search
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
+from .exceptions import WrongFormatCitationException, NotInSectionException, NotInCitationsCitationException, \
+    ServerErrorCitationException
+from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation, CallCrossref
 
 
 @dataclass
@@ -140,7 +143,7 @@ class CitationGPT(ConverserGPT):
                 try:
                     self.comment(
                         f'Finding citations for sentence {sentence_number + 1}, try number {number_of_tries + 1}.')
-                    possible_citations[sentence] = crossref_search(query)
+                    sentences_to_citations[sentence] = CallCrossref.crossref_search(query)
                     break
                 except ServerErrorCitationException as e:
                     self.comment(f"CrossRef server error: {e}")

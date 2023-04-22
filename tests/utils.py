@@ -5,22 +5,61 @@ import os
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Union
+from typing import Union, NamedTuple, Any
 
-from scientistgpt import Message, Conversation, load_actions_from_file
-from scientistgpt.conversation import conversation
-from scientistgpt.conversation.actions import BaseChatgptResponse, AppendChatgptResponse
-from scientistgpt.gpt_interactors.citation_adding import citataion_utils
+from scientistgpt.conversation import SAVE_START, SAVE_END
+
+# Import the modules where we have the server calling functions
+from scientistgpt.conversation.conversation import CallOpenAI
+from scientistgpt.gpt_interactors.citation_adding.citataion_utils import CallCrossref
 
 
-def mock_openai(responses, record_more_from_openai_if_needed=False, fail_if_not_all_responses_used=True):
-    return mock_server(conversation, server_calling_func_name='_get_chatgpt_response', responses=responses,
-                       record_more_from_server_if_needed=record_more_from_openai_if_needed,
+class Server(NamedTuple):
+    class_: Any
+    server_calling_func_name: str
+    file_extension: str
+
+
+OPENAI_SERVER = Server(CallOpenAI, 'get_chatgpt_response', '_openai.txt')
+CROSSREF_SERVER = Server(CallCrossref, 'crossref_search', '_cross_ref.txt')
+
+
+def record_or_replay_openai(file_path: Union[str, Path] = None, should_mock: bool = True):
+    """
+    Returns a decorator that records or replays the OpenAI server calls.
+    """
+    return record_or_replay_server(server=OPENAI_SERVER, file_path=file_path, should_mock=should_mock)
+
+
+def record_or_replay_crossref(file_path: Union[str, Path] = None, should_mock: bool = True):
+    """
+    Returns a decorator that records or replays the Crossref server calls.
+    """
+    return record_or_replay_server(server=CROSSREF_SERVER, file_path=file_path, should_mock=should_mock)
+
+
+def mock_openai(responses, record_more_if_needed=False, fail_if_not_all_responses_used=True):
+    """
+    Context manager that mocks the OpenAI server calls.
+    """
+    return mock_server(OPENAI_SERVER,
+                       responses=responses,
+                       record_more_from_server_if_needed=record_more_if_needed,
+                       fail_if_not_all_responses_used=fail_if_not_all_responses_used)
+
+
+def mock_crossref(responses, record_more_if_needed=False, fail_if_not_all_responses_used=True):
+    """
+    Context manager that mocks the Crossref server calls.
+    """
+    return mock_server(CROSSREF_SERVER,
+                       responses=responses,
+                       record_more_from_server_if_needed=record_more_if_needed,
                        fail_if_not_all_responses_used=fail_if_not_all_responses_used)
 
 
 @contextmanager
-def mock_server(module, server_calling_func_name: str,
+def mock_server(server: Server,
                 responses, record_more_from_server_if_needed=False, fail_if_not_all_responses_used=True):
 
     def mock_serve_response(*args, **kwargs):
@@ -38,8 +77,8 @@ def mock_server(module, server_calling_func_name: str,
 
     new_responses = []
     new_responses_and_exceptions = {'new_responses': new_responses, 'exception': None}
-    original_method = getattr(module, server_calling_func_name)
-    setattr(module, server_calling_func_name, mock_serve_response)
+    original_method = getattr(server.class_, server.server_calling_func_name)
+    setattr(server.class_, server.server_calling_func_name, mock_serve_response)
     keyboard_interrupt_occurred = False
     try:
         yield new_responses_and_exceptions
@@ -47,51 +86,14 @@ def mock_server(module, server_calling_func_name: str,
         new_responses_and_exceptions['exception'] = e
         keyboard_interrupt_occurred = isinstance(e, KeyboardInterrupt)
     finally:
-        setattr(module, server_calling_func_name, original_method)
+        setattr(server.class_, server.server_calling_func_name, original_method)
     if fail_if_not_all_responses_used and responses and not keyboard_interrupt_occurred:
         raise AssertionError(f'Not all responses were used: {responses}')
 
 
-@contextmanager
-def mock_openai_from_saved_actions(filepath: Union[str, Path]):
-    actions = load_actions_from_file(filepath)
-    gpt_actions = [action for action in actions if isinstance(action, BaseChatgptResponse)]
-    responses = [action.message if isinstance(action, AppendChatgptResponse) else action.exception
-                 for action in gpt_actions]
-    yield from mock_openai(responses)
-
-
-@contextmanager
-def record_openai():
-    original_method = conversation._get_chatgpt_response
-    responses = []
-
-    def record_chatgpt_response(messages: list[Message]):
-        try:
-            response = original_method(messages)
-        except Exception as e:
-            response = e
-        responses.append(response)
-        return response
-
-    conversation._get_chatgpt_response = record_chatgpt_response
-    yield responses
-    conversation._get_chatgpt_response = original_method
-
-
-def record_or_replay_openai(file_path: Union[str, Path] = None, should_mock: bool = True):
-    return record_or_replay_server(module=conversation, server_calling_func_name='_get_chatgpt_response',
-                                   file_path=file_path, should_mock=should_mock)
-
-
-def record_or_replay_crossref(file_path: Union[str, Path] = None, should_mock: bool = True):
-    return record_or_replay_server(module=citataion_utils, server_calling_func_name='crossref_search',
-                                   file_path=file_path, should_mock=should_mock)
-
-
-def record_or_replay_server(module, server_calling_func_name, file_path: Union[str, Path] = None, should_mock: bool = True):
+def record_or_replay_server(server: Server, file_path: Union[str, Path] = None, should_mock: bool = True):
     """
-    Decorator to record or replay server responses.
+    Get decorator to record or replay server responses.
 
     If the file does not exist, then the decorated function will be called
     and the responses will be recorded to the file.
@@ -109,7 +111,7 @@ def record_or_replay_server(module, server_calling_func_name, file_path: Union[s
             if not file_path:
                 test_file_path = os.path.abspath(inspect.getfile(func))
                 test_dir = os.path.dirname(test_file_path)
-                file_path = os.path.join(test_dir, 'openai_responses', func.__name__ + '.txt')
+                file_path = os.path.join(test_dir, 'openai_responses', func.__name__ + server.file_extension)
 
             # Create the directory and file if not exist
             if not os.path.exists(os.path.dirname(file_path)):
@@ -122,21 +124,19 @@ def record_or_replay_server(module, server_calling_func_name, file_path: Union[s
 
             # get previous responses (or empty list)
             with open(file_path, 'r') as f:
-                responses = re.findall(Conversation.SAVE_START + "(.*?)" + Conversation.SAVE_END, f.read(), re.DOTALL)
+                responses = re.findall(SAVE_START + "(.*?)" + SAVE_END, f.read(), re.DOTALL)
 
             # run the test with the previous responses and record new responses
-            with mock_server(
-                    module=module,
-                    server_calling_func_name=server_calling_func_name,
-                    responses=responses,
-                    record_more_from_server_if_needed=True) as new_responses_and_exceptions:
+            with mock_server(server=server,
+                             responses=responses,
+                             record_more_from_server_if_needed=True) as new_responses_and_exceptions:
                 func(*args, **kwargs)
 
             # add new responses, if any, to the responses file
             if new_responses_and_exceptions['new_responses']:
                 with open(file_path, 'a') as f:
                     for response in new_responses_and_exceptions['new_responses']:
-                        f.write(f'{Conversation.SAVE_START}{response}{Conversation.SAVE_END}\n')
+                        f.write(f'{SAVE_START}{response}{SAVE_END}\n')
 
             # raise exception if there was one
             if new_responses_and_exceptions['exception']:

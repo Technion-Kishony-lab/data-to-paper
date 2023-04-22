@@ -5,6 +5,7 @@ from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationG
 from tests.utils import record_or_replay_openai, record_or_replay_crossref
 
 
+@record_or_replay_crossref()
 @record_or_replay_openai()
 # @record_or_replay_crossref()
 def test_citation_gpt(tmpdir):
