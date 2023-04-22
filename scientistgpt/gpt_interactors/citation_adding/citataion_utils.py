@@ -90,39 +90,45 @@ def remove_tags(text):
     return text.strip()  # Remove leading and trailing whitespace
 
 
-def crossref_search(query, rows=4):
-    url = "https://api.crossref.org/works"
-    headers = {
-        "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
-    }
-    params = {
-        "query.bibliographic": query,
-        "rows": rows,
-        "filter": "type:journal-article,type:book,type:posted-content,type:proceedings-article",
-        "select": "title,author,container-title,published-print,DOI,type,published",
-    }
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code != 200:
-        raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
-
-    data = response.json()
-    items = data['message']['items']
-    citations = []
-
-    for item in items:
-        citation = {
-            "title": item["title"][0],
-            "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
-                        item.get("author", [])],
-            "year": item["published"]["date-parts"][0][0] if "published" in item else
-            item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
-            "journal": item.get("container-title", [None])[0],
-            "doi": item["DOI"],
-            "type": item["type"]
+class CallCrossref:
+    """
+    Search for citations in Crossref.
+    Putting the search in a class allows to replace the function with a mock in the tests.
+    """
+    @staticmethod
+    def crossref_search(query, rows=4):
+        url = "https://api.crossref.org/works"
+        headers = {
+            "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
         }
-        bibtex_citation = create_bibtex(citation)
-        citation["bibtex"] = bibtex_citation
-        citations.append(citation)
+        params = {
+            "query.bibliographic": query,
+            "rows": rows,
+            "filter": "type:journal-article,type:book,type:posted-content,type:proceedings-article",
+            "select": "title,author,container-title,published-print,DOI,type,published",
+        }
+        response = requests.get(url, headers=headers, params=params)
 
-    return citations
+        if response.status_code != 200:
+            raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
+
+        data = response.json()
+        items = data['message']['items']
+        citations = []
+
+        for item in items:
+            citation = {
+                "title": item["title"][0],
+                "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
+                            item.get("author", [])],
+                "year": item["published"]["date-parts"][0][0] if "published" in item else
+                item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
+                "journal": item.get("container-title", [None])[0],
+                "doi": item["DOI"],
+                "type": item["type"]
+            }
+            bibtex_citation = create_bibtex(citation)
+            citation["bibtex"] = bibtex_citation
+            citations.append(citation)
+
+        return citations
