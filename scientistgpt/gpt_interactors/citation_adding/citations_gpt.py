@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, List, Optional
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Set
 
 import re
 
@@ -8,7 +8,7 @@ from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tag
 from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
 
 from .exceptions import NotInOptionsException, ServerErrorCitationException
-from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation, crossref_search
+from .citataion_utils import validate_variable_type, choose_first_citation, crossref_search
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 
 
@@ -37,6 +37,9 @@ class CitationGPT(ConverserGPT):
     bibtex_file_path = 'citations.bib'
 
     sentences_to_queries: Dict[str, str] = None
+
+    current_sentence_citations_ids: Set[str] = field(default_factory=set)
+    sentences_to_add_citations_to: Set[(str, str)] = field(default_factory=set)
 
     def _remove_citations_from_section(self):
         """
@@ -98,21 +101,28 @@ class CitationGPT(ConverserGPT):
                 self._check_all_sentences_are_in_section(response_value)
             except NotInOptionsException as e:
                 feedback_message = \
-                    f'You returned sentences that are not in the section: {e.not_in_options}.'
+                    f'You also returned sentences that are not in the section: {e.not_in_options}.' \
+                    f'In your following answer return only these sentences fixed.'
                 continue
             return response_value
-        # TODO:  Need to think how we end the conversation on failure
-        raise ValueError(f'Could not find sentences after {self.max_number_of_attempts} attempts.')
+        if not self.sentences_to_add_citations_to:
+            raise ValueError(f'Could not find any sentences after {self.max_number_of_attempts} attempts.')
+        return dict(self.sentences_to_add_citations_to)
 
     def _check_all_sentences_are_in_section(self, sentences_queries):
         """
         Check that all sentences (keys of the dict) are in the section.
         """
+        sentences_in_section = []
         sentences_not_in_section = []
         for sentence in sentences_queries:
             if sentence not in self.section:
                 sentences_not_in_section.append(sentence)
-
+            else:
+                sentences_in_section.append(sentence)
+        self.sentences_to_add_citations_to |= \
+            set((sentence_in_section, sentences_queries[sentence_in_section])
+                for sentence_in_section in sentences_in_section)
         if sentences_not_in_section:
             raise NotInOptionsException(not_in_options=sentences_not_in_section)
 
@@ -139,9 +149,10 @@ class CitationGPT(ConverserGPT):
         """
         Choose the most appropriate citations for the sentence, if any.
         """
+        self.current_sentence_citations_ids = set()
         if not CHOOSE_CITATIONS_USING_CHATGPT:
             return choose_first_citation(sentence_citations)
-        chosen_citations_ids = None
+        provided_choice = False
         citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
         citations_titles = [citation['title'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
@@ -193,20 +204,22 @@ class CitationGPT(ConverserGPT):
                     'Your response should be formatted as a list containing only strings.'
                 continue
             try:
-                validate_citation_ids(response_value, citations_ids)
+                self._validate_citation_ids(response_value, citations_ids)
             except NotInOptionsException as e:
                 feedback_message = \
-                    f'You returned citations that are not in the given option: {e.not_in_options}.'
+                    f'You returned citations that are not in the given option: {e.not_in_options}.' \
+                    f'In your following answer return only these citations ids fixed.'
                 continue
-            chosen_citations_ids = response_value
-        if chosen_citations_ids is None:
+            self.current_sentence_citations_ids |= set(response_value)
+        if not provided_choice:
             return choose_first_citation(sentence_citations)
-        if not chosen_citations_ids:
+        if not self.current_sentence_citations_ids:
             return [], []
         # find the indices of the chosen citations
-        chosen_citations_indices = [citations_ids.index(citation_id) for citation_id in chosen_citations_ids]
+        chosen_citations_indices = \
+            [citations_ids.index(citation_id) for citation_id in self.current_sentence_citations_ids]
         # return the chosen citations
-        return chosen_citations_ids, chosen_citations_indices
+        return self.current_sentence_citations_ids, chosen_citations_indices
 
     def _rewrite_sentence_with_citation(self, sentence, citations_titles, citations_ids):
         """
@@ -274,3 +287,17 @@ class CitationGPT(ConverserGPT):
             updated_section = updated_section.replace(sentence, updated_sentences[idx])
 
         return updated_section, all_citations_bibtexes
+
+    def _validate_citation_ids(self, response, citations_ids):
+        """
+        Validate that the response is in the correct format and all ids are existing ones.
+        """
+        if response == '[]':
+            return []
+        # check that the response has only relevant citations ids
+        in_citations = [citation_id for citation_id in response if citation_id in citations_ids]
+        self.current_sentence_citations_ids |= set(in_citations)
+        not_in_citations = [citation_id for citation_id in response if citation_id not in citations_ids]
+        if not not_in_citations:
+            raise NotInOptionsException(not_in_options=not_in_citations)
+        return response

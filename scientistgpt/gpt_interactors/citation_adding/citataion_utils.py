@@ -3,20 +3,7 @@ from typing import Dict, List
 
 import requests
 
-from .exceptions import ServerErrorCitationException, NotInOptionsException
-
-
-def validate_citation_ids(response, citations_ids):
-    """
-    Validate that the response is in the correct format and all ids are existing ones.
-    """
-    if response == '[]':
-        return []
-    # check that the response has only relevant citations ids
-    not_in_citations = [citation_id for citation_id in response if citation_id not in citations_ids]
-    if not not_in_citations:
-        raise NotInOptionsException('citations ids', 'given citations ids', not_in_citations)
-    return response
+from .exceptions import ServerErrorCitationException
 
 
 def validate_variable_type(sentences_queries, format_type):
