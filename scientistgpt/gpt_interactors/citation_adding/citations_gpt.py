@@ -63,7 +63,7 @@ class CitationGPT(ConverserGPT):
              } 
             This is of course just an example. 
             Identify all the sentences that you think we need to add citations to.
-            
+
             Return only a dict of "sentence: query" pairs, without any other text.
             """), tag='select_sentences')
 
@@ -106,6 +106,7 @@ class CitationGPT(ConverserGPT):
                 continue
             return response_value
         if not self.sentences_to_add_citations_to:
+            # TODO: decide what to do if we didn't find any sentences
             raise ValueError(f'Could not find any sentences after {self.max_number_of_attempts} attempts.')
         return dict(self.sentences_to_add_citations_to)
 
@@ -250,7 +251,7 @@ class CitationGPT(ConverserGPT):
         self.conversation_manager.append_user_message(
             dedent_triple_quote_str("""
                 This is the section you need to reformat with citations:
-        
+
                 {}
                 """).format(self.section),
             tag='add_section')
