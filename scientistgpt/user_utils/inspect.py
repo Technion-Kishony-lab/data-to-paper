@@ -5,9 +5,10 @@ import shutil
 from pathlib import Path
 
 from scientistgpt import Conversation
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
-from tests.utils import record_or_replay_openai
+
 
 ACTIONS_FILENAME = 'conversation_actions.pkl'
 OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
@@ -35,7 +36,7 @@ def run_scientist_gpt(list_of_data_files: list[str],
     runner = ScientistGPT(list_of_data_files=list_of_data_files,
                           data_description=data_description, goal_description=goal_description)
 
-    @record_or_replay_openai(output_directory / OPENAI_RESPONSES_FILENAME, should_mock=mock_openai)
+    @OPENAI_SERVER_CALLER.record_or_replay(output_directory / OPENAI_RESPONSES_FILENAME, should_mock=mock_openai)
     def run():
         runner.run_all()
 
