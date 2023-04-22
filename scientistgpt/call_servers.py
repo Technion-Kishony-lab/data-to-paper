@@ -130,22 +130,21 @@ class ServerCaller:
 
         def decorator(func):
 
+            if not hasattr(func, '_module_file_path'):
+                func._module_file_path = os.path.dirname(os.path.abspath(func.__code__.co_filename))
+
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 nonlocal file_path
-
                 # use the file path of the decorated function if not given
-                if not file_path:
-                    func_name = func.__name__
-                    # get the path of the module of the decorated function
-                    module_file_path = os.path.dirname(os.path.abspath(func.__code__.co_filename))
-                    file_path = os.path.join(module_file_path, 'recorded_responses', func.__name__ +
-                                             self.file_extension)
+                file_path = file_path or os.path.join(func._module_file_path, 'recorded_responses', func.__name__ +
+                                                      self.file_extension)
 
                 # run the test with the previous responses and record new responses
                 with self.mock_with_file(file_path=file_path):
                     func(*args, **kwargs)
 
+            wrapper._module_file_path = func._module_file_path
             return wrapper if should_mock else func
 
         return decorator
