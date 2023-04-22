@@ -7,7 +7,7 @@ from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
 from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
 
-from .exceptions import WrongFormatCitationException, NotInSectionCitationException, NotInCitationsCitationException, \
+from .exceptions import WrongFormatCitationException, NotInSectionException, NotInCitationsCitationException, \
     ServerErrorCitationException
 from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation, crossref_search
 
@@ -96,7 +96,7 @@ class CitationGPT(ConverserGPT):
                 continue
             try:
                 self._check_all_sentences_are_in_section(response_value)
-            except NotInSectionCitationException as e:
+            except NotInSectionException as e:
                 feedback_message = \
                     f'You returned sentences that are not in the section: {e.sentences}.'
                 continue
@@ -114,7 +114,7 @@ class CitationGPT(ConverserGPT):
                 sentences_not_in_section.append(sentence)
 
         if sentences_not_in_section:
-            raise NotInSectionCitationException(sentences=sentences_not_in_section)
+            raise NotInSectionException(sentences=sentences_not_in_section)
 
     def _find_citations_for_sentences(self) -> Dict[str, List[str]]:
         """

@@ -20,7 +20,7 @@ def validate_citation_ids(response, citations_ids):
 
 def validate_variable_type(sentences_queries, format_type):
     """
-    Validate that the response is given in the correct format. if not raise WrongFormatCitationException.
+    Validate that the response is given in the correct format. if not raise TypeError.
     """
     if format_type == Dict[str, str]:
         if isinstance(sentences_queries, dict) \
@@ -119,7 +119,7 @@ def crossref_search(query, rows=4):
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code != 200:
-        raise ServerErrorCitationException(f"Request failed with status code {response.status_code}, error: {response.text}")
+        raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
 
     data = response.json()
     items = data['message']['items']
