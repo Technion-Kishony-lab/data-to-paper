@@ -1,14 +1,13 @@
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
-import re
-
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
-from scientistgpt.user_utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
+from scientistgpt.utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
+from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 
 from .exceptions import NotInOptionsException
-from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 from .exceptions import ServerErrorCitationException
 from .citataion_utils import validate_variable_type, choose_first_citation
 from .call_crossref import CROSSREF_SERVER_CALLER
@@ -158,7 +157,6 @@ class CitationGPT(ConverserGPT):
         self.current_sentence_citations_ids = set()
         if not CHOOSE_CITATIONS_USING_CHATGPT:
             return choose_first_citation(sentence_citations)
-        provided_choice = False
         citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
         citations_titles = [citation['title'] for citation in sentence_citations]
         self.conversation_manager.append_user_message(dedent_triple_quote_str("""
@@ -217,9 +215,8 @@ class CitationGPT(ConverserGPT):
                     f'The options are: {citations_ids}.'
                 continue
             self.current_sentence_citations_ids |= set(response_value)
-            provided_choice = True
             break
-        if not provided_choice:
+        else:
             return choose_first_citation(sentence_citations)
         if not self.current_sentence_citations_ids:
             return [], []
@@ -271,6 +268,7 @@ class CitationGPT(ConverserGPT):
             'Great, thanks for providing me with the section!', tag='add_section_surrogate')
         self.sentences_to_queries = self._choose_sentences_that_need_citations()
         self.conversation_manager.reset_back_to_tag('add_section_surrogate')
+
         sentences_to_possible_citations = self._find_citations_for_sentences()
         updated_sentences = []
         all_citations_bibtexes = set()
@@ -303,12 +301,8 @@ class CitationGPT(ConverserGPT):
         """
         Validate that the response is in the correct format and all ids are existing ones.
         """
-        if response == '[]':
-            return []
-        # check that the response has only relevant citations ids
-        in_citations = [citation_id for citation_id in response if citation_id in citations_ids]
-        self.current_sentence_citations_ids |= set(in_citations)
         not_in_citations = [citation_id for citation_id in response if citation_id not in citations_ids]
         if not_in_citations:
             raise NotInOptionsException(not_in_options=not_in_citations)
-        return response
+        in_citations = [citation_id for citation_id in response if citation_id in citations_ids]
+        self.current_sentence_citations_ids |= set(in_citations)

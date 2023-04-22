@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from scientistgpt.user_utils.tag_pairs import TagPairs
+from scientistgpt.utils.tag_pairs import TagPairs
 
 SECTIONS_TO_TAG_PAIR_OPTIONS: Dict[str, List[TagPairs]] = {
     'title': [TagPairs('\\title{', '}')],
