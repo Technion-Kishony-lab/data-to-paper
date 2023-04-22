@@ -18,18 +18,20 @@ def validate_citation_ids(response, citations_ids):
     return response
 
 
-def validate_type_of_response(sentences_queries, format_type):
+def validate_variable_type(sentences_queries, format_type):
     """
     Validate that the response is given in the correct format. if not raise WrongFormatCitationException.
     """
     if format_type == Dict[str, str]:
-        if not isinstance(sentences_queries, dict) or not all(isinstance(k, str) and isinstance(v, str)
-                                                              for k, v in sentences_queries.items()):
-            raise WrongFormatCitationException(f'object is not of type: {format_type}')
+        if isinstance(sentences_queries, dict) \
+                and all(isinstance(k, str) and isinstance(v, str) for k, v in sentences_queries.items()):
+            return
     elif format_type == List[str]:
-        if not isinstance(sentences_queries, list) or not all(isinstance(k, str) for k in sentences_queries):
-            raise WrongFormatCitationException(f'object is not of type: {format_type}')
-    return sentences_queries
+        if isinstance(sentences_queries, list) and all(isinstance(k, str) for k in sentences_queries):
+            return
+    else:
+        raise NotImplementedError(f'format_type: {format_type} is not implemented')
+    raise TypeError(f'object is not of type: {format_type}')
 
 
 def choose_first_citation(sentence_citations):

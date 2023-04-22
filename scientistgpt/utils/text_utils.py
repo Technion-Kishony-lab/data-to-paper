@@ -98,7 +98,7 @@ def line_count(text: str) -> int:
     return len(text.splitlines())
 
 
-def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None):
+def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, leave_tags: bool = False):
     """
     Extract text between two tags.
     If the right tag is None, then extract text from the left tag to the end of the text.
@@ -106,15 +106,20 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None):
     if left_tag not in text:
         raise ValueError('left tag missing')
 
-    after_left_tag = text.split(left_tag)[1]
+    extracted = text.split(left_tag)[1]
 
-    if right_tag is None:
-        return after_left_tag
+    if right_tag is not None:
+        if right_tag not in extracted:
+            raise ValueError('right tag missing')
+        extracted = extracted.split(right_tag)[0]
 
-    if right_tag not in after_left_tag:
-        raise ValueError('right tag missing')
+    if leave_tags:
+        if right_tag is None:
+            extracted = left_tag + extracted
+        else:
+            extracted = left_tag + extracted + right_tag
 
-    return after_left_tag.split(right_tag)[0]
+    return extracted
 
 
 def concat_words_with_commas_and_and(words: list):

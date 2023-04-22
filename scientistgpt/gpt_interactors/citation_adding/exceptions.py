@@ -1,5 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
+from typing import List
 
 from scientistgpt.exceptions import ScientistGPTException
 
@@ -22,11 +23,12 @@ class WrongFormatCitationException(CitationException):
     pass
 
 
+@dataclass
 class NotInSectionCitationException(CitationException):
     """
     Error raised when the user did not return the results in the correct format.
     """
-    pass
+    sentences: List[str] = None
 
 
 class NotInCitationsCitationException(CitationException):
