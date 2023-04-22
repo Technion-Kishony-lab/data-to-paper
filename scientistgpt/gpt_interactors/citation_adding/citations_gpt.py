@@ -3,13 +3,13 @@ from typing import Dict, List
 
 import re
 
-from scientistgpt.gpt_interactors.citation_adding.citataion_utils import WrongFormatError, NotInSectionError, \
-    NotInCitations, ServerError, validate_citation_ids, validate_type_of_response, choose_first_citation, \
-    crossref_search
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
-from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
 from scientistgpt.user_utils.tag_pairs import TagPairs
-from scientistgpt.utils.text_utils import extract_text_between_tags
+
+from .exceptions import WrongFormatCitationException, NotInSectionCitationException, NotInCitationsCitationException, \
+    ServerErrorCitationException
+from .citataion_utils import validate_citation_ids, validate_type_of_response, choose_first_citation, crossref_search
 
 
 @dataclass
@@ -97,7 +97,7 @@ class CitationGPT(ConverserGPT):
                     "another example sentence": "the query of this sentence"}}"
                     """).format(self.dict_tag_pairs.left_tag, self.dict_tag_pairs.right_tag),
                                                               tag='wrong_format_no_brackets')
-            except WrongFormatError as e:
+            except WrongFormatCitationException as e:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
                     """
                     eval(response) got the error {}. 
@@ -105,7 +105,7 @@ class CitationGPT(ConverserGPT):
                     like this '{{"example sentence":"query of the key sentence", 
                     "another example sentence": "the query of this sentence"}}'
                     """).format(e), tag='wrong_format_wrong_type')
-            except NotInSectionError as e:
+            except NotInSectionCitationException as e:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
                     """
                     You returned a sentences that are not in the section: {}. 
@@ -131,7 +131,7 @@ class CitationGPT(ConverserGPT):
                 sentences_not_in_section.append(sentence)
 
         if sentences_not_in_section:
-            raise NotInSectionError(sentences_not_in_section)
+            raise NotInSectionCitationException(sentences_not_in_section)
 
         return sentences_queries
 
@@ -149,7 +149,7 @@ class CitationGPT(ConverserGPT):
                     sentence_citations = crossref_search(self.sentences_queries[sentence])
                     sentences_citations.append(sentence_citations)
                     break
-                except ServerError as e:
+                except ServerErrorCitationException as e:
                     if number_of_tries == self.max_number_of_api_calls - 1:
                         self.comment("Could not find citations for the sentence: '{}'.".format(e))
                         del self.sentences_queries[sentence]
@@ -210,14 +210,14 @@ class CitationGPT(ConverserGPT):
                     like this "["AuthorX2022Title", "AuthorY2009Title"]"
                     """).format(self.list_tag_pairs.left_tag, self.list_tag_pairs.right_tag),
                                                               tag='wrong_format_no_brackets')
-            except WrongFormatError as e:
+            except WrongFormatCitationException as e:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
                     """
                     eval(response) got the error {}. 
                     Please try again making sure you return the results with the correct format, i.e., as a list, 
                     like this "["AuthorX2022Title", "AuthorY2009Title"]"
                     """).format(e), tag='wrong_format_wrong_type')
-            except NotInCitations as e:
+            except NotInCitationsCitationException as e:
                 self.conversation_manager.append_user_message(dedent_triple_quote_str(
                     """
                     You returned a citation id that is not in the citations: {}. 
