@@ -552,3 +552,89 @@ Here's the final dictionary:
 }
 <<<<<END
 
+START>>>>>
+I apologize for the mistake. Here's the updated version:
+
+Here are the sentences that need to be cited:
+
+- Our findings indicate that A is positively correlated with both B ($r=0.7$, $p<0.01$) and C ($r=0.8$, $p<0.001$), while B is negatively correlated with C ($r=-0.6$, $p<0.05$).
+- These findings could be useful for practitioners and researchers working in fields related to A, B and C.
+- Nonetheless, this study provides important initial insights into the relationship between A, B and C, and adds to the existing literature by providing empirical evidence of the relationships between these variables.
+
+Here are the queries that could be used for each sentence:
+
+- "correlation between variables A B C" AND "empirical evidence" AND "data analysis"
+- "practical implications" AND "correlation between variables A B C" AND "fields related to A B and C"
+- "relationship between A B C" AND "empirical evidence" AND "existing literature"
+
+Here's the final dictionary:
+
+{
+"Our findings indicate that A is positively correlated with both B ($r=0.7$, $p<0.01$) and C ($r=0.8$, $p<0.001$), while B is negatively correlated with C ($r=-0.6$, $p<0.05$).": "'correlation between variables A B C' AND 'empirical evidence' AND 'data analysis'",
+"These findings could be useful for practitioners and researchers working in fields related to A, B and C.": "'practical implications' AND 'correlation between variables A B C' AND 'fields related to A B and C'",
+"Nonetheless, this study provides important initial insights into the relationship between A, B and C, and adds to the existing literature by providing empirical evidence of the relationships between these variables.": "'relationship between A B C' AND 'empirical evidence' AND 'existing literature'"
+}
+<<<<<END
+
+START>>>>>
+["Nawaz2017Correlation"]
+<<<<<END
+
+START>>>>>
+["Nawaz2017Correlation"]
+<<<<<END
+
+START>>>>>
+["Nawaz2017Correlation: Correlation and Causality between Inflation and Selected Macroeconomic Variables: Empirical Evidence from Pakistan (1990-2012)"]
+<<<<<END
+
+START>>>>>
+["Nawaz2017Correlation"]
+<<<<<END
+
+START>>>>>
+Our findings indicate that A is positively correlated with both B ($r=0.7$, $p<0.01$) and C ($r=0.8$, $p<0.001$) \cite{Fatima2021Correlation}, while B is negatively correlated with C ($r=-0.6$, $p<0.05$).
+<<<<<END
+
+START>>>>>
+["Marino2017Factor"]
+<<<<<END
+
+START>>>>>
+["Marino2017Factor"]
+<<<<<END
+
+START>>>>>
+["Marino2017Factor"]
+<<<<<END
+
+START>>>>>
+I apologize for the mistake. Please see the updated response below.
+
+["Marino2017Factor"]
+<<<<<END
+
+START>>>>>
+These findings \cite{Marino2017Factor} could be useful for practitioners and researchers working in fields related to A, B and C.
+<<<<<END
+
+START>>>>>
+["ExploringRelationshipbetween2018"]
+<<<<<END
+
+START>>>>>
+["ExploringRelationshipbetween2018: Empirical Evidence of Relationship between Personality, Creativity and Entrepreneurship"]
+<<<<<END
+
+START>>>>>
+["ExploringRelationshipbetween2018 - Exploring Relationship between Personality, Creativity and Entrepreneurship: Empirical Evidence from an Agricultural Students Survey in Taiwan"]
+<<<<<END
+
+START>>>>>
+["ExploringRelationshipbetween2018: 'Exploring Relationship between Personality, Creativity and Entrepreneurship: Empirical Evidence from an Agricultural Students Survey in Taiwan'"]
+<<<<<END
+
+START>>>>>
+Nonetheless, this study provides important initial insights into the relationship between A, B and C, and adds to the existing literature \cite{ExploringRelationshipbetween2018} by providing empirical evidence of the relationships between these variables.
+<<<<<END
+

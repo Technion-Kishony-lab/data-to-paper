@@ -1,0 +1,55 @@
+START>>>>>
+{
+"The Pfizer BioNTech (BNT162b2) COVID-19 vaccine has been authorized for emergency use in many countries, including Israel, where it has been administered to millions of people.": "Pfizer BioNTech (BNT162b2) COVID-19 vaccine emergency use authorization Israel",
+"Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine.": "Pfizer BioNTech (BNT162b2) COVID-19 vaccine side effects",
+}
+<<<<<END
+
+START>>>>>
+["Wise2021Covid-19:"]
+<<<<<END
+
+START>>>>>
+["Wise2021Covid-19:"]
+<<<<<END
+
+START>>>>>
+["Wise2021Covid-19:"]
+<<<<<END
+
+START>>>>>
+I apologize for the mistake. Here's the correct format:
+
+["Wise2021Covid-19:"]
+<<<<<END
+
+START>>>>>
+The Pfizer BioNTech (BNT162b2) COVID-19 vaccine has been authorized for emergency use in many countries, including Israel, where it has been administered to millions of people \cite{Walton2023Adverse}.
+<<<<<END
+
+START>>>>>
+["Abukhalil2023Side", "Walton2023Adverse", "Śpiewak2020Analiza", "Sadeq2022Side"]
+<<<<<END
+
+START>>>>>
+I apologize for the error. Here is my corrected response:
+
+["Abukhalil2023Side", "Walton2023Adverse", "Śpiewak2020Analiza", "Sadeq2022Side"]
+<<<<<END
+
+START>>>>>
+I'm sorry about that, here's my corrected response:
+
+["Abukhalil2023Side", "Walton2023Adverse", "Śpiewak2020Analiza", "Sadeq2022Side"]
+<<<<<END
+
+START>>>>>
+I apologize for the mistake. Here is the corrected format: 
+
+["Abukhalil2023Side", "Walton2023Adverse", "Śpiewak2020Analiza", "Sadeq2022Side"]
+<<<<<END
+
+START>>>>>
+Reports of side effects following the administration of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine \cite{Abukhalil2023Side} have led to questions regarding the potential risks associated with the vaccine.
+<<<<<END
+
