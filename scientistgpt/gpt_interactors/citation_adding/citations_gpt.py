@@ -116,25 +116,24 @@ class CitationGPT(ConverserGPT):
         if sentences_not_in_section:
             raise NotInSectionCitationException(sentences=sentences_not_in_section)
 
-    def _find_citations_for_sentences(self):
+    def _find_citations_for_sentences(self) -> Dict[str, List[str]]:
         """
-        Find citations for the sentences using the queries.
+        Find citations for the sentences in sentences_to_queries using their search queries.
         """
-        sentences_citations = []
-        for sentence_number, sentence in enumerate(self.sentences_to_queries):
+        sentences_to_citations = {}
+        for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
                 try:
-                    self.comment(f'Finding citations for sentence '
-                                 f'{sentence_number + 1}, try number '
-                                 f'{number_of_tries + 1}')
-                    sentence_citations = crossref_search(self.sentences_to_queries[sentence])
-                    sentences_citations.append(sentence_citations)
+                    self.comment(
+                        f'Finding citations for sentence {sentence_number + 1}, try number {number_of_tries + 1}.')
+                    sentences_to_citations[sentence] = crossref_search(query)
                     break
                 except ServerErrorCitationException as e:
-                    if number_of_tries == self.max_number_of_api_calls - 1:
-                        self.comment("Could not find citations for the sentence: '{}'.".format(e))
-                        del self.sentences_to_queries[sentence]
-        return sentences_citations
+                    self.comment(f"CrossRef server error: {e}")
+            else:
+                self.comment(f"Could not find citations for the sentence:\n{sentence}.")
+
+        return sentences_to_citations
 
     def _choose_citations_for_sentence(self, sentence, sentence_citations, choose_using_chatgpt=True):
         """
@@ -254,12 +253,12 @@ class CitationGPT(ConverserGPT):
             'Great, thanks for providing me with the section!', tag='add_section_surrogate')
         self.sentences_to_queries = self._choose_sentences_that_need_citations()
         self.conversation_manager.reset_back_to_tag('add_section_surrogate')
-        sentences_possible_citations = self._find_citations_for_sentences()
+        sentences_to_possible_citations = self._find_citations_for_sentences()
         updated_sentences = []
         all_citations_bibtexes = set()
         #  TODO: make it sound like a conversartion (give me the sentences you want to cross ref.
         #   I corssref and this is what i got..."
-        for sentence, sentence_citations in zip(self.sentences_to_queries, sentences_possible_citations):
+        for sentence, sentence_citations in sentences_to_possible_citations.items()
             chosen_citations_ids, chosen_citations_indices = \
                 self._choose_citations_for_sentence(sentence, sentence_citations, choose_using_chatgpt=True)
             # get the chosen citations titles
