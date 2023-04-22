@@ -139,6 +139,10 @@ class CitationGPT(ConverserGPT):
         """
         Choose the most appropriate citations for the sentence, if any.
         """
+
+        # TODO:  Need a global switch (in .env) to turn off the citation choosing part and just return
+        #  the first 2-3 citations
+
         chosen_citations_ids = None
         if not choose_using_chatgpt:
             return choose_first_citation(sentence_citations)
@@ -166,6 +170,9 @@ class CitationGPT(ConverserGPT):
         for attempt_num in range(self.max_number_of_attempts):
             response = self.conversation_manager.get_and_append_assistant_message()
             try:
+
+                # TODO:  Tal, reorganize this part the same way as in _choose_sentences_that_need_citations().
+
                 chosen_citations_ids = validate_citation_ids(validate_variable_type(eval(
                     '[' + extract_text_between_tags(response, *LIST_TAG_PAIRS) + ']'), List[str]), citations_ids)
             except SyntaxError:
@@ -224,6 +231,9 @@ class CitationGPT(ConverserGPT):
         """
         Rewrite the sentence with the citation.
         """
+        # TODO:  need a global switch (in .env) to turn off the use of chatgpt for rewriting the sentence.
+        #  If the switch is off, just add the citation to the end of sentence.
+
         self.conversation_manager.append_user_message(
             dedent_triple_quote_str("""
             The sentence you need to rewrite is: "{}".
@@ -258,7 +268,7 @@ class CitationGPT(ConverserGPT):
         all_citations_bibtexes = set()
         #  TODO: make it sound like a conversartion (give me the sentences you want to cross ref.
         #   I corssref and this is what i got..."
-        for sentence, sentence_citations in sentences_to_possible_citations.items()
+        for sentence, sentence_citations in sentences_to_possible_citations.items():
             chosen_citations_ids, chosen_citations_indices = \
                 self._choose_citations_for_sentence(sentence, sentence_citations, choose_using_chatgpt=True)
             # get the chosen citations titles
@@ -274,9 +284,9 @@ class CitationGPT(ConverserGPT):
                 updated_sentences.append(sentence)
 
         # replace the section with the updated sentences
-        self.conversation_manager.append_commenter_message(f'Finished rewriting the section with citations, '
-                                                           f'replacing the sentences with the rewritten ones.',
-                                                           tag='done_rewriting_section')
+        self.conversation_manager.append_commenter_message(
+            'Finished rewriting the section with citations, replacing the sentences with the rewritten ones.',
+            tag='done_rewriting_section')
         updated_section = self.section
         for idx, sentence in enumerate(self.sentences_to_queries):
             updated_section = updated_section.replace(sentence, updated_sentences[idx])
