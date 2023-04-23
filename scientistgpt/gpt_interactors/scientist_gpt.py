@@ -347,10 +347,10 @@ class ScientistGPT(CodeWritingGPT):
                 else:
                     # if we can't get a secondary code revision, we try a new attempt of the first code revision
                     # of the current plan
-                    self.scientific_products.analysis_codes_and_outputs.clear()
                     self.comment(
                         f'Reached max debug attempts for Revision {self.number_of_successful_code_revisions + 1}. '
                         f'Trying to go back to revision 1.')
+                    self.scientific_products.analysis_codes_and_outputs.clear()
                     continue
 
     def call_paper_author_to_write_and_compile_paper(self) -> bool:

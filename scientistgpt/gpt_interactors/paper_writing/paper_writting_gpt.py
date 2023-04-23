@@ -54,7 +54,7 @@ class PaperAuthorGPT(PaperWritingGPT):
         """
         prompt = prompt or dedent_triple_quote_str("""
             Please write only the `{}` of the paper. Do not write any other parts!
-            Remember to write in tex format including any math or symbols that needs tax escapes.
+            Remember to write in tex format including any math or symbols that needs tex escapes.
             """).format(concat_words_with_commas_and_and(section_names))
         self.apply_append_user_message(prompt)
         max_attempts = MAX_SECTION_RECREATION_ATTEMPTS

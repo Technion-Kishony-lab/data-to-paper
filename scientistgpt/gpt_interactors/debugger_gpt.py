@@ -76,9 +76,15 @@ class DebuggerGPT(CodeWritingGPT):
             ```
             {}
             ```
-            Please note that we only have the files that I noted in the data description above. 
-            All of these files are in the same directory as the code. 
-            """).format(error_message),
+            Please note that we only have the file{} noted in the data description. Namely:
+            
+            {}
+            
+            {} located in the same directory as the code. 
+            """).format(error_message,
+                        's' if len(self.list_of_data_files) > 1 else '',
+                        ', '.join(self.list_of_data_files),
+                        'All of these files are' if len(self.list_of_data_files) > 1 else 'This file is'),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _respond_to_error_message(self, error_message: str):
