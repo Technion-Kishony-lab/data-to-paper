@@ -1,5 +1,4 @@
 import re
-from typing import Dict, List
 
 
 def choose_first_citation(sentence_citations):

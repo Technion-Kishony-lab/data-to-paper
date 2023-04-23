@@ -1,5 +1,6 @@
 import os
 
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.paper_writing.base_paper_writing import PaperWritingGPT
 
 
@@ -18,9 +19,14 @@ class TestPaperWritingGPT(PaperWritingGPT):
             'conclusion': r'\section{Conclusion}{content of conclusion}',
         }
 
+    def _add_citations_to_paper(self):
+        pass
 
+
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_paper_writing_gpt(tmpdir):
     paper_writing_gpt = TestPaperWritingGPT()
+
     os.chdir(tmpdir)
     paper_writing_gpt.write_paper()
     assert 'content of title' in paper_writing_gpt.latex_paper

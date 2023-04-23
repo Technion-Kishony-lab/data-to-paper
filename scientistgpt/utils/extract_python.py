@@ -1,4 +1,4 @@
-from typing import Optional, Any, Dict, List, Tuple, Set
+from typing import Optional, Any, Dict, List
 
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
@@ -62,7 +62,7 @@ def extract_python_value_from_response(response: str, value_type: type) -> (Opti
         feedback_message = \
             f'I tried to eval your response, `eval(response)`, but got:\n{e}'
         return feedback_message, None
-    if not isinstance(response_value, value_type):
+    if not isinstance(response_value, parent_type):
         feedback_message = \
             f'Your response should be formatted as a {parent_type}, but I got a {type(response_value)}.'
         return feedback_message, None
@@ -74,4 +74,3 @@ def extract_python_value_from_response(response: str, value_type: type) -> (Opti
         return feedback_message, None
 
     return None, response_value
-
