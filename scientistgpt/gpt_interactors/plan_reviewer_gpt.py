@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
-from .cast import Agent
+from scientistgpt.cast import Agent
 
 from .dual_converser import ReviewDialogDualConverserGPT
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
-from scientistgpt.gpt_interactors.cast import Agent
+from scientistgpt.cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from scientistgpt.gpt_interactors.cast import Agent
+from scientistgpt.cast import Agent
 
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
 from .conversation import Conversation

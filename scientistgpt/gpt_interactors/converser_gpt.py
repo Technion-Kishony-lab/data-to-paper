@@ -6,7 +6,7 @@ from scientistgpt.conversation.message_designation import GeneralMessageDesignat
 from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.utils.text_utils import print_red
 
-from .cast import Agent
+from scientistgpt.cast import Agent
 
 
 @dataclass

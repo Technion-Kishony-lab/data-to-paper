@@ -5,11 +5,11 @@ from typing import Optional, List
 from scientistgpt.utils.text_utils import red_text
 
 from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
-from .message import Message
+from .message import Message, Role
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-
+from scientistgpt.cast import set_system_prompt
 
 NoneType = type(None)
 
@@ -17,9 +17,13 @@ NoneType = type(None)
 def apply_action(action, should_print: bool = True, is_color: bool = True):
     APPLIED_ACTIONS.append(action)
     if should_print:
-        print(action.pretty_repr())
+        print(action.pretty_repr(is_color=is_color))
         print()
     action.apply()
+
+    # update the Agent system_prompt if needed:
+    if isinstance(action, AppendMessage) and action.message.role is Role.SYSTEM:
+        set_system_prompt(agent=action.message.agent, prompt=action.message.content)
 
 
 @dataclass(frozen=True)

@@ -6,7 +6,7 @@ from enum import Enum
 from typing import NamedTuple, Optional
 
 from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
-from scientistgpt.gpt_interactors.cast import Agent
+from scientistgpt.cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.utils import format_text_with_code_blocks, line_count

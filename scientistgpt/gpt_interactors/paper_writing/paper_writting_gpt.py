@@ -7,7 +7,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.text_utils import concat_words_with_commas_and_and
 
 from .base_paper_writing import PaperWritingGPT, FailedCreatingPaperSection
-from ..cast import Agent
+from scientistgpt.cast import Agent
 
 MAX_SECTION_RECREATION_ATTEMPTS = 3
 
