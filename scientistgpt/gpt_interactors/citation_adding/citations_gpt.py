@@ -123,15 +123,16 @@ class CitationGPT(ConverserGPT):
         sentences_to_citations = {}
         for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
+                message = f'Searching citations for sentence {sentence_number + 1}, try {number_of_tries + 1}... '
                 try:
-                    self.comment(
-                        f'Finding citations for sentence {sentence_number + 1}, try number {number_of_tries + 1}.')
                     sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
                     break
                 except ServerErrorCitationException as e:
-                    self.comment(f"CrossRef server error: {e}")
+                    self.comment(message + f"CrossRef server error: {e}")
             else:
                 self.comment(f"Could not find citations for the sentence:\n{sentence}.")
+                continue
+            self.comment(message + 'Successful!')
 
         return sentences_to_citations
 
