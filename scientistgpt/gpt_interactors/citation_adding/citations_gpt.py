@@ -12,7 +12,8 @@ from .citataion_utils import validate_variable_type, choose_first_citation, cros
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 from .exceptions import WrongFormatCitationException, NotInSectionException, NotInCitationsCitationException, \
     ServerErrorCitationException
-from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation, CallCrossref
+from .citataion_utils import validate_citation_ids, validate_variable_type, choose_first_citation
+from .call_crossref import CROSSREF_SERVER_CALLER
 
 
 @dataclass
@@ -143,7 +144,7 @@ class CitationGPT(ConverserGPT):
                 try:
                     self.comment(
                         f'Finding citations for sentence {sentence_number + 1}, try number {number_of_tries + 1}.')
-                    sentences_to_citations[sentence] = CallCrossref.crossref_search(query)
+                    sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
                     break
                 except ServerErrorCitationException as e:
                     self.comment(f"CrossRef server error: {e}")
