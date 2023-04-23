@@ -42,8 +42,8 @@ class PaperAuthorGPT(PaperWritingGPT):
             {}
 
             """).format(tag.replace('_', ' '), getattr(self.scientific_products, tag))
-            self.conversation_manager.append_user_message(prompt, tag=tag)
-            self.conversation_manager.append_surrogate_message(
+            self.apply_append_user_message(prompt, tag=tag)
+            self.apply_append_surrogate_message(
                 content=f"Thank you for providing the {tag.replace('_', ' ')}.")
 
         self.comment("All scientific products have been added to the conversation.", tag='after_scientific_products')
@@ -56,16 +56,16 @@ class PaperAuthorGPT(PaperWritingGPT):
             Please write only the `{}` of the paper. Do not write any other parts!
             Remember to write in tex format including any math or symbols that needs tax escapes.
             """).format(concat_words_with_commas_and_and(section_names))
-        self.conversation_manager.append_user_message(prompt)
+        self.apply_append_user_message(prompt)
         max_attempts = MAX_SECTION_RECREATION_ATTEMPTS
         for attempt in range(max_attempts):
-            assistant_response = self.conversation_manager.get_and_append_assistant_message(tag=f'{section_names}')
+            assistant_response = self.apply_get_and_append_assistant_message(tag=f'{section_names}')
             try:
                 for section_name in section_names:
                     self.paper_sections[section_name] = \
                         extract_latex_section_from_response(assistant_response, section_name)
             except FailedToExtractLatexContent as e:
-                self.conversation_manager.append_user_message(
+                self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
                         {}
 
@@ -94,7 +94,7 @@ class PaperAuthorGPT(PaperWritingGPT):
 
         {}
         """).format(self.paper_sections['title'], self.paper_sections['abstract'])
-        self.conversation_manager.append_user_message(abstract_prompt, tag='title_and_abstract')
+        self.apply_append_user_message(abstract_prompt, tag='title_and_abstract')
 
         # We then write each of the other sections in light of the title and abstract:
         for section_name in self.paper_section_names:
