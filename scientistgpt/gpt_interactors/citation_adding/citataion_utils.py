@@ -2,22 +2,6 @@ import re
 from typing import Dict, List
 
 
-def validate_variable_type(sentences_queries, format_type):
-    """
-    Validate that the response is given in the correct format. if not raise TypeError.
-    """
-    if format_type == Dict[str, str]:
-        if isinstance(sentences_queries, dict) \
-                and all(isinstance(k, str) and isinstance(v, str) for k, v in sentences_queries.items()):
-            return
-    elif format_type == List[str]:
-        if isinstance(sentences_queries, list) and all(isinstance(k, str) for k in sentences_queries):
-            return
-    else:
-        raise NotImplementedError(f'format_type: {format_type} is not implemented')
-    raise TypeError(f'object is not of type: {format_type}')
-
-
 def choose_first_citation(sentence_citations):
     """
     Choose the first citation for the sentence, if any.

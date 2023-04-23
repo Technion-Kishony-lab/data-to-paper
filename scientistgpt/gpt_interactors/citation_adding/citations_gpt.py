@@ -3,14 +3,14 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
-from scientistgpt.utils import dedent_triple_quote_str, extract_text_between_tags
-from scientistgpt.utils.tag_pairs import DICT_TAG_PAIRS, LIST_TAG_PAIRS
+from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 
 from .exceptions import NotInOptionsException
 from .exceptions import ServerErrorCitationException
-from .citataion_utils import validate_variable_type, choose_first_citation
+from .citataion_utils import choose_first_citation
 from .call_crossref import CROSSREF_SERVER_CALLER
+from ...utils.extract_python import extract_python_value_from_response
 
 
 @dataclass
@@ -83,23 +83,8 @@ class CitationGPT(ConverserGPT):
                     ```
                     """), tag='wrong_format')
             response = self.conversation_manager.get_and_append_assistant_message()
-            try:
-                response = extract_text_between_tags(response, *DICT_TAG_PAIRS, leave_tags=True)
-            except ValueError:
-                feedback_message = \
-                    'Your response should be formatted as a dict, flanked by "{" and "}".'
-                continue
-            try:
-                response_value = eval(response)
-            except Exception as e:
-                feedback_message = \
-                    f'I tried to eval your response, `eval(response)`, but got:\n{e}'
-                continue
-            try:
-                validate_variable_type(response_value, Dict[str, str])
-            except TypeError:
-                feedback_message = \
-                    'Your response should be formatted as a dict containing only strings, as both keys and values.'
+            feedback_message, response_value = extract_python_value_from_response(response, Dict[str, str])
+            if feedback_message is not None:
                 continue
             try:
                 self._check_all_sentences_are_in_section(response_value)
@@ -189,23 +174,8 @@ class CitationGPT(ConverserGPT):
                     ```
                     """), tag='wrong_format')
             response = self.conversation_manager.get_and_append_assistant_message()
-            try:
-                response = extract_text_between_tags(response, *LIST_TAG_PAIRS, leave_tags=True)
-            except ValueError:
-                feedback_message = \
-                    'Your response should be formatted as a list, flanked by "[" and "]".'
-                continue
-            try:
-                response_value = eval(response)
-            except Exception as e:
-                feedback_message = \
-                    f'I tried to eval your response, `eval(response)`, but got:\n{e}'
-                continue
-            try:
-                validate_variable_type(response_value, List[str])
-            except TypeError:
-                feedback_message = \
-                    'Your response should be formatted as a list containing only strings.'
+            feedback_message, response_value = extract_python_value_from_response(response, List[str])
+            if feedback_message is not None:
                 continue
             try:
                 self._validate_citation_ids(response_value, citations_ids)
