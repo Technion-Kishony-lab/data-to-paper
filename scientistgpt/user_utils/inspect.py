@@ -5,8 +5,8 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from scientistgpt import Conversation
-from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
+from scientistgpt import Conversation, ScientistGPT
+from scientistgpt.cast.messenger import MESSENGER
 from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
@@ -36,6 +36,7 @@ def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
                 os.remove(file)
     else:
         os.makedirs(output_directory)
+    MESSENGER.add_contacts()
 
     from scientistgpt import ScientistGPT
     runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description)
