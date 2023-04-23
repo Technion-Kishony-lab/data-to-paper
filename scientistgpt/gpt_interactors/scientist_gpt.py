@@ -5,7 +5,7 @@ from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.exceptions import ScientistGPTException
-from .cast import Agent
+from scientistgpt.cast import Agent
 
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
