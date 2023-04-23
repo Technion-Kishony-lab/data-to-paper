@@ -190,6 +190,7 @@ class ScientistGPT(CodeWritingGPT):
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
+                output_filename=self.get_output_filename(),
                 list_of_data_files=self.list_of_data_files,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 conversation_name=self.conversation.conversation_name,
