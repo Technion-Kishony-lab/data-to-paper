@@ -84,13 +84,13 @@ class ScientistGPT(CodeWritingGPT):
             We have the following data files:
             {}
             """).format(self.data_description)
-        self.conversation_manager.append_user_message(user_prompt, tag='data_description')
+        self.apply_append_user_message(user_prompt, tag='data_description')
 
         assistant_response = dedent_triple_quote_str("""
             Thank you for the description of the dataset.
             Please also specify the data analysis goal.
             """)
-        self.conversation_manager.append_surrogate_message(assistant_response)
+        self.apply_append_surrogate_message(assistant_response)
         # add the data description to the scientific products
         self.scientific_products.data_description = self.data_description
 
@@ -99,12 +99,12 @@ class ScientistGPT(CodeWritingGPT):
             DESCRIPTION OF OUR RESEARCH GOAL.
             {}
             """).format(self.goal_description)
-        self.conversation_manager.append_user_message(user_prompt, tag='goal_description')
+        self.apply_append_user_message(user_prompt, tag='goal_description')
 
         assistant_response = dedent_triple_quote_str("""
             Thank you for the goal description.
         """)
-        self.conversation_manager.append_surrogate_message(assistant_response, tag='ok_goal_description')
+        self.apply_append_surrogate_message(assistant_response, tag='ok_goal_description')
         # add the goal description to the scientific products
         self.scientific_products.goal_description = self.goal_description
 
@@ -114,8 +114,8 @@ class ScientistGPT(CodeWritingGPT):
             """)
         self.scientific_products.analysis_plan = None
         self.scientific_products.analysis_codes_and_outputs = []
-        self.conversation_manager.append_user_message(user_prompt, tag='request_analysis_plan')
-        self.conversation_manager.get_and_append_assistant_message(tag='analysis_plan')
+        self.apply_append_user_message(user_prompt, tag='request_analysis_plan')
+        self.apply_get_and_append_assistant_message(tag='analysis_plan')
         self.scientific_products.analysis_plan = extract_analysis_plan_from_response(
             self.conversation_manager.conversation.get_last_response())
 
@@ -134,7 +134,7 @@ class ScientistGPT(CodeWritingGPT):
 
         # We rewind the conversation to the point where we asked the user to suggest an analysis plan (by giving
         # the same tag), but we replace the original plan with the improved plan that we got from PlanReviewerGPT.
-        self.conversation_manager.append_surrogate_message(
+        self.apply_append_surrogate_message(
             content=dedent_triple_quote_str("""
             Sure, here is a possible data analysis plan:
             {}
@@ -160,7 +160,7 @@ class ScientistGPT(CodeWritingGPT):
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
                 """).format(self.get_output_filename())
-        self.conversation_manager.append_user_message(user_prompt, tag=self._request_code_tag)
+        self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
     @property
     def number_of_successful_code_revisions(self):
@@ -206,7 +206,7 @@ class ScientistGPT(CodeWritingGPT):
                     comment='Deleting all debugging correspondence.')
                 assert self.conversation[-1].tag == self._request_code_tag
 
-                self.conversation_manager.append_surrogate_message(
+                self.apply_append_surrogate_message(
                     content=dedent_triple_quote_str("""
                     Here is the code to perform the analysis:
                     ```python
@@ -220,7 +220,7 @@ class ScientistGPT(CodeWritingGPT):
                 # the request for code. However, the code is now given without any explanation.
                 # We therefore ask chatgpt to explain the code:
 
-                self.conversation_manager.append_user_message(
+                self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
                     Please explain what your code does (Do not make new comments in the code itself, 
                     just explain what the code does).
@@ -228,7 +228,7 @@ class ScientistGPT(CodeWritingGPT):
                     Also explain what does the code writes into the {} file, and what do we expect to see in that file.
                     """).format(self.get_output_filename()),
                 )
-                self.conversation_manager.get_and_append_assistant_message()
+                self.apply_get_and_append_assistant_message()
                 self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
                 return True
         return False
@@ -252,11 +252,11 @@ class ScientistGPT(CodeWritingGPT):
             """).format(self.get_output_filename(after_completion=True),
                         self.scientific_products.analysis_codes_and_outputs[-1].output)
 
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=user_prompt,
             tag=f'output_file_content_{self.number_of_successful_code_revisions}')
 
-        response = self.conversation_manager.get_and_append_assistant_message()
+        response = self.apply_get_and_append_assistant_message()
         for num_tries in range(MAX_REGENERATING_BINARY_RESPONSES):
             if 'a' in response and 'b' not in response and len(response) < 5:
                 self.comment('ScientistGPT declared it is satisfied with the analysis. Proceeding to result summary.')
@@ -306,24 +306,20 @@ class ScientistGPT(CodeWritingGPT):
             2. Describe the implications of the results to the goal of the study. 
             3. Describe the limitations of the analysis.
             """)
-        self.conversation_manager.append_user_message(prompt)
-        self.conversation_manager.append_surrogate_message('ok, what should I start with?')
+        self.apply_append_user_message(prompt)
+        self.apply_append_surrogate_message('ok, what should I start with?')
 
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             'Please start by writing a comprehensive description of the results of the analysis. '
             'in addition finish with a short summary of the code packages and other tools used for the analysis.')
-        self.scientific_products.result_summary = self.conversation_manager.\
-            get_and_append_assistant_message(tag='result_summary')
+        self.scientific_products.result_summary = self.apply_get_and_append_assistant_message(tag='result_summary')
 
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             'Perfect. Now, please describe the implications of the results to the goal of the study.')
-        self.scientific_products.implications = self.conversation_manager.\
-            get_and_append_assistant_message(tag='implications')
+        self.scientific_products.implications = self.apply_get_and_append_assistant_message(tag='implications')
 
-        self.conversation_manager.append_user_message(
-            'Very good. Now, please describe any limitations of the analysis and results.')
-        self.scientific_products.limitations = self.conversation_manager.\
-            get_and_append_assistant_message(tag='limitations')
+        self.apply_append_user_message('Very good. Now, please describe any limitations of the analysis and results.')
+        self.scientific_products.limitations = self.apply_get_and_append_assistant_message(tag='limitations')
 
     def run_cycles_of_code_and_results(self) -> bool:
         total_code_attempts_for_current_plan = 0

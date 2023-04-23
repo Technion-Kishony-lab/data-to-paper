@@ -59,7 +59,7 @@ class DebuggerGPT(CodeWritingGPT):
         return result
 
     def _respond_to_allowed_packages(self, error_message: str):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
@@ -70,7 +70,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
     def _respond_to_file_not_found(self, error_message: str):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
@@ -82,7 +82,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _respond_to_error_message(self, error_message: str):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
             ```
@@ -93,7 +93,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Runtime exception in GPT code.')
 
     def _respond_to_missing_output(self):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code. It ran fine without raising any exception, 
             but it didn't generate the desired output file ({}).
@@ -102,7 +102,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
     def _respond_to_timeout(self):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, but it just ran forever...
             Please fix and rewrite the complete code again so that it doesn't get stuck. 
@@ -132,7 +132,7 @@ class DebuggerGPT(CodeWritingGPT):
             tag = 'multiple_code_blocks'
 
         # We use a tagged message to rewind back in case the same problem repeats
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=response,
             tag=tag,
             comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
@@ -140,14 +140,14 @@ class DebuggerGPT(CodeWritingGPT):
 
     def _respond_to_forbidden_functions(self, func: str):
         if func == 'print':
-            self.conversation_manager.append_user_message(
+            self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
                 Please do not use the `print` function. 
                 Anything you want to print, must be written to the output file. 
                 """),
                 comment=f'{self.iteration_str}: Code uses `print`.')
             return
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, but it used the function `{}` which is not allowed.
             Please rewrite the complete code again without using this function. 
@@ -155,7 +155,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
 
     def _respond_to_forbidden_write(self, file: str):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, but it tried to write to the file `{}` which is not allowed.
             Please rewrite the complete code again, making sure it only writes to "{}". 
@@ -163,7 +163,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_forbidden_read(self, file: str):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
             Please rewrite the complete code again, making sure it only reads from the files: {}. 
@@ -171,7 +171,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_empty_output(self):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is just empty! 
             Please rewrite the complete code again to correct this error. 
@@ -179,7 +179,7 @@ class DebuggerGPT(CodeWritingGPT):
             comment=f'{self.iteration_str}: Code completed, but output file is empty.')
 
     def _respond_to_large_output(self):
-        self.conversation_manager.append_user_message(
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is too long!
             Please rewrite the complete code so that only sensible length output is written to the file. 
@@ -191,8 +191,7 @@ class DebuggerGPT(CodeWritingGPT):
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
-        response = self.conversation_manager.get_and_append_assistant_message(is_code=True,
-                                                                              previous_code=self._previous_code)
+        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self._previous_code)
         failed_extracting_code = False
         code_runner = self._get_code_runner(response)
         try:
