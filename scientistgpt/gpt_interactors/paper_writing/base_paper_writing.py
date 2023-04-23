@@ -145,7 +145,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
         """
         all_references = set()
         for section_name, section_content in self.paper_sections.items():
-            if section_name in ['title', 'abstract']:
+            if section_name in ['title', 'abstract', 'results', 'methods', 'conclusion']:
                 continue
             self.paper_sections[section_name], references = \
                 CitationGPT(section=section_content).rewrite_section_with_citations()
