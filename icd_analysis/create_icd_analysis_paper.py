@@ -1,5 +1,5 @@
 from scientistgpt import run_scientist_gpt
-from queries_mimic import data_description, goal_description, simpler_goal_description, list_of_data_files
+from queries_mimic import data_description, simpler_goal_description, list_of_data_files
 
 # local_path.py is git ignored. It should be created locally, and contain:
 # DATA_FOLDER: absolute path to a directory where the data files are located

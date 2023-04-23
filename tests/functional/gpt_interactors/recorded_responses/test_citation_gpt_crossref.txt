@@ -2,108 +2,97 @@
     [
         {
             "authors": [
-                "Koji Kurihara"
+                "Lori-Ann Linkins",
+                "Alfonso Iorio",
+                "Julian Little",
+                "John Lavis"
             ],
-            "bibtex": "@misc{Kurihara2022Special,\nauthor = {Koji Kurihara},\ntitle = {Special feature: statistics for COVID-19 pandemic data},\nyear = {2022}}\n",
-            "doi": "10.1007/s42081-022-00166-y",
-            "journal": "Japanese Journal of Statistics and Data Science",
-            "title": "Special feature: statistics for COVID-19 pandemic data",
+            "bibtex": "@misc{Linkins2022Extended,\nauthor = {Lori-Ann Linkins and Alfonso Iorio and Julian Little and John Lavis},\ntitle = {Extended reporting guidance for vaccine effectiveness studies for variants of concern for COVID-19},\nyear = {2022}}\n",
+            "doi": "10.1016/j.vaccine.2022.04.005",
+            "journal": "Vaccine",
+            "title": "Extended reporting guidance for vaccine effectiveness studies for variants of concern for COVID-19",
             "type": "journal-article",
             "year": 2022
         },
         {
             "authors": [
-                "Saeed Shafti"
+                "Dvir Aran"
             ],
-            "bibtex": "@misc{Shafti2021Vaccine,\nauthor = {Saeed Shafti},\ntitle = {Vaccine Antagonism in COVID-19 Pandemic: An Appraisal of Statistics and Foundations},\nyear = {2021}}\n",
-            "doi": "10.31579/2690-1919/171",
-            "journal": "Journal of Clinical Research and Reports",
-            "title": "Vaccine Antagonism in COVID-19 Pandemic: An Appraisal of Statistics and Foundations",
-            "type": "journal-article",
+            "bibtex": "@online{Aran2021Estimating,\nauthor = {Dvir Aran},\ntitle = {Estimating real-world COVID-19 vaccine effectiveness in Israel using aggregated counts},\nyear = {2021}}\n",
+            "doi": "10.1101/2021.02.05.21251139",
+            "journal": null,
+            "title": "Estimating real-world COVID-19 vaccine effectiveness in Israel using aggregated counts",
+            "type": "posted-content",
             "year": 2021
         },
         {
             "authors": [
-                "Wei Liang",
-                "Hongsheng Dai",
-                "Marialuisa Restaino"
+                "Haruhisa Fukuda",
+                "Megumi Maeda",
+                "Fumiko Murata"
             ],
-            "bibtex": "@misc{Liang2021Truncation,\nauthor = {Wei Liang and Hongsheng Dai and Marialuisa Restaino},\ntitle = {Truncation data analysis for the under-reporting probability in COVID-19 pandemic},\nyear = {2021}}\n",
-            "doi": "10.1080/10485252.2021.1989426",
-            "journal": "Journal of Nonparametric Statistics",
-            "title": "Truncation data analysis for the under-reporting probability in COVID-19 pandemic",
+            "bibtex": "@misc{Fukuda2023Development,\nauthor = {Haruhisa Fukuda and Megumi Maeda and Fumiko Murata},\ntitle = {Development of a COVID-19 vaccine effectiveness and safety assessment system in Japan: The VENUS study},\nyear = {2023}}\n",
+            "doi": "10.1016/j.vaccine.2023.03.059",
+            "journal": "Vaccine",
+            "title": "Development of a COVID-19 vaccine effectiveness and safety assessment system in Japan: The VENUS study",
             "type": "journal-article",
-            "year": 2021
+            "year": 2023
         },
         {
             "authors": [
-                "Adalbert Wilhelm",
-                "Susan VanderPlas"
+                "Amrit S. Sorli"
             ],
-            "bibtex": "@misc{Wilhelm2022Visual,\nauthor = {Adalbert Wilhelm and Susan VanderPlas},\ntitle = {Visual Narratives of the Covid-19 pandemic},\nyear = {2022}}\n",
-            "doi": "10.52933/jdssv.v2i7.64",
-            "journal": "Journal of Data Science, Statistics, and Visualisation",
-            "title": "Visual Narratives of the Covid-19 pandemic",
-            "type": "journal-article",
+            "bibtex": "@online{Sorli2022Mathematical,\nauthor = {Amrit S. Sorli},\ntitle = {Mathematical methods for estimating  the effectiveness of the Covid-19 vaccine},\nyear = {2022}}\n",
+            "doi": "10.31219/osf.io/tzmfq",
+            "journal": null,
+            "title": "Mathematical methods for estimating  the effectiveness of the Covid-19 vaccine",
+            "type": "posted-content",
             "year": 2022
         }
     ],
     [
         {
-            "authors": [
-                "Svetoslav Bliznashki"
-            ],
-            "bibtex": "@online{Bliznashki2022A,\nauthor = {Svetoslav Bliznashki},\ntitle = {A Cross-Country Analysis of the Effectiveness of COVID-19 Vaccines in Reducing Mortality Rates within the EU},\nyear = {2022}}\n",
-            "doi": "10.1101/2022.01.23.22269604",
-            "journal": null,
-            "title": "A Cross-Country Analysis of the Effectiveness of COVID-19 Vaccines in Reducing Mortality Rates within the EU",
-            "type": "posted-content",
+            "authors": [],
+            "bibtex": "@misc{Safetyofsecond2022,\ntitle = {Safety of second Pfizer-BioNTech COVID-19 vaccine booster},\nyear = {2022}}\n",
+            "doi": "10.1007/s40278-022-29209-4",
+            "journal": "Reactions Weekly",
+            "title": "Safety of second Pfizer-BioNTech COVID-19 vaccine booster",
+            "type": "journal-article",
             "year": 2022
         },
         {
-            "authors": [
-                "Ibrahim Mohammed",
-                "Areej Nauman",
-                "Pradipta Paul",
-                "Sanjith Ganesan",
-                "Kuan-Han Chen",
-                "Syed Muhammad Saad Jalil",
-                "Shahd H. Jaouni",
-                "Hussam Kawas",
-                "Wafa A. Khan",
-                "Ahamed Lazim Vattoth",
-                "Yasmeen Alavi Al-Hashimi",
-                "Ahmed Fares",
-                "Rached Zeghlache",
-                "Dalia Zakaria"
-            ],
-            "bibtex": "@misc{Mohammed2022The,\nauthor = {Ibrahim Mohammed and Areej Nauman and Pradipta Paul and Sanjith Ganesan and Kuan-Han Chen and Syed Muhammad Saad Jalil and Shahd H. Jaouni and Hussam Kawas and Wafa A. Khan and Ahamed Lazim Vattoth and Yasmeen Alavi Al-Hashimi and Ahmed Fares and Rached Zeghlache and Dalia Zakaria},\ntitle = {The efficacy and effectiveness of the COVID-19 vaccines in reducing infection, severity, hospitalization, and mortality: a systematic review},\nyear = {2022}}\n",
-            "doi": "10.1080/21645515.2022.2027160",
-            "journal": "Human Vaccines &amp; Immunotherapeutics",
-            "title": "The efficacy and effectiveness of the COVID-19 vaccines in reducing infection, severity, hospitalization, and mortality: a systematic review",
+            "authors": [],
+            "bibtex": "@misc{Covid-19-vaccine-pfizer-biontech2022,\ntitle = {Covid-19-vaccine-pfizer-biontech},\nyear = {2022}}\n",
+            "doi": "10.1007/s40278-022-17447-6",
+            "journal": "Reactions Weekly",
+            "title": "Covid-19-vaccine-pfizer-biontech",
             "type": "journal-article",
             "year": 2022
         },
         {
             "authors": [
-                "Subrat Acharya",
-                "Gaurav Mahindra"
+                "Katarzyna Korzeniowska",
+                "Artur Cie\u015blewicz",
+                "Katarzyna Graba\u0144ska-Marty\u0144ska",
+                "Anna Jab\u0142ecka"
             ],
-            "bibtex": "@online{Acharya2021Protection,\nauthor = {Subrat Acharya and Gaurav Mahindra},\ntitle = {Protection offered by COVID-19 vaccines in reducing SARS-CoV-2 infection frequency; severity and mortality, among Indian Healthcare Workers: Multicenter, pan-Fortis study},\nyear = {2021}}\n",
-            "doi": "10.21203/rs.3.rs-1056314/v1",
+            "bibtex": "@online{Korzeniowska2021Safety,\nauthor = {Katarzyna Korzeniowska and Artur Cie\u015blewicz and Katarzyna Graba\u0144ska-Marty\u0144ska and Anna Jab\u0142ecka},\ntitle = {Safety of Pfizer-BioNTech COVID-19 mRNA Vaccine in the Elderly},\nyear = {2021}}\n",
+            "doi": "10.21203/rs.3.rs-1042964/v1",
             "journal": null,
-            "title": "Protection offered by COVID-19 vaccines in reducing SARS-CoV-2 infection frequency; severity and mortality, among Indian Healthcare Workers: Multicenter, pan-Fortis study",
+            "title": "Safety of Pfizer-BioNTech COVID-19 mRNA Vaccine in the Elderly",
             "type": "posted-content",
             "year": 2021
         },
         {
-            "authors": [],
-            "bibtex": "@misc{EffectivenessofOutcome2008,\ntitle = {Effectiveness of Outcome and Process Surveillance for Reducing Overall Device-Associated Infection and Mortality Rates in a Hospital in Morocco. Findings of the International Nosocomial Infection Control Consortium.},\nyear = {2008}}\n",
-            "doi": "10.1016/j.ajic.2008.04.201",
-            "journal": "American Journal of Infection Control",
-            "title": "Effectiveness of Outcome and Process Surveillance for Reducing Overall Device-Associated Infection and Mortality Rates in a Hospital in Morocco. Findings of the International Nosocomial Infection Control Consortium.",
+            "authors": [
+                "Elisabeth Mahase"
+            ],
+            "bibtex": "@misc{Mahase2020Covid-19:,\nauthor = {Elisabeth Mahase},\ntitle = {Covid-19: Pfizer and BioNTech submit vaccine for US authorisation},\nyear = {2020}}\n",
+            "doi": "10.1136/bmj.m4552",
+            "journal": "BMJ",
+            "title": "Covid-19: Pfizer and BioNTech submit vaccine for US authorisation",
             "type": "journal-article",
-            "year": 2008
+            "year": 2020
         }
     ],
     [
