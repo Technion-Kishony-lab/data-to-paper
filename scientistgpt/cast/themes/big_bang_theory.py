@@ -68,3 +68,14 @@ LiteratureReviewer = Profile(
                 'I am here to help Sheldon review the literature.',
     image_file='raj.png',
 )
+
+Director = Profile(
+    agent_name='Director',
+    name='{}',
+    title='director',
+    description='Hi everyone!\n'
+                'I am just here to observe the future and see how multi-role gpt-driven characters can carry.\n'
+                'a complex task on their own by interacting and helping each other.\n\n'
+                'I am also the one who gave the data to Sheldon and am looking forward to see how he analyzes it.',
+    image_file='anonymous_user.png',
+)

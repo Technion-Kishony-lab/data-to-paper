@@ -10,6 +10,9 @@ from scientistgpt.env import THEME_NAME
 # load theme:
 theme = importlib.import_module(f"scientistgpt.cast.themes.{THEME_NAME}")
 
+# User name will be replaced by the name of the user signing in to the app
+USER_NAME = 'User'
+
 
 class Agent(Enum):
     Student = 'Student'
@@ -19,10 +22,17 @@ class Agent(Enum):
     Debugger = 'Debugger'
     Writer = 'Writer'
     LiteratureReviewer = 'LiteratureReviewer'
+    Director = 'Director'
 
     @property
     def profile(self) -> Profile:
         return getattr(theme, self.name)
+
+    @property
+    def actual_name(self) -> str:
+        if self is Agent.Director:
+            return USER_NAME
+        return self.profile.name
 
     @property
     def algorithm(self) -> Algorithm:
@@ -35,7 +45,7 @@ class Agent(Enum):
     def pretty_repr(self):
         profile = self.profile
         algorithm_repr = self.algorithm.pretty_repr(self.system_prompt)
-        return f"{profile.name} ({profile.title})\n" \
+        return f"{self.actual_name} ({profile.title})\n" \
                f"{profile.description}\n" \
                f"{algorithm_repr}"
 
