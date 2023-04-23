@@ -45,13 +45,13 @@ assert all(agent.profile.agent_name == agent.name for agent in Agent), \
 
 
 AGENT_TO_ALGORITHM: Dict[Agent, Algorithm] = {
-    Agent.Student: Algorithm.GTP,
+    Agent.Student: Algorithm.GPT,
     Agent.Mentor: Algorithm.PRE_PROGRAMMED,
-    Agent.PlanReviewer: Algorithm.GTP,
-    Agent.Secretary: Algorithm.GTP,
+    Agent.PlanReviewer: Algorithm.GPT,
+    Agent.Secretary: Algorithm.GPT,
     Agent.Debugger: Algorithm.PRE_PROGRAMMED,
-    Agent.Writer: Algorithm.GTP,
-    Agent.LiteratureReviewer: Algorithm.GTP,
+    Agent.Writer: Algorithm.GPT,
+    Agent.LiteratureReviewer: Algorithm.GPT,
 }
 
 

@@ -3,7 +3,7 @@ from typing import NamedTuple, Optional
 
 
 class Algorithm(Enum):
-    GTP = 'GTP'
+    GPT = 'GPT'
     PRE_PROGRAMMED = 'PRE_PROGRAMMED'
     MIXED = 'MIXED'
 
@@ -13,7 +13,7 @@ class Algorithm(Enum):
         else:
             prompt_statement = f"I have been given the following mission statement:\n{prompt}\n"
 
-        if self == Algorithm.GTP:
+        if self == Algorithm.GPT:
             return f"I am run by GPT.\n{prompt_statement}"
         elif self == Algorithm.PRE_PROGRAMMED:
             return f"I am run by a pre-programmed algorithm issuing automated programmed responses."
