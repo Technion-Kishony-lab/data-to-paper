@@ -1,13 +1,18 @@
 import os
 
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 
-from tests.utils import record_or_replay_openai
+
+class TestPaperAuthorGPT(PaperAuthorGPT):
+
+    def _add_citations_to_paper(self):
+        pass
 
 
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_paper_author_gpt(tmpdir):
     # create a scientific mentor with some random scientific products to test the paper author
     # pre_paper_conversation population
@@ -31,7 +36,7 @@ def test_paper_author_gpt(tmpdir):
         implications="We can conclude that the results are:\nA: 1\nB: 2\nC: 3",
         limitations="We did not consider the following:\nA: 2\nB: 3\nC: 1",
     )
-    author = PaperAuthorGPT(scientific_products=scientific_products)
+    author = TestPaperAuthorGPT(scientific_products=scientific_products)
     os.chdir(tmpdir)
     author.write_paper()
 

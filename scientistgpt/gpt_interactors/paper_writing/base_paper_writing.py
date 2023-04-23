@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict
 
 from scientistgpt.exceptions import ScientistGPTException
+from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.latex import save_latex_and_compile_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str
@@ -39,7 +40,10 @@ class PaperWritingGPT(ConverserGPT, ABC):
     """
     The name of the file that gpt code is instructed to save the results to.
     """
-
+    bib_filename: str = 'citations.bib'
+    """
+    The name of the file that gpt code is instructed to save the bibliography to.
+    """
     paper_template_filename: str = 'standard_paper.tex'
     """
     The name of the file that holds the template for the paper.
@@ -116,7 +120,14 @@ class PaperWritingGPT(ConverserGPT, ABC):
         """
         Save the latex paper to .tex file and compile to pdf file.
         """
-        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, should_compile_to_pdf)
+        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, self.bib_filename, should_compile_to_pdf)
+
+    def _save_references_to_bib_file(self, references: set):
+        """
+        Save all the citations bibtexes to a .bib file.
+        """
+        with open(self.bib_filename, 'w') as f:
+            f.write('\n\n'.join(references))
 
     def write_paper(self, should_compile_to_pdf: bool = True):
         self.initialize_conversation_if_needed()
@@ -125,5 +136,20 @@ class PaperWritingGPT(ConverserGPT, ABC):
             self._get_paper_sections()
         except FailedCreatingPaperSection as e:
             raise FailedCreatingPaper(e)
+        self._add_citations_to_paper()
         self._assemble_latex_paper_from_sections()
         self._save_latex_and_compile_to_pdf(should_compile_to_pdf)
+
+    def _add_citations_to_paper(self):
+        """
+        Add citations to all the relevant sections of the paper and add any necessary bibtex
+        references to the .bib file.
+        """
+        all_references = set()
+        for section_name, section_content in self.paper_sections.items():
+            if section_name in ['title', 'abstract']:
+                continue
+            self.paper_sections[section_name], references = \
+                CitationGPT(section=section_content).rewrite_section_with_citations()
+            all_references |= references
+        self._save_references_to_bib_file(all_references)

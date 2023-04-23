@@ -7,19 +7,44 @@ from .message_designation import GeneralMessageDesignation
 
 # Set up the OpenAI API client
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
+from scientistgpt.call_servers import ServerCaller
+
 openai.api_key = OPENAI_API_KEY
 
+# String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
+SAVE_START = 'START>>>>>\n'
+SAVE_END = '\n<<<<<END\n'
 
-def _get_chatgpt_response(messages: List[Message], **kw) -> str:
+
+class OpenaiSeverCaller(ServerCaller):
     """
-    Connect with openai to get response to conversation.
+    Class to call OpenAI API.
     """
-    response = openai.ChatCompletion.create(
-        model=MODEL_ENGINE,
-        messages=[message.to_chatgpt_dict() for message in messages],
-        **kw,
-    )
-    return response['choices'][0]['message']['content']
+    file_extension = '_openai.txt'
+
+    @staticmethod
+    def _save_records(file, records):
+        for response in records:
+            file.write(f'{SAVE_START}{response}{SAVE_END}\n')
+
+    @staticmethod
+    def _load_records(file):
+        return re.findall(SAVE_START + "(.*?)" + SAVE_END, file.read(), re.DOTALL)
+
+    @staticmethod
+    def _get_server_response(messages: List[Message], **kw) -> str:
+        """
+        Connect with openai to get response to conversation.
+        """
+        response = openai.ChatCompletion.create(
+            model=MODEL_ENGINE,
+            messages=[message.to_chatgpt_dict() for message in messages],
+            **kw,
+        )
+        return response['choices'][0]['message']['content']
+
+
+OPENAI_SERVER_CALLER = OpenaiSeverCaller()
 
 
 class Conversation(List[Message]):
@@ -33,10 +58,6 @@ class Conversation(List[Message]):
 
     DO NOT ALTER CONVERSATION INSTANCE DIRECTLY. USE `ConversationManager` INSTEAD.
     """
-
-    # String patterns used to save and load conversations. Use unique patterns, not likely to occur in conversation.
-    SAVE_START = 'START>>>>>\n'
-    SAVE_END = '\n<<<<<END\n'
 
     def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -88,13 +109,13 @@ class Conversation(List[Message]):
     def save(self, filename: str):
         with open(filename, 'w') as f:
             for message in self:
-                f.write(f'{self.SAVE_START}{message.convert_to_text()}{self.SAVE_END}\n\n')
+                f.write(f'{SAVE_START}{message.convert_to_text()}{SAVE_END}\n\n')
 
     def load(self, filename: str):
         self.clear()
         with open(filename, 'r') as f:
             entire_file = f.read()
-            matches = re.findall(self.SAVE_START + "(.*?)" + self.SAVE_END, entire_file, re.DOTALL)
+            matches = re.findall(SAVE_START + "(.*?)" + SAVE_END, entire_file, re.DOTALL)
             for match in matches:
                 self.append(Message.from_text(match))
 
@@ -123,7 +144,7 @@ class Conversation(List[Message]):
         indices_and_messages = self.get_chosen_indices_and_messages(hidden_messages)
         messages = [message for _, message in indices_and_messages]
         try:
-            return _get_chatgpt_response(messages, **kwargs)
+            return OPENAI_SERVER_CALLER.get_server_response(messages, **kwargs)
         except openai.error.InvalidRequestError as e:
             return e
         except Exception:
