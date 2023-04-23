@@ -87,15 +87,15 @@ class DebuggerGPT(CodeWritingGPT):
                         'All of these files are' if len(self.list_of_data_files) > 1 else 'This file is'),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
-    def _respond_to_error_message(self, error_message: str):
+    def _respond_to_error_message(self, error_message: str, is_warning: bool = False):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
+            I ran the code and got the following {} message:
             ```
             {}
             ```
             Please rewrite the complete code again with this error corrected. 
-            """).format(error_message),
+            """).format('warning' if is_warning else 'error', error_message),
             comment=f'{self.iteration_str}: Runtime exception in GPT code.')
 
     def _respond_to_missing_output(self):
@@ -226,6 +226,9 @@ class DebuggerGPT(CodeWritingGPT):
                 self._respond_to_forbidden_write(f.file)
             except CodeReadForbiddenFile as f:
                 self._respond_to_forbidden_read(f.file)
+            except Warning:
+                # the code raised a warning
+                self._respond_to_error_message(e.get_traceback_message(), is_warning=True)
             except Exception:
                 # the code failed on other errors
                 # we will indicate to chatgpt the error message that we got
