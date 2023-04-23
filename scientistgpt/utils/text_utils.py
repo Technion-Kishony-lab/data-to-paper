@@ -103,23 +103,16 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
     Extract text between two tags.
     If the right tag is None, then extract text from the left tag to the end of the text.
     """
-    if left_tag not in text:
+    start = text.find(left_tag)
+    if start == -1:
         raise ValueError('left tag missing')
-
-    extracted = text.split(left_tag)[1]
-
-    if right_tag is not None:
-        if right_tag not in extracted:
-            raise ValueError('right tag missing')
-        extracted = extracted.split(right_tag)[0]
-
+    end = text.rfind(right_tag) if right_tag is not None else None
+    if end == -1:
+        raise ValueError('right tag missing')
+    extracted_text_without_tags = text[start + len(left_tag):end]
     if leave_tags:
-        if right_tag is None:
-            extracted = left_tag + extracted
-        else:
-            extracted = left_tag + extracted + right_tag
-
-    return extracted
+        return left_tag + extracted_text_without_tags + (right_tag if right_tag is not None else '')
+    return extracted_text_without_tags
 
 
 def concat_words_with_commas_and_and(words: list):
