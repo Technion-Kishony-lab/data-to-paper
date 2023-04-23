@@ -1,11 +1,11 @@
 import pytest
 
 from scientistgpt import ScientistGPT
-from tests.utils import record_or_replay_openai
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 
 
 @pytest.mark.skip
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_scientific_mentor():
     runner = ScientistGPT(
         data_description='file named "data.csv" with columns "gender" (F/M) and "height" (in cm) representing '

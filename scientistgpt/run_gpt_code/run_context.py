@@ -67,6 +67,3 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
         # we restore the original functions
         for module, function_name in modules_and_functions:
             setattr(module, function_name, original_functions.pop(0))
-
-
-

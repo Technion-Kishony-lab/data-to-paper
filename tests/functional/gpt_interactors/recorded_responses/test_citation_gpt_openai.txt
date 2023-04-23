@@ -1,0 +1,43 @@
+START>>>>>
+{
+"Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality.": "COVID-19 vaccine effectiveness studies", 
+"While the vaccine has been proven to be highly effective in preventing COVID-19 infections, there have been concerns regarding the safety profile of the vaccine.": "Safety profile of Pfizer BioNTech COVID-19 vaccine", 
+"Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine.": "Reports of side effects of Pfizer BioNTech COVID-19 vaccine", 
+"We analyzed the data on side effect reports submitted by medical staff in Israel following the administration of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine.": "Side effects of Pfizer BioNTech COVID-19 vaccine in Israel"
+}
+<<<<<END
+
+START>>>>>
+I apologize for the mistake. Here is the corrected response:
+
+{
+"Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality.": "COVID-19 vaccine effectiveness studies", 
+"While the vaccine has been proven to be highly effective in preventing COVID-19 infections, there have been concerns regarding the safety profile of the vaccine.": "Safety profile of Pfizer BioNTech COVID-19 vaccine", 
+"Reports of side effects following the administration of the vaccine have led to questions regarding the potential risks associated with the vaccine.": "Reports of side effects of Pfizer BioNTech COVID-19 vaccine"
+}
+<<<<<END
+
+START>>>>>
+["Aran2021Estimating", "Fukuda2023Development"]
+<<<<<END
+
+START>>>>>
+Vaccination is widely recognized as one of the most effective tools to control the spread of the virus and to reduce mortality \cite{Aran2021Estimating,Fukuda2023Development}.
+<<<<<END
+
+START>>>>>
+["Covid-19-vaccine-pfizer-biontech2022", "Korzeniowska2021Safety"]
+<<<<<END
+
+START>>>>>
+While the Pfizer BioNTech (BNT162b2) COVID-19 vaccine has been proven to be highly effective in preventing COVID-19 infections \cite{Covid-19-vaccine-pfizer-biontech2022}, concerns have been raised regarding the safety profile of the vaccine \cite{Korzeniowska2021Safety}.
+<<<<<END
+
+START>>>>>
+["Sadeq2022Side", "Covid-19-vaccine-pfizer-biontech2022"]
+<<<<<END
+
+START>>>>>
+Reports of side effects following the administration of the Pfizer BioNTech (BNT162b2) COVID-19 vaccine \cite{Covid-19-vaccine-pfizer-biontech2022, Sadeq2022Side} have led to questions regarding the potential risks associated with the vaccine.
+<<<<<END
+

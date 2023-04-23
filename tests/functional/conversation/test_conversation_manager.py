@@ -3,8 +3,8 @@ from _pytest.fixtures import fixture
 from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import ReplaceLastResponse
 from scientistgpt.conversation.converation_manager import ConversationManager, APPLIED_ACTIONS
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
-from tests.utils import mock_openai, record_or_replay_openai
 
 
 @fixture()
@@ -16,7 +16,7 @@ def manager():
 
 
 def test_conversation_manager_adding_messages(manager):
-    with mock_openai([
+    with OPENAI_SERVER_CALLER.mock([
         'The answer is 4',
     ]):
         manager.append_user_message('Hi, I am a user.')
@@ -29,7 +29,7 @@ def test_conversation_manager_adding_messages(manager):
     assert manager.conversation.get_last_response() == 'The answer is 4'
 
 
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_manager_adding_messages_with_kwargs(manager):
     manager.append_user_message('Hi, I am a user.')
     manager.append_surrogate_message('Hi, this is a predefined assistant response.')
@@ -53,7 +53,7 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
 
 
 def test_conversation_manager_regenerate_response(manager):
-    with mock_openai([
+    with OPENAI_SERVER_CALLER.mock([
         'The answer is ...',
         'The answer is 4',
     ]):
@@ -67,7 +67,7 @@ def test_conversation_manager_regenerate_response(manager):
 
 
 def test_conversation_manager_retry_response(manager, openai_exception):
-    with mock_openai([
+    with OPENAI_SERVER_CALLER.mock([
         openai_exception,
         'The answer is 4',
     ]):

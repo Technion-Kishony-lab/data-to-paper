@@ -3,24 +3,22 @@ import os.path
 import openai
 
 from scientistgpt import Conversation
-from tests.utils import mock_openai, record_or_replay_openai
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 
 
 def test_failed_gpt_response(conversation, openai_exception):
-    with mock_openai(['I am okay.',
-                      openai_exception,
-                      ]):
+    with OPENAI_SERVER_CALLER.mock(['I am okay.', openai_exception]):
         assert conversation.try_get_chatgpt_response() == 'I am okay.'
         assert isinstance(conversation.try_get_chatgpt_response(), openai.error.InvalidRequestError)
 
 
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_gpt_response(conversation):
     response = conversation.try_get_chatgpt_response()
     assert isinstance(response, str) and len(response)
 
 
-@record_or_replay_openai()
+@OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_gpt_response_without_appending(conversation):
     response = conversation.try_get_chatgpt_response()
     assert len(response)
