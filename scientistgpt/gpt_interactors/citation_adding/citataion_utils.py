@@ -56,21 +56,18 @@ def create_bibtex(item):
 
     bibtex_type = type_mapping.get(item['type'], 'misc')
 
+    # Generate a BibTeX ID based on the author's last name and publication year (if available)
     if item['authors']:
-        bibtex_id = item['authors'][0].split(" ")[-1] + (str(item.get("year")) if item.get("year") else "")
-        # add also the first word of the title if it exists
-        bibtex_id += item['title'].split(" ")[0] if item.get("title") else ""
+        last_name = item['authors'][0].split(" ")[-1]
+        year = str(item.get("year")) if item.get("year") else ""
+        first_word_of_title = item['title'].split(" ")[0] if item.get("title") else ""
+        bibtex_id = f"{last_name}{year}{first_word_of_title}"
     else:
-        # get the first 3 words of the title if they exist otherwise use the first two, otherwise use the first one
+        # If no author is available, use the first few words of the title and the publication year (if available)
         title_words = item['title'].split(" ")
-        if len(title_words) > 3:
-            bibtex_id = "".join(title_words[:3])
-        elif len(title_words) > 2:
-            bibtex_id = "".join(title_words[:2])
-        else:
-            bibtex_id = title_words[0]
-        # add the year if it exists
-        bibtex_id += str(item.get("year")) if item.get("year") else ""
+        bibtex_id = "".join(title_words[:min(len(title_words), 3)])
+        year = str(item.get("year")) if item.get("year") else ""
+        bibtex_id += year
 
     fields = []
     for key, value in item.items():
