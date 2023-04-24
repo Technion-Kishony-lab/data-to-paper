@@ -87,6 +87,7 @@ class ConversationManager:
         """
         Append a system-message to a specified conversation.
         """
+        tag = tag or 'system_prompt'
         self.append_message(Role.SYSTEM, content, tag, comment)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
