@@ -63,4 +63,12 @@ def test_conversation_get_message_content_by_tag(conversation):
     assert conversation.get_message_content_by_tag('hello') == 'Hello!'
     assert conversation.get_message_content_by_tag('not-hello') is None
 
-def test_conversation_ignores_ignored_messages()
+
+def test_conversation_ignores_ignored_messages():
+    conversation = Conversation()
+    conversation.append(Message(Role.USER,
+                                'This is a fun message just for the conversation to look nice!', ignore=True))
+    conversation.append(Message(Role.USER, 'This is a real message', ignore=False))
+    indices_and_messages = conversation.get_chosen_indices_and_messages()
+    indices = [index for index, _ in indices_and_messages]
+    assert indices == [1]
