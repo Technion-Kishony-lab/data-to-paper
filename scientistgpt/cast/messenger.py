@@ -50,6 +50,14 @@ class Messenger:
         """
         Called after an action was applied to a conversation managed by this messenger.
         """
+        if action.conversation not in self.conversations:
+            self.add_conversation(action.conversation)
+        self._update_on_action(action)
+
+    def _update_on_action(self, action: Action):
+        """
+        a hook to update the front-end on an action.
+        """
         pass
 
 
