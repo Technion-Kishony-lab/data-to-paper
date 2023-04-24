@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import List
 
 from scientistgpt import Conversation, ScientistGPT
-from scientistgpt.cast.messenger import MESSENGER
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.data_file_description import DataFileDescription
@@ -37,9 +36,7 @@ def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
                 os.remove(file)
     else:
         os.makedirs(output_directory)
-    MESSENGER.add_contacts()
 
-    from scientistgpt import ScientistGPT
     runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description)
 
     @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)
