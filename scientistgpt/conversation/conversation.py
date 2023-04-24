@@ -2,7 +2,7 @@ import openai
 import re
 from typing import List, Tuple, Union, Optional
 
-from .message import Message, Role
+from .message import Message, Role, create_message
 from .message_designation import GeneralMessageDesignation
 
 # Set up the OpenAI API client
@@ -62,17 +62,6 @@ class Conversation(List[Message]):
     def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.conversation_name = conversation_name
-
-    def append_message(self, role: Role, content: str, tag: str = '') -> Message:
-        message = Message(role, content, tag)
-        self.append(message)
-        return message
-
-    def append_user_message(self, content: str, tag: str = ''):
-        return self.append_message(Role.USER, content, tag)
-
-    def append_assistant_message(self, content: str, tag: str = ''):
-        return self.append_message(Role.ASSISTANT, content, tag)
 
     def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation) -> List[Tuple[int, Message]]:
         """

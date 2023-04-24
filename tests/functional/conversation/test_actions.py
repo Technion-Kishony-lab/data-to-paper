@@ -91,7 +91,7 @@ def test_delete_messages(conversation, assistant_message):
 
 
 def test_replace_last_response(conversation, assistant_message):
-    conversation.append_assistant_message('bad response. to be replaced')
+    conversation.append(Message(Role.ASSISTANT, 'bad response. to be replaced'))
     expected = conversation[:-1] + [assistant_message]
     action = ReplaceLastResponse(conversation_name=conversation.conversation_name,
                                  message=assistant_message, comment='this is a test')
