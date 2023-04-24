@@ -7,6 +7,11 @@ from typing import Dict, Optional
 from scientistgpt.cast.types import Profile, Algorithm
 from scientistgpt.env import THEME_NAME
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from scientistgpt.conversation.actions import Action
+
+
 # load theme:
 theme = importlib.import_module(f"scientistgpt.cast.themes.{THEME_NAME}")
 
@@ -82,3 +87,13 @@ def set_system_prompt(agent: Agent, prompt: str):
 
 def get_system_prompt(agent: Agent) -> Optional[str]:
     return AGENTS_TO_SYSTEM_PROMPTS.get(agent, None)
+
+
+def on_action(action: Action):
+    """
+    This is called after an action was applied to a conversation.
+    """
+    from scientistgpt import Role
+    from scientistgpt.conversation.actions import AppendMessage
+    if isinstance(action, AppendMessage) and action.message.role is Role.SYSTEM:
+        set_system_prompt(agent=action.message.agent, prompt=action.message.content)
