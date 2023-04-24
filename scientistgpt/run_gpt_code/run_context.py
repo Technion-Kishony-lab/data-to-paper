@@ -39,6 +39,8 @@ def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files:
 def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
     """
     Context manager for catching when the code tries to use certain forbidden functions.
+
+    modules_and_functions: list of tuples of (module, function_name) that the code is not allowed to call.
     """
     modules_and_functions = modules_and_functions or []
 

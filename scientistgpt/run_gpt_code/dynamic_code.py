@@ -22,6 +22,10 @@ WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, 
 FORBIDDEN_MODULES_AND_FUNCTIONS = [
     (builtins, 'print'),
     (builtins, 'input'),
+    (builtins, 'exec'),
+    (builtins, 'eval'),
+    (builtins, 'exit'),
+    (builtins, 'quit'),
     (plt, 'savefig'),
 ]
 
