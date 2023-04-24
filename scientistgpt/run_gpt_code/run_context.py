@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from typing import List, Tuple, Any
 
 from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
-    CodeWriteForbiddenFile, CodeReadForbiddenFile
+    CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 
 @contextmanager
@@ -69,3 +69,21 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
         # we restore the original functions
         for module, function_name in modules_and_functions:
             setattr(module, function_name, original_functions.pop(0))
+
+
+class PreventImport:
+    def __init__(self, modules):
+        self.modules = modules
+
+    def __enter__(self):
+        self.original_import = builtins.__import__
+        builtins.__import__ = self.custom_import
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        builtins.__import__ = self.original_import
+
+    def custom_import(self, name, *args, **kwargs):
+        if name in self.modules:
+            raise CodeImportForbiddenModule(module=name)
+        return self.original_import(name, *args, **kwargs)
