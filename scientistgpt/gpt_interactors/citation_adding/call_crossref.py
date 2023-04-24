@@ -54,7 +54,7 @@ def create_bibtex(item):
 
     fields = []
     for key, value in item.items():
-        if value:
+        if value and value is not None:
             if not key in ['doi', 'isbn']:
                 # remove special characters of the value
                 if isinstance(value, list):
@@ -100,10 +100,28 @@ class CrossrefServerCaller(ServerCaller):
         for item in items:
             if item.get("author", None) is None:
                 continue
+            # create authors as a string in the format
+            # "first_name1 last_name1 and first_name2 last_name2 and first_name3 last_name3"
+            authors_string = ""
+            for author in item["author"]:
+                if author != item["author"][-1]:
+                    authors_string += f"{author.get('given', '')} {author.get('family', '')} and "
+                else:
+                    authors_string += f"{author.get('given', '')} {author.get('family', '')}"
+
+            # if editors are present, add them to the same way as authors
+            editor_string = ""
+            if item.get("editor", None) is not None:
+                for editor in item["editor"]:
+                    if editor != item["editor"][-1]:
+                        editor_string += f"{editor.get('given', '')} {editor.get('family', '')} and "
+                    else:
+                        editor_string += f"{editor.get('given', '')} {editor.get('family', '')}"
+
             citation = {
                 "title": item["title"][0],
-                "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
-                            item.get("author", [])],
+
+                "authors": authors_string,
                 "journal": item.get("container-title", [None])[0],
                 "doi": item["DOI"],
                 "type": item["type"],
@@ -113,8 +131,7 @@ class CrossrefServerCaller(ServerCaller):
                 "volume": item.get("volume"),
                 "issue": item.get("issue"),
                 "page": item.get("page"),
-                "editors": [f"{editor.get('given', '')} {editor.get('family', '')}".strip() for editor in
-                           item.get("editor", [])],
+                "editors": editor_string if item.get("editor", None) is not None else None,
                 "isbn": item.get("ISBN")
             }
             bibtex_citation = create_bibtex(citation)
