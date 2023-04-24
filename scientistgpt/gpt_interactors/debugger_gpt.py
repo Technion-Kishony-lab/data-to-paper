@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+from scientistgpt.cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
@@ -29,7 +30,9 @@ class DebuggerGPT(CodeWritingGPT):
     * output file not created
     """
 
-    agent: str = 'DEBUGGER'
+    assistant_agent: Agent = Agent.Student
+    user_agent: Agent = Agent.Debugger
+
     max_debug_iterations: int = 5
 
     debug_iteration = 0
@@ -276,6 +279,7 @@ class DebuggerGPT(CodeWritingGPT):
         If debugging did not converge to a running code within the max_debug_iterations, return None.
         Otherwise, return the code and output.
         """
+        self.initialize_conversation_if_needed()
         self._get_tag()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             code_and_output = self._get_and_run_code()

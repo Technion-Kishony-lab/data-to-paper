@@ -8,7 +8,10 @@ The dict of conversations is used to keep track of conversations by name, as the
 """
 
 from __future__ import annotations
-from typing import Dict, List, TYPE_CHECKING
+
+import pickle
+from pathlib import Path
+from typing import Dict, List, TYPE_CHECKING, Union, Optional
 
 if TYPE_CHECKING:
     from .conversation import Conversation
@@ -27,7 +30,36 @@ a list of actions applied to conversations by order in which actions were applie
 """
 
 
-def get_name_with_new_number(conversation_name: str) -> str:
+def append_action(action: Action):
+    """
+    Append an action to the primary list of actions.
+    """
+    APPLIED_ACTIONS.append(action)
+
+
+def get_actions_for_conversation(conversation_name: str) -> List[Action]:
+    """
+    Return a list of actions that were applied to the conversation with the provided name.
+    """
+    return [action for action in APPLIED_ACTIONS if action.conversation_name == conversation_name]
+
+
+def get_conversation(conversation_name: str) -> Optional[Conversation]:
+    """
+    Return the conversation with the provided name.
+    """
+    return CONVERSATION_NAMES_TO_CONVERSATIONS.get(conversation_name, None)
+
+
+def add_conversation(conversation: Conversation) -> Conversation:
+    """
+    Add a conversation to the dict of conversations.
+    """
+    CONVERSATION_NAMES_TO_CONVERSATIONS[conversation.conversation_name] = conversation
+    return conversation
+
+
+def get_conversation_name_with_new_number(conversation_name: str) -> str:
     """
     Return a new conversation name, which is not already taken, by appending a new number to the provided name.
     """
@@ -37,3 +69,27 @@ def get_name_with_new_number(conversation_name: str) -> str:
         if new_name not in CONVERSATION_NAMES_TO_CONVERSATIONS:
             return new_name
         i += 1
+
+
+def save_actions_to_file(file_path: Union[str, Path]):
+    """
+    Save the primary list of actions to a json file.
+    """
+    with open(file_path, 'wb') as f:
+        pickle.dump(APPLIED_ACTIONS, f)
+
+
+def load_actions_from_file(file_path: Union[str, Path]) -> List[Action]:
+    """
+    Load a list of actions from a json file.
+    """
+    with open(file_path, 'rb') as f:
+        return pickle.load(f)
+
+
+def clear_actions_and_conversations():
+    """
+    Clear the primary list of actions.
+    """
+    APPLIED_ACTIONS.clear()
+    CONVERSATION_NAMES_TO_CONVERSATIONS.clear()

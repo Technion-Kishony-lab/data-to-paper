@@ -5,9 +5,9 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from scientistgpt import Conversation
+from scientistgpt import Conversation, ScientistGPT
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.conversation.replay import save_actions_to_file
+from scientistgpt.conversation.actions_and_conversations import save_actions_to_file
 from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
@@ -37,7 +37,6 @@ def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
     else:
         os.makedirs(output_directory)
 
-    from scientistgpt import ScientistGPT
     runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description)
 
     @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)

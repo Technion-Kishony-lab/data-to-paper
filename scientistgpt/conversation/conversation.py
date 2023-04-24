@@ -1,6 +1,7 @@
+from __future__ import annotations
 import openai
 import re
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, Set
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation
@@ -8,6 +9,11 @@ from .message_designation import GeneralMessageDesignation
 # Set up the OpenAI API client
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 from scientistgpt.call_servers import ServerCaller
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from scientistgpt.cast import Agent
+
 
 openai.api_key = OPENAI_API_KEY
 
@@ -59,29 +65,37 @@ class Conversation(List[Message]):
     DO NOT ALTER CONVERSATION INSTANCE DIRECTLY. USE `ConversationManager` INSTEAD.
     """
 
-    def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
+    def __init__(self, *args, conversation_name: Optional[str] = None,
+                 participants: Optional[Set[Agent]] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.conversation_name = conversation_name
+        self.participants = participants  # None - do not enforce participants
 
-    def append_message(self, role: Role, content: str, tag: str = '') -> Message:
-        message = Message(role, content, tag)
-        self.append(message)
-        return message
+    def add_participant(self, agent: Agent):
+        if self.participants is None:
+            self.participants = []
+        self.participants.add(agent)
 
-    def append_user_message(self, content: str, tag: str = ''):
-        return self.append_message(Role.USER, content, tag)
+    def remove_participant(self, agent: Agent):
+        if self.participants is not None:
+            self.participants.remove(agent)
 
-    def append_assistant_message(self, content: str, tag: str = ''):
-        return self.append_message(Role.ASSISTANT, content, tag)
+    def append(self, message: Message):
+        if self.participants is not None and message.role is not Role.COMMENTER:
+            assert message.agent in self.participants, f'Agent {message.agent} not in conversation participants.'
+        super().append(message)
 
-    def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation) -> List[Tuple[int, Message]]:
+    def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation = None
+                                        ) -> List[Tuple[int, Message]]:
         """
         Return sub-list of messages.
-        Remove commenter messages as well as all messages indicated in `hidden_messages`.
+        Remove commenter messages, ignore=True messages, as well as all messages indicated in `hidden_messages`.
         """
         hidden_messages = hidden_messages or []
         return [(i, message) for i, message in enumerate(self)
-                if i not in hidden_messages and message.role is not Role.COMMENTER]
+                if i not in hidden_messages
+                and message.role is not Role.COMMENTER
+                and not message.ignore]
 
     def get_last_response(self) -> str:
         """
