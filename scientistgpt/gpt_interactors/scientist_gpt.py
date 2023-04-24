@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -47,8 +47,7 @@ class ScientistGPT(CodeWritingGPT):
 
     The user needs to provide:
 
-    data_description: a comprehensive description of the data files available for the project.
-                      It is recommended that this description includes a few-line header of each file.
+    data_file_descriptions: a comprehensive description of the data files available for the project.
 
     goal_description: a description of the goal of the analysis.
 
@@ -72,18 +71,21 @@ class ScientistGPT(CodeWritingGPT):
 
     conversation_name: str = 'ScientistGPT'
 
-    list_of_data_files: Optional[List[str]] = None,
-    data_description: Optional[str] = None,
     goal_description: Optional[str] = None,
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
 
     def add_data_description(self):
-        user_prompt = dedent_triple_quote_str("""
-            DESCRIPTION OF OUR DATASET.
-            We have the following data files:
-            {}
-            """).format(self.data_description)
+        num_files = len(self.data_file_descriptions)
+        user_prompt = "DESCRIPTION OF OUR DATASET.\n\n"
+        if num_files == 1:
+            user_prompt += "All the data is organized in just one data file:\n\n"
+            user_prompt += self.data_file_descriptions[0].pretty_repr()
+        else:
+            user_prompt += f"We have the following {num_files} data files:\n"
+            for file_number, data_file_description in enumerate(self.data_file_descriptions):
+                user_prompt += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
+
         self.apply_append_user_message(user_prompt, tag='data_description')
 
         assistant_response = dedent_triple_quote_str("""
@@ -92,7 +94,7 @@ class ScientistGPT(CodeWritingGPT):
             """)
         self.apply_append_surrogate_message(assistant_response)
         # add the data description to the scientific products
-        self.scientific_products.data_description = self.data_description
+        self.scientific_products.data_description = user_prompt
 
     def add_goal_description(self):
         user_prompt = dedent_triple_quote_str("""
@@ -191,7 +193,7 @@ class ScientistGPT(CodeWritingGPT):
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
                 output_filename=self.get_output_filename(),
-                list_of_data_files=self.list_of_data_files,
+                data_file_descriptions=self.data_file_descriptions,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 conversation_name=self.conversation.conversation_name,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{code_revision}_attempt{attempt}"

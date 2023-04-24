@@ -1,30 +1,27 @@
 # flake8: noqa
 
-list_of_data_files = ['eng_covid_vaccine_side_effects.csv']
+from typing import List
 
-data_description = """
-(1) eng_covid_vaccine_side_effects.csv: a csv file containing information about reports of side effects followed by vaccine
-that were reported by medical staff in israel, the vaccine that was given is "Pfizer BioNTech (BNT162b2) COVID-19 vaccine".
-Each line indicates a side effect event where a patient was reported to have an effect event after vaccination. 
+from scientistgpt.data_file_description import DataFileDescription
+from scientistgpt.utils import dedent_triple_quote_str
 
-The file has 6 columns: 
-#1 PortionNum - the number of portion of the vaccine, 1, 2, 3 or 4
-#2 SideEffectStartTime - number of units of time that passed since the vaccination was administered
-#3 DetailsStartTimeType - the type of unit of time that passed since the vaccination was administered (minutes, hours, days, weeks, months, NaN)
-#4 SideEffectDurationTime - number of units of time that passed since the side effect was affecting the patient, might also be 'continuous'
-#5 DetailsDurationTimeType - the type of unit of time that passed since the side effect was affecting the patient (minutes, hours, days, weeks, continuous, NaN)
-#6 Effect - the side effect that was reported by the medical staff
 
-Here for example is the head of the file:
-```
-	PortionNum	SideEffectStartTime	DetailsStartTimeType	SideEffectDurationTime	DetailsDurationTimeType	Effect
-0	1	5	hours	12	hours	Pain at the injection site
-1	1	5	hours	12	hours	General weakness
-2	1	5	hours	12	hours	Dizziness/faintness
-3	1	5	hours	12	hours	Nausea
-4	1	5	hours	12	hours	Pain in various body areas
-```
-"""
+data_file_descriptions: List[DataFileDescription] = [
+    DataFileDescription(
+        file_path='eng_covid_vaccine_side_effects.csv',
+        description=dedent_triple_quote_str("""
+            a csv file containing information about reports of side effects followed by vaccine
+            that were reported by medical staff in israel, the vaccine that was given is "Pfizer BioNTech (BNT162b2) COVID-19 vaccine".
+            Each line indicates a side effect event where a patient was reported to have an effect event after vaccination. 
+            
+            The file has 6 columns: 
+            #1 PortionNum - the number of portion of the vaccine, 1, 2, 3 or 4
+            #2 SideEffectStartTime - number of units of time that passed since the vaccination was administered
+            #3 DetailsStartTimeType - the type of unit of time that passed since the vaccination was administered (minutes, hours, days, weeks, months, NaN)
+            #4 SideEffectDurationTime - number of units of time that passed since the side effect was affecting the patient, might also be 'continuous'
+            #5 DetailsDurationTimeType - the type of unit of time that passed since the side effect was affecting the patient (minutes, hours, days, weeks, continuous, NaN)
+            #6 Effect - the side effect that was reported by the medical staff""")),
+]
 
 goal_description = """
 The primary objective of this research is to explore the differences in side effects among doses, as indicated by the portion numbers. The research questions to address include:
