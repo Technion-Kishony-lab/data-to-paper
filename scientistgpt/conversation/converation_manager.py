@@ -3,7 +3,7 @@ from typing import List, Optional, Set, Iterable
 
 from scientistgpt.cast import Agent
 
-from .actions_and_conversations import APPLIED_ACTIONS, get_conversation
+from .actions_and_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
@@ -140,11 +140,8 @@ class ConversationManager:
             index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
 
-    def get_actions_for_conversation(self) -> List[Action]:
-        return [action for action in APPLIED_ACTIONS if action.conversation_name == self.conversation_name]
-
     def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
-        last_action = self.get_actions_for_conversation()[-1]
+        last_action = get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
         content = self.conversation.try_get_chatgpt_response(last_action.hidden_messages + [-1])

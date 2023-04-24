@@ -4,8 +4,7 @@ from typing import Optional, List, Set
 
 from scientistgpt.utils.text_utils import red_text
 
-from .actions_and_conversations import APPLIED_ACTIONS, get_conversation, \
-    add_conversation
+from .actions_and_conversations import append_action, get_conversation, add_conversation
 from .message import Message, Role
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
@@ -16,7 +15,7 @@ NoneType = type(None)
 
 
 def apply_action(action: Action, should_print: bool = True, is_color: bool = True):
-    APPLIED_ACTIONS.append(action)
+    append_action(action)
     if should_print:
         print(action.pretty_repr(is_color=is_color))
         print()
