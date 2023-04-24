@@ -35,8 +35,8 @@ FORBIDDEN_IMPORTS = [
     'subprocess',
     'shutil',
     'pickle',
-    'matplotlib',
-    ]
+    'matplotlib'
+]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filename = MODULE_NAME + ".py"
