@@ -15,7 +15,7 @@ from scientistgpt.utils import format_text_with_code_blocks, line_count
 colorama.just_fix_windows_console()
 
 
-class Role(str, Enum):
+class Role(Enum):
     SYSTEM = 'system'
     USER = 'user'
     ASSISTANT = 'assistant'
@@ -53,7 +53,8 @@ class Message:
     ignore: bool = False  # if True, this message will be skipped when calling openai
 
     def to_chatgpt_dict(self):
-        return {'role': Role.ASSISTANT if self.role.is_assistant_or_surrogate() else self.role, 'content': self.content}
+        return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()
+                else self.role.value, 'content': self.content}
 
     def pretty_repr(self, number: Optional[int] = None, conversation_name: str = '', is_color: bool = True) -> str:
         """
@@ -107,7 +108,7 @@ class Message:
                                             code_color=code_color, width=width, is_python=False)
 
     def convert_to_text(self):
-        return f'{self.role}<{self.tag}>\n{self.content}'
+        return f'{self.role.value}<{self.tag}>\n{self.content}'
 
     @classmethod
     def from_text(cls, text):
