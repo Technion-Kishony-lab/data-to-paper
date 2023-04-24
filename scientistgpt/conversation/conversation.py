@@ -63,7 +63,8 @@ class Conversation(List[Message]):
         super().__init__(*args, **kwargs)
         self.conversation_name = conversation_name
 
-    def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation) -> List[Tuple[int, Message]]:
+    def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation = None
+                                        ) -> List[Tuple[int, Message]]:
         """
         Return sub-list of messages.
         Remove commenter messages, ignore=True messages, as well as all messages indicated in `hidden_messages`.
