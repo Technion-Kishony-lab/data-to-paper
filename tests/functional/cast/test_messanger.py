@@ -1,3 +1,6 @@
+from unittest.mock import Mock
+
+from scientistgpt import Conversation
 from scientistgpt.cast import Agent
 from scientistgpt.cast.messenger import Messenger
 
@@ -11,26 +14,13 @@ def test_messanger_add_remove_contact():
     assert agent not in messanger.contacts
 
 
-def test_messanger_create_delete_conversation():
+def test_messanger_add_delete_conversation():
     messanger = Messenger()
-    conversation_name = 'test'
-    participants = [Agent.Mentor]
-    messanger.add_conversation(conversation_name, participants, None)
+    conversation = Conversation(participants=[Agent.Mentor, Agent.Student])
+    messanger.add_conversation(conversation)
     assert len(messanger.conversations) == 1
-    messanger.delete_conversation(conversation_name)
+    messanger.remove_conversation(conversation)
     assert len(messanger.conversations) == 0
-
-
-def test_messanger_add_remove_participant():
-    messanger = Messenger()
-    conversation_name = 'test'
-    participants = [Agent.Mentor]
-    messanger.add_conversation(conversation_name, participants, None)
-    agent = Agent.Student
-    messanger.add_participant_to_conversation(conversation_name, agent)
-    assert agent in messanger.conversations[0].participants
-    messanger.remove_participant_from_conversation(conversation_name, agent)
-    assert agent not in messanger.conversations[0].participants
 
 
 def test_messanger_is_singleton():

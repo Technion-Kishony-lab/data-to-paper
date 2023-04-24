@@ -1,7 +1,7 @@
 from __future__ import annotations
 import openai
 import re
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, Set
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation
@@ -65,10 +65,20 @@ class Conversation(List[Message]):
     DO NOT ALTER CONVERSATION INSTANCE DIRECTLY. USE `ConversationManager` INSTEAD.
     """
 
-    def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
+    def __init__(self, *args, conversation_name: Optional[str] = None,
+                 participants: Optional[Set[Agent]] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.conversation_name = conversation_name
-        self.participants: Optional[List[Agent]] = None  # None - do not enforce participants
+        self.participants = participants  # None - do not enforce participants
+
+    def add_participant(self, agent: Agent):
+        if self.participants is None:
+            self.participants = []
+        self.participants.add(agent)
+
+    def remove_participant(self, agent: Agent):
+        if self.participants is not None:
+            self.participants.remove(agent)
 
     def append(self, message: Message):
         if self.participants is not None and message.role is not Role.COMMENTER:

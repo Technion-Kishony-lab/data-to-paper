@@ -279,6 +279,7 @@ class DebuggerGPT(CodeWritingGPT):
         If debugging did not converge to a running code within the max_debug_iterations, return None.
         Otherwise, return the code and output.
         """
+        self.initialize_conversation_if_needed()
         self._get_tag()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             code_and_output = self._get_and_run_code()

@@ -41,8 +41,7 @@ class ConverserGPT:
         return self.conversation_manager.conversation
 
     def initialize_conversation_if_needed(self):
-        if self.conversation_manager.conversation is None:
-            self.conversation_manager.create_conversation()
+        self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0:
             self.apply_append_system_message(self.actual_system_prompt)
 

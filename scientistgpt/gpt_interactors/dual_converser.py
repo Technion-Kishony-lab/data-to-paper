@@ -33,8 +33,7 @@ class DualConverserGPT(ConverserGPT):
         return self.other_conversation_manager.conversation
 
     def initialize_other_conversation_if_needed(self):
-        if self.other_conversation_manager.conversation is None:
-            self.other_conversation_manager.create_conversation()
+        self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
             self.other_conversation_manager.append_system_message(self.actual_other_system_prompt)
 
