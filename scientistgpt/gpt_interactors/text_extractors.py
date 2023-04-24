@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from scientistgpt.conversation.actions_and_conversations import get_name_with_new_number
+from scientistgpt.cast import Agent
 
 from .converser_gpt import ConverserGPT
 
@@ -26,12 +26,14 @@ class TextExtractorGPT(ConverserGPT):
 
     max_number_of_attempts: int = 3
 
-    def extract_text(self):
+    def extract_text(self, rewind_conversation: bool = True):
         """
         Extract text from the response.
         """
 
         self.initialize_conversation_if_needed()
+        if rewind_conversation:
+            self.conversation_manager.reset_back_to_tag('system_prompt')
         self.apply_append_user_message(
             f'Below is a triple-quoted text, from which you need to extract {self.description_of_text_to_extract}.\n'
             f'Please provide the extracted text within a triple-quoted string.\n\n'
@@ -63,14 +65,15 @@ class TextExtractorGPT(ConverserGPT):
 
 
 def extract_analysis_plan_from_response(response: str, max_number_of_attempts: int = 3,
-                                        base_conversation_name: str = 'extract_analysis_plan') -> str:
+                                        conversation_name: str = 'extract_analysis_plan') -> str:
     """
     Extract the analysis plan from a response.
     """
     return TextExtractorGPT(
+        assistant_agent=Agent.Secretary,
+        user_agent=Agent.Student,
         text=response,
         description_of_text_to_extract='analysis plan',
         max_number_of_attempts=max_number_of_attempts,
-        system_prompt='You are a helpful assistant.',
-        conversation_name=get_name_with_new_number(base_conversation_name),
-    ).extract_text()
+        conversation_name=conversation_name,
+    ).extract_text(rewind_conversation=True)

@@ -6,6 +6,7 @@ from enum import Enum
 from typing import NamedTuple, Optional
 
 from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
+from scientistgpt.cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.utils import format_text_with_code_blocks, line_count
@@ -48,6 +49,8 @@ class Message:
     role: Role
     content: str
     tag: str = ''
+    agent: Optional[Agent] = None
+    ignore: bool = False  # if True, this message will be skipped when calling openai
 
     def to_chatgpt_dict(self):
         return {'role': Role.ASSISTANT if self.role.is_assistant_or_surrogate() else self.role, 'content': self.content}
@@ -64,8 +67,9 @@ class Message:
         * Indenting text
         * Highlighting code blocks
         """
-        role, content, tag = self.role, self.content, self.tag
-        tag_text = f'<{tag}> ' if tag else ''
+        role, content, tag, agent = self.role, self.content, self.tag, self.agent
+        tag_text = f' <{tag}> ' if tag else ''
+        agent_text = f' {{{agent}}}' if agent else ''
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
         sep = style.seperator
@@ -74,14 +78,17 @@ class Message:
         else:
             text_color = code_color = reset_color = ''
 
-        role_conversation_tag = f'{role.name} -> {conversation_name} {tag_text}'
+        if role == Role.SYSTEM:
+            role_agent_conversation_tag = f'{role.name} casting {agent_text} for {conversation_name}'
+        else:
+            role_agent_conversation_tag = f'{role.name}{agent_text} -> {conversation_name}{tag_text}'
 
         if role == Role.COMMENTER:
-            return text_color + num_text + role_conversation_tag + ': ' + content + reset_color
+            return text_color + num_text + role_agent_conversation_tag + ': ' + content + reset_color
 
         # header:
-        s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role_conversation_tag \
-            + sep * (TEXT_WIDTH - len(role_conversation_tag) - 9 - 1) + '\n'
+        s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role_agent_conversation_tag \
+            + sep * (TEXT_WIDTH - len(role_agent_conversation_tag) - 9 - 1) + '\n'
 
         # content:
         s += self.pretty_content(text_color, code_color, width=TEXT_WIDTH)
@@ -169,15 +176,16 @@ class CodeMessage(Message):
         return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
 
 
-def create_message(role: Role, content: str, tag: str = '',
+def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
                    is_code: bool = False, previous_code: str = None) -> Message:
     if is_code:
-        return CodeMessage(role=role, content=content, tag=tag, previous_code=previous_code)
+        return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore, previous_code=previous_code)
     else:
-        return Message(role=role, content=content, tag=tag)
+        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore)
 
 
 def create_message_from_other_message(other_message: Message, content: str) -> Message:
-    return create_message(role=other_message.role, content=content, tag=other_message.tag,
+    return create_message(role=other_message.role, content=content, tag=other_message.tag, agent=other_message.agent,
+                          ignore=other_message.ignore,
                           is_code=isinstance(other_message, CodeMessage),
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None)

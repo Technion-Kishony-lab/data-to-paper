@@ -1,25 +1,29 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Set
 
 from scientistgpt.utils.text_utils import red_text
 
-from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
+from .actions_and_conversations import append_action, get_conversation, add_conversation
 from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-
+from scientistgpt.cast import Agent
 
 NoneType = type(None)
 
 
-def apply_action(action, should_print: bool = True, is_color: bool = True):
-    APPLIED_ACTIONS.append(action)
+def apply_action(action: Action, should_print: bool = True, is_color: bool = True):
+    from scientistgpt.cast import update_cast_on_action
+    append_action(action)
     if should_print:
-        print(action.pretty_repr())
+        print(action.pretty_repr(is_color=is_color))
         print()
     action.apply()
+
+    # update the messenger system:
+    update_cast_on_action(action)
 
 
 @dataclass(frozen=True)
@@ -31,23 +35,23 @@ class Action:
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
 
-    agent: Optional[str] = None
-    "The agent/algorithm performing the action."
+    driver: Optional[str] = None
+    "The algorithm performing the action."
 
     comment: Optional[str] = None
     "A comment explaining why action is performed."
 
     @property
     def conversation(self) -> Conversation:
-        return CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name]
+        return get_conversation(self.conversation_name)
 
     def _pretty_attrs(self) -> str:
         return ''
 
     def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
         s = ''
-        if self.agent:
-            s += f'{self.agent}: '
+        if self.driver:
+            s += f'{self.driver}: '
         s += f'{type(self).__name__}'
         if self._pretty_attrs():
             s += f'({self._pretty_attrs()})'
@@ -64,14 +68,33 @@ class Action:
 
 
 @dataclass(frozen=True)
-class CreateConversation(Action):
+class ChangeConversationParticipants(Action):
+    """
+    Create a new conversation.
+    """
+    participants: Set[Agent] = None
+
+    def _pretty_attrs(self) -> str:
+        return f'participants={self.participants}'
+
+
+class CreateConversation(ChangeConversationParticipants):
     """
     Create a new conversation.
     """
 
     def apply(self):
-        CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
-            Conversation(conversation_name=self.conversation_name)
+        add_conversation(Conversation(conversation_name=self.conversation_name, participants=self.participants))
+
+
+class AddParticipantsToConversation(ChangeConversationParticipants):
+    """
+    Add participants to a conversation.
+    """
+
+    def apply(self):
+        for participant in self.participants:
+            self.conversation.add_participant(participant)
 
 
 @dataclass(frozen=True)
@@ -263,7 +286,7 @@ class CopyMessagesBetweenConversations(Action):
 
     @property
     def source_conversation(self) -> Conversation:
-        return CONVERSATION_NAMES_TO_CONVERSATIONS[self.source_conversation_name]
+        return get_conversation(self.source_conversation_name)
 
     def _get_indices_to_copy(self) -> List[int]:
         """

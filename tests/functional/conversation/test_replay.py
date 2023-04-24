@@ -1,9 +1,9 @@
 from scientistgpt import Role
 from scientistgpt.conversation.actions import AppendMessage, Message, AppendChatgptResponse
-from scientistgpt.conversation.actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
+from scientistgpt.conversation.actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS, \
+    save_actions_to_file, load_actions_from_file, clear_actions_and_conversations
 from scientistgpt.conversation.converation_manager import ConversationManager
-from scientistgpt.conversation.replay import save_actions_to_file, load_actions_from_file, \
-    clear_actions_and_conversations, replay_actions
+from scientistgpt.conversation.replay import replay_actions
 
 
 def test_save_load_actions(tmpdir):

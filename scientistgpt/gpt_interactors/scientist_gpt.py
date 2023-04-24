@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.exceptions import ScientistGPTException
+from scientistgpt.cast import Agent
 
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
@@ -71,6 +72,9 @@ class ScientistGPT(CodeWritingGPT):
 
     conversation_name: str = 'ScientistGPT'
 
+    list_of_data_files: Optional[List[str]] = None,
+    assistant_agent: Agent = Agent.Student
+    user_agent: Agent = Agent.Mentor
     goal_description: Optional[str] = None,
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
@@ -274,7 +278,7 @@ class ScientistGPT(CodeWritingGPT):
                     to improve the analysis.
                     The output of your code should now be saved to `{}`.
                 """).format(self.get_output_filename())
-                self.conversation.append_user_message(user_prompt)
+                self.apply_append_user_message(user_prompt)
                 return 2
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")

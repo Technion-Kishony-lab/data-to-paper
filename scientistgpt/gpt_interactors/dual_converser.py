@@ -21,7 +21,7 @@ class DualConverserGPT(ConverserGPT):
         super().__post_init__()
         self.other_conversation_manager = ConversationManager(
             conversation_name=self.other_conversation_name,
-            agent=self.agent
+            driver=self.driver if self.driver is not None else type(self).__name__,
         )
 
     @property
@@ -33,8 +33,7 @@ class DualConverserGPT(ConverserGPT):
         return self.other_conversation_manager.conversation
 
     def initialize_other_conversation_if_needed(self):
-        if self.other_conversation_manager.conversation is None:
-            self.other_conversation_manager.create_conversation()
+        self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
             self.other_conversation_manager.append_system_message(self.actual_other_system_prompt)
 
@@ -74,6 +73,9 @@ class DialogDualConverserGPT(DualConverserGPT):
 
     def __post_init__(self):
         super().__post_init__()
+        # reverse roles:
+        self.other_conversation_manager.assistant_agent = self.user_agent
+        self.other_conversation_manager.user_agent = self.assistant_agent
         self.round_num = 0
 
     def get_response_from_other_in_response_to_response_from_self(self, self_response: str) -> str:
