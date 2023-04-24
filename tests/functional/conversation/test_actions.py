@@ -4,7 +4,7 @@ from scientistgpt import Message, Role
 from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
     NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, \
     CopyMessagesBetweenConversations, CreateConversation
-from scientistgpt.conversation.actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS
+from scientistgpt.conversation.actions_and_conversations import get_conversation
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
@@ -22,7 +22,7 @@ def assistant_message():
 def test_create_conversation():
     action = CreateConversation(comment='this is a test', conversation_name='new_conversation')
     action.apply()
-    assert CONVERSATION_NAMES_TO_CONVERSATIONS.keys() == {'new_conversation'}
+    assert get_conversation('new_conversation') is not None
 
 
 def test_append_message(conversation, user_message):

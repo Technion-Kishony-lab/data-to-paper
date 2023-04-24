@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pickle
 from pathlib import Path
-from typing import Dict, List, TYPE_CHECKING, Union
+from typing import Dict, List, TYPE_CHECKING, Union, Optional
 
 if TYPE_CHECKING:
     from .conversation import Conversation
@@ -28,6 +28,21 @@ APPLIED_ACTIONS: List[Action] = []
 """
 a list of actions applied to conversations by order in which actions were applied.
 """
+
+
+def get_conversation(conversation_name: str) -> Optional[Conversation]:
+    """
+    Return the conversation with the provided name.
+    """
+    return CONVERSATION_NAMES_TO_CONVERSATIONS.get(conversation_name, None)
+
+
+def add_conversation(conversation: Conversation) -> Conversation:
+    """
+    Add a conversation to the dict of conversations.
+    """
+    CONVERSATION_NAMES_TO_CONVERSATIONS[conversation.conversation_name] = conversation
+    return conversation
 
 
 def get_conversation_name_with_new_number(conversation_name: str) -> str:
