@@ -30,7 +30,7 @@ FORBIDDEN_MODULES_AND_FUNCTIONS = [
 ]
 
 FORBIDDEN_IMPORTS = [
-    'os',
+#   'os',
     'sys',
     'subprocess',
     'shutil',
