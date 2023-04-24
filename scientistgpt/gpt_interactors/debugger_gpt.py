@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
@@ -76,9 +76,9 @@ class DebuggerGPT(CodeWritingGPT):
             {}
             ```
             Please note that we only have the file{} noted in the data description. Namely:
-            
+
             {}
-            
+
             {} located in the same directory as the code. 
             """).format(error_message,
                         's' if len(self.data_files) > 1 else '',
