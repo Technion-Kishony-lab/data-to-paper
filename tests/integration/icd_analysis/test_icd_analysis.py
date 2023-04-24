@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from .queries import data_description, goal_description
+from icd_analysis.queries_mimic import data_file_descriptions, goal_description
 
 from scientistgpt import ScientistGPT
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
@@ -35,7 +35,7 @@ def test_icd_analysis():
     # we run in the data folder, so that chatgpt finds our files:
     os.chdir(absolute_data_path)
 
-    runner = ScientistGPT(data_description=data_description, goal_description=goal_description)
+    runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description)
 
     runner.run_all()
 
