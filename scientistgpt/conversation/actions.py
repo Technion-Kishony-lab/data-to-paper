@@ -14,7 +14,7 @@ from scientistgpt.cast import set_system_prompt, Agent
 NoneType = type(None)
 
 
-def apply_action(action, should_print: bool = True, is_color: bool = True):
+def apply_action(action: Action, should_print: bool = True, is_color: bool = True):
     APPLIED_ACTIONS.append(action)
     if should_print:
         print(action.pretty_repr(is_color=is_color))

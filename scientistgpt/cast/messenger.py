@@ -51,4 +51,14 @@ class Messenger(metaclass=Singleton):
         pass
 
 
-MESSENGER = Messenger()
+ALL_MESSENGERS: List[Messenger] = []
+
+
+def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None) -> Messenger:
+    messenger = Messenger(first_person=first_person)
+    messenger.add_contacts(contacts)
+    ALL_MESSENGERS.append(messenger)
+    return messenger
+
+
+STUDENT_MESSENGER = create_messenger(first_person=Agent.Student)
