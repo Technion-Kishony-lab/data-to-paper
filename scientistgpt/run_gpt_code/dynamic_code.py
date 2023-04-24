@@ -10,7 +10,7 @@ import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 
-from .run_context import prevent_calling, prevent_file_open
+from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 
@@ -28,6 +28,15 @@ FORBIDDEN_MODULES_AND_FUNCTIONS = [
     (builtins, 'quit'),
     (plt, 'savefig'),
 ]
+
+FORBIDDEN_IMPORTS = [
+    'os',
+    'sys',
+    'subprocess',
+    'shutil',
+    'pickle',
+    'matplotlib',
+    ]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filename = MODULE_NAME + ".py"
@@ -78,6 +87,7 @@ def run_code_using_module_reload(
         try:
             with timeout_context(timeout_sec), \
                     prevent_calling(forbidden_modules_and_functions), \
+                    PreventImport(FORBIDDEN_IMPORTS), \
                     prevent_file_open(allowed_read_files, allowed_write_files):
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
