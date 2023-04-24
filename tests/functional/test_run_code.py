@@ -81,17 +81,26 @@ def test_run_code_forbidden_function_exit(forbidden_call):
         assert False, 'Expected to fail'
 
 
-def test_run_code_forbidden_import():
+@pytest.mark.parametrize("forbidden_import,module_name", [
+    ('import os', 'os'),
+    ('from os import path', 'os'),
+    ('import os.path', 'os.path'),
+    ('import sys', 'sys'),
+    ('import matplotlib', 'matplotlib'),
+    ('import matplotlib as mpl', 'matplotlib'),
+    ('import matplotlib.pyplot as plt', 'matplotlib.pyplot'),
+])
+def test_run_code_forbidden_import(forbidden_import, module_name):
     code = dedent_triple_quote_str("""
         import numpy
-        import os
-        """)
+        {}
+        """).format(forbidden_import)
     try:
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeImportForbiddenModule)
         assert e.code == code
-        assert e.exception.module == 'os'
+        assert e.exception.module == module_name
         assert e.tb[-1].lineno == 2
     else:
         assert False, 'Expected to fail'
