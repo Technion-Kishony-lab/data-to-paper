@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -78,10 +78,13 @@ class ScientistGPT(CodeWritingGPT):
     def add_data_description(self):
         num_files = len(self.data_file_descriptions)
         user_prompt = "DESCRIPTION OF OUR DATASET.\n\n"
-        user_prompt += f"We have the following {num_files} data files:\n\n" if num_files > 1 \
-            else "We have just one data file:\n\n"
-        for data_file_description in self.data_file_descriptions:
-            user_prompt += data_file_description.pretty_repr() + '\n\n'
+        if num_files == 1:
+            user_prompt += "All the data is organized in just one data file:\n\n"
+            user_prompt += self.data_file_descriptions[0].pretty_repr()
+        else:
+            user_prompt += f"We have the following {num_files} data files:\n"
+            for file_number, data_file_description in enumerate(self.data_file_descriptions):
+                user_prompt += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
 
         self.apply_append_user_message(user_prompt, tag='data_description')
 
