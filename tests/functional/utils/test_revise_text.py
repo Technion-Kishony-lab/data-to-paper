@@ -7,6 +7,4 @@ def test_translate_second_person_to_first_person():
         " follow the directions given to you."
     assert translate_second_person_to_first_person(text) == \
            "I am a helpful scientist. My job is to write a paper. I will only write the paper if " \
-              " follow the directions given to me."
-
-
+           " follow the directions given to me."
