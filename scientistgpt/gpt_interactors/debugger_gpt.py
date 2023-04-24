@@ -8,7 +8,7 @@ from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
-    CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile
+    CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
 
@@ -157,10 +157,18 @@ class DebuggerGPT(CodeWritingGPT):
             return
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it used the function `{}` which is not allowed.
+            Your code uses the function `{}`, which is not allowed.
             Please rewrite the complete code again without using this function. 
             """).format(func),
             comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
+
+    def _respond_to_forbidden_import(self, module: str):
+        self.apply_append_user_message(
+            content=dedent_triple_quote_str("""
+            Your code import the module `{}`, which is not allowed.
+            Please rewrite the complete code again without using this module. 
+            """).format(module),
+            comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
 
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
@@ -224,6 +232,8 @@ class DebuggerGPT(CodeWritingGPT):
                 self._respond_to_file_not_found(str(e.exception))
             except CodeUsesForbiddenFunctions as f:
                 self._respond_to_forbidden_functions(f.func)
+            except CodeImportForbiddenModule as f:
+                self._respond_to_forbidden_import(f.module)
             except CodeWriteForbiddenFile as f:
                 self._respond_to_forbidden_write(f.file)
             except CodeReadForbiddenFile as f:
