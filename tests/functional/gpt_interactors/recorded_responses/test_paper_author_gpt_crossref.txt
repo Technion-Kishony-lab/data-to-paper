@@ -1,0 +1,277 @@
+[
+    [
+        {
+            "authors": "Xue-Ren Wang and Jiu-Lin Zhou",
+            "bibtex": "@inproceedings{X1988The,\ntitle = {The Theoretical Models of the Relationship Between N and P for the Thin Films},\nauthor = {Xue-Ren Wang and Jiu-Lin Zhou},\njournal = {Optical Interference Coatings},\nyear = {1988},\nvolume = {None},\nnumber = {None}}\n",
+            "doi": "10.1364/oic.1988.wc4",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "Optical Interference Coatings",
+            "page": null,
+            "publisher": "Optica Publishing Group",
+            "title": "The Theoretical Models of the Relationship Between N and P for the Thin Films",
+            "type": "proceedings-article",
+            "volume": null,
+            "year": 1988
+        },
+        {
+            "authors": "Hyunkang Hur and James L. Perry",
+            "bibtex": "@article{H2014The,\ntitle = {The Relationship Between Job Security and Work Attitudes: A Meta-Analysis Examining Competing Theoretical Models},\nauthor = {Hyunkang Hur and James L. Perry},\njournal = {SSRN Electronic Journal},\nyear = {2014},\nvolume = {None},\nnumber = {None}}\n",
+            "doi": "10.2139/ssrn.2452082",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "SSRN Electronic Journal",
+            "page": null,
+            "publisher": "Elsevier BV",
+            "title": "The Relationship Between Job Security and Work Attitudes: A Meta-Analysis Examining Competing Theoretical Models",
+            "type": "journal-article",
+            "volume": null,
+            "year": 2014
+        },
+        {
+            "authors": "Bjorn Hofmann",
+            "bibtex": "@article{B2005Simplified,\ntitle = {Simplified Models of the Relationship Between Health and Disease},\nauthor = {Bj\u00f8rn Hofmann},\njournal = {Theoretical Medicine and Bioethics},\nyear = {2005},\nvolume = {26},\nnumber = {5}}\n",
+            "doi": "10.1007/s11017-005-7914-8",
+            "editors": null,
+            "isbn": null,
+            "issue": "5",
+            "journal": "Theoretical Medicine and Bioethics",
+            "page": "355-377",
+            "publisher": "Springer Science and Business Media LLC",
+            "title": "Simplified Models of the Relationship Between Health and Disease",
+            "type": "journal-article",
+            "volume": "26",
+            "year": 2005
+        }
+    ],
+    [
+        {
+            "authors": "Mehwish Naseer and Kashif Rashid",
+            "bibtex": "@inbook{M2019The,\ntitle = {The Relationship between Environmental Reporting and Corporate Governance: Empirical Evidence from Pakistan},\nauthor = {Mehwish Naseer and Kashif Rashid},\nyear = {2019},\npublisher = {IntechOpen},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.5772/intechopen.75228",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "Globalization",
+            "page": null,
+            "publisher": "IntechOpen",
+            "title": "The Relationship between Environmental Reporting and Corporate Governance: Empirical Evidence from Pakistan",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2019
+        },
+        {
+            "authors": "Tanuja Sheorey",
+            "bibtex": "@article{T2014Empirical,\ntitle = {Empirical Evidence of Relationship between Virtual Lab Development and Students Learning through Field Trials on Vlab on Mechatronics},\nauthor = {Tanuja Sheorey},\njournal = {International Journal of Information and Education Technology},\nyear = {2014},\nvolume = {None},\nnumber = {None}}\n",
+            "doi": "10.7763/ijiet.2014.v4.377",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "International Journal of Information and Education Technology",
+            "page": "97-102",
+            "publisher": "EJournal Publishing",
+            "title": "Empirical Evidence of Relationship between Virtual Lab Development and Students Learning through Field Trials on Vlab on Mechatronics",
+            "type": "journal-article",
+            "volume": null,
+            "year": 2014
+        },
+        {
+            "authors": "Atef Raoush",
+            "bibtex": "@article{A2022Relationship,\ntitle = {Relationship between adopting servant leadership style and employee commitment: Empirical evidence from Jordanian governmental hospitals},\nauthor = {Atef Raoush},\njournal = {Problems and Perspectives in Management},\nyear = {2022},\nvolume = {20},\nnumber = {1}}\n",
+            "doi": "10.21511/ppm.20(1).2022.25",
+            "editors": null,
+            "isbn": null,
+            "issue": "1",
+            "journal": "Problems and Perspectives in Management",
+            "page": "299-309",
+            "publisher": "LLC CPC Business Perspectives",
+            "title": "Relationship between adopting servant leadership style and employee commitment: Empirical evidence from Jordanian governmental hospitals",
+            "type": "journal-article",
+            "volume": "20",
+            "year": 2022
+        }
+    ],
+    [
+        {
+            "authors": "Haibo Zhou and Jinhong You",
+            "bibtex": "@inbook{H2007SEMIPARAMETRIC,\ntitle = {SEMIPARAMETRIC METHODS FOR DATA FROM AN OUTCOME-DEPENDENT SAMPLING SCHEME},\nauthor = {Haibo Zhou and Jinhong You},\nyear = {2007},\npublisher = {WORLD SCIENTIFIC},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.1142/9789812772121_0005",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "Quantitative Medical Data Analysis Using Mathematical Tools and Statistical Techniques",
+            "page": "93-110",
+            "publisher": "WORLD SCIENTIFIC",
+            "title": "SEMIPARAMETRIC METHODS FOR DATA FROM AN OUTCOME-DEPENDENT SAMPLING SCHEME",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2007
+        },
+        {
+            "authors": "Marvin Titus",
+            "bibtex": "@inbook{M2021Advanced,\ntitle = {Advanced Statistical Techniques: I},\nauthor = {Marvin Titus},\nyear = {2021},\npublisher = {Springer International Publishing},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.1007/978-3-030-60831-6_8",
+            "editors": null,
+            "isbn": [
+                "9783030608309",
+                "9783030608316"
+            ],
+            "issue": null,
+            "journal": "Higher Education Policy Analysis Using Quantitative Techniques",
+            "page": "145-180",
+            "publisher": "Springer International Publishing",
+            "title": "Advanced Statistical Techniques: I",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2021
+        },
+        {
+            "authors": "Marvin Titus",
+            "bibtex": "@inbook{M2021Introduction,\ntitle = {Introduction to Intermediate Statistical Techniques},\nauthor = {Marvin Titus},\nyear = {2021},\npublisher = {Springer International Publishing},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.1007/978-3-030-60831-6_7",
+            "editors": null,
+            "isbn": [
+                "9783030608309",
+                "9783030608316"
+            ],
+            "issue": null,
+            "journal": "Higher Education Policy Analysis Using Quantitative Techniques",
+            "page": "103-144",
+            "publisher": "Springer International Publishing",
+            "title": "Introduction to Intermediate Statistical Techniques",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2021
+        }
+    ],
+    [
+        {
+            "authors": "Masaki Eto",
+            "bibtex": "@article{M2016Rough,\ntitle = {Rough co-citation as a measure of relationship to expand co-citation networks for scientific paper searches},\nauthor = {Masaki Eto},\njournal = {Proceedings of the Association for Information Science and Technology},\nyear = {2016},\nvolume = {53},\nnumber = {1}}\n",
+            "doi": "10.1002/pra2.2016.14505301131",
+            "editors": null,
+            "isbn": null,
+            "issue": "1",
+            "journal": "Proceedings of the Association for Information Science and Technology",
+            "page": "1-4",
+            "publisher": "Wiley",
+            "title": "Rough co-citation as a measure of relationship to expand co-citation networks for scientific paper searches",
+            "type": "journal-article",
+            "volume": "53",
+            "year": 2016
+        },
+        {
+            "authors": "Wolfgang Glanzel and Koenraad Debackere",
+            "bibtex": "@article{W2021Various,\ntitle = {Various aspects of interdisciplinarity in research and how to quantify and measure those},\nauthor = {Wolfgang Gl\u00e4nzel and Koenraad Debackere},\njournal = {Scientometrics},\nyear = {2021},\nvolume = {127},\nnumber = {9}}\n",
+            "doi": "10.1007/s11192-021-04133-4",
+            "editors": null,
+            "isbn": null,
+            "issue": "9",
+            "journal": "Scientometrics",
+            "page": "5551-5569",
+            "publisher": "Springer Science and Business Media LLC",
+            "title": "Various aspects of interdisciplinarity in research and how to quantify and measure those",
+            "type": "journal-article",
+            "volume": "127",
+            "year": 2021
+        },
+        {
+            "authors": "Erin Ruel",
+            "bibtex": "@inbook{E2019How,\ntitle = {How Do We Examine Central Tendency in Continuous Variables?},\nauthor = {Erin Ruel},\nyear = {2019},\npublisher = {SAGE Publications, Inc.},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.4135/9781506348803.n87",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "100 Questions (and Answers) About Survey Research",
+            "page": "103-104",
+            "publisher": "SAGE Publications, Inc.",
+            "title": "How Do We Examine Central Tendency in Continuous Variables?",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2019
+        }
+    ],
+    [
+        {
+            "authors": "Bernd Brandl",
+            "bibtex": "@inbook{BRobustness,\ntitle = {Robustness of Econometric Variable Selection Methods},\nauthor = {Bernd Brandl},\nyear = {None},\npublisher = {Springer Berlin Heidelberg},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.1007/978-3-540-69995-8_40",
+            "editors": null,
+            "isbn": [
+                "9783540699941"
+            ],
+            "issue": null,
+            "journal": "Operations Research Proceedings",
+            "page": "239-244",
+            "publisher": "Springer Berlin Heidelberg",
+            "title": "Robustness of Econometric Variable Selection Methods",
+            "type": "book-chapter",
+            "volume": null,
+            "year": null
+        },
+        {
+            "authors": "T. Ghafourian and M.T.D. Cronin",
+            "bibtex": "@article{T2005The,\ntitle = {The Impact of variable selection on the modelling of oestrogenicity},\nauthor = {T. Ghafourian and M.T.D. Cronin},\njournal = {SAR and QSAR in Environmental Research},\nyear = {2005},\nvolume = {16},\nnumber = {1-2}}\n",
+            "doi": "10.1080/10629360412331319808",
+            "editors": null,
+            "isbn": null,
+            "issue": "1-2",
+            "journal": "SAR and QSAR in Environmental Research",
+            "page": "171-190",
+            "publisher": "Informa UK Limited",
+            "title": "The Impact of variable selection on the modelling of oestrogenicity",
+            "type": "journal-article",
+            "volume": "16",
+            "year": 2005
+        }
+    ],
+    [
+        {
+            "authors": "Bruce J. Chalmer",
+            "bibtex": "@inbook{B2020Describing,\ntitle = {Describing Relationships Between Two Variables},\nauthor = {Bruce J. Chalmer},\nyear = {2020},\npublisher = {CRC Press},\nvolume = {None},\nnumber = {None},\neditor = {None}}\n",
+            "doi": "10.1201/9780367813161-11",
+            "editors": null,
+            "isbn": null,
+            "issue": null,
+            "journal": "Understanding Statistics",
+            "page": "177-204",
+            "publisher": "CRC Press",
+            "title": "Describing Relationships Between Two Variables",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2020
+        },
+        {
+            "authors": "SHAWN W. LAFFAN",
+            "bibtex": "@article{S2009The,\ntitle = {The Citation Relationships between Journals of Geography and Cognate Disciplines},\nauthor = {SHAWN W. LAFFAN},\njournal = {Geographical Research},\nyear = {2009},\nvolume = {48},\nnumber = {2}}\n",
+            "doi": "10.1111/j.1745-5871.2009.00617.x",
+            "editors": null,
+            "isbn": null,
+            "issue": "2",
+            "journal": "Geographical Research",
+            "page": "166-180",
+            "publisher": "Wiley",
+            "title": "The Citation Relationships between Journals of Geography and Cognate Disciplines",
+            "type": "journal-article",
+            "volume": "48",
+            "year": 2009
+        },
+        {
+            "authors": "Katja Boersma and Shane MacDonald and Steven J. Linton",
+            "bibtex": "@article{K2012Longitudinal,\ntitle = {Longitudinal Relationships Between Pain and Stress Problems in the General Population: Predicting Trajectories From Cognitive Behavioral Variables},\nauthor = {Katja Boersma and Shane MacDonald and Steven J. Linton},\njournal = {Journal of Applied Biobehavioral Research},\nyear = {2012},\nvolume = {17},\nnumber = {4}}\n",
+            "doi": "10.1111/jabr.12000",
+            "editors": null,
+            "isbn": null,
+            "issue": "4",
+            "journal": "Journal of Applied Biobehavioral Research",
+            "page": "229-248",
+            "publisher": "Wiley",
+            "title": "Longitudinal Relationships Between Pain and Stress Problems in the General Population: Predicting Trajectories From Cognitive Behavioral Variables",
+            "type": "journal-article",
+            "volume": "17",
+            "year": 2012
+        }
+    ]
+]

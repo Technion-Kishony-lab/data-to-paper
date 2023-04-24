@@ -12,7 +12,7 @@ def test_extract_text_between_tags():
     assert extract_text_between_tags(text_1, '[', ']', leave_tags=True) == '[1, 2, 3, [4], 5]'
     assert extract_text_between_tags(text_2, '\\title{', '}') == '\\textbf{this is some title in bold}'
     assert extract_text_between_tags(text_2, '\\title{', '}', leave_tags=True) == '\\title{\\textbf{this is some title in bold}}'
-    assert extract_text_between_tags(text_2, '\\start{', '}') == 'abstract'
+    assert extract_text_between_tags(text_2, '\\start{abstract}', '\\end{abstract}') == ' this is also the abstract '
 
 
 def test_extract_text_between_tags_open_ended():

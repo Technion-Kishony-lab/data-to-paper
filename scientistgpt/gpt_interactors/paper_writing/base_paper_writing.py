@@ -46,6 +46,10 @@ class PaperWritingGPT(ConverserGPT, ABC):
     """
     The name of the file that holds the template for the paper.
     """
+    paper_template_with_citations_filename: str = 'standard_paper_with_citations.tex'
+    """
+    The name of the file that holds the template for the paper with citations.
+    """
 
     paper_sections: Dict[str, str] = field(default_factory=dict)
 
@@ -74,11 +78,23 @@ class PaperWritingGPT(ConverserGPT, ABC):
         return os.path.join(os.path.dirname(__file__), f'templates/{self.paper_template_filename}')
 
     @property
+    def paper_template_with_citations_path(self) -> str:
+        return os.path.join(os.path.dirname(__file__), f'templates/{self.paper_template_with_citations_filename}')
+
+    @property
     def paper_template(self) -> str:
         """
         Load the specified template file.
         """
         with open(self.paper_template_path, 'r') as f:
+            return f.read()
+
+    @property
+    def paper_template_with_citations(self) -> str:
+        """
+        Load the specified template file.
+        """
+        with open(self.paper_template_with_citations_path, 'r') as f:
             return f.read()
 
     @property
@@ -104,21 +120,29 @@ class PaperWritingGPT(ConverserGPT, ABC):
         """
         pass
 
-    def _assemble_latex_paper_from_sections(self):
+    def _assemble_latex_paper_from_sections(self, should_compile_with_bib: bool = True):
         """
         Assemble the paper from the different sections.
         """
         # We replace each section with the corresponding content (sections are marked with @@@section_name@@@)
-        paper = self.paper_template
+        if should_compile_with_bib:
+            paper = self.paper_template_with_citations
+        else:
+            paper = self.paper_template
         for section_name, section_content in self.paper_sections.items():
             paper = paper.replace(f'@@@{section_name}@@@', section_content)
         self.latex_paper = paper
 
-    def _save_latex_and_compile_to_pdf(self, should_compile_to_pdf: bool = True):
+    def _save_latex_and_compile_to_pdf(self, should_compile_to_pdf: bool = True, should_compile_with_bib: bool = True):
         """
         Save the latex paper to .tex file and compile to pdf file.
         """
-        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, self.bib_filename, should_compile_to_pdf)
+        # running from data folder, the output folder is one level up from the os.cwd() and inside 'output'
+        output_folder = os.path.join(os.getcwd(), '..', 'output')
+        if not os.path.exists(output_folder):
+            raise Exception(f'Output folder {output_folder} does not exist.')
+        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, output_folder,
+                                      should_compile_with_bib, should_compile_to_pdf)
 
     def _save_references_to_bib_file(self, references: set):
         """
@@ -127,7 +151,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
         with open(self.bib_filename, 'w') as f:
             f.write('\n\n'.join(references))
 
-    def write_paper(self, should_compile_to_pdf: bool = True):
+    def write_paper(self, should_compile_to_pdf: bool = True, should_compile_with_bib: bool = True):
         self.initialize_conversation_if_needed()
         self._pre_populate_conversation()
         try:
@@ -135,8 +159,8 @@ class PaperWritingGPT(ConverserGPT, ABC):
         except FailedCreatingPaperSection as e:
             raise FailedCreatingPaper(e)
         self._add_citations_to_paper()
-        self._assemble_latex_paper_from_sections()
-        self._save_latex_and_compile_to_pdf(should_compile_to_pdf)
+        self._assemble_latex_paper_from_sections(should_compile_with_bib)
+        self._save_latex_and_compile_to_pdf(should_compile_to_pdf, should_compile_with_bib)
 
     def _add_citations_to_paper(self):
         """
