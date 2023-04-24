@@ -84,6 +84,6 @@ class PreventImport:
         builtins.__import__ = self.original_import
 
     def custom_import(self, name, *args, **kwargs):
-        if name in self.modules:
+        if any(name.startswith(module + '.') for module in self.modules) or name in self.modules:
             raise CodeImportForbiddenModule(module=name)
         return self.original_import(name, *args, **kwargs)
