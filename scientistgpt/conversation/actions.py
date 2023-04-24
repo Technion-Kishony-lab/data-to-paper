@@ -4,7 +4,8 @@ from typing import Optional, List, Set
 
 from scientistgpt.utils.text_utils import red_text
 
-from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
+from .actions_and_conversations import APPLIED_ACTIONS, get_conversation, \
+    add_conversation
 from .message import Message, Role
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
@@ -43,7 +44,7 @@ class Action:
 
     @property
     def conversation(self) -> Conversation:
-        return CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name]
+        return get_conversation(self.conversation_name)
 
     def _pretty_attrs(self) -> str:
         return ''
@@ -84,8 +85,7 @@ class CreateConversation(ChangeConversationParticipants):
     """
 
     def apply(self):
-        CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
-            Conversation(conversation_name=self.conversation_name, participants=self.participants)
+        add_conversation(Conversation(conversation_name=self.conversation_name, participants=self.participants))
 
 
 class AddParticipantsToConversation(ChangeConversationParticipants):
@@ -287,7 +287,7 @@ class CopyMessagesBetweenConversations(Action):
 
     @property
     def source_conversation(self) -> Conversation:
-        return CONVERSATION_NAMES_TO_CONVERSATIONS[self.source_conversation_name]
+        return get_conversation(self.source_conversation_name)
 
     def _get_indices_to_copy(self) -> List[int]:
         """

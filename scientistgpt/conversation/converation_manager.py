@@ -3,7 +3,7 @@ from typing import List, Optional, Set, Iterable
 
 from scientistgpt.cast import Agent
 
-from .actions_and_conversations import CONVERSATION_NAMES_TO_CONVERSATIONS, APPLIED_ACTIONS
+from .actions_and_conversations import APPLIED_ACTIONS, get_conversation
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
@@ -38,7 +38,7 @@ class ConversationManager:
 
     @property
     def conversation(self) -> Conversation:
-        return CONVERSATION_NAMES_TO_CONVERSATIONS.get(self.conversation_name, None)
+        return get_conversation(self.conversation_name)
 
     @property
     def participants(self) -> Set[Agent]:
