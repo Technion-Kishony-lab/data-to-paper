@@ -1,15 +1,14 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from scientistgpt.conversation import Conversation
-from scientistgpt.utils.singleton import Singleton
+from scientistgpt.conversation.actions import Action
 
 from .cast import Agent
-from ..conversation.actions import Action
 
 
 @dataclass
-class Messenger(metaclass=Singleton):
+class Messenger:
     """
     A first-person messaging app.
     """
@@ -48,6 +47,9 @@ class Messenger(metaclass=Singleton):
         self.conversations.remove(conversation)
 
     def on_action(self, action: Action):
+        """
+        Called after an action was applied to a conversation managed by this messenger.
+        """
         pass
 
 
