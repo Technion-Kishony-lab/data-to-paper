@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from scientistgpt.conversation import Conversation
 from scientistgpt.utils.singleton import Singleton
@@ -8,24 +8,13 @@ from .cast import Agent
 
 
 @dataclass
-class ConversationSetup:
-    """
-    Properties of a conversation in the Student's messaging app.
-    """
-    name: str = ''
-    participants: List[Agent] = field(default_factory=list)
-    conversation: Conversation = None
-    is_group: bool = False  # if False, the conversation is a one-on-one conversation with the Student
-
-
-@dataclass
 class Messenger(metaclass=Singleton):
     """
-    A first-person view of the Student's messaging app.
+    A first-person messaging app.
     """
-    first_person: Agent = Agent.STUDENT
+    first_person: Agent = Agent.Student
     contacts: List[Agent] = field(default_factory=list)
-    conversation_setups: List[ConversationSetup] = field(default_factory=list)
+    conversations: List[Conversation] = field(default_factory=list)
 
     def add_contact(self, agent: Agent):
         if agent not in self.contacts:
@@ -36,7 +25,7 @@ class Messenger(metaclass=Singleton):
         Add specified agents to contact. If no agents are specified, add all agents except the Student.
         """
         if agents is None:
-            agents = [agent for agent in Agent if agent != Agent.STUDENT]
+            agents = [agent for agent in Agent if agent != self.first_person]
         for agent in agents:
             self.add_contact(agent)
 
@@ -44,25 +33,27 @@ class Messenger(metaclass=Singleton):
         if agent in self.contacts:
             self.contacts.remove(agent)
 
-    def create_conversation(self, conversation_name: str, participants: List[Agent], conversation: Conversation):
-        self.conversation_setups.append(
-            ConversationSetup(name=conversation_name, participants=participants, conversation=conversation))
+    def add_conversation(self, conversation: Conversation):
+        """
+        Add a conversation to the messenger. If the conversation is a dual conversation, the participants
+        parameter should be a single agent. If the conversation is a group conversation, the participants
+        parameter should be a list of agents.
+        """
+        self.conversations.append(conversation)
         for agent in participants:
             self.add_contact(agent)
 
-    def delete_conversation(self, conversation_name: str):
-        for i, conversation_setup in enumerate(self.conversation_setups):
-            if conversation_setup.name == conversation_name:
-                self.conversation_setups.pop(i)
-
+    def delete_conversation(self, conversation: Conversation):
+        self.conversations.remove(conversation)
+        
     def add_participant_to_conversation(self, conversation_name: str, agent: Agent):
-        for conversation_setup in self.conversation_setups:
+        for conversation_setup in self.conversations:
             if conversation_setup.name == conversation_name:
                 conversation_setup.participants.append(agent)
                 self.add_contact(agent)
 
     def remove_participant_from_conversation(self, conversation_name: str, agent: Agent):
-        for conversation_setup in self.conversation_setups:
+        for conversation_setup in self.conversations:
             if conversation_setup.name == conversation_name:
                 conversation_setup.participants.remove(agent)
 
