@@ -32,7 +32,6 @@ class DebuggerGPT(CodeWritingGPT):
     agent: str = 'DEBUGGER'
     max_debug_iterations: int = 5
 
-    list_of_data_files: Optional[List[str]] = None
     debug_iteration = 0
     initiation_tag: Optional[str] = None
 
@@ -48,7 +47,7 @@ class DebuggerGPT(CodeWritingGPT):
 
     def _get_code_runner(self, response: str) -> CodeRunner:
         return CodeRunner(response=response,
-                          allowed_read_files=self.list_of_data_files,
+                          allowed_read_files=self.data_files,
                           output_file=self.output_filename,
                           script_file=self.script_filename,
                           )
@@ -82,9 +81,9 @@ class DebuggerGPT(CodeWritingGPT):
             
             {} located in the same directory as the code. 
             """).format(error_message,
-                        's' if len(self.list_of_data_files) > 1 else '',
-                        ', '.join(self.list_of_data_files),
-                        'All of these files are' if len(self.list_of_data_files) > 1 else 'This file is'),
+                        's' if len(self.data_files) > 1 else '',
+                        ', '.join(self.data_files),
+                        'All of these files are' if len(self.data_files) > 1 else 'This file is'),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _respond_to_error_message(self, error_message: str, is_warning: bool = False):
@@ -173,7 +172,7 @@ class DebuggerGPT(CodeWritingGPT):
             content=dedent_triple_quote_str("""
             I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
             Please rewrite the complete code again, making sure it only reads from the files: {}. 
-            """).format(file, ', '.join(self.list_of_data_files)),
+            """).format(file, ', '.join(self.data_files)),
             comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_empty_output(self):
