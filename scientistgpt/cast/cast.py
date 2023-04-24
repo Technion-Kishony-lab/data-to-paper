@@ -76,6 +76,7 @@ AGENTS_TO_SYSTEM_PROMPTS: Dict[Agent, str] = {}
 def _notify_profile_change(agent: Agent):
     """
     hook to update app client of profile change
+    MAOR + ORI
     """
     pass
 
