@@ -5,7 +5,7 @@ from typing import Optional, List, Set
 from scientistgpt.utils.text_utils import red_text
 
 from .actions_and_conversations import append_action, get_conversation, add_conversation
-from .message import Message, Role
+from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list

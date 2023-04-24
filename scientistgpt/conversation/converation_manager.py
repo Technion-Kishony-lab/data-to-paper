@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Set, Iterable
+from typing import Optional, Set, Iterable
 
 from scientistgpt.cast import Agent
 

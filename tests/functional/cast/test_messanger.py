@@ -31,4 +31,3 @@ def test_messenger_on_action():
     action = CreateConversation(participants={Agent.Secretary, Agent.Mentor})
     apply_action(action)
     messenger.on_action.assert_called_once()
-    
