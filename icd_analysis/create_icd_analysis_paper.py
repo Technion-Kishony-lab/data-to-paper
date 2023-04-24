@@ -5,7 +5,7 @@ from queries_mimic import data_file_descriptions, simpler_goal_description
 # DATA_FOLDER: absolute path to a directory where the data files are located
 # OUTPUTS_FOLDER: absolute path to a directory where the output files will be saved
 
-from local_paths import DATA_FOLDER, OUTPUT_FOLDER
+from paths import DATA_FOLDER, OUTPUT_FOLDER
 
 run_scientist_gpt(data_file_descriptions=data_file_descriptions,
                   goal_description=simpler_goal_description,
