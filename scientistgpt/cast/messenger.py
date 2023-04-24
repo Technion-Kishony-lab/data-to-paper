@@ -71,4 +71,10 @@ def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None
     return messenger
 
 
+def on_action(action: Action):
+    for messenger in ALL_MESSENGERS:
+        if messenger.first_person in action.conversation.participants:
+            messenger.on_action(action)
+
+
 STUDENT_MESSENGER = create_messenger(first_person=Agent.Student)

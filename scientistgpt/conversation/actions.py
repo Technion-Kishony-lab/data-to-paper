@@ -15,7 +15,7 @@ NoneType = type(None)
 
 
 def apply_action(action: Action, should_print: bool = True, is_color: bool = True):
-    from scientistgpt.cast import update_messengers_on_action
+    from scientistgpt.cast import update_cast_on_action
     append_action(action)
     if should_print:
         print(action.pretty_repr(is_color=is_color))
@@ -23,7 +23,7 @@ def apply_action(action: Action, should_print: bool = True, is_color: bool = Tru
     action.apply()
 
     # update the messenger system:
-    update_messengers_on_action(action)
+    update_cast_on_action(action)
 
 
 @dataclass(frozen=True)
