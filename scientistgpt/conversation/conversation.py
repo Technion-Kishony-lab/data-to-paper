@@ -1,13 +1,19 @@
+from __future__ import annotations
 import openai
 import re
 from typing import List, Tuple, Union, Optional
 
-from .message import Message, Role, create_message
+from .message import Message, Role
 from .message_designation import GeneralMessageDesignation
 
 # Set up the OpenAI API client
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
 from scientistgpt.call_servers import ServerCaller
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from scientistgpt.cast import Agent
+
 
 openai.api_key = OPENAI_API_KEY
 
@@ -62,6 +68,12 @@ class Conversation(List[Message]):
     def __init__(self, *args, conversation_name: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.conversation_name = conversation_name
+        self.participants: Optional[List[Agent]] = None  # None - do not enforce participants
+
+    def append(self, message: Message):
+        if self.participants is not None and message.role is not Role.COMMENTER:
+            assert message.agent in self.participants, f'Agent {message.agent} not in conversation participants.'
+        super().append(message)
 
     def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation = None
                                         ) -> List[Tuple[int, Message]]:

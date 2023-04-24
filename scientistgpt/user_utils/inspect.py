@@ -7,6 +7,7 @@ from typing import List
 
 from scientistgpt import Conversation, ScientistGPT
 from scientistgpt.cast.messenger import MESSENGER
+from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.replay import save_actions_to_file
 from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
