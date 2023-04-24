@@ -82,6 +82,14 @@ class CodeUsesForbiddenFunctions(BaseRunContextException):
 
 
 @dataclass
+class CodeImportForbiddenModule(BaseRunContextException):
+    module: str
+
+    def __str__(self):
+        return f"Code import a forbidden module {self.module}."
+
+
+@dataclass
 class CodeWriteForbiddenFile(BaseRunContextException):
     file: str
 

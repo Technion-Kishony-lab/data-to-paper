@@ -2,7 +2,8 @@ import os
 import pytest
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE
-from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeWriteForbiddenFile
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, \
+    CodeImportForbiddenModule
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -25,7 +26,6 @@ def test_run_code_correctly_reports_exception():
     try:
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
-        pass
         assert e.exception.args[0] == 'error'
         assert e.code == code
         assert e.tb[-1].lineno == 3
@@ -76,6 +76,22 @@ def test_run_code_forbidden_function_exit(forbidden_call):
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeUsesForbiddenFunctions)
         assert e.code == code
+        assert e.tb[-1].lineno == 2
+    else:
+        assert False, 'Expected to fail'
+
+
+def test_run_code_forbidden_import():
+    code = dedent_triple_quote_str("""
+        import numpy
+        import os
+        """)
+    try:
+        run_code_using_module_reload(code)
+    except FailedRunningCode as e:
+        assert isinstance(e.exception, CodeImportForbiddenModule)
+        assert e.code == code
+        assert e.exception.module == 'os'
         assert e.tb[-1].lineno == 2
     else:
         assert False, 'Expected to fail'
