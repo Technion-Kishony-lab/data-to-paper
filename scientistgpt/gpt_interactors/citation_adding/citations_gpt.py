@@ -75,8 +75,7 @@ class CitationGPT(ConverserGPT):
         for attempt_num in range(self.max_number_of_attempts):
             if feedback_message is not None:
                 self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
-                    Please try again making sure you return the results with the correct format, 
-                    like this:
+                    Please try again making sure you return the results with the correct format, like this:
                     ``` 
                     {"sentence extracted from the section": "query of the key sentence", 
                     "another sentence extracted from the section": "the query of this sentence"}
@@ -168,8 +167,7 @@ class CitationGPT(ConverserGPT):
         for attempt_num in range(self.max_number_of_attempts):
             if feedback_message is not None:
                 self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
-                    Please try again making sure you return the results with the correct format, 
-                    like this:
+                    Please try again making sure you return the results with the correct format, like this:
                     ``` 
                     ["AuthorX2022Title", "AuthorY2009Title"]
                     ```

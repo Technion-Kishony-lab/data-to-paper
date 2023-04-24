@@ -60,23 +60,24 @@ def create_citations_file(tmpdir):
 
 
 def test_latex_to_pdf(tmpdir, latex_content):
-    file_path = tmpdir.join('test').strpath
-    save_latex_and_compile_to_pdf(latex_content, file_path)
+    output_directory = tmpdir.strpath
+    file_name = 'test'
+    save_latex_and_compile_to_pdf(latex_content, file_name, output_directory, should_compile_with_bib=False)
 
-    assert os.path.exists(file_path + '.tex')
-    assert os.path.exists(file_path + '.pdf')
-    assert not os.path.exists(file_path + '.aux')
-    assert not os.path.exists(file_path + '.log')
+    assert os.path.exists(os.path.join(output_directory, file_name, '.tex'))
+    assert os.path.exists(os.path.join(output_directory, file_name, '.pdf'))
+    assert not os.path.exists(os.path.join(output_directory, file_name, '.aux'))
+    assert not os.path.exists(os.path.join(output_directory, file_name, '.log'))
 
 
 def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations):
-    file_path = tmpdir.join('test').strpath
+    output_directory = tmpdir.strpath
+    file_name = 'test'
     create_citations_file(tmpdir)
-    save_latex_and_compile_to_pdf(latex_content_with_citations, file_path, should_compile_with_bib=True)
+    save_latex_and_compile_to_pdf(latex_content_with_citations, file_name, output_directory, should_compile_with_bib=True)
 
-    assert os.path.exists(file_path + '.tex')
-    assert os.path.exists(file_path + '.pdf')
-    assert not os.path.exists(file_path + '.blg')
-    assert not os.path.exists(file_path + '.bbl')
-    assert not os.path.exists(file_path + '.aux')
-    assert not os.path.exists(file_path + '.log')
+    assert os.path.exists(os.path.join(output_directory, file_name, '.tex'))
+    assert os.path.exists(os.path.join(output_directory, file_name, '.pdf'))
+    assert os.path.exists(os.path.join(output_directory, 'citations.bib'))
+    assert not os.path.exists(os.path.join(output_directory, file_name, '.aux'))
+    assert not os.path.exists(os.path.join(output_directory, file_name, '.log'))
