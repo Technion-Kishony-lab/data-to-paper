@@ -2,7 +2,6 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 setup_directory = Path(__file__).parent
-long_description = (setup_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     description='A chatgpt based scientist allowing automatic analysis and paper writing',
@@ -21,10 +20,9 @@ setup(
         'Programming Language :: Python',
         'Operating System :: OS Independent',
     ],
-    name="data2paper",
+    name="scientistgpt",
     version='0.0.1',
     python_requires='>=3.8',
-    long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(),
     install_requires=[

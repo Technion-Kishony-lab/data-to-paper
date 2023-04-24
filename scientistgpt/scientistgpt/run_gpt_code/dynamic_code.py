@@ -1,12 +1,11 @@
 import builtins
-import matplotlib.pyplot as plt
 import os
 import importlib
 import traceback
 import warnings
 from typing import Optional, List, Type, Tuple, Any
 
-import chatgpt_created_scripts
+import scientistgpt.chatgpt_created_scripts as chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 
@@ -26,7 +25,7 @@ FORBIDDEN_MODULES_AND_FUNCTIONS = [
     (builtins, 'eval'),
     (builtins, 'exit'),
     (builtins, 'quit'),
-    (plt, 'savefig'),
+    # (plt, 'savefig'),
 ]
 
 FORBIDDEN_IMPORTS = [
