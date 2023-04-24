@@ -1,4 +1,5 @@
 import os
+import pytest
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE
 from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeWriteForbiddenFile
@@ -64,11 +65,12 @@ def test_run_code_timeout():
         assert False, 'Expected to fail'
 
 
-def test_run_code_forbidden_function():
+@pytest.mark.parametrize("forbidden_call", ['input', 'print', 'exit', 'quit', 'exec', 'eval'])
+def test_run_code_forbidden_function_exit(forbidden_call):
     code = dedent_triple_quote_str("""
         a = 1
-        input('')
-        """)
+        {}()
+        """).format(forbidden_call)
     try:
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
