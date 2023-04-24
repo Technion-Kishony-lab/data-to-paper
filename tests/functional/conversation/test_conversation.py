@@ -2,7 +2,7 @@ import os.path
 
 import openai
 
-from scientistgpt import Conversation
+from scientistgpt import Conversation, Message, Role
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 
 
@@ -47,18 +47,20 @@ def test_conversation_print(conversation):
 
 
 def test_conversation_get_last_response(conversation):
-    conversation.append_assistant_message('Hello!')
+    conversation.append(Message(Role.ASSISTANT, 'Hello!'))
     assert conversation.get_last_response() == 'Hello!'
 
 
 def test_conversation_delete_last_response(conversation):
-    conversation.append_assistant_message('Hello!')
+    conversation.append(Message(Role.ASSISTANT, 'Hello!'))
     original_len = len(conversation)
     conversation.delete_last_response()
     assert len(conversation) == original_len - 1
 
 
 def test_conversation_get_message_content_by_tag(conversation):
-    conversation.append_assistant_message('Hello!', tag='hello')
+    conversation.append(Message(Role.ASSISTANT, 'Hello!', tag='hello'))
     assert conversation.get_message_content_by_tag('hello') == 'Hello!'
     assert conversation.get_message_content_by_tag('not-hello') is None
+
+def test_conversation_ignores_ignored_messages()

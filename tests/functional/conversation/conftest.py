@@ -8,14 +8,14 @@ from scientistgpt.conversation.actions_and_conversations import CONVERSATION_NAM
 @fixture()
 def conversation():
     conversation = Conversation(conversation_name='default')
+    CONVERSATION_NAMES_TO_CONVERSATIONS['default'] = conversation
     conversation.append(Message(Role.SYSTEM, 'You are a helpful assistant.'))
     conversation.append(Message(Role.USER, 'Write a short code.', 'write_code'))
-    conversation.append_assistant_message('Here is my code:\n\n'
-                                          '```python\n'
-                                          'print(7)\n'
-                                          '```\n', 'code')
-    conversation.append_user_message('How are you?')
-    CONVERSATION_NAMES_TO_CONVERSATIONS['default'] = conversation
+    conversation.append(Message(Role.ASSISTANT, 'Here is my code:\n\n'
+                                                '```python\n'
+                                                'print(7)\n'
+                                                '```\n', 'code'))
+    conversation.append(Message(Role.USER, 'How are you?'))
     return conversation
 
 
