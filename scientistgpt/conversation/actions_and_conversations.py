@@ -30,6 +30,20 @@ a list of actions applied to conversations by order in which actions were applie
 """
 
 
+def append_action(action: Action):
+    """
+    Append an action to the primary list of actions.
+    """
+    APPLIED_ACTIONS.append(action)
+
+
+def get_actions_for_conversation(conversation_name: str) -> List[Action]:
+    """
+    Return a list of actions that were applied to the conversation with the provided name.
+    """
+    return [action for action in APPLIED_ACTIONS if action.conversation_name == conversation_name]
+
+
 def get_conversation(conversation_name: str) -> Optional[Conversation]:
     """
     Return the conversation with the provided name.
