@@ -1,8 +1,9 @@
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import GeneralMessageDesignation
+from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.utils.text_utils import print_red
 
 
@@ -75,11 +76,14 @@ class CodeWritingGPT(ConverserGPT):
     """
 
     output_filename: str = 'results.txt'
-    """
-    The name of the file that gpt code is instructed to save the results to.
-    """
+    "The name of the file that gpt code is instructed to save the results to."
 
     gpt_script_filename: str = 'gpt_code'
-    """
-    The base name of the pythin file in which the code written by gpt is saved. 
-    """
+    "The base name of the pythin file in which the code written by gpt is saved."
+
+    data_file_descriptions: List[DataFileDescription] = field(default_factory=list)
+    "A list of data file descriptions that are used by the code."
+
+    @property
+    def data_files(self) -> List[str]:
+        return [d.file_path for d in self.data_file_descriptions]
