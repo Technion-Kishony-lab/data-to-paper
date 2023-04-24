@@ -2,8 +2,8 @@ import os
 import pytest
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE
-from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, \
-    CodeImportForbiddenModule
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, CodeUsesForbiddenFunctions, \
+    CodeWriteForbiddenFile, CodeImportForbiddenModule
 from scientistgpt.utils import dedent_triple_quote_str
 
 

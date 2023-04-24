@@ -169,7 +169,7 @@ class DebuggerGPT(CodeWritingGPT):
             Please rewrite the complete code again without using this module. 
             """).format(module),
             comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
-    
+
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
