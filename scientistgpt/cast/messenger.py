@@ -5,6 +5,7 @@ from scientistgpt.conversation import Conversation
 from scientistgpt.utils.singleton import Singleton
 
 from .cast import Agent
+from ..conversation.actions import Action
 
 
 @dataclass
@@ -35,27 +36,19 @@ class Messenger(metaclass=Singleton):
 
     def add_conversation(self, conversation: Conversation):
         """
-        Add a conversation to the messenger. If the conversation is a dual conversation, the participants
-        parameter should be a single agent. If the conversation is a group conversation, the participants
-        parameter should be a list of agents.
+        Add a conversation to the messenger.
+        The conversation must include the first_person.
         """
+        assert self.first_person in conversation.participants
         self.conversations.append(conversation)
-        for agent in participants:
+        for agent in conversation.participants:
             self.add_contact(agent)
 
-    def delete_conversation(self, conversation: Conversation):
+    def remove_conversation(self, conversation: Conversation):
         self.conversations.remove(conversation)
-        
-    def add_participant_to_conversation(self, conversation_name: str, agent: Agent):
-        for conversation_setup in self.conversations:
-            if conversation_setup.name == conversation_name:
-                conversation_setup.participants.append(agent)
-                self.add_contact(agent)
 
-    def remove_participant_from_conversation(self, conversation_name: str, agent: Agent):
-        for conversation_setup in self.conversations:
-            if conversation_setup.name == conversation_name:
-                conversation_setup.participants.remove(agent)
+    def on_action(self, action: Action):
+        pass
 
 
 MESSENGER = Messenger()

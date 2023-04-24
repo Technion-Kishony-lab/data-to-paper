@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Set, Iterable
 
 from scientistgpt.cast import Agent
 
@@ -9,7 +9,7 @@ from .message import Message, Role, create_message, create_message_from_other_me
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, apply_action
+    CreateConversation, apply_action, AddParticipantsToConversation
 
 
 @dataclass
@@ -40,6 +40,10 @@ class ConversationManager:
     def conversation(self) -> Conversation:
         return CONVERSATION_NAMES_TO_CONVERSATIONS.get(self.conversation_name, None)
 
+    @property
+    def participants(self) -> Set[Agent]:
+        return {self.assistant_agent, self.user_agent}
+
     def _append_and_apply_action(self, action: Action):
         """
         Apply an action to a conversation and append to the actions list.
@@ -47,7 +51,21 @@ class ConversationManager:
         apply_action(action, should_print=self.should_print, is_color=True)
 
     def create_conversation(self):
-        self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name))
+        self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name,
+                                                         driver=self.driver,
+                                                         participants=self.participants))
+
+    def add_participants(self, agents: Iterable[Agent]):
+        self._append_and_apply_action(AddParticipantsToConversation(conversation_name=self.conversation_name,
+                                                                    driver=self.driver,
+                                                                    participants=set(agents)))
+
+    def initialize_conversation_if_needed(self):
+        if self.conversation is None:
+            self.create_conversation()
+        else:
+            if self.participants - self.conversation.participants:
+                self.add_participants(self.participants - self.conversation.participants)
 
     def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                        ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):

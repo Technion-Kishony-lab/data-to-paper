@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Set
 
 from scientistgpt.utils.text_utils import red_text
 
@@ -9,7 +9,7 @@ from .message import Message, Role
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-from scientistgpt.cast import set_system_prompt
+from scientistgpt.cast import set_system_prompt, Agent
 
 NoneType = type(None)
 
@@ -68,14 +68,34 @@ class Action:
 
 
 @dataclass(frozen=True)
-class CreateConversation(Action):
+class ChangeConversationParticipants(Action):
+    """
+    Create a new conversation.
+    """
+    participants: Set[Agent] = None
+
+    def _pretty_attrs(self) -> str:
+        return f'participants={self.participants}'
+
+
+class CreateConversation(ChangeConversationParticipants):
     """
     Create a new conversation.
     """
 
     def apply(self):
         CONVERSATION_NAMES_TO_CONVERSATIONS[self.conversation_name] = \
-            Conversation(conversation_name=self.conversation_name)
+            Conversation(conversation_name=self.conversation_name, participants=self.participants)
+
+
+class AddParticipantsToConversation(ChangeConversationParticipants):
+    """
+    Add participants to a conversation.
+    """
+
+    def apply(self):
+        for participant in self.participants:
+            self.conversation.add_participant(participant)
 
 
 @dataclass(frozen=True)
