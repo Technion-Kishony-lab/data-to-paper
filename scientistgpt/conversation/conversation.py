@@ -77,11 +77,13 @@ class Conversation(List[Message]):
     def get_chosen_indices_and_messages(self, hidden_messages: GeneralMessageDesignation) -> List[Tuple[int, Message]]:
         """
         Return sub-list of messages.
-        Remove commenter messages as well as all messages indicated in `hidden_messages`.
+        Remove commenter messages, ignore=True messages, as well as all messages indicated in `hidden_messages`.
         """
         hidden_messages = hidden_messages or []
         return [(i, message) for i, message in enumerate(self)
-                if i not in hidden_messages and message.role is not Role.COMMENTER]
+                if i not in hidden_messages
+                and message.role is not Role.COMMENTER
+                and not message.ignore]
 
     def get_last_response(self) -> str:
         """

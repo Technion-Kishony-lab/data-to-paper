@@ -50,6 +50,7 @@ class Message:
     content: str
     tag: str = ''
     agent: Optional[Agent] = None
+    ignore: bool = False  # if True, this message will be skipped when calling openai
 
     def to_chatgpt_dict(self):
         return {'role': Role.ASSISTANT if self.role.is_assistant_or_surrogate() else self.role, 'content': self.content}
@@ -175,15 +176,16 @@ class CodeMessage(Message):
         return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
 
 
-def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None,
+def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
                    is_code: bool = False, previous_code: str = None) -> Message:
     if is_code:
-        return CodeMessage(role=role, content=content, tag=tag, agent=agent, previous_code=previous_code)
+        return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore, previous_code=previous_code)
     else:
-        return Message(role=role, content=content, tag=tag, agent=agent)
+        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore)
 
 
 def create_message_from_other_message(other_message: Message, content: str) -> Message:
     return create_message(role=other_message.role, content=content, tag=other_message.tag, agent=other_message.agent,
+                          ignore=other_message.ignore,
                           is_code=isinstance(other_message, CodeMessage),
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None)
