@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
 from _pytest.fixtures import fixture
 
 from scientistgpt.latex import save_latex_and_compile_to_pdf
+from scientistgpt.latex.latex_to_pdf import TEMP_FOLDER_FOR_LATEX_COMPILE
 
 
 @fixture()
@@ -29,8 +31,8 @@ Hello World! \cite{cite1} \cite{cite2}
 '''
 
 
-def create_citations_file(tmpdir):
-    citations_file = tmpdir.join('citations.bib').strpath
+def create_citations_file(path_to_citations_file):
+    citations_file = Path(os.path.join(path_to_citations_file, 'citations.bib'))
     with open(citations_file, 'w') as f:
         f.write(r'''
 @article{cite1,
@@ -60,24 +62,29 @@ def create_citations_file(tmpdir):
 
 
 def test_latex_to_pdf(tmpdir, latex_content):
-    output_directory = tmpdir.strpath
+    output_directory = str(TEMP_FOLDER_FOR_LATEX_COMPILE)
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
     file_name = 'test'
-    save_latex_and_compile_to_pdf(latex_content, file_name, output_directory, should_compile_with_bib=False)
+    save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath, should_compile_with_bib=False)
 
-    assert os.path.exists(os.path.join(output_directory, file_name, '.tex'))
-    assert os.path.exists(os.path.join(output_directory, file_name, '.pdf'))
-    assert not os.path.exists(os.path.join(output_directory, file_name, '.aux'))
-    assert not os.path.exists(os.path.join(output_directory, file_name, '.log'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
+    assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
+    assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.log'))
 
 
 def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations):
-    output_directory = tmpdir.strpath
+    output_directory = str(TEMP_FOLDER_FOR_LATEX_COMPILE)
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
     file_name = 'test'
-    create_citations_file(tmpdir)
-    save_latex_and_compile_to_pdf(latex_content_with_citations, file_name, output_directory, should_compile_with_bib=True)
+    create_citations_file(output_directory)
+    save_latex_and_compile_to_pdf(latex_content_with_citations, file_name, tmpdir.strpath,
+                                  should_compile_with_bib=True)
 
-    assert os.path.exists(os.path.join(output_directory, file_name, '.tex'))
-    assert os.path.exists(os.path.join(output_directory, file_name, '.pdf'))
-    assert os.path.exists(os.path.join(output_directory, 'citations.bib'))
-    assert not os.path.exists(os.path.join(output_directory, file_name, '.aux'))
-    assert not os.path.exists(os.path.join(output_directory, file_name, '.log'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, 'citations.bib'))
+    assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
+    assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.log'))
