@@ -278,7 +278,7 @@ class ScientistGPT(CodeWritingGPT):
                     to improve the analysis.
                     The output of your code should now be saved to `{}`.
                 """).format(self.get_output_filename())
-                self.conversation.append_user_message(user_prompt)
+                self.apply_append_user_message(user_prompt)
                 return 2
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")
