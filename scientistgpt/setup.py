@@ -32,6 +32,8 @@ setup(
         "numpy",
         "pandas",
         "colorama",
+        "unidecode"
+        "pygments",
     ],
     extras_require={
         'dev': [
