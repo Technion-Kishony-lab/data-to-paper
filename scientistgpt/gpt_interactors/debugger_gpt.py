@@ -11,6 +11,7 @@ from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRun
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
+from scientistgpt.utils.text_utils import nicely_join
 
 
 @dataclass
@@ -183,7 +184,7 @@ class DebuggerGPT(CodeWritingGPT):
             content=dedent_triple_quote_str("""
             I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
             Please rewrite the complete code again, making sure it only reads from the files: {}. 
-            """).format(file, ', '.join(self.data_files)),
+            """).format(file, ', ', nicely_join(self.data_files, wrap_with='`')),
             comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_empty_output(self):
