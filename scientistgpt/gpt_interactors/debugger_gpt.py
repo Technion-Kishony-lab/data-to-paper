@@ -38,7 +38,7 @@ class DebuggerGPT(CodeWritingGPT):
     debug_iteration = 0
     initiation_tag: Optional[str] = None
 
-    _previous_code: Optional[str] = None
+    previous_code: Optional[str] = None
 
     @property
     def iteration_str(self):
@@ -207,7 +207,7 @@ class DebuggerGPT(CodeWritingGPT):
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
-        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self._previous_code)
+        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code)
         failed_extracting_code = False
         code_runner = self._get_code_runner(response)
         try:
@@ -218,7 +218,7 @@ class DebuggerGPT(CodeWritingGPT):
             self._respond_to_missing_or_incomplete_code(e.number_of_code_edges)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
-            self._previous_code = code_runner.extract_code()
+            self.previous_code = code_runner.extract_code()
             try:
                 raise e.exception
             except ImportError:
