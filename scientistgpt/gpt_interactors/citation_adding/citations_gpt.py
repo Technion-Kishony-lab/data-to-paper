@@ -89,8 +89,8 @@ class CitationGPT(ConverserGPT):
                 self._check_all_sentences_are_in_section(response_value)
             except NotInOptionsException as e:
                 feedback_message = \
-                    f'You also returned sentences that are not in the section: {e.not_in_options}.' \
-                    f'In your following answer return only these sentences fixed.'
+                    f'Some of the sentences you returned are not precise extraction from the section:\n' \
+                    f'{e.not_in_options}.\n'
                 continue
             return response_value
         if not self.sentences_to_add_citations_to:
@@ -153,10 +153,11 @@ class CitationGPT(ConverserGPT):
 
         {}
 
-        Reply in the following format: 
-        "["AuthorX2022", "AuthorY2009"]"
-        where AuthorX2022 and AuthorY2009 are the ids of the citations you choose.
-        You can choose one or more, or choose to not add any citations to this sentence by replying with "[]".
+        Send your reply formatted as a Python list of str, representing the ids of the citations you choose. 
+        For example, write: 
+        `["AuthorX2022", "AuthorY2009"]`
+        where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
+        You can choose one or more citations, or you can choose adding citations to this sentence by replying with `[]`.
         Choose only citations that are highly relevant to the sentence.
         """).format(sentence,
                     '\n'.join(
@@ -167,7 +168,7 @@ class CitationGPT(ConverserGPT):
         for attempt_num in range(self.max_number_of_attempts):
             if feedback_message is not None:
                 self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
-                    Please try again making sure you return the results with the correct format, like this:
+                    Please try again making sure you return the chosen citations with the correct format, like this:
                     ``` 
                     ["AuthorX2022Title", "AuthorY2009Title"]
                     ```
@@ -179,9 +180,10 @@ class CitationGPT(ConverserGPT):
             try:
                 self._validate_citation_ids(response_value, citations_ids)
             except NotInOptionsException as e:
-                feedback_message = \
-                    f'You returned these citations that are not in the given options: {e.not_in_options}. ' \
-                    f'The options are: {citations_ids}.'
+                feedback_message = dedent_triple_quote_str(f"""
+                    f'You returned citations that are not included in the provided citation options. 
+                    f'Specifically, you returned {e.not_in_options}, while the allowed options are: {citations_ids}.'
+                    """)
                 continue
             self.current_sentence_citations_ids |= set(response_value)
             break
@@ -206,16 +208,18 @@ class CitationGPT(ConverserGPT):
         self.apply_append_user_message(
             dedent_triple_quote_str("""
             The sentence you need to rewrite is: "{}".
-            The citation ids you should enter in a smart and correct position maintaining good sentence flow are: "{}".
-            Please rewrite the sentence with the citations using the citations ids given.
-            You should use \\cite{{}}, i.e., keep on correct .tex format to insert the citation. 
+            The citation ids you should incorporate into the sentence are: {}.
+            These citations should be incorporated in a relevant position in the sentence, 
+            maintaining logical sentence flow.
+            Please rewrite the sentence with these citations using the provided citation ids.
+            You should add the citations using \\cite{{}}, keeping correct .tex format. 
             Return only the rewritten sentence, do not return the whole section.
             """).format(sentence, citations_ids))
         new_sentence = self.apply_get_and_append_assistant_message()
         if len(new_sentence) >= len(self.section):
             self.apply_append_user_message(
                 dedent_triple_quote_str("""
-                You returned the whole section rewritten, Please return only the rewritten sentence.
+                Please return only the rewritten sentence.
                 """))
             new_sentence = self.apply_get_and_append_assistant_message()
         return new_sentence
