@@ -14,7 +14,7 @@ from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCre
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
-from ..utils.text_utils import concat_words_with_commas_and_and
+from ..utils.text_utils import nicely_join
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -162,7 +162,7 @@ class ScientistGPT(CodeWritingGPT):
                 If needed, you can use the following packages in your code: {}.
                 The output of your code should be a text file named "{}".
                 Do not plot anything to screen or other files.
-                """).format(concat_words_with_commas_and_and(SUPPORTED_PACKAGES, '`'), self.get_output_filename())
+                """).format(nicely_join(SUPPORTED_PACKAGES, '`'), self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
                 Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.

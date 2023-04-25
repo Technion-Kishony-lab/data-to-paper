@@ -4,7 +4,7 @@ from typing import Optional, List
 from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.text_utils import concat_words_with_commas_and_and
+from scientistgpt.utils.text_utils import nicely_join
 
 from .base_paper_writing import PaperWritingGPT, FailedCreatingPaperSection
 from scientistgpt.cast import Agent
@@ -59,7 +59,7 @@ class PaperAuthorGPT(PaperWritingGPT):
         prompt = prompt or dedent_triple_quote_str("""
             Please write only the `{}` of the paper. Do not write any other parts!
             Remember to write in tex format including any math or symbols that needs tex escapes.
-            """).format(concat_words_with_commas_and_and(section_names))
+            """).format(nicely_join(section_names))
         self.apply_append_user_message(prompt)
         max_attempts = MAX_SECTION_RECREATION_ATTEMPTS
         for attempt in range(max_attempts):
@@ -74,7 +74,7 @@ class PaperAuthorGPT(PaperWritingGPT):
                         {}
 
                         Please rewrite the {} part again with the correct latex formatting.
-                        """).format(e, concat_words_with_commas_and_and(section_names)),
+                        """).format(e, nicely_join(section_names)),
                     comment=f"Latex formatting error (attempt {attempt + 1} / {max_attempts})")
             else:
                 # we successfully created all the sections
