@@ -92,7 +92,8 @@ def test_run_code_forbidden_function_exit(forbidden_call):
 ])
 def test_run_code_forbidden_import(forbidden_import, module_name):
     code = dedent_triple_quote_str("""
-        import numpy
+        import scipy
+        import numpy as np
         {}
         """).format(forbidden_import)
     try:
@@ -101,7 +102,7 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         assert isinstance(e.exception, CodeImportForbiddenModule)
         assert e.code == code
         assert e.exception.module == module_name
-        assert e.tb[-1].lineno == 2
+        assert e.tb[-1].lineno == 3
     else:
         assert False, 'Expected to fail'
 

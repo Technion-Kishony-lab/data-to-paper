@@ -73,7 +73,9 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
 
 class PreventImport:
     def __init__(self, modules):
+        from scientistgpt.run_gpt_code.dynamic_code import module_filename
         self.modules = modules
+        self.module_filename = module_filename
 
     def __enter__(self):
         self.original_import = builtins.__import__
@@ -85,5 +87,7 @@ class PreventImport:
 
     def custom_import(self, name, *args, **kwargs):
         if any(name.startswith(module + '.') for module in self.modules) or name in self.modules:
-            raise CodeImportForbiddenModule(module=name)
+            frame = traceback.extract_stack()[-2]
+            if frame.filename.endswith(self.module_filename):
+                raise CodeImportForbiddenModule(module=name)
         return self.original_import(name, *args, **kwargs)
