@@ -13,7 +13,7 @@ from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCre
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
-
+from ..utils.text_utils import concat_words_with_commas_and_and
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -156,13 +156,14 @@ class ScientistGPT(CodeWritingGPT):
         if self.number_of_successful_code_revisions == 0:
             user_prompt = dedent_triple_quote_str("""
                 Write a complete short Python code to perform the analysis you suggested.
-                Please only use the following packages for your code: {}.
+                If needed, you can use the following packages in your code: {}.
                 The output of your code should be a text file named `{}`.
                 The results should be in a summarized form, do not plot anything to screen or file.
-                """).format(SUPPORTED_PACKAGES, self.get_output_filename())
+                """).format(concat_words_with_commas_and_and(SUPPORTED_PACKAGES, '`'), self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
-                Revise the code or any key parameters within it as needed.
+                Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.
+                The output of your new code should be a text file named `{}`.
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
                 """).format(self.get_output_filename())
@@ -178,7 +179,7 @@ class ScientistGPT(CodeWritingGPT):
             revision_number -= 1
         if revision_number == 0:
             return self.output_filename
-        return f'{self.output_filename}_revision{revision_number}'
+        return self.output_filename.replace('.', f'_revision_{revision_number}.')
 
     def create_and_debug_analysis_code_for_current_revision(self) -> bool:
         """
@@ -271,14 +272,6 @@ class ScientistGPT(CodeWritingGPT):
             elif 'b' in response and 'a' not in response and len(response) < 5:
                 self.comment(f'ScientistGPT declared it needs to revise the code. Starting a new revision '
                              f'({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
-
-                user_prompt = dedent_triple_quote_str("""
-                    ok. 
-                    Please write a revised version of the code, changing key parameters or anything else needed 
-                    to improve the analysis.
-                    The output of your code should now be saved to `{}`.
-                """).format(self.get_output_filename())
-                self.apply_append_user_message(user_prompt)
                 return 2
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")
