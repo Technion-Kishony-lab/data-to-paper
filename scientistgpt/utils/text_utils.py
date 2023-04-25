@@ -1,5 +1,7 @@
 import textwrap
 import re
+from typing import Optional, Tuple, Union
+
 import colorama
 
 from pygments.lexers import PythonLexer
@@ -115,10 +117,19 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
     return extracted_text_without_tags
 
 
-def concat_words_with_commas_and_and(words: list):
+def concat_words_with_commas_and_and(words: list, wrap_with: Optional[Union[str, Tuple[str, str]]] = None):
     """
     Concatenate a list of words with commas and an 'and' at the end.
+
+    wrap_with: if str: wrap each word with the provided string. if tuple: wrap each word with the first string
+    on the left and the second string on the right.
     """
+    if isinstance(wrap_with, str):
+        words = [wrap_with + word + wrap_with for word in words]
+    elif isinstance(wrap_with, tuple):
+        words = [wrap_with[0] + word + wrap_with[1] for word in words]
+    elif wrap_with is not None:
+        raise ValueError(f'wrap_with must be either str or tuple, not {type(wrap_with)}')
     if len(words) == 0:
         return ''
     if len(words) == 1:
