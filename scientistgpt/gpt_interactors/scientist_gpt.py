@@ -199,12 +199,15 @@ class ScientistGPT(CodeWritingGPT):
             self.comment(f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
+            code_from_previous_revision = self.scientific_products.analysis_codes_and_outputs[-1].code \
+                if code_revision > 0 else None
             code_and_output = DebuggerGPT(
                 output_filename=self.get_output_filename(),
                 data_file_descriptions=self.data_file_descriptions,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 conversation_name=self.conversation.conversation_name,
-                gpt_script_filename=f"{self.gpt_script_filename}_revision{code_revision}_attempt{attempt}"
+                gpt_script_filename=f"{self.gpt_script_filename}_revision{code_revision}_attempt{attempt}",
+                previous_code=code_from_previous_revision,
             ).run_debugging()
 
             if code_and_output is None:
@@ -219,13 +222,17 @@ class ScientistGPT(CodeWritingGPT):
 
                 self.apply_append_surrogate_message(
                     content=dedent_triple_quote_str("""
-                    Here is the code to perform the analysis:
+                    Here is the {}. It saves results to the file `{}`.
                     ```python
                     {}
                     ```
-                    """).format(code_and_output.code),
+                    """).format(
+                        'code to perform the analysis' if code_revision == 0
+                        else f'revised code (revision {code_revision})',
+                        self.get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
                     is_code=True,
+                    previous_code=code_from_previous_revision,
                 )
                 # the conversation is now at a point as if chatgpt immediately sent the correct code in response to
                 # the request for code. However, the code is now given without any explanation.
