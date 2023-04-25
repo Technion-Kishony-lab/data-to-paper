@@ -160,8 +160,8 @@ class ScientistGPT(CodeWritingGPT):
             user_prompt = dedent_triple_quote_str("""
                 Write a complete short Python code to perform the analysis you suggested.
                 If needed, you can use the following packages in your code: {}.
-                The output of your code should be a text file named `{}`.
-                The results should be in a summarized form, do not plot anything to screen or file.
+                The output of your code should be a text file named "{}".
+                Do not plot anything to screen or other files.
                 """).format(concat_words_with_commas_and_and(SUPPORTED_PACKAGES, '`'), self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
@@ -220,15 +220,16 @@ class ScientistGPT(CodeWritingGPT):
                     comment='Deleting all debugging correspondence.')
                 assert self.conversation[-1].tag == self._request_code_tag
 
+                code_and_output.code_name = 'revision {code_revision}'
                 self.apply_append_surrogate_message(
                     content=dedent_triple_quote_str("""
-                    Here is the {}. It saves results to the file `{}`.
+                    Here is the {}. It saves results to the file "{}".
                     ```python
                     {}
                     ```
                     """).format(
                         'code to perform the analysis' if code_revision == 0
-                        else f'revised code (revision {code_revision})',
+                        else f'revised code ({code_and_output.code_name})',
                         self.get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
                     is_code=True,
@@ -238,7 +239,7 @@ class ScientistGPT(CodeWritingGPT):
                 # the request for code. However, the code is now given without any explanation.
                 # We therefore ask chatgpt to explain the code:
 
-                self.apply_append_user_message(
+                code_and_output.explanation = self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
                     Please explain what your code does (Do not make new comments in the code itself, 
                     just explain what the code does).
