@@ -162,11 +162,11 @@ class ScientistGPT(CodeWritingGPT):
                 If needed, you can use the following packages in your code: {}.
                 The output of your code should be a text file named "{}".
                 Do not plot anything to screen or other files.
-                """).format(nicely_join(SUPPORTED_PACKAGES, '`'), self.get_output_filename())
+                """).format(SUPPORTED_PACKAGES, self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
                 Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.
-                The output of your new code should be a text file named `{}`.
+                The output of your new code should be a text file named "{}".
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
                 """).format(self.get_output_filename())
@@ -263,16 +263,17 @@ class ScientistGPT(CodeWritingGPT):
 
             a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
-            b. I need to adjust some parameters in the code, or make some other modifications, and then look at 
-                the new results again before I can say whether they are interesting enough for a paper.
+            b. I need to adjust some key parameters in the code, or make some other modifications, and then look at 
+                the new results before I can say whether we have a discovery interesting enough for a research paper.
 
             Answer with just the number of the option you choose (only type a single character: "a" or "b").
             Under any circumstances, answer with just one character matching the option you choose, nothing else.            
             """).format(
                 self.get_output_filename(after_completion=True),
+                self.scientific_products.analysis_codes_and_outputs[-1].output,
                 'In scientific research, we often need to explore how our results change when we change key '
                 'parameters in the code.\n' if self.number_of_successful_code_revisions == 1 else '',
-                self.scientific_products.analysis_codes_and_outputs[-1].output)
+        )
 
         self.apply_append_user_message(
             content=user_prompt,
