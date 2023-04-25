@@ -107,6 +107,20 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         assert False, 'Expected to fail'
 
 
+def test_run_code_forbidden_import_should_not_raise_on_allowed_packages():
+    code = dedent_triple_quote_str("""
+        import pandas as pd
+        import numpy as np
+        from scipy.stats import chi2_contingency
+        """)
+    try:
+        run_code_using_module_reload(code)
+    except Exception as e:
+        assert False, 'Should not raise'
+    else:
+        assert True
+
+
 code = dedent_triple_quote_str("""
     with open('test.txt', 'w') as f:
         f.write('hello')
