@@ -258,8 +258,8 @@ class ScientistGPT(CodeWritingGPT):
             ```
             {}
             ```
-
-            Please choose one of the following options:
+            
+            {}Please choose one of the following options:
 
             a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
@@ -268,8 +268,11 @@ class ScientistGPT(CodeWritingGPT):
 
             Answer with just the number of the option you choose (only type a single character: "a" or "b").
             Under any circumstances, answer with just one character matching the option you choose, nothing else.            
-            """).format(self.get_output_filename(after_completion=True),
-                        self.scientific_products.analysis_codes_and_outputs[-1].output)
+            """).format(
+                self.get_output_filename(after_completion=True),
+                'In scientific research, we often need to explore how our results change when we change key '
+                'parameters in the code.\n' if self.number_of_successful_code_revisions == 1 else '',
+                self.scientific_products.analysis_codes_and_outputs[-1].output)
 
         self.apply_append_user_message(
             content=user_prompt,
