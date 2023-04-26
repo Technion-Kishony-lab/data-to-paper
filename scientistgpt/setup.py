@@ -34,6 +34,7 @@ setup(
         "colorama",
         "unidecode"
         "pygments",
+        "regex",
     ],
     extras_require={
         'dev': [
