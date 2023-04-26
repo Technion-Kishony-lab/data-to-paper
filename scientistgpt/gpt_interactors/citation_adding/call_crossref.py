@@ -55,7 +55,7 @@ def create_bibtex(item):
     fields = []
     for key, value in item.items():
         if value and value is not None:
-            if not key in ['doi', 'isbn']:
+            if key not in ['doi', 'isbn']:
                 # remove special characters of the value
                 if isinstance(value, list):
                     item[key] = [unidecode(v) for v in value]
