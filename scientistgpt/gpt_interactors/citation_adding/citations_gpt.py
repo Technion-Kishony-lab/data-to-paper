@@ -254,7 +254,8 @@ class CitationGPT(ConverserGPT):
                 updated_sentence = self._rewrite_sentence_with_citation(sentence, chosen_citations_ids)
                 updated_sentences.append(updated_sentence)
                 all_citations_bibtexes.update(
-                    [sentence_citations[index]['bibtex'] for index in chosen_citations_indices]
+                    [sentence_citations[index]['bibtex'].replace(r' &', r' \&').replace(r'None', r'')
+                     for index in chosen_citations_indices]
                 )
             else:
                 updated_sentences.append(sentence)

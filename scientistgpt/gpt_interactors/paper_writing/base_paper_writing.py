@@ -149,9 +149,9 @@ class PaperWritingGPT(ConverserGPT, ABC):
 
     def _save_references_to_bib_file(self, references: set):
         """
-        Save all the citations bibtexes to a .bib file.
+        Save all the citations bibtexes to a .bib file in the output folder.
         """
-        with open(self.bib_filename, 'w') as f:
+        with open(os.path.join(self.output_directory, self.bib_filename), 'w') as f:
             f.write('\n\n'.join(references))
 
     def write_paper(self, should_compile_to_pdf: bool = True, should_compile_with_bib: bool = True):
