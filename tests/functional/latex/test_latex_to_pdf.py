@@ -43,6 +43,7 @@ forgot to escape this percent: %
 forgot to escape this ampersand: &
 forgot to escape this tilde: ~
 forgot to escape this caret: ^
+already escaped this underscore: \_
 also some math to test: $x^2$
 math with two dollar signs: $$x^2$$
 \end{document}
