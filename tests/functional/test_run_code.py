@@ -116,7 +116,7 @@ def test_run_code_forbidden_import_should_not_raise_on_allowed_packages():
     try:
         run_code_using_module_reload(code)
     except Exception as e:
-        assert False, 'Should not raise'
+        assert False, 'Should not raise, got {}'.format(e)
     else:
         assert True
 
