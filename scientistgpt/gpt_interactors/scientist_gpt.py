@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -77,8 +77,8 @@ class ScientistGPT(CodeWritingGPT):
     assistant_agent: Agent = Agent.Student
     user_agent: Agent = Agent.Mentor
     goal_description: Optional[str] = None,
-    output_directory: Optional[str | Path] = None,
-    data_directory: Optional[str | Path] = None,
+    output_directory: Optional[Union[str, Path]] = None,
+    data_directory: Optional[Union[str, Path]] = None,
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
 

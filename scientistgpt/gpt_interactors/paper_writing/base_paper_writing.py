@@ -2,7 +2,7 @@ import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from scientistgpt.exceptions import ScientistGPTException
 from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
@@ -52,7 +52,7 @@ class PaperWritingGPT(ConverserGPT, ABC):
     The name of the file that holds the template for the paper with citations.
     """
 
-    output_directory: Optional[str | Path] = None
+    output_directory: Optional[Union[str, Path]] = None
 
     paper_sections: Dict[str, str] = field(default_factory=dict)
 
