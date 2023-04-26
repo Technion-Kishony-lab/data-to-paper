@@ -10,12 +10,12 @@ module_dir = os.path.dirname(__file__)
 TEMP_FOLDER_FOR_LATEX_COMPILE = (Path(module_dir) / 'temp_latex_compile').absolute()
 
 CHARS = {
-    '&':  r'\&',
-    '%':  r'\%',
-    '#':  r'\#',
-    '_':  r'\_',
-    '~':  r'\textasciitilde',
-    '^':  r'\textasciicircum',
+    '&': r'\&',
+    '%': r'\%',
+    '#': r'\#',
+    '_': r'\_',
+    '~': r'\textasciitilde',
+    '^': r'\textasciicircum',
 }
 MATH_PATTERN = r"""
 (?<!\\)    # negative look-behind to make sure start is not escaped 
@@ -77,6 +77,7 @@ def replace_special_chars(text):
 
     return "".join(result)
 
+
 @contextmanager
 def run_in_temp_directory():
     cwd = os.getcwd()
@@ -99,9 +100,9 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_name: str, output_dir
         with open(latex_file_name, 'w') as f:
             f.write(latex_content)
         if should_compile_to_pdf:
-            subprocess.run(['pdflatex', '-interaction', 'nonstopmode',  latex_file_name], check=True)
+            subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
             if should_compile_with_bib:
-                subprocess.run(['bibtex', '-interaction', 'nonstopmode', file_name], check=True)
+                subprocess.run(['bibtex', file_name], check=True)
                 subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
                 subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
 

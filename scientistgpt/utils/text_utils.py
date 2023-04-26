@@ -9,7 +9,6 @@ from pygments.formatters import Terminal256Formatter
 from pygments.styles import get_style_by_name
 from pygments import highlight
 
-
 style = get_style_by_name("monokai")
 python_formatter = Terminal256Formatter(style=style)
 
@@ -66,7 +65,6 @@ def print_magenta(text: str, **kwargs):
 
 def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int,
                                  is_python: bool = True) -> str:
-
     sections = text.split("```")
     s = ''
     in_text_block = True
@@ -110,7 +108,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
     left_bracket = left_tag[-1]
     if right_tag is not None:
         right_bracket = right_tag[-1]
-        if not left_bracket in optional_brackets.keys() or right_bracket != optional_brackets[left_bracket]:
+        if left_bracket not in optional_brackets.keys() or right_bracket != optional_brackets[left_bracket]:
             # just find the first instance of the right tag and return the text between the left tag and the right tag
             start = text.find(left_tag)
             if start == -1:
@@ -134,6 +132,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
         if leave_tags:
             return left_tag + text[start + len(left_tag):]
         return text[start + len(left_tag):]
+
 
 def extract_text_between_brackets(text: str, open_bracket: str):
     """
