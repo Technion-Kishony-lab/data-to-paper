@@ -1,7 +1,8 @@
 import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
-from typing import Dict
+from pathlib import Path
+from typing import Dict, Optional
 
 from scientistgpt.exceptions import ScientistGPTException
 from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
@@ -50,6 +51,8 @@ class PaperWritingGPT(ConverserGPT, ABC):
     """
     The name of the file that holds the template for the paper with citations.
     """
+
+    output_directory: Optional[str | Path] = None
 
     paper_sections: Dict[str, str] = field(default_factory=dict)
 
@@ -138,10 +141,10 @@ class PaperWritingGPT(ConverserGPT, ABC):
         Save the latex paper to .tex file and compile to pdf file.
         """
         # running from data folder, the output folder is one level up from the os.cwd() and inside 'output'
-        output_folder = os.path.join(os.getcwd(), '..', 'output')
-        if not os.path.exists(output_folder):
-            raise Exception(f'Output folder {output_folder} does not exist.')
-        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, output_folder,
+        # output_folder = os.path.join(os.getcwd(), '..', 'output')
+        # if not os.path.exists(output_folder):
+        #     raise Exception(f'Output folder {output_folder} does not exist.')
+        save_latex_and_compile_to_pdf(self.latex_paper, self.paper_filename, self.output_directory,
                                       should_compile_with_bib, should_compile_to_pdf)
 
     def _save_references_to_bib_file(self, references: set):
