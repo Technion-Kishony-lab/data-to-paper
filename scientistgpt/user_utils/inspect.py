@@ -37,7 +37,8 @@ def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
     else:
         os.makedirs(output_directory)
 
-    runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description)
+    runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description,
+                          data_directory=data_directory, output_directory=output_directory)
 
     @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)
     @OPENAI_SERVER_CALLER.record_or_replay(output_directory / OPENAI_RESPONSES_FILENAME, should_mock=mock_servers)
