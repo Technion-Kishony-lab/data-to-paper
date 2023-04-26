@@ -68,8 +68,20 @@ class ConversationManager:
             if self.participants - self.conversation.participants:
                 self.add_participants(self.participants - self.conversation.participants)
 
+<<<<<<<
     def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                        ignore: bool = False, previous_code: Optional[str] = None):
+=======
+    def append_message(self, message: Message, comment: Optional[str] = None):
+>>>>>>>
+        """
+        Append a message to a specified conversation.
+        """
+        self._append_and_apply_action(AppendMessage(
+            conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
+
+    def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
+                                  ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
         """
         Append a message to a specified conversation.
         """
@@ -80,23 +92,32 @@ class ConversationManager:
         else:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
+<<<<<<<
                                  previous_code=previous_code)
         self._append_and_apply_action(AppendMessage(
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
+=======
+                                 is_code=is_code, previous_code=previous_code)
+        self.append_message(message, comment)
+>>>>>>>
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
         Append a system-message to a specified conversation.
         """
         tag = tag or 'system_prompt'
-        self.append_message(Role.SYSTEM, content, tag, comment)
+        self.create_and_append_message(Role.SYSTEM, content, tag, comment)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                             ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a user-message to a specified conversation.
         """
+<<<<<<<
         self.append_message(Role.USER, content, tag, comment, ignore, previous_code)
+=======
+        self.create_and_append_message(Role.USER, content, tag, comment, is_code, ignore, previous_code)
+>>>>>>>
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -105,14 +126,18 @@ class ConversationManager:
         Commenter messages are messages that are not sent to chatgpt,
         rather they are just used as comments to the chat.
         """
-        self.append_message(Role.COMMENTER, content, tag, comment)
+        self.create_and_append_message(Role.COMMENTER, content, tag, comment)
 
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                  ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
+<<<<<<<
         self.append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code)
+=======
+        self.create_and_append_message(Role.SURROGATE, content, tag, comment, ignore, is_code, previous_code)
+>>>>>>>
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
