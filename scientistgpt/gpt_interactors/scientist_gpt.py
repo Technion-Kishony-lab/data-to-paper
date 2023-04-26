@@ -261,7 +261,7 @@ class ScientistGPT(CodeWritingGPT):
             {}
             ```
             
-            {}Please choose one of the following options:
+            Please choose one of the following options:
 
             a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
@@ -273,8 +273,6 @@ class ScientistGPT(CodeWritingGPT):
             """).format(
                 self.get_output_filename(after_completion=True),
                 self.scientific_products.analysis_codes_and_outputs[-1].output,
-                'In scientific research, we often need to explore how our results change when we change key '
-                'parameters in the code.\n' if self.number_of_successful_code_revisions == 1 else '',
         )
 
         self.apply_append_user_message(
