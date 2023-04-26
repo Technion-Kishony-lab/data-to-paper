@@ -1,3 +1,4 @@
+# flake8: noqa
 import os
 
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER

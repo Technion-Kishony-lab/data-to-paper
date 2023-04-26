@@ -1,4 +1,5 @@
 import requests
+from unidecode import unidecode
 
 from scientistgpt.call_servers import ServerCaller
 
@@ -15,52 +16,57 @@ def create_bibtex(item):
     bibtex_template = '@{type}{{{id},\n{fields}}}\n'
 
     type_mapping = {
-        'article-journal': 'article',
-        'article': 'article',
-        'book': 'book',
-        'chapter': 'inbook',
+        'journal-article': 'article',
         'proceedings-article': 'inproceedings',
-        'paper-conference': 'inproceedings',
-        'posted-content': 'online',
-    }
-
-    field_mapping = {
-        'title': 'title',
-        'container-title': 'journal' if item['type'] in ['article-journal', 'article'] else 'booktitle',
-        'volume': 'volume',
-        'issue': 'number',
-        'page': 'pages',
-        'year': 'year',
-        'DOI': 'doi',
+        'book': 'book',
+        'edited-book': 'inbook',
+        'book-chapter': 'inbook',
     }
 
     bibtex_type = type_mapping.get(item['type'], 'misc')
 
-    if item['authors']:
-        bibtex_id = item['authors'][0].split(" ")[-1] + (str(item.get("year")) if item.get("year") else "")
-        # add also the first word of the title if it exists
-        bibtex_id += item['title'].split(" ")[0] if item.get("title") else ""
+    # create a mapping for article and inproceedings
+    if bibtex_type in ['article', 'inproceedings']:
+        field_mapping = {
+            'authors': 'author',
+            'title': 'title',
+            'journal': 'journal',
+            'year': 'year',
+            'volume': 'volume',
+            'issue': 'number',
+            'pages': 'pages',
+            'DOI': 'doi',
+        }
+    # create a mapping for book and inbook
     else:
-        # get the first 3 words of the title if they exist otherwise use the first two, otherwise use the first one
-        title_words = item['title'].split(" ")
-        if len(title_words) > 3:
-            bibtex_id = "".join(title_words[:3])
-        elif len(title_words) > 2:
-            bibtex_id = "".join(title_words[:2])
-        else:
-            bibtex_id = title_words[0]
-        # add the year if it exists
-        bibtex_id += str(item.get("year")) if item.get("year") else ""
+        field_mapping = {
+            'authors': 'author',
+            'editors': 'editor',
+            'title': 'title',
+            'publisher': 'publisher',
+            'year': 'year',
+            'volume': 'volume',
+            'issue': 'number',
+            'pages': 'pages',
+            'DOI': 'doi',
+            'ISBN': 'isbn',
+        }
 
     fields = []
     for key, value in item.items():
+        if value and value is not None:
+            if key not in ['doi', 'isbn']:
+                # remove special characters of the value
+                if isinstance(value, list):
+                    item[key] = [unidecode(v) for v in value]
+                elif isinstance(value, str):
+                    item[key] = unidecode(value)
         if key in field_mapping:
             bibtex_key = field_mapping[key]
             fields.append(f"{bibtex_key} = {{{value}}}")
 
-    if item['authors']:
-        author_list = ' and '.join(item['authors'])
-        fields.insert(0, f"author = {{{author_list}}}")
+    bibtex_id = item['authors'][0].split(" ")[-1] + (str(item.get("year")) if item.get("year") else "")
+    bibtex_id += item['title'].split(" ")[0] if item.get("title") else ""
 
     return bibtex_template.format(type=bibtex_type, id=bibtex_id, fields=',\n'.join(fields))
 
@@ -77,8 +83,9 @@ class CrossrefServerCaller(ServerCaller):
         params = {
             "query.bibliographic": query,
             "rows": rows,
-            "filter": "type:journal-article,type:book,type:posted-content,type:proceedings-article",
-            "select": "title,author,container-title,published-print,DOI,type,published",
+            "filter": "type:journal-article,type:proceedings-article,type:book,type:edited-book,type:book-chapter",
+            "select": "title,author,container-title,DOI,type,published,published-print,publisher,volume,issue,page,"
+                      "editor,ISBN",
         }
 
         response = requests.get(CROSSREF_URL, headers=HEADERS, params=params)
@@ -91,15 +98,41 @@ class CrossrefServerCaller(ServerCaller):
         citations = []
 
         for item in items:
+            if item.get("author", None) is None:
+                continue
+            # create authors as a string in the format
+            # "first_name1 last_name1 and first_name2 last_name2 and first_name3 last_name3"
+            authors_string = ""
+            for author in item["author"]:
+                if author != item["author"][-1]:
+                    authors_string += f"{author.get('given', '')} {author.get('family', '')} and "
+                else:
+                    authors_string += f"{author.get('given', '')} {author.get('family', '')}"
+
+            # if editors are present, add them to the same way as authors
+            editor_string = ""
+            if item.get("editor", None) is not None:
+                for editor in item["editor"]:
+                    if editor != item["editor"][-1]:
+                        editor_string += f"{editor.get('given', '')} {editor.get('family', '')} and "
+                    else:
+                        editor_string += f"{editor.get('given', '')} {editor.get('family', '')}"
+
             citation = {
                 "title": item["title"][0],
-                "authors": [f"{author.get('given', '')} {author.get('family', '')}".strip() for author in
-                            item.get("author", [])],
-                "year": item["published"]["date-parts"][0][0] if "published" in item else
-                item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
+
+                "authors": authors_string,
                 "journal": item.get("container-title", [None])[0],
                 "doi": item["DOI"],
-                "type": item["type"]
+                "type": item["type"],
+                "year": item["published"]["date-parts"][0][0] if "published" in item else
+                item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
+                "publisher": item.get("publisher"),
+                "volume": item.get("volume"),
+                "issue": item.get("issue"),
+                "page": item.get("page"),
+                "editors": editor_string if item.get("editor", None) is not None else None,
+                "isbn": item.get("ISBN")
             }
             bibtex_citation = create_bibtex(citation)
             citation["bibtex"] = bibtex_citation

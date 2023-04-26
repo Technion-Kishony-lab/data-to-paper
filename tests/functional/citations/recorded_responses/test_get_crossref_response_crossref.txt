@@ -1,0 +1,74 @@
+[
+    [
+        {
+            "authors": [
+                "Abel Kinyondo",
+                "Riccardo Pelizzo"
+            ],
+            "bibtex": "@article{Kinyondo2021How,\ntitle = {How COVID-19 has Affected Africa\u2019s Development},\nauthor = {['Abel Kinyondo', 'Riccardo Pelizzo']},\njournal = {World Affairs},\nyear = {2021},\nvolume = {184},\nnumber = {1}}\n",
+            "doi": "10.1177/0043820021989681",
+            "editors": [],
+            "isbn": null,
+            "issue": "1",
+            "journal": "World Affairs",
+            "page": "57-76",
+            "publisher": "SAGE Publications",
+            "title": "How COVID-19 has Affected Africa's Development",
+            "type": "journal-article",
+            "volume": "184",
+            "year": 2021
+        },
+        {
+            "authors": [
+                "Jennifer Dikler"
+            ],
+            "bibtex": "@article{Dikler2021COVID-19,\ntitle = {COVID-19 and the Exacerbation of Gender Inequality: How the Pandemic Disproportionately Affected Women Around the World},\nauthor = {['Jennifer Dikler']},\njournal = {SSRN Electronic Journal},\nyear = {2021},\nvolume = {None},\nnumber = {None}}\n",
+            "doi": "10.2139/ssrn.4030506",
+            "editors": [],
+            "isbn": null,
+            "issue": null,
+            "journal": "SSRN Electronic Journal",
+            "page": null,
+            "publisher": "Elsevier BV",
+            "title": "COVID-19 and the Exacerbation of Gender Inequality: How the Pandemic Disproportionately Affected Women Around the World",
+            "type": "journal-article",
+            "volume": null,
+            "year": 2021
+        },
+        {
+            "authors": [
+                "Najeeb Ullah"
+            ],
+            "bibtex": "@inbook{Ullah2020THE,\ntitle = {THE WORLD AFTER COVID -19},\nauthor = {['Najeeb Ullah']},\nyear = {2020},\npublisher = {Royal Book Publishing},\nvolume = {None},\nnumber = {None},\neditor = {[]}}\n",
+            "doi": "10.26524/royal.37.25",
+            "editors": [],
+            "isbn": null,
+            "issue": null,
+            "journal": "COVID-19 Pandemic update 2020",
+            "page": "248-253",
+            "publisher": "Royal Book Publishing",
+            "title": "THE WORLD AFTER COVID -19",
+            "type": "book-chapter",
+            "volume": null,
+            "year": 2020
+        },
+        {
+            "authors": [
+                "Werawatta a",
+                "Rangamini b"
+            ],
+            "bibtex": "@article{a2021HOW,\ntitle = {HOW SRI LANKAN FOOD EXPORTERS CAN CAPITALIZE COVID-19 AFFECTED WORLD ECONOMY},\nauthor = {['Werawatta a', 'Rangamini b']},\njournal = {International Journal of Advanced Research},\nyear = {2021},\nvolume = {9},\nnumber = {02}}\n",
+            "doi": "10.21474/ijar01/12468",
+            "editors": [],
+            "isbn": null,
+            "issue": "02",
+            "journal": "International Journal of Advanced Research",
+            "page": "453-454",
+            "publisher": "International Journal Of Advanced Research",
+            "title": "HOW SRI LANKAN FOOD EXPORTERS CAN CAPITALIZE COVID-19 AFFECTED WORLD ECONOMY",
+            "type": "journal-article",
+            "volume": "9",
+            "year": 2021
+        }
+    ]
+]

@@ -25,10 +25,14 @@ class TestPaperWritingGPT(PaperWritingGPT):
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_paper_writing_gpt(tmpdir):
-    paper_writing_gpt = TestPaperWritingGPT()
+    output_directory = os.path.join(tmpdir.strpath, 'output')
+    # create the output directory if it does not exist
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+    paper_writing_gpt = TestPaperWritingGPT(output_directory=output_directory)
 
     os.chdir(tmpdir)
-    paper_writing_gpt.write_paper()
+    paper_writing_gpt.write_paper(should_compile_with_bib=False)
     assert 'content of title' in paper_writing_gpt.latex_paper
-    assert os.path.exists(paper_writing_gpt.latex_filename)
-    assert os.path.exists(paper_writing_gpt.pdf_filename)
+    assert os.path.exists(os.path.join(output_directory, paper_writing_gpt.latex_filename))
+    assert os.path.exists(os.path.join(output_directory, paper_writing_gpt.pdf_filename))
