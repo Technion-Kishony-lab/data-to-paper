@@ -1,6 +1,6 @@
 import textwrap
 import re
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 
 import colorama
 
@@ -236,4 +236,3 @@ class NiceList(list):
 
     def __repr__(self):
         return str(self)
-

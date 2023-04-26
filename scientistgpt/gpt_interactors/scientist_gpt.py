@@ -14,7 +14,6 @@ from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCre
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
-from ..utils.text_utils import nicely_join
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -260,7 +259,7 @@ class ScientistGPT(CodeWritingGPT):
             ```
             {}
             ```
-            
+
             Please choose one of the following options:
 
             a. I am satisfied with the analysis and the results, I am ready to write a paper about them.

@@ -11,7 +11,6 @@ from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRun
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
-from scientistgpt.utils.text_utils import nicely_join
 
 
 @dataclass
