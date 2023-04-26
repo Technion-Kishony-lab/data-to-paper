@@ -1,7 +1,7 @@
 import re
 import os
 from dataclasses import dataclass
-from typing import Optional, NamedTuple
+from typing import Optional
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 
