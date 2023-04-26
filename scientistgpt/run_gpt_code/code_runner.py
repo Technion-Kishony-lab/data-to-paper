@@ -1,7 +1,7 @@
 import re
 import os
 from dataclasses import dataclass
-from typing import Optional, NamedTuple
+from typing import Optional
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 
@@ -11,7 +11,13 @@ from .exceptions import FailedExtractingCode, FailedLoadingOutput
 CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
 
 
-CodeAndOutput = NamedTuple('CodeAndOutput', [('code', str), ('output', str)])
+@dataclass
+class CodeAndOutput:
+    code: str
+    output: str
+    output_file: Optional[str] = None
+    code_name: str = None
+    explanation: Optional[str] = None
 
 
 LINES_ADDED_BY_MODIFYING_CODE = 0
@@ -82,4 +88,4 @@ class CodeRunner:
         run_code_using_module_reload(code, self.script_file,
                                      allowed_read_files=self.allowed_read_files,
                                      allowed_write_files=None if self.output_file is None else [self.output_file])
-        return CodeAndOutput(code, self.read_output_file())
+        return CodeAndOutput(code=code, output=self.read_output_file(), output_file=self.output_file)

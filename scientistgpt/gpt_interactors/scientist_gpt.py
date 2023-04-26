@@ -14,7 +14,6 @@ from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCre
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
-from ..utils.text_utils import concat_words_with_commas_and_and
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -160,13 +159,13 @@ class ScientistGPT(CodeWritingGPT):
             user_prompt = dedent_triple_quote_str("""
                 Write a complete short Python code to perform the analysis you suggested.
                 If needed, you can use the following packages in your code: {}.
-                The output of your code should be a text file named `{}`.
-                The results should be in a summarized form, do not plot anything to screen or file.
-                """).format(concat_words_with_commas_and_and(SUPPORTED_PACKAGES, '`'), self.get_output_filename())
+                The output of your code should be a text file named "{}".
+                Do not plot anything to screen or other files.
+                """).format(SUPPORTED_PACKAGES, self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
                 Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.
-                The output of your new code should be a text file named `{}`.
+                The output of your new code should be a text file named "{}".
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
                 """).format(self.get_output_filename())
@@ -199,12 +198,15 @@ class ScientistGPT(CodeWritingGPT):
             self.comment(f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
+            code_from_previous_revision = self.scientific_products.analysis_codes_and_outputs[-1].code \
+                if code_revision > 0 else None
             code_and_output = DebuggerGPT(
                 output_filename=self.get_output_filename(),
                 data_file_descriptions=self.data_file_descriptions,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 conversation_name=self.conversation.conversation_name,
-                gpt_script_filename=f"{self.gpt_script_filename}_revision{code_revision}_attempt{attempt}"
+                gpt_script_filename=f"{self.gpt_script_filename}_revision{code_revision}_attempt{attempt}",
+                previous_code=code_from_previous_revision,
             ).run_debugging()
 
             if code_and_output is None:
@@ -217,26 +219,33 @@ class ScientistGPT(CodeWritingGPT):
                     comment='Deleting all debugging correspondence.')
                 assert self.conversation[-1].tag == self._request_code_tag
 
+                code_and_output.code_name = 'revision {code_revision}'
                 self.apply_append_surrogate_message(
                     content=dedent_triple_quote_str("""
-                    Here is the code to perform the analysis:
+                    Here is the {}. It saves results to the file "{}".
                     ```python
                     {}
                     ```
-                    """).format(code_and_output.code),
+                    """).format(
+                        'code to perform the analysis' if code_revision == 0
+                        else f'revised code ({code_and_output.code_name})',
+                        self.get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
                     is_code=True,
+                    previous_code=code_from_previous_revision,
                 )
                 # the conversation is now at a point as if chatgpt immediately sent the correct code in response to
                 # the request for code. However, the code is now given without any explanation.
                 # We therefore ask chatgpt to explain the code:
 
-                self.apply_append_user_message(
+                code_and_output.explanation = self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
-                    Please explain what your code does (Do not make new comments in the code itself, 
-                    just explain what the code does).
+                    Please explain what your code does. Do not provide a line-by-line explanation, rather provide a
+                    high-level explanation of the code in a language suitable for a Methods section of a research
+                    paper.
 
-                    Also explain what does the code writes into the {} file, and what do we expect to see in that file.
+                    Also explain what does the code writes into the {} file, and how we would be the scientific
+                    implications of the results written into that file.
                     """).format(self.get_output_filename()),
                 )
                 self.apply_get_and_append_assistant_message()
@@ -255,13 +264,15 @@ class ScientistGPT(CodeWritingGPT):
 
             a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
-            b. I need to adjust some parameters in the code, or make some other modifications, and then look at 
-                the new results again before I can say whether they are interesting enough for a paper.
+            b. I need to adjust some key parameters in the code and then look at 
+                the new results before I can say whether the results are suitable for a research paper.
 
             Answer with just the number of the option you choose (only type a single character: "a" or "b").
             Under any circumstances, answer with just one character matching the option you choose, nothing else.            
-            """).format(self.get_output_filename(after_completion=True),
-                        self.scientific_products.analysis_codes_and_outputs[-1].output)
+            """).format(
+                self.get_output_filename(after_completion=True),
+                self.scientific_products.analysis_codes_and_outputs[-1].output,
+        )
 
         self.apply_append_user_message(
             content=user_prompt,

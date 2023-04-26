@@ -157,8 +157,8 @@ class CitationGPT(ConverserGPT):
         For example, write: 
         `["AuthorX2022", "AuthorY2009"]`
         where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
-        You can choose one or more citations, or you can choose adding citations to this sentence by replying with `[]`.
         Choose only citations that are highly relevant to the sentence.
+        You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
         """).format(sentence,
                     '\n'.join(
                         [f"id: '{citation_id}', title: '{citation_title}'" for citation_id, citation_title in

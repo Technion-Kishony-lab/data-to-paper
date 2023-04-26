@@ -38,7 +38,7 @@ class DebuggerGPT(CodeWritingGPT):
     debug_iteration = 0
     initiation_tag: Optional[str] = None
 
-    _previous_code: Optional[str] = None
+    previous_code: Optional[str] = None
 
     @property
     def iteration_str(self):
@@ -68,7 +68,7 @@ class DebuggerGPT(CodeWritingGPT):
             {}
             ```
             Please rewrite the code using only these packages: {}. 
-            """).format(error_message, ', '.join(SUPPORTED_PACKAGES)),
+            """).format(error_message, SUPPORTED_PACKAGES),
             comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
     def _respond_to_file_not_found(self, error_message: str):
@@ -78,15 +78,10 @@ class DebuggerGPT(CodeWritingGPT):
             ```
             {}
             ```
-            Please note that we only have the file{} noted in the data description. Namely:
+            As noted in the data description, we only have {}.  
 
-            {}
-
-            {} located in the same directory as the code. 
-            """).format(error_message,
-                        's' if len(self.data_files) > 1 else '',
-                        ', '.join(self.data_files),
-                        'All of these files are' if len(self.data_files) > 1 else 'This file is'),
+            Files are located in the same directory as the code. 
+            """).format(error_message, self.data_files),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _respond_to_error_message(self, error_message: str, is_warning: bool = False):
@@ -130,7 +125,8 @@ class DebuggerGPT(CodeWritingGPT):
             tag = 'no_code'
         elif number_of_code_edges % 2 == 1:
             response = dedent_triple_quote_str("""
-            Your code is incomplete. Please try again with a shorter code.
+            Your code is incomplete. Please try again with a shorter code. Remove comments to help condense the code
+            into a single code block.
             """)
             tag = 'incomplete_code'
         else:
@@ -182,8 +178,8 @@ class DebuggerGPT(CodeWritingGPT):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
-            Please rewrite the complete code again, making sure it only reads from the files: {}. 
-            """).format(file, ', '.join(self.data_files)),
+            Please rewrite the complete code again, noting that we only have {}. 
+            """).format(file, self.data_files),
             comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_empty_output(self):
@@ -207,7 +203,7 @@ class DebuggerGPT(CodeWritingGPT):
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
-        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self._previous_code)
+        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code)
         failed_extracting_code = False
         code_runner = self._get_code_runner(response)
         try:
@@ -218,7 +214,7 @@ class DebuggerGPT(CodeWritingGPT):
             self._respond_to_missing_or_incomplete_code(e.number_of_code_edges)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
-            self._previous_code = code_runner.extract_code()
+            self.previous_code = code_runner.extract_code()
             try:
                 raise e.exception
             except ImportError:

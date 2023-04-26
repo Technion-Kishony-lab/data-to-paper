@@ -151,10 +151,11 @@ class AppendMessage(Action):
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
         """
+        message_index = self._get_message_index()
         index = self._get_index_of_tag()
         if index is not None:
             del self.conversation[index:]
-        assert len(self.conversation) == self._get_message_index()
+        assert len(self.conversation) == message_index
         self.conversation.append(self.message)
 
 
@@ -207,9 +208,8 @@ class RegenerateLastResponse(AppendChatgptResponse):
     def _pretty_attrs(self) -> str:
         return ' '  # not empty, to invoke printing the comment line in pretty_repr()
 
-    def apply(self):
-        self.conversation.delete_last_response()
-        super().apply()
+    def _get_index_of_tag(self) -> Optional[int]:
+        return len(self.conversation) - 1
 
 
 @dataclass(frozen=True)
