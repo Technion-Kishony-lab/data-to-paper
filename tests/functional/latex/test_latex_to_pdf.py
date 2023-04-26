@@ -31,6 +31,24 @@ Hello World! \cite{cite1} \cite{cite2}
 '''
 
 
+@fixture()
+def latex_content_with_unescaped_characters():
+    return r'''
+\documentclass{article}
+\begin{document}
+Hello World!
+forgot to escape this underline: _
+forgot to escape this hash: #
+forgot to escape this percent: %
+forgot to escape this ampersand: &
+forgot to escape this tilde: ~
+forgot to escape this caret: ^
+also some math to test: $x^2$
+math with two dollar signs: $$x^2$$
+\end{document}
+'''
+
+
 def create_citations_file(path_to_citations_file):
     citations_file = Path(os.path.join(path_to_citations_file, 'citations.bib'))
     with open(citations_file, 'w') as f:
@@ -86,5 +104,20 @@ def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations):
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
     assert os.path.exists(os.path.join(tmpdir.strpath, 'citations.bib'))
+    assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
+    assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.log'))
+
+
+def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_characters):
+    output_directory = str(TEMP_FOLDER_FOR_LATEX_COMPILE)
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+    file_name = 'test'
+    create_citations_file(output_directory)
+    save_latex_and_compile_to_pdf(latex_content_with_unescaped_characters, file_name, tmpdir.strpath,
+                                  should_compile_with_bib=False)
+
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.log'))
