@@ -222,9 +222,13 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     sentence_to_add_at_the_end_of_reviewee_response: str = ""
 
     def _format_prompt(self, prompt):
-        return dedent_triple_quote_str(prompt.format(
-            reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
-            goal_noun=self.goal_noun, goal_verb=self.goal_verb))
+        while True:
+            old_prompt = prompt
+            prompt = dedent_triple_quote_str(prompt.format(
+                reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
+                goal_noun=self.goal_noun, goal_verb=self.goal_verb))
+            if prompt == old_prompt:
+                return prompt
 
     @property
     def actual_system_prompt(self):
@@ -264,12 +268,15 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """
         pass
 
+    def _get_user_initiation_prompt(self):
+        return self._format_prompt(self.user_initiation_prompt)
+
     def _pre_populate_conversations(self):
         """
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.apply_append_user_message(self._format_prompt(self.user_initiation_prompt))
+        self.apply_append_user_message(self._get_user_initiation_prompt())
 
     def initialize_dialog(self):
         self.initialize_conversation_if_needed()
