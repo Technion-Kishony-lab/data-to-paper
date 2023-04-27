@@ -14,7 +14,7 @@ def test_paper_author_gpt(tmpdir):
     # pre_paper_conversation population
     scientific_products = ScientificProducts(
         data_description='The data is ...',
-        goal_description='The goal is ...',
+        research_goal='The goal is ...',
         analysis_plan='1. Load the files\n2. Clean the data\n3. Analyze the data',
         analysis_codes_and_outputs=[CodeAndOutput(
             """python

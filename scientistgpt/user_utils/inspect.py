@@ -19,7 +19,7 @@ CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
 
 
 def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
-                      goal_description: str,
+                      research_goal: str,
                       data_directory: str, output_directory: str,
                       mock_servers: bool = False):
     """
@@ -37,7 +37,7 @@ def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
     else:
         os.makedirs(output_directory)
 
-    runner = ScientistGPT(data_file_descriptions=data_file_descriptions, goal_description=goal_description,
+    runner = ScientistGPT(data_file_descriptions=data_file_descriptions, research_goal=research_goal,
                           data_directory=data_directory, output_directory=output_directory)
 
     @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)

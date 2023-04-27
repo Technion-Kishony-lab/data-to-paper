@@ -50,7 +50,7 @@ class ScientificProducts:
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
-    goal_description: Optional[str] = None
+    research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     analysis_codes_and_outputs: List[CodeAndOutput] = field(default_factory=list)
     result_summary: Optional[str] = None

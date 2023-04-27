@@ -23,7 +23,7 @@ data_file_descriptions: List[DataFileDescription] = [
             #6 Effect - the side effect that was reported by the medical staff""")),
 ]
 
-goal_description = """
+research_goal = """
 The primary objective of this research is to explore the differences in side effects among doses, as indicated by the portion numbers. The research questions to address include:
 Are there differences in the frequency and severity of side effects across different portion numbers? This will help determine if certain treatment groups or doses exhibit a higher likelihood of specific side effects compared to others.
 Are there unique side effects associated with specific portion numbers? Identifying side effects that are unique to a particular treatment group or dose can provide insights into potential differences in their mechanisms of action or safety profiles.

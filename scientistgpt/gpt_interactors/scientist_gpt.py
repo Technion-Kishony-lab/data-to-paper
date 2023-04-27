@@ -50,7 +50,7 @@ class ScientistGPT(CodeWritingGPT):
 
     data_file_descriptions: a comprehensive description of the data files available for the project.
 
-    goal_description: a description of the goal of the analysis.
+    research_goal: a description of the goal of the analysis.
 
     ScientistGPT will interact with chatgpt to:
     1. Create analysis plan.
@@ -75,7 +75,7 @@ class ScientistGPT(CodeWritingGPT):
     list_of_data_files: Optional[List[str]] = None,
     assistant_agent: Agent = Agent.Student
     user_agent: Agent = Agent.Mentor
-    goal_description: Optional[str] = None,
+    research_goal: Optional[str] = None,
     output_directory: Optional[Union[str, Path]] = None,
     data_directory: Optional[Union[str, Path]] = None,
 
@@ -106,15 +106,15 @@ class ScientistGPT(CodeWritingGPT):
         user_prompt = dedent_triple_quote_str("""
             DESCRIPTION OF OUR RESEARCH GOAL.
             {}
-            """).format(self.goal_description)
-        self.apply_append_user_message(user_prompt, tag='goal_description')
+            """).format(self.research_goal)
+        self.apply_append_user_message(user_prompt, tag='research_goal')
 
         assistant_response = dedent_triple_quote_str("""
             Thank you for the goal description.
         """)
-        self.apply_append_surrogate_message(assistant_response, tag='ok_goal_description')
+        self.apply_append_surrogate_message(assistant_response, tag='ok_research_goal')
         # add the goal description to the scientific products
-        self.scientific_products.goal_description = self.goal_description
+        self.scientific_products.research_goal = self.research_goal
 
     def devise_analysis_plan(self):
         user_prompt = dedent_triple_quote_str("""
