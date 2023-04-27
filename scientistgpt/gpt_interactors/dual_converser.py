@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 from scientistgpt.conversation import Role, ConversationManager
 
@@ -222,8 +222,8 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     of improvements and feedback.
 
     When you feel that the goal has been achieved, respond explicitly with: "{termination_phrase}" (termination-phase).
-    If you feel that the initial {goal_noun} is already good enough, it is perfectly fine to respond with the \
-    termination-phrase right at the beginning.
+    If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged to respond \
+    with the termination-phrase immediately, without requesting any improvement cycles.
     """
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
@@ -262,20 +262,6 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     def _alter_self_response(self, response: str) -> str:
         return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewee_response)
 
-    def apply_to_both_append_user_message(
-            self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-            is_code: bool = False, previous_code: Optional[str] = None):
-        self.apply_append_user_message(content, tag, comment, is_code, previous_code)
-        if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_user_message(content, tag, comment, is_code, previous_code)
-
-    def apply_to_both_append_surrogate_message(
-            self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-            is_code: bool = False, previous_code: Optional[str] = None):
-        self.apply_append_surrogate_message(content, tag, comment, is_code, previous_code)
-        if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_surrogate_message(content, tag, comment, is_code, previous_code)
-
     def _pre_populate_background(self):
         """
         Add background messages to the two conversations to set them ready for the cycle.
@@ -311,20 +297,24 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     The reviewee is expected to return the goal as a triple-quoted string, so that it can be extracted.
     """
 
-    flanking_tags: Tuple[str, str] = ('"""', '"""')
-    flanking_name: str = 'triple-quoted string'
-    quote_request: str = 'Please return the {goal_noun} as a {flanking_name}.'
+    flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''"), ('`', '`'), ('"', '"'), ("'", "'")]
+    quote_request = 'Please return the {goal_noun} enclosed within triple-backticks.'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
-    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun} \
-    (as a {flanking_name}).
+    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+    {quote_request}.
     """
 
     def _formatting_dict(self):
-        return {**super()._formatting_dict(), **dict(flanking_name=self.flanking_name)}
+        return {**super()._formatting_dict(), 'quote_request': self.quote_request}
 
     def _extract_goal_from_response(self, response: str) -> str:
-        return extract_text_between_tags(response, *self.flanking_tags)
+        for flanking_tags in self.flanking_tag_list:
+            try:
+                return extract_text_between_tags(response, *flanking_tags)
+            except ValueError:
+                pass
+        raise ValueError(f'Could not find the {self.goal_noun} in the response.')
 
     def _get_user_initiation_prompt(self):
         s = super()._get_user_initiation_prompt()
@@ -335,7 +325,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         try:
             self._extract_goal_from_response(response)
         except ValueError:
-            return self._format_prompt('Please make sure to return the {goal_noun} as a triple-quoted string.')
+            return self._format_prompt(self.sentence_to_add_at_the_end_of_reviewee_response)
         return None
 
     def initialize_and_run_dialog(self):
