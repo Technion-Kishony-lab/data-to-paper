@@ -17,11 +17,14 @@ def highlight_python_code(code_str: str):
     return highlight(code_str, PythonLexer(), python_formatter)
 
 
-def dedent_triple_quote_str(s: str):
+def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
     """
     Format a triple-quote string to remove extra indentation and leading newline.
     """
-    return textwrap.dedent(s).lstrip()
+    s = textwrap.dedent(s).lstrip()
+    if remove_repeated_spaces:
+        s = re.sub(r' +', ' ', s)
+    return s
 
 
 def wrap_string(input_string, width=40, indent=0):

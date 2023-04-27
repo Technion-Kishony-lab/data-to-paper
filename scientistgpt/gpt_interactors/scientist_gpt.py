@@ -207,11 +207,11 @@ class ScientistGPT:
 
                 code_and_output.explanation = self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
-                    Please explain what your code does. Do not provide a line-by-line explanation, rather provide a
-                    high-level explanation of the code in a language suitable for a Methods section of a research
+                    Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+                    high-level explanation of the code in a language suitable for a Methods section of a research \
                     paper.
 
-                    Also explain what does the code writes into the {} file, and how we would be the scientific
+                    Also explain what does the code writes into the {} file, and how we would be the scientific \
                     implications of the results written into that file.
                     """).format(self.get_output_filename()),
                 )
@@ -231,8 +231,8 @@ class ScientistGPT:
 
             a. I am satisfied with the analysis and the results, I am ready to write a paper about them.
 
-            b. I need to adjust some key parameters in the code and then look at 
-                the new results before I can say whether the results are suitable for a research paper.
+            b. I need to adjust some key parameters in the code and then look at \
+            the new results before I can say whether the results are suitable for a research paper.
 
             Answer with just the number of the option you choose (only type a single character: "a" or "b").
             Under any circumstances, answer with just one character matching the option you choose, nothing else.            
