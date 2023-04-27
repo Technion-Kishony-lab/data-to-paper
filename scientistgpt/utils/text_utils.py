@@ -81,7 +81,11 @@ def format_text_with_code_blocks(text: str, text_color: str, block_color: str, w
                     highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
                 s += highlighted_code
             else:
+<<<<<<<
                 s += block_color + section + colorama.Style.RESET_ALL
+=======
+                s += code_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL
+>>>>>>>
         in_text_block = not in_text_block
     return s
 

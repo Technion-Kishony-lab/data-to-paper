@@ -80,9 +80,9 @@ class Message:
             text_color = block_color = reset_color = ''
 
         if role == Role.SYSTEM:
-            role_agent_conversation_tag = f'{role.name} casting {agent_text} for {conversation_name}'
+            role_agent_conversation_tag = f'{role.name} casting {agent_text} for {conversation_name} '
         else:
-            role_agent_conversation_tag = f'{role.name}{agent_text} -> {conversation_name}{tag_text}'
+            role_agent_conversation_tag = f'{role.name}{agent_text} -> {conversation_name}{tag_text} '
 
         if role == Role.COMMENTER:
             return text_color + num_text + role_agent_conversation_tag + ': ' + content + reset_color
