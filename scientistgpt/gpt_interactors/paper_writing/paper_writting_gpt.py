@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from scientistgpt.gpt_interactors.scientific_products import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
+from scientistgpt.gpt_interactors.types import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.text_utils import nicely_join

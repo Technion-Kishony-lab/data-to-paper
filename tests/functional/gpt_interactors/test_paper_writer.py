@@ -3,7 +3,7 @@ import os
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
-from scientistgpt.gpt_interactors.scientific_products import ScientificProducts
+from scientistgpt.gpt_interactors.types import ScientificProducts
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 
 
