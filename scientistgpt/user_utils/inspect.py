@@ -8,8 +8,8 @@ from typing import List
 from scientistgpt import Conversation, ScientistGPT
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.actions_and_conversations import save_actions_to_file
-from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
+from scientistgpt.gpt_interactors.types import DataFileDescriptions
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 
@@ -18,7 +18,7 @@ OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
 CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
 
 
-def run_scientist_gpt(data_file_descriptions: List[DataFileDescription],
+def run_scientist_gpt(data_file_descriptions: DataFileDescriptions,
                       research_goal: str,
                       data_directory: str, output_directory: str,
                       mock_servers: bool = False):

@@ -8,11 +8,9 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.exceptions import ScientistGPTException
 from scientistgpt.cast import Agent
 
-from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
 from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCreatingPaper
 from .types import ScientificProducts
-from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
 
 # structure and terminology:
@@ -41,7 +39,7 @@ class FailedStepException(ScientistGPTException):
 
 
 @dataclass
-class ScientistGPT(CodeWritingGPT):
+class ScientistGPT:
     """
     Acts as a mentor to a scientist-gpt.
     Create a conversation with chatgpt guiding it through a structured scientific research and analysis of data.
@@ -81,26 +79,6 @@ class ScientistGPT(CodeWritingGPT):
 
     scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
 
-    def add_data_description(self):
-        num_files = len(self.data_file_descriptions)
-        user_prompt = "DESCRIPTION OF OUR DATASET.\n\n"
-        if num_files == 1:
-            user_prompt += "All the data is organized in just one data file:\n\n"
-            user_prompt += self.data_file_descriptions[0].pretty_repr()
-        else:
-            user_prompt += f"We have the following {num_files} data files:\n"
-            for file_number, data_file_description in enumerate(self.data_file_descriptions):
-                user_prompt += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
-
-        self.apply_append_user_message(user_prompt, tag='data_description')
-
-        assistant_response = dedent_triple_quote_str("""
-            Thank you for the description of the dataset.
-            Please also specify the data analysis goal.
-            """)
-        self.apply_append_surrogate_message(assistant_response)
-        # add the data description to the scientific products
-        self.scientific_products.data_description = user_prompt
 
     def add_goal_description(self):
         user_prompt = dedent_triple_quote_str("""

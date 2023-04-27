@@ -3,8 +3,7 @@ from typing import Optional, List
 
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import GeneralMessageDesignation
-from scientistgpt.data_file_description import DataFileDescription
-from scientistgpt.utils.text_utils import print_red, NiceList
+from scientistgpt.utils.text_utils import print_red
 
 from scientistgpt.cast import Agent
 
