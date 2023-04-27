@@ -84,7 +84,7 @@ class GoalReviewGPT(BaseScientificReviewGPT):
 @dataclass
 class PlanReviewGPT(BaseScientificReviewGPT):
     background_product_fields = ['data_file_descriptions', 'research_goal']
-    conversation_name: str = 'research_plan'
+    conversation_name: str = 'analysis_plan'
     other_conversation_name: str = 'research_plan_reviewer'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
