@@ -74,24 +74,3 @@ class ConverserGPT:
         return self.conversation_manager.append_surrogate_message(content, tag=tag, comment=comment,
                                                                   previous_code=previous_code)
 
-
-@dataclass
-class CodeWritingGPT(ConverserGPT):
-    """
-    Interact with chatgpt to write a code that needs to create an output file.
-    """
-
-    output_filename: str = 'results.txt'
-    "The name of the file that gpt code is instructed to save the results to."
-
-    gpt_script_filename: str = 'gpt_code'
-    "The base name of the pythin file in which the code written by gpt is saved."
-
-    data_file_descriptions: List[DataFileDescription] = field(default_factory=list)
-    "A list of data file descriptions that are used by the code."
-
-    @property
-    def data_files(self) -> List[str]:
-        return NiceList([d.file_path for d in self.data_file_descriptions],
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')

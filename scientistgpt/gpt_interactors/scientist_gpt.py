@@ -11,7 +11,7 @@ from scientistgpt.cast import Agent
 from .converser_gpt import CodeWritingGPT
 from .debugger_gpt import DebuggerGPT
 from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCreatingPaper
-from .scientific_products import ScientificProducts
+from .types import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
 
@@ -171,17 +171,7 @@ class ScientistGPT(CodeWritingGPT):
                 """).format(self.get_output_filename())
         self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
-    @property
-    def number_of_successful_code_revisions(self):
-        return len(self.scientific_products.analysis_codes_and_outputs)
 
-    def get_output_filename(self, after_completion: bool = False, revision_number: Optional[int] = None):
-        revision_number = self.number_of_successful_code_revisions if revision_number is None else revision_number
-        if after_completion:
-            revision_number -= 1
-        if revision_number == 0:
-            return self.output_filename
-        return self.output_filename.replace('.', f'_revision_{revision_number}.')
 
     def create_and_debug_analysis_code_for_current_revision(self) -> bool:
         """
