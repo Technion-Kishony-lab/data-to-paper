@@ -1,8 +1,0 @@
-START>>>>>
-"""
-    1. Load the files
-    2. Clean the data
-    3. Analyze the data
-    """
-<<<<<END
-
