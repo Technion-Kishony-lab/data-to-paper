@@ -207,11 +207,12 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     other_system_prompt: str = """
     You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
-    Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles
+    Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
     of improvements and feedback.
 
-    When you feel that the goal has been achieved and you cannot advise of additional improvements, then
-    respond explicitly with: "{termination_phrase}".
+    When you feel that the goal has been achieved, respond explicitly with: "{termination_phrase}".
+    It is perfectly fine to say "{termination_phrase}" right at the beginning, if you feel that the \
+    initial {goal_noun} is already good enough.
     """
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
