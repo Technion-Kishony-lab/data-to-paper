@@ -62,18 +62,3 @@ class TextExtractorGPT(ConverserGPT):
             if text.count(quote) != 0:
                 raise ValueError(f'Expected exactly two triple-quoted strings.')
         raise ValueError(f'Did not find any triple-quoted strings.')
-
-
-def extract_analysis_plan_from_response(response: str, max_number_of_attempts: int = 3,
-                                        conversation_name: str = 'extract_analysis_plan') -> str:
-    """
-    Extract the analysis plan from a response.
-    """
-    return TextExtractorGPT(
-        assistant_agent=Agent.Secretary,
-        user_agent=Agent.Student,
-        text=response,
-        description_of_text_to_extract='analysis plan',
-        max_number_of_attempts=max_number_of_attempts,
-        conversation_name=conversation_name,
-    ).extract_text(rewind_conversation=True)
