@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, Tuple
 
 from scientistgpt.conversation import Role, ConversationManager
 
 from .converser_gpt import ConverserGPT
-from .. import Message
 from ..conversation.message_designation import GeneralMessageDesignation
-from ..utils.text_utils import dedent_triple_quote_str
+from ..utils.text_utils import dedent_triple_quote_str, extract_text_between_tags
 
 
 @dataclass
@@ -150,16 +149,28 @@ class DialogDualConverserGPT(DualConverserGPT):
             if response is not None:
                 return response
 
+    def _check_self_response(self, response: str) -> Optional[str]:
+        """
+        Check the response from self. If the response is not allowed, return a description of the problem.
+        Otherwise return None.
+        """
+        return None
+
     def run_one_cycle(self, append_termination_response_to_self: bool = True) -> Optional[str]:
         """
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
         """
 
-        # to allow starting either before or after the first self response:
-        if self.conversation[-1].role is Role.USER:
-            self_response = self.apply_get_and_append_assistant_message()
-        else:
-            self_response = self.conversation.get_last_response()
+        while True:  # TODO: add a max number of tries
+            # to allow starting either before or after the first self response:
+            if self.conversation[-1].role is Role.USER:
+                self_response = self.apply_get_and_append_assistant_message()
+            else:
+                self_response = self.conversation.get_last_response()
+            problem_in_response = self._check_self_response(self_response)
+            if problem_in_response is None:
+                break
+            self.apply_append_user_message(problem_in_response, tag='error')
 
         if self.round_num >= self.max_rounds:
             return self_response
@@ -210,9 +221,9 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
     of improvements and feedback.
 
-    When you feel that the goal has been achieved, respond explicitly with: "{termination_phrase}".
-    It is perfectly fine to say "{termination_phrase}" right at the beginning, if you feel that the \
-    initial {goal_noun} is already good enough.
+    When you feel that the goal has been achieved, respond explicitly with: "{termination_phrase}" (termination-phase).
+    If you feel that the initial {goal_noun} is already good enough, it is perfectly fine to respond with the \
+    termination-phrase right at the beginning.
     """
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
@@ -222,12 +233,14 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     sentence_to_add_at_the_end_of_reviewee_response: str = ""
 
+    def _formatting_dict(self):
+        return dict(reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
+                    goal_noun=self.goal_noun, goal_verb=self.goal_verb)
+
     def _format_prompt(self, prompt):
         while True:
             old_prompt = prompt
-            prompt = dedent_triple_quote_str(prompt.format(
-                reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
-                goal_noun=self.goal_noun, goal_verb=self.goal_verb))
+            prompt = dedent_triple_quote_str(prompt.format(**self._formatting_dict()))
             if prompt == old_prompt:
                 return prompt
 
@@ -285,6 +298,46 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             self.initialize_other_conversation_if_needed()
         self._pre_populate_conversations()
 
-    def initialize_and_run_dialog(self):
+    def initialize_and_run_dialog(self) -> str:
         self.initialize_dialog()
         return self.run_dialog()
+
+
+@dataclass
+class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
+    """
+    A base class for agents running a dialog between two chatgpts, where one is a "reviwee" who needs to perform a task
+    towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
+    The reviewee is expected to return the goal as a triple-quoted string, so that it can be extracted.
+    """
+
+    flanking_tags: Tuple[str, str] = ('"""', '"""')
+    flanking_name: str = 'triple-quoted string'
+    quote_request: str = 'Please return the {goal_noun} as a {flanking_name}.'
+
+    sentence_to_add_at_the_end_of_reviewer_response: str = """
+    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun} \
+    (as a {flanking_name}).
+    """
+
+    def _formatting_dict(self):
+        return {**super()._formatting_dict(), **dict(flanking_name=self.flanking_name)}
+
+    def _extract_goal_from_response(self, response: str) -> str:
+        return extract_text_between_tags(response, *self.flanking_tags)
+
+    def _get_user_initiation_prompt(self):
+        s = super()._get_user_initiation_prompt()
+        s += self._format_prompt('\n\n' + self.quote_request)
+        return s
+
+    def _check_self_response(self, response: str) -> Optional[str]:
+        try:
+            self._extract_goal_from_response(response)
+        except ValueError:
+            return self._format_prompt('Please make sure to return the {goal_noun} as a triple-quoted string.')
+        return None
+
+    def initialize_and_run_dialog(self):
+        response = super().initialize_and_run_dialog()
+        return self._extract_goal_from_response(response)
