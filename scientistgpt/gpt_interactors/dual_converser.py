@@ -19,11 +19,14 @@ class DualConverserGPT(ConverserGPT):
 
     other_conversation_name: str = 'other'
 
+    suppress_printing_other_conversation: bool = False
+
     def __post_init__(self):
         super().__post_init__()
         self.other_conversation_manager = ConversationManager(
             conversation_name=self.other_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
+            should_print=not self.suppress_printing_other_conversation,
         )
 
     @property
@@ -216,6 +219,8 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
     """
 
+    sentence_to_add_at_the_end_of_reviewee_response: str = ""
+
     def _format_prompt(self, prompt):
         return dedent_triple_quote_str(prompt.format(
             reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
@@ -231,10 +236,13 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     @property
     def are_we_reviewing_at_all(self) -> bool:
-        return self.round_num > 0
+        return self.max_rounds > 0
 
     def _alter_other_response(self, response: str) -> str:
         return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewer_response)
+
+    def _alter_self_response(self, response: str) -> str:
+        return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewee_response)
 
     def apply_to_both_append_user_message(
             self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
@@ -263,15 +271,12 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         self._pre_populate_background()
         self.apply_append_user_message(self._format_prompt(self.user_initiation_prompt))
 
-    def initialize_dialog(self, suppress_printing_of_other: bool = True):
+    def initialize_dialog(self):
         self.initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
-            # Disable printing of the other_conversation because one is the same of the other (except for role reversal)
-            if suppress_printing_of_other:
-                self.other_conversation_manager.should_print = False
         self._pre_populate_conversations()
 
-    def initialize_and_run_dialog(self, suppress_printing_of_other: bool = True):
-        self.initialize_dialog(suppress_printing_of_other)
+    def initialize_and_run_dialog(self):
+        self.initialize_dialog()
         return self.run_dialog()
