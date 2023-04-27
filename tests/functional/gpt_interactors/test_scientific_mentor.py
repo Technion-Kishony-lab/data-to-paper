@@ -18,5 +18,5 @@ def test_scientific_mentor():
                 file_path='data.csv',
                 description='a csv file with columns "gender" (F/M) and "height" (in cm) representing '
                             'the height of a person.')],
-        goal_description='I am interested whether there is a significant height difference between females and males')
+        research_goal='I am interested whether there is a significant height difference between females and males')
     runner.run_all()

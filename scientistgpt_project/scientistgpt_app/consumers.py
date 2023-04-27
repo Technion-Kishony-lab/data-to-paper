@@ -47,7 +47,7 @@ class ScientistGPTConsumer(WebsocketConsumer):
 
             # Update self.scientist_gpt with the new data_description and goal_description
             self.scientist_gpt.data_description = data_description
-            self.scientist_gpt.goal_description = goal_description
+            self.scientist_gpt.research_goal = goal_description
 
             self.experiment_id = self.scope['url_route']['kwargs']['experiment_id']
 
