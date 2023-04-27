@@ -17,51 +17,71 @@ MAX_CODE_WRITING_ATTEMPTS = 3
 MAX_DEBUG_ITERATIONS_PER_ATTEMPT = 12
 MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 
+
 @dataclass
 class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
     conversation_name: str = 'code_debugging'
     assistant_agent: Agent = Agent.Debugger
     user_agent: Agent = Agent.Student
+    revision_round: int = 0
+
+    def get_output_filename(self):
+        if self.revision_round == 0:
+            return self.output_filename
+        else:
+            return self.output_filename.replace('.', f'_revision_{self.revision_round}')
+
+    @property
+    def _request_code_tag(self):
+        return f'code_revision_{self.revision_round}'
 
     def get_analysis_code(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         self._pre_populate_background()
-        for revision in range(MAX_CODE_REVISIONS):
+        while self.revision_round < MAX_CODE_REVISIONS:
+            self._ask_for_code()
             code_and_output = self._run_debugger()
             if code_and_output is None:
                 return None
-
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
             if gpt_choice == 1:
+                code_and_output.explanation = self._ask_for_code_explanation()
                 return code_and_output
-            self.apply_append_user_message(dedent_triple_quote_str("""
-                Please re-write the code to fix the problem.
-                """), tag='code_revision')
+            self.revision_round += 1
+        return None
 
-    def _ask_for_code(self, revision: int):
-        user_prompt = dedent_triple_quote_str("""
+    def _ask_for_code(self):
+        if self.revision_round == 0:
+            user_prompt = dedent_triple_quote_str("""
             Write a complete short Python code to perform the data analysis plan.
             If needed, you can use the following packages in your code: {}.
             The output of your code should be a text file named "{}".
             Do not plot anything to screen or other files.
 
-            If the code has some key parameter values, like certain thresholds,
+            If the code has some key parameter values, like certain thresholds, \
             put these parameters in a dedicated variable and add a comment, like this:
             `some_important_parameter = 123.4  # <-- we might want to change this value later`
-            """).format(SUPPORTED_PACKAGES, self.output_filename)
-        self.apply_append_user_message(user_prompt, tag='request_code')
-
-    def _pre_populate_background(self):
-        super()._pre_populate_background()
-        self._ask_for_code(revision=0)
+            """).format(SUPPORTED_PACKAGES, self.get_output_filename())
+        else:
+            user_prompt = dedent_triple_quote_str("""
+                Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.
+                The output of your new code should be a text file named "{}".
+                Send me back the complete revised code.
+                Do not just point to what needs to be changed, send the full complete code.
+                Remember, if the code has some key parameter values, like certain thresholds, \
+                put these parameters in a dedicated variable and add a comment, like this:
+                `some_important_parameter = 123.4  # <-- we might want to change this value later
+                """).format(self.get_output_filename())
+        self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
     def _run_debugger(self) -> Optional[CodeAndOutput]:
-        start_tag = 'start_debug'
+        start_tag = self._request_code_tag + '_debugging'
         for attempt in range(MAX_CODE_WRITING_ATTEMPTS):
             # in each attempt, we are resetting the conversation back to this tag:
-            attempt_str = f"(attempt {attempt + 1}/{MAX_CODE_WRITING_ATTEMPTS})"
-            self.comment(f'Transfer to DebuggerGPT {attempt_str}.', tag=start_tag)
+            revision_and_attempt = f"Revision {self.revision_round + 1}/{MAX_CODE_REVISIONS} " \
+                                   f"(attempt {attempt + 1}/{MAX_CODE_WRITING_ATTEMPTS})"
+            self.comment(f'Transfer to DebuggerGPT {revision_and_attempt}.', tag=start_tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
@@ -75,14 +95,14 @@ class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
             ).run_debugging()
             if code_and_output is None:
                 # debugging failed
-                self.comment(f'Debugging failed {attempt_str}.')
+                self.comment(f'Debugging failed, {revision_and_attempt}.')
                 continue
 
             # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
             self.conversation_manager.delete_messages(
                 message_designation=RangeMessageDesignation.from_(start=start_tag, end=-1),
                 comment='Deleting all debugging correspondence.')
-            assert self.conversation[-1].tag == 'request_code'
+            assert self.conversation[-1].tag == self._request_code_tag
 
             self.apply_append_surrogate_message(
                 content=dedent_triple_quote_str("""
@@ -97,18 +117,15 @@ class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
             return code_and_output
         return None
 
-    def _ask_for_code_explanation(self):
-        code_and_output.explanation = self.apply_append_user_message(
+    def _ask_for_code_explanation(self) -> str:
+        self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
             high-level explanation of the code in a language suitable for a Methods section of a research \
-            paper.
-
-            Also explain what does the code writes into the {} file, and how we would be the scientific \
-            implications of the results written into that file.
+            paper. Also explain what does the code writes into the {} file.
             """).format(self.output_filename),
         )
-        code_and_output.explanation = self.apply_get_and_append_assistant_message()
+        return self.apply_get_and_append_assistant_message()
 
     def _ask_chatgpt_whether_further_code_revisions_are_needed(self, code_and_output: CodeAndOutput) -> Optional[int]:
         user_prompt = dedent_triple_quote_str("""
@@ -138,7 +155,7 @@ class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
                 return 1
             elif 'b' in response and 'a' not in response and len(response) < 5:
                 self.comment(f'ScientistGPT declared it needs to revise the code. Starting a new revision.'
-                             f'({self.number_of_successful_code_revisions + 1}/{MAX_CODE_REVISIONS}).')
+                             f'({self.revision_round + 1}/{MAX_CODE_REVISIONS}).')
                 return 2
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")

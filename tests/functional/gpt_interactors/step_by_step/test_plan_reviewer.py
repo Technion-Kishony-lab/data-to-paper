@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.gpt_interactors.step_by_step.goal_and_plan import GoalReviewGPT, PlanReviewGPT, CodeFeedbackGPT
+from scientistgpt.gpt_interactors.step_by_step.goal_and_plan import GoalReviewGPT, PlanReviewGPT
+from scientistgpt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
 from scientistgpt.gpt_interactors.types import Products, DataFileDescriptions, DataFileDescription
 
 
@@ -39,7 +40,8 @@ def plan_reviewer(data_file_descriptions):
         products=Products(
             data_file_descriptions=data_file_descriptions,
             research_goal='to test whether there is a gender bias in the birth records',
-        ))
+        )
+    )
 
 
 @fixture()
@@ -72,5 +74,5 @@ def test_plan_reviewer(plan_reviewer):
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_code_reviewer(code_reviewer):
-    code_feedback = code_reviewer.run_debugging()
+    code_feedback = code_reviewer.get_analysis_code()
     print(code_feedback)

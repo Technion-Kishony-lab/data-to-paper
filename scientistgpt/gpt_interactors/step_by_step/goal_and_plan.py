@@ -97,6 +97,7 @@ class GoalReviewGPT(BaseScientificReviewGPT):
 
 @dataclass
 class PlanReviewGPT(BaseScientificReviewGPT):
+    max_rounds: int = 0  # no review cycles
     background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'analysis_plan'
     other_conversation_name: str = 'research_plan_reviewer'

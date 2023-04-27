@@ -3,13 +3,14 @@ import os
 import shutil
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from scientistgpt import Conversation, ScientistGPT
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.actions_and_conversations import save_actions_to_file
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
-from scientistgpt.gpt_interactors.types import DataFileDescriptions
+from scientistgpt.gpt_interactors.step_by_step.run_step_by_step import run_step_by_step
+from scientistgpt.gpt_interactors.types import DataFileDescriptions, BASE_GPT_SCRIPT_FILE_NAME
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 
@@ -19,7 +20,7 @@ CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
 
 
 def run_scientist_gpt(data_file_descriptions: DataFileDescriptions,
-                      research_goal: str,
+                      research_goal: Optional[str],
                       data_directory: str, output_directory: str,
                       mock_servers: bool = False):
     """
@@ -37,13 +38,11 @@ def run_scientist_gpt(data_file_descriptions: DataFileDescriptions,
     else:
         os.makedirs(output_directory)
 
-    runner = ScientistGPT(data_file_descriptions=data_file_descriptions, research_goal=research_goal,
-                          data_directory=data_directory, output_directory=output_directory)
-
     @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)
     @OPENAI_SERVER_CALLER.record_or_replay(output_directory / OPENAI_RESPONSES_FILENAME, should_mock=mock_servers)
     def run():
-        runner.run_all()
+        run_step_by_step(data_file_descriptions=data_file_descriptions, research_goal=research_goal,
+                         data_directory=data_directory, output_directory=output_directory)
 
     absolute_home_path = Path().absolute()
 
@@ -69,11 +68,11 @@ def save_all_files_to_output_folder(output_directory, absolute_data_path):
     save_actions_to_file(output_directory / ACTIONS_FILENAME)
 
     # Move all gpt analysis result files to output folder:
-    for file in glob.glob(str(absolute_data_path / (ScientistGPT.gpt_script_filename + '*.txt'))):
+    for file in glob.glob(str(absolute_data_path / (BASE_GPT_SCRIPT_FILE_NAME + '*.txt'))):
         shutil.move(file, output_directory)
 
     # Move all gpt analysis scripts to output folder:
-    for file in glob.glob(str(Path(module_dir) / (ScientistGPT.gpt_script_filename + '*.py'))):
+    for file in glob.glob(str(Path(module_dir) / (BASE_GPT_SCRIPT_FILE_NAME + '*.py'))):
         shutil.move(file, output_directory)
 
     # Move all gpt generated plots to output folder:

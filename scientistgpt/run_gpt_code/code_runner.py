@@ -15,8 +15,8 @@ CODE_REGEXP = f'{CORRECT_CODE_HEADER}(.*?)\n```'
 
 @dataclass
 class CodeAndOutput:
-    code: str
-    output: str
+    code: str = None
+    output: str = None
     output_file: Optional[str] = None
     code_name: str = None
     explanation: Optional[str] = None
