@@ -4,6 +4,7 @@ from typing import Optional
 from scientistgpt.conversation import Role, ConversationManager
 
 from .converser_gpt import ConverserGPT
+from ..conversation.message_designation import GeneralMessageDesignation
 from ..utils.text_utils import dedent_triple_quote_str
 
 
@@ -35,7 +36,29 @@ class DualConverserGPT(ConverserGPT):
     def initialize_other_conversation_if_needed(self):
         self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
-            self.other_conversation_manager.append_system_message(self.actual_other_system_prompt)
+            self.apply_to_other_append_system_message(self.actual_other_system_prompt)
+
+    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
+                                                        is_code: bool = False, previous_code: Optional[str] = None,
+                                                        hidden_messages: GeneralMessageDesignation = None, **kwargs,
+                                                     ) -> str:
+        return self.other_conversation_manager.get_and_append_assistant_message(
+            tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            hidden_messages=hidden_messages, **kwargs)
+
+    def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+                                           is_code: bool = False, previous_code: Optional[str] = None):
+        return self.other_conversation_manager.append_user_message(
+            content, tag=tag, comment=comment, is_code=is_code, previous_code=previous_code)
+
+    def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+        return self.other_conversation_manager.append_system_message(content, tag=tag, comment=comment)
+
+    def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
+                                                comment: Optional[str] = None,
+                                                is_code: bool = False, previous_code: Optional[str] = None):
+        return self.other_conversation_manager.append_surrogate_message(
+            content, tag=tag, comment=comment, is_code=is_code, previous_code=previous_code)
 
 
 @dataclass
@@ -83,8 +106,8 @@ class DialogDualConverserGPT(DualConverserGPT):
         Append response from self as user message to other conversation, and get response from other assistant.
         """
         self.round_num += 1
-        self.other_conversation_manager.append_user_message(self._alter_self_response(self_response))
-        return self.other_conversation_manager.get_and_append_assistant_message()
+        self.apply_to_other_append_user_message(self._alter_self_response(self_response))
+        return self.apply_to_other_get_and_append_assistant_message()
 
     def get_response_from_self_in_response_to_response_from_other(self, other_response: str) -> str:
         """
@@ -110,8 +133,8 @@ class DialogDualConverserGPT(DualConverserGPT):
         The dialog is completed when the other agent terminates the conversation, by responding with the
         termination phrase.
         """
-        return len(self.other_conversation_manager.conversation) > 1 and \
-            self.termination_phrase.lower() in self.other_conversation_manager.conversation.get_last_response().lower()
+        return len(self.other_conversation) > 1 and \
+            self.termination_phrase.lower() in self.other_conversation.get_last_response().lower()
 
     def run_dialog(self, append_termination_response_to_self: bool = True) -> str:
         """
@@ -213,6 +236,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
+        self._pre_populate_background()
         self.apply_append_user_message(self._format_prompt(self.user_initiation_prompt))
 
     def initialize_dialog(self, suppress_printing_of_other: bool = True):
