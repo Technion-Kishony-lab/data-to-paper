@@ -1,11 +1,11 @@
 # flake8: noqa
 from typing import List
 
-from scientistgpt.data_file_description import DataFileDescription
+from scientistgpt.gpt_interactors.types import DataFileDescriptions, DataFileDescription
 from scientistgpt.utils import dedent_triple_quote_str
 
 
-data_file_descriptions: List[DataFileDescription] = [
+data_file_descriptions = DataFileDescriptions([
     DataFileDescription(
         file_path='DIAGNOSES_ICD.csv',
         description=dedent_triple_quote_str("""
@@ -29,7 +29,7 @@ data_file_descriptions: List[DataFileDescription] = [
             The file has 7 columns, the important ones for us are the second and third columns that provide the patient id (SUBJECT_ID)
             and the gender (GENDER).
             """)),
-]
+])
 
 
 research_goal = """

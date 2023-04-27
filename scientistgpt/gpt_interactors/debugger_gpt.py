@@ -10,11 +10,9 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
-from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
-
 
 @dataclass
-class DebuggerGPT(CodeWritingGPT):
+class DebuggerGPT:
     """
     Interact with chatgpt to debug a code that needs to create an output file.
 
