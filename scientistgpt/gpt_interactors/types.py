@@ -52,7 +52,7 @@ class Products:
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
-    analysis_codes_and_outputs: List[CodeAndOutput] = field(default_factory=list)
+    code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
     result_summary: Optional[str] = None
     implications: Optional[str] = None
     limitations: Optional[str] = None
@@ -74,10 +74,6 @@ PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS: Dict[str, Tuple[str, str]] = {
 @dataclass
 class ProductsHolder:
     products: Products = field(default_factory=Products)
-
-    @property
-    def number_of_successful_code_revisions(self):
-        return len(self.products.analysis_codes_and_outputs)
 
     def get_product_description(self, product_field: str) -> str:
         """
@@ -105,19 +101,7 @@ class CoderProductHolder(ProductsHolder):
     "The base name of the pythin file in which the code written by gpt is saved."
 
     @property
-    def gpt_script_revision_file_name(self):
-        return f"{self.gpt_script_filename}_revision{self.number_of_successful_code_revisions}"
-
-    @property
     def data_filenames(self) -> List[str]:
         return NiceList([d.file_path for d in self.products.data_file_descriptions],
                         wrap_with='"',
                         prefix='{} data file[s]: ')
-
-    def get_output_filename(self, after_completion: bool = False, revision_number: Optional[int] = None):
-        revision_number = self.number_of_successful_code_revisions if revision_number is None else revision_number
-        if after_completion:
-            revision_number -= 1
-        if revision_number == 0:
-            return self.output_filename
-        return self.output_filename.replace('.', f'_revision_{revision_number}.')

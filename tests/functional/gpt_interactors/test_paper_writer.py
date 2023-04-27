@@ -16,7 +16,7 @@ def test_paper_author_gpt(tmpdir):
         data_description='The data is ...',
         research_goal='The goal is ...',
         analysis_plan='1. Load the files\n2. Clean the data\n3. Analyze the data',
-        analysis_codes_and_outputs=[CodeAndOutput(
+        code_and_output=[CodeAndOutput(
             """python
             import pandas as pd
             import numpy as np
