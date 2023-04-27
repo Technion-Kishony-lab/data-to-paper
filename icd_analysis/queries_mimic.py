@@ -13,7 +13,7 @@ data_file_descriptions = DataFileDescriptions([
             Each line indicates a diagnostic event where a given patient was diagnosed with a specific \
             clinical diagnostic. 
             
-            The file has 4 columns: 
+            The file has 5 columns: 
             #1 row ID (row_id)
             #2 Subject ID (subject_id)
             #3 Hospital admission ID (hadm_id)
