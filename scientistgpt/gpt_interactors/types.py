@@ -5,6 +5,9 @@ from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils.text_utils import NiceList
 
 
+BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
+
+
 @dataclass(frozen=True)
 class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name
@@ -97,7 +100,7 @@ class CoderProductHolder(ProductsHolder):
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 
-    gpt_script_filename: str = 'gpt_code'
+    gpt_script_filename: str = BASE_GPT_SCRIPT_FILE_NAME
     "The base name of the pythin file in which the code written by gpt is saved."
 
     @property
