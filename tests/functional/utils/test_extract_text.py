@@ -20,6 +20,7 @@ text_3 = '\\section{Introduction} \n' \
     (text_1, '[', None, False, '1, 2, 3, [4], 5] of numbers and lists'),
     (text_1, '[', None, True, '[1, 2, 3, [4], 5] of numbers and lists'),
     (text_3, '\\section{Introduction}', None, False, ' \nthis is the introduction \n'),
+    ('here is a """tripple-quoted text""".', '"""', '"""', False, 'tripple-quoted text'),
 ])
 def test_extract_text_between_tags(text, start_tag, end_tag, leave_tags, expected):
     assert extract_text_between_tags(text, start_tag, end_tag, leave_tags) == expected
