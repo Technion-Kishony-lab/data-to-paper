@@ -3,7 +3,7 @@ import os
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.gpt_interactors.paper_writing.paper_writting_gpt import PaperAuthorGPT
-from scientistgpt.gpt_interactors.types import ScientificProducts
+from scientistgpt.gpt_interactors.types import Products
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 
 
@@ -12,7 +12,7 @@ from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 def test_paper_author_gpt(tmpdir):
     # create a scientific mentor with some random scientific products to test the paper author
     # pre_paper_conversation population
-    scientific_products = ScientificProducts(
+    products = Products(
         data_description='The data is ...',
         research_goal='The goal is ...',
         analysis_plan='1. Load the files\n2. Clean the data\n3. Analyze the data',
@@ -35,7 +35,7 @@ def test_paper_author_gpt(tmpdir):
     output_directory = os.path.join(tmpdir.strpath, 'output')
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    author = PaperAuthorGPT(scientific_products=scientific_products,
+    author = PaperAuthorGPT(products=products,
                             output_directory=output_directory)
     os.chdir(tmpdir)
     author.write_paper(should_compile_with_bib=False)

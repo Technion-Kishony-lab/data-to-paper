@@ -44,7 +44,7 @@ class DataFileDescriptions(List[DataFileDescription]):
 
 
 @dataclass
-class ScientificProducts:
+class Products:
     """
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
@@ -58,20 +58,23 @@ class ScientificProducts:
     limitations: Optional[str] = None
 
 
-SCIENTIFIC_PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(ScientificProducts)]
+PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
+
+
+
 
 
 @dataclass
-class ScientificProductsHolder:
-    scientific_products: ScientificProducts = field(default_factory=ScientificProducts)
+class ProductsHolder:
+    products: Products = field(default_factory=Products)
 
     @property
     def number_of_successful_code_revisions(self):
-        return len(self.scientific_products.analysis_codes_and_outputs)
+        return len(self.products.analysis_codes_and_outputs)
 
 
 @dataclass
-class CoderScientificProductHolder(ScientificProductsHolder):
+class CoderProductHolder(ProductsHolder):
     """
     Interact with chatgpt to write a code that needs to create an output file.
     """
@@ -88,7 +91,7 @@ class CoderScientificProductHolder(ScientificProductsHolder):
 
     @property
     def data_filenames(self) -> List[str]:
-        return NiceList([d.file_path for d in self.scientific_products.data_file_descriptions],
+        return NiceList([d.file_path for d in self.products.data_file_descriptions],
                         wrap_with='"',
                         prefix='{} data file[s]: ')
 

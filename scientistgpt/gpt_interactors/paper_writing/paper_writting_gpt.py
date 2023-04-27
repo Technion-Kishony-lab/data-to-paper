@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from scientistgpt.gpt_interactors.types import ScientificProducts, SCIENTIFIC_PRODUCT_FIELD_NAMES
+from scientistgpt.gpt_interactors.types import Products, PRODUCT_FIELD_NAMES
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.text_utils import nicely_join
@@ -17,7 +17,7 @@ class PaperAuthorGPT(PaperWritingGPT):
     """
     Interact with chatgpt to write a scientific paper.
 
-    the context we need for the paper writing process is the `scientific_products`, including:
+    the context we need for the paper writing process is the `products`, including:
     data description, goal description, analysis plan, analysis results description, implications of results,
     and limitations of results.
 
@@ -31,13 +31,13 @@ class PaperAuthorGPT(PaperWritingGPT):
 
     conversation_name: str = 'pre_paper_conversation'
 
-    scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
+    products: Optional[Products] = field(default_factory=Products)
 
     assistant_agent: Agent = Agent.Writer
     user_agent: Agent = Agent.Student
 
     def _pre_populate_conversation(self):
-        for tag in SCIENTIFIC_PRODUCT_FIELD_NAMES:
+        for tag in PRODUCT_FIELD_NAMES:
             if tag == 'analysis_codes_and_outputs':
                 continue
             prompt = dedent_triple_quote_str("""
@@ -45,12 +45,12 @@ class PaperAuthorGPT(PaperWritingGPT):
 
             {}
 
-            """).format(tag.replace('_', ' '), getattr(self.scientific_products, tag))
+            """).format(tag.replace('_', ' '), getattr(self.products, tag))
             self.apply_append_user_message(prompt, tag=tag)
             self.apply_append_surrogate_message(
                 content=f"Thank you for providing the {tag.replace('_', ' ')}.")
 
-        self.comment("All scientific products have been added to the conversation.", tag='after_scientific_products')
+        self.comment("All scientific products have been added to the conversation.", tag='after_products')
 
     def _write_specified_paper_sections(self, section_names: List[str], prompt: str = None):
         """
@@ -90,7 +90,7 @@ class PaperAuthorGPT(PaperWritingGPT):
 
         # We start with the title and abstract:
         self._write_specified_paper_sections(['title', 'abstract'])
-        self.conversation_manager.reset_back_to_tag('after_scientific_products')
+        self.conversation_manager.reset_back_to_tag('after_products')
         abstract_prompt = dedent_triple_quote_str("""
         Here are the title and abstract of the paper:
 
