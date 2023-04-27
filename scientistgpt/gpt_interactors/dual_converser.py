@@ -229,6 +229,10 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     def actual_other_system_prompt(self):
         return self._format_prompt(self.other_system_prompt)
 
+    @property
+    def are_we_reviewing_at_all(self) -> bool:
+        return self.round_num > 0
+
     def _alter_other_response(self, response: str) -> str:
         return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewer_response)
 
@@ -236,13 +240,15 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
             is_code: bool = False, previous_code: Optional[str] = None):
         self.apply_append_user_message(content, tag, comment, is_code, previous_code)
-        self.apply_to_other_append_user_message(content, tag, comment, is_code, previous_code)
+        if self.are_we_reviewing_at_all:
+            self.apply_to_other_append_user_message(content, tag, comment, is_code, previous_code)
 
     def apply_to_both_append_surrogate_message(
             self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
             is_code: bool = False, previous_code: Optional[str] = None):
         self.apply_append_surrogate_message(content, tag, comment, is_code, previous_code)
-        self.apply_to_other_append_surrogate_message(content, tag, comment, is_code, previous_code)
+        if self.are_we_reviewing_at_all:
+            self.apply_to_other_append_surrogate_message(content, tag, comment, is_code, previous_code)
 
     def _pre_populate_background(self):
         """
@@ -259,11 +265,11 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     def initialize_dialog(self, suppress_printing_of_other: bool = True):
         self.initialize_conversation_if_needed()
-        self.initialize_other_conversation_if_needed()
-
-        # Disable printing of the other_conversation because one is the same of the other (except for role reversal)
-        if suppress_printing_of_other:
-            self.other_conversation_manager.should_print = False
+        if self.are_we_reviewing_at_all:
+            self.initialize_other_conversation_if_needed()
+            # Disable printing of the other_conversation because one is the same of the other (except for role reversal)
+            if suppress_printing_of_other:
+                self.other_conversation_manager.should_print = False
         self._pre_populate_conversations()
 
     def initialize_and_run_dialog(self, suppress_printing_of_other: bool = True):
