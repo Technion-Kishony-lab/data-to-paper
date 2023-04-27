@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from scientistgpt.conversation import Role, ConversationManager
 
 from .converser_gpt import ConverserGPT
+from .. import Message
 from ..conversation.message_designation import GeneralMessageDesignation
 from ..utils.text_utils import dedent_triple_quote_str
 
@@ -195,11 +196,10 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     system_prompt: str = """
     You are a {reviewee} who needs to {goal_verb} a {goal_noun}.
-    I will be your {reviewer}.
     """
 
     user_initiation_prompt: str = """
-    Hello {reviewee}. Please {goal_verb} a {goal_noun}.
+    Please {goal_verb} a {goal_noun}.
     """
 
     other_system_prompt: str = """
@@ -231,6 +231,24 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     def _alter_other_response(self, response: str) -> str:
         return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewer_response)
+
+    def apply_to_both_append_user_message(
+            self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+            is_code: bool = False, previous_code: Optional[str] = None):
+        self.apply_append_user_message(content, tag, comment, is_code, previous_code)
+        self.apply_to_other_append_user_message(content, tag, comment, is_code, previous_code)
+
+    def apply_to_both_append_surrogate_message(
+            self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+            is_code: bool = False, previous_code: Optional[str] = None):
+        self.apply_append_surrogate_message(content, tag, comment, is_code, previous_code)
+        self.apply_to_other_append_surrogate_message(content, tag, comment, is_code, previous_code)
+
+    def _pre_populate_background(self):
+        """
+        Add background messages to the two conversations to set them ready for the cycle.
+        """
+        pass
 
     def _pre_populate_conversations(self):
         """
