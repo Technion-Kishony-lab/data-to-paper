@@ -10,7 +10,7 @@ from scientistgpt.cast import Agent
 
 from .debugger_gpt import DebuggerGPT
 from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCreatingPaper
-from .types import ScientificProducts
+from .types import Products
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
 
 # structure and terminology:
@@ -77,7 +77,7 @@ class ScientistGPT:
     output_directory: Optional[Union[str, Path]] = None,
     data_directory: Optional[Union[str, Path]] = None,
 
-    scientific_products: Optional[ScientificProducts] = field(default_factory=ScientificProducts)
+    products: Optional[Products] = field(default_factory=Products)
 
 
     def add_goal_description(self):
@@ -92,17 +92,17 @@ class ScientistGPT:
         """)
         self.apply_append_surrogate_message(assistant_response, tag='ok_research_goal')
         # add the goal description to the scientific products
-        self.scientific_products.research_goal = self.research_goal
+        self.products.research_goal = self.research_goal
 
     def devise_analysis_plan(self):
         user_prompt = dedent_triple_quote_str("""
             Suggest a simple data analysis plan to achieve the specified goal.
             """)
-        self.scientific_products.analysis_plan = None
-        self.scientific_products.analysis_codes_and_outputs = []
+        self.products.analysis_plan = None
+        self.products.analysis_codes_and_outputs = []
         self.apply_append_user_message(user_prompt, tag='request_analysis_plan')
         self.apply_get_and_append_assistant_message(tag='analysis_plan')
-        self.scientific_products.analysis_plan = extract_analysis_plan_from_response(
+        self.products.analysis_plan = extract_analysis_plan_from_response(
             self.conversation_manager.conversation.get_last_response())
 
     def review_analysis_plan(self):
@@ -126,7 +126,7 @@ class ScientistGPT:
             {}
             """).format(enhanced_plan), tag='analysis_plan',
             comment='Rewinding conversation, replacing the original analysis plan with the improved plan.')
-        self.scientific_products.analysis_plan = enhanced_plan
+        self.products.analysis_plan = enhanced_plan
 
     @property
     def _request_code_tag(self):
@@ -166,7 +166,7 @@ class ScientistGPT:
             self.comment(f'Transfer to DebuggerGPT. {revision_and_attempt}.', tag=tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_from_previous_revision = self.scientific_products.analysis_codes_and_outputs[-1].code \
+            code_from_previous_revision = self.products.analysis_codes_and_outputs[-1].code \
                 if code_revision > 0 else None
             code_and_output = DebuggerGPT(
                 output_filename=self.get_output_filename(),
@@ -216,7 +216,7 @@ class ScientistGPT:
                     """).format(self.get_output_filename()),
                 )
                 self.apply_get_and_append_assistant_message()
-                self.scientific_products.analysis_codes_and_outputs.append(code_and_output)
+                self.products.analysis_codes_and_outputs.append(code_and_output)
                 return True
         return False
 
@@ -238,7 +238,7 @@ class ScientistGPT:
             Under any circumstances, answer with just one character matching the option you choose, nothing else.            
             """).format(
                 self.get_output_filename(after_completion=True),
-                self.scientific_products.analysis_codes_and_outputs[-1].output,
+                self.products.analysis_codes_and_outputs[-1].output,
         )
 
         self.apply_append_user_message(
@@ -279,7 +279,7 @@ class ScientistGPT:
             ```
 
             """).format(self.get_output_filename(revision_number=code_revision),
-                        self.scientific_products.analysis_codes_and_outputs[code_revision].output)
+                        self.products.analysis_codes_and_outputs[code_revision].output)
 
         prompt += dedent_triple_quote_str("""            
             Towards writing a scientific paper, you should now:
@@ -293,14 +293,14 @@ class ScientistGPT:
         self.apply_append_user_message(
             'Please start by writing a comprehensive description of the results of the analysis. '
             'in addition finish with a short summary of the code packages and other tools used for the analysis.')
-        self.scientific_products.result_summary = self.apply_get_and_append_assistant_message(tag='result_summary')
+        self.products.result_summary = self.apply_get_and_append_assistant_message(tag='result_summary')
 
         self.apply_append_user_message(
             'Perfect. Now, please describe the implications of the results to the goal of the study.')
-        self.scientific_products.implications = self.apply_get_and_append_assistant_message(tag='implications')
+        self.products.implications = self.apply_get_and_append_assistant_message(tag='implications')
 
         self.apply_append_user_message('Very good. Now, please describe any limitations of the analysis and results.')
-        self.scientific_products.limitations = self.apply_get_and_append_assistant_message(tag='limitations')
+        self.products.limitations = self.apply_get_and_append_assistant_message(tag='limitations')
 
     def run_cycles_of_code_and_results(self) -> bool:
         total_code_attempts_for_current_plan = 0
@@ -331,12 +331,12 @@ class ScientistGPT:
                     self.comment(
                         f'Reached max debug attempts for Revision {self.number_of_successful_code_revisions + 1}. '
                         f'Trying to go back to revision 1.')
-                    self.scientific_products.analysis_codes_and_outputs.clear()
+                    self.products.analysis_codes_and_outputs.clear()
                     continue
 
     def call_paper_author_to_write_and_compile_paper(self) -> bool:
         self.comment('Starting the paper writing process.')
-        paper_author = PaperAuthorGPT(scientific_products=self.scientific_products,
+        paper_author = PaperAuthorGPT(products=self.products,
                                       output_directory=self.output_directory)
         try:
             paper_author.write_paper()

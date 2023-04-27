@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from scientistgpt.cast import Agent
 from scientistgpt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT
 from scientistgpt.gpt_interactors.text_extractors import TextExtractorGPT
-from scientistgpt.gpt_interactors.types import ScientificProductsHolder, DataFileDescriptions
+from scientistgpt.gpt_interactors.types import ProductsHolder, DataFileDescriptions
 from scientistgpt.utils import dedent_triple_quote_str
 
 
 @dataclass
-class BaseScientificReviewGPT(QuotedReviewDialogDualConverserGPT, ScientificProductsHolder):
+class BaseScientificReviewGPT(QuotedReviewDialogDualConverserGPT, ProductsHolder):
     suppress_printing_other_conversation: bool = True
     max_rounds: int = 1
     termination_phrase: str = 'I hereby approve the {goal_noun}'
@@ -63,7 +63,7 @@ class GoalReviewGPT(BaseScientificReviewGPT):
     def _pre_populate_background(self, is_last: bool = True):
         self.apply_to_both_append_user_message(
             f"DESCRIPTION OF OUR DATASET.\n\n"
-            f"We have the following {self.scientific_products.data_file_descriptions}")
+            f"We have the following {self.products.data_file_descriptions}")
         self._add_acknowledgement(previous_product='the dataset', is_last=is_last)
 
 
@@ -79,7 +79,7 @@ class PlanReviewGPT(GoalReviewGPT):
     def _pre_populate_background(self, is_last: bool = True):
         super()._pre_populate_background(is_last=False)  # add data description
         self.apply_to_both_append_user_message(f"DESCRIPTION OF OUR RESEARCH GOAL.\n\n"
-                                               f"{self.scientific_products.research_goal}")
+                                               f"{self.products.research_goal}")
         self._add_acknowledgement(previous_product='the goal description', is_last=is_last)
 
     def _extract_plan_from_response(self, response: str) -> str:
