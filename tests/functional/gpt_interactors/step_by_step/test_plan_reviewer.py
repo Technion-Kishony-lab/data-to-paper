@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.gpt_interactors.step_by_step.goal_and_plan import GoalReviewGPT, PlanReviewGPT
+from scientistgpt.gpt_interactors.step_by_step.goal_and_plan import GoalReviewGPT, PlanReviewGPT, CodeFeedbackGPT
 from scientistgpt.gpt_interactors.types import Products, DataFileDescriptions, DataFileDescription
 
 
@@ -23,6 +23,16 @@ def data_file_descriptions():
 
 
 @fixture()
+def goal_reviewer(data_file_descriptions):
+    return GoalReviewGPT(
+        suppress_printing_other_conversation=False,
+        products=Products(
+            data_file_descriptions=data_file_descriptions,
+        )
+    )
+
+
+@fixture()
 def plan_reviewer(data_file_descriptions):
     return PlanReviewGPT(
         suppress_printing_other_conversation=False,
@@ -33,11 +43,12 @@ def plan_reviewer(data_file_descriptions):
 
 
 @fixture()
-def goal_reviewer(data_file_descriptions):
-    return GoalReviewGPT(
-        suppress_printing_other_conversation=False,
+def code_reviewer(data_file_descriptions):
+    return CodeFeedbackGPT(
         products=Products(
             data_file_descriptions=data_file_descriptions,
+            research_goal='to test whether there is a gender bias in the birth records',
+            analysis_plan='calculate gender ratio and compare to 50%'
         )
     )
 
@@ -57,3 +68,9 @@ def test_plan_reviewer(plan_reviewer):
     # depending on openai response, these conditions may not be necessarily be met:
     assert 'male' in plan
     assert 'female' in plan
+
+
+@OPENAI_SERVER_CALLER.record_or_replay()
+def test_code_reviewer(code_reviewer):
+    code_feedback = code_reviewer.run_debugging()
+    print(code_feedback)
