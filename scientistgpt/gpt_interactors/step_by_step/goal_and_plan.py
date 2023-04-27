@@ -1,30 +1,24 @@
 from dataclasses import dataclass
 
 from scientistgpt.cast import Agent
-from scientistgpt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT, DualConverserGPT
+from scientistgpt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT, ConverserGPT
 from scientistgpt.gpt_interactors.types import ProductsHolder
 from scientistgpt.utils import dedent_triple_quote_str
 
 
 @dataclass
-class BaseScientificReviewGPT(QuotedReviewDialogDualConverserGPT, ProductsHolder):
-    suppress_printing_other_conversation: bool = True
-    max_rounds: int = 1
-    termination_phrase: str = 'I hereby approve the {goal_noun}'
+class BaseScientificGPT(ConverserGPT, ProductsHolder):
     background_product_fields = None
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = f"Thank you for the {self.get_product_name(product_field)}. \n"
         self.apply_append_surrogate_message(thank_you_message)
-        if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_surrogate_message(thank_you_message
-                                                         + (self._get_user_initiation_prompt() if is_last else ''))
+        return thank_you_message
 
     def _add_product_description(self, product_field: str):
         product_description = self.get_product_description(product_field)
         self.apply_append_user_message(product_description)
-        if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_user_message(product_description)
+        return product_description
 
     def _pre_populate_background(self):
         """
@@ -34,6 +28,26 @@ class BaseScientificReviewGPT(QuotedReviewDialogDualConverserGPT, ProductsHolder
             is_last = i == len(self.background_product_fields) - 1
             self._add_product_description(product_field)
             self._add_acknowledgement(product_field, is_last=is_last)
+
+
+@dataclass
+class BaseScientificReviewGPT(BaseScientificGPT, QuotedReviewDialogDualConverserGPT):
+    suppress_printing_other_conversation: bool = True
+    max_rounds: int = 1
+    termination_phrase: str = 'I hereby approve the {goal_noun}'
+
+    def _add_acknowledgement(self, product_field: str, is_last: bool = False):
+        thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)
+        if self.are_we_reviewing_at_all:
+            thank_you_message += self._get_user_initiation_prompt() if is_last else ''
+            self.apply_to_other_append_surrogate_message(thank_you_message)
+        return thank_you_message
+
+    def _add_product_description(self, product_field: str):
+        product_description = super()._add_product_description(product_field)
+        if self.are_we_reviewing_at_all:
+            self.apply_to_other_append_user_message(product_description)
+        return product_description
 
 
 sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
