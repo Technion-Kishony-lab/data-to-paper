@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Optional, List
+from typing import Optional, List, Dict, Tuple
 
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils.text_utils import NiceList
@@ -60,8 +60,15 @@ class Products:
 
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
-
-
+PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS: Dict[str, Tuple[str, str]] = {
+    'data_file_descriptions': ('dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
+    'research_goal': ('research goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
+    'analysis_plan': ('data analysisplan', 'Here is our data analysis plan:\n\n{}'),
+    'analysis_codes_and_outputs': NotImplemented,
+    'result_summary': NotImplemented,
+    'implications': NotImplemented,
+    'limitations': NotImplemented,
+}
 
 
 @dataclass
@@ -71,6 +78,18 @@ class ProductsHolder:
     @property
     def number_of_successful_code_revisions(self):
         return len(self.products.analysis_codes_and_outputs)
+
+    def get_product_description(self, product_field: str) -> str:
+        """
+        Return the description of the given product.
+        """
+        return PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS[product_field][1].format(getattr(self.products, product_field))
+
+    def get_product_name(self, product_field: str) -> str:
+        """
+        Return the name of the given product.
+        """
+        return PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS[product_field][0]
 
 
 @dataclass

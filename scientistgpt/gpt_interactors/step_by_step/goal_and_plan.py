@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
 from scientistgpt.cast import Agent
-from scientistgpt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT
-from scientistgpt.gpt_interactors.text_extractors import TextExtractorGPT
-from scientistgpt.gpt_interactors.types import ProductsHolder, DataFileDescriptions
+from scientistgpt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT, DualConverserGPT
+from scientistgpt.gpt_interactors.types import ProductsHolder
 from scientistgpt.utils import dedent_triple_quote_str
 
 
@@ -12,16 +11,43 @@ class BaseScientificReviewGPT(QuotedReviewDialogDualConverserGPT, ProductsHolder
     suppress_printing_other_conversation: bool = True
     max_rounds: int = 1
     termination_phrase: str = 'I hereby approve the {goal_noun}'
+    background_product_fields = None
 
-    def _add_acknowledgement(self, previous_product: str, is_last: bool = True):
-        thank_you_message = f"Thank you for {previous_product}. "
+    def _add_acknowledgement(self, product_field: str, is_last: bool = False):
+        thank_you_message = f"Thank you for the {self.get_product_name(product_field)}. \n"
         self.apply_append_surrogate_message(thank_you_message)
-        self.apply_to_other_append_surrogate_message(
-            thank_you_message + (self._get_user_initiation_prompt() if is_last else ''))
+        if self.are_we_reviewing_at_all:
+            self.apply_to_other_append_surrogate_message(thank_you_message
+                                                         + (self._get_user_initiation_prompt() if is_last else ''))
+
+    def _add_product_description(self, product_field: str):
+        product_description = self.get_product_description(product_field)
+        self.apply_append_user_message(product_description)
+        if self.are_we_reviewing_at_all:
+            self.apply_to_other_append_user_message(product_description)
+
+    def _pre_populate_background(self):
+        """
+        Add background information to the conversation.
+        """
+        for i, product_field in enumerate(self.background_product_fields or []):
+            is_last = i == len(self.background_product_fields) - 1
+            self._add_product_description(product_field)
+            self._add_acknowledgement(product_field, is_last=is_last)
+
+
+sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
+    Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
+    studied using only the provided dataset, without requiring any additional data \
+    (pay attention to using only data explicitly available in the provided headers of the our data files \
+    as described in our dataset, above).
+    Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+    """)
 
 
 @dataclass
 class GoalReviewGPT(BaseScientificReviewGPT):
+    background_product_fields = ['data_file_descriptions']
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -42,56 +68,26 @@ class GoalReviewGPT(BaseScientificReviewGPT):
         Your job is to advise me, the {reviewee}, and provide a constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
         
-        Pay special attention to whether the research goal can be studied using only the provided dataset (without \
+        Pay special attention to whether the research goal can be achieved using only the provided dataset (without \
         requiring additional data).
 
-        When you feel that the provided research goal is interesting and can be studied without requiring \
+        When you feel that the provided research goal is interesting and can be achieved without requiring \
         additional data except the provided dataset, respond explicitly with: 
         "{termination_phrase}" (termination-phrase).
         If you feel that the initial goal description that I send you is already interesting, well defined, \
-        and fits the provided data, it is perfectly fine and encouraged to respond with the above \
-        termination-phrase right at the beginning.
+        and fits the provided data, it is perfectly fine and encouraged to respond with with termination-phrase \
+        immediately, without requesting any improvement cycles.
         """
-    sentence_to_add_at_the_end_of_reviewee_response: str = dedent_triple_quote_str("""\n
-        Please provide feedback on the above research goal, with specific attention to whether it can be \
-        studied using only the provided dataset, without requiring additional data \
-        (pay attention to using only data available based on the provided headers of the our data files \
-        as in the description of our dataset, above).
-        Do not suggest changes to the goal that may require data not available in our dataset.
-        """)
-
-    def _pre_populate_background(self, is_last: bool = True):
-        self.apply_to_both_append_user_message(
-            f"DESCRIPTION OF OUR DATASET.\n\n"
-            f"We have the following {self.products.data_file_descriptions}")
-        self._add_acknowledgement(previous_product='the dataset', is_last=is_last)
+    sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
 
 
 @dataclass
-class PlanReviewGPT(GoalReviewGPT):
+class PlanReviewGPT(BaseScientificReviewGPT):
+    background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'research_plan'
     other_conversation_name: str = 'research_plan_reviewer'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
     assistant_agent: Agent = Agent.PlanReviewer
     user_agent: Agent = Agent.Student
-
-    def _pre_populate_background(self, is_last: bool = True):
-        super()._pre_populate_background(is_last=False)  # add data description
-        self.apply_to_both_append_user_message(f"DESCRIPTION OF OUR RESEARCH GOAL.\n\n"
-                                               f"{self.products.research_goal}")
-        self._add_acknowledgement(previous_product='the goal description', is_last=is_last)
-
-    def _extract_plan_from_response(self, response: str) -> str:
-        return TextExtractorGPT(
-            assistant_agent=Agent.Secretary,
-            user_agent=Agent.Student,
-            text=response,
-            description_of_text_to_extract='data analysis plan',
-            max_number_of_attempts=3,
-            conversation_name='extract_analysis_plan',
-        ).extract_text(rewind_conversation=True)
-
-    def initialize_and_run_dialog(self):
-        response = super().initialize_and_run_dialog()
-        return self._extract_plan_from_response(response)
+    sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
