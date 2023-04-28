@@ -5,13 +5,13 @@ from scientistgpt.cast import Agent
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.gpt_interactors.debugger_gpt import DebuggerGPT
-from scientistgpt.gpt_interactors.types import CoderProductHolder
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 
 from .goal_and_plan import BaseScientificGPT
 
 
+BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 MAX_CODE_REVISIONS = 3
 MAX_CODE_WRITING_ATTEMPTS = 3
 MAX_DEBUG_ITERATIONS_PER_ATTEMPT = 12
@@ -19,7 +19,16 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 
 
 @dataclass
-class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
+class BaseCodeScientificGPT(BaseScientificGPT):
+    output_filename: str = 'results.txt'
+    "The name of the file that gpt code is instructed to save the results to."
+
+    gpt_script_filename: str = BASE_GPT_SCRIPT_FILE_NAME
+    "The base name of the pythin file in which the code written by gpt is saved."
+
+
+@dataclass
+class CodeFeedbackGPT(BaseCodeScientificGPT):
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
     conversation_name: str = 'code_debugging'
     assistant_agent: Agent = Agent.Debugger
@@ -54,14 +63,10 @@ class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
     def _ask_for_code(self):
         if self.revision_round == 0:
             user_prompt = dedent_triple_quote_str("""
-            Write a complete short Python code to perform the data analysis plan.
-            If needed, you can use the following packages in your code: {}.
-            The output of your code should be a text file named "{}".
-            Do not plot anything to screen or other files.
-
-            If the code has some key parameter values, like certain thresholds, \
-            put these parameters in a dedicated variable and add a comment, like this:
-            `some_important_parameter = 123.4  # <-- we might want to change this value later`
+                Write a complete short Python code to perform the data analysis plan.
+                If needed, you can use the following packages in your code: {}.
+                The output of your code should be a text file named "{}".
+                Do not plot anything to screen or other files.
             """).format(SUPPORTED_PACKAGES, self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
@@ -69,9 +74,6 @@ class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
                 The output of your new code should be a text file named "{}".
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
-                Remember, if the code has some key parameter values, like certain thresholds, \
-                put these parameters in a dedicated variable and add a comment, like this:
-                `some_important_parameter = 123.4  # <-- we might want to change this value later
                 """).format(self.get_output_filename())
         self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
@@ -89,7 +91,7 @@ class CodeFeedbackGPT(BaseScientificGPT, CoderProductHolder):
                 user_agent=self.user_agent,
                 assistant_agent=self.assistant_agent,
                 output_filename=self.output_filename,
-                data_files=self.data_filenames,
+                data_files=self.products.data_filenames,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
             ).run_debugging()

@@ -10,7 +10,8 @@ from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.actions_and_conversations import save_actions_to_file
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.gpt_interactors.step_by_step.run_step_by_step import run_step_by_step
-from scientistgpt.gpt_interactors.types import DataFileDescriptions, BASE_GPT_SCRIPT_FILE_NAME
+from scientistgpt.gpt_interactors.step_by_step.write_code import BASE_GPT_SCRIPT_FILE_NAME
+from scientistgpt.gpt_interactors.types import DataFileDescriptions
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 

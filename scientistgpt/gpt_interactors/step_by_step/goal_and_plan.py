@@ -2,21 +2,22 @@ from dataclasses import dataclass
 
 from scientistgpt.cast import Agent
 from scientistgpt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT, ConverserGPT
-from scientistgpt.gpt_interactors.types import ProductsHolder
+from scientistgpt.gpt_interactors.types import Products
 from scientistgpt.utils import dedent_triple_quote_str
 
 
 @dataclass
-class BaseScientificGPT(ConverserGPT, ProductsHolder):
+class BaseScientificGPT(ConverserGPT):
+    products: Products = None
     background_product_fields = None
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
-        thank_you_message = f"Thank you for the {self.get_product_name(product_field)}. \n"
+        thank_you_message = f"Thank you for the {self.products.get_name(product_field)}. \n"
         self.apply_append_surrogate_message(thank_you_message)
         return thank_you_message
 
     def _add_product_description(self, product_field: str):
-        product_description = self.get_product_description(product_field)
+        product_description = self.products.get_description(product_field)
         self.apply_append_user_message(product_description)
         return product_description
 

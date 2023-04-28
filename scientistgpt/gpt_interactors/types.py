@@ -1,11 +1,8 @@
 from dataclasses import dataclass, field, fields
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Any
 
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils.text_utils import NiceList
-
-
-BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 
 
 @dataclass(frozen=True)
@@ -60,6 +57,24 @@ class Products:
     implications: Optional[str] = None
     limitations: Optional[str] = None
 
+    def get_description(self, product_field: str) -> str:
+        """
+        Return the description of the given product.
+        """
+        return PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS[product_field][1].format(getattr(self, product_field))
+
+    def get_name(self, product_field: str) -> str:
+        """
+        Return the name of the given product.
+        """
+        return PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS[product_field][0]
+
+    @property
+    def data_filenames(self) -> List[str]:
+        return NiceList([d.file_path for d in self.data_file_descriptions],
+                        wrap_with='"',
+                        prefix='{} data file[s]: ')
+
 
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
@@ -72,39 +87,3 @@ PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS: Dict[str, Tuple[str, str]] = {
     'implications': NotImplemented,
     'limitations': NotImplemented,
 }
-
-
-@dataclass
-class ProductsHolder:
-    products: Products = field(default_factory=Products)
-
-    def get_product_description(self, product_field: str) -> str:
-        """
-        Return the description of the given product.
-        """
-        return PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS[product_field][1].format(getattr(self.products, product_field))
-
-    def get_product_name(self, product_field: str) -> str:
-        """
-        Return the name of the given product.
-        """
-        return PRODUCT_FIELDS_TO_NAME_AND_DESCRIPTIONS[product_field][0]
-
-
-@dataclass
-class CoderProductHolder(ProductsHolder):
-    """
-    Interact with chatgpt to write a code that needs to create an output file.
-    """
-
-    output_filename: str = 'results.txt'
-    "The name of the file that gpt code is instructed to save the results to."
-
-    gpt_script_filename: str = BASE_GPT_SCRIPT_FILE_NAME
-    "The base name of the pythin file in which the code written by gpt is saved."
-
-    @property
-    def data_filenames(self) -> List[str]:
-        return NiceList([d.file_path for d in self.products.data_file_descriptions],
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')
