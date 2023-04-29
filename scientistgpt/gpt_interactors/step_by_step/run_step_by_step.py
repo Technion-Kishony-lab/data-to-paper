@@ -2,13 +2,14 @@ from typing import Optional
 
 from scientistgpt.gpt_interactors.paper_writing.get_template import get_paper_section_names
 from scientistgpt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT
 from scientistgpt.gpt_interactors.step_by_step.user_to_student import DirectorToStudent
 from scientistgpt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
 from scientistgpt.gpt_interactors.types import Products
 
 
 PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
+paper_section_names = get_paper_section_names(PAPER_TEMPLATE_FILE)
 
 
 def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None,
@@ -37,6 +38,11 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     products.results_summary = ResultsInterpretationReviewGPT(products=products).initialize_and_run_dialog()
 
     # Paper sections
-    products.paper_sections = get_paper_section_names()
+    products.paper_sections['title'], products.paper_sections['abstract'] = \
+        TitleAbstractReviewGPT(products=products, section_names=['title', 'abstract']).get_sections()
+
+    for section_name in paper_section_names:
+        products.paper_sections[section_name] = \
+            PaperSectionReviewGPT(products=products, section_names=[section_name]).get_sections()[0]
 
     return products
