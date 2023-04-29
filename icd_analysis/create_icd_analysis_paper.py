@@ -8,7 +8,7 @@ from queries_mimic import data_file_descriptions, simpler_research_goal
 from local_paths import DATA_FOLDER, OUTPUT_FOLDER
 
 run_scientist_gpt(data_file_descriptions=data_file_descriptions,
-                  research_goal=None,
+                  research_goal=simpler_research_goal,
                   data_directory=DATA_FOLDER,
                   output_directory=OUTPUT_FOLDER + '/out22',
                   mock_servers=True)  # <==== use True to mock/record openai responses

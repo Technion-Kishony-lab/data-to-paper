@@ -97,8 +97,9 @@ class BaseWriterReviewGPT(BaseScientificReviewGPT):
     section_contents: Union[str, List[str]] = field(default_factory=list)
 
     def __post_init__(self):
-        self.goal_noun = self.goal_noun or nicely_join(self.section_names, 'and')
+        self.goal_noun = self.goal_noun or nicely_join(self.section_names)
         self.conversation_name = self.conversation_name or self.goal_noun.replace(' ', '_')
+        super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
         You are a scientist capable of writing full-length, scientifically sound research papers.

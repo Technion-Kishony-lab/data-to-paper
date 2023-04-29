@@ -10,7 +10,6 @@ from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 
 
-
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 MAX_CODE_REVISIONS = 3
 MAX_CODE_WRITING_ATTEMPTS = 3
@@ -39,7 +38,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
         if self.revision_round == 0:
             return self.output_filename
         else:
-            return self.output_filename.replace('.', f'_revision_{self.revision_round}')
+            return self.output_filename.replace('.', f'_revision_{self.revision_round}.')
 
     @property
     def _request_code_tag(self):
@@ -48,9 +47,10 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
     def get_analysis_code(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         self._pre_populate_background()
+        code_and_output = CodeAndOutput()
         while self.revision_round < MAX_CODE_REVISIONS:
             self._ask_for_code()
-            code_and_output = self._run_debugger()
+            code_and_output = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 return None
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
@@ -66,7 +66,9 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 Write a complete short Python code to perform the data analysis plan.
                 If needed, you can use the following packages in your code: {}.
                 The output of your code should be a text file named "{}".
-                Do not plot anything to screen or other files.
+                All results we may need for a scientific paper should be saved to that file, including \
+                analysis findings, summary statistics, etc. 
+                Do not write to any other files and do not plot anything to screen.
             """).format(SUPPORTED_PACKAGES, self.get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
@@ -77,7 +79,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 """).format(self.get_output_filename())
         self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
-    def _run_debugger(self) -> Optional[CodeAndOutput]:
+    def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
         start_tag = self._request_code_tag + '_debugging'
         for attempt in range(MAX_CODE_WRITING_ATTEMPTS):
             # in each attempt, we are resetting the conversation back to this tag:
@@ -90,10 +92,11 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 conversation_name=self.conversation_name,
                 user_agent=self.user_agent,
                 assistant_agent=self.assistant_agent,
-                output_filename=self.output_filename,
+                output_filename=self.get_output_filename(),
                 data_files=self.products.data_filenames,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
+                previous_code=previous_code,
             ).run_debugging()
             if code_and_output is None:
                 # debugging failed
@@ -112,7 +115,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 ```python
                 {}
                 ```
-                """).format(self.output_filename, code_and_output.code),
+                """).format(self.get_output_filename(), code_and_output.code),
                 comment='Adding the debugged code as if it was the original response.',
                 is_code=True,
             )
@@ -145,7 +148,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
             Answer with just the letter designating the option you choose \
             (only type a single character: "a", or "b").
             """).format(
-            self.output_filename,
+            self.get_output_filename(),
             code_and_output.output,
         )
         self.apply_append_user_message(content=user_prompt, tag='output_file_content')

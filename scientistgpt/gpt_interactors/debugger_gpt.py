@@ -122,7 +122,7 @@ class DebuggerGPT(ConverserGPT):
         if number_of_code_edges == 0:
             response = dedent_triple_quote_str("""
             You did not send any code. 
-            Please try again, make sure your code is inside a triple-quoted code block (```).
+            Please try again, make sure your code is enclosed within triple-backticks.
             """)
             tag = 'no_code'
         elif number_of_code_edges % 2 == 1:

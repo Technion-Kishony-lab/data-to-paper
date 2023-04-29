@@ -17,7 +17,7 @@ class BaseScientificGPT(ConverserGPT):
     def _add_product_description(self, product_field: str):
         product_description, is_code = self.products.get_description(product_field)
         self.apply_append_user_message(product_description, is_code=is_code)
-        return product_description
+        return product_description, is_code
 
     def _pre_populate_background(self):
         """
@@ -31,9 +31,13 @@ class BaseScientificGPT(ConverserGPT):
 
 @dataclass
 class BaseScientificReviewGPT(BaseScientificGPT, QuotedReviewDialogDualConverserGPT):
-    suppress_printing_other_conversation: bool = True
+    suppress_printing_other_conversation: bool = False
     max_rounds: int = 1
-    termination_phrase: str = 'I hereby approve the {goal_noun}'
+    termination_phrase: str = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.termination_phrase = self.termination_phrase or f"I hereby approve the {self.goal_noun}"
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)
@@ -43,7 +47,7 @@ class BaseScientificReviewGPT(BaseScientificGPT, QuotedReviewDialogDualConverser
         return thank_you_message
 
     def _add_product_description(self, product_field: str):
-        product_description = super()._add_product_description(product_field)
+        product_description, is_code = super()._add_product_description(product_field)
         if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_user_message(product_description)
-        return product_description
+            self.apply_to_other_append_user_message(product_description, is_code=is_code)
+        return product_description, is_code

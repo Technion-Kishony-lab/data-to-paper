@@ -4,7 +4,7 @@ import re
 from typing import List, Tuple, Union, Optional, Set
 
 from .message import Message, Role
-from .message_designation import GeneralMessageDesignation
+from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_int_list
 
 # Set up the OpenAI API client
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
@@ -92,6 +92,7 @@ class Conversation(List[Message]):
         Remove commenter messages, ignore=True messages, as well as all messages indicated in `hidden_messages`.
         """
         hidden_messages = hidden_messages or []
+        hidden_messages = convert_general_message_designation_to_int_list(hidden_messages, self)
         return [(i, message) for i, message in enumerate(self)
                 if i not in hidden_messages
                 and message.role is not Role.COMMENTER

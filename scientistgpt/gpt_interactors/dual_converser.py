@@ -330,7 +330,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         try:
             self._extract_goal_from_response(response)
         except ValueError:
-            return self._format_prompt(self.sentence_to_add_at_the_end_of_reviewee_response)
+            return self._format_prompt(self.quote_request)
         return None
 
     def initialize_and_run_dialog(self):

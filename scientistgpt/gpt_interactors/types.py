@@ -121,7 +121,7 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Calla
     'code': ('code', get_code_description, True),
     'code_output': ('output of the code', get_code_output_description, False),
     'code_and_output': ('code and output', get_code_and_output_description, True),
-    'result_summary': ('result summary', 'Here is a summary of our results:\n\n{}', False),
+    'results_summary': ('results summary', 'Here is a summary of our results:\n\n{}', False),
     'title_and_abstract': ('title and abstract', get_title_and_abstract_description, False),
 }
 
