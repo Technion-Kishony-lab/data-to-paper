@@ -1,7 +1,7 @@
 from typing import Any
 
 from scientistgpt.cast import Agent
-from scientistgpt.gpt_interactors.step_by_step.goal_and_plan import BaseScientificGPT
+from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
 
 
 class DirectorToStudent(BaseScientificGPT):

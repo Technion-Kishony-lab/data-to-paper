@@ -5,10 +5,10 @@ from scientistgpt.cast import Agent
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.gpt_interactors.debugger_gpt import DebuggerGPT
+from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
 
-from .goal_and_plan import BaseScientificGPT
 
 
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
