@@ -53,9 +53,8 @@ class Products:
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
-    result_summary: Optional[str] = None
-    implications: Optional[str] = None
-    limitations: Optional[str] = None
+    results_summary: Optional[str] = None
+    paper_sections: Dict[str, str] = field(default_factory=dict)
 
     def get_description(self, product_field: str) -> Tuple[str, bool]:
         """
@@ -104,9 +103,7 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Calla
     'code': ('code', get_code_description, True),
     'code_output': ('output of the code', get_code_output_description, False),
     'code_and_output': ('code and output', get_code_and_output_description, True),
+    'result_summary': ('result summary', 'Here is a summary of our results:\n\n{}', False),
 
-    'result_summary': NotImplemented,
-    'implications': NotImplemented,
-    'limitations': NotImplemented,
 }
 

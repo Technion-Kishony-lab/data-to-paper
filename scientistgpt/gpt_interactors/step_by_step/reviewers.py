@@ -61,3 +61,35 @@ class PlanReviewGPT(BaseScientificReviewGPT):
     assistant_agent: Agent = Agent.PlanReviewer
     user_agent: Agent = Agent.Student
     sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
+
+
+@dataclass
+class ResultsInterpretationReviewGPT(BaseScientificReviewGPT):
+    max_rounds: int = 1
+    background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
+    conversation_name: str = 'results_interpretation'
+    other_conversation_name: str = 'results_interpretation_reviewer'
+    goal_noun: str = 'description and interpretation of the results'
+    goal_verb: str = 'write'
+    assistant_agent: Agent = Agent.PlanReviewer
+    user_agent: Agent = Agent.Student
+    sentence_to_add_at_the_end_of_reviewee_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
+        is fully supported by our data (pay specific attention to the output of our analysis code, above).
+    """)
+
+
+@dataclass
+class PaperSectionReviewGPT(BaseScientificReviewGPT):
+    max_rounds: int = 1
+    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
+    conversation_name: str = 'results_interpretation'
+    other_conversation_name: str = 'results_interpretation_reviewer'
+    goal_noun: str = 'description and interpretation of the results'
+    goal_verb: str = 'write'
+    assistant_agent: Agent = Agent.PlanReviewer
+    user_agent: Agent = Agent.Student
+    sentence_to_add_at_the_end_of_reviewee_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
+        is fully supported by our data (pay specific attention to the output of our analysis code, above).
+    """)

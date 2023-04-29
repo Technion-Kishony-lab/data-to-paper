@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.gpt_interactors.step_by_step.goal_and_plan import GoalReviewGPT, PlanReviewGPT
+from scientistgpt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT
 from scientistgpt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
 from scientistgpt.gpt_interactors.types import Products, DataFileDescriptions, DataFileDescription
 

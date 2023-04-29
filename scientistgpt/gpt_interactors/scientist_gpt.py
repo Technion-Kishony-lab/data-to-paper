@@ -293,7 +293,7 @@ class ScientistGPT:
         self.apply_append_user_message(
             'Please start by writing a comprehensive description of the results of the analysis. '
             'in addition finish with a short summary of the code packages and other tools used for the analysis.')
-        self.products.result_summary = self.apply_get_and_append_assistant_message(tag='result_summary')
+        self.products.results_summary = self.apply_get_and_append_assistant_message(tag='result_summary')
 
         self.apply_append_user_message(
             'Perfect. Now, please describe the implications of the results to the goal of the study.')
