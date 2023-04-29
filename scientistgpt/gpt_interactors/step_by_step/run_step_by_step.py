@@ -38,11 +38,13 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     products.results_summary = ResultsInterpretationReviewGPT(products=products).initialize_and_run_dialog()
 
     # Paper sections
+    title_and_abstract_names = ['title', 'abstract']
     products.paper_sections['title'], products.paper_sections['abstract'] = \
-        TitleAbstractReviewGPT(products=products, section_names=['title', 'abstract']).get_sections()
+        TitleAbstractReviewGPT(products=products, section_names=title_and_abstract_names).get_sections()
 
     for section_name in paper_section_names:
-        products.paper_sections[section_name] = \
-            PaperSectionReviewGPT(products=products, section_names=[section_name]).get_sections()[0]
+        if section_name not in title_and_abstract_names:
+            products.paper_sections[section_name] = \
+                PaperSectionReviewGPT(products=products, section_names=[section_name]).get_sections()[0]
 
     return products

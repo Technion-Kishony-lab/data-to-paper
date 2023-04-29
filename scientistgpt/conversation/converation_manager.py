@@ -114,9 +114,13 @@ class ConversationManager:
         Append a user-message to a specified conversation.
         """
 <<<<<<<
+<<<<<<<
         self.append_message(Role.USER, content, tag, comment, ignore, previous_code)
 =======
         self.create_and_append_message(Role.USER, content, tag, comment, is_code, ignore, previous_code)
+>>>>>>>
+=======
+        self.create_and_append_message(Role.USER, content, tag, comment, ignore, is_code, previous_code)
 >>>>>>>
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
