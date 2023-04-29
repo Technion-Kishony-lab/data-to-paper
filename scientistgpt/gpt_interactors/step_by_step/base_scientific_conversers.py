@@ -15,8 +15,8 @@ class BaseScientificGPT(ConverserGPT):
         return thank_you_message
 
     def _add_product_description(self, product_field: str):
-        product_description = self.products.get_description(product_field)
-        self.apply_append_user_message(product_description)
+        product_description, is_code = self.products.get_description(product_field)
+        self.apply_append_user_message(product_description, is_code=is_code)
         return product_description
 
     def _pre_populate_background(self):
