@@ -76,38 +76,6 @@ class PaperWritingGPT(ConverserGPT, ABC):
     def pdf_filename(self) -> str:
         return f'{self.paper_filename}.pdf'
 
-    @property
-    def paper_template_path(self) -> str:
-        return os.path.join(os.path.dirname(__file__), f'templates/{self.paper_template_filename}')
-
-    @property
-    def paper_template_with_citations_path(self) -> str:
-        return os.path.join(os.path.dirname(__file__), f'templates/{self.paper_template_with_citations_filename}')
-
-    @property
-    def paper_template(self) -> str:
-        """
-        Load the specified template file.
-        """
-        with open(self.paper_template_path, 'r') as f:
-            return f.read()
-
-    @property
-    def paper_template_with_citations(self) -> str:
-        """
-        Load the specified template file.
-        """
-        with open(self.paper_template_with_citations_path, 'r') as f:
-            return f.read()
-
-    @property
-    def paper_section_names(self):
-        """
-        Get the sections of the paper from the template.
-        Sections are flaked as: @@@section_name@@@
-        """
-        return self.paper_template.split('@@@')[1::2]
-
     @abstractmethod
     def _pre_populate_conversation(self):
         """

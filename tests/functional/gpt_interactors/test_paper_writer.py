@@ -28,7 +28,7 @@ def test_paper_author_gpt(tmpdir):
             B: 2
             C: 3
             """)],
-        result_summary="The results are:\nA: 1\nB: 2\nC: 3",
+        results_summary="The results are:\nA: 1\nB: 2\nC: 3",
         implications="We can conclude that the results are:\nA: 1\nB: 2\nC: 3",
         limitations="We did not consider the following:\nA: 2\nB: 3\nC: 1",
     )
