@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Any, Union, Callable
 
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.text_utils import NiceList, dedent_triple_quote_str
 
 
 @dataclass(frozen=True)
@@ -94,6 +94,24 @@ def get_code_and_output_description(products: Products) -> str:
     return get_code_description(products) + '\n\n' + get_code_output_description(products)
 
 
+def get_title_and_abstract_description(products: Products) -> str:
+    return dedent_triple_quote_str("""
+    Here are the title and abstract of the paper:
+
+        {}
+
+        {}
+        """).format(products.paper_sections['title'], products.paper_sections['abstract'])
+
+
+def get_paper_section_description(products: Products, section_name: str) -> str:
+    return dedent_triple_quote_str("""
+        Here is the "{}" section of the paper:
+
+        {}
+        """).format(section_name, products.paper_sections[section_name])
+
+
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
 PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Callable], bool]] = {
@@ -104,6 +122,18 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Calla
     'code_output': ('output of the code', get_code_output_description, False),
     'code_and_output': ('code and output', get_code_and_output_description, True),
     'result_summary': ('result summary', 'Here is a summary of our results:\n\n{}', False),
-
+    'title_and_abstract': ('title and abstract', get_title_and_abstract_description, False),
 }
 
+
+def get_name_description_iscode(product_field: str) -> Tuple[str, Union[str, Callable], bool]:
+    """
+    For the of the given product field, return the name, description, and whether the product is code.
+    """
+    if product_field.startswith('paper_section_'):
+        section_name = product_field[len('paper_section_'):]
+        return f'"{section_name}" section of the paper', \
+            lambda products: get_paper_section_description(products, section_name), \
+            False
+
+    return PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE[product_field]

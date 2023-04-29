@@ -16,12 +16,14 @@ class DualConverserGPT(ConverserGPT):
 
     other_system_prompt: str = 'You are a helpful scientist.'
 
-    other_conversation_name: str = 'other'
+    other_conversation_name: str = None
 
     suppress_printing_other_conversation: bool = False
 
     def __post_init__(self):
         super().__post_init__()
+        if self.other_conversation_name is None:
+            self.other_conversation_name = f'{self.conversation_name}_other'
         self.other_conversation_manager = ConversationManager(
             conversation_name=self.other_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
@@ -96,6 +98,7 @@ class DialogDualConverserGPT(DualConverserGPT):
     """
 
     max_rounds: int = 3
+    max_attempts_per_round: int = 4
 
     def __post_init__(self):
         super().__post_init__()
@@ -161,7 +164,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
         """
 
-        while True:  # TODO: add a max number of tries
+        for _ in range(self.max_attempts_per_round):
             # to allow starting either before or after the first self response:
             if self.conversation[-1].role is Role.USER:
                 self_response = self.apply_get_and_append_assistant_message()
@@ -171,6 +174,8 @@ class DialogDualConverserGPT(DualConverserGPT):
             if problem_in_response is None:
                 break
             self.apply_append_user_message(problem_in_response, tag='error')
+        else:
+            return None
 
         if self.round_num >= self.max_rounds:
             return self_response
