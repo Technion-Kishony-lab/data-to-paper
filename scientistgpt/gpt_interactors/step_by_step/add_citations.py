@@ -1,55 +1,45 @@
-import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Set, Tuple, Optional, List
 
-from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
-from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.cast import Agent
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
-
-from .exceptions import NotInOptionsException
-from .exceptions import ServerErrorCitationException
-from .citataion_utils import choose_first_citation
-from .call_crossref import CROSSREF_SERVER_CALLER
-from ...utils.extract_python import extract_python_value_from_response
+from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
+from scientistgpt.gpt_interactors.citation_adding.citataion_utils import \
+    choose_first_citation, remove_citations_from_section
+from scientistgpt.gpt_interactors.citation_adding.exceptions import NotInOptionsException, ServerErrorCitationException
+from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.extract_python import extract_python_value_from_response
 
 
 @dataclass
-class CitationGPT(ConverserGPT):
-    """
-    Interact with chatgpt to find citations for a specific section in the paper.
-    """
-    agent = 'citation_adding'
+class AddCitationReviewGPT(BaseScientificGPT):
+    sections: Dict[str, str] = None  # The sections of the paper to which we are adding citations to.
+    background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
+    conversation_name: str = f'add_citations'
+    assistant_agent: Agent = Agent.Secretary
+    user_agent: Agent = Agent.Student
 
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str("""
     You are a scientific citation expert. 
-    You are given a section of a paper, you should mention what sentences need to be cited.
-    You will be provided with list of possible citations, 
-    and you should select the most appropriate one for each of the sentences. 
-    You will rewrite the sentences with the citations.
-    The citations will be inserted to the text using \\cite{}.
+    You are given a section of a paper
+    1. You should mention what sentences need to be cited.
+    2. You will be provided with list of possible citations, 
+       and you should select the most appropriate one for each of the sentences. 
+    3. You will rewrite the sentences with the citations.
+    4. The citations will be inserted to the text using \\cite{}.
     """)
-
-    section: str = None
-    "The section of the paper to which we are adding citations."
 
     max_number_of_attempts: int = 4
     max_number_of_api_calls: int = 3
 
-    bibtex_file_path = 'citations.bib'
-
-    sentences_to_queries: Dict[str, str] = None
+    sentences_queries: Dict[str, str] = None
 
     current_sentence_citations_ids: Set[str] = field(default_factory=set)
     sentences_to_add_citations_to: Set[Tuple[str, str]] = field(default_factory=set)
 
-    def _remove_citations_from_section(self):
-        """
-        Remove the citations that ChatGPT inserted by mistake.
-        """
-        self.section = re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', self.section)
-
-    def _choose_sentences_that_need_citations(self):
+    def _choose_sentences_that_need_citations(self, section):
         """
         Choose sentences that need citations from the section.
         """
@@ -86,7 +76,7 @@ class CitationGPT(ConverserGPT):
             if feedback_message is not None:
                 continue
             try:
-                self._check_all_sentences_are_in_section(response_value)
+                self._check_all_sentences_are_in_section(section, response_value)
             except NotInOptionsException as e:
                 feedback_message = \
                     f'Some of the sentences you returned are not precise extraction from the section:\n' \
@@ -98,14 +88,14 @@ class CitationGPT(ConverserGPT):
             raise ValueError(f'Could not find any sentences after {self.max_number_of_attempts} attempts.')
         return dict(self.sentences_to_add_citations_to)
 
-    def _check_all_sentences_are_in_section(self, sentences_queries):
+    def _check_all_sentences_are_in_section(self, section, sentences_queries):
         """
         Check that all sentences (keys of the dict) are in the section.
         """
         sentences_in_section = []
         sentences_not_in_section = []
         for sentence in sentences_queries:
-            if sentence not in self.section:
+            if sentence not in self.sections[section]:
                 sentences_not_in_section.append(sentence)
             else:
                 sentences_in_section.append(sentence)
@@ -115,16 +105,16 @@ class CitationGPT(ConverserGPT):
         if sentences_not_in_section:
             raise NotInOptionsException(not_in_options=sentences_not_in_section)
 
-    def _find_citations_for_sentences(self) -> Dict[str, List[str]]:
+    def _find_citations_for_sentences(self) -> Dict[str, List[Dict]]:
         """
         Find citations for the sentences in sentences_queries using their search queries.
         """
-        sentences_to_citations = {}
-        for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
+        sentences_citations = {}
+        for sentence_number, (sentence, query) in enumerate(self.sentences_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
                 message = f'Searching citations for sentence {sentence_number + 1}, try {number_of_tries + 1}... '
                 try:
-                    sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
+                    sentences_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
                     break
                 except ServerErrorCitationException as e:
                     self.comment(message + f"CrossRef server error: {e}")
@@ -133,7 +123,7 @@ class CitationGPT(ConverserGPT):
                 continue
             self.comment(message + 'Successful!')
 
-        return sentences_to_citations
+        return sentences_citations
 
     def _choose_citations_for_sentence(self, sentence, sentence_citations):
         """
@@ -197,7 +187,7 @@ class CitationGPT(ConverserGPT):
         # return the chosen citations
         return self.current_sentence_citations_ids, chosen_citations_indices
 
-    def _rewrite_sentence_with_citation(self, sentence, citations_ids):
+    def _rewrite_sentence_with_citation(self, section, sentence, citations_ids):
         """
         Rewrite the sentence with the citation.
         """
@@ -216,7 +206,7 @@ class CitationGPT(ConverserGPT):
             Return only the rewritten sentence, do not return the whole section.
             """).format(sentence, citations_ids))
         new_sentence = self.apply_get_and_append_assistant_message()
-        if len(new_sentence) >= len(self.section):
+        if len(new_sentence) >= len(self.sections[section]):
             self.apply_append_user_message(
                 dedent_triple_quote_str("""
                 Please return only the rewritten sentence.
@@ -224,34 +214,33 @@ class CitationGPT(ConverserGPT):
             new_sentence = self.apply_get_and_append_assistant_message()
         return new_sentence
 
-    def rewrite_section_with_citations(self):
+    def rewrite_section_with_citations(self, section) -> Tuple[str, Set[str]]:
         """
         Rewrite the section with the citations.
         """
-        self._remove_citations_from_section()
+        updated_section = remove_citations_from_section(self.sections[section])
         self.initialize_conversation_if_needed()
+        self._pre_populate_background()
         self.apply_append_user_message(
             dedent_triple_quote_str("""
                 This is the section you need to reformat with citations:
 
                 {}
-                """).format(self.section),
+                """).format(updated_section),
             tag='add_section')
         self.apply_append_surrogate_message(
             'Great, thanks for providing me with the section!', tag='add_section_surrogate')
-        self.sentences_to_queries = self._choose_sentences_that_need_citations()
+        self.sentences_queries = self._choose_sentences_that_need_citations(section)
         self.conversation_manager.reset_back_to_tag('add_section_surrogate')
 
-        sentences_to_possible_citations = self._find_citations_for_sentences()
+        sentences_citations = self._find_citations_for_sentences()
         updated_sentences = []
         all_citations_bibtexes = set()
-        #  TODO: make it sound like a conversation (give me the sentences you want to cross ref.
-        #   I corssref and this is what i got..."
-        for sentence, sentence_citations in sentences_to_possible_citations.items():
+        for sentence, sentence_citations in sentences_citations.items():
             chosen_citations_ids, chosen_citations_indices = \
                 self._choose_citations_for_sentence(sentence, sentence_citations)
             if chosen_citations_ids:
-                updated_sentence = self._rewrite_sentence_with_citation(sentence, chosen_citations_ids)
+                updated_sentence = self._rewrite_sentence_with_citation(section, sentence, chosen_citations_ids)
                 updated_sentences.append(updated_sentence)
                 all_citations_bibtexes.update(
                     [sentence_citations[index]['bibtex'].replace(r' &', r' \&').replace(r'None', r'')
@@ -265,11 +254,23 @@ class CitationGPT(ConverserGPT):
         self.comment(
             'Finished rewriting the sentences with citations, replacing the sentences with the rewritten ones.',
             tag='done_rewriting_section')
-        updated_section = self.section
-        for idx, sentence in enumerate(self.sentences_to_queries):
+        for idx, sentence in enumerate(self.sentences_queries):
             updated_section = updated_section.replace(sentence, updated_sentences[idx])
 
         return updated_section, all_citations_bibtexes
+
+    def rewrite_sections_with_citations(self):
+        """
+        Add citations to all the relevant sections of the paper and add any necessary bibtex
+        references to the .bib file.
+        """
+        all_references = set()
+        section_with_citations = {}
+        for section_name, section_content in self.sections.items():
+            section_with_citations[f'{section_name}_with_citations'], references = \
+               self.rewrite_section_with_citations(section_name)
+            all_references |= references
+        return section_with_citations, all_references
 
     def _validate_citation_ids(self, response, citations_ids):
         """
