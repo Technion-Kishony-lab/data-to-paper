@@ -157,7 +157,7 @@ class BaseWriterReviewGPT(BaseScientificReviewGPT):
 
 @dataclass
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
-    max_rounds: int = 3
+    max_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
 
 
