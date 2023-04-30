@@ -3,9 +3,9 @@ import os
 import shutil
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
-from scientistgpt import Conversation, ScientistGPT
+from scientistgpt import Conversation
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.actions_and_conversations import save_actions_to_file
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
