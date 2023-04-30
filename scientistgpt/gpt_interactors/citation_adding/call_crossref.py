@@ -123,16 +123,16 @@ class CrossrefServerCaller(ServerCaller):
 
                 "authors": authors_string,
                 "journal": item.get("container-title", [None])[0],
-                "doi": item["DOI"],
-                "type": item["type"],
+                "doi": item.get("DOI", ''),
+                "type": item.get("type", ''),
                 "year": item["published"]["date-parts"][0][0] if "published" in item else
-                item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
-                "publisher": item.get("publisher"),
-                "volume": item.get("volume"),
-                "issue": item.get("issue"),
-                "page": item.get("page"),
-                "editors": editor_string if item.get("editor", None) is not None else None,
-                "isbn": item.get("ISBN")
+                item["published-print"]["date-parts"][0][0] if "published-print" in item else '',
+                "publisher": item.get("publisher", ''),
+                "volume": item.get("volume", ''),
+                "issue": item.get("issue", ''),
+                "page": item.get("page", ''),
+                "editors": editor_string if item.get("editor", None) is not None else '',
+                "isbn": item.get("ISBN", '')
             }
             bibtex_citation = create_bibtex(citation)
             citation["bibtex"] = bibtex_citation
