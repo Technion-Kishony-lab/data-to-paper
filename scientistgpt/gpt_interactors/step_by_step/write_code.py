@@ -23,7 +23,7 @@ class BaseCodeScientificGPT(BaseScientificGPT):
     "The name of the file that gpt code is instructed to save the results to."
 
     gpt_script_filename: str = BASE_GPT_SCRIPT_FILE_NAME
-    "The base name of the pythin file in which the code written by gpt is saved."
+    "The base name of the python file in which the code written by gpt is saved."
 
 
 @dataclass
