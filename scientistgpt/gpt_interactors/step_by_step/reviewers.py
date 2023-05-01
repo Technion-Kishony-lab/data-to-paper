@@ -114,7 +114,7 @@ class BaseWriterReviewGPT(BaseScientificReviewGPT):
     user_initiation_prompt: str = """
     Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} \
     only the {goal_noun} of a scientific paper. Do not write any other parts!
-    Write in tex format including any math or symbols that needs tex escapes.
+    Write in tex format including \\section{..}, any math or symbols that needs tex escapes.
     """
 
     other_system_prompt: str = """
