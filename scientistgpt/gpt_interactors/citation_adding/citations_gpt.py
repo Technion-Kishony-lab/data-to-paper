@@ -117,7 +117,7 @@ class CitationGPT(ConverserGPT):
 
     def _find_citations_for_sentences(self) -> Dict[str, List[str]]:
         """
-        Find citations for the sentences in sentences_queries using their search queries.
+        Find citations for the sentences in sentences_to_queries using their search queries.
         """
         sentences_to_citations = {}
         for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):

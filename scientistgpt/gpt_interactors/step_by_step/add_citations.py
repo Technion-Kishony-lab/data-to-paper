@@ -3,118 +3,188 @@ from typing import Dict, Set, Tuple, Optional, List
 
 from scientistgpt.cast import Agent
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
-from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
+from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER, CrossrefCitation
 from scientistgpt.gpt_interactors.citation_adding.citataion_utils import \
     choose_first_citation, remove_citations_from_section
-from scientistgpt.gpt_interactors.citation_adding.exceptions import NotInOptionsException, ServerErrorCitationException
-from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
+from scientistgpt.gpt_interactors.citation_adding.exceptions import ServerErrorCitationException
+from scientistgpt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
+from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.extract_python import extract_python_value_from_response
+from scientistgpt.utils.extract_python import extract_python_value_from_response, validate_variable_type
 
 
 @dataclass
-class AddCitationReviewGPT(BaseScientificGPT):
-    sections: Dict[str, str] = None  # The sections of the paper to which we are adding citations to.
+class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
+    """
+    Given a sentence and a list of citations, rewrite the sentence with the citations.
+    This class is called on already initialized conversation.
+    """
+
+    max_rounds: int = 0  # no review
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Choose the most appropriate citations to add for the sentence: 
+
+        {sentence}
+
+        Choose from the following citations:
+
+        {citations}
+
+        Send your reply formatted as a Python list of str, representing the ids of the citations you choose. 
+        For example, write: 
+        `["AuthorX2022", "AuthorY2009"]`
+        where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
+        Choose only citations that are highly relevant to the sentence.
+        You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
+        """)
+
+    sentence_to_add_to_error_message_upon_failed_check_self_response = dedent_triple_quote_str("""
+        Please try again making sure you return the chosen citations with the correct format, like this:
+        ``` 
+        ["AuthorX2022Title", "AuthorY2009Title"]
+        ```
+        """)
+
+    sentence: str = None
+    citations: List[CrossrefCitation] = field(default_factory=list)
+    chosen_citation_ids: Set[str] = field(default_factory=set)
+
+    @property
+    def citation_ids(self) -> List[str]:
+        return [citation.get_bibtex_id() for citation in self.citations]
+
+    def _formatting_dict(self):
+        """
+        add to the super dict the sentence and the citations
+        """
+        return {**super()._formatting_dict(), 'sentence': self.sentence, 'citations': self.citations}
+
+    def _check_self_response(self, response: str) -> Optional[str]:
+        """
+        check that the response is a valid python list of str
+        """
+        feedback, response_value = extract_python_value_from_response(response, List[str])
+        if feedback is not None:
+            return feedback  # return the feedback on the error
+        try:
+            validate_variable_type(response, List[str])
+        except TypeError as e:
+            return str(e)
+
+        ids_not_in_options = \
+            self._add_citations_in_options_and_return_citations_not_in_options(response_value)
+
+        if len(ids_not_in_options) > 0:
+            return \
+                f'You returned citations that are not included in the provided citation options.' \
+                f'Specifically, you returned {ids_not_in_options}, while the allowed options are: {self.citation_ids}.'
+
+    def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
+        """
+        Validate that the response is in the correct format and all ids are existing ones.
+        """
+        not_in_citations = set()
+        for citation_id in chosen_citation_ids:
+            if citation_id in self.citation_ids:
+                self.chosen_citation_ids.add(citation_id)
+            else:
+                not_in_citations.add(citation_id)
+        return not_in_citations
+
+    def get_rewritten_sentence(self):
+        if len(self.chosen_citation_ids) == 0:
+            return self.sentence
+        return self.sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(self.chosen_citation_ids) + '}.'
+
+    def get_rewritten_sentence_and_chosen_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
+        self.initialize_and_run_dialog()
+        return (self.get_rewritten_sentence(),
+                {citation for citation in self.citations if citation.get_bibtex_id() in self.chosen_citation_ids})
+
+
+@dataclass
+class AddCitationReviewGPT(BaseScientificReviewGPT):
+    # in the actual call to add_background, we will be adding to the background also the specific section
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
     conversation_name: str = f'add_citations'
     assistant_agent: Agent = Agent.Secretary
     user_agent: Agent = Agent.Student
+    max_rounds: int = 0  # 0 no review
 
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str("""
-    You are a scientific citation expert. 
-    You are given a section of a paper
-    1. You should mention what sentences need to be cited.
-    2. You will be provided with list of possible citations, 
-       and you should select the most appropriate one for each of the sentences. 
-    3. You will rewrite the sentences with the citations.
-    4. The citations will be inserted to the text using \\cite{}.
+        You are a scientific citation expert. 
+        You are given a section of a paper
+        1. You should mention what sentences need to be cited.
+        2. You will be provided with list of possible citations, 
+           and you should select the most appropriate one for each of the sentences. 
+        3. You will rewrite the sentences with the citations.
+        4. The citations will be inserted to the text using \\cite{}.
     """)
 
-    max_number_of_attempts: int = 4
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Extract from the above section the factual sentences to which we need to add citations. 
+        For each of the chosen sentences, create a short query for a citation search for this sentence.
+        You need to return a dict mapping each sentence to its respective reference search query.
+        Your response should be in the following format: 
+        {
+         "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
+         "This is another important claim": "Some important keywords for this sentence", 
+         "This is the another factual sentence that needs a source": "This is the best query for this sentence",
+        }
+        This is of course just an example. 
+        Identify all the sentences that you think we need to add citations to.
+        
+        Remember, this is your first paper, so you can't cite previous papers of yours.  
+        Namely, "We \\cite{}, showed..." is not a valid citation to add.
+
+        Return only a dict of "sentence: query" pairs, without any other text.
+    """)
+
+    sentence_to_add_to_error_message_upon_failed_check_self_response: str = dedent_triple_quote_str("""
+        Please try again making sure you return the results with the correct format, like this:
+        ``` 
+        {"sentence extracted from the section": "query of the key sentence", 
+        "another sentence extracted from the section": "the query of this sentence"}
+        ```
+    """)
+
+    # input:
+    section_name: str = None  # The section of the paper to which we are adding citations to.
+
+    # output:
     max_number_of_api_calls: int = 3
-
-    sentences_queries: Dict[str, str] = None
-
     current_sentence_citations_ids: Set[str] = field(default_factory=set)
-    sentences_to_add_citations_to: Set[Tuple[str, str]] = field(default_factory=set)
+    sentences_to_queries: Dict[str, str] = field(default_factory=set)
 
-    def _choose_sentences_that_need_citations(self, section):
-        """
-        Choose sentences that need citations from the section.
-        """
-        self.apply_append_user_message(dedent_triple_quote_str("""
-            Extract from the given section the factual sentences to which we need to add citations. 
-            For each of the chosen sentence, create the best query possible for the citation search for this sentence.
-            You need to return a dict of these sentences mapped to their respective queries.
-            Your response should be in the following format: 
-            {
-             "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
-             "This is another important claim": "Some important keywords for this sentence", 
-             "This is the another factual sentence that needs a source": "This is the best query for this sentence",
-             } 
-            This is of course just an example. 
-            Identify all the sentences that you think we need to add citations to.
-            Remember, you are the author of this paper, you can't cite previous papers of yours, 
-            so "We \\cite{}, showed..." is not a valid citation to add.
+    @property
+    def section(self):
+        return self.products.paper_sections[self.section_name]
 
-            Return only a dict of "sentence: query" pairs, without any other text.
-            """), tag='select_sentences')
-
-        feedback_message: Optional[str] = None
-        for attempt_num in range(self.max_number_of_attempts):
-            if feedback_message is not None:
-                self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
-                    Please try again making sure you return the results with the correct format, like this:
-                    ``` 
-                    {"sentence extracted from the section": "query of the key sentence", 
-                    "another sentence extracted from the section": "the query of this sentence"}
-                    ```
-                    """), tag='wrong_format')
-            response = self.apply_get_and_append_assistant_message()
-            feedback_message, response_value = extract_python_value_from_response(response, Dict[str, str])
-            if feedback_message is not None:
-                continue
-            try:
-                self._check_all_sentences_are_in_section(section, response_value)
-            except NotInOptionsException as e:
-                feedback_message = \
-                    f'Some of the sentences you returned are not precise extraction from the section:\n' \
-                    f'{e.not_in_options}.\n'
-                continue
-            return response_value
-        if not self.sentences_to_add_citations_to:
-            # TODO: decide what to do if we didn't find any sentences
-            raise ValueError(f'Could not find any sentences after {self.max_number_of_attempts} attempts.')
-        return dict(self.sentences_to_add_citations_to)
-
-    def _check_all_sentences_are_in_section(self, section, sentences_queries):
+    def _add_sentences_in_section_and_return_sentences_not_in_section(self, sentences_queries: Dict[str, str]
+                                                                      ) -> List[str]:
         """
-        Check that all sentences (keys of the dict) are in the section.
+        For each sentence in sentences_to_queries, check if it is in the section. If it is, add it to
+        self.sentences_to_queries. Return the sentences that are not in the section.
         """
-        sentences_in_section = []
         sentences_not_in_section = []
-        for sentence in sentences_queries:
-            if sentence not in self.sections[section]:
-                sentences_not_in_section.append(sentence)
+        for sentence, query in sentences_queries.items():
+            if sentence in self.section:
+                self.sentences_to_queries[sentence] = query
             else:
-                sentences_in_section.append(sentence)
-        self.sentences_to_add_citations_to |= \
-            set((sentence_in_section, sentences_queries[sentence_in_section])
-                for sentence_in_section in sentences_in_section)
-        if sentences_not_in_section:
-            raise NotInOptionsException(not_in_options=sentences_not_in_section)
+                sentences_not_in_section.append(sentence)
+        return sentences_not_in_section
 
-    def _find_citations_for_sentences(self) -> Dict[str, List[Dict]]:
+    def _find_citations_for_sentences(self) -> Dict[str, List[CrossrefCitation]]:
         """
-        Find citations for the sentences in sentences_queries using their search queries.
+        Find citations for the sentences in sentences_to_queries using their search queries.
         """
-        sentences_citations = {}
-        for sentence_number, (sentence, query) in enumerate(self.sentences_queries.items()):
+        sentences_to_citations = {}
+        for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
                 message = f'Searching citations for sentence {sentence_number + 1}, try {number_of_tries + 1}... '
                 try:
-                    sentences_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
+                    sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
                     break
                 except ServerErrorCitationException as e:
                     self.comment(message + f"CrossRef server error: {e}")
@@ -123,161 +193,48 @@ class AddCitationReviewGPT(BaseScientificGPT):
                 continue
             self.comment(message + 'Successful!')
 
-        return sentences_citations
+        return sentences_to_citations
 
-    def _choose_citations_for_sentence(self, sentence, sentence_citations):
-        """
-        Choose the most appropriate citations for the sentence, if any.
-        """
-        self.current_sentence_citations_ids = set()
-        if not CHOOSE_CITATIONS_USING_CHATGPT:
-            return choose_first_citation(sentence_citations)
-        citations_ids = [citation['bibtex'].split('{')[1].split(',\n')[0] for citation in sentence_citations]
-        citations_titles = [citation['title'] for citation in sentence_citations]
-        self.apply_append_user_message(dedent_triple_quote_str("""
-        Choose the most appropriate citations to add for the sentence: 
+    def _pre_populate_background(self, previous_product_items: list = None):
+        super()._pre_populate_background(self.background_product_fields + ['paper_section_' + self.section_name])
 
-        {}
+    def _check_self_response(self, response: str) -> Optional[str]:
+        feedback_message, response_value = extract_python_value_from_response(response, Dict[str, str])
+        if feedback_message is not None:
+            return feedback_message
+        sentences_not_in_section = self._add_sentences_in_section_and_return_sentences_not_in_section(response_value)
+        if sentences_not_in_section:
+            if len(sentences_not_in_section) == len(response_value):
+                return \
+                    f'The sentences that you returned are not precise extraction from the section.'
+            return \
+                f'The following sentences that you returned are not precise extraction from the section:\n' \
+                f'{sentences_not_in_section}.\n'
+        return None
 
-        Choose from the following citations, by reading their titles:
+    def initialize_and_run_dialog(self):
+        self.initialize_dialog()
+        self.comment('Background concluded', tag='after_background')
+        return self.run_dialog()
 
-        {}
-
-        Send your reply formatted as a Python list of str, representing the ids of the citations you choose. 
-        For example, write: 
-        `["AuthorX2022", "AuthorY2009"]`
-        where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
-        Choose only citations that are highly relevant to the sentence.
-        You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
-        """).format(sentence,
-                    '\n'.join(
-                        [f"id: '{citation_id}', title: '{citation_title}'" for citation_id, citation_title in
-                         zip(citations_ids, citations_titles)])
-                    ), tag='choose_citations')
-        feedback_message: Optional[str] = None
-        for attempt_num in range(self.max_number_of_attempts):
-            if feedback_message is not None:
-                self.apply_append_user_message(feedback_message + dedent_triple_quote_str("""
-                    Please try again making sure you return the chosen citations with the correct format, like this:
-                    ``` 
-                    ["AuthorX2022Title", "AuthorY2009Title"]
-                    ```
-                    """), tag='wrong_format')
-            response = self.apply_get_and_append_assistant_message()
-            feedback_message, response_value = extract_python_value_from_response(response, List[str])
-            if feedback_message is not None:
-                continue
-            try:
-                self._validate_citation_ids(response_value, citations_ids)
-            except NotInOptionsException as e:
-                feedback_message = dedent_triple_quote_str(f"""
-                    f'You returned citations that are not included in the provided citation options. 
-                    f'Specifically, you returned {e.not_in_options}, while the allowed options are: {citations_ids}.'
-                    """)
-                continue
-            self.current_sentence_citations_ids |= set(response_value)
-            break
-        else:
-            return choose_first_citation(sentence_citations)
-        if not self.current_sentence_citations_ids:
-            return [], []
-        # find the indices of the chosen citations
-        chosen_citations_indices = \
-            [citations_ids.index(citation_id) for citation_id in self.current_sentence_citations_ids]
-        # return the chosen citations
-        return self.current_sentence_citations_ids, chosen_citations_indices
-
-    def _rewrite_sentence_with_citation(self, section, sentence, citations_ids):
-        """
-        Rewrite the sentence with the citation.
-        """
-        if not USE_CHATGPT_FOR_CITATION_REWRITING:
-            # add the citations to the end of the sentence as is.
-            return sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(citations_ids) + '.' + '}'
-
-        self.apply_append_user_message(
-            dedent_triple_quote_str("""
-            The sentence you need to rewrite is: "{}".
-            The citation ids you should incorporate into the sentence are: {}.
-            These citations should be incorporated in a relevant position in the sentence, 
-            maintaining logical sentence flow.
-            Please rewrite the sentence with these citations using the provided citation ids.
-            You should add the citations using \\cite{{}}, keeping correct .tex format. 
-            Return only the rewritten sentence, do not return the whole section.
-            """).format(sentence, citations_ids))
-        new_sentence = self.apply_get_and_append_assistant_message()
-        if len(new_sentence) >= len(self.sections[section]):
-            self.apply_append_user_message(
-                dedent_triple_quote_str("""
-                Please return only the rewritten sentence.
-                """))
-            new_sentence = self.apply_get_and_append_assistant_message()
-        return new_sentence
-
-    def rewrite_section_with_citations(self, section) -> Tuple[str, Set[str]]:
+    def rewrite_section_with_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
         """
         Rewrite the section with the citations.
         """
-        updated_section = remove_citations_from_section(self.sections[section])
-        self.initialize_conversation_if_needed()
-        self._pre_populate_background()
-        self.apply_append_user_message(
-            dedent_triple_quote_str("""
-                This is the section you need to reformat with citations:
+        self.initialize_and_run_dialog()
+        # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
+        # we might have accumulated some sentences through the process.
 
-                {}
-                """).format(updated_section),
-            tag='add_section')
-        self.apply_append_surrogate_message(
-            'Great, thanks for providing me with the section!', tag='add_section_surrogate')
-        self.sentences_queries = self._choose_sentences_that_need_citations(section)
-        self.conversation_manager.reset_back_to_tag('add_section_surrogate')
-
-        sentences_citations = self._find_citations_for_sentences()
-        updated_sentences = []
-        all_citations_bibtexes = set()
-        for sentence, sentence_citations in sentences_citations.items():
-            chosen_citations_ids, chosen_citations_indices = \
-                self._choose_citations_for_sentence(sentence, sentence_citations)
-            if chosen_citations_ids:
-                updated_sentence = self._rewrite_sentence_with_citation(section, sentence, chosen_citations_ids)
-                updated_sentences.append(updated_sentence)
-                all_citations_bibtexes.update(
-                    [sentence_citations[index]['bibtex'].replace(r' &', r' \&').replace(r'None', r'')
-                     for index in chosen_citations_indices]
-                )
-            else:
-                updated_sentences.append(sentence)
-            self.conversation_manager.reset_back_to_tag('add_section_surrogate')
-
-        # replace the section with the updated sentences
-        self.comment(
-            'Finished rewriting the sentences with citations, replacing the sentences with the rewritten ones.',
-            tag='done_rewriting_section')
-        for idx, sentence in enumerate(self.sentences_queries):
-            updated_section = updated_section.replace(sentence, updated_sentences[idx])
-
-        return updated_section, all_citations_bibtexes
-
-    def rewrite_sections_with_citations(self):
-        """
-        Add citations to all the relevant sections of the paper and add any necessary bibtex
-        references to the .bib file.
-        """
-        all_references = set()
-        section_with_citations = {}
-        for section_name, section_content in self.sections.items():
-            section_with_citations[f'{section_name}_with_citations'], references = \
-               self.rewrite_section_with_citations(section_name)
-            all_references |= references
-        return section_with_citations, all_references
-
-    def _validate_citation_ids(self, response, citations_ids):
-        """
-        Validate that the response is in the correct format and all ids are existing ones.
-        """
-        not_in_citations = [citation_id for citation_id in response if citation_id not in citations_ids]
-        if not_in_citations:
-            raise NotInOptionsException(not_in_options=not_in_citations)
-        in_citations = [citation_id for citation_id in response if citation_id in citations_ids]
-        self.current_sentence_citations_ids |= set(in_citations)
+        sentences_to_citations = self._find_citations_for_sentences()
+        updated_section = self.section
+        all_citations = set()
+        for sentence, sentence_citations in sentences_to_citations.items():
+            self.conversation_manager.reset_back_to_tag('after_background')
+            rewritten_sentence, chosen_citations = \
+                RewriteSentenceWithCitations(
+                    conversation_name=self.conversation_name,
+                    sentence=sentence,
+                    citations=sentence_citations).get_rewritten_sentence_and_chosen_citations()
+            updated_section = updated_section.replace(sentence, rewritten_sentence)
+            all_citations.update(chosen_citations)
+        return updated_section, all_citations

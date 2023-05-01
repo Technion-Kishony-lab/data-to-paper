@@ -45,13 +45,11 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     for section_name in paper_section_names:
         if section_name not in title_and_abstract_names:
             products.paper_sections[section_name] = \
-                PaperSectionReviewGPT(products=products, section_names=[section_name]).get_sections()[0]
+                PaperSectionReviewGPT(products=products, section_name=section_name).get_section()
 
     # Add citations to relevant paper sections
-    section_with_citations, products.bibtex_citations = \
-        AddCitationReviewGPT(products=products,
-                             sections={section_name: products.paper_sections[section_name] for section_name in
-                                       SECTIONS_TO_ADD_CITATIONS_TO}).rewrite_sections_with_citations()
-    products.paper_sections.update(section_with_citations)
+    for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
+        products.cited_paper_sections[section_name] = \
+            AddCitationReviewGPT(products=products, section_name=section_name).rewrite_section_with_citations()
 
     return products
