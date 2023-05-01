@@ -302,7 +302,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     The reviewee is expected to return the goal as a triple-quoted string, so that it can be extracted.
     """
 
-    flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''"), ('`', '`'), ('"', '"'), ("'", "'")]
+    flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
     quote_request = 'Please return the {goal_noun} enclosed within triple-backticks.'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
