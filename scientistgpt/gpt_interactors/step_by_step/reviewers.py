@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Union
+from typing import Optional, List, Union
 
 from scientistgpt.cast import Agent
-from scientistgpt.gpt_interactors.paper_writing.base_paper_writing import FailedCreatingPaperSection
 from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
@@ -39,7 +38,7 @@ class GoalReviewGPT(BaseScientificReviewGPT):
         You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
         Your job is to advise me, the {reviewee}, and provide a constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
-        
+
         Pay special attention to whether the research goal can be achieved using only the provided dataset (without \
         requiring additional data).
 

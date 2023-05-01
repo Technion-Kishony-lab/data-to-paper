@@ -1,4 +1,3 @@
-import os
 import pickle
 
 from scientistgpt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT

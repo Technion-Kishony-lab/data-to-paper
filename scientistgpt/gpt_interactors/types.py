@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Optional, List, Dict, Tuple, Any, Union, Callable
+from typing import Optional, List, Dict, Tuple, Union, Callable
 
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils.text_utils import NiceList, dedent_triple_quote_str

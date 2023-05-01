@@ -1,5 +1,5 @@
 from scientistgpt import run_scientist_gpt
-from queries_covid_vaccine import data_file_descriptions, research_goal
+from queries_covid_vaccine import data_file_descriptions
 
 # local_path.py is git ignored. It should be created locally, and contain:
 # DATA_FOLDER: absolute path to a directory where the data files are located

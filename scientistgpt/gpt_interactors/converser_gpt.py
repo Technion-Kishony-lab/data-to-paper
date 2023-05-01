@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Optional, List
+from dataclasses import dataclass
+from typing import Optional
 
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import GeneralMessageDesignation
@@ -92,4 +92,3 @@ class ConverserGPT:
         return self.conversation_manager.append_surrogate_message(
             content, tag=tag, comment=comment, is_code=is_code, previous_code=previous_code)
 >>>>>>>
-
