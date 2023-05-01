@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field, fields
-from typing import Optional, List, Dict, Tuple, Union, Callable
+from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
+from scientistgpt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils.text_utils import NiceList, dedent_triple_quote_str
 
@@ -55,12 +56,13 @@ class Products:
     code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
+    cited_paper_sections: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
 
     def get_description(self, product_field: str) -> Tuple[str, bool]:
         """
         Return the description of the given product.
         """
-        name, description, is_code = PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE[product_field]
+        name, description, is_code = get_name_description_iscode(product_field)
         if isinstance(description, str):
             return description.format(getattr(self, product_field)), is_code
         else:
@@ -70,7 +72,7 @@ class Products:
         """
         Return the name of the given product.
         """
-        name, description, is_code = PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE[product_field]
+        name, description, is_code = get_name_description_iscode(product_field)
         return name
 
     @property
