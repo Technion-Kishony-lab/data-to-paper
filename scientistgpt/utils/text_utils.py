@@ -122,6 +122,8 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
             end = text.find(right_tag, start + len(left_tag))
             if end == -1:
                 raise ValueError(f'Could not find left tag {right_tag} in text')
+            if end - start - len(left_tag) == 0:
+                raise ValueError(f'Could not find left tag {left_tag} in text')
             if leave_tags:
                 return text[start:end + len(right_tag)]
             return text[start + len(left_tag):end]
