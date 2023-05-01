@@ -98,6 +98,8 @@ class DialogDualConverserGPT(DualConverserGPT):
     A phrase used by the 'other' chatgpt to terminate the conversation.
     """
 
+    sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
+
     max_rounds: int = 3
     max_attempts_per_round: int = 4
 
@@ -155,7 +157,8 @@ class DialogDualConverserGPT(DualConverserGPT):
 
     def _check_self_response(self, response: str) -> Optional[str]:
         """
-        Check the response from self. If the response is not allowed, return a description of the problem.
+        Check the response from self. If the response is not allowed, return a message to chatgpt describing
+        the problem and requesting a new response.
         Otherwise return None.
         """
         return None
@@ -174,7 +177,9 @@ class DialogDualConverserGPT(DualConverserGPT):
             problem_in_response = self._check_self_response(self_response)
             if problem_in_response is None:
                 break
-            self.apply_append_user_message(problem_in_response, tag='error')
+            self.apply_append_user_message(problem_in_response + '\n' +
+                                           self.sentence_to_add_to_error_message_upon_failed_check_self_response,
+                                           tag='error')
         else:
             return None
 
