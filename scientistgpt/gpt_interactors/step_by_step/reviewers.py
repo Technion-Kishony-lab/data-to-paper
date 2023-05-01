@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
 from scientistgpt.cast import Agent
-from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
+from scientistgpt.gpt_interactors.citation_adding.citataion_utils import remove_citations_from_section
+from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.text_utils import nicely_join
@@ -17,7 +18,7 @@ sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
 
 
 @dataclass
-class GoalReviewGPT(BaseScientificReviewGPT):
+class GoalReviewGPT(BaseScientificQuotedReviewGPT):
     background_product_fields = ['data_file_descriptions']
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
@@ -53,7 +54,7 @@ class GoalReviewGPT(BaseScientificReviewGPT):
 
 
 @dataclass
-class PlanReviewGPT(BaseScientificReviewGPT):
+class PlanReviewGPT(BaseScientificQuotedReviewGPT):
     max_rounds: int = 0  # no review cycles
     background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'analysis_plan'
@@ -65,7 +66,7 @@ class PlanReviewGPT(BaseScientificReviewGPT):
 
 
 @dataclass
-class ResultsInterpretationReviewGPT(BaseScientificReviewGPT):
+class ResultsInterpretationReviewGPT(BaseScientificQuotedReviewGPT):
     max_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
     conversation_name: str = 'results_interpretation'
@@ -80,7 +81,7 @@ class ResultsInterpretationReviewGPT(BaseScientificReviewGPT):
 
 
 @dataclass
-class BaseWriterReviewGPT(BaseScientificReviewGPT):
+class BaseWriterReviewGPT(BaseScientificQuotedReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
@@ -139,7 +140,9 @@ class BaseWriterReviewGPT(BaseScientificReviewGPT):
         try:
             self.section_contents = []
             for section_name in self.section_names:
-                self.section_contents.append(extract_latex_section_from_response(response, section_name))
+                extracted_section = extract_latex_section_from_response(response, section_name)
+                extracted_section_without_references = remove_citations_from_section(extracted_section)
+                self.section_contents.append(extracted_section_without_references)
         except FailedToExtractLatexContent as e:
             error_message = dedent_triple_quote_str("""
                 {}
@@ -162,6 +165,14 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
+    section_name: str = None
     max_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
+
+    def __post_init__(self):
+        self.section_names = [self.section_name]
+        super().__post_init__()
+
+    def get_section(self):
+        return self.get_sections()[0]
