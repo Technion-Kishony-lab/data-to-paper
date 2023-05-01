@@ -7,6 +7,8 @@ from queries_covid_vaccine import data_file_descriptions, research_goal
 
 from local_paths import DATA_FOLDER, OUTPUT_FOLDER
 
-run_scientist_gpt(data_file_descriptions=data_file_descriptions, research_goal=research_goal,
-                  data_directory=DATA_FOLDER, output_directory=OUTPUT_FOLDER,
+run_scientist_gpt(data_file_descriptions=data_file_descriptions,
+                  research_goal=None,
+                  data_directory=DATA_FOLDER,
+                  output_directory=OUTPUT_FOLDER + '/out1',
                   mock_servers=True)  # <==== use True to mock/record openai responses
