@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple, List
+from typing import Optional
 
 from scientistgpt.conversation import Role, ConversationManager
 
@@ -46,7 +46,7 @@ class DualConverserGPT(ConverserGPT):
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None, **kwargs,
-                                                     ) -> str:
+                                                        ) -> str:
         return self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
             hidden_messages=hidden_messages, **kwargs)
@@ -56,7 +56,8 @@ class DualConverserGPT(ConverserGPT):
         return self.other_conversation_manager.append_user_message(
             content, tag=tag, comment=comment, is_code=is_code, previous_code=previous_code)
 
-    def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None,
+                                             comment: Optional[str] = None):
         return self.other_conversation_manager.append_system_message(content, tag=tag, comment=comment)
 
     def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,

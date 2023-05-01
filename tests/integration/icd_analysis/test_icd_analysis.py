@@ -10,6 +10,8 @@ from icd_analysis.queries_mimic import data_file_descriptions, research_goal
 
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
+# TODO:  adapt this test to the new step-by-step code
+
 """
 Set folders
 """
