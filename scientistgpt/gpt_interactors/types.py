@@ -58,21 +58,21 @@ class Products:
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
 
-    def get_description(self, product_field: str) -> Tuple[str, bool]:
+    def get_description(self, product_field: str) -> str:
         """
         Return the description of the given product.
         """
-        name, description, is_code = get_name_description_iscode(product_field)
+        name, description = get_name_description_iscode(product_field)
         if isinstance(description, str):
-            return description.format(getattr(self, product_field)), is_code
+            return description.format(getattr(self, product_field))
         else:
-            return description(self), is_code
+            return description(self)
 
     def get_name(self, product_field: str) -> str:
         """
         Return the name of the given product.
         """
-        name, description, is_code = get_name_description_iscode(product_field)
+        name, description = get_name_description_iscode(product_field)
         return name
 
     @property
@@ -116,26 +116,25 @@ def get_paper_section_description(products: Products, section_name: str) -> str:
 
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
-PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Callable], bool]] = {
-    'data_file_descriptions': ('dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}', False),
-    'research_goal': ('research goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}', False),
-    'analysis_plan': ('data analysis plan', 'Here is our data analysis plan:\n\n{}', False),
-    'code': ('code', get_code_description, True),
-    'code_output': ('output of the code', get_code_output_description, False),
-    'code_and_output': ('code and output', get_code_and_output_description, True),
-    'results_summary': ('results summary', 'Here is a summary of our results:\n\n{}', False),
-    'title_and_abstract': ('title and abstract', get_title_and_abstract_description, False),
+PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Callable]]] = {
+    'data_file_descriptions': ('dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
+    'research_goal': ('research goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
+    'analysis_plan': ('data analysis plan', 'Here is our data analysis plan:\n\n{}'),
+    'code': ('code', get_code_description),
+    'code_output': ('output of the code', get_code_output_description),
+    'code_and_output': ('code and output', get_code_and_output_description),
+    'results_summary': ('results summary', 'Here is a summary of our results:\n\n{}'),
+    'title_and_abstract': ('title and abstract', get_title_and_abstract_description),
 }
 
 
-def get_name_description_iscode(product_field: str) -> Tuple[str, Union[str, Callable], bool]:
+def get_name_description_iscode(product_field: str) -> Tuple[str, Union[str, Callable]]:
     """
     For the of the given product field, return the name, description, and whether the product is code.
     """
     if product_field.startswith('paper_section_'):
         section_name = product_field[len('paper_section_'):]
         return f'"{section_name}" section of the paper', \
-            lambda products: get_paper_section_description(products, section_name), \
-            False
+            lambda products: get_paper_section_description(products, section_name)
 
     return PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE[product_field]

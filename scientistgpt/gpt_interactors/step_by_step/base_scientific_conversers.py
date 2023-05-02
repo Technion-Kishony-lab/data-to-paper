@@ -16,9 +16,9 @@ class BaseScientificGPT(ConverserGPT):
         return thank_you_message
 
     def _add_product_description(self, product_field: str):
-        product_description, is_code = self.products.get_description(product_field)
-        self.apply_append_user_message(product_description, is_code=is_code)
-        return product_description, is_code
+        product_description = self.products.get_description(product_field)
+        self.apply_append_user_message(product_description)
+        return product_description
 
     def _pre_populate_background(self, previous_product_items: list = None):
         """
@@ -46,10 +46,10 @@ class BaseScientificReviewGPT(BaseScientificGPT, ReviewDialogDualConverserGPT):
         return thank_you_message
 
     def _add_product_description(self, product_field: str):
-        product_description, is_code = super()._add_product_description(product_field)
+        product_description = super()._add_product_description(product_field)
         if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_user_message(product_description, is_code=is_code)
-        return product_description, is_code
+            self.apply_to_other_append_user_message(product_description)
+        return product_description
 
 
 @dataclass
