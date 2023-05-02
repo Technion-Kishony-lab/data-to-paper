@@ -231,7 +231,6 @@ class ScientistGPT(CodeWritingGPT):
                         else f'revised code ({code_and_output.code_name})',
                         self.get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
-                    is_code=True,
                     previous_code=code_from_previous_revision,
                 )
                 # the conversation is now at a point as if chatgpt immediately sent the correct code in response to
