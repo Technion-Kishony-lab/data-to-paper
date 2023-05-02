@@ -10,6 +10,7 @@ from .message_designation import GeneralMessageDesignation, convert_general_mess
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
     CreateConversation, apply_action, AddParticipantsToConversation
+from ..run_gpt_code.code_runner import CodeRunner, add_python_to_first_triple_quotes_if_missing
 
 
 @dataclass
@@ -114,7 +115,7 @@ class ConversationManager:
         self.append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
-                                         previous_code: Optional[str] = None,
+                                         is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         """
         Get and append a response from openai to a specified conversation.
@@ -129,7 +130,7 @@ class ConversationManager:
         # starting at message 1 (message 0 is the system message).
         while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
-                                                               previous_code=previous_code,
+                                                               is_code=is_code, previous_code=previous_code,
                                                                hidden_messages=actual_hidden_messages,
                                                                **kwargs)
             if isinstance(content, str):
@@ -155,7 +156,7 @@ class ConversationManager:
         return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
-                                            previous_code: Optional[str] = None,
+                                            is_code: bool = False, previous_code: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None, **kwargs
                                             ) -> Optional[str]:
         """
@@ -173,6 +174,8 @@ class ConversationManager:
                 hidden_messages=hidden_messages,
                 exception=content)
         else:
+            if is_code:
+                content = add_python_to_first_triple_quotes_if_missing(content)
             action = AppendChatgptResponse(
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
