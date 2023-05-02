@@ -40,7 +40,7 @@ def add_python_to_first_triple_quotes_if_missing(content: str):
         return content
     first_triple_quotes_line = content[first_triple_quotes:first_triple_quotes_end + 1]
     if first_triple_quotes_line in POSSIBLE_CODE_HEADERS:
-        return content.replace(first_triple_quotes_line, CORRECT_CODE_HEADER)
+        return content.replace(first_triple_quotes_line, CORRECT_CODE_HEADER, 1)
     return content
 
 
