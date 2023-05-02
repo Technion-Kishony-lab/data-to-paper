@@ -10,7 +10,7 @@ from .message_designation import GeneralMessageDesignation, convert_general_mess
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
     CreateConversation, apply_action, AddParticipantsToConversation
-from ..run_gpt_code.code_runner import CodeRunner, add_python_to_first_triple_quotes_if_missing
+from ..run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 
 
 @dataclass
@@ -69,7 +69,7 @@ class ConversationManager:
                 self.add_participants(self.participants - self.conversation.participants)
 
     def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
-                       ignore: bool = False,  previous_code: Optional[str] = None):
+                       ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a message to a specified conversation.
         """
