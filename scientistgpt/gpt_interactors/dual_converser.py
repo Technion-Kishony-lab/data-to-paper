@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from typing import Optional
+from enum import Enum
+from typing import Optional, Tuple
 
 from scientistgpt.conversation import Role, ConversationManager
 
 from .converser_gpt import ConverserGPT
 from ..conversation.message_designation import GeneralMessageDesignation
+from ..utils.replacer import with_attribute_replacement
 from ..utils.text_utils import dedent_triple_quote_str, extract_text_between_tags
 
 
@@ -31,17 +33,14 @@ class DualConverserGPT(ConverserGPT):
         )
 
     @property
-    def actual_other_system_prompt(self):
-        return self.other_system_prompt
-
-    @property
     def other_conversation(self):
         return self.other_conversation_manager.conversation
 
+    @with_attribute_replacement
     def initialize_other_conversation_if_needed(self):
         self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
-            self.apply_to_other_append_system_message(self.actual_other_system_prompt)
+            self.apply_to_other_append_system_message(self.other_system_prompt)
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
@@ -261,34 +260,15 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     sentence_to_add_at_the_end_of_reviewee_response: str = ""
 
-    def _formatting_dict(self):
-        return dict(reviewee=self.reviewee, reviewer=self.reviewer, termination_phrase=self.termination_phrase,
-                    goal_noun=self.goal_noun, goal_verb=self.goal_verb)
-
-    def _format_prompt(self, prompt):
-        while True:
-            old_prompt = prompt
-            prompt = dedent_triple_quote_str(prompt.format(**self._formatting_dict()))
-            if prompt == old_prompt:
-                return prompt
-
-    @property
-    def actual_system_prompt(self):
-        return self._format_prompt(self.system_prompt)
-
-    @property
-    def actual_other_system_prompt(self):
-        return self._format_prompt(self.other_system_prompt)
-
     @property
     def are_we_reviewing_at_all(self) -> bool:
         return self.max_rounds > 0
 
     def _alter_other_response(self, response: str) -> str:
-        return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewer_response)
+        return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
     def _alter_self_response(self, response: str) -> str:
-        return response + '\n\n' + self._format_prompt(self.sentence_to_add_at_the_end_of_reviewee_response)
+        return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewee_response
 
     def _pre_populate_background(self):
         """
@@ -296,15 +276,12 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """
         pass
 
-    def _get_user_initiation_prompt(self):
-        return self._format_prompt(self.user_initiation_prompt)
-
     def _pre_populate_conversations(self):
         """
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.apply_append_user_message(self._get_user_initiation_prompt())
+        self.apply_append_user_message(self.user_initiation_prompt)
 
     def initialize_dialog(self):
         self.initialize_conversation_if_needed()
@@ -327,14 +304,13 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
     quote_request = 'Please return the {goal_noun} enclosed within triple-backticks.'
+    user_initiation_prompt: str = \
+        ReviewDialogDualConverserGPT.user_initiation_prompt + '\n\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
     Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
     {quote_request}.
     """
-
-    def _formatting_dict(self):
-        return {**super()._formatting_dict(), 'quote_request': self.quote_request}
 
     def _extract_goal_from_response(self, response: str) -> str:
         for flanking_tags in self.flanking_tag_list:
@@ -344,16 +320,11 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
                 pass
         raise ValueError(f'Could not find the {self.goal_noun} in the response.')
 
-    def _get_user_initiation_prompt(self):
-        s = super()._get_user_initiation_prompt()
-        s += self._format_prompt('\n\n' + self.quote_request)
-        return s
-
     def _check_self_response(self, response: str) -> Optional[str]:
         try:
             self._extract_goal_from_response(response)
         except ValueError:
-            return self._format_prompt(self.quote_request)
+            return self.quote_request
         return None
 
     def initialize_and_run_dialog(self):

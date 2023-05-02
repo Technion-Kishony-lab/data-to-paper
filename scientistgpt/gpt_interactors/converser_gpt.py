@@ -3,13 +3,14 @@ from typing import Optional
 
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import GeneralMessageDesignation
+from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 from scientistgpt.utils.text_utils import print_red
 
 from scientistgpt.cast import Agent
 
 
 @dataclass
-class ConverserGPT:
+class ConverserGPT(Replacer):
     """
     A base class for agents interacting with chatgpt.
     """
@@ -32,17 +33,14 @@ class ConverserGPT:
         )
 
     @property
-    def actual_system_prompt(self):
-        return self.system_prompt
-
-    @property
     def conversation(self):
         return self.conversation_manager.conversation
 
+    @with_attribute_replacement
     def initialize_conversation_if_needed(self):
         self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0:
-            self.apply_append_system_message(self.actual_system_prompt)
+            self.apply_append_system_message(self.system_prompt)
 
     def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True):
         """

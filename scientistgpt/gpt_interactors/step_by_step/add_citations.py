@@ -53,12 +53,6 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
     def citation_ids(self) -> List[str]:
         return [citation.get_bibtex_id() for citation in self.citations]
 
-    def _formatting_dict(self):
-        """
-        add to the super dict the sentence and the citations
-        """
-        return {**super()._formatting_dict(), 'sentence': self.sentence, 'citations': self.citations}
-
     def _check_self_response(self, response: str) -> Optional[str]:
         """
         check that the response is a valid python list of str
