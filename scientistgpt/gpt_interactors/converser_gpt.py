@@ -55,10 +55,10 @@ class ConverserGPT:
             print_red(comment)
 
     def apply_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
-                                               previous_code: Optional[str] = None,
+                                               is_code: bool = False, previous_code: Optional[str] = None,
                                                hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         return self.conversation_manager.get_and_append_assistant_message(tag=tag, comment=comment,
-                                                                          previous_code=previous_code,
+                                                                          is_code=is_code, previous_code=previous_code,
                                                                           hidden_messages=hidden_messages, **kwargs)
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
