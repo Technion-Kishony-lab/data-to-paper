@@ -117,7 +117,6 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 ```
                 """).format(self.get_output_filename(), code_and_output.code),
                 comment='Adding the debugged code as if it was the original response.',
-                is_code=True,
             )
             return code_and_output
         return None
