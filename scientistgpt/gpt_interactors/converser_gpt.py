@@ -57,21 +57,21 @@ class ConverserGPT:
     def apply_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
                                                hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
-        return self.conversation_manager.get_and_append_assistant_message(tag=tag, comment=comment, is_code=is_code,
-                                                                          previous_code=previous_code,
+        return self.conversation_manager.get_and_append_assistant_message(tag=tag, comment=comment,
+                                                                          is_code=is_code, previous_code=previous_code,
                                                                           hidden_messages=hidden_messages, **kwargs)
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                  is_code: bool = False, previous_code: Optional[str] = None):
-        return self.conversation_manager.append_user_message(content, tag=tag, comment=comment, is_code=is_code,
+                                  previous_code: Optional[str] = None):
+        return self.conversation_manager.append_user_message(content, tag=tag, comment=comment,
                                                              previous_code=previous_code)
 
     def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         return self.conversation_manager.append_system_message(content, tag=tag, comment=comment)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                       is_code: bool = False, previous_code: Optional[str] = None):
-        return self.conversation_manager.append_surrogate_message(content, tag=tag, comment=comment, is_code=is_code,
+                                       previous_code: Optional[str] = None):
+        return self.conversation_manager.append_surrogate_message(content, tag=tag, comment=comment,
                                                                   previous_code=previous_code)
 
 

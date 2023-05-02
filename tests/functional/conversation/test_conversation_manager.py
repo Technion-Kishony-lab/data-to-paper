@@ -137,3 +137,18 @@ def test_conversation_manager_copy_messages_from_another_conversations():
         source_conversation=manager1.conversation,
     )
     assert [m.content for m in manager2.conversation] == ['m2', 'm3', 'm4']
+
+
+def test_conversation_manager_adds_python_header(manager):
+    with OPENAI_SERVER_CALLER.mock([
+        'the code is:\n'
+        '```\n'
+        'print("hello world")\n'
+        '```\n\n'
+        'the output is:\n'
+        '```\n'
+        'hello world\n'
+        '```\n',
+    ]):
+        content = manager.get_and_append_assistant_message(is_code=True)
+    assert content == 'the code is:\n```python\nprint("hello world")\n```\n\nthe output is:\n```\nhello world\n```\n'

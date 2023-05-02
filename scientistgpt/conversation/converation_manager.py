@@ -10,6 +10,7 @@ from .message_designation import GeneralMessageDesignation, convert_general_mess
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
     CreateConversation, apply_action, AddParticipantsToConversation
+from ..run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 
 
 @dataclass
@@ -68,7 +69,7 @@ class ConversationManager:
                 self.add_participants(self.participants - self.conversation.participants)
 
     def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
-                       ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
+                       ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a message to a specified conversation.
         """
@@ -79,7 +80,7 @@ class ConversationManager:
         else:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 is_code=is_code, previous_code=previous_code)
+                                 previous_code=previous_code)
         self._append_and_apply_action(AppendMessage(
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
@@ -91,11 +92,11 @@ class ConversationManager:
         self.append_message(Role.SYSTEM, content, tag, comment)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                            ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
+                            ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a user-message to a specified conversation.
         """
-        self.append_message(Role.USER, content, tag, comment, is_code, ignore, previous_code)
+        self.append_message(Role.USER, content, tag, comment, ignore, previous_code)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -107,11 +108,11 @@ class ConversationManager:
         self.append_message(Role.COMMENTER, content, tag, comment)
 
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                 ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
+                                 ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.append_message(Role.SURROGATE, content, tag, comment, ignore, is_code, previous_code)
+        self.append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
@@ -173,11 +174,13 @@ class ConversationManager:
                 hidden_messages=hidden_messages,
                 exception=content)
         else:
+            if is_code:
+                content = add_python_to_first_triple_quotes_if_missing(content)
             action = AppendChatgptResponse(
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
-                                       is_code=is_code, previous_code=previous_code))
+                                       previous_code=previous_code))
         self._append_and_apply_action(action)
         return content
 
