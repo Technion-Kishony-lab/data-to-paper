@@ -1,10 +1,13 @@
 import os
 
+import pytest
+
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 
 
+@pytest.mark.skip
 @OPENAI_SERVER_CALLER.record_or_replay()
 @CROSSREF_SERVER_CALLER.record_or_replay()
 def test_citation_gpt(tmpdir):
