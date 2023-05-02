@@ -6,7 +6,6 @@ from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 
-from .exceptions import NotInOptionsException
 from .exceptions import ServerErrorCitationException
 from .citataion_utils import choose_first_citation
 from .call_crossref import CROSSREF_SERVER_CALLER
