@@ -67,6 +67,13 @@ class DualConverserGPT(ConverserGPT):
             content, tag=tag, comment=comment, previous_code=previous_code)
 
 
+class CycleStatus(Enum):
+    FAILED_CHECK_SELF_RESPONSE = 'failed_check_self_response'
+    NOT_APPROVED_BY_OTHER = 'not_approved_by_other'
+    APPROVED_BY_OTHER = 'approved_by_other'
+    MAX_ROUNDS_EXCEEDED = 'max_rounds_exceeded'
+
+
 @dataclass
 class DialogDualConverserGPT(DualConverserGPT):
     """
@@ -145,15 +152,24 @@ class DialogDualConverserGPT(DualConverserGPT):
         return len(self.other_conversation) > 1 and \
             self.termination_phrase.lower() in self.other_conversation.get_last_response().lower()
 
-    def run_dialog(self, append_termination_response_to_self: bool = True) -> str:
+    def run_dialog(self, append_termination_response_to_self: bool = True) -> Optional[str]:
         """
         Run the dialog until it is completed.
         Returns the last chatgpt response from self.
+        If we don't get a valid (by _check_self_response)self chatgpt response after max_attempts_per_round,
+        return None.
         """
+        last_self_response = None
         while True:
-            response = self.run_one_cycle(append_termination_response_to_self)
-            if response is not None:
-                return response
+            self_response, cycle_status = self.run_one_cycle(append_termination_response_to_self)
+            if self_response is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+                return last_self_response
+            if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
+                return self_response
+            if cycle_status is CycleStatus.APPROVED_BY_OTHER:
+                return self_response
+            # cycle_status is CycleStatus.NOT_APPROVED_BY_OTHER
+            last_self_response = self_response
 
     def _check_self_response(self, response: str) -> Optional[str]:
         """
@@ -163,11 +179,11 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         return None
 
-    def run_one_cycle(self, append_termination_response_to_self: bool = True) -> Optional[str]:
+    def run_one_cycle(self, append_termination_response_to_self: bool = True) -> Tuple[str, CycleStatus]:
         """
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
         """
-
+        self_response = None
         for _ in range(self.max_attempts_per_round):
             # to allow starting either before or after the first self response:
             if self.conversation[-1].role is Role.USER:
@@ -181,20 +197,21 @@ class DialogDualConverserGPT(DualConverserGPT):
                                            self.sentence_to_add_to_error_message_upon_failed_check_self_response,
                                            tag='error')
         else:
-            return None
+            return self_response, CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
+        # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_rounds:
-            return self_response
+            return self_response, CycleStatus.EXCEEDS_MAX_ROUNDS
 
         other_response = self.get_response_from_other_in_response_to_response_from_self(self_response)
 
         if self.is_completed():
             if append_termination_response_to_self:
                 self.apply_append_user_message(other_response)
-            return self_response
+            return self_response, CycleStatus.COMPLETED
 
         self.get_response_from_self_in_response_to_response_from_other(other_response)
-
+        return self_response, CycleStatus.NOT_APPROVED_BY_OTHER
 
 @dataclass
 class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
