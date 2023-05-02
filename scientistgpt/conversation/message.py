@@ -105,7 +105,7 @@ class Message:
         Returns a pretty repr of just the message content.
         """
         return format_text_with_code_blocks(text=self.content.strip(), text_color=text_color,
-                                            code_color=code_color, width=width, is_python=False)
+                                            code_color=code_color, width=width)
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
@@ -174,7 +174,7 @@ class CodeMessage(Message):
                     partial_code,
                     f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
 
-        return format_text_with_code_blocks(content, text_color, code_color, width, is_python=True)
+        return format_text_with_code_blocks(content, text_color, code_color, width)
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
