@@ -137,8 +137,8 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = dedent_triple_quote_str("""
         Please try again making sure you return the results with the correct format, like this:
         ``` 
-        {"sentence extracted from the section": "query of the key sentence", 
-        "another sentence extracted from the section": "the query of this sentence"}
+        {{"sentence extracted from the section": "query of the key sentence", 
+        "another sentence extracted from the section": "the query of this sentence"}}
         ```
     """)
 
