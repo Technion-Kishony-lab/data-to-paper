@@ -1,3 +1,4 @@
+import copy
 from typing import List, Dict, Mapping, Any
 
 import requests
@@ -60,7 +61,9 @@ class CrossrefCitation(dict):
     """
 
     def __key(self):
-        return tuple(sorted(self.items()))
+        # TODO: create a tuple of the items, make sure there are no lists within the tuple, otherwise it won't be
+        #  hashable the way to deal with that is converting everything inside the list to tuples
+        return tuple((k, tuple(v) if isinstance(v, list) else v) for k, v in self.items())
 
     def __hash__(self):
         return hash(self.__key())
@@ -71,51 +74,36 @@ class CrossrefCitation(dict):
 
     def create_bibtex(self):
         # create a mapping for article and inproceedings
+        bibtex_type = get_type_from_crossref(self)
+        is_paper = bibtex_type in ['article', 'inproceedings']
+        field_mapping = PAPER_MAPPING if is_paper else BOOK_MAPPING
 
+        fields = []
+        for key, value in self.items():
+            if key in field_mapping:
+                if value and key not in ['doi', 'isbn']:
+                    # remove special characters of the value
+                    if isinstance(value, list):
+                        value = [unidecode(v).replace(r' &', r' \&') for v in value]
+                    elif isinstance(value, str):
+                        value = unidecode(value).replace(r' &', r' \&')
+                bibtex_key = field_mapping[key]
+                fields.append(f"{bibtex_key} = {{{value}}}")
         return BIBTEX_TEMPLATE.format(type=self.bibtex_type, id=self.get_bibtex_id(), fields=',\n'.join(fields))
 
     def get_bibtex_id(self) -> str:
         """
         Get the bibtex id for this citation.
         """
-        bibtex_id = self['authors'][0].split(" ")[-1] + (str(self.get("year")) if self.get("year") else "")
+        bibtex_id = self['first_author_family'] + (str(self.get("year")) if self.get("year") else "")
         bibtex_id += self['title'].split(" ")[0] if self.get("title") else ""
         return bibtex_id
 
     def __str__(self):
-        # TODO: figure out which fields to add and what format to use need to add 'id'
-        # [f"id: '{citation_id}', title: '{citation_title}'" for citation_id, citation_title in
-        #                          zip(citations_ids, citations_titles)])
-        return self.get_bibtex_id() + ': ' + self['title'] + " by " + self['authors'] + \
-            " published in " + self['journal'] + " in " + str(self['year'])
+        return f"'id': '{self.get_bibtex_id()}', 'title': '{self['title']}', 'authors': '{self['authors']}'"
 
     def __repr__(self):
         return self.__str__()
-
-    @classmethod
-    def from_raw_crossref(cls, data: Dict[str, Any]):
-        bibtex_type = get_type_from_crossref(data)
-
-        is_paper = bibtex_type in ['article', 'inproceedings']
-        field_mapping = PAPER_MAPPING if is_paper else BOOK_MAPPING
-
-        # TODO: add formating accroding to:
-        #                  all_citations_bibtexes.update(
-        #                     [sentence_citations[index]['bibtex'].replace(r' &', r' \&').replace(r'None', r'')
-        #                      for index in chosen_citations_indices]
-
-        fields = []
-        for key, value in data.items():
-            if value and key not in ['doi', 'isbn']:
-                # remove special characters of the value
-                if isinstance(value, list):
-                    data[key] = [unidecode(v) for v in value]
-                elif isinstance(value, str):
-                    data[key] = unidecode(value)
-            if key in field_mapping:
-                bibtex_key = field_mapping[key]
-                fields.append(f"{bibtex_key} = {{{value}}}")
-        return cls(**data)
 
 
 class CrossrefServerCaller(ServerCaller):
@@ -170,7 +158,7 @@ class CrossrefServerCaller(ServerCaller):
 
             citation = {
                 "title": item["title"][0],
-
+                "first_author_family": item["author"][0]["family"],
                 "authors": authors_string,
                 "journal": item.get("container-title", [None])[0],
                 "doi": item.get("DOI", ''),
@@ -184,7 +172,7 @@ class CrossrefServerCaller(ServerCaller):
                 "editors": editor_string if item.get("editor", None) is not None else '',
                 "isbn": item.get("ISBN", '')
             }
-            citations.append(CrossrefCitation.from_raw_crossref(**citation))
+            citations.append(CrossrefCitation(citation))
 
         return citations
 

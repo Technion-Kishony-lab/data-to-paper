@@ -11,6 +11,7 @@ from scientistgpt.gpt_interactors.dual_converser import ReviewDialogDualConverse
 from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.extract_python import extract_python_value_from_response, validate_variable_type
+from scientistgpt.utils.replacer import with_attribute_replacement
 
 
 @dataclass
@@ -21,6 +22,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
     """
 
     max_rounds: int = 0  # no review
+    max_attempts_per_round: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
 
@@ -60,10 +62,6 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
         feedback, response_value = extract_python_value_from_response(response, List[str])
         if feedback is not None:
             return feedback  # return the feedback on the error
-        try:
-            validate_variable_type(response, List[str])
-        except TypeError as e:
-            return str(e)
 
         ids_not_in_options = \
             self._add_citations_in_options_and_return_citations_not_in_options(response_value)
@@ -100,37 +98,38 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
 class AddCitationReviewGPT(BaseScientificReviewGPT):
     # in the actual call to add_background, we will be adding to the background also the specific section
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
-    conversation_name: str = f'add_citations'
+    conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: Agent = Agent.Secretary
     user_agent: Agent = Agent.Student
     max_rounds: int = 0  # 0 no review
+    max_attempts_per_round: int = 2
 
     # override the default system prompt:
-    system_prompt: str = dedent_triple_quote_str("""
+    system_prompt: str = dedent_triple_quote_str(r"""
         You are a scientific citation expert. 
         You are given a section of a paper
         1. You should mention what sentences need to be cited.
         2. You will be provided with list of possible citations, 
            and you should select the most appropriate one for each of the sentences. 
         3. You will rewrite the sentences with the citations.
-        4. The citations will be inserted to the text using \\cite{}.
+        4. The citations will be inserted to the text using \\cite{{}} command.
     """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    user_initiation_prompt: str = dedent_triple_quote_str(r"""
         Extract from the above section the factual sentences to which we need to add citations. 
         For each of the chosen sentences, create a short query for a citation search for this sentence.
         You need to return a dict mapping each sentence to its respective reference search query.
         Your response should be in the following format: 
-        {
+        {{
          "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
-        }
+        }}
         This is of course just an example. 
         Identify all the sentences that you think we need to add citations to.
         
         Remember, this is your first paper, so you can't cite previous papers of yours.  
-        Namely, "We \\cite{}, showed..." is not a valid citation to add.
+        Namely, "We \\cite{{}}, showed..." is not a valid citation to add.
 
         Return only a dict of "sentence: query" pairs, without any other text.
     """)
@@ -149,7 +148,7 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
     # output:
     max_number_of_api_calls: int = 3
     current_sentence_citations_ids: Set[str] = field(default_factory=set)
-    sentences_to_queries: Dict[str, str] = field(default_factory=set)
+    sentences_to_queries: Dict[str, str] = field(default_factory=dict)
 
     @property
     def section(self):
@@ -211,6 +210,7 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
         self.comment('Background concluded', tag='after_background')
         return self.run_dialog()
 
+    @with_attribute_replacement
     def rewrite_section_with_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
         """
         Rewrite the section with the citations.
@@ -224,11 +224,15 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
         all_citations = set()
         for sentence, sentence_citations in sentences_to_citations.items():
             self.conversation_manager.reset_back_to_tag('after_background')
-            rewritten_sentence, chosen_citations = \
-                RewriteSentenceWithCitations(
-                    conversation_name=self.conversation_name,
-                    sentence=sentence,
-                    citations=sentence_citations).get_rewritten_sentence_and_chosen_citations()
+            if not sentence_citations:
+                rewritten_sentence = sentence
+                chosen_citations = set()
+            else:
+                rewritten_sentence, chosen_citations = \
+                    RewriteSentenceWithCitations(
+                        conversation_name=self.conversation_name,
+                        sentence=sentence,
+                        citations=sentence_citations).get_rewritten_sentence_and_chosen_citations()
             updated_section = updated_section.replace(sentence, rewritten_sentence)
             all_citations.update(chosen_citations)
         return updated_section, all_citations

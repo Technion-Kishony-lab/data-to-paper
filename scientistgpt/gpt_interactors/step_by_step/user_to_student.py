@@ -2,6 +2,7 @@ from typing import Any
 
 from scientistgpt.cast import Agent
 from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
+from scientistgpt.utils.replacer import with_attribute_replacement
 
 
 class DirectorToStudent(BaseScientificGPT):
@@ -13,6 +14,7 @@ class DirectorToStudent(BaseScientificGPT):
     assistant_agent: Agent = Agent.Director
     user_agent: Agent = Agent.Student
 
+    @with_attribute_replacement
     def get_product_from_director(self, product_field: str, returned_product: Any):
         """
         Ask the user for a product, such as data description, or goal.

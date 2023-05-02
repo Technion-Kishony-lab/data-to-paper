@@ -8,7 +8,7 @@ from scientistgpt.gpt_interactors.debugger_gpt import DebuggerGPT
 from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
-
+from scientistgpt.utils.replacer import with_attribute_replacement
 
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 MAX_CODE_REVISIONS = 3
@@ -34,7 +34,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
     user_agent: Agent = Agent.Student
     revision_round: int = 0
 
-    def get_output_filename(self):
+    def _get_output_filename(self):
         if self.revision_round == 0:
             return self.output_filename
         else:
@@ -44,6 +44,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
     def _request_code_tag(self):
         return f'code_revision_{self.revision_round}'
 
+    @with_attribute_replacement
     def get_analysis_code(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         self._pre_populate_background()
@@ -69,14 +70,14 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 All results we may need for a scientific paper should be saved to that file, including \
                 analysis findings, summary statistics, etc. 
                 Do not write to any other files and do not plot anything to screen.
-            """).format(SUPPORTED_PACKAGES, self.get_output_filename())
+            """).format(SUPPORTED_PACKAGES, self._get_output_filename())
         else:
             user_prompt = dedent_triple_quote_str("""
                 Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.
                 The output of your new code should be a text file named "{}".
                 Send me back the complete revised code.
                 Do not just point to what needs to be changed, send the full complete code.
-                """).format(self.get_output_filename())
+                """).format(self._get_output_filename())
         self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
     def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
@@ -92,7 +93,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 conversation_name=self.conversation_name,
                 user_agent=self.user_agent,
                 assistant_agent=self.assistant_agent,
-                output_filename=self.get_output_filename(),
+                output_filename=self._get_output_filename(),
                 data_files=self.products.data_filenames,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
@@ -115,7 +116,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 ```python
                 {}
                 ```
-                """).format(self.get_output_filename(), code_and_output.code),
+                """).format(self._get_output_filename(), code_and_output.code),
                 comment='Adding the debugged code as if it was the original response.',
             )
             return code_and_output
@@ -147,7 +148,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
             Answer with just the letter designating the option you choose \
             (only type a single character: "a", or "b").
             """).format(
-            self.get_output_filename(),
+            self._get_output_filename(),
             code_and_output.output,
         )
         self.apply_append_user_message(content=user_prompt, tag='output_file_content')
