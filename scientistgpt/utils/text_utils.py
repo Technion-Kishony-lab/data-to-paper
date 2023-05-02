@@ -63,7 +63,7 @@ def print_magenta(text: str, **kwargs):
     print(colored_text(text, colorama.Fore.MAGENTA), **kwargs)
 
 
-def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
+def format_text_with_code_blocks(text: str, text_color: str, block_color: str, width: int) -> str:
     sections = text.split("```")
     s = ''
     in_text_block = True
@@ -78,7 +78,7 @@ def format_text_with_code_blocks(text: str, text_color: str, code_color: str, wi
                     highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
                 s += highlighted_code
             else:
-                s += code_color + section + colorama.Style.RESET_ALL
+                s += block_color + section + colorama.Style.RESET_ALL
         in_text_block = not in_text_block
     return s
 
