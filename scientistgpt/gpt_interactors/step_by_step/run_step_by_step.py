@@ -52,4 +52,8 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
         products.cited_paper_sections[section_name] = \
             AddCitationReviewGPT(products=products, section_name=section_name).rewrite_section_with_citations()
 
+    # Add tables to results section
+    products.paper_sections['results_with_tables'] = \
+        PaperSectionWithTablesReviewGPT(products=products, section_names=['results']).get_sections()[0]
+
     return products

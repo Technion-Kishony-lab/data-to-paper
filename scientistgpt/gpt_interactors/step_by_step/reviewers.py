@@ -6,6 +6,7 @@ from scientistgpt.gpt_interactors.citation_adding.citataion_utils import remove_
 from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.text_utils import nicely_join
 
 sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
@@ -152,6 +153,7 @@ class BaseWriterReviewGPT(BaseScientificQuotedReviewGPT):
             return error_message
         return None
 
+    @with_attribute_replacement
     def get_sections(self) -> Union[str, list[str]]:
         self.initialize_and_run_dialog()
         return self.section_contents
@@ -174,5 +176,6 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
         self.section_names = [self.section_name]
         super().__post_init__()
 
+    @with_attribute_replacement
     def get_section(self):
         return self.get_sections()[0]

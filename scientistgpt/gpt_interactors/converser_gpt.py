@@ -24,6 +24,7 @@ class ConverserGPT(Replacer):
 
     driver: str = ''
 
+    @with_attribute_replacement
     def __post_init__(self):
         self.conversation_manager = ConversationManager(
             conversation_name=self.conversation_name,

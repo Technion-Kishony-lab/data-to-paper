@@ -109,6 +109,7 @@ class DialogDualConverserGPT(DualConverserGPT):
     max_rounds: int = 3
     max_attempts_per_round: int = 4
 
+    @with_attribute_replacement
     def __post_init__(self):
         super().__post_init__()
         # reverse roles:
@@ -151,6 +152,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         return len(self.other_conversation) > 1 and \
             self.termination_phrase.lower() in self.other_conversation.get_last_response().lower()
 
+    @with_attribute_replacement
     def run_dialog(self, append_termination_response_to_self: bool = True) -> Optional[str]:
         """
         Run the dialog until it is completed.
@@ -161,7 +163,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         last_self_response = None
         while True:
             self_response, cycle_status = self.run_one_cycle(append_termination_response_to_self)
-            if self_response is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+            if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
                 return last_self_response
             if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
                 return self_response
@@ -178,6 +180,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         return None
 
+    @with_attribute_replacement
     def run_one_cycle(self, append_termination_response_to_self: bool = True) -> Tuple[str, CycleStatus]:
         """
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
@@ -185,7 +188,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         self_response = None
         for _ in range(self.max_attempts_per_round):
             # to allow starting either before or after the first self response:
-            if self.conversation[-1].role is Role.USER:
+            if self.conversation.get_last_non_commenter_message().role is Role.USER:
                 self_response = self.apply_get_and_append_assistant_message()
             else:
                 self_response = self.conversation.get_last_response()
@@ -200,17 +203,18 @@ class DialogDualConverserGPT(DualConverserGPT):
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_rounds:
-            return self_response, CycleStatus.EXCEEDS_MAX_ROUNDS
+            return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
 
         other_response = self.get_response_from_other_in_response_to_response_from_self(self_response)
 
         if self.is_completed():
             if append_termination_response_to_self:
                 self.apply_append_user_message(other_response)
-            return self_response, CycleStatus.COMPLETED
+            return self_response, CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(other_response)
         return self_response, CycleStatus.NOT_APPROVED_BY_OTHER
+
 
 @dataclass
 class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
@@ -283,12 +287,14 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         self._pre_populate_background()
         self.apply_append_user_message(self.user_initiation_prompt)
 
+    @with_attribute_replacement
     def initialize_dialog(self):
         self.initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
         self._pre_populate_conversations()
 
+    @with_attribute_replacement
     def initialize_and_run_dialog(self) -> str:
         self.initialize_dialog()
         return self.run_dialog()
@@ -327,6 +333,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             return self.quote_request
         return None
 
+    @with_attribute_replacement
     def initialize_and_run_dialog(self):
         response = super().initialize_and_run_dialog()
         return self._extract_goal_from_response(response)
