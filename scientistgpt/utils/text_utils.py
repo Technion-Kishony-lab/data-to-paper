@@ -63,8 +63,7 @@ def print_magenta(text: str, **kwargs):
     print(colored_text(text, colorama.Fore.MAGENTA), **kwargs)
 
 
-def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int,
-                                 is_python: bool = True) -> str:
+def format_text_with_code_blocks(text: str, text_color: str, code_color: str, width: int) -> str:
     sections = text.split("```")
     s = ''
     in_text_block = True
@@ -72,7 +71,7 @@ def format_text_with_code_blocks(text: str, text_color: str, code_color: str, wi
         if in_text_block:
             s += text_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL + '\n'
         else:
-            if is_python:
+            if section.startswith('python'):
                 highlighted_code = highlight_python_code(section)
                 # check if the first line is the language name
                 if 'python' in highlighted_code.splitlines()[0].lower():
