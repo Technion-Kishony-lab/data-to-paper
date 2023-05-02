@@ -178,8 +178,8 @@ class CodeMessage(Message):
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
-                   is_code: bool = False, previous_code: str = None) -> Message:
-    if is_code:
+                   previous_code: str = None) -> Message:
+    if previous_code:
         return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore, previous_code=previous_code)
     else:
         return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore)
@@ -188,5 +188,4 @@ def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agen
 def create_message_from_other_message(other_message: Message, content: str) -> Message:
     return create_message(role=other_message.role, content=content, tag=other_message.tag, agent=other_message.agent,
                           ignore=other_message.ignore,
-                          is_code=isinstance(other_message, CodeMessage),
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None)

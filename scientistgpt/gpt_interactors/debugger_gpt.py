@@ -203,7 +203,7 @@ class DebuggerGPT(CodeWritingGPT):
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
-        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code)
+        response = self.apply_get_and_append_assistant_message(previous_code=self.previous_code)
         failed_extracting_code = False
         code_runner = self._get_code_runner(response)
         try:
