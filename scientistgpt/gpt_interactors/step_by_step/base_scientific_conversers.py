@@ -36,16 +36,12 @@ class BaseScientificGPT(ConverserGPT):
 class BaseScientificReviewGPT(BaseScientificGPT, ReviewDialogDualConverserGPT):
     suppress_printing_other_conversation: bool = False
     max_rounds: int = 1
-    termination_phrase: str = None
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.termination_phrase = self.termination_phrase or f"I hereby approve the {self.goal_noun}"
+    termination_phrase: str = "I hereby approve the {goal_noun}"
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)
         if self.are_we_reviewing_at_all:
-            thank_you_message += self._get_user_initiation_prompt() if is_last else ''
+            thank_you_message += self.user_initiation_prompt if is_last else ''
             self.apply_to_other_append_surrogate_message(thank_you_message)
         return thank_you_message
 
