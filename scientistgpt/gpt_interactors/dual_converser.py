@@ -52,9 +52,9 @@ class DualConverserGPT(ConverserGPT):
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                           is_code: bool = False, previous_code: Optional[str] = None):
+                                           previous_code: Optional[str] = None):
         return self.other_conversation_manager.append_user_message(
-            content, tag=tag, comment=comment, is_code=is_code, previous_code=previous_code)
+            content, tag=tag, comment=comment, previous_code=previous_code)
 
     def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None,
                                              comment: Optional[str] = None):
@@ -62,9 +62,9 @@ class DualConverserGPT(ConverserGPT):
 
     def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
                                                 comment: Optional[str] = None,
-                                                is_code: bool = False, previous_code: Optional[str] = None):
+                                                previous_code: Optional[str] = None):
         return self.other_conversation_manager.append_surrogate_message(
-            content, tag=tag, comment=comment, is_code=is_code, previous_code=previous_code)
+            content, tag=tag, comment=comment, previous_code=previous_code)
 
 
 @dataclass
