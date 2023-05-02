@@ -68,7 +68,7 @@ class ConversationManager:
                 self.add_participants(self.participants - self.conversation.participants)
 
     def append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
-                       ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
+                       ignore: bool = False,  previous_code: Optional[str] = None):
         """
         Append a message to a specified conversation.
         """
@@ -79,7 +79,7 @@ class ConversationManager:
         else:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 is_code=is_code, previous_code=previous_code)
+                                 previous_code=previous_code)
         self._append_and_apply_action(AppendMessage(
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
@@ -91,11 +91,11 @@ class ConversationManager:
         self.append_message(Role.SYSTEM, content, tag, comment)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                            ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
+                            ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a user-message to a specified conversation.
         """
-        self.append_message(Role.USER, content, tag, comment, is_code, ignore, previous_code)
+        self.append_message(Role.USER, content, tag, comment, ignore, previous_code)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -107,14 +107,14 @@ class ConversationManager:
         self.append_message(Role.COMMENTER, content, tag, comment)
 
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                 ignore: bool = False, is_code: bool = False, previous_code: Optional[str] = None):
+                                 ignore: bool = False, previous_code: Optional[str] = None):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.append_message(Role.SURROGATE, content, tag, comment, ignore, is_code, previous_code)
+        self.append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
-                                         is_code: bool = False, previous_code: Optional[str] = None,
+                                         previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         """
         Get and append a response from openai to a specified conversation.
@@ -129,7 +129,7 @@ class ConversationManager:
         # starting at message 1 (message 0 is the system message).
         while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
-                                                               is_code=is_code, previous_code=previous_code,
+                                                               previous_code=previous_code,
                                                                hidden_messages=actual_hidden_messages,
                                                                **kwargs)
             if isinstance(content, str):
@@ -155,7 +155,7 @@ class ConversationManager:
         return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
-                                            is_code: bool = False, previous_code: Optional[str] = None,
+                                            previous_code: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None, **kwargs
                                             ) -> Optional[str]:
         """
@@ -177,7 +177,7 @@ class ConversationManager:
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
-                                       is_code=is_code, previous_code=previous_code))
+                                       previous_code=previous_code))
         self._append_and_apply_action(action)
         return content
 
