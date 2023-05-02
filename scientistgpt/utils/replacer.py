@@ -1,4 +1,15 @@
-from dataclasses import dataclass, field
+from contextlib import contextmanager
+from dataclasses import dataclass
+
+
+def with_attribute_replacement(func):
+    """
+    a decorator for temporarily replace attributes of a Replacer class.
+    """
+    def wrapper(self, *args, **kwargs):
+        with self.replacing_attributes():
+            return func(self, *args, **kwargs)
+    return wrapper
 
 
 @dataclass
@@ -39,4 +50,9 @@ class Replacer:
             return self._format_text(super().__getattribute__(item))
         return super().__getattribute__(item)
 
-
+    @contextmanager
+    def replacing_attributes(self):
+        old_is_replacing = self.is_replacing
+        self.is_replacing = True
+        yield
+        self.is_replacing = old_is_replacing
