@@ -8,7 +8,9 @@ from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have observed in chatgpt responses:
-CODE_REGEXPS = ["```python\n(.*?)\n```", "``` python\n(.*?)\n```", "```\n(.*?)\n```"]
+POSSIBLE_CODE_HEADERS = ["```python\n", "``` python\n", "```\n", "``` \n"]
+CORRECT_CODE_HEADER = "```python\n"
+CODE_REGEXP = f'{CORRECT_CODE_HEADER}(.*?)\n```'
 
 
 @dataclass
@@ -21,6 +23,25 @@ class CodeAndOutput:
 
 
 LINES_ADDED_BY_MODIFYING_CODE = 0
+
+
+def add_python_to_first_triple_quotes_if_missing(content: str):
+    """
+    Add "python" to triple quotes if missing.
+    We assume the first triple quotes are the code block.
+    """
+    first_triple_quotes = content.find('```')
+
+    if first_triple_quotes == -1:
+        return content
+
+    first_triple_quotes_end = content.find('\n', first_triple_quotes)
+    if first_triple_quotes_end == -1:
+        return content
+    first_triple_quotes_line = content[first_triple_quotes:first_triple_quotes_end + 1]
+    if first_triple_quotes_line in POSSIBLE_CODE_HEADERS:
+        return content.replace(first_triple_quotes_line, CORRECT_CODE_HEADER, 1)
+    return content
 
 
 @dataclass
@@ -40,10 +61,10 @@ class CodeRunner:
     def extract_code(self) -> str:
         num_block_edges = self.response.count('```')
         if num_block_edges == 2:
-            for regexp in CODE_REGEXPS:
-                matches = re.findall(regexp, self.response, re.DOTALL)
-                if len(matches) == 1:
-                    return matches[0].strip()
+            corrected_content = add_python_to_first_triple_quotes_if_missing(self.response)
+            matches = re.findall(CODE_REGEXP, corrected_content, re.DOTALL)
+            if len(matches) == 1:
+                return matches[0].strip()
         raise FailedExtractingCode(num_block_edges)
 
     def modify_extracted_code(self, code: str) -> str:
