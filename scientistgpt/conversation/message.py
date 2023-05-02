@@ -100,11 +100,26 @@ class Message:
         s += text_color + sep * TEXT_WIDTH + reset_color
         return s
 
+    def get_content_after_hiding_incomplete_code(self) -> (str, bool):
+        """
+        Detect if the message contains incomplete code.
+        """
+        content = self.content.strip()
+        sections = self.content.split('```')
+        is_replacing = HIDE_INCOMPLETE_CODE and len(sections) % 2 == 0
+        if is_replacing:
+            partial_code = sections[-1]
+            content = content.replace(
+                partial_code,
+                f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
+        return content, is_replacing
+
     def pretty_content(self, text_color, code_color, width):
         """
         Returns a pretty repr of just the message content.
         """
-        return format_text_with_code_blocks(text=self.content.strip(), text_color=text_color,
+        return format_text_with_code_blocks(text=self.get_content_after_hiding_incomplete_code()[0],
+                                            text_color=text_color,
                                             code_color=code_color, width=width)
 
     def convert_to_text(self):
@@ -123,7 +138,7 @@ class Message:
 @dataclass(frozen=True)
 class CodeMessage(Message):
     """
-    A message that contains code.
+    A message that contains code that needs to be compared to some previous code.
     """
 
     previous_code: str = None
@@ -154,26 +169,15 @@ class CodeMessage(Message):
         """
         We override this method to replace the code within the message with the diff.
         """
-        content = self.content
-        if self.extracted_code:
-            if self.previous_code:
-                diff = self.get_code_diff()
-                if line_count(self.extracted_code) - line_count(diff) > MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF:
-                    # if the code diff is substantially shorter than the code, we replace the code with the diff:
-                    content = content.replace(
-                        self.extracted_code,
-                        "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
-                        else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
-        elif HIDE_INCOMPLETE_CODE:
-            # if we failed to extract the code, we check if there is a single incomplete code replace
-            # and replace it with a message:
-            sections = self.content.split('```')
-            if len(sections) == 2:
-                partial_code = sections[1]
+        content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
+        if self.extracted_code and not is_incomplete_code and self.previous_code:
+            diff = self.get_code_diff()
+            if line_count(self.extracted_code) - line_count(diff) > MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF:
+                # if the code diff is substantially shorter than the code, we replace the code with the diff:
                 content = content.replace(
-                    partial_code,
-                    f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
-
+                    self.extracted_code,
+                    "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
+                    else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
         return format_text_with_code_blocks(content, text_color, code_color, width)
 
 
