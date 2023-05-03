@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 from g3pt.cast.types import Profile, Algorithm
-from g3pt.env import THEME_NAME
+from g3pt.projects.scientific_research.env import THEME_NAME
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
