@@ -5,10 +5,10 @@ setup_directory = Path(__file__).parent
 long_description = (setup_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
-    description='A chatgpt based scientist allowing automatic analysis and paper writing',
+    description='Goal-Guided GPT',
     author="Kishony lab, Technion Israel Institute of Technology",
     author_email="rkishony@technion.ac.il",
-    url="https://github.com/Technion-Kishony-lab/data2paper",
+    url="https://github.com/Technion-Kishony-lab/g3pt",
     classifiers=[
         'Framework :: Jupyter',
         'Intended Audience :: Education',
@@ -21,7 +21,7 @@ setup(
         'Programming Language :: Python',
         'Operating System :: OS Independent',
     ],
-    name="data2paper",
+    name="g3pt",
     version='0.0.1',
     python_requires='>=3.8',
     long_description=long_description,
