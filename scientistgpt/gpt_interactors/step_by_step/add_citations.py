@@ -27,7 +27,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
 
-        {sentence}
+        "{sentence}"
 
         Choose from the following citations:
 
@@ -37,7 +37,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
         For example, write: 
         `["AuthorX2022", "AuthorY2009"]`
         where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
-        Choose only citations that are highly relevant to the sentence.
+        Choose only citations that are relevant to the sentence.
         You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
         """)
 
@@ -108,12 +108,9 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str(r"""
         You are a scientific citation expert. 
-        You are given a section of a paper
-        1. You should mention what sentences need to be cited.
-        2. You will be provided with list of possible citations, 
-           and you should select the most appropriate one for each of the sentences. 
-        3. You will rewrite the sentences with the citations.
-        4. The citations will be inserted to the text using \\cite{{}} command.
+        You are given a section of a paper, and you need to follow the following steps:
+        1. Choose factual sentences that need to be cited.
+        2. Provided with list of possible citations, choose the most appropriate ones for each of the sentences. 
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
@@ -129,9 +126,6 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
         This is of course just an example. 
         Identify all the sentences that you think we need to add citations to.
         
-        Remember, this is your first paper, so you can't cite previous papers of yours.  
-        Namely, "We \\cite{{}}, showed..." is not a valid citation to add.
-
         Return only a dict of "sentence: query" pairs, without any other text.
     """)
 
