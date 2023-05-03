@@ -1,12 +1,12 @@
-
+from dataclasses import dataclass
 from typing import List, Mapping, Any
 
 import requests
 from unidecode import unidecode
 
-from g3pt.call_servers import ServerCaller
+from g3pt.exceptions import ScientistGPTException
+from g3pt.servers.base_server import ServerCaller
 
-from .exceptions import ServerErrorCitationException
 
 CROSSREF_URL = "https://api.crossref.org/works"
 
@@ -52,6 +52,18 @@ BOOK_MAPPING = {
                 'DOI': 'doi',
                 'ISBN': 'isbn',
             }
+
+
+@dataclass
+class ServerErrorCitationException(ScientistGPTException):
+    """
+    Error raised server wasn't able to respond.
+    """
+    status_code: int
+    text: str
+
+    def __str__(self):
+        return f"Request failed with status code {self.status_code}, error: {self.text}"
 
 
 class CrossrefCitation(dict):

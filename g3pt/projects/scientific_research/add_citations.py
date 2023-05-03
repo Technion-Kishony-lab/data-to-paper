@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, Optional, List
 
 from g3pt.cast import Agent
-from g3pt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER, CrossrefCitation
-from g3pt.gpt_interactors.citation_adding.exceptions import ServerErrorCitationException
+from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
 from g3pt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
 from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
 from g3pt.utils import dedent_triple_quote_str

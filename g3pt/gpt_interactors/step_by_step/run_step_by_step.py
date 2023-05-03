@@ -1,7 +1,7 @@
 from typing import Optional
 
-from g3pt.gpt_interactors.paper_writing.get_template import get_paper_section_names
-from g3pt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT
+from g3pt.projects.scientific_research.paper_writing.get_template import get_paper_section_names
+from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
 from g3pt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
 from g3pt.gpt_interactors.step_by_step.user_to_student import DirectorToStudent
