@@ -1,18 +1,6 @@
 from dataclasses import dataclass
-from typing import List
 
 from scientistgpt.exceptions import ScientistGPTException
-
-
-@dataclass
-class NotInOptionsException(ScientistGPTException):
-    """
-    Error raised when the assistant did not choose the one of the possible options.
-    """
-    not_in_options: List[str] = None
-
-    def __str__(self):
-        return self.not_in_options
 
 
 @dataclass

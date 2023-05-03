@@ -1,20 +1,19 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.cast import Agent
+from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
-from scientistgpt.gpt_interactors.converser_gpt import CodeWritingGPT
-
 
 @dataclass
-class DebuggerGPT(CodeWritingGPT):
+class DebuggerGPT(ConverserGPT):
     """
     Interact with chatgpt to debug a code that needs to create an output file.
 
@@ -39,6 +38,9 @@ class DebuggerGPT(CodeWritingGPT):
     initiation_tag: Optional[str] = None
 
     previous_code: Optional[str] = None
+    gpt_script_filename: str = 'debugger_gpt'
+    data_files: Optional[list] = field(default_factory=list)
+    output_filename: str = 'results.txt'
 
     @property
     def iteration_str(self):
@@ -120,7 +122,7 @@ class DebuggerGPT(CodeWritingGPT):
         if number_of_code_edges == 0:
             response = dedent_triple_quote_str("""
             You did not send any code. 
-            Please try again, make sure your code is inside a triple-quoted code block (```).
+            Please try again, make sure your code is enclosed within triple-backticks.
             """)
             tag = 'no_code'
         elif number_of_code_edges % 2 == 1:

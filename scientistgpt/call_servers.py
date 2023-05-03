@@ -27,8 +27,16 @@ class ServerCaller:
     def _get_server_response(*args, **kwargs):
         """
         actual call to the server.
+        this method should only return raw responses that can be serialized to json, without losing type information.
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def _post_process_response(response):
+        """
+        post process the response before transmitting.
+        """
+        return response
 
     @staticmethod
     def _save_records(file, records):
@@ -46,7 +54,14 @@ class ServerCaller:
 
     def get_server_response(self, *args, **kwargs):
         """
-        returns the response from the server, allows recording and replaying.
+        returns the response from the server after post-processing. allows recording and replaying.
+        """
+        response = self._get_raw_server_response(*args, **kwargs)
+        return self._post_process_response(response)
+
+    def _get_raw_server_response(self, *args, **kwargs):
+        """
+        returns the raw response from the server, allows recording and replaying.
         """
         if not self.is_playing_or_recording:
             return self._get_server_response(*args, **kwargs)

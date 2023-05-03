@@ -1,6 +1,13 @@
 import re
 
 
+def remove_citations_from_section(section):
+    """
+    Remove the citations that ChatGPT inserted by mistake.
+    """
+    return re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', section)
+
+
 def choose_first_citation(sentence_citations):
     """
     Choose the first citation for the sentence, if any.

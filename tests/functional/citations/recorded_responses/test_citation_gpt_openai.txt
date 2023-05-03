@@ -1,0 +1,24 @@
+START>>>>>
+Here are the factual sentences that I have identified for which we need to add citations, along with respective citation search queries:
+
+1. "This was studied using a specific telescope called the Hubble telescope, which was launched in 1990.": "distance to the moon Hubble telescope launched 1990".
+2. "This is one of the most important discoveries in astronomy, after the discovery of the circumference of the earth.": "importance of distance to moon in astronomy".
+3. "In later years, the mission of nasa named Apollo 11 was launched to the moon.": "Apollo 11 mission to moon by NASA".
+
+The final dictionary with sentence-query pairs will be:
+
+{
+ "This was studied using a specific telescope called the Hubble telescope, which was launched in 1990.": "distance to the moon Hubble telescope launched 1990", 
+ "This is one of the most important discoveries in astronomy, after the discovery of the circumference of the earth.": "importance of distance to moon in astronomy",
+ "In later years, the mission of nasa named Apollo 11 was launched to the moon.": "Apollo 11 mission to moon by NASA"
+ }
+<<<<<END
+
+START>>>>>
+I would suggest the following citation: 
+
+`["Schlosser1991The"]`
+
+The citation titled "The Distance of the Moon" by Schlosser (1991) seems to be the most appropriate as it discusses the distance to the moon, which is the topic of the sentence.
+<<<<<END
+

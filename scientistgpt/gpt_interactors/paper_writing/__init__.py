@@ -1,2 +1,1 @@
 from .base_paper_writing import FailedCreatingPaper
-from .paper_writting_gpt import PaperAuthorGPT

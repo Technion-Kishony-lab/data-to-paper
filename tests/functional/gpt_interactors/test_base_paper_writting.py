@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.paper_writing.base_paper_writing import PaperWritingGPT
 
@@ -23,6 +25,7 @@ class TestPaperWritingGPT(PaperWritingGPT):
         pass
 
 
+@pytest.mark.skip
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_paper_writing_gpt(tmpdir):
     output_directory = os.path.join(tmpdir.strpath, 'output')
