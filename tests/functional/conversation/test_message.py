@@ -45,7 +45,5 @@ def test_message_repr_with_code_and_non_code_blocks():
     message = Message(Role.USER, "Here is my hello world code:\n\n```python\nprint('hello')\n```\n\nIt produces: "
                                  "```\nhello\n```\n\nThat's all folks!")
     pretty = message.pretty_content(text_color=colorama.Fore.CYAN, block_color=colorama.Fore.LIGHTCYAN_EX, width=100)
-    print(colorama.Fore.LIGHTCYAN_EX + 'hello' + colorama.Fore.RESET)
-    print(pretty)
-    assert colorama.Fore.LIGHTCYAN_EX + '\nhello\n' in pretty
+    assert colorama.Fore.LIGHTCYAN_EX + '\nhello' in pretty
     assert highlight_python_code("print('hello')")[:-1] in pretty

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 
 from scientistgpt.exceptions import ScientistGPTException
-from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
+# from scientistgpt.gpt_interactors.citation_adding.citations_gpt import CitationGPT
 from scientistgpt.gpt_interactors.converser_gpt import ConverserGPT
 from scientistgpt.latex import save_latex_and_compile_to_pdf
 from scientistgpt.utils import dedent_triple_quote_str
@@ -76,38 +76,6 @@ class PaperWritingGPT(ConverserGPT, ABC):
     def pdf_filename(self) -> str:
         return f'{self.paper_filename}.pdf'
 
-    @property
-    def paper_template_path(self) -> str:
-        return os.path.join(os.path.dirname(__file__), f'templates/{self.paper_template_filename}')
-
-    @property
-    def paper_template_with_citations_path(self) -> str:
-        return os.path.join(os.path.dirname(__file__), f'templates/{self.paper_template_with_citations_filename}')
-
-    @property
-    def paper_template(self) -> str:
-        """
-        Load the specified template file.
-        """
-        with open(self.paper_template_path, 'r') as f:
-            return f.read()
-
-    @property
-    def paper_template_with_citations(self) -> str:
-        """
-        Load the specified template file.
-        """
-        with open(self.paper_template_with_citations_path, 'r') as f:
-            return f.read()
-
-    @property
-    def paper_section_names(self):
-        """
-        Get the sections of the paper from the template.
-        Sections are flaked as: @@@section_name@@@
-        """
-        return self.paper_template.split('@@@')[1::2]
-
     @abstractmethod
     def _pre_populate_conversation(self):
         """
@@ -161,20 +129,20 @@ class PaperWritingGPT(ConverserGPT, ABC):
             self._get_paper_sections()
         except FailedCreatingPaperSection as e:
             raise FailedCreatingPaper(e)
-        self._add_citations_to_paper()
+        # self._add_citations_to_paper()
         self._assemble_latex_paper_from_sections(should_compile_with_bib)
         self._save_latex_and_compile_to_pdf(should_compile_to_pdf, should_compile_with_bib)
 
-    def _add_citations_to_paper(self):
-        """
-        Add citations to all the relevant sections of the paper and add any necessary bibtex
-        references to the .bib file.
-        """
-        all_references = set()
-        for section_name, section_content in self.paper_sections.items():
-            if section_name in ['title', 'abstract', 'results', 'methods', 'conclusion']:
-                continue
-            self.paper_sections[section_name], references = \
-                CitationGPT(section=section_content).rewrite_section_with_citations()
-            all_references |= references
-        self._save_references_to_bib_file(all_references)
+    # def _add_citations_to_paper(self):
+    #     """
+    #     Add citations to all the relevant sections of the paper and add any necessary bibtex
+    #     references to the .bib file.
+    #     """
+    #     all_references = set()
+    #     for section_name, section_content in self.paper_sections.items():
+    #         if section_name in ['title', 'abstract', 'results', 'methods', 'conclusion']:
+    #             continue
+    #         # self.paper_sections[section_name], references = \
+    #             # CitationGPT(section=section_content).rewrite_section_with_citations()
+    #         # all_references |= references
+    #     self._save_references_to_bib_file(all_references)

@@ -1,3 +1,6 @@
+
+from typing import List, Mapping, Any
+
 import requests
 from unidecode import unidecode
 
@@ -11,64 +14,96 @@ HEADERS = {
     "User-Agent": "ScientistGPT/0.0.1 (mailto:fallpalapp@gmail.com)"
 }
 
+BIBTEX_TEMPLATE = '@{type}{{{id},\n{fields}}}\n'
 
-def create_bibtex(item):
-    bibtex_template = '@{type}{{{id},\n{fields}}}\n'
+TYPE_MAPPING = {
+    'journal-article': 'article',
+    'proceedings-article': 'inproceedings',
+    'book': 'book',
+    'edited-book': 'inbook',
+    'book-chapter': 'inbook',
+}
 
-    type_mapping = {
-        'journal-article': 'article',
-        'proceedings-article': 'inproceedings',
-        'book': 'book',
-        'edited-book': 'inbook',
-        'book-chapter': 'inbook',
-    }
 
-    bibtex_type = type_mapping.get(item['type'], 'misc')
+def get_type_from_crossref(crossref: Mapping[str, Any]) -> str:
+    return TYPE_MAPPING.get(crossref['type'], 'misc')
 
-    # create a mapping for article and inproceedings
-    if bibtex_type in ['article', 'inproceedings']:
-        field_mapping = {
-            'authors': 'author',
-            'title': 'title',
-            'journal': 'journal',
-            'year': 'year',
-            'volume': 'volume',
-            'issue': 'number',
-            'pages': 'pages',
-            'DOI': 'doi',
-        }
-    # create a mapping for book and inbook
-    else:
-        field_mapping = {
-            'authors': 'author',
-            'editors': 'editor',
-            'title': 'title',
-            'publisher': 'publisher',
-            'year': 'year',
-            'volume': 'volume',
-            'issue': 'number',
-            'pages': 'pages',
-            'DOI': 'doi',
-            'ISBN': 'isbn',
-        }
 
-    fields = []
-    for key, value in item.items():
-        if value and value is not None:
-            if key not in ['doi', 'isbn']:
-                # remove special characters of the value
-                if isinstance(value, list):
-                    item[key] = [unidecode(v) for v in value]
-                elif isinstance(value, str):
-                    item[key] = unidecode(value)
-        if key in field_mapping:
-            bibtex_key = field_mapping[key]
-            fields.append(f"{bibtex_key} = {{{value}}}")
+PAPER_MAPPING = {
+                'authors': 'author',
+                'title': 'title',
+                'journal': 'journal',
+                'year': 'year',
+                'volume': 'volume',
+                'issue': 'number',
+                'pages': 'pages',
+                'DOI': 'doi',
+            }
 
-    bibtex_id = item['authors'][0].split(" ")[-1] + (str(item.get("year")) if item.get("year") else "")
-    bibtex_id += item['title'].split(" ")[0] if item.get("title") else ""
+BOOK_MAPPING = {
+                'authors': 'author',
+                'editors': 'editor',
+                'title': 'title',
+                'publisher': 'publisher',
+                'year': 'year',
+                'volume': 'volume',
+                'issue': 'number',
+                'pages': 'pages',
+                'DOI': 'doi',
+                'ISBN': 'isbn',
+            }
 
-    return bibtex_template.format(type=bibtex_type, id=bibtex_id, fields=',\n'.join(fields))
+
+class CrossrefCitation(dict):
+    """
+    A single crossref citation. This the raw dict after transforming the json response.
+    This dict is hashable.
+    """
+
+    def __key(self):
+        # TODO: create a tuple of the items, make sure there are no lists within the tuple, otherwise it won't be
+        #  hashable the way to deal with that is converting everything inside the list to tuples
+        return tuple((k, tuple(v) if isinstance(v, list) else v) for k, v in self.items())
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    @property
+    def bibtex_type(self):
+        return get_type_from_crossref(self)
+
+    def create_bibtex(self):
+        # create a mapping for article and inproceedings
+        bibtex_type = get_type_from_crossref(self)
+        is_paper = bibtex_type in ['article', 'inproceedings']
+        field_mapping = PAPER_MAPPING if is_paper else BOOK_MAPPING
+
+        fields = []
+        for key, value in self.items():
+            if key in field_mapping:
+                if value and key not in ['doi', 'isbn']:
+                    # remove special characters of the value
+                    if isinstance(value, list):
+                        value = [unidecode(v).replace(r' &', r' \&') for v in value]
+                    elif isinstance(value, str):
+                        value = unidecode(value).replace(r' &', r' \&')
+                bibtex_key = field_mapping[key]
+                fields.append(f"{bibtex_key} = {{{value}}}")
+        return BIBTEX_TEMPLATE.format(type=self.bibtex_type, id=self.get_bibtex_id(), fields=',\n'.join(fields))
+
+    def get_bibtex_id(self) -> str:
+        """
+        Get the bibtex id for this citation.
+        """
+        bibtex_id = self['first_author_family'] + (str(self.get("year")) if self.get("year") else "")
+        bibtex_id += self['title'].split(" ")[0] if self.get("title") else ""
+        return bibtex_id
+
+    def __str__(self):
+        return f'id: "{self.get_bibtex_id()}", title: "{self["title"]}"'
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class CrossrefServerCaller(ServerCaller):
@@ -79,7 +114,10 @@ class CrossrefServerCaller(ServerCaller):
     file_extension = "_crossref.txt"
 
     @staticmethod
-    def _get_server_response(query, rows=4):
+    def _get_server_response(query, rows=4) -> List[dict]:
+        """
+        Get the response from the crossref server as a list of CrossrefCitation objects.
+        """
         params = {
             "query.bibliographic": query,
             "rows": rows,
@@ -95,7 +133,7 @@ class CrossrefServerCaller(ServerCaller):
 
         data = response.json()
         items = data['message']['items']
-        citations = []
+        citations: List[dict] = []
 
         for item in items:
             if item.get("author", None) is None:
@@ -120,25 +158,30 @@ class CrossrefServerCaller(ServerCaller):
 
             citation = {
                 "title": item["title"][0],
-
+                "first_author_family": item["author"][0]["family"],
                 "authors": authors_string,
                 "journal": item.get("container-title", [None])[0],
-                "doi": item["DOI"],
-                "type": item["type"],
+                "doi": item.get("DOI", ''),
+                "type": item.get("type", ''),
                 "year": item["published"]["date-parts"][0][0] if "published" in item else
-                item["published-print"]["date-parts"][0][0] if "published-print" in item else None,
-                "publisher": item.get("publisher"),
-                "volume": item.get("volume"),
-                "issue": item.get("issue"),
-                "page": item.get("page"),
-                "editors": editor_string if item.get("editor", None) is not None else None,
-                "isbn": item.get("ISBN")
+                item["published-print"]["date-parts"][0][0] if "published-print" in item else '',
+                "publisher": item.get("publisher", ''),
+                "volume": item.get("volume", ''),
+                "issue": item.get("issue", ''),
+                "page": item.get("page", ''),
+                "editors": editor_string if item.get("editor", None) is not None else '',
+                "isbn": item.get("ISBN", '')
             }
-            bibtex_citation = create_bibtex(citation)
-            citation["bibtex"] = bibtex_citation
             citations.append(citation)
 
         return citations
+
+    @staticmethod
+    def _post_process_response(response: List[dict]) -> List[CrossrefCitation]:
+        """
+        Post process the response from the server. This is used to remove duplicates.
+        """
+        return [CrossrefCitation(citation) for citation in response]
 
 
 CROSSREF_SERVER_CALLER = CrossrefServerCaller()

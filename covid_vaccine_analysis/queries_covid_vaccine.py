@@ -2,11 +2,11 @@
 
 from typing import List
 
-from scientistgpt.data_file_description import DataFileDescription
+from scientistgpt.gpt_interactors.types import DataFileDescriptions, DataFileDescription
 from scientistgpt.utils import dedent_triple_quote_str
 
 
-data_file_descriptions: List[DataFileDescription] = [
+data_file_descriptions: DataFileDescriptions = DataFileDescriptions([
     DataFileDescription(
         file_path='eng_covid_vaccine_side_effects.csv',
         description=dedent_triple_quote_str("""
@@ -16,14 +16,14 @@ data_file_descriptions: List[DataFileDescription] = [
             
             The file has 6 columns: 
             #1 PortionNum - the number of portion of the vaccine, 1, 2, 3 or 4
-            #2 SideEffectStartTime - number of units of time that passed since the vaccination was administered
+            #2 SideEffectStartTime - number of units of time that passed since the vaccination was administered, 999 means 'continuous'
             #3 DetailsStartTimeType - the type of unit of time that passed since the vaccination was administered (minutes, hours, days, weeks, months, NaN)
-            #4 SideEffectDurationTime - number of units of time that passed since the side effect was affecting the patient, might also be 'continuous'
+            #4 SideEffectDurationTime - number of units of time that passed since the side effect was affecting the patient, 999 means 'continuous'
             #5 DetailsDurationTimeType - the type of unit of time that passed since the side effect was affecting the patient (minutes, hours, days, weeks, continuous, NaN)
             #6 Effect - the side effect that was reported by the medical staff""")),
-]
+])
 
-goal_description = """
+research_goal = """
 The primary objective of this research is to explore the differences in side effects among doses, as indicated by the portion numbers. The research questions to address include:
 Are there differences in the frequency and severity of side effects across different portion numbers? This will help determine if certain treatment groups or doses exhibit a higher likelihood of specific side effects compared to others.
 Are there unique side effects associated with specific portion numbers? Identifying side effects that are unique to a particular treatment group or dose can provide insights into potential differences in their mechanisms of action or safety profiles.

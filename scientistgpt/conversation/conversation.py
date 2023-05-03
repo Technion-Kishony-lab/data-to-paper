@@ -4,7 +4,7 @@ import re
 from typing import List, Tuple, Union, Optional, Set
 
 from .message import Message, Role
-from .message_designation import GeneralMessageDesignation
+from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_int_list
 
 # Set up the OpenAI API client
 from scientistgpt.env import OPENAI_API_KEY, MODEL_ENGINE
@@ -92,6 +92,7 @@ class Conversation(List[Message]):
         Remove commenter messages, ignore=True messages, as well as all messages indicated in `hidden_messages`.
         """
         hidden_messages = hidden_messages or []
+        hidden_messages = convert_general_message_designation_to_int_list(hidden_messages, self)
         return [(i, message) for i, message in enumerate(self)
                 if i not in hidden_messages
                 and message.role is not Role.COMMENTER
@@ -103,12 +104,18 @@ class Conversation(List[Message]):
 
         will skip over any COMMENTER messages.
         """
+        last_non_commenter_message = self.get_last_non_commenter_message()
+        assert last_non_commenter_message.role.is_assistant_or_surrogate()
+        return last_non_commenter_message.content
+
+    def get_last_non_commenter_message(self) -> Message:
+        """
+        Return the last non-commenter message.
+        """
         for i in range(len(self) - 1, -1, -1):
-            if self[i].role.is_assistant_or_surrogate():
-                return self[i].content
-            if self[i].role is Role.USER:
-                raise ValueError('Last response is USER rather than ASSISTANT/SURROGATE.')
-        raise ValueError('No response found.')
+            if self[i].role is not Role.COMMENTER:
+                return self[i]
+        raise ValueError('No non-commenter message found.')
 
     def get_message_content_by_tag(self, tag):
         for message in self:

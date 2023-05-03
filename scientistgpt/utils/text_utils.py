@@ -1,6 +1,6 @@
 import textwrap
 import re
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 import colorama
 
@@ -17,11 +17,14 @@ def highlight_python_code(code_str: str):
     return highlight(code_str, PythonLexer(), python_formatter)
 
 
-def dedent_triple_quote_str(s: str):
+def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
     """
     Format a triple-quote string to remove extra indentation and leading newline.
     """
-    return textwrap.dedent(s).lstrip()
+    s = textwrap.dedent(s).lstrip()
+    if remove_repeated_spaces:
+        s = re.sub(r' +', ' ', s)
+    return s
 
 
 def wrap_string(input_string, width=40, indent=0):
@@ -78,7 +81,7 @@ def format_text_with_code_blocks(text: str, text_color: str, block_color: str, w
                     highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
                 s += highlighted_code
             else:
-                s += block_color + section + colorama.Style.RESET_ALL
+                s += block_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL
         in_text_block = not in_text_block
     return s
 
@@ -115,6 +118,8 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
             end = text.find(right_tag, start + len(left_tag))
             if end == -1:
                 raise ValueError(f'Could not find left tag {right_tag} in text')
+            if end - start - len(left_tag) == 0:
+                raise ValueError(f'Could not find left tag {left_tag} in text')
             if leave_tags:
                 return text[start:end + len(right_tag)]
             return text[start + len(left_tag):end]
@@ -162,7 +167,7 @@ StrOrTupleStr = Union[str, Tuple[str, str]]
 
 def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
                 prefix: StrOrTupleStr = '', suffix: StrOrTupleStr = '',
-                separator: str = ', ', last_separator: str = ' and '):
+                separator: str = ', ', last_separator: Optional[str] = ' and '):
     """
     Concatenate a list of words with commas and an 'and' at the end.
 
@@ -194,15 +199,16 @@ def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
 
     # wrap each word with the provided string:
     if isinstance(wrap_with, str):
-        words = [wrap_with + word + wrap_with for word in words]
+        words = [wrap_with + str(word) + wrap_with for word in words]
     elif isinstance(wrap_with, tuple):
-        words = [wrap_with[0] + word + wrap_with[1] for word in words]
+        words = [wrap_with[0] + str(word) + wrap_with[1] for word in words]
     elif wrap_with is not None:
         raise ValueError(f'wrap_with must be either str or tuple, not {type(wrap_with)}')
 
     num_words = len(words)
 
     # concatenate the words:
+    last_separator = last_separator or separator
     if num_words == 0:
         s = ''
     elif num_words == 1:
@@ -220,7 +226,7 @@ class NiceList(list):
     A list that can be printed nicely.
     """
     def __init__(self, *args, wrap_with: StrOrTupleStr = '', prefix: StrOrTupleStr = '',
-                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: str = ' and '):
+                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: Optional[str] = ' and '):
         super().__init__(*args)
         self.wrap_with = wrap_with
         self.prefix = prefix

@@ -1,15 +1,15 @@
 import re
 
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 
 
 def with_attribute_replacement(func):
     """
-    a decorator for temporarily replace attributes of a Replacer class.
+    a decorator for methods of a Replacer class that should run while replacing attributes.
     """
     def wrapper(self, *args, **kwargs):
-        with self.replacing_attributes():
+        with self.attributes_replacement():
             return func(self, *args, **kwargs)
     return wrapper
 
@@ -25,6 +25,21 @@ def format_str_while_preserving_curly_brackets(string: str, **kwargs):
     return string
 
 
+def _super_getatter(self, name):
+    return super(Replacer, self).__getattribute__(name)
+
+
+def _super_get_is_replacing(self):
+    return _super_getatter(self, '_is_replacing')
+
+
+def _do_not_replace(self):
+    """
+    A context manager for temporarily not replacing attributes of a Replacer class.
+    """
+    return super(Replacer, self).__getattribute__('not_replacing_attributes')()
+
+
 @dataclass
 class Replacer:
     """
@@ -37,10 +52,10 @@ class Replacer:
     ADDITIONAL_DICT_ATTRS: str = ['name']
     """
 
-    is_replacing: bool = False
+    _is_replacing = False
 
-    REPLACED_ATTRS = []
-    ADDITIONAL_DICT_ATTRS = []
+    REPLACED_ATTRS = None  # type: tuple # e.g. ('greeting', 'name'), or None to replace all str attributes
+    ADDITIONAL_DICT_ATTRS = None  # type: tuple # e.g. ('age', ), or None to add all non-str attributes
 
     def _format_text(self, text):
         while True:
@@ -49,23 +64,37 @@ class Replacer:
             if text == old_text:
                 return text.format()
 
+    @classmethod
+    def get_replaced_attributes(cls):
+        if cls.REPLACED_ATTRS is not None:
+            return cls.REPLACED_ATTRS
+        return [attr.name for attr in fields(cls) if not attr.name.startswith('_')]
+
     def _get_formatting_dict(self):
-        old_is_replacing = self.is_replacing
-        self.is_replacing = False
-        dict_ = {attr: getattr(self, attr) for attr in self.REPLACED_ATTRS + self.ADDITIONAL_DICT_ATTRS}
-        self.is_replacing = old_is_replacing
-        return dict_
+        with self.not_replacing_attributes():
+            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes()}
 
     def __getattribute__(self, item):
-        is_replacing = super().__getattribute__('is_replacing')
-        should_replace = item in super().__getattribute__('REPLACED_ATTRS')
-        if is_replacing and should_replace:
-            return self._format_text(super().__getattribute__(item))
-        return super().__getattribute__(item)
+        raw_value = _super_getatter(self, item)
+        if isinstance(raw_value, str) and _super_get_is_replacing(self) and \
+                item in type(self).get_replaced_attributes():
+            return _super_getatter(self, '_format_text')(raw_value)
+        return raw_value
 
     @contextmanager
-    def replacing_attributes(self):
-        old_is_replacing = self.is_replacing
-        self.is_replacing = True
-        yield
-        self.is_replacing = old_is_replacing
+    def attributes_replacement(self):
+        old_is_replacing = _super_get_is_replacing(self)
+        self._is_replacing = True
+        try:
+            yield
+        finally:
+            self._is_replacing = old_is_replacing
+
+    @contextmanager
+    def not_replacing_attributes(self):
+        old_is_replacing = _super_get_is_replacing(self)
+        self._is_replacing = False
+        try:
+            yield
+        finally:
+            self._is_replacing = old_is_replacing
