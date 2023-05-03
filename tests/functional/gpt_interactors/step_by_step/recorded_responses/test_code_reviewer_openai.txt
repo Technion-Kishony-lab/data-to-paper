@@ -1,0 +1,76 @@
+START>>>>>
+Sure, here is the code: 
+
+```python
+import pandas as pd
+import numpy as np
+from scipy.stats import chi2_contingency
+
+# load data
+data = pd.read_csv('BIRTH_RECORDS.csv')
+
+# calculate gender ratio
+gender_counts = data['gender'].value_counts()
+fract_female = gender_counts.loc['F'] / gender_counts.sum()
+
+# compare to 50% using chi-squared test
+expected = [0.5, 0.5]
+observed = [fract_female, 1 - fract_female]
+chi_sq, p_value, dof, _ = chi2_contingency([expected, observed])
+
+# write results to text file
+result_str = "Gender ratio: {:.2%}\n".format(fract_female)
+result_str += "Chi-squared test statistic: {:.2f}\n".format(chi_sq)
+result_str += "p-value: {:.4f}\n".format(p_value)
+result_str += "Degrees of freedom: {}\n".format(dof)
+
+with open('results.txt', 'w') as f:
+    f.write(result_str)
+```
+This code will load the data from the given csv file, calculate the gender ratio, compare it with 50% using a chi-squared test, and save the results to a text file named `results.txt`. The output file will include the gender ratio, chi-squared test statistic, p-value, and degrees of freedom.
+<<<<<END
+
+START>>>>>
+I apologize for the mistake in my previous code. Here is an updated code that should work:
+```python
+import pandas as pd
+import numpy as np
+from scipy.stats import chi2_contingency
+
+data = pd.read_csv('BIRTH_RECORDS.csv')
+
+n_females = data['gender'].value_counts().F
+n_males = data['gender'].value_counts().M
+
+p_females = n_females / (n_females + n_males)
+p_males = n_males / (n_females + n_males)
+
+d = {'Females': [n_females, p_females], 
+     'Males': [n_males, p_males]}
+df = pd.DataFrame(d, index=['n', 'p'])
+
+# calculate gender ratio and expected values
+total = df.loc['n'].sum()
+expected_ratio = 0.5
+expected_females = total * expected_ratio
+expected_males = total * (1 - expected_ratio)
+
+# perform chi-squared test
+observed = np.array([n_females, n_males])
+expected = np.array([expected_females, expected_males])
+chi2, p, dof, _ = chi2_contingency([observed, expected])
+
+# save results to file
+with open('results.txt', 'w') as f:
+    f.write(f"Females: {n_females}, Male: {n_males}\n")
+    f.write(f"Females ratio: {p_females}, Male ratio: {p_males}\n\n")
+    f.write(f"Expected values: {expected}\n")
+    f.write(f"Observed values: {observed}\n\n")
+    f.write(f"Chi-squared statistic: {chi2}\n")
+    f.write(f"p-value: {p}\n")
+    f.write(f"Degrees of freedom: {dof}\n")
+```
+
+This code reads in the given csv file and calculates the number and ratio of females and males in the dataset. Then, it calculates the expected number of females and males assuming no bias towards either gender. The code then performs a chi-squared test to determine whether there is a statistically significant difference between the observed and expected values. Finally, the results are saved to a text file named `results.txt`.
+<<<<<END
+
