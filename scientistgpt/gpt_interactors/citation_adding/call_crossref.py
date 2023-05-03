@@ -114,7 +114,7 @@ class CrossrefServerCaller(ServerCaller):
     file_extension = "_crossref.txt"
 
     @staticmethod
-    def _get_server_response(query, rows=4) -> List[CrossrefCitation]:
+    def _get_server_response(query, rows=4) -> List[dict]:
         """
         Get the response from the crossref server as a list of CrossrefCitation objects.
         """
@@ -133,7 +133,7 @@ class CrossrefServerCaller(ServerCaller):
 
         data = response.json()
         items = data['message']['items']
-        citations: List[CrossrefCitation] = []
+        citations: List[dict] = []
 
         for item in items:
             if item.get("author", None) is None:
@@ -172,9 +172,16 @@ class CrossrefServerCaller(ServerCaller):
                 "editors": editor_string if item.get("editor", None) is not None else '',
                 "isbn": item.get("ISBN", '')
             }
-            citations.append(CrossrefCitation(citation))
+            citations.append(citation)
 
         return citations
+
+    @staticmethod
+    def _post_process_response(response: List[dict]) -> List[CrossrefCitation]:
+        """
+        Post process the response from the server. This is used to remove duplicates.
+        """
+        return [CrossrefCitation(citation) for citation in response]
 
 
 CROSSREF_SERVER_CALLER = CrossrefServerCaller()
