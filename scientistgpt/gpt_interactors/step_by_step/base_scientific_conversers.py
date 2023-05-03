@@ -53,5 +53,5 @@ class BaseScientificReviewGPT(BaseScientificGPT, ReviewDialogDualConverserGPT):
 
 
 @dataclass
-class BaseScientificQuotedReviewGPT(BaseScientificReviewGPT, QuotedReviewDialogDualConverserGPT):
+class BaseScientificQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseScientificReviewGPT):
     pass

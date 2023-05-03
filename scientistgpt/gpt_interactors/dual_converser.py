@@ -309,9 +309,8 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
 
     flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
-    quote_request = 'Please return the {goal_noun} enclosed within triple-backticks.'
-    user_initiation_prompt: str = \
-        ReviewDialogDualConverserGPT.user_initiation_prompt + '\n\n{quote_request}'
+    quote_request: str = 'Please return the {goal_noun} enclosed within triple-backticks.'
+    user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
     Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
