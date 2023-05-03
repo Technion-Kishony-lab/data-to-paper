@@ -1,5 +1,5 @@
-import copy
-from typing import List, Dict, Mapping, Any
+
+from typing import List, Mapping, Any
 
 import requests
 from unidecode import unidecode
@@ -70,7 +70,7 @@ class CrossrefCitation(dict):
 
     @property
     def bibtex_type(self):
-         return get_type_from_crossref(self)
+        return get_type_from_crossref(self)
 
     def create_bibtex(self):
         # create a mapping for article and inproceedings

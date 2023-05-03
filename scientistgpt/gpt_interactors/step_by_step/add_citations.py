@@ -2,15 +2,12 @@ from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, Optional, List
 
 from scientistgpt.cast import Agent
-from scientistgpt.env import CHOOSE_CITATIONS_USING_CHATGPT, USE_CHATGPT_FOR_CITATION_REWRITING
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER, CrossrefCitation
-from scientistgpt.gpt_interactors.citation_adding.citataion_utils import \
-    choose_first_citation, remove_citations_from_section
 from scientistgpt.gpt_interactors.citation_adding.exceptions import ServerErrorCitationException
 from scientistgpt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
 from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.extract_python import extract_python_value_from_response, validate_variable_type
+from scientistgpt.utils.extract_python import extract_python_value_from_response
 from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.text_utils import NiceList
 
@@ -125,7 +122,7 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
         }}
         This is of course just an example. 
         Identify all the sentences that you think we need to add citations to.
-        
+
         Return only a dict of "sentence: query" pairs, without any other text.
     """)
 

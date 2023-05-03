@@ -7,7 +7,7 @@ from scientistgpt.conversation import Role, ConversationManager
 from .converser_gpt import ConverserGPT
 from ..conversation.message_designation import GeneralMessageDesignation
 from ..utils.replacer import with_attribute_replacement
-from ..utils.text_utils import dedent_triple_quote_str, extract_text_between_tags
+from ..utils.text_utils import extract_text_between_tags
 
 
 @dataclass

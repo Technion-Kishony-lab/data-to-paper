@@ -38,7 +38,7 @@ def auto_greeter():
 @pytest.mark.parametrize('is_replacing', [True, False])
 def test_replacer_automatic_replacement(auto_greeter, is_replacing):
     auto_greeter._is_replacing = is_replacing
-    assert auto_greeter.ADDITIONAL_DICT_ATTRS is None,  'sanity'
+    assert auto_greeter.ADDITIONAL_DICT_ATTRS is None, 'sanity'
     assert auto_greeter.REPLACED_ATTRS is None, 'sanity'
     assert set(auto_greeter.get_replaced_attributes()) == {'greeting', 'name', 'adjective', 'age'}
 
