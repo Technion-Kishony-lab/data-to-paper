@@ -1,0 +1,57 @@
+[
+    [],
+    [
+        {
+            "authors": "Leopoldo Benacchio",
+            "doi": "10.1007/978-94-010-0800-6_5",
+            "editors": "",
+            "first_author_family": "Benacchio",
+            "isbn": [
+                "9789401038553",
+                "9789401008006"
+            ],
+            "issue": "",
+            "journal": "Earth-Moon Relationships",
+            "page": "51-60",
+            "publisher": "Springer Netherlands",
+            "title": "The Importance of the Moon in Teaching Astronomy at the Primary School",
+            "type": "book-chapter",
+            "volume": "",
+            "year": 2001
+        },
+        {
+            "authors": "Jean Schneider",
+            "doi": "10.1007/s10686-021-09751-7",
+            "editors": "",
+            "first_author_family": "Schneider",
+            "isbn": "",
+            "issue": "3",
+            "journal": "Experimental Astronomy",
+            "page": "1767-1772",
+            "publisher": "Springer Science and Business Media LLC",
+            "title": "Quantum correlations at earth-moon distance",
+            "type": "journal-article",
+            "volume": "51",
+            "year": 2021
+        },
+        {
+            "authors": "W. Schlosser and T. Schmidt-Kaler and E. F. Milone",
+            "doi": "10.1007/978-1-4612-4434-9_5",
+            "editors": "",
+            "first_author_family": "Schlosser",
+            "isbn": [
+                "9781461287698",
+                "9781461244349"
+            ],
+            "issue": "",
+            "journal": "Challenges of Astronomy",
+            "page": "22-25",
+            "publisher": "Springer New York",
+            "title": "The Distance of the Moon",
+            "type": "book-chapter",
+            "volume": "",
+            "year": 1991
+        }
+    ],
+    []
+]
