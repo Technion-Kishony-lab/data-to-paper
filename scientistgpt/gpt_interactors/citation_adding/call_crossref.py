@@ -100,7 +100,7 @@ class CrossrefCitation(dict):
         return bibtex_id
 
     def __str__(self):
-        return f"'id': '{self.get_bibtex_id()}', 'title': '{self['title']}', 'authors': '{self['authors']}'"
+        return f'id: "{self.get_bibtex_id()}", title: "{self["title"]}"'
 
     def __repr__(self):
         return self.__str__()
