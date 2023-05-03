@@ -22,6 +22,7 @@ class DualConverserGPT(ConverserGPT):
 
     suppress_printing_other_conversation: bool = False
 
+    @with_attribute_replacement
     def __post_init__(self):
         super().__post_init__()
         if self.other_conversation_name is None:
@@ -285,7 +286,8 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.apply_append_user_message(self.user_initiation_prompt)
+        self.comment('Background messages completed.', tag='after_background')
+        self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     @with_attribute_replacement
     def initialize_dialog(self):
