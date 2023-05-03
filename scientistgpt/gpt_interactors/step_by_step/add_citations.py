@@ -206,11 +206,6 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
                 f'{sentences_not_in_section}.\n'
         return None
 
-    def initialize_and_run_dialog(self):
-        self.initialize_dialog()
-        self.comment('Background concluded', tag='after_background')
-        return self.run_dialog()
-
     @with_attribute_replacement
     def rewrite_section_with_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
         """
