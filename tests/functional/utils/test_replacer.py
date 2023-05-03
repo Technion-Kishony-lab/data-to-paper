@@ -8,8 +8,7 @@ from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 
 @dataclass
 class Greeter(Replacer):
-    REPLACED_ATTRS = ('greeting', 'name', 'adjective', )
-    ADDITIONAL_DICT_ATTRS = ('age', )
+    REPLACED_ATTRS = ('greeting', 'name', 'adjective', 'age', )
     age: int = 20
     adjective: str = 'amazing'
     name: str = 'the {adjective} john'
@@ -38,11 +37,10 @@ def auto_greeter():
 
 @pytest.mark.parametrize('is_replacing', [True, False])
 def test_replacer_automatic_replacement(auto_greeter, is_replacing):
-    auto_greeter.is_replacing = is_replacing
+    auto_greeter._is_replacing = is_replacing
     assert auto_greeter.ADDITIONAL_DICT_ATTRS is None,  'sanity'
     assert auto_greeter.REPLACED_ATTRS is None, 'sanity'
-    assert set(auto_greeter.get_replaced_attributes()) == {'greeting', 'name', 'adjective'}
-    assert set(auto_greeter.get_additional_dict_attributes()) == {'age'}
+    assert set(auto_greeter.get_replaced_attributes()) == {'greeting', 'name', 'adjective', 'age'}
 
 
 def test_replacer_has_unformatted_attrs_when_not_replacing(greeter):
