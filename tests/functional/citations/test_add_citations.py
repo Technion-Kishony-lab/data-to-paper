@@ -18,7 +18,12 @@ def products():
                                     "This is a very long sentence.\\end{abstract}",
                         'introduction': "\\section{Introduction} The distance to the moon is 384,400 km. "
                                         "This was studied using a specific telescope called the Hubble telescope,"
-                                        " which was launched in 1990. "})
+                                        " which was launched in 1990. "
+                                        "Some more interesting details that need references are:"
+                                        " This is one of the most important discoveries in astronomy, after the "
+                                        "discovery of the circumference of the earth. "
+                                        "In later years, the mission of nasa named Apollo 11 was launched to the moon."}
+    )
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
