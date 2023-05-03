@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
-from g3pt.gpt_interactors.paper_writing.base_paper_writing import PaperWritingGPT
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
+from g3pt.projects.scientific_research.paper_writing.base_paper_writing import PaperWritingGPT
 
 
 class TestPaperWritingGPT(PaperWritingGPT):

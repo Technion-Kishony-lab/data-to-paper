@@ -4,7 +4,7 @@ from g3pt import Message, Role
 from g3pt.conversation.actions import ReplaceLastResponse
 from g3pt.conversation.actions_and_conversations import APPLIED_ACTIONS
 from g3pt.conversation.converation_manager import ConversationManager
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
 from g3pt.conversation.message_designation import RangeMessageDesignation
 
 

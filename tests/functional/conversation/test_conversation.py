@@ -3,24 +3,24 @@ import os.path
 import openai
 
 from g3pt import Conversation, Message, Role
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER, try_get_chatgpt_response
 
 
 def test_failed_gpt_response(conversation, openai_exception):
     with OPENAI_SERVER_CALLER.mock(['I am okay.', openai_exception]):
-        assert conversation.try_get_chatgpt_response() == 'I am okay.'
-        assert isinstance(conversation.try_get_chatgpt_response(), openai.error.InvalidRequestError)
+        assert try_get_chatgpt_response(conversation) == 'I am okay.'
+        assert isinstance(try_get_chatgpt_response(conversation), openai.error.InvalidRequestError)
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_gpt_response(conversation):
-    response = conversation.try_get_chatgpt_response()
+    response = try_get_chatgpt_response(conversation)
     assert isinstance(response, str) and len(response)
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_gpt_response_without_appending(conversation):
-    response = conversation.try_get_chatgpt_response()
+    response = try_get_chatgpt_response(conversation)
     assert len(response)
     assert len(conversation) == 4
 

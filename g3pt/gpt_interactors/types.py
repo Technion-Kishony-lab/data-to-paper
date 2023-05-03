@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
-from g3pt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
+from g3pt.servers.crossref import CrossrefCitation
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils.text_utils import NiceList, dedent_triple_quote_str
 

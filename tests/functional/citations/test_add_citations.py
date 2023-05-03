@@ -1,8 +1,8 @@
 from _pytest.fixtures import fixture
 
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
-from g3pt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
-from g3pt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
+from g3pt.servers.crossref import CROSSREF_SERVER_CALLER
+from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
 from g3pt.gpt_interactors.types import Products
 
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
