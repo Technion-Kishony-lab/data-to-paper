@@ -12,6 +12,7 @@ from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.extract_python import extract_python_value_from_response, validate_variable_type
 from scientistgpt.utils.replacer import with_attribute_replacement
+from scientistgpt.utils.text_utils import NiceList
 
 
 @dataclass
@@ -221,7 +222,7 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
 
         sentences_to_citations = self._find_citations_for_sentences()
         updated_section = self.section
-        all_citations = set()
+        all_citations: Set[CrossrefCitation] = set()
         for sentence, sentence_citations in sentences_to_citations.items():
             self.conversation_manager.reset_back_to_tag('after_background')
             if not sentence_citations:
@@ -232,7 +233,8 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
                     RewriteSentenceWithCitations(
                         conversation_name=self.conversation_name,
                         sentence=sentence,
-                        citations=sentence_citations).get_rewritten_sentence_and_chosen_citations()
+                        citations=NiceList(sentence_citations, separator='\n\n', last_separator=None),
+                    ).get_rewritten_sentence_and_chosen_citations()
             updated_section = updated_section.replace(sentence, rewritten_sentence)
-            all_citations.update(chosen_citations)
+            all_citations |= chosen_citations
         return updated_section, all_citations

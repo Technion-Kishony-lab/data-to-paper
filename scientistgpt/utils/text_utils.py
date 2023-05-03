@@ -1,6 +1,6 @@
 import textwrap
 import re
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 import colorama
 
@@ -167,7 +167,7 @@ StrOrTupleStr = Union[str, Tuple[str, str]]
 
 def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
                 prefix: StrOrTupleStr = '', suffix: StrOrTupleStr = '',
-                separator: str = ', ', last_separator: str = ' and '):
+                separator: str = ', ', last_separator: Optional[str] = ' and '):
     """
     Concatenate a list of words with commas and an 'and' at the end.
 
@@ -199,15 +199,16 @@ def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
 
     # wrap each word with the provided string:
     if isinstance(wrap_with, str):
-        words = [wrap_with + word + wrap_with for word in words]
+        words = [wrap_with + str(word) + wrap_with for word in words]
     elif isinstance(wrap_with, tuple):
-        words = [wrap_with[0] + word + wrap_with[1] for word in words]
+        words = [wrap_with[0] + str(word) + wrap_with[1] for word in words]
     elif wrap_with is not None:
         raise ValueError(f'wrap_with must be either str or tuple, not {type(wrap_with)}')
 
     num_words = len(words)
 
     # concatenate the words:
+    last_separator = last_separator or separator
     if num_words == 0:
         s = ''
     elif num_words == 1:
@@ -225,7 +226,7 @@ class NiceList(list):
     A list that can be printed nicely.
     """
     def __init__(self, *args, wrap_with: StrOrTupleStr = '', prefix: StrOrTupleStr = '',
-                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: str = ' and '):
+                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: Optional[str] = ' and '):
         super().__init__(*args)
         self.wrap_with = wrap_with
         self.prefix = prefix
