@@ -2,7 +2,6 @@ import os
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
 from scientistgpt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
 from scientistgpt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
     PaperAssemblerCompiler
@@ -36,21 +35,21 @@ def products():
                                                'This is the intro with citation'
                                                '\\cite{' + introduction_citation_id + '}', introduction_citation)},
         paper_sections_with_tables={'results': """
-                                                \\section{Results}
-                                                This is the results with table:
-                                                \\begin{table}
-                                                \\centering
-                                                \\begin{tabular}{ *{3}{c} }
-                                                \\toprule
-                                                Temperature ($^{\circ}$F) & Average melting time (s) & 95\% CI \\\\
-                                                \\midrule
-                                                130 & 38.75 & (28.54, 48.96) \\\\
-                                                140 & 21.31 & (9.94, 32.69)  \\\\
-                                                150 & 15.36 & (3.61, 27.11)  \\\\
-                                                \\bottomrule
-                                                \\end{tabular}
-                                                \\caption{The means and 95\% confidence intervals for each temperature.}
-                                                \\end{table}
+                                            \\section{Results}
+                                            This is the results with table:
+                                            \\begin{table}
+                                            \\centering
+                                            \\begin{tabular}{ *{3}{c} }
+                                            \\toprule
+                                            Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
+                                            \\midrule
+                                            130 & 38.75 & (28.54, 48.96) \\\\
+                                            140 & 21.31 & (9.94, 32.69)  \\\\
+                                            150 & 15.36 & (3.61, 27.11)  \\\\
+                                            \\bottomrule
+                                            \\end{tabular}
+                                            \\caption{The means and 95\\% confidence intervals for each temperature.}
+                                            \\end{table}
                                             """},
     )
 
