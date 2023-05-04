@@ -20,12 +20,14 @@ class BaseScientificGPT(ConverserGPT):
         self.apply_append_user_message(product_description)
         return product_description
 
-    def _pre_populate_background(self, previous_product_items: list = None):
+    def _get_background_product_fields(self):
+        return self.background_product_fields
+
+    def _pre_populate_background(self):
         """
         Add background information to the conversation.
         """
-        previous_product_items = previous_product_items if previous_product_items is not None \
-            else self.background_product_fields
+        previous_product_items = self._get_background_product_fields()
         for i, product_field in enumerate(previous_product_items or []):
             is_last = i == len(previous_product_items) - 1
             self._add_product_description(product_field)
