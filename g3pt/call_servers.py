@@ -57,6 +57,8 @@ class ServerCaller:
         returns the response from the server after post-processing. allows recording and replaying.
         """
         response = self._get_raw_server_response(*args, **kwargs)
+        if isinstance(response, Exception):
+            return response
         return self._post_process_response(response)
 
     def _get_raw_server_response(self, *args, **kwargs):
