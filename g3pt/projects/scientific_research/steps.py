@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
-from g3pt.gpt_interactors.write_code import BaseCodeProductsGPT
+from g3pt.base_steps.write_code import BaseCodeProductsGPT
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.utils.citataion_utils import remove_citations_from_section
 
-from g3pt.gpt_interactors.base_products_conversers import BaseProductsQuotedReviewGPT, \
+from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT, \
     BaseProductsReviewGPT
 from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from g3pt.utils import dedent_triple_quote_str

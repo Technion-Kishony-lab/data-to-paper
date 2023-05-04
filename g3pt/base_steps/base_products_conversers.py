@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from g3pt.gpt_interactors.types import Products
-from g3pt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT, ConverserGPT, \
+from g3pt.base_steps.types import Products
+from g3pt.base_steps.dual_converser import QuotedReviewDialogDualConverserGPT, ConverserGPT, \
     ReviewDialogDualConverserGPT
 
 

@@ -3,8 +3,8 @@ from typing import Optional
 
 from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
-from g3pt.gpt_interactors.debugger_gpt import DebuggerGPT
-from g3pt.gpt_interactors.base_products_conversers import BaseProductsGPT
+from g3pt.base_steps.debugger_gpt import DebuggerGPT
+from g3pt.base_steps.base_products_conversers import BaseProductsGPT
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
 from g3pt.utils.replacer import with_attribute_replacement
