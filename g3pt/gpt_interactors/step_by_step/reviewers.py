@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
-from g3pt.cast import Agent
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.utils.citataion_utils import remove_citations_from_section
 
-from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT, \
-    BaseScientificReviewGPT
+from g3pt.gpt_interactors.base_products_conversers import BaseProductsQuotedReviewGPT, \
+    BaseProductsReviewGPT
 from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
@@ -22,7 +21,7 @@ sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
 
 
 @dataclass
-class GoalReviewGPT(BaseScientificQuotedReviewGPT):
+class GoalReviewGPT(BaseProductsQuotedReviewGPT):
     background_product_fields = ['data_file_descriptions']
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
@@ -58,7 +57,7 @@ class GoalReviewGPT(BaseScientificQuotedReviewGPT):
 
 
 @dataclass
-class PlanReviewGPT(BaseScientificQuotedReviewGPT):
+class PlanReviewGPT(BaseProductsQuotedReviewGPT):
     max_rounds: int = 0  # no review cycles
     background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'analysis_plan'
@@ -70,7 +69,7 @@ class PlanReviewGPT(BaseScientificQuotedReviewGPT):
 
 
 @dataclass
-class ResultsInterpretationReviewGPT(BaseScientificQuotedReviewGPT):
+class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
     max_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
     conversation_name: str = 'results_interpretation'
@@ -85,7 +84,7 @@ class ResultsInterpretationReviewGPT(BaseScientificQuotedReviewGPT):
 
 
 @dataclass
-class BaseWriterReviewGPT(BaseScientificReviewGPT):
+class BaseWriterReviewGPT(BaseProductsReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
