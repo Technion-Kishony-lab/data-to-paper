@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
-from scientistgpt import Conversation
-from scientistgpt.cast import Agent
-from scientistgpt.cast.messenger import Messenger, create_messenger
-from scientistgpt.conversation.actions import CreateConversation, apply_action
+from g3pt import Conversation
+from g3pt.cast import Agent
+from g3pt.cast.messenger import Messenger, create_messenger
+from g3pt.conversation.actions import CreateConversation, apply_action
 
 
 def test_messenger_add_remove_contact():

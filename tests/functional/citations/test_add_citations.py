@@ -1,9 +1,9 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
-from scientistgpt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT
-from scientistgpt.gpt_interactors.types import Products
+from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
+from g3pt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
+from g3pt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT
+from g3pt.gpt_interactors.types import Products
 
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
 

@@ -1,6 +1,6 @@
 import pytest
 
-from scientistgpt.utils import extract_text_between_tags
+from g3pt.utils import extract_text_between_tags
 
 text_1 = 'hello, here is a list [1, 2, 3, [4], 5] of numbers and lists'
 

@@ -1,12 +1,12 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt import Message, Role
-from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
+from g3pt import Message, Role
+from g3pt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
     NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, \
     CopyMessagesBetweenConversations, CreateConversation
-from scientistgpt.conversation.actions_and_conversations import get_conversation
-from scientistgpt.conversation.converation_manager import ConversationManager
-from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from g3pt.conversation.actions_and_conversations import get_conversation
+from g3pt.conversation.converation_manager import ConversationManager
+from g3pt.conversation.message_designation import RangeMessageDesignation
 
 
 @fixture()
