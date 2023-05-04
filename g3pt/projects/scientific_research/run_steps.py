@@ -3,7 +3,7 @@ from typing import Optional
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.paper_writing.get_template import get_paper_section_names
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
-from g3pt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT, \
+from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
 from g3pt.gpt_interactors.director_converser import DirectorProductGPT
 from g3pt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
