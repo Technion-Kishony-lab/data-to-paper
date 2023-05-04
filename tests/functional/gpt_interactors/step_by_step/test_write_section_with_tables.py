@@ -1,7 +1,6 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.gpt_interactors.step_by_step.reviewers import PaperSectionWithTablesReviewGPT
 from scientistgpt.gpt_interactors.types import Products
 from scientistgpt.run_gpt_code.code_runner import CodeAndOutput
@@ -40,7 +39,6 @@ def products():
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
-@CROSSREF_SERVER_CALLER.record_or_replay()
 def test_table_gpt(products):
     for section_name in SECTIONS_TO_ADD_TABLES_TO:
         products.paper_sections_with_tables[section_name] = \
