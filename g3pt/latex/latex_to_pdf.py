@@ -28,7 +28,11 @@ MATH_PATTERN = r"""
   # group 3, match escaped bracket
   (\\\[)|
   # group 4,
-  (\\begin\{(?:equation\*?|align\*?)\})
+  (\\begin\{(?:equation\*?|align\*?)\})|
+  # group 5, match table and figure environments
+  (\\begin\{(?:figure|table)\})|
+  # group 6, match non-typesetting commands
+  (\\(?:ref|label)\{)
 )
 # if group 1 was start
 (?(1)
@@ -40,17 +44,21 @@ MATH_PATTERN = r"""
 # else
 (?:
   # greedily and recursively match everything in between
-  # groups 2, 3 and 4 support recursion
+  # groups 2, 3, 4, and 5 support recursion
   ((?:.|\n|\r)*?(?R)?(?:.|\n|\r)*?)(?<!\\)
   (?:
     # if group 2 was start, escaped parenthesis is end
     (?(2)\\\)|  
     # if group 3 was start, escaped bracket is end
     (?(3)\\\]|     
-    # else group 4 was start, match end equation or end align
-    (\\end\{(?:equation\*?|align\*?)\})
+    # if group 4 was start, match end equation or end align
+    (?(4)\\end\{(?:equation\*?|align\*?)\}| 
+    # if group 5 was start, match end figure or end table
+    (?(5)\\end\{(?:figure|table)\}|
+    # else, match end of non-typesetting command
+    \})
   )
-))))
+)))))
 """
 
 
@@ -109,22 +117,20 @@ def run_in_temp_directory():
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_name: str, output_directory: str,
-                                  should_compile_with_bib: bool = False,
-                                  should_compile_to_pdf: bool = True):
+                                  should_compile_with_bib: bool = False):
     latex_file_name = file_name + '.tex'
     latex_content = replace_special_chars(latex_content)
     with run_in_temp_directory():
         with open(latex_file_name, 'w') as f:
             f.write(latex_content)
-        if should_compile_to_pdf:
+        subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
+        if should_compile_with_bib:
+            # if citations file not in current directory copy it from output directory:
+            if not os.path.exists('citations.bib'):
+                shutil.copy(os.path.join(output_directory, 'citations.bib'), 'citations.bib')
+            subprocess.run(['bibtex', file_name], check=True)
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
-            if should_compile_with_bib:
-                # if citations file not in current directory copy it from output directory:
-                if not os.path.exists('citations.bib'):
-                    shutil.copy(os.path.join(output_directory, 'citations.bib'), 'citations.bib')
-                subprocess.run(['bibtex', file_name], check=True)
-                subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
-                subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
+            subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
 
         # Move the pdf and the latex and the citation file to the original directory:
         shutil.move(file_name + '.pdf', output_directory)

@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
 
-from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.get_template import get_paper_template, \
+from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template, \
     get_paper_section_names
-from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.latex import save_latex_and_compile_to_pdf
+from g3pt.latex import save_latex_and_compile_to_pdf
 from g3pt.gpt_interactors.types import Products
 from g3pt.projects.scientific_research.scientific_products import get_from_most_updated_paper_sections
 

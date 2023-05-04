@@ -2,11 +2,10 @@ import os
 
 from _pytest.fixtures import fixture
 
+from g3pt.projects.scientific_research.latex_paper_compilation.assemble_compile_paper import PaperAssemblerCompiler
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.servers.crossref import CrossrefCitation
 
-from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
-    PaperAssemblerCompiler
 
 introduction_citation = {CrossrefCitation({
     "title": "Extended reporting guidance for vaccine effectiveness studies for variants of concern for COVID-19",
