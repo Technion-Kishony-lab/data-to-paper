@@ -10,6 +10,7 @@ from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
 from g3pt.utils.replacer import with_attribute_replacement
+from g3pt.utils.text_utils import NiceList
 
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 MAX_CODE_REVISIONS = 3
@@ -40,6 +41,12 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
             return self.output_filename
         else:
             return self.output_filename.replace('.', f'_revision_{self.revision_round}.')
+
+    @property
+    def data_filenames(self) -> NiceList[str]:
+        return NiceList([d.file_path for d in self.data_file_descriptions],
+                        wrap_with='"',
+                        prefix='{} data file[s]: ')
 
     @property
     def _request_code_tag(self):
@@ -95,7 +102,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 user_agent=self.user_agent,
                 assistant_agent=self.assistant_agent,
                 output_filename=self._get_output_filename(),
-                data_files=self.products.data_filenames,
+                data_files=self.data_filenames,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
                 previous_code=previous_code,
