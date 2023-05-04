@@ -197,7 +197,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
-    background_product_fields = ['research_goal', 'results_summary', 'code_and_output',
+    background_product_fields = ['results_summary', 'code_and_output',
                                  'title_and_abstract']
     max_rounds: int = 0
     user_initiation_prompt: str = r"""
@@ -205,7 +205,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     only the {goal_noun}.
     Usually in scientific papers include one or two tables summarizing the main findings.
     The tables should include information that was only extracted from the information provided.
-    Add the tables in booktabs, multirow format with caption and label. 
+    Add the tables centered in booktabs, multirow format with caption and label. 
     In addition, change the results section text to refer to the tables (use their labels if necessary),
     to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
     Write in tex format including \\section{{}} command, any math or symbols that needs tex escapes.
