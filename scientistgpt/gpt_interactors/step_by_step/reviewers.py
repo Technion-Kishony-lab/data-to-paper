@@ -3,7 +3,8 @@ from typing import Optional, List, Union
 
 from scientistgpt.cast import Agent
 from scientistgpt.gpt_interactors.citation_adding.citataion_utils import remove_citations_from_section
-from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT
+from scientistgpt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT, \
+    BaseScientificReviewGPT
 from scientistgpt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
@@ -82,7 +83,7 @@ class ResultsInterpretationReviewGPT(BaseScientificQuotedReviewGPT):
 
 
 @dataclass
-class BaseWriterReviewGPT(BaseScientificQuotedReviewGPT):
+class BaseWriterReviewGPT(BaseScientificReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
@@ -112,10 +113,10 @@ class BaseWriterReviewGPT(BaseScientificQuotedReviewGPT):
         4. Do not cite any papers.
         """)
 
-    user_initiation_prompt: str = """
-    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} \
+    user_initiation_prompt: str = r"""
+    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
     only the {goal_noun} of a scientific paper. Do not write any other parts!
-    Write in tex format including \\section command, any math or symbols that needs tex escapes.
+    Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
     """
 
     other_system_prompt: str = """
@@ -163,6 +164,12 @@ class BaseWriterReviewGPT(BaseScientificQuotedReviewGPT):
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
+    user_initiation_prompt: str = r"""
+    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
+    only the {goal_noun} of a scientific paper. Do not write any other parts!
+    Write in tex format including the \\title{{}} and \\begin{{abstract}} ... \\end{{abstract}} commands,
+     any math or symbols that needs tex escapes.
+    """
 
 
 @dataclass
@@ -171,6 +178,11 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
+    user_initiation_prompt: str = r"""
+    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
+    only the {goal_noun} of a scientific paper. Do not write any other parts!
+    Write in tex format including the \\section{{}} command, any math or symbols that needs tex escapes.
+    """
 
     def __post_init__(self):
         self.section_names = [self.section_name]
@@ -187,15 +199,17 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'rewrite'
     background_product_fields = ['research_goal', 'results_summary', 'code_and_output',
                                  'title_and_abstract']
+    max_rounds: int = 0
     user_initiation_prompt: str = r"""
     Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
     only the {goal_noun}.
-    Add the tables in booktabs, multirow format with caption and label.
+    Usually in scientific papers include one or two tables summarizing the main findings.
     The tables should include information that was only extracted from the information provided.
-    In addition change the results section text to refer to the tables (use their labels if necessary)
+    Add the tables in booktabs, multirow format with caption and label. 
+    In addition, change the results section text to refer to the tables (use their labels if necessary),
     to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
-    Write in tex format including \\section command, any math or symbols that needs tex escapes.
-    """ + '\n{quote_request}'
+    Write in tex format including \\section{{}} command, any math or symbols that needs tex escapes.
+    """
 
     def _get_background_product_fields(self):
         return self.background_product_fields + ['paper_section_most_updated_' + self.section_name]

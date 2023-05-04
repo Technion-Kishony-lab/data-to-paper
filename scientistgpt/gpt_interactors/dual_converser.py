@@ -311,7 +311,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
 
     flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
-    quote_request: str = 'Please return the {goal_noun} enclosed within triple-backticks.'
+    quote_request: str = 'Please return the {goal_noun} enclosed within triple-backticks'
     user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = """
