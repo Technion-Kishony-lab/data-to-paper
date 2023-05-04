@@ -3,11 +3,12 @@ from dataclasses import dataclass
 from g3pt.gpt_interactors.dual_converser import QuotedReviewDialogDualConverserGPT, ConverserGPT, \
     ReviewDialogDualConverserGPT
 from g3pt.gpt_interactors.types import Products
+from g3pt.projects.scientific_research.cast import ScientificAgent
 
 
 @dataclass
 class BaseScientificGPT(ConverserGPT):
-    products: Products = None
+    products: ScientificAgent = None
     background_product_fields = None
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
