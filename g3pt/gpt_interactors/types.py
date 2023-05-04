@@ -63,7 +63,7 @@ class Products:
         """
         Return the description of the given product.
         """
-        name, description = get_name_description(product_field)
+        name, description = get_name_and_description(product_field)
         if isinstance(description, str):
             return description.format(getattr(self, product_field))
         else:
@@ -73,7 +73,7 @@ class Products:
         """
         Return the name of the given product.
         """
-        name, description = get_name_description(product_field)
+        name, description = get_name_and_description(product_field)
         return name
 
     @property
@@ -157,7 +157,7 @@ SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
 }
 
 
-def get_name_description(product_field: str) -> Tuple[str, Union[str, Callable]]:
+def get_name_and_description(product_field: str) -> Tuple[str, Union[str, Callable]]:
     """
     For the of the given product field, return the name, description, and whether the product is code.
     """
