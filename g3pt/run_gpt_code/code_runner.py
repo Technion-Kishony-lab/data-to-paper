@@ -106,7 +106,8 @@ class CodeRunner:
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        run_code_using_module_reload(code, self.script_file,
+        run_code_using_module_reload(code,
+                                     save_as=None,  # change to self.script_file in order to keep records of the code
                                      allowed_read_files=self.allowed_read_files,
                                      allowed_write_files=None if self.output_file is None else [self.output_file])
         return CodeAndOutput(code=code, output=self.read_output_file(), output_file=self.output_file)
