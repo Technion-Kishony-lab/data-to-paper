@@ -5,7 +5,8 @@ from typing import Optional
 from g3pt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from g3pt.cast import Agent
 from g3pt.gpt_interactors.converser_gpt import ConverserGPT
-from g3pt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
+from g3pt.gpt_interactors.types import CodeAndOutput
+from g3pt.run_gpt_code.code_runner import CodeRunner
 from g3pt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \

@@ -4,22 +4,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from g3pt.run_gpt_code.dynamic_code import run_code_using_module_reload
-
+from g3pt.gpt_interactors.types import CodeAndOutput
 from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have observed in chatgpt responses:
 POSSIBLE_CODE_HEADERS = ["```python\n", "``` python\n", "```\n", "``` \n"]
 CORRECT_CODE_HEADER = "```python\n"
 CODE_REGEXP = f'{CORRECT_CODE_HEADER}(.*?)\n```'
-
-
-@dataclass
-class CodeAndOutput:
-    code: str = None
-    output: str = None
-    output_file: Optional[str] = None
-    code_name: str = None
-    explanation: Optional[str] = None
 
 
 LINES_ADDED_BY_MODIFYING_CODE = 0
