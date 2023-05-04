@@ -1,10 +1,9 @@
 from _pytest.fixtures import fixture
 
-from g3pt.projects.scientific_research.paper_writing.types import ScientificProducts
+from g3pt.projects.scientific_research.types import ScientificProducts
 from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
 from g3pt.servers.crossref import CROSSREF_SERVER_CALLER
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
-from g3pt.gpt_interactors.types import Products
 
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
 
