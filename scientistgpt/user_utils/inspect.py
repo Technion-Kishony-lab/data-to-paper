@@ -39,8 +39,8 @@ def run_scientist_gpt(data_file_descriptions: DataFileDescriptions,
     else:
         os.makedirs(output_directory)
 
-    @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)
     @OPENAI_SERVER_CALLER.record_or_replay(output_directory / OPENAI_RESPONSES_FILENAME, should_mock=mock_servers)
+    @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)
     def run():
         run_step_by_step(data_file_descriptions=data_file_descriptions, research_goal=research_goal,
                          data_directory=data_directory, output_directory=output_directory)
