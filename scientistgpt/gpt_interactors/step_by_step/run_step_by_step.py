@@ -60,6 +60,6 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
         products.paper_sections_with_tables[section_name] = \
             PaperSectionWithTablesReviewGPT(products=products, section_name=section_name).get_section()
 
-    PaperAssemblerCompiler(output_directory=output_directory).assemble_compile_paper()
+    PaperAssemblerCompiler(products=products, output_directory=output_directory).assemble_compile_paper()
 
     return products
