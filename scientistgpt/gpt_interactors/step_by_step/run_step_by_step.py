@@ -3,7 +3,7 @@ from typing import Optional
 from scientistgpt.gpt_interactors.paper_writing.get_template import get_paper_section_names
 from scientistgpt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT
 from scientistgpt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
 from scientistgpt.gpt_interactors.step_by_step.user_to_student import DirectorToStudent
 from scientistgpt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
 from scientistgpt.gpt_interactors.types import Products
@@ -11,6 +11,7 @@ from scientistgpt.gpt_interactors.types import Products
 PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
 paper_section_names = get_paper_section_names(PAPER_TEMPLATE_FILE)
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
+SECTIONS_TO_ADD_TABLES_TO = ['results']
 
 
 def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None,
@@ -53,7 +54,8 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
             AddCitationReviewGPT(products=products, section_name=section_name).rewrite_section_with_citations()
 
     # Add tables to results section
-    # products.paper_sections['results_with_tables'] = \
-    #    PaperSectionWithTablesReviewGPT(products=products, section_names=['results']).get_sections()[0]
+    for section_name in SECTIONS_TO_ADD_TABLES_TO:
+        products.paper_sections_with_tables[section_name] = \
+            PaperSectionWithTablesReviewGPT(products=products, section_name=section_name).get_section()
 
     return products
