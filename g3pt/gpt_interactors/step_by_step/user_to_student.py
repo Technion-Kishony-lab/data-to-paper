@@ -1,7 +1,7 @@
 from typing import Any
 
-from g3pt.cast import Agent
 from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
+from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.utils.replacer import with_attribute_replacement
 
 
@@ -11,8 +11,8 @@ class DirectorToStudent(BaseScientificGPT):
     such as data description, or goal.
     """
     conversation_name: str = 'user-student'
-    assistant_agent: Agent = Agent.Director
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.Director
+    user_agent: ScientificAgent = ScientificAgent.Student
 
     @with_attribute_replacement
     def get_product_from_director(self, product_field: str, returned_product: Any):

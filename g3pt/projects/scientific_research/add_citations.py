@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, Optional, List
 
 from g3pt.cast import Agent
+from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
 from g3pt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
 from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
@@ -96,8 +97,8 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
     # in the actual call to add_background, we will be adding to the background also the specific section
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
     conversation_name: str = 'add_citations_{section_name}'
-    assistant_agent: Agent = Agent.Secretary
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.Secretary
+    user_agent: ScientificAgent = ScientificAgent.Student
     max_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
 

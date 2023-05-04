@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
 from g3pt.cast import Agent
+from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.utils.citataion_utils import remove_citations_from_section
 
 from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT, \
@@ -27,8 +28,8 @@ class GoalReviewGPT(BaseScientificQuotedReviewGPT):
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
     goal_verb: str = 'suggest'
-    assistant_agent: Agent = Agent.PlanReviewer
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
+    user_agent: ScientificAgent = ScientificAgent.Student
     termination_phrase: str = \
         'I hereby approve that the research goal is well-defined and can be studied using only the provided dataset'
     user_initiation_prompt: str = """
@@ -63,8 +64,8 @@ class PlanReviewGPT(BaseScientificQuotedReviewGPT):
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
-    assistant_agent: Agent = Agent.PlanReviewer
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
+    user_agent: ScientificAgent = ScientificAgent.Student
     sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
 
 
@@ -75,8 +76,8 @@ class ResultsInterpretationReviewGPT(BaseScientificQuotedReviewGPT):
     conversation_name: str = 'results_interpretation'
     goal_noun: str = 'description and interpretation of the results'
     goal_verb: str = 'write'
-    assistant_agent: Agent = Agent.PlanReviewer
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
+    user_agent: ScientificAgent = ScientificAgent.Student
     sentence_to_add_at_the_end_of_reviewee_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
@@ -94,8 +95,8 @@ class BaseWriterReviewGPT(BaseScientificReviewGPT):
     goal_verb: str = 'write'
     reviewee: str = 'scientific writer'
     reviewer: str = 'scientific reviewer'
-    assistant_agent: Agent = Agent.Writer
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.Writer
+    user_agent: ScientificAgent = ScientificAgent.Student
     section_names: Optional[Union[str, list[str]]] = None
     section_contents: Union[str, List[str]] = field(default_factory=list)
 

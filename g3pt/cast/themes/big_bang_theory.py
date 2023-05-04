@@ -1,4 +1,4 @@
-from g3pt.cast.types import Profile
+from g3pt.cast.types import Profile, Algorithm
 
 
 Student = Profile(
@@ -8,6 +8,7 @@ Student = Profile(
     description='Hello, my name is Sheldon Cooper. '
                 'I am trying to become a scientist, do research and write a scientific paper.',
     image_file='sheldon.png',
+    algorithm=Algorithm.GPT,
 )
 
 Mentor = Profile(
@@ -18,6 +19,7 @@ Mentor = Profile(
                 'I am a professor of physics at Caltech. '
                 'I am here to help Sheldon with his research.',
     image_file='eric.png',
+    algorithm=Algorithm.PRE_PROGRAMMED,
 )
 
 PlanReviewer = Profile(
@@ -28,6 +30,7 @@ PlanReviewer = Profile(
                 'I am a professor of physics at Caltech. '
                 'I am here to help review Sheldon\'s research plan.',
     image_file='arthur.png',
+    algorithm=Algorithm.GPT,
 )
 
 Secretary = Profile(
@@ -37,6 +40,7 @@ Secretary = Profile(
     description='Hello, my name is Penny. '
                 'I am here to help Sheldon with any small stuff he might need.',
     image_file='penny.png',
+    algorithm=Algorithm.GPT,
 )
 
 Debugger = Profile(
@@ -47,6 +51,7 @@ Debugger = Profile(
                 'I am a physicist and a friend of Sheldon\'s. '
                 'I am here to help debug Sheldon\'s code.',
     image_file='howard.png',
+    algorithm=Algorithm.PRE_PROGRAMMED,
 )
 
 Writer = Profile(
@@ -57,6 +62,7 @@ Writer = Profile(
                 'I am a neurobiologist and a friend of Sheldon\'s. '
                 'I am here to help Sheldon write his scientific paper.',
     image_file='amy.png',
+    algorithm=Algorithm.GPT,
 )
 
 LiteratureReviewer = Profile(
@@ -67,6 +73,7 @@ LiteratureReviewer = Profile(
                 'I am a theoretical physicist and a friend of Sheldon\'s. '
                 'I am here to help Sheldon review the literature.',
     image_file='raj.png',
+    algorithm=Algorithm.GPT,
 )
 
 Director = Profile(
@@ -78,4 +85,5 @@ Director = Profile(
                 'a complex task on their own by interacting and helping each other.\n\n'
                 'I am also the one who gave the data to Sheldon and am looking forward to see how he analyzes it.',
     image_file='anonymous_user.png',
+    algorithm=Algorithm.PRE_PROGRAMMED,
 )

@@ -17,8 +17,8 @@ class ConverserGPT(Replacer):
 
     system_prompt: str = 'You are a helpful scientist.'
 
-    assistant_agent: Agent = Agent.Student
-    user_agent: Agent = Agent.Mentor
+    assistant_agent: Agent = None
+    user_agent: Agent = None
 
     conversation_name: str = 'default'
 
