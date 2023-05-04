@@ -1,4 +1,4 @@
-from scientistgpt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
+from g3pt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
 
 QUERY = 'covid-19 affected the world'
 

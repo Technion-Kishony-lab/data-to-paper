@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.utils.tagged_state import TaggedState
+from g3pt.utils.tagged_state import TaggedState
 
 
 @dataclass

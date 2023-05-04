@@ -1,5 +1,5 @@
-from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
-from scientistgpt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
+from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
+from g3pt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()

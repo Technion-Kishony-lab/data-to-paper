@@ -1,6 +1,6 @@
 import pytest
 
-from scientistgpt.conversation.message_designation import SingleMessageDesignation, RangeMessageDesignation, \
+from g3pt.conversation.message_designation import SingleMessageDesignation, RangeMessageDesignation, \
     convert_general_message_designation_to_int_list
 
 

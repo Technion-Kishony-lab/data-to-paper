@@ -1,4 +1,4 @@
-from scientistgpt import run_scientist_gpt
+from g3pt import run_scientist_gpt
 from queries_covid_vaccine import data_file_descriptions
 
 # local_path.py is git ignored. It should be created locally, and contain:

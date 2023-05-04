@@ -1,8 +1,8 @@
 # flake8: noqa
 from typing import List
 
-from scientistgpt.gpt_interactors.types import DataFileDescriptions, DataFileDescription
-from scientistgpt.utils import dedent_triple_quote_str
+from g3pt.gpt_interactors.types import DataFileDescriptions, DataFileDescription
+from g3pt.utils import dedent_triple_quote_str
 
 
 data_file_descriptions = DataFileDescriptions([

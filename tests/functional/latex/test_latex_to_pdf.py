@@ -3,8 +3,8 @@ from pathlib import Path
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.latex import save_latex_and_compile_to_pdf
-from scientistgpt.latex.latex_to_pdf import TEMP_FOLDER_FOR_LATEX_COMPILE
+from g3pt.latex import save_latex_and_compile_to_pdf
+from g3pt.latex.latex_to_pdf import TEMP_FOLDER_FOR_LATEX_COMPILE
 
 
 @fixture()

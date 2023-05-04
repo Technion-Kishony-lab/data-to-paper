@@ -2,8 +2,8 @@ import os.path
 
 import openai
 
-from scientistgpt import Conversation, Message, Role
-from scientistgpt.conversation.conversation import OPENAI_SERVER_CALLER
+from g3pt import Conversation, Message, Role
+from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
 
 
 def test_failed_gpt_response(conversation, openai_exception):

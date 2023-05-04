@@ -1,4 +1,4 @@
-from scientistgpt import run_scientist_gpt
+from g3pt import run_scientist_gpt
 from queries_mimic import data_file_descriptions, simpler_research_goal
 
 # local_path.py is git ignored. It should be created locally, and contain:

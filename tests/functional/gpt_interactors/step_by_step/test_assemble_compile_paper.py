@@ -2,10 +2,10 @@ import os
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
-from scientistgpt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
+from g3pt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
+from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
     PaperAssemblerCompiler
-from scientistgpt.gpt_interactors.types import Products
+from g3pt.gpt_interactors.types import Products
 
 introduction_citation = {CrossrefCitation({
     "title": "Extended reporting guidance for vaccine effectiveness studies for variants of concern for COVID-19",
