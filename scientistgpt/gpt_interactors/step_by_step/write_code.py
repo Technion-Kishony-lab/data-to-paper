@@ -153,7 +153,7 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
         )
         self.apply_append_user_message(content=user_prompt, tag='output_file_content')
 
-        response = self.apply_get_and_append_assistant_message()
+        response = self.apply_get_and_append_assistant_message(max_tokens=1)
         for num_tries in range(MAX_REGENERATING_MULTI_CHOICE_RESPONSE):
             if 'a' in response and 'b' not in response and len(response) < 5:
                 self.comment('ScientistGPT declared it is satisfied with the analysis.')

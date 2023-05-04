@@ -180,8 +180,8 @@ class AddCitationReviewGPT(BaseScientificReviewGPT):
 
         return sentences_to_citations
 
-    def _pre_populate_background(self, previous_product_items: list = None):
-        super()._pre_populate_background(self.background_product_fields + ['paper_section_' + self.section_name])
+    def _get_background_product_fields(self):
+        return super()._get_background_product_fields() + ['paper_section_' + self.section_name]
 
     def _check_self_response(self, response: str) -> Optional[str]:
         feedback_message, response_value = extract_python_value_from_response(response, Dict[str, str])
