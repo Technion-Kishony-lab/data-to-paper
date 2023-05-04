@@ -39,12 +39,6 @@ class ScientificProducts(Products):
         name, description = get_name_and_description(product_field)
         return name
 
-    @property
-    def data_filenames(self) -> List[str]:
-        return NiceList([d.file_path for d in self.data_file_descriptions],
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')
-
 
 def get_code_description(products: Products) -> str:
     return f'Here is our code:\n\n' \
