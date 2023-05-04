@@ -63,7 +63,7 @@ class Products:
         """
         Return the description of the given product.
         """
-        name, description = get_name_description_iscode(product_field)
+        name, description = get_name_description(product_field)
         if isinstance(description, str):
             return description.format(getattr(self, product_field))
         else:
@@ -73,7 +73,7 @@ class Products:
         """
         Return the name of the given product.
         """
-        name, description = get_name_description_iscode(product_field)
+        name, description = get_name_description(product_field)
         return name
 
     @property
@@ -115,31 +115,30 @@ def format_paper_section_description(section_content: str, section_name: str) ->
         """).format(section_name, section_content)
 
 
-def get_paper_section_description(products: Products, section_name: str) -> str:
-    return format_paper_section_description(products.paper_sections[section_name], section_name)
+def get_from_paper_sections(products: Products, section_name: str) -> str:
+    return products.paper_sections[section_name]
 
 
-def get_paper_section_with_citations_description(products: Products, section_name: str) -> str:
-    return format_paper_section_description(products.cited_paper_sections[section_name][0], section_name)
+def get_from_cited_paper_sections(products: Products, section_name: str) -> str:
+    return products.cited_paper_sections[section_name][0]
 
 
-def get_paper_section_with_table_description(products: Products, section_name: str) -> str:
-    return format_paper_section_description(products.paper_sections_with_tables[section_name], section_name)
+def get_from_paper_sections_with_tables(products: Products, section_name: str) -> str:
+    return products.paper_sections_with_tables[section_name]
 
 
-def get_paper_section_most_updated(products: Products, section_name: str) -> str:
-    if section_name in products.paper_sections_with_tables:
-        return format_paper_section_description(products.paper_sections_with_tables[section_name], section_name)
-    if section_name in products.cited_paper_sections:
-        return format_paper_section_description(products.cited_paper_sections[section_name][0], section_name)
-    if section_name in products.paper_sections:
-        return format_paper_section_description(products.paper_sections[section_name], section_name)
+def get_from_most_updated_paper_sections(products: Products, section_name: str) -> str:
+    for _, func in list(SECTION_TYPES_TO_FUNCS.items())[1:]:  # skip the 'most_updated' section type
+        try:
+            return func(products, section_name)
+        except KeyError:
+            pass
     assert False, f'No section named "{section_name}"'
 
 
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
-PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Callable]]] = {
+PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] = {
     'data_file_descriptions': ('dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
     'research_goal': ('research goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
     'analysis_plan': ('data analysis plan', 'Here is our data analysis plan:\n\n{}'),
@@ -151,21 +150,21 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Calla
 }
 
 SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
-    'paper_section_most_updated_': get_paper_section_most_updated,
-    'paper_section_with_table_': get_paper_section_with_table_description,
-    'paper_section_with_citations_': get_paper_section_with_citations_description,
-    'paper_section_': get_paper_section_description,
+    'most_updated_paper_sections': get_from_most_updated_paper_sections,
+    'paper_sections_with_tables': get_from_paper_sections_with_tables,
+    'cited_paper_sections': get_from_cited_paper_sections,
+    'paper_sections': get_from_paper_sections,
 }
 
 
-def get_name_description_iscode(product_field: str) -> Tuple[str, Union[str, Callable]]:
+def get_name_description(product_field: str) -> Tuple[str, Union[str, Callable]]:
     """
     For the of the given product field, return the name, description, and whether the product is code.
     """
     for section_type, func in SECTION_TYPES_TO_FUNCS.items():
         if product_field.startswith(section_type):
-            section_name = product_field[len(section_type):]
+            section_name = product_field[len(section_type) + 1:]  # +1 for the '_' after the section type
             return f'"{section_name}" section of the paper', \
-                lambda products: func(products, section_name)
+                lambda products: format_paper_section_description(func(products, section_name), section_name)
 
-    return PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE[product_field]
+    return PRODUCT_FIELDS_TO_NAME_DESCRIPTION[product_field]
