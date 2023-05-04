@@ -197,10 +197,5 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     Write in tex format including \\section command, any math or symbols that needs tex escapes.
     """ + '\n{quote_request}'
 
-    def _pre_populate_background(self, previous_product_items: list = None):
-        if self.section_name in self.products.cited_paper_sections:
-            super()._pre_populate_background(
-                self.background_product_fields + ['paper_section_with_citations_' + self.section_name])
-        else:
-            super()._pre_populate_background(
-                self.background_product_fields + ['paper_section_' + self.section_name])
+    def _get_background_product_fields(self):
+        return self.background_product_fields + ['paper_section_most_updated_' + self.section_name]
