@@ -1,14 +1,13 @@
 from typing import Optional
 
 from g3pt.projects.scientific_research.cast import ScientificAgent
-from g3pt.projects.scientific_research.paper_writing.get_template import get_paper_section_names
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
+from g3pt.projects.scientific_research.latex_paper_compilation.assemble_compile_paper import PaperAssemblerCompiler
+from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_section_names
 from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
 from g3pt.gpt_interactors.director_converser import DirectorProductGPT
 from g3pt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
-from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
-    PaperAssemblerCompiler
 from g3pt.gpt_interactors.types import Products
 
 PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
