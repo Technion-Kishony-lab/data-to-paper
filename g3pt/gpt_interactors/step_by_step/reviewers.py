@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
 from g3pt.cast import Agent
-from g3pt.gpt_interactors.citation_adding.citataion_utils import remove_citations_from_section
+from g3pt.utils.citataion_utils import remove_citations_from_section
+
 from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificQuotedReviewGPT, \
     BaseScientificReviewGPT
 from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent

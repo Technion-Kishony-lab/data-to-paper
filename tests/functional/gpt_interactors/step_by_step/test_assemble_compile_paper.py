@@ -2,7 +2,9 @@ import os
 
 from _pytest.fixtures import fixture
 
-from g3pt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
+from g3pt.projects.scientific_research.types import ScientificProducts
+from g3pt.servers.crossref import CrossrefCitation
+
 from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
     PaperAssemblerCompiler
 from g3pt.gpt_interactors.types import Products
@@ -23,7 +25,7 @@ introduction_citation_id = next(iter(introduction_citation)).get_bibtex_id()
 
 @fixture
 def products():
-    return Products(
+    return ScientificProducts(
         paper_sections={'title': '\\title{content of title}',
                         'abstract': '\\begin{abstract}content of abstract\\end{abstract}',
                         'introduction': '\\section{Introduction}{content of introduction}',
