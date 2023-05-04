@@ -6,6 +6,7 @@ from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
 from g3pt.gpt_interactors.debugger_gpt import DebuggerGPT
 from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
+from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
 from g3pt.utils.replacer import with_attribute_replacement
@@ -30,8 +31,8 @@ class BaseCodeScientificGPT(BaseScientificGPT):
 class CodeFeedbackGPT(BaseCodeScientificGPT):
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
     conversation_name: str = 'code_debugging'
-    assistant_agent: Agent = Agent.Debugger
-    user_agent: Agent = Agent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.Debugger
+    user_agent: ScientificAgent = ScientificAgent.Student
     revision_round: int = 0
 
     def _get_output_filename(self):

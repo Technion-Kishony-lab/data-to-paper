@@ -30,8 +30,8 @@ class DebuggerGPT(ConverserGPT):
     * output file not created
     """
 
-    assistant_agent: Agent = Agent.Student
-    user_agent: Agent = Agent.Debugger
+    assistant_agent: Agent = None
+    user_agent: Agent = None
 
     max_debug_iterations: int = 5
 
