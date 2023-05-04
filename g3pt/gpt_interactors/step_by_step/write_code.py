@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from g3pt.cast import Agent
 from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
 from g3pt.gpt_interactors.debugger_gpt import DebuggerGPT
-from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificGPT
+from g3pt.gpt_interactors.base_products_conversers import BaseProductsGPT
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
@@ -20,7 +19,7 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 
 
 @dataclass
-class BaseCodeScientificGPT(BaseScientificGPT):
+class BaseCodeScientificGPT(BaseProductsGPT):
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 

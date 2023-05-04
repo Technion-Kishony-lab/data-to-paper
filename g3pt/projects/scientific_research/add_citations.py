@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, Optional, List
 
-from g3pt.cast import Agent
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
 from g3pt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
-from g3pt.gpt_interactors.step_by_step.base_scientific_conversers import BaseScientificReviewGPT
+from g3pt.gpt_interactors.base_products_conversers import BaseProductsReviewGPT
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.extract_python import extract_python_value_from_response
 from g3pt.utils.replacer import with_attribute_replacement
@@ -93,7 +92,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
 
 
 @dataclass
-class AddCitationReviewGPT(BaseScientificReviewGPT):
+class AddCitationReviewGPT(BaseProductsReviewGPT):
     # in the actual call to add_background, we will be adding to the background also the specific section
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
     conversation_name: str = 'add_citations_{section_name}'
