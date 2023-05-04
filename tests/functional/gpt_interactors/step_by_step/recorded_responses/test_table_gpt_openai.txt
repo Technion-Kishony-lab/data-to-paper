@@ -1,0 +1,40 @@
+START>>>>>
+Sure, here is the re-written "Results" section of the paper with tables:
+
+\section{Results}
+Using the algorithm in Python, the first 20 terms of the Fibonacci sequence were calculated. The results are presented in table \ref{tab:results}.
+
+\begin{table}[h!]
+    \centering
+    \caption{First 20 terms of the Fibonacci sequence.}
+    \label{tab:results}
+    \begin{tabular}{ccccc}
+        \toprule
+        n & 0 & 1 & 2 & 3\\
+        \midrule
+        Fibonacci(n) & 0 & 1 & 1 & 2 \\
+        \addlinespace[0.2cm]
+        n & 4 & 5 & 6 & 7 \\
+        \midrule
+        Fibonacci(n) & 3 & 5 & 8 & 13 \\
+        \addlinespace[0.2cm]
+        n & 8 & 9 & 10 & 11 \\
+        \midrule
+        Fibonacci(n) & 21 & 34 & 55 & 89 \\
+        \addlinespace[0.2cm]
+        n & 12 & 13 & 14 & 15 \\
+        \midrule
+        Fibonacci(n) & 144 & 233 & 377 & 610 \\
+        \addlinespace[0.2cm]
+        n & 16 & 17 & 18 & 19 \\
+        \midrule
+        Fibonacci(n) & 987 & 1597 & 2584 & 4181 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+As shown in table \ref{tab:results}, the first term of the Fibonacci sequence is 0, and the second term is 1. The third term is the sum of the first two terms, therefore it is also 1. The sequence then continues with the sum of the second and third terms, and so on, leading to the final term of 4181. 
+
+The computational results match the expected values, confirming the validity of the algorithm. The table provides a concise summary of the results, allowing others to easily access and use the information in future research.
+<<<<<END
+
