@@ -4,10 +4,11 @@ from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
 from g3pt.projects.scientific_research.latex_paper_compilation.assemble_compile_paper import PaperAssemblerCompiler
 from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_section_names
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
+    ScientificCodeProductsGPT
 from g3pt.gpt_interactors.director_converser import DirectorProductGPT
-from g3pt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
 from g3pt.gpt_interactors.types import Products
 
 PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
@@ -18,7 +19,7 @@ SECTIONS_TO_ADD_TABLES_TO = ['results']
 
 def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None,
                      data_directory=None, output_directory=None) -> Products:
-    products = Products()
+    products = ScientificProducts()
 
     # Data file descriptions:
     director_converser = DirectorProductGPT(
@@ -41,7 +42,7 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     products.analysis_plan = PlanReviewGPT(products=products).initialize_and_run_dialog()
 
     # Code and output
-    products.code_and_output = CodeFeedbackGPT(products=products).get_analysis_code()
+    products.code_and_output = ScientificCodeProductsGPT(products=products).get_analysis_code()
 
     # Results interpretation
     products.results_summary = ResultsInterpretationReviewGPT(products=products).initialize_and_run_dialog()

@@ -4,8 +4,7 @@ from _pytest.fixtures import fixture
 
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
-from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT
-from g3pt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
+from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, ScientificCodeProductsGPT
 from g3pt.gpt_interactors.types import DataFileDescriptions, DataFileDescription
 
 
@@ -47,7 +46,7 @@ def plan_reviewer(data_file_descriptions):
 
 @fixture()
 def code_reviewer(data_file_descriptions):
-    return CodeFeedbackGPT(
+    return ScientificCodeProductsGPT(
         products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
             research_goal='to test whether there is a gender bias in the birth records',
