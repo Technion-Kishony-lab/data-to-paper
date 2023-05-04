@@ -185,9 +185,9 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
-    background_product_fields = ['research_goal', 'results_summary', 'code_and_outputs',
+    background_product_fields = ['research_goal', 'results_summary', 'code_and_output',
                                  'title_and_abstract']
-    user_initiation_prompt: str = """
+    user_initiation_prompt: str = r"""
     Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
     only the {goal_noun}.
     Add the tables in booktabs, multirow format with caption and label.
@@ -195,7 +195,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     In addition change the results section text to refer to the tables (use their labels if necessary)
     to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
     Write in tex format including \\section command, any math or symbols that needs tex escapes.
-    """
+    """ + '\n{quote_request}'
 
     def _pre_populate_background(self, previous_product_items: list = None):
         if self.section_name in self.products.cited_paper_sections:
