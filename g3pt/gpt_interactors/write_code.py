@@ -5,7 +5,6 @@ from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
 from g3pt.gpt_interactors.debugger_gpt import DebuggerGPT
 from g3pt.gpt_interactors.base_products_conversers import BaseProductsGPT
-from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
 from g3pt.utils.replacer import with_attribute_replacement
@@ -19,33 +18,71 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 
 
 @dataclass
-class BaseCodeScientificGPT(BaseProductsGPT):
+class BaseCodeProductsGPT(BaseProductsGPT):
+    revision_round: int = 0
+
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 
     gpt_script_filename: str = BASE_GPT_SCRIPT_FILE_NAME
     "The base name of the python file in which the code written by gpt is saved."
 
+    code_requesting_prompt: str = dedent_triple_quote_str("""
+        Write a complete short Python code to perform the data analysis plan.
+        If needed, you can use the following packages in your code: {{}}.
+        The output of your code should be a text file named "{{}}".
+        """)
 
-@dataclass
-class CodeFeedbackGPT(BaseCodeScientificGPT):
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
-    conversation_name: str = 'code_debugging'
-    assistant_agent: ScientificAgent = ScientificAgent.Debugger
-    user_agent: ScientificAgent = ScientificAgent.Student
-    revision_round: int = 0
+    code_revision_requesting_prompt: str = dedent_triple_quote_str("""
+        Revise the code, or just change any key parameters within the code as needed.
+        The output of your new code should be a text file named "{{}}".
+        Send me back the complete revised code.
+        Do not just point to what needs to be changed, send the full complete code.
+        """)
+
+    present_code_as_fresh: str = dedent_triple_quote_str("""
+        Here is the code to perform the analysis. It saves results to the file "{{}}".
+        ```python
+        {{}}
+        ```
+        """)  # set to None to not present code
+
+    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
+        Please explain what your code does. 
+        Also explain what does the code writes into the {{}} file.
+        """)  # set to None to skip asking for explanation
+
+    offer_revision_prompt: str = dedent_triple_quote_str("""
+        I ran your code. Here is the content of the output file ({{}}):
+        ```
+        {{}}
+        ```
+
+        Please choose one of the following options:
+
+        a. The results seem reasonable. Let's proceed.
+
+        b. Something is wrong. I need to go back and change the code.
+
+        Answer with just the letter designating the option you choose \
+        (only type a single character: "a", or "b").
+        """)  # set to None to skip option for revision
+
+    @property
+    def data_filenames(self) -> NiceList[str]:
+        """
+        The names of the files that gpt code can access.
+        Need to be overridden by subclasses, to include the names of the data files from Products
+        """
+        return NiceList([],
+                        wrap_with='"',
+                        prefix='{} data file[s]: ')
 
     def _get_output_filename(self):
         if self.revision_round == 0:
             return self.output_filename
         else:
             return self.output_filename.replace('.', f'_revision_{self.revision_round}.')
-
-    @property
-    def data_filenames(self) -> NiceList[str]:
-        return NiceList([d.file_path for d in self.data_file_descriptions],
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')
 
     @property
     def _request_code_tag(self):
@@ -70,21 +107,9 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
 
     def _ask_for_code(self):
         if self.revision_round == 0:
-            user_prompt = dedent_triple_quote_str("""
-                Write a complete short Python code to perform the data analysis plan.
-                If needed, you can use the following packages in your code: {}.
-                The output of your code should be a text file named "{}".
-                All results we may need for a scientific paper should be saved to that file, including \
-                analysis findings, summary statistics, etc. 
-                Do not write to any other files and do not plot anything to screen.
-            """).format(SUPPORTED_PACKAGES, self._get_output_filename())
+            user_prompt = self.code_requesting_prompt.format(SUPPORTED_PACKAGES, self._get_output_filename())
         else:
-            user_prompt = dedent_triple_quote_str("""
-                Revise the code, or just change any key parameters (like thresholds, etc) within the code as needed.
-                The output of your new code should be a text file named "{}".
-                Send me back the complete revised code.
-                Do not just point to what needs to be changed, send the full complete code.
-                """).format(self._get_output_filename())
+            user_prompt = self.code_revision_requesting_prompt.format(self._get_output_filename())
         self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
 
     def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
@@ -111,50 +136,33 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
                 self.comment(f'Debugging failed, {revision_and_attempt}.')
                 continue
 
-            # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
-            self.conversation_manager.delete_messages(
-                message_designation=RangeMessageDesignation.from_(start=start_tag, end=-1),
-                comment='Deleting all debugging correspondence.')
-            assert self.conversation[-1].tag == self._request_code_tag
+            if self.present_code_as_fresh:
+                # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
+                self.conversation_manager.delete_messages(
+                    message_designation=RangeMessageDesignation.from_(start=start_tag, end=-1),
+                    comment='Deleting all debugging correspondence.')
+                assert self.conversation[-1].tag == self._request_code_tag
 
-            self.apply_append_surrogate_message(
-                content=dedent_triple_quote_str("""
-                Here is the code to perform the analysis. It saves results to the file "{}".
-                ```python
-                {}
-                ```
-                """).format(self._get_output_filename(), code_and_output.code),
-                comment='Adding the debugged code as if it was the original response.',
-            )
+                self.apply_append_surrogate_message(
+                    content=self.present_code_as_fresh.format(self._get_output_filename(), code_and_output.code),
+                    comment='Adding the debugged code as if it was the original response.',
+                )
             return code_and_output
         return None
 
-    def _ask_for_code_explanation(self) -> str:
+    def _ask_for_code_explanation(self) -> Optional[str]:
+        if self.requesting_code_explanation_prompt is None:
+            return None
         self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
-            high-level explanation of the code in a language suitable for a Methods section of a research \
-            paper. Also explain what does the code writes into the {} file.
-            """).format(self.output_filename),
+            content=self.requesting_code_explanation_prompt.format(self.output_filename),
         )
         return self.apply_get_and_append_assistant_message()
 
     def _ask_chatgpt_whether_further_code_revisions_are_needed(self, code_and_output: CodeAndOutput) -> Optional[int]:
-        user_prompt = dedent_triple_quote_str("""
-            I ran your code. Here is the content of the output file ({}):
-            ```
-            {}
-            ```
+        if self.offer_revision_prompt is None:
+            return 1
 
-            Please choose one of the following options:
-
-            a. The results seem reasonable. Let's proceed.
-
-            b. Something is wrong. I need to go back and change the code.
-
-            Answer with just the letter designating the option you choose \
-            (only type a single character: "a", or "b").
-            """).format(
+        user_prompt = self.offer_revision_prompt.format(
             self._get_output_filename(),
             code_and_output.output,
         )
@@ -163,10 +171,10 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
         response = self.apply_get_and_append_assistant_message(max_tokens=1)
         for num_tries in range(MAX_REGENERATING_MULTI_CHOICE_RESPONSE):
             if 'a' in response and 'b' not in response and len(response) < 5:
-                self.comment('ScientistGPT declared it is satisfied with the analysis.')
+                self.comment('ChatGPT declared it is satisfied with the analysis.')
                 return 1
             elif 'b' in response and 'a' not in response and len(response) < 5:
-                self.comment(f'ScientistGPT declared it needs to revise the code. Starting a new revision.'
+                self.comment(f'ChatGPT declared it needs to revise the code. Starting a new revision.'
                              f'({self.revision_round + 1}/{MAX_CODE_REVISIONS}).')
                 return 2
             elif is_code_in_response(response):
@@ -177,5 +185,5 @@ class CodeFeedbackGPT(BaseCodeScientificGPT):
             else:
                 if num_tries < MAX_REGENERATING_MULTI_CHOICE_RESPONSE - 1:
                     response = self.conversation_manager.regenerate_previous_response(
-                        comment='ScientistGPT did not choose a valid option. Regenerating response.')
+                        comment='ChatGPT did not choose a valid option. Regenerating response.')
         return None

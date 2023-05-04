@@ -1,7 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
+from g3pt.gpt_interactors.write_code import BaseCodeProductsGPT
 from g3pt.projects.scientific_research.cast import ScientificAgent
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.utils.citataion_utils import remove_citations_from_section
 
 from g3pt.gpt_interactors.base_products_conversers import BaseProductsQuotedReviewGPT, \
@@ -9,7 +11,7 @@ from g3pt.gpt_interactors.base_products_conversers import BaseProductsQuotedRevi
 from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import nicely_join
+from g3pt.utils.text_utils import nicely_join, NiceList
 
 sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
@@ -214,3 +216,29 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
 
     def _get_background_product_fields(self):
         return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
+
+
+@dataclass
+class ScientificCodeProductsGPT(BaseCodeProductsGPT):
+    products: ScientificProducts = None
+    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
+    conversation_name: str = 'code_debugging'
+    assistant_agent: ScientificAgent = ScientificAgent.Debugger
+    user_agent: ScientificAgent = ScientificAgent.Student
+    code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
+        All results we may need for a scientific paper should be saved to that file, including \
+        analysis findings, summary statistics, etc. 
+        Do not write to any other files and do not plot anything to screen.
+        """)
+    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
+        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. Also explain what does the code writes into the {{}} file.
+        """)
+
+    @property
+    def data_filenames(self) -> NiceList[str]:
+        return NiceList([d.file_path for d in self.products.data_file_descriptions],
+                        wrap_with='"',
+                        prefix='{} data file[s]: ')
+
