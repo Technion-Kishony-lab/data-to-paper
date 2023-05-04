@@ -6,6 +6,8 @@ from scientistgpt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, P
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
 from scientistgpt.gpt_interactors.step_by_step.user_to_student import DirectorToStudent
 from scientistgpt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
+from scientistgpt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
+    PaperAssemblerCompiler
 from scientistgpt.gpt_interactors.types import Products
 
 PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
@@ -57,5 +59,7 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     for section_name in SECTIONS_TO_ADD_TABLES_TO:
         products.paper_sections_with_tables[section_name] = \
             PaperSectionWithTablesReviewGPT(products=products, section_name=section_name).get_section()
+
+    PaperAssemblerCompiler(output_directory=output_directory).assemble_compile_paper()
 
     return products
