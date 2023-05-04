@@ -1,6 +1,6 @@
 from typing import Any
 
-from g3pt.gpt_interactors.base_products_conversers import BaseProductsGPT
+from g3pt.base_steps.base_products_conversers import BaseProductsGPT
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.utils.replacer import with_attribute_replacement
 

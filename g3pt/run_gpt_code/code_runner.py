@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from g3pt.run_gpt_code.dynamic_code import run_code_using_module_reload
-from g3pt.gpt_interactors.types import CodeAndOutput
+from g3pt.base_steps.types import CodeAndOutput
 from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have observed in chatgpt responses:

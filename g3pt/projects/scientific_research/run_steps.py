@@ -8,8 +8,8 @@ from g3pt.projects.scientific_research.scientific_products import ScientificProd
 from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
     ScientificCodeProductsGPT
-from g3pt.gpt_interactors.director_converser import DirectorProductGPT
-from g3pt.gpt_interactors.types import Products
+from g3pt.base_steps.director_converser import DirectorProductGPT
+from g3pt.base_steps.types import Products
 
 PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
 paper_section_names = get_paper_section_names(PAPER_TEMPLATE_FILE)

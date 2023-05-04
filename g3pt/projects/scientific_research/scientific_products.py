@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
-from g3pt.gpt_interactors.types import DataFileDescriptions, Products
+from g3pt.base_steps.types import DataFileDescriptions, Products
 from g3pt.servers.crossref import CrossrefCitation
-from g3pt.gpt_interactors.types import CodeAndOutput
+from g3pt.base_steps.types import CodeAndOutput
 from g3pt.utils.text_utils import NiceList, dedent_triple_quote_str
 
 

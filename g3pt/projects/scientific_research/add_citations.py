@@ -3,8 +3,8 @@ from typing import Dict, Set, Tuple, Optional, List
 
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
-from g3pt.gpt_interactors.dual_converser import ReviewDialogDualConverserGPT
-from g3pt.gpt_interactors.base_products_conversers import BaseProductsReviewGPT
+from g3pt.base_steps.dual_converser import ReviewDialogDualConverserGPT
+from g3pt.base_steps.base_products_conversers import BaseProductsReviewGPT
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.extract_python import extract_python_value_from_response
 from g3pt.utils.replacer import with_attribute_replacement
