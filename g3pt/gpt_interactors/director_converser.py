@@ -5,7 +5,7 @@ from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.utils.replacer import with_attribute_replacement
 
 
-class DirectorToStudent(BaseProductsGPT):
+class DirectorProductGPT(BaseProductsGPT):
     """
     Create a fake (predetermined) conversation, where the Student asks the Director (the application user) for products,
     such as data description, or goal.

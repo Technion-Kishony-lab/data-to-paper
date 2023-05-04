@@ -1,10 +1,11 @@
 from typing import Optional
 
+from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.paper_writing.get_template import get_paper_section_names
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
 from g3pt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
-from g3pt.gpt_interactors.step_by_step.user_to_student import DirectorToStudent
+from g3pt.gpt_interactors.director_converser import DirectorProductGPT
 from g3pt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
 from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
     PaperAssemblerCompiler
@@ -21,14 +22,20 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     products = Products()
 
     # Data file descriptions:
-    products.data_file_descriptions = DirectorToStudent(products=products).get_product_from_director(
+    director_converser = DirectorProductGPT(
+        products=products,
+        assistant_agent=ScientificAgent.Director,
+        user_agent=ScientificAgent.Student,
+        conversation_name='with_director',
+    )
+    products.data_file_descriptions = director_converser.get_product_from_director(
         product_field='data_file_descriptions', returned_product=data_file_descriptions)
 
     # Goal
     if research_goal is None:
         products.research_goal = GoalReviewGPT(products=products).initialize_and_run_dialog()
     else:
-        products.research_goal = DirectorToStudent(products=products).get_product_from_director(
+        products.research_goal = director_converser.get_product_from_director(
             product_field='research_goal', returned_product=research_goal)
 
     # Analysis plan
