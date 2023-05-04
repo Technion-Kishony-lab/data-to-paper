@@ -185,7 +185,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'results_summary', 'code_and_outputs',
+    background_product_fields = ['research_goal', 'results_summary', 'code_and_outputs',
                                  'title_and_abstract']
     user_initiation_prompt: str = """
     Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
@@ -198,5 +198,9 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     """
 
     def _pre_populate_background(self, previous_product_items: list = None):
-        super()._pre_populate_background(
-            self.background_product_fields + ['paper_section_with_citations_' + self.section_name])
+        if self.section_name in self.products.cited_paper_sections:
+            super()._pre_populate_background(
+                self.background_product_fields + ['paper_section_with_citations_' + self.section_name])
+        else:
+            super()._pre_populate_background(
+                self.background_product_fields + ['paper_section_' + self.section_name])
