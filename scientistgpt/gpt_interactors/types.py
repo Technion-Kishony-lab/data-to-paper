@@ -57,6 +57,7 @@ class Products:
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
+    paper_sections_with_tables: Dict[str, str] = field(default_factory=dict)
 
     def get_description(self, product_field: str) -> str:
         """
@@ -106,12 +107,34 @@ def get_title_and_abstract_description(products: Products) -> str:
         """).format(products.paper_sections['title'], products.paper_sections['abstract'])
 
 
-def get_paper_section_description(products: Products, section_name: str) -> str:
+def format_paper_section_description(section_content: str, section_name: str) -> str:
     return dedent_triple_quote_str("""
         Here is the "{}" section of the paper:
 
         {}
-        """).format(section_name, products.paper_sections[section_name])
+        """).format(section_name, section_content)
+
+
+def get_paper_section_description(products: Products, section_name: str) -> str:
+    return format_paper_section_description(products.paper_sections[section_name], section_name)
+
+
+def get_paper_section_with_citations_description(products: Products, section_name: str) -> str:
+    return format_paper_section_description(products.cited_paper_sections[section_name][0], section_name)
+
+
+def get_paper_section_with_table_description(products: Products, section_name: str) -> str:
+    return format_paper_section_description(products.paper_sections_with_tables[section_name], section_name)
+
+
+def get_paper_section_most_updated(products: Products, section_name: str) -> str:
+    if section_name in products.paper_sections_with_tables:
+        return format_paper_section_description(products.paper_sections_with_tables[section_name], section_name)
+    if section_name in products.cited_paper_sections:
+        return format_paper_section_description(products.cited_paper_sections[section_name][0], section_name)
+    if section_name in products.paper_sections:
+        return format_paper_section_description(products.paper_sections[section_name], section_name)
+    assert False, f'No section named "{section_name}"'
 
 
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
@@ -127,14 +150,22 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE: Dict[str, Tuple[str, Union[str, Calla
     'title_and_abstract': ('title and abstract', get_title_and_abstract_description),
 }
 
+SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
+    'paper_section_most_updated_': get_paper_section_most_updated,
+    'paper_section_with_table_': get_paper_section_with_table_description,
+    'paper_section_with_citations_': get_paper_section_with_citations_description,
+    'paper_section_': get_paper_section_description,
+}
+
 
 def get_name_description_iscode(product_field: str) -> Tuple[str, Union[str, Callable]]:
     """
     For the of the given product field, return the name, description, and whether the product is code.
     """
-    if product_field.startswith('paper_section_'):
-        section_name = product_field[len('paper_section_'):]
-        return f'"{section_name}" section of the paper', \
-            lambda products: get_paper_section_description(products, section_name)
+    for section_type, func in SECTION_TYPES_TO_FUNCS.items():
+        if product_field.startswith(section_type):
+            section_name = product_field[len(section_type):]
+            return f'"{section_name}" section of the paper', \
+                lambda products: func(products, section_name)
 
     return PRODUCT_FIELDS_TO_NAME_DESCRIPTION_ISCODE[product_field]
