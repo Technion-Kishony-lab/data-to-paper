@@ -212,4 +212,4 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     """
 
     def _get_background_product_fields(self):
-        return self.background_product_fields + ['paper_section_most_updated_' + self.section_name]
+        return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]

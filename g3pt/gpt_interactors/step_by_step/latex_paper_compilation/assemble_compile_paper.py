@@ -6,7 +6,7 @@ from typing import Optional, Union
 from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.get_template import get_paper_template, \
     get_paper_section_names
 from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.latex import save_latex_and_compile_to_pdf
-from g3pt.gpt_interactors.types import Products
+from g3pt.gpt_interactors.types import Products, get_from_most_updated_paper_sections
 
 
 @dataclass
@@ -71,15 +71,9 @@ class PaperAssemblerCompiler:
         references = set()
         sections = {}
         for section_name in get_paper_section_names(self.paper_template_filename):
-            if section_name in self.products.paper_sections_with_tables:
-                sections[section_name] = self.products.paper_sections_with_tables[section_name]
-                if section_name in self.products.cited_paper_sections:
-                    references |= self.products.cited_paper_sections[section_name][1]
-            elif section_name in self.products.cited_paper_sections:
-                sections[section_name] = self.products.cited_paper_sections[section_name][0]
-                references |= self.products.cited_paper_sections[section_name][1]
-            else:
-                sections[section_name] = self.products.paper_sections[section_name]
+            sections[section_name] = get_from_most_updated_paper_sections(self.products, section_name)
+            if section_name in self.products.cited_paper_sections:
+                references |= self.products.cited_paper_sections[section_name][1]  # 1 is the references set
 
         return sections, references
 
