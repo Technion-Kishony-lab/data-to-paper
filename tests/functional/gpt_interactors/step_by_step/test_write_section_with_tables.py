@@ -3,7 +3,7 @@ from _pytest.fixtures import fixture
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
 
-from g3pt.gpt_interactors.step_by_step.reviewers import PaperSectionWithTablesReviewGPT
+from g3pt.projects.scientific_research.steps import PaperSectionWithTablesReviewGPT
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 
 SECTIONS_TO_ADD_TABLES_TO = ['results']
