@@ -2,7 +2,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Union
 
-from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF
+from pygments import highlight
+from pygments.formatters.latex import LatexFormatter
+from pygments.lexers.python import PythonLexer
+
+from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts, \
@@ -14,7 +18,7 @@ from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT
 from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import nicely_join, NiceList
+from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
 
 sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
@@ -269,3 +273,58 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
                 references |= self.products.cited_paper_sections[section_name][1]  # 1 is the references set
 
         return sections, references
+
+
+@dataclass
+class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceScientificPaperPDF):
+    latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True)
+
+    def _choose_sections_to_add_to_paper_and_collect_references(self):
+        """
+        Chooses what sections to add to the paper.
+        Start by choosing section with tables, then cited sections, then without both of those.
+        If there are references we also collect them to a set.
+        """
+        sections, references = super()._choose_sections_to_add_to_paper_and_collect_references()
+        sections['appendix'] = self._create_appendix()
+        sections['preamble'] = self.preamble
+        return sections, references
+
+    def _create_code_section(self):
+        """
+        Create the code section.
+        """
+        code_and_output = self.products.code_and_output
+        code = wrap_python_code(code_and_output.code)
+        explanation = code_and_output.explanation
+        latex_code = highlight(code, PythonLexer(), self.latex_formatter)
+        code_section = """\\section{Python Analysis Code} \\label{sec:code} This is the analysis code that was 
+        generated using ChatGPT in order to analyse the given data according to the research goal:"""
+        code_section += '\n\n' + latex_code
+        code_section += """
+        The explanation of the code, also produced by ChatGPT:
+        """
+        code_section += '\n\n' + explanation
+        return code_section
+
+    def _create_data_description_section(self):
+        """
+        Create the data description section.
+        """
+        data_file_descriptions = self.products.data_file_descriptions
+        data_description_section = """\\section{Data Description} \\label{sec:data_description} This is the data
+        description that was provided by the user:"""
+        data_description_section += '\n\n' + str(data_file_descriptions)
+        return data_description_section
+
+    @property
+    def preamble(self):
+        return self.latex_formatter.get_style_defs()
+
+    def _create_appendix(self):
+        """
+        Create the appendix.
+        """
+        appendix = self._create_data_description_section()
+        appendix += '\n\n' + self._create_code_section()
+        return appendix
