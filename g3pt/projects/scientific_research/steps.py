@@ -8,7 +8,7 @@ from pygments.lexers import PythonLexer
 
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code, wrap_with_lstlisting
+from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
 
 from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
@@ -267,7 +267,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         code_section += "\\subsection{Code Description}"
         code_section += '\n\n' + code_and_output.explanation
         code_section += '\n\n' + "\\subsection{Code Output}"
-        code_section += '\n\n' + wrap_with_lstlisting(code_and_output.output)
+        code_section += '\n\n' + self.wrap_with_lstlisting(code_and_output.output)
         return code_section
 
     def _create_data_description_section(self):
@@ -277,8 +277,8 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         data_file_descriptions = self.products.data_file_descriptions
         data_description_section = "\\section{Data Description} \\label{sec:data_description} Here is the data " \
                                    "description, as provided by the user:"""
-        data_description_section += '\n\n' + wrap_with_lstlisting(
-            data_file_descriptions.get_data_description_without_few_lines_from_file())
+        data_description_section += '\n\n' + self.wrap_with_lstlisting(
+            data_file_descriptions.pretty_repr(num_lines=0))
         return data_description_section
 
     def add_preamble(self, paper: str) -> str:
