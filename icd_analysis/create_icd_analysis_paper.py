@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from g3pt.projects.scientific_research.run_steps import ScientificStepsRunner
-from queries_mimic import data_file_descriptions, simpler_research_goal
+from queries_mimic import data_file_descriptions
+# from queries_mimic import simpler_research_goal
 
 # local_path.py is git ignored. It should be created locally, and contain:
 # DATA_FOLDER: absolute path to a directory where the data files are located
@@ -15,4 +16,4 @@ ScientificStepsRunner(
     research_goal=None,
     output_directory=OUTPUT_FOLDER + '/out3',
     mock_servers=True  # <==== use True to mock/record openai responses
-    ).run_all_steps()
+).run_all_steps()

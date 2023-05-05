@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import Dict, Set
 
-from g3pt.base_steps.assemble_to_file import BaseFileProducer
 from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template
 from g3pt.latex import save_latex_and_compile_to_pdf
 from g3pt.servers.crossref import CrossrefCitation
+
+from .assemble_to_file import BaseFileProducer
 
 
 CITATION_TEMPLATE = r"""

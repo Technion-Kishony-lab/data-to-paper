@@ -15,4 +15,4 @@ ScientificStepsRunner(
     research_goal=None,
     output_directory=OUTPUT_FOLDER + '/out3',
     mock_servers=True  # <==== use True to mock/record openai responses
-    ).run_all_steps()
+).run_all_steps()

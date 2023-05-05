@@ -246,7 +246,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
         Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
-    
+
         When you feel that the goal has been achieved, respond explicitly with: 
         "{termination_phrase}" (termination-phase)
         If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged \

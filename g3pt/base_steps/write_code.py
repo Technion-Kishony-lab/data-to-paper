@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
