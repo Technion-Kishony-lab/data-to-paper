@@ -28,13 +28,12 @@ class DataFileDescription:
             head = [next(f) for _ in range(num_lines)]
             return ''.join(head)
 
-    def pretty_repr(self):
-        return f'{self.file_path}\n{self.description}\n\n' \
-               f'Here are the first few lines of the file:\n' \
-               f'```\n{self.get_file_header()}\n```'
-
-    def pretty_repr_without_few_lines_from_file(self):
-        return f'{self.file_path}\n{self.description}\n\n'
+    def pretty_repr(self, num_lines: int = 4):
+        s = f'{self.file_path}\n{self.description}\n\n'
+        if num_lines > 0:
+            s += f'Here are the first few lines of the file:\n' \
+                 f'```\n{self.get_file_header(num_lines)}\n```'
+        return s
 
 
 class DataFileDescriptions(List[DataFileDescription]):
@@ -47,33 +46,23 @@ class DataFileDescriptions(List[DataFileDescription]):
         self.data_folder = data_folder
 
     def __str__(self):
+        return self.pretty_repr()
+
+    def pretty_repr(self, num_lines: int = 4):
         with run_in_directory(self.data_folder):
             if len(self) == 0:
                 s = 'No data files'
             elif len(self) == 1:
                 s = "1 data file:\n\n"
-                s += self[0].pretty_repr()
+                s += self[0].pretty_repr(num_lines)
             else:
                 s = f"{len(self)} data files:\n"
                 for file_number, data_file_description in enumerate(self):
-                    s += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
+                    s += f"\n({file_number + 1}) " + data_file_description.pretty_repr(num_lines)
             return s
 
     def get_data_filenames(self):
         return [data_file_description.file_path for data_file_description in self]
-
-    def get_data_description_without_few_lines_from_file(self):
-        with run_in_directory(self.data_folder):
-            if len(self) == 0:
-                s = 'No data files'
-            elif len(self) == 1:
-                s = "1 data file:\n\n"
-                s += self[0].pretty_repr_without_few_lines_from_file()
-            else:
-                s = f"{len(self)} data files:\n"
-                for file_number, data_file_description in enumerate(self):
-                    s += f"\n({file_number + 1}) " + data_file_description.pretty_repr_without_few_lines_from_file()
-            return s
 
 
 @dataclass
