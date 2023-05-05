@@ -279,17 +279,6 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
 class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceScientificPaperPDF):
     latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True)
 
-    def _choose_sections_to_add_to_paper_and_collect_references(self):
-        """
-        Chooses what sections to add to the paper.
-        Start by choosing section with tables, then cited sections, then without both of those.
-        If there are references we also collect them to a set.
-        """
-        sections, references = super()._choose_sections_to_add_to_paper_and_collect_references()
-        sections['appendix'] = self._create_appendix()
-        sections['preamble'] = self.preamble
-        return sections, references
-
     def _create_code_section(self):
         """
         Create the code section.
@@ -298,12 +287,10 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         code = wrap_python_code(code_and_output.code)
         explanation = code_and_output.explanation
         latex_code = highlight(code, PythonLexer(), self.latex_formatter)
-        code_section = """\\section{Python Analysis Code} \\label{sec:code} This is the analysis code that was 
-        generated using ChatGPT in order to analyse the given data according to the research goal:"""
+        code_section = "\\section{Python Analysis Code} \\label{sec:code} Data analysis was carried out using the " \
+                       "following custom code (created by ChatGPT):"
         code_section += '\n\n' + latex_code
-        code_section += """
-        The explanation of the code, also produced by ChatGPT:
-        """
+        code_section += "Here is a brief explanation of the code (also created by ChatGPT):"
         code_section += '\n\n' + explanation
         return code_section
 
@@ -312,14 +299,13 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         Create the data description section.
         """
         data_file_descriptions = self.products.data_file_descriptions
-        data_description_section = """\\section{Data Description} \\label{sec:data_description} This is the data
-        description that was provided by the user:"""
+        data_description_section = "\\section{Data Description} \\label{sec:data_description} Here is the data " \
+                                   "description, as provided by the user:"""
         data_description_section += '\n\n' + str(data_file_descriptions)
         return data_description_section
 
-    @property
-    def preamble(self):
-        return self.latex_formatter.get_style_defs()
+    def add_preamble(self, paper: str) -> str:
+        return self.latex_formatter.get_style_defs() + paper
 
     def _create_appendix(self):
         """

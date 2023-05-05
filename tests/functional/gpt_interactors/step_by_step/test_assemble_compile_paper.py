@@ -2,6 +2,7 @@ import os
 
 from _pytest.fixtures import fixture
 
+from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template_path
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import ProduceScientificPaperPDF
 from g3pt.servers.crossref import CrossrefCitation
@@ -55,8 +56,11 @@ def products():
 
 
 def test_paper_assembler_compiler_gpt(tmpdir, products):
-    paper_assembler_compiler = ProduceScientificPaperPDF(products=products,
-                                                         output_file_path=tmpdir / 'output.pdf')
+    paper_assembler_compiler = ProduceScientificPaperPDF(
+        products=products,
+        output_file_path=tmpdir / 'output.pdf',
+        paper_template_filepath=get_paper_template_path('standard_paper.tex')
+    )
     paper_assembler_compiler.assemble_compile_paper()
 
     assert 'content of title' in paper_assembler_compiler.latex_paper
