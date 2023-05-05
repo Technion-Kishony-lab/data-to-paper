@@ -4,7 +4,7 @@ from typing import Optional
 from g3pt.base_steps.base_runner import BaseStepsRunner
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
-from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template_path
+from g3pt.projects.scientific_research.get_template import get_paper_template_path
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
