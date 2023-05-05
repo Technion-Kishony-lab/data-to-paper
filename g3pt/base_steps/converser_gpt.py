@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, ClassVar
 
 from g3pt.conversation import ConversationManager, GeneralMessageDesignation
 from g3pt.servers.openai_models import ModelEngine
@@ -13,7 +13,7 @@ class ConverserGPT(Replacer):
     """
     A base class for agents interacting with chatgpt.
     """
-    model_engine: ModelEngine = None
+    model_engine: ClassVar[ModelEngine] = None
     """
     The openai model engine to use. If None, use the default model engine.
     A call to apply_get_and_append_assistant_message can override this value.
