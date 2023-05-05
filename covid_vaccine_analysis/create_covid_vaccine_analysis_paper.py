@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from g3pt import run_scientist_gpt
+from g3pt.projects.scientific_research.run_steps import ScientificStepsRunner
 from queries_covid_vaccine import data_file_descriptions
 
 # local_path.py is git ignored. It should be created locally, and contain:
@@ -10,7 +10,9 @@ from queries_covid_vaccine import data_file_descriptions
 from local_paths import DATA_FOLDER, OUTPUT_FOLDER
 data_file_descriptions.data_folder = Path(DATA_FOLDER).absolute()
 
-run_scientist_gpt(data_file_descriptions=data_file_descriptions,
-                  research_goal=None,
-                  output_directory=OUTPUT_FOLDER + '/out3',
-                  mock_servers=True)  # <==== use True to mock/record openai responses
+ScientificStepsRunner(
+    data_file_descriptions=data_file_descriptions,
+    research_goal=None,
+    output_directory=OUTPUT_FOLDER + '/out3',
+    mock_servers=True  # <==== use True to mock/record openai responses
+    ).run_all_steps()
