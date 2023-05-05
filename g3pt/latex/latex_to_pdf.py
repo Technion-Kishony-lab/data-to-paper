@@ -33,7 +33,7 @@ MATH_PATTERN = r"""
   # group 5, match table and figure environments
   (\\begin\{(?:figure|table)\})|
   # group 6, match non-typesetting commands
-  (\\(?:ref|label)\{)
+  (\\(?:ref|label|autoref)\{)
 )
 # if group 1 was start
 (?(1)

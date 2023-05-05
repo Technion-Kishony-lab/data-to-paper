@@ -31,6 +31,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
         Write a complete short Python code to perform the data analysis plan.
+        Don't state what the code should do in comments, write the code itself.
         If needed, you can use the following packages in your code: {{}}.
         The output of your code should be a text file named "{{}}".
         """)
