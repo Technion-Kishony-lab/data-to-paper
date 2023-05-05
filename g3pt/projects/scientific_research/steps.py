@@ -49,8 +49,8 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         as in the description of our dataset, above).
         """)
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
-        Your job is to advise me, the {reviewee}, and provide a constructive bullet-point feedback in repeated cycles \
+        You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
+        Your job is to advise me, the {performer}, and provide a constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
 
         Pay special attention to whether the research goal can be achieved using only the provided dataset (without \
@@ -102,7 +102,7 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
     goal_noun: str = None
     conversation_name: str = None
     goal_verb: str = 'write'
-    reviewee: str = 'scientific writer'
+    performer: str = 'scientific writer'
     reviewer: str = 'scientific reviewer'
     assistant_agent: ScientificAgent = ScientificAgent.Writer
     user_agent: ScientificAgent = ScientificAgent.Student
@@ -131,8 +131,8 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
         """)
 
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun} for a scientific paper.
-        Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
+        You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun} for a scientific paper.
+        Your job is to advise me, the {performer}, and provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
 
         When you feel that the goal has been achieved, respond explicitly with:
