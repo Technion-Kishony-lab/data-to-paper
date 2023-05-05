@@ -1,27 +1,24 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Optional, Union
 
 from pygments import highlight
 from pygments.formatters.latex import LatexFormatter
 from pygments.lexers import PythonLexer
 
-from g3pt.utils.citataion_utils import remove_citations_from_section
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
-from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 
 from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
-from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT, \
-    BaseProductsReviewGPT
+from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT
+from g3pt.base_steps.base_response_extractors import BaseLatexProductsReviewGPT
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
 
-
-sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
+sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
     studied using only the provided dataset, without requiring any additional data \
     (pay attention to using only data explicitly available in the provided headers of the our data files \
@@ -63,42 +60,42 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         and fits the provided data, it is perfectly fine and encouraged to respond with with termination-phrase \
         immediately, without requesting any improvement cycles.
         """)
-    sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
+    sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
 @dataclass
 class PlanReviewGPT(BaseProductsQuotedReviewGPT):
-    max_rounds: int = 0  # no review cycles
+    max_reviewing_rounds: int = 0  # no review cycles
     background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
     user_agent: ScientificAgent = ScientificAgent.Student
-    sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
+    sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
 @dataclass
 class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
-    max_rounds: int = 1
+    max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
     conversation_name: str = 'results_interpretation'
     goal_noun: str = 'description and interpretation of the results'
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
     user_agent: ScientificAgent = ScientificAgent.Student
-    sentence_to_add_at_the_end_of_reviewee_response: str = dedent_triple_quote_str("""
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
     """)
 
 
 @dataclass
-class BaseWriterReviewGPT(BaseProductsReviewGPT):
+class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
-    max_rounds: int = 3
+    max_reviewing_rounds: int = 3
     goal_noun: str = None
     conversation_name: str = None
     goal_verb: str = 'write'
@@ -107,7 +104,6 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Writer
     user_agent: ScientificAgent = ScientificAgent.Student
     section_names: Optional[Union[str, list[str]]] = None
-    section_contents: Union[str, List[str]] = field(default_factory=list)
 
     def __post_init__(self):
         self.goal_noun = self.goal_noun or nicely_join(self.section_names)
@@ -115,7 +111,7 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
-        You are a scientist capable of writing full-length, scientifically sound research papers.
+        You are a scientist with experience in writing full-length, accurate scientific research papers.
 
         You should:
         1. Write every part of the paper in scientific language, in `.tex` format.
@@ -144,37 +140,13 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
     """)
 
-    sentence_to_add_at_the_end_of_reviewee_response: str = \
+    sentence_to_add_at_the_end_of_performer_response: str = \
         "Please provide constructive feedback on the above {goal_noun}"
-
-    def _check_self_response(self, response: str, section_names=None) -> Optional[str]:
-        """
-        Check that the response is a valid latex section
-        """
-        try:
-            self.section_contents = []
-            for section_name in self.section_names:
-                extracted_section = extract_latex_section_from_response(response, section_name)
-                extracted_section_without_references = remove_citations_from_section(extracted_section)
-                self.section_contents.append(extracted_section_without_references)
-        except FailedToExtractLatexContent as e:
-            error_message = dedent_triple_quote_str("""
-                {}
-
-                Please rewrite the {} part again with the correct latex formatting.
-                """).format(e, self.goal_noun)
-            return error_message
-        return None
-
-    @with_attribute_replacement
-    def get_sections(self) -> Union[str, list[str]]:
-        self.initialize_and_run_dialog()
-        return self.section_contents
 
 
 @dataclass
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
-    max_rounds: int = 2
+    max_reviewing_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
         Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
@@ -187,7 +159,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     section_name: str = None
-    max_rounds: int = 1
+    max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
@@ -211,7 +183,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'rewrite'
     background_product_fields = ['results_summary', 'code_and_output',
                                  'title_and_abstract']
-    max_rounds: int = 0
+    max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
         Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
         only the {goal_noun}.
