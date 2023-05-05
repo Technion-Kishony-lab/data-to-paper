@@ -56,6 +56,9 @@ class DataFileDescriptions(List[DataFileDescription]):
                     s += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
             return s
 
+    def get_data_filenames(self):
+        return [data_file_description.file_path for data_file_description in self]
+
 
 @dataclass
 class Products(ABC):
