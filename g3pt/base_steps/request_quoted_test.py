@@ -14,4 +14,3 @@ class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseProduc
     Option for reviewing the sections (set max_review_turns > 0).
     """
     pass
-
