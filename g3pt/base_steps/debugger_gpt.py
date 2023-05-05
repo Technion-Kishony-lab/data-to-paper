@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Optional, ClassVar
 
 from g3pt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from g3pt.utils import dedent_triple_quote_str
@@ -32,7 +32,7 @@ class DebuggerGPT(ConverserGPT):
     * too long runs (timeout)
     * output file not created
     """
-    model_engine: ModelEngine = ModelEngine.GPT4
+    model_engine: ClassVar[ModelEngine] = None
     assistant_agent: Agent = None
     user_agent: Agent = None
 
