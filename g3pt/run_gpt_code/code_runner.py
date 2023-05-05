@@ -1,6 +1,7 @@
 import re
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from g3pt.run_gpt_code.dynamic_code import run_code_using_module_reload
@@ -48,7 +49,7 @@ class CodeRunner:
     allowed_read_files: Optional[list] = None
     output_file: Optional[str] = None
     script_file: Optional[str] = None
-    data_folder: Optional[str] = None
+    data_folder: Optional[Path] = None
 
     def extract_code(self) -> str:
         num_block_edges = self.response.count('```')
