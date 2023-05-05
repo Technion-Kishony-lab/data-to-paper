@@ -34,6 +34,10 @@ class BaseLatexToPDF(BaseFileProducer):
     _has_references: bool = False
     latex_paper: str = None
 
+    @staticmethod
+    def wrap_with_lstlisting(paragraph):
+        return "\\begin{lstlisting}[language=TeX]\n" + paragraph + "\n\\end{lstlisting}"
+
     def get_raw_paper_template(self) -> str:
         """
         Load the bare, unmodified, template file.
