@@ -68,13 +68,3 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
         if self.are_we_reviewing_at_all:
             self.apply_to_other_append_user_message(product_description)
         return product_description
-
-
-@dataclass
-class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseProductsReviewGPT):
-    """
-    Base class for conversers that specify prior products and then set a goal for the new product
-    to be suggested and reviewed.
-    The goal is requested from the user as a triple quote.
-    """
-    pass
