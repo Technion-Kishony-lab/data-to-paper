@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional, List, Union
 
 from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF
@@ -35,14 +36,14 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.Student
     termination_phrase: str = \
         'I hereby approve that the research goal is well-defined and can be studied using only the provided dataset'
-    user_initiation_prompt: str = """
-    Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal.
-    Make sure you suggest a research goal that can be studied using only the provided dataset, without requiring \
-    any additional data \
-    (pay attention to using only data available based on the provided headers of the our data files \
-    as in the description of our dataset, above).
-    """
-    other_system_prompt: str = """
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal.
+        Make sure you suggest a research goal that can be studied using only the provided dataset, without requiring \
+        any additional data \
+        (pay attention to using only data available based on the provided headers of the our data files \
+        as in the description of our dataset, above).
+        """)
+    other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
         Your job is to advise me, the {reviewee}, and provide a constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
@@ -56,7 +57,7 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         If you feel that the initial goal description that I send you is already interesting, well defined, \
         and fits the provided data, it is perfectly fine and encouraged to respond with with termination-phrase \
         immediately, without requesting any improvement cycles.
-        """
+        """)
     sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
 
 
@@ -118,24 +119,25 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
         4. Do not cite any papers.
         """)
 
-    user_initiation_prompt: str = r"""
-    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-    only the {goal_noun} of a scientific paper. Do not write any other parts!
-    Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
-    """
+    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
+        only the {goal_noun} of a scientific paper. Do not write any other parts!
+        Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
+        """)
 
-    other_system_prompt: str = """
-    You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun} for a scientific paper.
-    Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
-    of improvements and feedback.
+    other_system_prompt: str = dedent_triple_quote_str("""
+        You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun} for a scientific paper.
+        Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
+        of improvements and feedback.
+    
+        When you feel that the goal has been achieved, respond explicitly with:
+         "{termination_phrase}" (termination-phase).
+    """)
 
-    When you feel that the goal has been achieved, respond explicitly with: "{termination_phrase}" (termination-phase).
-    """
-
-    sentence_to_add_at_the_end_of_reviewer_response: str = """
-    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
-    Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
-    """
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+        Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
+    """)
 
     sentence_to_add_at_the_end_of_reviewee_response: str = \
         "Please provide constructive feedback on the above {goal_noun}"
@@ -169,12 +171,12 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
-    user_initiation_prompt: str = r"""
-    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-    only the {goal_noun} of a scientific paper. Do not write any other parts!
-    Write in tex format including the \\title{{}} and \\begin{{abstract}} ... \\end{{abstract}} commands,
-     any math or symbols that needs tex escapes.
-    """
+    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
+        only the {goal_noun} of a scientific paper. Do not write any other parts!
+        Write in tex format including the \\title{{}} and \\begin{{abstract}} ... \\end{{abstract}} commands, 
+        and any math or symbols that needs tex escapes.
+    """)
 
 
 @dataclass
@@ -183,11 +185,11 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
-    user_initiation_prompt: str = r"""
-    Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-    only the {goal_noun} of a scientific paper. Do not write any other parts!
-    Write in tex format including the \\section{{}} command, any math or symbols that needs tex escapes.
-    """
+    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
+        only the {goal_noun} of a scientific paper. Do not write any other parts!
+        Write in tex format including the \\section{{}} command, and any math or symbols that needs tex escapes.
+    """)
 
     def __post_init__(self):
         self.section_names = [self.section_name]
@@ -205,16 +207,16 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     background_product_fields = ['results_summary', 'code_and_output',
                                  'title_and_abstract']
     max_rounds: int = 0
-    user_initiation_prompt: str = r"""
-    Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
-    only the {goal_noun}.
-    Usually in scientific papers include one or two tables summarizing the main findings.
-    The tables should include information that was only extracted from the information provided.
-    Add the tables centered in booktabs, multirow format with caption and label. 
-    In addition, change the results section text to refer to the tables (use their labels if necessary),
-    to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
-    Write in tex format including \\section{{}} command, any math or symbols that needs tex escapes.
-    """
+    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+        Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
+        only the {goal_noun}.
+        Usually in scientific papers include one or two tables summarizing the main findings.
+        The tables should include information that was only extracted from the information provided.
+        Add the tables centered in booktabs, multirow format with caption and label. 
+        In addition, change the results section text to refer to the tables (use their labels if necessary),
+        to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
+        Write in tex format including \\section{{}} command, any math or symbols that needs tex escapes.
+    """)
 
     def _get_background_product_fields(self):
         return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
@@ -240,7 +242,7 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
 
     @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList([d.file_path for d in self.products.data_file_descriptions],
+        return NiceList(self.products.data_file_descriptions.get_data_filenames(),
                         wrap_with='"',
                         prefix='{} data file[s]: ')
 
