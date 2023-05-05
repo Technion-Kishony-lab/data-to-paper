@@ -129,7 +129,7 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
         You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun} for a scientific paper.
         Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
-    
+
         When you feel that the goal has been achieved, respond explicitly with:
          "{termination_phrase}" (termination-phase).
     """)
