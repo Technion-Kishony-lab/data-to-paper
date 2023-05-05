@@ -19,7 +19,7 @@ from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
-
+from ...base_steps.base_response_extractors import BaseLatexProductsReviewGPT
 
 sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
@@ -94,7 +94,7 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
 
 
 @dataclass
-class BaseWriterReviewGPT(BaseProductsReviewGPT):
+class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
@@ -107,7 +107,6 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Writer
     user_agent: ScientificAgent = ScientificAgent.Student
     section_names: Optional[Union[str, list[str]]] = None
-    section_contents: Union[str, List[str]] = field(default_factory=list)
 
     def __post_init__(self):
         self.goal_noun = self.goal_noun or nicely_join(self.section_names)
@@ -115,7 +114,7 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
-        You are a scientist capable of writing full-length, scientifically sound research papers.
+        You are a scientist with experience in writing full-length, accurate scientific research papers.
 
         You should:
         1. Write every part of the paper in scientific language, in `.tex` format.
@@ -146,30 +145,6 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
 
     sentence_to_add_at_the_end_of_reviewee_response: str = \
         "Please provide constructive feedback on the above {goal_noun}"
-
-    def _check_self_response(self, response: str, section_names=None) -> Optional[str]:
-        """
-        Check that the response is a valid latex section
-        """
-        try:
-            self.section_contents = []
-            for section_name in self.section_names:
-                extracted_section = extract_latex_section_from_response(response, section_name)
-                extracted_section_without_references = remove_citations_from_section(extracted_section)
-                self.section_contents.append(extracted_section_without_references)
-        except FailedToExtractLatexContent as e:
-            error_message = dedent_triple_quote_str("""
-                {}
-
-                Please rewrite the {} part again with the correct latex formatting.
-                """).format(e, self.goal_noun)
-            return error_message
-        return None
-
-    @with_attribute_replacement
-    def get_sections(self) -> Union[str, list[str]]:
-        self.initialize_and_run_dialog()
-        return self.section_contents
 
 
 @dataclass
