@@ -10,7 +10,7 @@ from .get_template import get_paper_template_path
 from .scientific_products import ScientificProducts
 from .steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
-    ScientificCodeProductsGPT, ProduceScientificPaperPDF, ProduceScientificPaperPDFWithAppendix
+    ScientificCodeProductsGPT, ProduceScientificPaperPDFWithAppendix
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']

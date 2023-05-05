@@ -31,7 +31,7 @@ MATH_PATTERN = r"""
   # group 4,
   (\\begin\{(?:equation\*?|align\*?)\})|
   # group 5, match table and figure environments
-  (\\begin\{(?:figure|table)\})|
+  (\\begin\{(?:figure|table|lstlisting)\})|
   # group 6, match non-typesetting commands
   (\\(?:ref|label|autoref)\{)
 )
@@ -55,7 +55,7 @@ MATH_PATTERN = r"""
     # if group 4 was start, match end equation or end align
     (?(4)\\end\{(?:equation\*?|align\*?)\}| 
     # if group 5 was start, match end figure or end table
-    (?(5)\\end\{(?:figure|table)\}|
+    (?(5)\\end\{(?:figure|table|lstlisting)\}|
     # else, match end of non-typesetting command
     \})
   )

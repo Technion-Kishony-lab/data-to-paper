@@ -8,7 +8,7 @@ from pygments.lexers import PythonLexer
 
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
+from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code, wrap_with_lstlisting
 
 from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
@@ -250,7 +250,8 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
 
 @dataclass
 class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceScientificPaperPDF):
-    latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True)
+    latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True,
+                                                     verboptions=r"formatcom=\footnotesize")
 
     def _create_code_section(self):
         """
@@ -258,13 +259,15 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         """
         code_and_output = self.products.code_and_output
         code = wrap_python_code(code_and_output.code)
-        explanation = code_and_output.explanation
         latex_code = highlight(code, PythonLexer(), self.latex_formatter)
-        code_section = "\\section{Python Analysis Code} \\label{sec:code} Data analysis was carried out using the " \
+        code_section = "\\section{Python Analysis Code} \\label{sec:code} \\subsection{Code}" \
+                       "Data analysis was carried out using the " \
                        "following custom code (created by ChatGPT):"
         code_section += '\n\n' + latex_code
-        code_section += "Here is a brief explanation of the code (also created by ChatGPT):"
-        code_section += '\n\n' + explanation
+        code_section += "\\subsection{Code Description}"
+        code_section += '\n\n' + code_and_output.explanation
+        code_section += '\n\n' + "\\subsection{Code Output}"
+        code_section += '\n\n' + wrap_with_lstlisting(code_and_output.output)
         return code_section
 
     def _create_data_description_section(self):
@@ -274,7 +277,8 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         data_file_descriptions = self.products.data_file_descriptions
         data_description_section = "\\section{Data Description} \\label{sec:data_description} Here is the data " \
                                    "description, as provided by the user:"""
-        data_description_section += '\n\n' + str(data_file_descriptions)
+        data_description_section += '\n\n' + wrap_with_lstlisting(
+            data_file_descriptions.get_data_description_without_few_lines_from_file())
         return data_description_section
 
     def add_preamble(self, paper: str) -> str:

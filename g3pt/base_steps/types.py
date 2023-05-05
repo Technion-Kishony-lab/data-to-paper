@@ -33,6 +33,9 @@ class DataFileDescription:
                f'Here are the first few lines of the file:\n' \
                f'```\n{self.get_file_header()}\n```'
 
+    def pretty_repr_without_few_lines_from_file(self):
+        return f'{self.file_path}\n{self.description}\n\n'
+
 
 class DataFileDescriptions(List[DataFileDescription]):
     """
@@ -58,6 +61,19 @@ class DataFileDescriptions(List[DataFileDescription]):
 
     def get_data_filenames(self):
         return [data_file_description.file_path for data_file_description in self]
+
+    def get_data_description_without_few_lines_from_file(self):
+        with run_in_directory(self.data_folder):
+            if len(self) == 0:
+                s = 'No data files'
+            elif len(self) == 1:
+                s = "1 data file:\n\n"
+                s += self[0].pretty_repr_without_few_lines_from_file()
+            else:
+                s = f"{len(self)} data files:\n"
+                for file_number, data_file_description in enumerate(self):
+                    s += f"\n({file_number + 1}) " + data_file_description.pretty_repr_without_few_lines_from_file()
+            return s
 
 
 @dataclass
