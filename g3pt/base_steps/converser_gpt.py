@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from g3pt.conversation.converation_manager import ConversationManager
-from g3pt.conversation.message_designation import GeneralMessageDesignation
+from g3pt.conversation import ConversationManager, GeneralMessageDesignation
 from g3pt.utils.replacer import Replacer, with_attribute_replacement
 from g3pt.utils.text_utils import print_red
-
-from g3pt.cast import Agent
+from g3pt.base_cast import Agent
 
 
 @dataclass

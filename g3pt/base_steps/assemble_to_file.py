@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from g3pt.base_steps.base_products_conversers import BaseProductsHandler
+from .base_products_conversers import BaseProductsHandler
 
 
 @dataclass

@@ -2,12 +2,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Tuple
 
-from g3pt.conversation import Role, ConversationManager
+from g3pt.conversation import Role, ConversationManager, GeneralMessageDesignation
+from g3pt.utils.replacer import with_attribute_replacement
+from g3pt.utils.text_utils import extract_text_between_tags, dedent_triple_quote_str
 
 from .converser_gpt import ConverserGPT
-from ..conversation.message_designation import GeneralMessageDesignation
-from ..utils.replacer import with_attribute_replacement
-from ..utils.text_utils import extract_text_between_tags, dedent_triple_quote_str
 
 
 @dataclass

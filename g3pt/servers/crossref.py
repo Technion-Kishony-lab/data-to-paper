@@ -5,7 +5,8 @@ import requests
 from unidecode import unidecode
 
 from g3pt.exceptions import ScientistGPTException
-from g3pt.servers.base_server import ServerCaller
+
+from .base_server import ServerCaller
 
 
 CROSSREF_URL = "https://api.crossref.org/works"

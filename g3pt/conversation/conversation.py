@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import re
+
 from typing import List, Tuple, Optional, Set
+
 from g3pt.utils.tag_pairs import SAVE_TAGS
 
 from .message import Message, Role
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_int_list
 
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from g3pt.cast import Agent
+    from g3pt.base_cast import Agent
 
 
 class Conversation(List[Message]):

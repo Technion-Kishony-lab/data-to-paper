@@ -4,7 +4,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Dict, Optional
 
-from g3pt.cast.types import Profile, Algorithm
+from .types import Profile, Algorithm
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:

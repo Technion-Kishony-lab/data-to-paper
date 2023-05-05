@@ -1,11 +1,12 @@
 import importlib
 
-from g3pt.cast import Agent
-from g3pt.cast.types import Profile
-from g3pt.projects.scientific_research.env import THEME_NAME
+from g3pt.base_cast import Agent
+from g3pt.base_cast.types import Profile
+
+from .env import THEME_NAME
 
 # load theme:
-theme = importlib.import_module(f"g3pt.cast.themes.{THEME_NAME}")
+theme = importlib.import_module(f'g3pt.projects.scientific_research.themes.{THEME_NAME}')
 
 # User-name will be replaced by the name of the user signing in to the app
 USER_NAME = 'User'
