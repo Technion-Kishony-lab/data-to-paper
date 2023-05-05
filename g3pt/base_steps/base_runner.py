@@ -5,13 +5,15 @@ from dataclasses import dataclass
 
 from pathlib import Path
 
-from g3pt.base_steps.base_products_conversers import BaseProductsHandler
 from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
-from g3pt.conversation.actions_and_conversations import save_actions_to_file
 from g3pt.servers.crossref import CROSSREF_SERVER_CALLER
-from g3pt.base_steps.write_code import BASE_GPT_SCRIPT_FILE_NAME
-from g3pt.base_steps.types import DataFileDescriptions
+
+from g3pt.conversation import save_actions_to_file
 from g3pt.run_gpt_code.dynamic_code import module_dir
+
+from .base_products_conversers import BaseProductsHandler
+from .write_code import BASE_GPT_SCRIPT_FILE_NAME
+from .types import DataFileDescriptions
 
 
 @dataclass

@@ -4,12 +4,13 @@ from typing import Optional
 
 from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
-from g3pt.base_steps.debugger_gpt import DebuggerGPT
-from g3pt.base_steps.base_products_conversers import BaseProductsGPT
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import NiceList
+
+from .debugger_gpt import DebuggerGPT
+from .base_products_conversers import BaseProductsGPT
 
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 MAX_CODE_REVISIONS = 3

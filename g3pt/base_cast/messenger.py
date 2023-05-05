@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from g3pt.conversation import Conversation
-from g3pt.conversation.actions import Action
+from g3pt.conversation import Conversation, Action
 
 from .cast import Agent
 

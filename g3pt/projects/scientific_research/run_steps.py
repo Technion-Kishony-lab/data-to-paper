@@ -2,15 +2,15 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from g3pt.base_steps.base_runner import BaseStepsRunner
-from g3pt.projects.scientific_research.cast import ScientificAgent
-from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
-from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template_path
-from g3pt.projects.scientific_research.scientific_products import ScientificProducts
-from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
-    ScientificCodeProductsGPT, ProduceScientificPaperPDF
 from g3pt.base_steps.director_converser import DirectorProductGPT
 
+from .cast import ScientificAgent
+from .add_citations import AddCitationReviewGPT
+from .get_template import get_paper_template_path
+from .scientific_products import ScientificProducts
+from .steps import GoalReviewGPT, PlanReviewGPT, \
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
+    ScientificCodeProductsGPT, ProduceScientificPaperPDF
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
