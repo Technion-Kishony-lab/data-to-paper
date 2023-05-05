@@ -106,7 +106,8 @@ def replace_special_chars(text):
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: str,
-                                  references: Set[CrossrefCitation]):
+                                  references: Set[CrossrefCitation] = None):
+    references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
     latex_content = replace_special_chars(latex_content)
