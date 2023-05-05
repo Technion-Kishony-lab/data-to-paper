@@ -6,7 +6,7 @@ from enum import Enum
 from typing import NamedTuple, Optional
 
 from g3pt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
-from g3pt.cast import Agent
+from g3pt.base_cast import Agent
 from g3pt.run_gpt_code.code_runner import CodeRunner
 from g3pt.run_gpt_code.exceptions import FailedExtractingCode
 from g3pt.utils import format_text_with_code_blocks, line_count

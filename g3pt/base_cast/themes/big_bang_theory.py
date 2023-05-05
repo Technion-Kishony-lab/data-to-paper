@@ -1,4 +1,4 @@
-from g3pt.cast.types import Profile, Algorithm
+from g3pt.base_cast.types import Profile, Algorithm
 
 
 Student = Profile(

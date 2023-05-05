@@ -1,7 +1,7 @@
 import importlib
 
-from g3pt.cast import Agent
-from g3pt.cast.types import Profile
+from g3pt.base_cast import Agent
+from g3pt.base_cast.types import Profile
 from g3pt.projects.scientific_research.env import THEME_NAME
 
 # load theme:

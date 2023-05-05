@@ -10,7 +10,7 @@ from .message_designation import GeneralMessageDesignation, convert_general_mess
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from g3pt.cast import Agent
+    from g3pt.base_cast import Agent
 
 
 class Conversation(List[Message]):

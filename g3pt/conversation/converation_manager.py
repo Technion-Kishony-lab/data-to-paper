@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Iterable
 
-from g3pt.cast import Agent
+from g3pt.base_cast import Agent
 from g3pt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from g3pt.servers.chatgpt import try_get_chatgpt_response
 

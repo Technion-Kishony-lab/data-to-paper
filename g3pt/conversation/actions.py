@@ -9,13 +9,13 @@ from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-from g3pt.cast import Agent
+from g3pt.base_cast import Agent
 
 NoneType = type(None)
 
 
 def apply_action(action: Action, should_print: bool = True, is_color: bool = True):
-    from g3pt.cast import update_cast_on_action
+    from g3pt.base_cast import update_cast_on_action
     append_action(action)
     if should_print:
         print(action.pretty_repr(is_color=is_color))
