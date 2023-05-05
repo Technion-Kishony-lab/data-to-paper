@@ -52,6 +52,12 @@ class CodeRunner:
     script_file: Optional[str] = None
     data_folder: Optional[Path] = None
 
+    @property
+    def output_file_path(self) -> Optional[Path]:
+        if self.data_folder is None:
+            return self.output_file
+        return self.data_folder / self.output_file
+
     def extract_code(self) -> str:
         num_block_edges = self.response.count('```')
         if num_block_edges == 2:
@@ -83,7 +89,7 @@ class CodeRunner:
         if self.output_file is None:
             return None
         try:
-            with open(self.data_folder / self.output_file, 'r') as file:
+            with open(self.output_file_path, 'r') as file:
                 return file.read()
         except FileNotFoundError:
             raise FailedLoadingOutput()
