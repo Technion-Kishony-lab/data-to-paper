@@ -20,7 +20,7 @@ class MockDataFileDescription(DataFileDescription):
 def data_file_descriptions():
     return DataFileDescriptions(
         [MockDataFileDescription(file_path='BIRTH_RECORDS.csv', description='birth records',
-                                header='patient_id, gender\n 2648, F\n 2649, M\n')],
+                                 header='patient_id, gender\n 2648, F\n 2649, M\n')],
         data_folder='.')
 
 
