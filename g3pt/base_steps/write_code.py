@@ -21,7 +21,6 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 @dataclass
 class BaseCodeProductsGPT(BaseProductsGPT):
     revision_round: int = 0
-    data_folder: Union[Path, str] = None
 
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
@@ -79,6 +78,14 @@ class BaseCodeProductsGPT(BaseProductsGPT):
         return NiceList([],
                         wrap_with='"',
                         prefix='{} data file[s]: ')
+
+    @property
+    def data_folder(self) -> Optional[Path]:
+        """
+        The folder in which the data files are located.
+        Need to be overridden by subclasses, to include the folder of the data files from Products
+        """
+        return None
 
     def _get_output_filename(self):
         if self.revision_round == 0:

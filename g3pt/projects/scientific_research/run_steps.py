@@ -16,7 +16,7 @@ SECTIONS_TO_ADD_TABLES_TO = ['results']
 
 
 def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None,
-                     data_folder=None, output_folder: Path = None) -> Products:
+                     output_folder: Path = None) -> Products:
     products = ScientificProducts()
     paper_producer = ProduceScientificPaperPDF(
         paper_template_filepath=PAPER_TEMPLATE_FILE,
@@ -46,8 +46,7 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     products.analysis_plan = PlanReviewGPT(products=products).initialize_and_run_dialog()
 
     # Code and output
-    products.code_and_output = ScientificCodeProductsGPT(products=products,
-                                                         data_folder=data_folder).get_analysis_code()
+    products.code_and_output = ScientificCodeProductsGPT(products=products).get_analysis_code()
 
     # Results interpretation
     products.results_summary = ResultsInterpretationReviewGPT(products=products).initialize_and_run_dialog()
