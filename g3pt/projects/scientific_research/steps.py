@@ -1,27 +1,24 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Optional, Union
 
 from pygments import highlight
 from pygments.formatters.latex import LatexFormatter
 from pygments.lexers import PythonLexer
 
-from g3pt.utils.citataion_utils import remove_citations_from_section
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
-from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 
 from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
-from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT, \
-    BaseProductsReviewGPT
+from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT
+from g3pt.base_steps.base_response_extractors import BaseLatexProductsReviewGPT
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
-from ...base_steps.base_response_extractors import BaseLatexProductsReviewGPT
 
-sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
+sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
     studied using only the provided dataset, without requiring any additional data \
     (pay attention to using only data explicitly available in the provided headers of the our data files \
@@ -63,7 +60,7 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         and fits the provided data, it is perfectly fine and encouraged to respond with with termination-phrase \
         immediately, without requesting any improvement cycles.
         """)
-    sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
+    sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
 @dataclass
@@ -75,7 +72,7 @@ class PlanReviewGPT(BaseProductsQuotedReviewGPT):
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
     user_agent: ScientificAgent = ScientificAgent.Student
-    sentence_to_add_at_the_end_of_reviewee_response: str = sentence_to_add_at_the_end_of_reviewee_response
+    sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
 @dataclass
@@ -87,7 +84,7 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
     user_agent: ScientificAgent = ScientificAgent.Student
-    sentence_to_add_at_the_end_of_reviewee_response: str = dedent_triple_quote_str("""
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
     """)
@@ -143,7 +140,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
     """)
 
-    sentence_to_add_at_the_end_of_reviewee_response: str = \
+    sentence_to_add_at_the_end_of_performer_response: str = \
         "Please provide constructive feedback on the above {goal_noun}"
 
 
