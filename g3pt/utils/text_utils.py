@@ -165,10 +165,6 @@ def extract_text_between_brackets(text: str, open_bracket: str, leave_brackets: 
 StrOrTupleStr = Union[str, Tuple[str, str]]
 
 
-def wrap_with_lstlisting(paragraph):
-    return "\\begin{lstlisting}[language=TeX]\n" + paragraph + "\n\\end{lstlisting}"
-
-
 def wrap_python_code(code, width=70):
     wrapped_lines = []
     for line in code.splitlines():
@@ -200,7 +196,7 @@ def wrap_python_code(code, width=70):
 
 def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
                 prefix: StrOrTupleStr = '', suffix: StrOrTupleStr = '',
-                separator: str = ', ', last_separator: Optional[str] = ' and '):
+                separator: str = ', ', last_separator: Optional[str] = ' and ', empty_str: str = ''):
     """
     Concatenate a list of words with commas and an 'and' at the end.
 
@@ -243,7 +239,7 @@ def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
     # concatenate the words:
     last_separator = last_separator or separator
     if num_words == 0:
-        s = ''
+        return empty_str
     elif num_words == 1:
         s = words[0]
     elif num_words == 2:
@@ -259,16 +255,19 @@ class NiceList(list):
     A list that can be printed nicely.
     """
     def __init__(self, *args, wrap_with: StrOrTupleStr = '', prefix: StrOrTupleStr = '',
-                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: Optional[str] = ' and '):
+                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: Optional[str] = ' and ',
+                 empty_str: str = ''):
         super().__init__(*args)
         self.wrap_with = wrap_with
         self.prefix = prefix
         self.suffix = suffix
         self.separator = separator
         self.last_separator = last_separator
+        self.empty_str = empty_str
 
     def __str__(self):
-        return nicely_join(self, self.wrap_with, self.prefix, self.suffix, self.separator, self.last_separator)
+        return nicely_join(self, self.wrap_with, self.prefix, self.suffix, self.separator, self.last_separator,
+                           )
 
     def __repr__(self):
         return str(self)
