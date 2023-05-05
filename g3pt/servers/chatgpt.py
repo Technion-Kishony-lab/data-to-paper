@@ -7,13 +7,11 @@ from g3pt.conversation.message_designation import GeneralMessageDesignation
 from g3pt.env import MODEL_ENGINE
 from g3pt.servers.base_server import ServerCaller
 from g3pt.utils.tag_pairs import SAVE_TAGS
+from g3pt.conversation.message import Message
 
 # Set up the OpenAI API client
 from g3pt.env import OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
-
-
-from g3pt.conversation.message import Message
 
 
 class OpenaiSeverCaller(ServerCaller):
