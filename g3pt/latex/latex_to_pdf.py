@@ -109,7 +109,9 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
-    latex_content = replace_special_chars(latex_content)
+    preamble = latex_content[:latex_content.find(r'\begin{document}')]
+    latex_content = latex_content[latex_content.find(r'\begin{document}'):]
+    latex_content = preamble + replace_special_chars(latex_content)
     with run_in_temp_directory():
 
         # Create the bib file:
