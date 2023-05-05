@@ -31,4 +31,3 @@ def run_in_directory(folder: Union[Path, str] = None):
         yield
     finally:
         os.chdir(cwd)
-

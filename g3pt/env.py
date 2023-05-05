@@ -23,4 +23,3 @@ HIDE_INCOMPLETE_CODE = True
 
 # Max number of characters allowed in output txt file of gpt code:
 MAX_SENSIBLE_OUTPUT_SIZE = 2000
-
