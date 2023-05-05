@@ -4,14 +4,14 @@ import re
 from typing import List, Union
 
 from g3pt.conversation.message_designation import GeneralMessageDesignation
-from g3pt.env import MODEL_ENGINE
+from g3pt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
 from g3pt.utils.tag_pairs import SAVE_TAGS
 from g3pt.conversation.message import Message
 
 from .base_server import ServerCaller
+from .openai_models import ModelEngine
 
 # Set up the OpenAI API client
-from g3pt.env import OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
 
 
@@ -31,14 +31,15 @@ class OpenaiSeverCaller(ServerCaller):
         return re.findall(SAVE_TAGS.wrap("(.*?)"), file.read(), re.DOTALL)
 
     @staticmethod
-    def _get_server_response(messages: List[Message], **kw) -> str:
+    def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
         """
         Connect with openai to get response to conversation.
         """
+        model_engine = model_engine or DEFAULT_MODEL_ENGINE
         response = openai.ChatCompletion.create(
-            model=MODEL_ENGINE,
+            model=min(MAX_MODEL_ENGINE, model_engine).value,
             messages=[message.to_chatgpt_dict() for message in messages],
-            **kw,
+            **kwargs,
         )
         return response['choices'][0]['message']['content']
 
@@ -47,6 +48,7 @@ OPENAI_SERVER_CALLER = OpenaiSeverCaller()
 
 
 def try_get_chatgpt_response(conversation, hidden_messages: GeneralMessageDesignation = None,
+                             model_engine: ModelEngine = None,
                              **kwargs) -> Union[str, Exception]:
     """
     Try to get a response from openai to a specified conversation.
@@ -60,7 +62,7 @@ def try_get_chatgpt_response(conversation, hidden_messages: GeneralMessageDesign
     indices_and_messages = conversation.get_chosen_indices_and_messages(hidden_messages)
     messages = [message for _, message in indices_and_messages]
     try:
-        return OPENAI_SERVER_CALLER.get_server_response(messages, **kwargs)
+        return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
     except openai.error.InvalidRequestError as e:
         return e
     except Exception:

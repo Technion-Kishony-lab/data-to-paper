@@ -9,6 +9,7 @@ from g3pt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCO
 from g3pt.base_cast import Agent
 from g3pt.run_gpt_code.code_runner import CodeRunner
 from g3pt.run_gpt_code.exceptions import FailedExtractingCode
+from g3pt.servers.openai_models import ModelEngine
 from g3pt.utils import format_text_with_code_blocks, line_count
 
 # noinspection PyUnresolvedReferences
@@ -50,6 +51,7 @@ class Message:
     content: str
     tag: str = ''
     agent: Optional[Agent] = None
+    model_engine: ModelEngine = None
     ignore: bool = False  # if True, this message will be skipped when calling openai
 
     def to_chatgpt_dict(self):
@@ -70,7 +72,7 @@ class Message:
         """
         role, content, tag, agent = self.role, self.content, self.tag, self.agent
         tag_text = f' <{tag}> ' if tag else ''
-        agent_text = f' {{{agent}}}' if agent else ''
+        agent_text = f' {{{agent.value}}}' if agent else ''
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
         sep = style.seperator
@@ -78,18 +80,18 @@ class Message:
             text_color, block_color, reset_color = style.color, style.block_color, colorama.Style.RESET_ALL
         else:
             text_color = block_color = reset_color = ''
-
+        role_text = role.name + ('' if self.model_engine is None else f'({self.model_engine.value})')
         if role == Role.SYSTEM:
-            role_agent_conversation_tag = f'{role.name} casting {agent_text} for {conversation_name} '
+            role_model_agent_conversation_tag = f'{role_text} casting {agent_text} for {conversation_name} '
         else:
-            role_agent_conversation_tag = f'{role.name}{agent_text} -> {conversation_name}{tag_text} '
+            role_model_agent_conversation_tag = f'{role_text}{agent_text} -> {conversation_name}{tag_text} '
 
         if role == Role.COMMENTER:
-            return text_color + num_text + role_agent_conversation_tag + ': ' + content + reset_color
+            return text_color + num_text + role_model_agent_conversation_tag + ': ' + content + reset_color
 
         # header:
-        s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role_agent_conversation_tag \
-            + sep * (TEXT_WIDTH - len(role_agent_conversation_tag) - 9 - 1) + '\n'
+        s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role_model_agent_conversation_tag \
+            + sep * (TEXT_WIDTH - len(role_model_agent_conversation_tag) - 9 - 1) + '\n'
 
         # content:
         s += self.pretty_content(text_color, block_color, width=TEXT_WIDTH)
@@ -181,14 +183,17 @@ class CodeMessage(Message):
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
+                   model_engine: ModelEngine = None,
                    previous_code: str = None) -> Message:
     if previous_code:
-        return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore, previous_code=previous_code)
+        return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
+                           model_engine=model_engine, previous_code=previous_code)
     else:
-        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore)
+        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore, model_engine=model_engine)
 
 
 def create_message_from_other_message(other_message: Message, content: str) -> Message:
     return create_message(role=other_message.role, content=content, tag=other_message.tag, agent=other_message.agent,
                           ignore=other_message.ignore,
+                          model_engine=other_message.model_engine,
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None)

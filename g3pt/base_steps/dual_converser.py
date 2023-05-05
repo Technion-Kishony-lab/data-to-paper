@@ -44,10 +44,12 @@ class DualConverserGPT(ConverserGPT):
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
+                                                        model_engine: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None, **kwargs,
                                                         ) -> str:
         return self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
