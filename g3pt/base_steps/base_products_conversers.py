@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .types import Products
-from .dual_converser import QuotedReviewDialogDualConverserGPT, ConverserGPT, ReviewDialogDualConverserGPT
+from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
 
 
 @dataclass
