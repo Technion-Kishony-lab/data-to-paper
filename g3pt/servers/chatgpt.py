@@ -5,9 +5,10 @@ from typing import List, Union
 
 from g3pt.conversation.message_designation import GeneralMessageDesignation
 from g3pt.env import MODEL_ENGINE
-from g3pt.servers.base_server import ServerCaller
 from g3pt.utils.tag_pairs import SAVE_TAGS
 from g3pt.conversation.message import Message
+
+from .base_server import ServerCaller
 
 # Set up the OpenAI API client
 from g3pt.env import OPENAI_API_KEY

@@ -6,19 +6,20 @@ from pygments import highlight
 from pygments.formatters.latex import LatexFormatter
 from pygments.lexers import PythonLexer
 
-from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
-from g3pt.base_steps.write_code import BaseCodeProductsGPT
-from g3pt.projects.scientific_research.cast import ScientificAgent
-from g3pt.projects.scientific_research.scientific_products import ScientificProducts, \
-    get_from_most_updated_paper_sections
 from g3pt.utils.citataion_utils import remove_citations_from_section
-
-from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT, \
-    BaseProductsReviewGPT
-from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
+from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
+
+from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
+from g3pt.base_steps.write_code import BaseCodeProductsGPT
+from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT, \
+    BaseProductsReviewGPT
+
+from .cast import ScientificAgent
+from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
+
 
 sentence_to_add_at_the_end_of_reviewee_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
