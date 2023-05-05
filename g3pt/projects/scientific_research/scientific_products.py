@@ -40,21 +40,21 @@ class ScientificProducts(Products):
         return name
 
 
-def get_code_description(products: Products) -> str:
+def get_code_description(products: ScientificProducts) -> str:
     return f'Here is our code:\n\n' \
            f'```python\n{products.code_and_output.code}\n```\n'
 
 
-def get_code_output_description(products: Products) -> str:
+def get_code_output_description(products: ScientificProducts) -> str:
     return f'Here is the output of the code (the content of "{products.code_and_output.output_file}"):\n\n' \
            f'```\n{products.code_and_output.output}\n```\n'
 
 
-def get_code_and_output_description(products: Products) -> str:
+def get_code_and_output_description(products: ScientificProducts) -> str:
     return get_code_description(products) + '\n\n' + get_code_output_description(products)
 
 
-def get_title_and_abstract_description(products: Products) -> str:
+def get_title_and_abstract_description(products: ScientificProducts) -> str:
     return dedent_triple_quote_str("""
     Here are the title and abstract of the paper:
 
@@ -72,19 +72,19 @@ def format_paper_section_description(section_content: str, section_name: str) ->
         """).format(section_name, section_content)
 
 
-def get_from_paper_sections(products: Products, section_name: str) -> str:
+def get_from_paper_sections(products: ScientificProducts, section_name: str) -> str:
     return products.paper_sections[section_name]
 
 
-def get_from_cited_paper_sections(products: Products, section_name: str) -> str:
+def get_from_cited_paper_sections(products: ScientificProducts, section_name: str) -> str:
     return products.cited_paper_sections[section_name][0]
 
 
-def get_from_paper_sections_with_tables(products: Products, section_name: str) -> str:
+def get_from_paper_sections_with_tables(products: ScientificProducts, section_name: str) -> str:
     return products.paper_sections_with_tables[section_name]
 
 
-def get_from_most_updated_paper_sections(products: Products, section_name: str) -> str:
+def get_from_most_updated_paper_sections(products: ScientificProducts, section_name: str) -> str:
     for _, func in list(SECTION_TYPES_TO_FUNCS.items())[1:]:  # skip the 'most_updated' section type
         try:
             return func(products, section_name)

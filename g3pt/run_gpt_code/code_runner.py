@@ -48,6 +48,7 @@ class CodeRunner:
     allowed_read_files: Optional[list] = None
     output_file: Optional[str] = None
     script_file: Optional[str] = None
+    data_folder: Optional[str] = None
 
     def extract_code(self) -> str:
         num_block_edges = self.response.count('```')
@@ -99,6 +100,7 @@ class CodeRunner:
         self.delete_output_file()
         run_code_using_module_reload(code,
                                      save_as=None,  # change to self.script_file in order to keep records of the code
+                                     run_in_folder=self.data_folder,
                                      allowed_read_files=self.allowed_read_files,
                                      allowed_write_files=None if self.output_file is None else [self.output_file])
         return CodeAndOutput(code=code, output=self.read_output_file(), output_file=self.output_file)

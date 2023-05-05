@@ -1,25 +1,29 @@
+from pathlib import Path
 from typing import Optional
 
 from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
-from g3pt.projects.scientific_research.latex_paper_compilation.assemble_compile_paper import PaperAssemblerCompiler
-from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_section_names
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
-    ScientificCodeProductsGPT
+    ScientificCodeProductsGPT, ProduceScientificPaperPDF
 from g3pt.base_steps.director_converser import DirectorProductGPT
 from g3pt.base_steps.types import Products
 
-PAPER_TEMPLATE_FILE: str = 'standard_paper_with_citations.tex'
-paper_section_names = get_paper_section_names(PAPER_TEMPLATE_FILE)
+PAPER_TEMPLATE_FILE: str = 'standard_paper.tex'
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
 SECTIONS_TO_ADD_TABLES_TO = ['results']
 
 
 def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None,
-                     data_directory=None, output_directory=None) -> Products:
+                     data_folder=None, output_folder: Path = None) -> Products:
     products = ScientificProducts()
+    paper_producer = ProduceScientificPaperPDF(
+        paper_template_filepath=PAPER_TEMPLATE_FILE,
+        products=products,
+        output_file_path=output_folder / 'paper.pdf',
+    )
+    paper_section_names = paper_producer.get_paper_section_names()
 
     # Data file descriptions:
     director_converser = DirectorProductGPT(
@@ -42,7 +46,8 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
     products.analysis_plan = PlanReviewGPT(products=products).initialize_and_run_dialog()
 
     # Code and output
-    products.code_and_output = ScientificCodeProductsGPT(products=products).get_analysis_code()
+    products.code_and_output = ScientificCodeProductsGPT(products=products,
+                                                         data_folder=data_folder).get_analysis_code()
 
     # Results interpretation
     products.results_summary = ResultsInterpretationReviewGPT(products=products).initialize_and_run_dialog()
@@ -67,6 +72,6 @@ def run_step_by_step(data_file_descriptions, research_goal: Optional[str] = None
         products.paper_sections_with_tables[section_name] = \
             PaperSectionWithTablesReviewGPT(products=products, section_name=section_name).get_section()
 
-    PaperAssemblerCompiler(products=products, output_directory=output_directory).assemble_compile_paper()
+    paper_producer.assemble_compile_paper()
 
     return products

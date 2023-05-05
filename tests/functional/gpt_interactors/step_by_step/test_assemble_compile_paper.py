@@ -2,7 +2,7 @@ import os
 
 from _pytest.fixtures import fixture
 
-from g3pt.projects.scientific_research.latex_paper_compilation.assemble_compile_paper import PaperAssemblerCompiler
+from g3pt.base_steps.base_latex_to_pdf import PaperAssemblerCompiler
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.servers.crossref import CrossrefCitation
 
