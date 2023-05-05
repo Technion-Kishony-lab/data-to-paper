@@ -20,11 +20,11 @@ data_file_descriptions: DataFileDescriptions = DataFileDescriptions([
             #2 "SideEffectStartTime" - the delay between the vaccination and side effect (999 means 'continuous'), \
             measured in time units indicated in `DetailsStartTimeType`.
             #3 "DetailsStartTimeType" - the time unit used for `SideEffectStartTime` \
-            (minutes, hours, days, weeks, months, NaN).
+            ('minutes', 'hours', 'days', 'weeks', 'months', NaN).
             #4 "SideEffectDurationTime" - the duration of the side effect (999 means 'continuous'), measured in \
             time units indicated in `DetailsDurationTimeType`.
             #5 "DetailsDurationTimeType" - the time unit used for `SideEffectDurationTime` \
-            (minutes, hours, days, weeks, continuous, NaN).
+            ('minutes', 'hours', 'days', 'weeks', 'continuous', NaN).
             #6 "Effect" - the specific side effect that was reported by the medical staff""")),
 ])
 
