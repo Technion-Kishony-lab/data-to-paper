@@ -55,7 +55,7 @@ def get_code_and_output_description(products: ScientificProducts) -> str:
 
 def get_title_and_abstract_description(products: ScientificProducts) -> str:
     return dedent_triple_quote_str("""
-    Here are the title and abstract of the paper:
+        Here are the title and abstract of the paper:
 
         {}
 
