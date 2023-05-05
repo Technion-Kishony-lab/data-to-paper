@@ -226,7 +226,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     # *** Properties that should be set according to the task we want to perform ***
 
     # roles:
-    reviewee: str = 'scientist'
+    performer: str = 'scientist'
     reviewer: str = 'scientific reviewer'
 
     # goal_noun: the desired output of the conversation (expressed as a singular noun).
@@ -237,13 +237,13 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     # *** Properties that are more generic (adjust only if needed) ***
 
-    system_prompt: str = "You are a {reviewee} who needs to {goal_verb} a {goal_noun}."
+    system_prompt: str = "You are a {performer} who needs to {goal_verb} a {goal_noun}."
 
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}."
 
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
-        Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
+        You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
+        Your job is to advise me, the {performer}, and provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
 
         When you feel that the goal has been achieved, respond explicitly with: 
@@ -301,7 +301,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
     A base class for agents running a dialog between two chatgpts, where one is a "reviwee" who needs to perform a task
     towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
-    The reviewee is expected to return the goal as a triple-quoted string, so that it can be extracted.
+    The performer is expected to return the goal as a triple-quoted string, so that it can be extracted.
     """
 
     flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]

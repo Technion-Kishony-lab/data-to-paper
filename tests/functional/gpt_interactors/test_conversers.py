@@ -5,7 +5,7 @@ from g3pt.base_steps.dual_converser import ReviewDialogDualConverserGPT
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_role_reversal_dialog_converser():
     converser = ReviewDialogDualConverserGPT(
-        reviewee='scientist',
+        performer='scientist',
         reviewer='scientific reviewer',
         conversation_name='scientist',
         other_conversation_name='scientific reviewer',
