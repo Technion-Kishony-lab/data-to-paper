@@ -87,7 +87,7 @@ class DialogDualConverserGPT(DualConverserGPT):
     """
 
     #                                               end if
-    #                         can start        exceeds max_rounds
+    #                         can start             exceeds max_reviewing_rounds
     #                           here                  ^
     #                            |                    |
     #                            v               self_response
@@ -104,7 +104,7 @@ class DialogDualConverserGPT(DualConverserGPT):
 
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
 
-    max_rounds: int = 3
+    max_reviewing_rounds: int = 3
     max_attempts_per_round: int = 4
 
     @with_attribute_replacement
@@ -200,7 +200,7 @@ class DialogDualConverserGPT(DualConverserGPT):
             return self_response, CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        if self.round_num >= self.max_rounds:
+        if self.round_num >= self.max_reviewing_rounds:
             return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
 
         other_response = self.get_response_from_other_in_response_to_response_from_self(self_response)
@@ -261,7 +261,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     @property
     def are_we_reviewing_at_all(self) -> bool:
-        return self.max_rounds > 0
+        return self.max_reviewing_rounds > 0
 
     def _alter_other_response(self, response: str) -> str:
         return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewer_response

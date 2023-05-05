@@ -53,7 +53,7 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
     to be suggested and reviewed.
     """
     suppress_printing_other_conversation: bool = False
-    max_rounds: int = 1
+    max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
