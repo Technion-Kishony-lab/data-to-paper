@@ -64,7 +64,7 @@ class DebuggerGPT(ConverserGPT):
 
     def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:
         result = code_runner.run_code()
-        os.rename(self.output_filename, self.script_filename + '.txt')
+        os.rename(self.data_folder / self.output_filename, self.script_filename + '.txt')
         return result
 
     def _respond_to_allowed_packages(self, error_message: str):
