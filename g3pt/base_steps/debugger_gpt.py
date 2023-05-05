@@ -13,6 +13,7 @@ from g3pt.base_cast import Agent
 
 from .converser_gpt import ConverserGPT
 from .types import CodeAndOutput
+from ..servers.openai_models import ModelEngine
 
 
 @dataclass
@@ -31,7 +32,7 @@ class DebuggerGPT(ConverserGPT):
     * too long runs (timeout)
     * output file not created
     """
-
+    model_engine: ModelEngine = ModelEngine.GPT4
     assistant_agent: Agent = None
     user_agent: Agent = None
 
