@@ -1,29 +1,39 @@
+from dataclasses import dataclass
 from typing import Any
 
-from g3pt.projects.scientific_research.cast import ScientificAgent
 from g3pt.utils.replacer import with_attribute_replacement
 
 from .base_products_conversers import BaseProductsGPT
 
 
+@dataclass
 class DirectorProductGPT(BaseProductsGPT):
     """
-    Create a fake (predetermined) conversation, where the Student asks the Director (the application user) for products,
-    such as data description, or goal.
+    Create a fake (pre-meditated) conversation, where a performer asks the Director (the application user) for a
+    specific product.
     """
-    conversation_name: str = 'user-student'
-    assistant_agent: ScientificAgent = ScientificAgent.Director
-    user_agent: ScientificAgent = ScientificAgent.Student
+    ADDITIONAL_DICT_ATTRS = ('product_name', )
+
+    request_product_message: str = 'Hi, do you have a {product_name} for me?'
+    provide_product_message: str = 'Yes, here is the {product_name}:\n{returned_product}\n'
+    thanks_message: str = 'Thank you!'
+
+    # inputs:
+    product_field: str = None
+    returned_product: Any = None
+
+    @property
+    def product_name(self):
+        return self.products.get_name(self.product_field) if self.product_field is not None else None
 
     @with_attribute_replacement
-    def get_product_from_director(self, product_field: str, returned_product: Any):
+    def get_product_from_director(self, **kwargs):
         """
         Ask the user for a product, such as data description, or goal.
         """
+        self.set(**kwargs)
         self.initialize_conversation_if_needed()
-        product_name = self.products.get_name(product_field)
-        self.apply_append_user_message(f'Hi, do you have a {product_name} for me?')
-        self.apply_append_surrogate_message(
-            f'Yes, here is the {product_name}:\n{returned_product}\n')
-        self.apply_append_user_message('Thank you!')
-        return returned_product
+        self.apply_append_user_message(self.request_product_message)
+        self.apply_append_surrogate_message(self.provide_product_message)
+        self.apply_append_user_message(self.thanks_message)
+        return self.returned_product

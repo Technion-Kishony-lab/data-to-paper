@@ -48,8 +48,8 @@ class Replacer:
 
     name: str = 'john'
     greeting: str = 'hello {name}'
-    REPLACED_ATTRS: str = ['greeting']
-    ADDITIONAL_DICT_ATTRS: str = ['name']
+    REPLACED_ATTRS: tuple = ('greeting', )
+    ADDITIONAL_DICT_ATTRS: tuple = ('name', )
     """
 
     _is_replacing = False
@@ -68,11 +68,12 @@ class Replacer:
     def get_replaced_attributes(cls):
         if cls.REPLACED_ATTRS is not None:
             return cls.REPLACED_ATTRS
-        return [attr.name for attr in fields(cls) if not attr.name.startswith('_')]
+        return tuple(attr.name for attr in fields(cls) if not attr.name.startswith('_'))
 
     def _get_formatting_dict(self):
         with self.not_replacing_attributes():
-            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes()}
+            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes() +
+                    (self.ADDITIONAL_DICT_ATTRS or ())}
 
     def __getattribute__(self, item):
         raw_value = _super_getatter(self, item)
@@ -98,3 +99,11 @@ class Replacer:
             yield
         finally:
             self._is_replacing = old_is_replacing
+
+    def set(self, **kwargs):
+        """
+        Set attributes of the class.
+        """
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        return self
