@@ -1,11 +1,13 @@
 # SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'seaborn', 'sklearn']
+from g3pt.servers.openai_models import ModelEngine
 from g3pt.utils.text_utils import NiceList
 
 SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy'], wrap_with='`')
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "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"
 
-MODEL_ENGINE = "gpt-3.5-turbo"
+DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
+MAX_MODEL_ENGINE = ModelEngine.GPT4_32
 
 # Text width for conversation output:
 TEXT_WIDTH = 150

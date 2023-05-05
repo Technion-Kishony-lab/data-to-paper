@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from g3pt.conversation import ConversationManager, GeneralMessageDesignation
+from g3pt.servers.openai_models import ModelEngine
 from g3pt.utils.replacer import Replacer, with_attribute_replacement
 from g3pt.utils.text_utils import print_red
 from g3pt.base_cast import Agent
@@ -11,6 +12,11 @@ from g3pt.base_cast import Agent
 class ConverserGPT(Replacer):
     """
     A base class for agents interacting with chatgpt.
+    """
+    model_engine: ModelEngine = None
+    """
+    The openai model engine to use. If None, use the default model engine.
+    A call to apply_get_and_append_assistant_message can override this value.
     """
 
     system_prompt: str = 'You are a helpful scientist.'
@@ -52,9 +58,11 @@ class ConverserGPT(Replacer):
 
     def apply_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
+                                               model_engine: Optional[ModelEngine] = None,
                                                hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         return self.conversation_manager.get_and_append_assistant_message(
             tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,

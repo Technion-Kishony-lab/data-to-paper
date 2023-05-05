@@ -4,6 +4,7 @@ from typing import Optional, Set, Iterable
 from g3pt.base_cast import Agent
 from g3pt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from g3pt.servers.chatgpt import try_get_chatgpt_response
+from g3pt.servers.openai_models import ModelEngine
 
 from .actions_and_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation
@@ -123,6 +124,7 @@ class ConversationManager:
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
+                                         model_engine: ModelEngine = None,
                                          hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
         """
         Get and append a response from openai to a specified conversation.
@@ -138,6 +140,7 @@ class ConversationManager:
         while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
                                                                is_code=is_code, previous_code=previous_code,
+                                                               model_engine=model_engine,
                                                                hidden_messages=actual_hidden_messages,
                                                                **kwargs)
             if isinstance(content, str):
@@ -164,6 +167,7 @@ class ConversationManager:
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             is_code: bool = False, previous_code: Optional[str] = None,
+                                            model_engine: ModelEngine = None,
                                             hidden_messages: GeneralMessageDesignation = None, **kwargs
                                             ) -> Optional[str]:
         """
@@ -174,7 +178,7 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return the exception.
         """
-        content = try_get_chatgpt_response(self.conversation, hidden_messages, **kwargs)
+        content = try_get_chatgpt_response(self.conversation, hidden_messages, model_engine=model_engine, **kwargs)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
