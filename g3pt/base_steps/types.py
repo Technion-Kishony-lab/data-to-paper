@@ -1,6 +1,9 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Optional, List
+from pathlib import Path
+from typing import Optional, List, Union
+
+from g3pt.utils.file_utils import run_in_directory
 
 
 @dataclass
@@ -36,18 +39,22 @@ class DataFileDescriptions(List[DataFileDescription]):
     A list of data file descriptions.
     """
 
-    def __str__(self):
-        if len(self) == 0:
-            s = 'No data files'
-        elif len(self) == 1:
-            s = "1 data file:\n\n"
-            s += self[0].pretty_repr()
-        else:
-            s = f"{len(self)} data files:\n"
-            for file_number, data_file_description in enumerate(self):
-                s += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
+    def __init__(self, *args, data_folder: Optional[Union[str, Path]] = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data_folder = data_folder
 
-        return s
+    def __str__(self):
+        with run_in_directory(self.data_folder):
+            if len(self) == 0:
+                s = 'No data files'
+            elif len(self) == 1:
+                s = "1 data file:\n\n"
+                s += self[0].pretty_repr()
+            else:
+                s = f"{len(self)} data files:\n"
+                for file_number, data_file_description in enumerate(self):
+                    s += f"\n({file_number + 1}) " + data_file_description.pretty_repr()
+            return s
 
 
 @dataclass

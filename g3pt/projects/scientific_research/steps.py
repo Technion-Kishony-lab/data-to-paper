@@ -244,6 +244,10 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
                         wrap_with='"',
                         prefix='{} data file[s]: ')
 
+    @property
+    def data_folder(self) -> Optional[Path]:
+        return Path(self.products.data_file_descriptions.data_folder)
+
 
 @dataclass
 class ProduceScientificPaperPDF(BaseLatexToPDF):
