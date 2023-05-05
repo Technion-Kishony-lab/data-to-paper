@@ -165,6 +165,10 @@ def extract_text_between_brackets(text: str, open_bracket: str, leave_brackets: 
 StrOrTupleStr = Union[str, Tuple[str, str]]
 
 
+def wrap_with_lstlisting(paragraph):
+    return "\\begin{lstlisting}[language=TeX]\n" + paragraph + "\n\\end{lstlisting}"
+
+
 def wrap_python_code(code, width=70):
     wrapped_lines = []
     for line in code.splitlines():
