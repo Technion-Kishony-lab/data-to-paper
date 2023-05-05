@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
@@ -20,6 +21,7 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 @dataclass
 class BaseCodeProductsGPT(BaseProductsGPT):
     revision_round: int = 0
+    data_folder: Union[Path, str] = None
 
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
@@ -127,6 +129,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 assistant_agent=self.assistant_agent,
                 output_filename=self._get_output_filename(),
                 data_files=self.data_filenames,
+                data_folder=self.data_folder,
                 max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
                 previous_code=previous_code,

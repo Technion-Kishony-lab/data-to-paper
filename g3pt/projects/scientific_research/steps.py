@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Union
 
+from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
 from g3pt.projects.scientific_research.cast import ScientificAgent
-from g3pt.projects.scientific_research.scientific_products import ScientificProducts
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts, \
+    get_from_most_updated_paper_sections
 from g3pt.utils.citataion_utils import remove_citations_from_section
 
 from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT, \
@@ -242,3 +244,22 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
                         wrap_with='"',
                         prefix='{} data file[s]: ')
 
+
+@dataclass
+class ProduceScientificPaperPDF(BaseLatexToPDF):
+    products: ScientificProducts = None
+
+    def _choose_sections_to_add_to_paper_and_collect_references(self):
+        """
+        Chooses what sections to add to the paper.
+        Start by choosing section with tables, then cited sections, then without both of those.
+        If there are references we also collect them to a set.
+        """
+        references = set()
+        sections = {}
+        for section_name in self.get_paper_section_names():
+            sections[section_name] = get_from_most_updated_paper_sections(self.products, section_name)
+            if section_name in self.products.cited_paper_sections:
+                references |= self.products.cited_paper_sections[section_name][1]  # 1 is the references set
+
+        return sections, references

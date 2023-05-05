@@ -41,6 +41,7 @@ class DebuggerGPT(ConverserGPT):
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
     data_files: Optional[list] = field(default_factory=list)
+    data_folder: str = None
     output_filename: str = 'results.txt'
 
     @property
@@ -56,6 +57,7 @@ class DebuggerGPT(ConverserGPT):
                           allowed_read_files=self.data_files,
                           output_file=self.output_filename,
                           script_file=self.script_filename,
+                          data_folder=self.data_folder,
                           )
 
     def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:

@@ -85,7 +85,7 @@ def test_latex_to_pdf(tmpdir, latex_content):
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
     file_name = 'test'
-    save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath, should_compile_with_bib=False)
+    save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath, )
 
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
@@ -99,8 +99,7 @@ def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations):
         os.mkdir(output_directory)
     file_name = 'test'
     create_citations_file(output_directory)
-    save_latex_and_compile_to_pdf(latex_content_with_citations, file_name, tmpdir.strpath,
-                                  should_compile_with_bib=True)
+    save_latex_and_compile_to_pdf(latex_content_with_citations, file_name, tmpdir.strpath, )
 
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
@@ -115,8 +114,7 @@ def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_charac
         os.mkdir(output_directory)
     file_name = 'test'
     create_citations_file(output_directory)
-    save_latex_and_compile_to_pdf(latex_content_with_unescaped_characters, file_name, tmpdir.strpath,
-                                  should_compile_with_bib=False)
+    save_latex_and_compile_to_pdf(latex_content_with_unescaped_characters, file_name, tmpdir.strpath, )
 
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))

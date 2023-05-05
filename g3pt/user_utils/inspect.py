@@ -43,16 +43,11 @@ def run_scientist_gpt(data_file_descriptions: DataFileDescriptions,
     @CROSSREF_SERVER_CALLER.record_or_replay(output_directory / CROSSREF_RESPONSES_FILENAME, should_mock=mock_servers)
     def run():
         run_step_by_step(data_file_descriptions=data_file_descriptions, research_goal=research_goal,
-                         data_directory=data_directory, output_directory=output_directory)
+                         data_folder=data_directory, output_folder=output_directory)
 
-    absolute_home_path = Path().absolute()
-
-    # we run in the data folder, so that chatgpt finds our files:
     try:
-        os.chdir(data_directory)
         run()
     finally:
-        os.chdir(absolute_home_path)
         save_all_files_to_output_folder(output_directory, data_directory)
 
 

@@ -6,13 +6,20 @@ from g3pt.base_steps.dual_converser import QuotedReviewDialogDualConverserGPT, C
 
 
 @dataclass
-class BaseProductsGPT(ConverserGPT):
+class BaseProductsHandler:
+    """
+    Base class for steps that deal with Products.
+    """
+    products: Products = None
+
+
+@dataclass
+class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
     """
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
 
-    products: Products = None
     background_product_fields = None
     product_acknowledgement: str = "Thank you for the {{}}. \n"
 

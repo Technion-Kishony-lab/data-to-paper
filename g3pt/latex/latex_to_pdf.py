@@ -1,13 +1,14 @@
 import os
 import shutil
-from contextlib import contextmanager
-from pathlib import Path
 import subprocess
+from typing import Set
+
 import regex
 
-# Temp directory for latex complication:
-module_dir = os.path.dirname(__file__)
-TEMP_FOLDER_FOR_LATEX_COMPILE = (Path(module_dir) / 'temp_latex_compile').absolute()
+from g3pt.servers.crossref import CrossrefCitation
+from g3pt.utils.file_utils import run_in_temp_directory
+
+BIB_FILENAME: str = 'citations.bib'
 
 CHARS = {
     '&': r'\&',
@@ -17,6 +18,7 @@ CHARS = {
     '~': r'\textasciitilde',
     '^': r'\textasciicircum',
 }
+
 MATH_PATTERN = r"""
 (?<!\\)    # negative look-behind to make sure start is not escaped
 (?:        # start non-capture group for all possible match starts
@@ -103,37 +105,29 @@ def replace_special_chars(text):
     return "".join(result)
 
 
-@contextmanager
-def run_in_temp_directory():
-    cwd = os.getcwd()
-    if not os.path.exists(TEMP_FOLDER_FOR_LATEX_COMPILE):
-        os.mkdir(TEMP_FOLDER_FOR_LATEX_COMPILE)
-    os.chdir(TEMP_FOLDER_FOR_LATEX_COMPILE)
-    try:
-        yield
-    finally:
-        os.chdir(cwd)
-        shutil.rmtree(TEMP_FOLDER_FOR_LATEX_COMPILE)
-
-
-def save_latex_and_compile_to_pdf(latex_content: str, file_name: str, output_directory: str,
-                                  should_compile_with_bib: bool = False):
-    latex_file_name = file_name + '.tex'
+def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: str,
+                                  references: Set[CrossrefCitation]):
+    should_compile_with_bib = len(references) > 0
+    latex_file_name = file_stem + '.tex'
     latex_content = replace_special_chars(latex_content)
     with run_in_temp_directory():
+
+        # Create the bib file:
+        if should_compile_with_bib:
+            references_bibtex = [reference.create_bibtex() for reference in references]
+            with open(BIB_FILENAME, 'w') as f:
+                f.write('\n\n'.join(references_bibtex))
+
         with open(latex_file_name, 'w') as f:
             f.write(latex_content)
         subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
         if should_compile_with_bib:
-            # if citations file not in current directory copy it from output directory:
-            if not os.path.exists('citations.bib'):
-                shutil.copy(os.path.join(output_directory, 'citations.bib'), 'citations.bib')
-            subprocess.run(['bibtex', file_name], check=True)
+            subprocess.run(['bibtex', file_stem], check=True)
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
 
         # Move the pdf and the latex and the citation file to the original directory:
-        shutil.move(file_name + '.pdf', output_directory)
+        shutil.move(file_stem + '.pdf', output_directory)
         shutil.move(latex_file_name, output_directory)
-        if should_compile_with_bib and not os.path.exists(os.path.join(output_directory, 'citations.bib')):
+        if should_compile_with_bib:
             shutil.move('citations.bib', output_directory)
