@@ -1,32 +1,21 @@
 from dataclasses import dataclass
 from typing import Dict, Set
 
-from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template
 from g3pt.latex import save_latex_and_compile_to_pdf
 from g3pt.servers.crossref import CrossrefCitation
 
 from .assemble_to_file import BaseFileProducer
 
-CITATION_WITH_APPENDIX = r"""
-\bibliographystyle{apalike}
-\bibliography{citations}
-
+APPENDIX_TEMPLATE = r"""
 \clearpage
 \appendix
-###appendix###
-\end{document}"""
-
-CITATION_WITH_APPENDIX_NO_CITATIONS = r"""
-\clearpage
-\appendix
-###appendix###
-\end{document}"""
+@@@appendix@@@
+"""
 
 CITATION_TEMPLATE = r"""
 \bibliographystyle{apalike}
 \bibliography{citations}
-
-\end{document}"""
+"""
 
 TEMPLATE_END = r"""
 \end{document}"""
@@ -38,30 +27,44 @@ class BaseLatexToPDF(BaseFileProducer):
     Allows creating a pdf based on a tex template whose sections are populated from the Products.
     """
 
-    paper_template_filepath: str = 'standard_paper.tex'
+    paper_template_filepath: str = None  # full path to the template file ending in .tex
     "The name of the file that holds the template for the paper."
 
     # output:
     _has_references: bool = False
     latex_paper: str = None
 
-    def get_paper_template(self) -> str:
-        template = get_paper_template(self.paper_template_filepath)
+    def get_raw_paper_template(self) -> str:
+        """
+        Load the bare, unmodified, template file.
+        """
+        with open(self.paper_template_filepath, 'r') as f:
+            return f.read()
+
+    def get_modified_paper_template(self) -> str:
+        template = self.get_raw_paper_template()
         if self._has_references:
-            template = template.replace(TEMPLATE_END, CITATION_TEMPLATE)
+            template = template.replace(TEMPLATE_END, CITATION_TEMPLATE + TEMPLATE_END)
         return template
+
+    def add_preamble(self, paper: str) -> str:
+        """
+        Return the preamble of the latex paper.
+        """
+        return '' + paper
 
     def _assemble_paper(self, sections):
         """
         Build the latex paper from the given sections.
         """
-        paper = self.get_paper_template()
+        paper = self.get_modified_paper_template()
+        paper = self.add_preamble(paper)
         for section_name, section_content in sections.items():
             paper = paper.replace(f'@@@{section_name}@@@', section_content)
         return paper
 
     def get_paper_section_names(self):
-        return self.get_paper_template().split('@@@')[1::2]
+        return self.get_raw_paper_template().split('@@@')[1::2]
 
     def _choose_sections_to_add_to_paper_and_collect_references(self) -> (Dict[str, str], Set[CrossrefCitation]):
         """
@@ -89,25 +92,21 @@ class BaseLatexToPDFWithAppendix(BaseLatexToPDF):
     Allows creating a pdf based on a tex template whose sections are populated from the Products. Also allows adding
     an appendix to the paper.
     """
-    def get_paper_template(self) -> str:
-        template = get_paper_template(self.paper_template_filepath)
-        if self._has_references:
-            template = template.replace(TEMPLATE_END, CITATION_WITH_APPENDIX)
-        else:
-            template = template.replace(TEMPLATE_END, CITATION_WITH_APPENDIX_NO_CITATIONS)
-        return template
+    def get_modified_paper_template(self) -> str:
+        return super().get_modified_paper_template().replace(TEMPLATE_END, APPENDIX_TEMPLATE + TEMPLATE_END)
 
-    def _assemble_paper(self, sections):
+    def _create_appendix(self) -> str:
         """
-        Build the latex paper from the given sections.
+        Create the appendix.
         """
-        paper = self.get_paper_template()
-        for section_name, section_content in sections.items():
-            if section_name == 'appendix':
-                paper = paper.replace('###appendix###', section_content)
-                continue
-            elif section_name == 'preamble':
-                paper = section_content + '\n\n' + paper
-            paper = paper.replace(f'@@@{section_name}@@@', section_content)
+        raise NotImplementedError
 
-        return paper
+    def _choose_sections_to_add_to_paper_and_collect_references(self):
+        """
+        Chooses what sections to add to the paper.
+        Start by choosing section with tables, then cited sections, then without both of those.
+        If there are references we also collect them to a set.
+        """
+        sections, references = super()._choose_sections_to_add_to_paper_and_collect_references()
+        sections['appendix'] = self._create_appendix()
+        return sections, references

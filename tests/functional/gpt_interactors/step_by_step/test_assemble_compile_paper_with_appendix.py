@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
 from g3pt.base_steps.types import DataFileDescription, DataFileDescriptions
+from g3pt.projects.scientific_research.latex_paper_compilation.get_template import get_paper_template_path
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import ProduceScientificPaperPDFWithAppendix
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
@@ -56,7 +57,7 @@ with open('output.txt', 'w') as f:
 OUTPUT = "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181."
 EXPLANATION = "This is the explanation of the code:" \
               "The code is a recursive function that calculates the fibonacci sequence." \
-                "The output is a list of the first 20 fibonacci numbers." \
+              "The output is a list of the first 20 fibonacci numbers."
 
 INTRODUCTION_CITATION_ID = next(iter(INTRODUCTION_CITATION)).get_bibtex_id()
 DATA_FILE_DESCRIPTION = DataFileDescriptions([TestDataFileDescription('data_file_1', 'this is important data')])
@@ -98,8 +99,11 @@ def products():
 
 
 def test_paper_appendix_creator(tmpdir, products):
-    paper_producer = ProduceScientificPaperPDFWithAppendix(products=products,
-                                                           output_file_path=tmpdir / 'output.pdf',)
+    paper_producer = ProduceScientificPaperPDFWithAppendix(
+        products=products,
+        output_file_path=tmpdir / 'output.pdf',
+        paper_template_filepath=get_paper_template_path('standard_paper.tex'),
+    )
     paper_producer.assemble_compile_paper()
     os.chdir(tmpdir)
     assert '@@@appendix@@@' not in paper_producer.latex_paper
