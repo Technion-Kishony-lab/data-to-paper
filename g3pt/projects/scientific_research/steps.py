@@ -68,7 +68,7 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class PlanReviewGPT(BaseProductsQuotedReviewGPT):
-    max_rounds: int = 0  # no review cycles
+    max_reviewing_rounds: int = 0  # no review cycles
     background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
@@ -80,7 +80,7 @@ class PlanReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
-    max_rounds: int = 1
+    max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
     conversation_name: str = 'results_interpretation'
     goal_noun: str = 'description and interpretation of the results'
@@ -98,7 +98,7 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
-    max_rounds: int = 3
+    max_reviewing_rounds: int = 3
     goal_noun: str = None
     conversation_name: str = None
     goal_verb: str = 'write'
@@ -174,7 +174,7 @@ class BaseWriterReviewGPT(BaseProductsReviewGPT):
 
 @dataclass
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
-    max_rounds: int = 2
+    max_reviewing_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
         Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
@@ -187,7 +187,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     section_name: str = None
-    max_rounds: int = 1
+    max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
@@ -211,7 +211,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'rewrite'
     background_product_fields = ['results_summary', 'code_and_output',
                                  'title_and_abstract']
-    max_rounds: int = 0
+    max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
         Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
         only the {goal_noun}.

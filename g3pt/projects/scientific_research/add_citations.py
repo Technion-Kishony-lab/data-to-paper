@@ -19,7 +19,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
     This class is called on already initialized conversation.
     """
 
-    max_rounds: int = 0  # no review
+    max_reviewing_rounds: int = 0  # no review
     max_attempts_per_round: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
@@ -99,7 +99,7 @@ class AddCitationReviewGPT(BaseProductsReviewGPT):
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Secretary
     user_agent: ScientificAgent = ScientificAgent.Student
-    max_rounds: int = 0  # 0 no review
+    max_reviewing_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
 
     # override the default system prompt:
