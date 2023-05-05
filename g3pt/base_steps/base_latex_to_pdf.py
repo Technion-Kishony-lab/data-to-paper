@@ -7,6 +7,20 @@ from g3pt.servers.crossref import CrossrefCitation
 
 from .assemble_to_file import BaseFileProducer
 
+CITATION_WITH_APPENDIX = r"""
+\bibliographystyle{apalike}
+\bibliography{citations}
+
+\clearpage
+\appendix
+###appendix###
+\end{document}"""
+
+CITATION_WITH_APPENDIX_NO_CITATIONS = r"""
+\clearpage
+\appendix
+###appendix###
+\end{document}"""
 
 CITATION_TEMPLATE = r"""
 \bibliographystyle{apalike}
@@ -67,3 +81,33 @@ class BaseLatexToPDF(BaseFileProducer):
         self._has_references = bool(references)
         self.latex_paper = self._assemble_paper(sections)
         self._save_latex_and_compile_to_pdf(references)
+
+
+@dataclass
+class BaseLatexToPDFWithAppendix(BaseLatexToPDF):
+    """
+    Allows creating a pdf based on a tex template whose sections are populated from the Products. Also allows adding
+    an appendix to the paper.
+    """
+    def get_paper_template(self) -> str:
+        template = get_paper_template(self.paper_template_filepath)
+        if self._has_references:
+            template = template.replace(TEMPLATE_END, CITATION_WITH_APPENDIX)
+        else:
+            template = template.replace(TEMPLATE_END, CITATION_WITH_APPENDIX_NO_CITATIONS)
+        return template
+
+    def _assemble_paper(self, sections):
+        """
+        Build the latex paper from the given sections.
+        """
+        paper = self.get_paper_template()
+        for section_name, section_content in sections.items():
+            if section_name == 'appendix':
+                paper = paper.replace('###appendix###', section_content)
+                continue
+            elif section_name == 'preamble':
+                paper = section_content + '\n\n' + paper
+            paper = paper.replace(f'@@@{section_name}@@@', section_content)
+
+        return paper
