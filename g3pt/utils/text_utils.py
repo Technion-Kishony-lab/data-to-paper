@@ -166,7 +166,7 @@ StrOrTupleStr = Union[str, Tuple[str, str]]
 
 
 def wrap_with_lstlisting(paragraph):
-    return "\\begin{lstlisting}[language=TeX]" + paragraph + "\\end{lstlisting}"
+    return "\\begin{lstlisting}[language=TeX]\n" + paragraph + "\n\\end{lstlisting}"
 
 
 def wrap_python_code(code, width=70):
