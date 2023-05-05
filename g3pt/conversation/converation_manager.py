@@ -191,6 +191,7 @@ class ConversationManager:
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
+                                       model_engine=model_engine,
                                        previous_code=previous_code))
         self._append_and_apply_action(action)
         return content
