@@ -83,7 +83,7 @@ class CodeRunner:
         if self.output_file is None:
             return None
         try:
-            with open(self.output_file, 'r') as file:
+            with open(self.data_folder / self.output_file, 'r') as file:
                 return file.read()
         except FileNotFoundError:
             raise FailedLoadingOutput()
