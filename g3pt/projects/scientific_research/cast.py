@@ -1,10 +1,9 @@
 import importlib
-import os
-from pathlib import Path
 
 from g3pt.base_cast import Agent
 from g3pt.base_cast.types import Profile
-from g3pt.projects.scientific_research.env import THEME_NAME
+
+from .env import THEME_NAME
 
 # load theme:
 theme = importlib.import_module(f'g3pt.projects.scientific_research.themes.{THEME_NAME}')
