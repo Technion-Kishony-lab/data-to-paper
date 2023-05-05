@@ -18,9 +18,10 @@ class MockDataFileDescription(DataFileDescription):
 
 @fixture()
 def data_file_descriptions():
-    return DataFileDescriptions([
-        MockDataFileDescription(file_path='BIRTH_RECORDS.csv', description='birth records',
-                                header='patient_id, gender\n 2648, F\n 2649, M\n')])
+    return DataFileDescriptions(
+        [MockDataFileDescription(file_path='BIRTH_RECORDS.csv', description='birth records',
+                                header='patient_id, gender\n 2648, F\n 2649, M\n')],
+        data_folder='.')
 
 
 @fixture()
@@ -72,7 +73,9 @@ def test_plan_reviewer(plan_reviewer):
     assert 'female' in plan
 
 
+# TODO: this code run test is far from perfect. Need to mock the code runner.
+
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_code_reviewer(code_reviewer):
-    code_feedback = code_reviewer.get_analysis_code()
-    print(code_feedback)
+    code_and_output = code_reviewer.get_analysis_code()
+    print(code_and_output)

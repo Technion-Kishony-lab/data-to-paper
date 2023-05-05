@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 from g3pt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
@@ -41,7 +42,7 @@ class DebuggerGPT(ConverserGPT):
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
     data_files: Optional[list] = field(default_factory=list)
-    data_folder: str = None
+    data_folder: Path = None
     output_filename: str = 'results.txt'
 
     @property
