@@ -4,7 +4,7 @@ from typing import Optional, List, Union
 
 from pygments import highlight
 from pygments.formatters.latex import LatexFormatter
-from pygments.lexers.python import PythonLexer
+from pygments.lexers import PythonLexer
 
 from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from g3pt.base_steps.write_code import BaseCodeProductsGPT
