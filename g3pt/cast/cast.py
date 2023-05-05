@@ -1,47 +1,30 @@
 from __future__ import annotations
 
-import importlib
+from abc import abstractmethod
 from enum import Enum
 from typing import Dict, Optional
 
 from g3pt.cast.types import Profile, Algorithm
-from g3pt.env import THEME_NAME
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from g3pt.conversation.actions import Action
 
 
-# load theme:
-theme = importlib.import_module(f"g3pt.cast.themes.{THEME_NAME}")
-
-# User name will be replaced by the name of the user signing in to the app
-USER_NAME = 'User'
-
-
 class Agent(Enum):
-    Student = 'Student'
-    Mentor = 'Mentor'
-    PlanReviewer = 'PlanReviewer'
-    Secretary = 'Secretary'
-    Debugger = 'Debugger'
-    Writer = 'Writer'
-    LiteratureReviewer = 'LiteratureReviewer'
-    Director = 'Director'
 
     @property
+    @abstractmethod
     def profile(self) -> Profile:
-        return getattr(theme, self.name)
+        pass
 
     @property
     def actual_name(self) -> str:
-        if self is Agent.Director:
-            return USER_NAME
         return self.profile.name
 
     @property
     def algorithm(self) -> Algorithm:
-        return AGENT_TO_ALGORITHM[self]
+        return self.profile.algorithm
 
     @property
     def system_prompt(self) -> Optional[str]:
@@ -53,21 +36,6 @@ class Agent(Enum):
         return f"{self.actual_name} ({profile.title})\n" \
                f"{profile.description}\n" \
                f"{algorithm_repr}"
-
-
-assert all(agent.profile.agent_name == agent.name for agent in Agent), \
-    f"Agent name in theme {THEME_NAME} does not match Agent enum"
-
-
-AGENT_TO_ALGORITHM: Dict[Agent, Algorithm] = {
-    Agent.Student: Algorithm.GPT,
-    Agent.Mentor: Algorithm.PRE_PROGRAMMED,
-    Agent.PlanReviewer: Algorithm.GPT,
-    Agent.Secretary: Algorithm.GPT,
-    Agent.Debugger: Algorithm.PRE_PROGRAMMED,
-    Agent.Writer: Algorithm.GPT,
-    Agent.LiteratureReviewer: Algorithm.GPT,
-}
 
 
 AGENTS_TO_SYSTEM_PROMPTS: Dict[Agent, str] = {}

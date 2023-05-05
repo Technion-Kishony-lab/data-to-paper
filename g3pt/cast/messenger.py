@@ -12,7 +12,7 @@ class Messenger:
     """
     A first-person messaging app.
     """
-    first_person: Agent = Agent.Student
+    first_person: Agent
     contacts: List[Agent] = field(default_factory=list)
     conversations: List[Conversation] = field(default_factory=list)
 
@@ -76,6 +76,3 @@ def on_action(action: Action):
     for messenger in ALL_MESSENGERS:
         if messenger.first_person in action.conversation.participants:
             messenger.on_action(action)
-
-
-STUDENT_MESSENGER = create_messenger(first_person=Agent.Student)

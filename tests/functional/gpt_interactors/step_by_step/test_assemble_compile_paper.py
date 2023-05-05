@@ -2,10 +2,10 @@ import os
 
 from _pytest.fixtures import fixture
 
-from g3pt.gpt_interactors.citation_adding.call_crossref import CrossrefCitation
-from g3pt.gpt_interactors.step_by_step.latex_paper_compilation.assemble_compile_paper import \
-    PaperAssemblerCompiler
-from g3pt.gpt_interactors.types import Products
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts
+from g3pt.projects.scientific_research.steps import ProduceScientificPaperPDF
+from g3pt.servers.crossref import CrossrefCitation
+
 
 introduction_citation = {CrossrefCitation({
     "title": "Extended reporting guidance for vaccine effectiveness studies for variants of concern for COVID-19",
@@ -23,7 +23,7 @@ introduction_citation_id = next(iter(introduction_citation)).get_bibtex_id()
 
 @fixture
 def products():
-    return Products(
+    return ScientificProducts(
         paper_sections={'title': '\\title{content of title}',
                         'abstract': '\\begin{abstract}content of abstract\\end{abstract}',
                         'introduction': '\\section{Introduction}{content of introduction}',
@@ -55,14 +55,10 @@ def products():
 
 
 def test_paper_assembler_compiler_gpt(tmpdir, products):
-    output_directory = os.path.join(tmpdir.strpath, 'output')
-    # create the output directory if it does not exist
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
-    paper_assembler_compiler = PaperAssemblerCompiler(products=products, output_directory=output_directory)
+    paper_assembler_compiler = ProduceScientificPaperPDF(products=products,
+                                                         output_file_path=tmpdir / 'output.pdf')
     paper_assembler_compiler.assemble_compile_paper()
 
-    os.chdir(tmpdir)
     assert 'content of title' in paper_assembler_compiler.latex_paper
-    assert os.path.exists(os.path.join(output_directory, paper_assembler_compiler.paper_filename + '.tex'))
-    assert os.path.exists(os.path.join(output_directory, paper_assembler_compiler.paper_filename + '.pdf'))
+    assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.tex'))
+    assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.pdf'))

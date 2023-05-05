@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
-from g3pt.gpt_interactors.step_by_step.reviewers import GoalReviewGPT, PlanReviewGPT
-from g3pt.gpt_interactors.step_by_step.write_code import CodeFeedbackGPT
-from g3pt.gpt_interactors.types import Products, DataFileDescriptions, DataFileDescription
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
+from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, ScientificCodeProductsGPT
+from g3pt.base_steps.types import DataFileDescriptions, DataFileDescription
 
 
 @dataclass(frozen=True)
@@ -18,16 +18,17 @@ class MockDataFileDescription(DataFileDescription):
 
 @fixture()
 def data_file_descriptions():
-    return DataFileDescriptions([
-        MockDataFileDescription(file_path='BIRTH_RECORDS.csv', description='birth records',
-                                header='patient_id, gender\n 2648, F\n 2649, M\n')])
+    return DataFileDescriptions(
+        [MockDataFileDescription(file_path='BIRTH_RECORDS.csv', description='birth records',
+                                header='patient_id, gender\n 2648, F\n 2649, M\n')],
+        data_folder='.')
 
 
 @fixture()
 def goal_reviewer(data_file_descriptions):
     return GoalReviewGPT(
         suppress_printing_other_conversation=False,
-        products=Products(
+        products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
         )
     )
@@ -37,7 +38,7 @@ def goal_reviewer(data_file_descriptions):
 def plan_reviewer(data_file_descriptions):
     return PlanReviewGPT(
         suppress_printing_other_conversation=False,
-        products=Products(
+        products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
             research_goal='to test whether there is a gender bias in the birth records',
         )
@@ -46,8 +47,8 @@ def plan_reviewer(data_file_descriptions):
 
 @fixture()
 def code_reviewer(data_file_descriptions):
-    return CodeFeedbackGPT(
-        products=Products(
+    return ScientificCodeProductsGPT(
+        products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
             research_goal='to test whether there is a gender bias in the birth records',
             analysis_plan='calculate gender ratio and compare to 50%'
@@ -72,7 +73,9 @@ def test_plan_reviewer(plan_reviewer):
     assert 'female' in plan
 
 
+# TODO: this code run test is far from perfect. Need to mock the code runner.
+
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_code_reviewer(code_reviewer):
-    code_feedback = code_reviewer.get_analysis_code()
-    print(code_feedback)
+    code_and_output = code_reviewer.get_analysis_code()
+    print(code_and_output)
