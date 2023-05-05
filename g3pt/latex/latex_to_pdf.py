@@ -1,8 +1,8 @@
 import shutil
 import subprocess
-from typing import Set
-
 import regex
+
+from typing import Set
 
 from g3pt.servers.crossref import CrossrefCitation
 from g3pt.utils.file_utils import run_in_temp_directory
