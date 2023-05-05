@@ -1,16 +1,16 @@
 from _pytest.fixtures import fixture
 
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
-from g3pt.gpt_interactors.citation_adding.call_crossref import CROSSREF_SERVER_CALLER
-from g3pt.gpt_interactors.step_by_step.add_citations import AddCitationReviewGPT
-from g3pt.gpt_interactors.types import Products
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
+from g3pt.servers.crossref import CROSSREF_SERVER_CALLER
+from g3pt.projects.scientific_research.add_citations import AddCitationReviewGPT
 
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
 
 
 @fixture
 def products():
-    return Products(
+    return ScientificProducts(
         research_goal="Find the distance to the moon.",
         results_summary="The distance to the moon is 384,400 km.",
         paper_sections={'title': "\\title{The distance to the moon} ",

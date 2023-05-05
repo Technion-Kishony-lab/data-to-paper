@@ -14,3 +14,13 @@ class TagPairs(NamedTuple):
             return f'`{self.left_tag}`'
         else:
             return f'`{self.left_tag}` and `{self.right_tag}`'
+
+    def wrap(self, text: str) -> str:
+        """
+        Wrap text with the tags.
+        """
+        return f'{self.left_tag}{text}{self.right_tag}'
+
+
+# String patterns used to wrap text for save and load. Use unique patterns, not likely to occur in conversation.
+SAVE_TAGS = TagPairs('START>>>>>\n', '\n<<<<<END\n')

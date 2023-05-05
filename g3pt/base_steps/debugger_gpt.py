@@ -1,11 +1,13 @@
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 from g3pt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from g3pt.cast import Agent
-from g3pt.gpt_interactors.converser_gpt import ConverserGPT
-from g3pt.run_gpt_code.code_runner import CodeRunner, CodeAndOutput
+from g3pt.base_steps.converser_gpt import ConverserGPT
+from g3pt.base_steps.types import CodeAndOutput
+from g3pt.run_gpt_code.code_runner import CodeRunner
 from g3pt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from g3pt.utils import dedent_triple_quote_str
 from g3pt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
@@ -29,8 +31,8 @@ class DebuggerGPT(ConverserGPT):
     * output file not created
     """
 
-    assistant_agent: Agent = Agent.Student
-    user_agent: Agent = Agent.Debugger
+    assistant_agent: Agent = None
+    user_agent: Agent = None
 
     max_debug_iterations: int = 5
 
@@ -40,6 +42,7 @@ class DebuggerGPT(ConverserGPT):
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
     data_files: Optional[list] = field(default_factory=list)
+    data_folder: Path = None
     output_filename: str = 'results.txt'
 
     @property
@@ -55,6 +58,7 @@ class DebuggerGPT(ConverserGPT):
                           allowed_read_files=self.data_files,
                           output_file=self.output_filename,
                           script_file=self.script_filename,
+                          data_folder=self.data_folder,
                           )
 
     def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:

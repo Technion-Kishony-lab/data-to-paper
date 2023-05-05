@@ -7,7 +7,7 @@ from g3pt.conversation import Role, ConversationManager
 from .converser_gpt import ConverserGPT
 from ..conversation.message_designation import GeneralMessageDesignation
 from ..utils.replacer import with_attribute_replacement
-from ..utils.text_utils import extract_text_between_tags
+from ..utils.text_utils import extract_text_between_tags, dedent_triple_quote_str
 
 
 @dataclass
@@ -101,9 +101,7 @@ class DialogDualConverserGPT(DualConverserGPT):
     #                         start here
 
     termination_phrase: str = 'Job completed'
-    """
-    A phrase used by the 'other' chatgpt to terminate the conversation.
-    """
+    "A phrase used by the 'other' chatgpt to terminate the conversation."
 
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
 
@@ -240,28 +238,25 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     # *** Properties that are more generic (adjust only if needed) ***
 
-    system_prompt: str = """
-    You are a {reviewee} who needs to {goal_verb} a {goal_noun}.
-    """
+    system_prompt: str = "You are a {reviewee} who needs to {goal_verb} a {goal_noun}."
 
-    user_initiation_prompt: str = """
-    Please {goal_verb} a {goal_noun}.
-    """
+    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}."
 
-    other_system_prompt: str = """
-    You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
-    Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
-    of improvements and feedback.
+    other_system_prompt: str = dedent_triple_quote_str("""
+        You are a {reviewer} for a {reviewee} who needs to {goal_verb} a {goal_noun}.
+        Your job is to advise me, the {reviewee}, and provide constructive bullet-point feedback in repeated cycles \
+        of improvements and feedback.
 
-    When you feel that the goal has been achieved, respond explicitly with: "{termination_phrase}" (termination-phase).
-    If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged to respond \
-    with the termination-phrase immediately, without requesting any improvement cycles.
-    """
+        When you feel that the goal has been achieved, respond explicitly with: 
+        "{termination_phrase}" (termination-phase)
+        If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged \
+        to respond with the termination-phrase immediately, without requesting any improvement cycles.
+    """)
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = """
-    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
-    Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
-    """
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+        Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
+        """)
 
     sentence_to_add_at_the_end_of_reviewee_response: str = ""
 
@@ -314,10 +309,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     quote_request: str = 'Please return the {goal_noun} enclosed within triple-backticks'
     user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = """
-    Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
-    {quote_request}.
-    """
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+        {quote_request}.
+        """)
 
     def _extract_goal_from_response(self, response: str) -> str:
         for flanking_tags in self.flanking_tag_list:

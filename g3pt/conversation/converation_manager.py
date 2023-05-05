@@ -3,6 +3,7 @@ from typing import Optional, Set, Iterable
 
 from g3pt.cast import Agent
 from g3pt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
+from g3pt.servers.chatgpt import try_get_chatgpt_response
 
 from .actions_and_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation
@@ -151,7 +152,7 @@ class ConversationManager:
         last_action = get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
-        content = self.conversation.try_get_chatgpt_response(last_action.hidden_messages + [-1])
+        content = try_get_chatgpt_response(self.conversation, last_action.hidden_messages + [-1])
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             RegenerateLastResponse(
@@ -173,7 +174,7 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return the exception.
         """
-        content = self.conversation.try_get_chatgpt_response(hidden_messages, **kwargs)
+        content = try_get_chatgpt_response(self.conversation, hidden_messages, **kwargs)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,

@@ -1,8 +1,9 @@
 from _pytest.fixtures import fixture
 
-from g3pt.conversation.conversation import OPENAI_SERVER_CALLER
-from g3pt.gpt_interactors.step_by_step.reviewers import PaperSectionWithTablesReviewGPT
-from g3pt.gpt_interactors.types import Products
+from g3pt.projects.scientific_research.scientific_products import ScientificProducts
+from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
+
+from g3pt.projects.scientific_research.steps import PaperSectionWithTablesReviewGPT
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
 
 SECTIONS_TO_ADD_TABLES_TO = ['results']
@@ -24,7 +25,7 @@ OUTPUT = "0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597
 
 @fixture
 def products():
-    return Products(
+    return ScientificProducts(
         research_goal="Find fastest recursive algorithm for calculating Fibonacci sequence, calculate the 20 first "
                       "terms.",
         results_summary="The 20 first terms of the Fibonacci sequence are: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, "

@@ -1,10 +1,12 @@
 import builtins
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import os
 import importlib
 import traceback
 import warnings
-from typing import Optional, List, Type, Tuple, Any
+from typing import Optional, List, Type, Tuple, Any, Union
 
 import chatgpt_created_scripts
 
@@ -13,6 +15,7 @@ from g3pt.env import MAX_EXEC_TIME
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
+from ..utils.file_utils import run_in_directory
 
 MODULE_NAME = 'script_to_run'
 
@@ -61,7 +64,8 @@ def run_code_using_module_reload(
         warnings_to_ignore: List[Type[Warning]] = None,
         forbidden_modules_and_functions: List[Tuple[Any, str]] = None,
         allowed_read_files: List[str] = None,
-        allowed_write_files: List[str] = None):
+        allowed_write_files: List[str] = None,
+        run_in_folder: Union[Path, str] = None):
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -88,7 +92,8 @@ def run_code_using_module_reload(
             with timeout_context(timeout_sec), \
                     prevent_calling(forbidden_modules_and_functions), \
                     PreventImport(FORBIDDEN_IMPORTS), \
-                    prevent_file_open(allowed_read_files, allowed_write_files):
+                    prevent_file_open(allowed_read_files, allowed_write_files), \
+                    run_in_directory(run_in_folder):
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError

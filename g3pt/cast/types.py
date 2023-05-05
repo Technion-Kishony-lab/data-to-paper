@@ -30,3 +30,4 @@ class Profile(NamedTuple):
     title: str
     description: str
     image_file: str
+    algorithm: Algorithm

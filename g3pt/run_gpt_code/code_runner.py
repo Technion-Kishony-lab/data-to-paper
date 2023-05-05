@@ -1,25 +1,17 @@
 import re
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from g3pt.run_gpt_code.dynamic_code import run_code_using_module_reload
-
+from g3pt.base_steps.types import CodeAndOutput
 from .exceptions import FailedExtractingCode, FailedLoadingOutput
 
 # different code formats that we have observed in chatgpt responses:
 POSSIBLE_CODE_HEADERS = ["```python\n", "``` python\n", "```\n", "``` \n"]
 CORRECT_CODE_HEADER = "```python\n"
 CODE_REGEXP = f'{CORRECT_CODE_HEADER}(.*?)\n```'
-
-
-@dataclass
-class CodeAndOutput:
-    code: str = None
-    output: str = None
-    output_file: Optional[str] = None
-    code_name: str = None
-    explanation: Optional[str] = None
 
 
 LINES_ADDED_BY_MODIFYING_CODE = 0
@@ -57,6 +49,7 @@ class CodeRunner:
     allowed_read_files: Optional[list] = None
     output_file: Optional[str] = None
     script_file: Optional[str] = None
+    data_folder: Optional[Path] = None
 
     def extract_code(self) -> str:
         num_block_edges = self.response.count('```')
@@ -108,6 +101,7 @@ class CodeRunner:
         self.delete_output_file()
         run_code_using_module_reload(code,
                                      save_as=None,  # change to self.script_file in order to keep records of the code
+                                     run_in_folder=self.data_folder,
                                      allowed_read_files=self.allowed_read_files,
                                      allowed_write_files=None if self.output_file is None else [self.output_file])
         return CodeAndOutput(code=code, output=self.read_output_file(), output_file=self.output_file)
