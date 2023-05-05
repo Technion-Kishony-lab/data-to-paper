@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from g3pt.base_steps.types import DataFileDescription, DataFileDescriptions, Products
+from g3pt.base_steps.types import DataFileDescription, DataFileDescriptions
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import ProduceScientificPaperPDFWithAppendix
 from g3pt.run_gpt_code.code_runner import CodeAndOutput
