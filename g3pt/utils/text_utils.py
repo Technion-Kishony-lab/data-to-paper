@@ -165,6 +165,35 @@ def extract_text_between_brackets(text: str, open_bracket: str, leave_brackets: 
 StrOrTupleStr = Union[str, Tuple[str, str]]
 
 
+def wrap_python_code(code, width=70):
+    wrapped_lines = []
+    for line in code.splitlines():
+        stripped_line = line.strip()
+        # Wrap comments
+        if stripped_line.startswith("#"):
+            # Preserve the leading whitespace
+            leading_whitespace = line[:line.index("#")]
+            wrapped_comment = textwrap.fill(stripped_line, width=width,
+                                            initial_indent=leading_whitespace,
+                                            subsequent_indent=leading_whitespace + "# ",
+                                            break_long_words=False,
+                                            break_on_hyphens=False)
+            wrapped_lines.extend(wrapped_comment.splitlines())
+        # Wrap non-empty lines that are not comments
+        elif stripped_line:
+            wrapped_line = textwrap.wrap(line, width=width,
+                                         break_long_words=False,
+                                         break_on_hyphens=False)
+            for i, part in enumerate(wrapped_line[:-1]):
+                wrapped_lines.append(part + " \\")
+            # Align the continuation lines with the original line's indentation
+            continuation_indent = len(line) - len(line.lstrip())
+            wrapped_lines.append(" " * continuation_indent + wrapped_line[-1])
+        else:
+            wrapped_lines.append(line)
+    return "\n".join(wrapped_lines)
+
+
 def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
                 prefix: StrOrTupleStr = '', suffix: StrOrTupleStr = '',
                 separator: str = ', ', last_separator: Optional[str] = ' and '):
