@@ -12,12 +12,10 @@ CITATION_TEMPLATE = r"""
 \bibliographystyle{apalike}
 \bibliography{citations}
 
-\end{document}
-"""
+\end{document}"""
 
 TEMPLATE_END = r"""
-\end{document}
-"""
+\end{document}"""
 
 
 @dataclass
