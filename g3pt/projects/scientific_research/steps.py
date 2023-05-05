@@ -209,7 +209,7 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
         All results we may need for a scientific paper should be saved to that file, including \
         analysis findings, summary statistics, etc. 
-        Do not write to any other files and do not plot anything to screen.
+        Do not write to any other files and do not plot anything to screen or file.
         """)
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \

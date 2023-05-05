@@ -10,7 +10,7 @@ from .get_template import get_paper_template_path
 from .scientific_products import ScientificProducts
 from .steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
-    ScientificCodeProductsGPT, ProduceScientificPaperPDF
+    ScientificCodeProductsGPT, ProduceScientificPaperPDF, ProduceScientificPaperPDFWithAppendix
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -25,7 +25,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     def _run_all_steps(self) -> ScientificProducts:
         products = self.products
-        paper_producer = ProduceScientificPaperPDF(
+        paper_producer = ProduceScientificPaperPDFWithAppendix(
             paper_template_filepath=PAPER_TEMPLATE_FILE,
             products=products,
             output_file_path=self.output_directory / 'paper.pdf',

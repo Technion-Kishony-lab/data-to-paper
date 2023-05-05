@@ -108,7 +108,7 @@ class CrossrefCitation(dict):
         """
         Get the bibtex id for this citation.
         """
-        bibtex_id = self['first_author_family'] + (str(self.get("year")) if self.get("year") else "")
+        bibtex_id = unidecode(self['first_author_family']) + (str(self.get("year")) if self.get("year") else "")
         bibtex_id += self['title'].split(" ")[0] if self.get("title") else ""
         return bibtex_id
 
@@ -171,7 +171,7 @@ class CrossrefServerCaller(ServerCaller):
 
             citation = {
                 "title": item["title"][0],
-                "first_author_family": item["author"][0]["family"],
+                "first_author_family": item["author"][0]["family"].split(" ")[0],
                 "authors": authors_string,
                 "journal": item.get("container-title", [None])[0],
                 "doi": item.get("DOI", ''),
