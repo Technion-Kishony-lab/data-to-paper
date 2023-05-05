@@ -3,13 +3,13 @@ from dataclasses import dataclass
 from typing import Optional, List, Set
 
 from g3pt.utils.text_utils import red_text
+from g3pt.base_cast import Agent
 
 from .actions_and_conversations import append_action, get_conversation, add_conversation
 from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-from g3pt.base_cast import Agent
 
 NoneType = type(None)
 
