@@ -45,7 +45,6 @@ class BaseLatexToPDF(BaseFileProducer):
         Build the latex paper from the given sections.
         """
         paper = self.get_paper_template()
-        assert BIB_FILENAME in paper
         for section_name, section_content in sections.items():
             paper = paper.replace(f'@@@{section_name}@@@', section_content)
         return paper
