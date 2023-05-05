@@ -29,7 +29,7 @@ class DataFileDescription:
             return ''.join(head)
 
     def pretty_repr(self):
-        return f'{self.file_path}\n{self.description}\n' \
+        return f'{self.file_path}\n{self.description}\n\n' \
                f'Here are the first few lines of the file:\n' \
                f'```\n{self.get_file_header()}\n```'
 
