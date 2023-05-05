@@ -22,4 +22,4 @@ MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF = 20  # Use 0 to always show code diff, or 
 HIDE_INCOMPLETE_CODE = True
 
 # Max number of characters allowed in output txt file of gpt code:
-MAX_SENSIBLE_OUTPUT_SIZE = 2000
+MAX_SENSIBLE_OUTPUT_SIZE = 3000
