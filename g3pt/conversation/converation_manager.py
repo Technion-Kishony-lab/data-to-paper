@@ -221,7 +221,7 @@ class ConversationManager:
         self._append_and_apply_action(
             ReplaceLastResponse(
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
-                message=Message(role=Role.SURROGATE, content=content, tag=tag)))
+                message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent)))
         return content
 
     def copy_messages_from_another_conversations(self, source_conversation: Conversation,
