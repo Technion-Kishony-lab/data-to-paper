@@ -8,6 +8,7 @@ from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .get_template import get_paper_template_path
 from .scientific_products import ScientificProducts
+from .scientific_stage import ScientificStage
 from .steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
     ScientificCodeProductsGPT, ProduceScientificPaperPDFWithAppendix
@@ -41,6 +42,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         )
         products.data_file_descriptions = director_converser.get_product_from_director(
             product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
+        self.advance_stage(ScientificStage.PLANNING)
 
         # Goal
         if self.research_goal is None:
@@ -54,9 +56,11 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Code and output
         products.code_and_output = ScientificCodeProductsGPT(products=products).get_analysis_code()
+        self.advance_stage(ScientificStage.CODING)
 
         # Results interpretation
         products.results_summary = ResultsInterpretationReviewGPT(products=products).initialize_and_run_dialog()
+        self.advance_stage(ScientificStage.ANALYSIS)
 
         # Paper sections
         title_and_abstract_names = ['title', 'abstract']
@@ -67,6 +71,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             if section_name not in title_and_abstract_names:
                 products.paper_sections[section_name] = \
                     PaperSectionReviewGPT(products=products, section_name=section_name).get_section()
+        self.advance_stage(ScientificStage.WRITING)
 
         # Add citations to relevant paper sections
         for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
@@ -79,5 +84,6 @@ class ScientificStepsRunner(BaseStepsRunner):
                 PaperSectionWithTablesReviewGPT(products=products, section_name=section_name).get_section()
 
         paper_producer.assemble_compile_paper()
+        self.advance_stage(ScientificStage.FINISHED)
 
         return products

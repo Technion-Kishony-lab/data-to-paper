@@ -10,6 +10,7 @@ from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 
 from scientistgpt.conversation import save_actions_to_file
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
+from scientistgpt.conversation.stage import append_advance_stage, Stage
 
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
@@ -28,6 +29,12 @@ class BaseStepsRunner(BaseProductsHandler):
     output_directory: Path = None
     data_file_descriptions: DataFileDescriptions = None
     mock_servers: bool = False
+
+    def advance_stage(self, stage: Stage):
+        """
+        Advance the stage of the research goal.
+        """
+        append_advance_stage(stage=stage)
 
     @property
     def absolute_data_folder(self):
