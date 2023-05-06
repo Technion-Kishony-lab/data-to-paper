@@ -16,6 +16,7 @@ from g3pt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, BaseCode
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
+from ...servers.openai_models import ModelEngine
 
 sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
@@ -83,10 +84,13 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
     user_agent: ScientificAgent = ScientificAgent.Student
+    model_engine = ModelEngine.GPT4
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
     """)
+    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}." + \
+                                  "Briefly mention the tools used to preform the analysis."
 
 
 @dataclass
