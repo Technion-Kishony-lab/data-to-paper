@@ -2,8 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List, Set
 
-from g3pt.utils.text_utils import red_text
-from g3pt.base_cast import Agent
+from scientistgpt.utils.text_utils import red_text
+from scientistgpt.base_cast import Agent
 
 from .actions_and_conversations import append_action, get_conversation, add_conversation
 from .message import Message
@@ -15,7 +15,7 @@ NoneType = type(None)
 
 
 def apply_action(action: Action, should_print: bool = True, is_color: bool = True):
-    from g3pt.base_cast import update_cast_on_action
+    from scientistgpt.base_cast import update_cast_on_action
     append_action(action)
     if should_print:
         print(action.pretty_repr(is_color=is_color))

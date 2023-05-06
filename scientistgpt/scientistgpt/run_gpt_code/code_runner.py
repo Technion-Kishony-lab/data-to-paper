@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from g3pt.run_gpt_code.dynamic_code import run_code_using_module_reload
+from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 
 from .types import CodeAndOutput
 from .exceptions import FailedExtractingCode, FailedLoadingOutput

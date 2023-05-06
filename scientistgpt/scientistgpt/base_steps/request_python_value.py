@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-from g3pt.base_steps.base_products_conversers import BaseProductsReviewGPT
+from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewGPT
 
 from typing import Optional, Any, Dict, List
 
-from g3pt.utils import extract_text_between_tags
-from g3pt.utils.tag_pairs import TagPairs
+from scientistgpt.utils import extract_text_between_tags
+from scientistgpt.utils.tag_pairs import TagPairs
 
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {

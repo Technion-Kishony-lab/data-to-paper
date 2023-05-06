@@ -5,11 +5,11 @@ from dataclasses import dataclass
 
 from pathlib import Path
 
-from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
-from g3pt.servers.crossref import CROSSREF_SERVER_CALLER
+from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 
-from g3pt.conversation import save_actions_to_file
-from g3pt.run_gpt_code.dynamic_code import module_dir
+from scientistgpt.conversation import save_actions_to_file
+from scientistgpt.run_gpt_code.dynamic_code import module_dir
 
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME

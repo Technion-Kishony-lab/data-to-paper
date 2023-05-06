@@ -5,16 +5,16 @@ import re
 
 from typing import List, Union
 
-from g3pt.conversation.message_designation import GeneralMessageDesignation
-from g3pt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
-from g3pt.utils.tag_pairs import SAVE_TAGS
+from scientistgpt.conversation.message_designation import GeneralMessageDesignation
+from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
+from scientistgpt.utils.tag_pairs import SAVE_TAGS
 
 from .base_server import ServerCaller
 from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from g3pt.conversation.message import Message
+    from scientistgpt.conversation.message import Message
 
 # Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY

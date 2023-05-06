@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from g3pt.exceptions import ScientistGPTException
+from scientistgpt.exceptions import ScientistGPTException
 
 
 @dataclass

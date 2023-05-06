@@ -3,7 +3,7 @@ import traceback
 from contextlib import contextmanager
 from typing import List, Tuple, Any
 
-from g3pt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
+from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 
@@ -45,7 +45,7 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
     modules_and_functions = modules_and_functions or []
 
     def get_upon_called(func_name, original_func):
-        from g3pt.run_gpt_code.dynamic_code import module_filename
+        from scientistgpt.run_gpt_code.dynamic_code import module_filename
 
         def upon_called(*args, **kwargs):
             # We check that the function was called from the module we are running
@@ -73,7 +73,7 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
 
 class PreventImport:
     def __init__(self, modules):
-        from g3pt.run_gpt_code.dynamic_code import module_filename
+        from scientistgpt.run_gpt_code.dynamic_code import module_filename
         self.modules = modules
         self.module_filename = module_filename
 

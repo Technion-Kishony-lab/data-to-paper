@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
-from g3pt import Conversation
-from g3pt.base_cast import Agent
-from g3pt.base_cast.messenger import Messenger, create_messenger
-from g3pt.conversation.actions import CreateConversation, apply_action
+from scientistgpt import Conversation
+from scientistgpt.base_cast import Agent
+from scientistgpt.base_cast.messenger import Messenger, create_messenger
+from scientistgpt.conversation.actions import CreateConversation, apply_action
 
 
 class TestAgent(Agent):

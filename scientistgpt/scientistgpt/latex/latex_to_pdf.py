@@ -4,8 +4,8 @@ import regex
 
 from typing import Set
 
-from g3pt.servers.crossref import CrossrefCitation
-from g3pt.utils.file_utils import run_in_temp_directory
+from scientistgpt.servers.crossref import CrossrefCitation
+from scientistgpt.utils.file_utils import run_in_temp_directory
 
 BIB_FILENAME: str = 'citations.bib'
 

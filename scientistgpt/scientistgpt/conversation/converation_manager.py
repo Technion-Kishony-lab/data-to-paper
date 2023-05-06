@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Iterable
 
-from g3pt.base_cast import Agent
-from g3pt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
-from g3pt.servers.chatgpt import try_get_chatgpt_response
-from g3pt.servers.openai_models import ModelEngine
+from scientistgpt.base_cast import Agent
+from scientistgpt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
+from scientistgpt.servers.chatgpt import try_get_chatgpt_response
+from scientistgpt.servers.openai_models import ModelEngine
 
 from .actions_and_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation

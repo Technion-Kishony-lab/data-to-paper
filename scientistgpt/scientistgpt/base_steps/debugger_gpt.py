@@ -3,15 +3,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, ClassVar
 
-from g3pt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
-from g3pt.utils import dedent_triple_quote_str
-from g3pt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
-from g3pt.run_gpt_code.code_runner import CodeRunner
-from g3pt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+from scientistgpt.run_gpt_code.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
-from g3pt.base_cast import Agent
-from g3pt.run_gpt_code.types import CodeAndOutput
-from g3pt.servers.openai_models import ModelEngine
+from scientistgpt.base_cast import Agent
+from scientistgpt.run_gpt_code.types import CodeAndOutput
+from scientistgpt.servers.openai_models import ModelEngine
 
 from .converser_gpt import ConverserGPT
 

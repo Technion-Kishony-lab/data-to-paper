@@ -6,11 +6,11 @@ from pygments import highlight
 from pygments.formatters.latex import LatexFormatter
 from pygments.lexers import PythonLexer
 
-from g3pt.utils import dedent_triple_quote_str
-from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.replacer import with_attribute_replacement
+from scientistgpt.utils.text_utils import nicely_join, NiceList, wrap_python_code
 
-from g3pt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, BaseCodeProductsGPT, \
+from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, BaseCodeProductsGPT, \
     BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
 

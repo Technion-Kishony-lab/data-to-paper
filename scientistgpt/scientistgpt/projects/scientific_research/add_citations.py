@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, Optional, List, Any
 
-from g3pt.utils import dedent_triple_quote_str
-from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import NiceList
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.replacer import with_attribute_replacement
+from scientistgpt.utils.text_utils import NiceList
 
-from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
-from g3pt.base_steps.request_python_value import BasePythonValueProductsReviewGPT
+from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
+from scientistgpt.base_steps.request_python_value import BasePythonValueProductsReviewGPT
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts

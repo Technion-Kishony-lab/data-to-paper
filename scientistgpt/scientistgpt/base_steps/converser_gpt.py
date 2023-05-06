@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, ClassVar
 
-from g3pt.conversation import ConversationManager, GeneralMessageDesignation
-from g3pt.servers.openai_models import ModelEngine
-from g3pt.utils.replacer import Replacer, with_attribute_replacement
-from g3pt.utils.text_utils import print_red
-from g3pt.base_cast import Agent
+from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
+from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
+from scientistgpt.utils.text_utils import print_red
+from scientistgpt.base_cast import Agent
 
 
 @dataclass

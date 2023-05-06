@@ -2,7 +2,7 @@ from abc import ABCMeta
 from dataclasses import dataclass
 from typing import List, Optional
 
-from g3pt.exceptions import ScientistGPTException
+from scientistgpt.exceptions import ScientistGPTException
 
 
 class RunCodeException(ScientistGPTException, metaclass=ABCMeta):
@@ -40,14 +40,14 @@ class FailedRunningCode(RunCodeException):
         returns a fake traceback message, simulating as if the code ran in a real file.
         the line causing the exception is extracted from the ran `code`.
         """
-        from g3pt.run_gpt_code.code_runner import LINES_ADDED_BY_MODIFYING_CODE
+        from scientistgpt.run_gpt_code.code_runner import LINES_ADDED_BY_MODIFYING_CODE
 
         if isinstance(self.exception, SyntaxError):
             lineno = self.exception.lineno
             text = self.exception.text
             msg = self.exception.msg
         else:
-            from g3pt.run_gpt_code.dynamic_code import module_filename
+            from scientistgpt.run_gpt_code.dynamic_code import module_filename
             index = next((i for i, t in enumerate(self.tb) if t[0].endswith(module_filename)), None)
             if index is None:
                 return ''

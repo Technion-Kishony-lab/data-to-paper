@@ -4,7 +4,7 @@ from typing import List, Mapping, Any
 import requests
 from unidecode import unidecode
 
-from g3pt.exceptions import ScientistGPTException
+from scientistgpt.exceptions import ScientistGPTException
 
 from .base_server import ServerCaller
 

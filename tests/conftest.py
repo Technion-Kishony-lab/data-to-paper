@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from g3pt.conversation.replay import clear_actions_and_conversations
+from scientistgpt.conversation.replay import clear_actions_and_conversations
 
 
 @fixture(autouse=True)

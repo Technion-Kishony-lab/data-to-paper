@@ -1,8 +1,9 @@
 import pytest
 import os
 
-from g3pt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
-from g3pt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
+from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
+from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
+
 
 OUTPUT_FILE = "output.txt"
 
