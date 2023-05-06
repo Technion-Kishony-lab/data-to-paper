@@ -8,7 +8,7 @@ import traceback
 import warnings
 from typing import Optional, List, Type, Tuple, Any, Union
 
-import chatgpt_created_scripts
+from scientistgpt import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 from scientistgpt.utils.file_utils import run_in_directory
