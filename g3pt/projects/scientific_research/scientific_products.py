@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
 from g3pt.utils.text_utils import dedent_triple_quote_str
-from g3pt.base_steps.types import CodeAndOutput, DataFileDescriptions, Products
+from g3pt.base_steps import CodeAndOutput, DataFileDescriptions, Products
 from g3pt.servers.crossref import CrossrefCitation
 
 
