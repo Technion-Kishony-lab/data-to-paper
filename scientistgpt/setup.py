@@ -30,7 +30,7 @@ setup(
         "numpy",
         "pandas",
         "colorama",
-        "unidecode"
+        "unidecode",
         "pygments",
         "regex",
     ],
