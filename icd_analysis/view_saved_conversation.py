@@ -1,4 +1,4 @@
-from g3pt import replay_actions
+from scientistgpt.scientistgpt import replay_actions
 from local_paths import OUTPUT_FOLDER
 from pathlib import Path
 

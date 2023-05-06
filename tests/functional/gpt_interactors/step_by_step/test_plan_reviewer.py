@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from g3pt.projects.scientific_research.scientific_products import ScientificProducts
-from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
-from g3pt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, ScientificCodeProductsGPT
-from g3pt.base_steps.types import DataFileDescriptions, DataFileDescription
+from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
+from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+from scientistgpt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, ScientificCodeProductsGPT
+from scientistgpt.base_steps.types import DataFileDescriptions, DataFileDescription
 
 
 @dataclass(frozen=True)

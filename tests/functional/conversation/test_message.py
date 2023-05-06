@@ -2,8 +2,8 @@ import colorama
 import pytest
 from _pytest.fixtures import fixture
 
-from g3pt import Role, Message
-from g3pt.utils.text_utils import highlight_python_code
+from scientistgpt import Role, Message
+from scientistgpt.utils.text_utils import highlight_python_code
 
 
 @fixture()

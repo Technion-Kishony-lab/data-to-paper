@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from g3pt.projects.scientific_research.run_steps import ScientificStepsRunner
+from scientistgpt.projects.scientific_research.run_steps import ScientificStepsRunner
 from queries_covid_vaccine import data_file_descriptions
 
 # local_path.py is git ignored. It should be created locally, and contain:

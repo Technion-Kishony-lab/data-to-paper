@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 from _pytest.fixtures import fixture
 
-from g3pt.utils.replacer import Replacer, with_attribute_replacement
+from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 
 
 @dataclass

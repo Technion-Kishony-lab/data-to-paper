@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from g3pt.projects.scientific_research.run_steps import ScientificStepsRunner
+from scientistgpt.projects.scientific_research.run_steps import ScientificStepsRunner
 from queries_mimic import data_file_descriptions
 # from queries_mimic import simpler_research_goal
 

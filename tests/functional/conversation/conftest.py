@@ -1,8 +1,8 @@
 import openai
 from _pytest.fixtures import fixture
 
-from g3pt import Conversation, Role, Message
-from g3pt.conversation.actions_and_conversations import add_conversation
+from scientistgpt import Conversation, Role, Message
+from scientistgpt.conversation.actions_and_conversations import add_conversation
 
 
 @fixture()

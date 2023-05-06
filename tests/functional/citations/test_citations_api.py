@@ -1,4 +1,4 @@
-from g3pt.servers.crossref import CROSSREF_SERVER_CALLER
+from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 
 QUERY = 'covid-19 affected the world'
 
