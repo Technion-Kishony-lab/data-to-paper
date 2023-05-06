@@ -8,7 +8,7 @@ from .types import Profile, Algorithm
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from conversation.actions import Action
+    from scientistgpt.conversation.actions import Action
 
 
 class Agent(Enum):
