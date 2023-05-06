@@ -10,6 +10,7 @@ from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 from scientistgpt.cast import Agent
+from .stage import Stage
 
 NoneType = type(None)
 
@@ -301,3 +302,11 @@ class CopyMessagesBetweenConversations(Action):
     def apply(self):
         for index in self._get_indices_to_copy():
             self.conversation.append(self.source_conversation[index])
+
+
+@dataclass(frozen=True)
+class AdvanceStage(Action):
+    stage: Stage = None
+
+    def _pretty_attrs(self) -> str:
+        return f'{self.stage}'

@@ -9,7 +9,8 @@ from .message import Message, Role, create_message, create_message_from_other_me
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, apply_action, AddParticipantsToConversation
+    CreateConversation, apply_action, AddParticipantsToConversation, AdvanceStage
+from .stage import Stage
 
 
 @dataclass
@@ -112,6 +113,13 @@ class ConversationManager:
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
         self.append_message(Role.SURROGATE, content, tag, comment, ignore, is_code, previous_code)
+
+    def append_advance_stage(self, stage: Stage):
+        """
+        Append a message to advance the stage of the conversation.
+        """
+        self._append_and_apply_action(AdvanceStage(stage=stage, conversation_name=self.conversation_name,
+                                                   driver=self.driver))
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,

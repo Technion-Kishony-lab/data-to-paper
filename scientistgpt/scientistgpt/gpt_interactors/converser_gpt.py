@@ -3,6 +3,7 @@ from typing import Optional, List
 
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import GeneralMessageDesignation
+from scientistgpt.conversation.stage import Stage
 from scientistgpt.data_file_description import DataFileDescription
 from scientistgpt.utils.text_utils import print_red
 
@@ -73,6 +74,9 @@ class ConverserGPT:
                                        is_code: bool = False, previous_code: Optional[str] = None):
         return self.conversation_manager.append_surrogate_message(content, tag=tag, comment=comment, is_code=is_code,
                                                                   previous_code=previous_code)
+
+    def apply_advance_stage_message(self, stage: Stage):
+        return self.conversation_manager.append_advance_stage(stage)
 
 
 @dataclass

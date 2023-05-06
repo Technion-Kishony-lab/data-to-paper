@@ -30,6 +30,8 @@ setup(
         "numpy",
         "pandas",
         "colorama",
+        "scipy",
+        "pygments"
     ],
     extras_require={
         'dev': [

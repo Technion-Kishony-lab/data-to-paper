@@ -13,7 +13,7 @@ from scientistgpt.gpt_interactors.paper_writing import PaperAuthorGPT, FailedCre
 from .scientific_products import ScientificProducts
 from .text_extractors import extract_analysis_plan_from_response
 from .plan_reviewer_gpt import PlanReviewDialogDualConverserGPT
-
+from ..conversation.stage import Stage
 
 # structure and terminology:
 # analysis plan round (2x):
@@ -376,16 +376,27 @@ class ScientistGPT(CodeWritingGPT):
         for analysis_plan_round in range(MAX_ANALYSIS_PLAN_ROUNDS):
             if analysis_plan_round > 0:
                 self.comment(f'Rethinking analysis plan (round {analysis_plan_round + 1}/{MAX_ANALYSIS_PLAN_ROUNDS}).')
-            self.devise_analysis_plan()
-            self.review_analysis_plan()
-            if not self.run_cycles_of_code_and_results():
-                continue  # try a new analysis plan
-            self.get_gpt_response_to_analysis()
-            if not self.call_paper_author_to_write_and_compile_paper():
-                continue  # try a new analysis plan
-            break
+            try:
+                self.apply_advance_stage_message(Stage.PLANNING)
+                self.devise_analysis_plan()
+                self.review_analysis_plan()
+                self.apply_advance_stage_message(Stage.CODING)
+                if not self.run_cycles_of_code_and_results():
+                    continue  # try a new analysis plan
+                self.apply_advance_stage_message(Stage.ANALYSIS)
+                self.get_gpt_response_to_analysis()
+                self.apply_advance_stage_message(Stage.WRITING)
+                if not self.call_paper_author_to_write_and_compile_paper():
+                    continue  # try a new analysis plan
+                break
+            except Exception:
+                self.comment('An error occurred.')
+                self.apply_advance_stage_message(Stage.FAILED)
+                raise
         else:
             self.comment('Reached max analysis plan rounds. Manuscript NOT created. Giving up.')
+            self.apply_advance_stage_message(Stage.FAILED)
             return False
+        self.apply_advance_stage_message(Stage.FINISHED)
         self.comment('Manuscript created successfully.')
         return True

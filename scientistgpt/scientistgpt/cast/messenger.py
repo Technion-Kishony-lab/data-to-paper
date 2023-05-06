@@ -16,6 +16,17 @@ class Messenger:
     contacts: List[Agent] = field(default_factory=list)
     conversations: List[Conversation] = field(default_factory=list)
 
+    #
+    def __post_init__(self):
+        ALL_MESSENGERS.append(self)
+
+
+    # @classmethod
+    # def create(cls, *args, **kwargs):
+    #     self = cls(*args, **kwargs)
+    #     ALL_MESSENGERS.append(self)
+    #     return self
+
     def add_contact(self, agent: Agent):
         if agent not in self.contacts:
             self.contacts.append(agent)
@@ -68,7 +79,6 @@ ALL_MESSENGERS: List[Messenger] = []
 def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None) -> Messenger:
     messenger = Messenger(first_person=first_person)
     messenger.add_contacts(contacts)
-    ALL_MESSENGERS.append(messenger)
     return messenger
 
 
@@ -78,4 +88,4 @@ def on_action(action: Action):
             messenger.on_action(action)
 
 
-STUDENT_MESSENGER = create_messenger(first_person=Agent.Student)
+# STUDENT_MESSENGER = create_messenger(first_person=Agent.Student)

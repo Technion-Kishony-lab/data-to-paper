@@ -30,11 +30,11 @@ FORBIDDEN_MODULES_AND_FUNCTIONS = [
 
 FORBIDDEN_IMPORTS = [
 #   'os',
-    'sys',
-    'subprocess',
-    'shutil',
-    'pickle',
-    'matplotlib',
+#     'sys',
+#     'subprocess',
+#     'shutil',
+#     'pickle',
+#     'matplotlib',
 ]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
@@ -77,6 +77,14 @@ def run_code_using_module_reload(
     forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
 
     save_code_to_module_file(code)
+
+    print("SAVED CODE")
+    try:
+        importlib.reload(CODE_MODULE)
+    except Exception as e:
+        pass
+    print("AFTER")
+    # import ipdb; ipdb.set_trace()
     with warnings.catch_warnings():
         for warning in warnings_to_ignore:
             warnings.filterwarnings("ignore", category=warning)
@@ -88,6 +96,7 @@ def run_code_using_module_reload(
                     prevent_calling(forbidden_modules_and_functions), \
                     PreventImport(FORBIDDEN_IMPORTS), \
                     prevent_file_open(allowed_read_files, allowed_write_files):
+
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError
@@ -97,6 +106,7 @@ def run_code_using_module_reload(
             tb.pop()  # remove the line of the context manager
             raise FailedRunningCode(exception=e, tb=tb, code=code)
         except Exception as e:
+            print(e)
             tb = traceback.extract_tb(e.__traceback__)
             raise FailedRunningCode(exception=e, tb=tb, code=code)
         finally:
