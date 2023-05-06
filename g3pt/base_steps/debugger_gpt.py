@@ -10,10 +10,10 @@ from g3pt.run_gpt_code.code_runner import CodeRunner
 from g3pt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from g3pt.base_cast import Agent
+from g3pt.run_gpt_code.types import CodeAndOutput
+from g3pt.servers.openai_models import ModelEngine
 
 from .converser_gpt import ConverserGPT
-from .types import CodeAndOutput
-from ..servers.openai_models import ModelEngine
 
 
 @dataclass

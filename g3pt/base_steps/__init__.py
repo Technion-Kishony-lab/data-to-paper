@@ -8,7 +8,8 @@ Base classes to use for building each step in a multi-step process towards a goa
 from .types import Products
 
 # Basic Products types:
-from .types import DataFileDescription, DataFileDescriptions, CodeAndOutput
+from g3pt.run_gpt_code.types import CodeAndOutput
+from .types import DataFileDescription, DataFileDescriptions
 
 # --- RUNNING MULTI-STEP PROCESS ---
 
