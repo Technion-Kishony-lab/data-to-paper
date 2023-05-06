@@ -10,8 +10,8 @@ from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
 
-from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
-from g3pt.base_steps.write_code import BaseCodeProductsGPT
+from g3pt.base_steps.latex_products_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
+from g3pt.base_steps.request_code import BaseCodeProductsGPT
 from g3pt.base_steps.request_quoted_test import BaseProductsQuotedReviewGPT
 from g3pt.base_steps.request_latex import BaseLatexProductsReviewGPT
 
