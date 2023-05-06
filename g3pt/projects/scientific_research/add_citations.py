@@ -1,24 +1,25 @@
 from dataclasses import dataclass, field
-from typing import Dict, Set, Tuple, Optional, List
+from typing import Dict, Set, Tuple, Optional, List, Any
 
-from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
-from g3pt.base_steps.dual_converser import ReviewDialogDualConverserGPT
-from g3pt.base_steps.base_products_conversers import BaseProductsReviewGPT
 from g3pt.utils import dedent_triple_quote_str
-from g3pt.utils.extract_python import extract_python_value_from_response
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import NiceList
 
+from g3pt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
+from g3pt.base_steps.request_python_value import BasePythonValueProductsReviewGPT
+
 from .cast import ScientificAgent
+from .scientific_products import ScientificProducts
 
 
 @dataclass
-class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
+class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     """
-    Given a sentence and a list of citations, rewrite the sentence with the citations.
+    Given a sentence and a list of citations, choose the ones that match the sentence and
+    rewrite the sentence with the citations.
     This class is called on already initialized conversation.
     """
-
+    value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
     max_attempts_per_round: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -53,14 +54,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
     def citation_ids(self) -> List[str]:
         return [citation.get_bibtex_id() for citation in self.citations]
 
-    def _check_self_response(self, response: str) -> Optional[str]:
-        """
-        check that the response is a valid python list of str
-        """
-        feedback, response_value = extract_python_value_from_response(response, List[str])
-        if feedback is not None:
-            return feedback  # return the feedback on the error
-
+    def _check_response_value(self, response_value: Any) -> Optional[str]:
         ids_not_in_options = \
             self._add_citations_in_options_and_return_citations_not_in_options(response_value)
 
@@ -68,6 +62,7 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
             return \
                 f'You returned citations that are not included in the provided citation options.' \
                 f'Specifically, you returned {ids_not_in_options}, while the allowed options are: {self.citation_ids}.'
+        return None
 
     def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
         """
@@ -82,6 +77,9 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
         return not_in_citations
 
     def get_rewritten_sentence(self):
+        """
+        Add the chosen citations at the end of the sentence.
+        """
         if len(self.chosen_citation_ids) == 0:
             return self.sentence
         return self.sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(self.chosen_citation_ids) + '}.'
@@ -93,8 +91,14 @@ class RewriteSentenceWithCitations(ReviewDialogDualConverserGPT):
 
 
 @dataclass
-class AddCitationReviewGPT(BaseProductsReviewGPT):
+class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
+    """
+    Given a section of a paper, add citations to the factual sentences in the section.
+    """
+    value_type: type = Dict[str, str]
+    products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
+    # see _get_background_product_fields()
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Secretary
@@ -183,10 +187,11 @@ class AddCitationReviewGPT(BaseProductsReviewGPT):
     def _get_background_product_fields(self):
         return super()._get_background_product_fields() + ['paper_sections_' + self.section_name]
 
-    def _check_self_response(self, response: str) -> Optional[str]:
-        feedback_message, response_value = extract_python_value_from_response(response, Dict[str, str])
-        if feedback_message is not None:
-            return feedback_message
+    def _check_response_value(self, response_value: Any) -> Optional[str]:
+        """
+        Check that the response value is valid.
+        Return a feedback message if it is not valid, otherwise return None.
+        """
         sentences_not_in_section = self._add_sentences_in_section_and_return_sentences_not_in_section(response_value)
         if sentences_not_in_section:
             if len(sentences_not_in_section) == len(response_value):
@@ -203,6 +208,7 @@ class AddCitationReviewGPT(BaseProductsReviewGPT):
         Rewrite the section with the citations.
         """
         self.initialize_and_run_dialog()
+        # this tuns the dialog and updates self.sentences_to_queries
         # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
         # we might have accumulated some sentences through the process.
 

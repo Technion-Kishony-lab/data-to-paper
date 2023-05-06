@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import openai
 import re
 
@@ -6,10 +8,13 @@ from typing import List, Union
 from g3pt.conversation.message_designation import GeneralMessageDesignation
 from g3pt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
 from g3pt.utils.tag_pairs import SAVE_TAGS
-from g3pt.conversation.message import Message
 
 from .base_server import ServerCaller
 from .openai_models import ModelEngine
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from g3pt.conversation.message import Message
 
 # Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
 from g3pt.utils.text_utils import dedent_triple_quote_str
-from g3pt.base_steps.types import CodeAndOutput, DataFileDescriptions, Products
+from g3pt.base_steps import CodeAndOutput, DataFileDescriptions, Products
 from g3pt.servers.crossref import CrossrefCitation
 
 
@@ -55,7 +55,7 @@ def get_code_and_output_description(products: ScientificProducts) -> str:
 
 def get_title_and_abstract_description(products: ScientificProducts) -> str:
     return dedent_triple_quote_str("""
-    Here are the title and abstract of the paper:
+        Here are the title and abstract of the paper:
 
         {}
 
