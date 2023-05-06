@@ -6,7 +6,7 @@ from typing import Union, Optional, List
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from g3pt import Conversation
+    from scientistgpt import Conversation
 
 
 @dataclass(frozen=True)

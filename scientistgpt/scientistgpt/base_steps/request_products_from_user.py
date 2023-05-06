@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from g3pt.utils.replacer import with_attribute_replacement
+from scientistgpt.utils.replacer import with_attribute_replacement
 
 from .base_products_conversers import BaseProductsGPT
 

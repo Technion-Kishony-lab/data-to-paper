@@ -10,8 +10,8 @@ from typing import Optional, List, Type, Tuple, Any, Union
 
 import chatgpt_created_scripts
 
-from g3pt.env import MAX_EXEC_TIME
-from g3pt.utils.file_utils import run_in_directory
+from scientistgpt.env import MAX_EXEC_TIME
+from scientistgpt.utils.file_utils import run_in_directory
 
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context

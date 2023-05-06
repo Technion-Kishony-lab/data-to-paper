@@ -2,12 +2,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from g3pt.conversation.message_designation import RangeMessageDesignation
-from g3pt.env import SUPPORTED_PACKAGES
-from g3pt.run_gpt_code.types import CodeAndOutput
-from g3pt.utils import dedent_triple_quote_str, is_code_in_response
-from g3pt.utils.replacer import with_attribute_replacement
-from g3pt.utils.text_utils import NiceList
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from scientistgpt.env import SUPPORTED_PACKAGES
+from scientistgpt.run_gpt_code.types import CodeAndOutput
+from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
+from scientistgpt.utils.replacer import with_attribute_replacement
+from scientistgpt.utils.text_utils import NiceList
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseProductsGPT

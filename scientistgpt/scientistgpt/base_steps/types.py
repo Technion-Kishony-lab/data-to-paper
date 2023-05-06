@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
-from g3pt.utils.file_utils import run_in_directory
+from scientistgpt.utils.file_utils import run_in_directory
 
 
 @dataclass(frozen=True)

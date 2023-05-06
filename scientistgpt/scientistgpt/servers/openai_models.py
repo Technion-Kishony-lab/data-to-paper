@@ -1,4 +1,4 @@
-from g3pt.utils.ordered_enum import IndexOrderedEnum
+from scientistgpt.utils.ordered_enum import IndexOrderedEnum
 
 
 class ModelEngine(IndexOrderedEnum):

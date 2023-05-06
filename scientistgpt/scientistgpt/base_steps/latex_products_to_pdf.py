@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict, Set
 
-from g3pt.latex import save_latex_and_compile_to_pdf
-from g3pt.servers.crossref import CrossrefCitation
+from scientistgpt.latex import save_latex_and_compile_to_pdf
+from scientistgpt.servers.crossref import CrossrefCitation
 
 from .base_products_to_file import BaseFileProducer
 

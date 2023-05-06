@@ -2,10 +2,10 @@ import os
 
 from _pytest.fixtures import fixture
 
-from g3pt.projects.scientific_research.get_template import get_paper_template_path
-from g3pt.projects.scientific_research.scientific_products import ScientificProducts
-from g3pt.projects.scientific_research.steps import ProduceScientificPaperPDF
-from g3pt.servers.crossref import CrossrefCitation
+from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
+from scientistgpt.projects.scientific_research.get_template import get_paper_template_path
+from scientistgpt.projects.scientific_research.steps import ProduceScientificPaperPDF
+from scientistgpt.servers.crossref import CrossrefCitation
 
 
 introduction_citation = {CrossrefCitation({

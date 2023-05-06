@@ -1,4 +1,4 @@
-from g3pt.utils.revise_text import translate_second_person_to_first_person
+from scientistgpt.utils.revise_text import translate_second_person_to_first_person
 
 
 def test_translate_second_person_to_first_person():

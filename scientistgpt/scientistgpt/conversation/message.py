@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import NamedTuple, Optional
 
-from g3pt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
-from g3pt.base_cast import Agent
-from g3pt.run_gpt_code.code_runner import CodeRunner
-from g3pt.run_gpt_code.exceptions import FailedExtractingCode
-from g3pt.servers.openai_models import ModelEngine
-from g3pt.utils import format_text_with_code_blocks, line_count
+from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
+from scientistgpt.base_cast import Agent
+from scientistgpt.run_gpt_code.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
+from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.utils import format_text_with_code_blocks, line_count
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()

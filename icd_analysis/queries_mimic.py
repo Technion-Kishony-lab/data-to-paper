@@ -1,8 +1,7 @@
 # flake8: noqa
-from typing import List
 
-from g3pt.base_steps.types import DataFileDescriptions, DataFileDescription
-from g3pt.utils import dedent_triple_quote_str
+from scientistgpt.base_steps.types import DataFileDescriptions, DataFileDescription
+from scientistgpt.utils import dedent_triple_quote_str
 
 
 data_file_descriptions = DataFileDescriptions([

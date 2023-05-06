@@ -1,4 +1,4 @@
-from g3pt.utils.text_utils import extract_text_between_tags
+from scientistgpt.utils.text_utils import extract_text_between_tags
 
 from .exceptions import FailedToExtractLatexContent
 from .latex_section_tags import get_list_of_tag_pairs_for_section

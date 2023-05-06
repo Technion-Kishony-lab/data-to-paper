@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from g3pt.conversation import Action
+    from conversation import Action
 
 
 def update_cast_on_action(action: Action):

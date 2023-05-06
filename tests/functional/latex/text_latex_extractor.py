@@ -1,6 +1,6 @@
 import pytest
 
-from g3pt.latex import extract_latex_section_from_response, FailedToExtractLatexContent
+from latex import extract_latex_section_from_response, FailedToExtractLatexContent
 
 response_with_latex_title = r"""
 here is the title
