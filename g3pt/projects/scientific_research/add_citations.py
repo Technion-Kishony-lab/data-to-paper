@@ -27,7 +27,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
 
         "{sentence}"
 
-        Choose from the following citations:
+        Choose as many relevant citations as possible from the following citations:
 
         {citations}
 
@@ -115,7 +115,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Extract from the above section the factual sentences to which we need to add citations. 
+        Extract from the above section as many relevant factual sentences as possible to which we need to add citations. 
         For each of the chosen sentences, create a short query for a citation search for this sentence.
         You need to return a dict mapping each sentence to its respective reference search query.
         Your response should be in the following format: 
@@ -125,7 +125,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }}
         This is of course just an example. 
-        Identify all the sentences that you think we need to add citations to.
+        Identify *all* the sentences that you think we need to add citations to.
 
         Return only a dict of "sentence: query" pairs, without any other text.
     """)

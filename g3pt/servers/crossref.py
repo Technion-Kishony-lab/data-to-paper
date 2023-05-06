@@ -97,9 +97,9 @@ class CrossrefCitation(dict):
                 if value and key not in ['doi', 'isbn']:
                     # remove special characters of the value
                     if isinstance(value, list):
-                        value = [unidecode(v).replace(r' &', r' \&') for v in value]
+                        value = [unidecode(v).replace(r' &', r' \&').replace(r'_', r'\_') for v in value]
                     elif isinstance(value, str):
-                        value = unidecode(value).replace(r' &', r' \&')
+                        value = unidecode(value).replace(r' &', r' \&').replace(r'_', r'\_')
                 bibtex_key = field_mapping[key]
                 fields.append(f"{bibtex_key} = {{{value}}}")
         return BIBTEX_TEMPLATE.format(type=self.bibtex_type, id=self.get_bibtex_id(), fields=',\n'.join(fields))
