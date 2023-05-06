@@ -4,7 +4,7 @@ from g3pt.projects.scientific_research.scientific_products import ScientificProd
 from g3pt.servers.chatgpt import OPENAI_SERVER_CALLER
 
 from g3pt.projects.scientific_research.steps import PaperSectionWithTablesReviewGPT
-from g3pt.run_gpt_code.code_runner import CodeAndOutput
+from g3pt.run_gpt_code.types import CodeAndOutput
 
 SECTIONS_TO_ADD_TABLES_TO = ['results']
 CODE = """

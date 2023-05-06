@@ -7,7 +7,7 @@ from g3pt.base_steps.types import DataFileDescription, DataFileDescriptions
 from g3pt.projects.scientific_research.get_template import get_paper_template_path
 from g3pt.projects.scientific_research.scientific_products import ScientificProducts
 from g3pt.projects.scientific_research.steps import ProduceScientificPaperPDFWithAppendix
-from g3pt.run_gpt_code.code_runner import CodeAndOutput
+from g3pt.run_gpt_code.types import CodeAndOutput
 from g3pt.servers.crossref import CrossrefCitation
 
 

@@ -4,7 +4,7 @@ from typing import Optional
 
 from g3pt.conversation.message_designation import RangeMessageDesignation
 from g3pt.env import SUPPORTED_PACKAGES
-from g3pt.run_gpt_code.code_runner import CodeAndOutput
+from g3pt.run_gpt_code.types import CodeAndOutput
 from g3pt.utils import dedent_triple_quote_str, is_code_in_response
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import NiceList

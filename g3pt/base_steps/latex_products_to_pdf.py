@@ -4,7 +4,7 @@ from typing import Dict, Set
 from g3pt.latex import save_latex_and_compile_to_pdf
 from g3pt.servers.crossref import CrossrefCitation
 
-from .assemble_to_file import BaseFileProducer
+from .base_products_to_file import BaseFileProducer
 
 APPENDIX_TEMPLATE = r"""
 \clearpage

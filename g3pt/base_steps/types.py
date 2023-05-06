@@ -6,15 +6,6 @@ from typing import Optional, List, Union
 from g3pt.utils.file_utils import run_in_directory
 
 
-@dataclass
-class CodeAndOutput:
-    code: str = None
-    output: str = None
-    output_file: Optional[str] = None
-    code_name: str = None
-    explanation: Optional[str] = None
-
-
 @dataclass(frozen=True)
 class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name

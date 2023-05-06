@@ -10,10 +10,9 @@ from g3pt.utils import dedent_triple_quote_str
 from g3pt.utils.replacer import with_attribute_replacement
 from g3pt.utils.text_utils import nicely_join, NiceList, wrap_python_code
 
-from g3pt.base_steps.base_latex_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
-from g3pt.base_steps.write_code import BaseCodeProductsGPT
-from g3pt.base_steps.base_products_conversers import BaseProductsQuotedReviewGPT
-from g3pt.base_steps.base_response_extractors import BaseLatexProductsReviewGPT
+from g3pt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, BaseCodeProductsGPT, \
+    BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
+
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
