@@ -33,6 +33,7 @@ setup(
         "unidecode",
         "pygments",
         "regex",
+        "scipy",
     ],
     extras_require={
         'dev': [
