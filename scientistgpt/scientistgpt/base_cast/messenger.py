@@ -15,6 +15,9 @@ class Messenger:
     contacts: List[Agent] = field(default_factory=list)
     conversations: List[Conversation] = field(default_factory=list)
 
+    def __post_init__(self):
+        ALL_MESSENGERS.append(self)
+
     def add_contact(self, agent: Agent):
         if agent not in self.contacts:
             self.contacts.append(agent)
@@ -49,7 +52,7 @@ class Messenger:
         """
         Called after an action was applied to a conversation managed by this messenger.
         """
-        if action.conversation not in self.conversations:
+        if action.conversation is not None and action.conversation not in self.conversations:
             self.add_conversation(action.conversation)
         self._update_on_action(action)
 
@@ -67,11 +70,10 @@ ALL_MESSENGERS: List[Messenger] = []
 def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None) -> Messenger:
     messenger = Messenger(first_person=first_person)
     messenger.add_contacts(contacts)
-    ALL_MESSENGERS.append(messenger)
     return messenger
 
 
 def on_action(action: Action):
     for messenger in ALL_MESSENGERS:
-        if messenger.first_person in action.conversation.participants:
+        if action.conversation is None or messenger.first_person in action.conversation.participants:
             messenger.on_action(action)
