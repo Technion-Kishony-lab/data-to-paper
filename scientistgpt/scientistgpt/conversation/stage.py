@@ -22,4 +22,4 @@ def append_advance_stage(stage: Stage):
     """
     Append an action to advance the stage of the process.
     """
-    apply_action(AdvanceStage(stage=stage, conversation_name='null', driver='null'))
+    apply_action(AdvanceStage(stage=stage, conversation_name=None, driver=None))
