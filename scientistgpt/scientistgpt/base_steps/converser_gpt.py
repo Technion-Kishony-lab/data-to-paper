@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Optional, ClassVar
 
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
-from scientistgpt.conversation.stage import Stage
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 from scientistgpt.utils.text_utils import print_red
