@@ -201,8 +201,6 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
 
 
-print(PaperSectionWithTablesReviewGPT.user_initiation_prompt)
-
 @dataclass
 class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     products: ScientificProducts = None
