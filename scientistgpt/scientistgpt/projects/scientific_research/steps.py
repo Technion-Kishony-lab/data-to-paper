@@ -9,6 +9,7 @@ from pygments.lexers import PythonLexer
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.text_utils import nicely_join, NiceList, wrap_python_code
+from scientistgpt.servers.openai_models import ModelEngine
 
 from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, BaseCodeProductsGPT, \
     BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
@@ -16,7 +17,6 @@ from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, 
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
-from ...servers.openai_models import ModelEngine
 
 sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
     Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
@@ -184,10 +184,9 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
-    background_product_fields = ['results_summary', 'code_and_output',
-                                 'title_and_abstract']
+    background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
     max_reviewing_rounds: int = 0
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+    user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
         only the {goal_noun}.
         Usually in scientific papers include one or two tables summarizing the main findings.
@@ -195,12 +194,14 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         Add the tables centered in booktabs, multirow format with caption and label. 
         In addition, change the results section text to refer to the tables (use their labels if necessary),
         to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
-        Write in tex format including \\section{{}} command, any math or symbols that needs tex escapes.
+        Write in tex format including \\\\section{{}} command, any math or symbols that needs tex escapes.
     """)
 
     def _get_background_product_fields(self):
         return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
 
+
+print(PaperSectionWithTablesReviewGPT.user_initiation_prompt)
 
 @dataclass
 class ScientificCodeProductsGPT(BaseCodeProductsGPT):

@@ -52,7 +52,7 @@ class Messenger:
         """
         Called after an action was applied to a conversation managed by this messenger.
         """
-        if action.conversation not in self.conversations:
+        if action.conversation is not None and action.conversation not in self.conversations:
             self.add_conversation(action.conversation)
         self._update_on_action(action)
 
@@ -75,5 +75,5 @@ def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None
 
 def on_action(action: Action):
     for messenger in ALL_MESSENGERS:
-        if messenger.first_person in action.conversation.participants:
+        if action.conversation is None or messenger.first_person in action.conversation.participants:
             messenger.on_action(action)
