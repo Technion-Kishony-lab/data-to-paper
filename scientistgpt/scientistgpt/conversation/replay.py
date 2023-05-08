@@ -3,8 +3,7 @@ from pathlib import Path
 
 from typing import Union
 
-from .actions import apply_action
-from .actions_and_conversations import clear_actions_and_conversations, load_actions_from_file
+from .actions import clear_actions_and_conversations, load_actions_from_file, apply_action
 
 
 def replay_actions(file_path: Union[str, Path], should_print: bool = True, is_color: bool = True):

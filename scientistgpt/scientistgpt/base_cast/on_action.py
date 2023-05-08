@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from scientistgpt.conversation import Action
 
 
-def update_cast_on_action(action: Action):
+def update_cast_and_messenger_on_action(action: Action):
     """
     This is called after an action was applied to a conversation.
     """

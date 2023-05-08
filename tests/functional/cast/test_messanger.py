@@ -3,7 +3,8 @@ from unittest.mock import Mock
 from scientistgpt import Conversation
 from scientistgpt.base_cast import Agent
 from scientistgpt.base_cast.messenger import Messenger, create_messenger
-from scientistgpt.conversation.actions import CreateConversation, apply_action
+from scientistgpt.conversation.actions import apply_action
+from scientistgpt.conversation.conversation_actions import CreateConversation
 
 
 class TestAgent(Agent):

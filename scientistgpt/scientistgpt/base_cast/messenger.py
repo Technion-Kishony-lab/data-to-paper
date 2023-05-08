@@ -4,6 +4,8 @@ from typing import List, Optional
 from scientistgpt.conversation import Conversation, Action
 
 from .cast import Agent
+from ..conversation.conversation_actions import ConversationAction
+from ..conversation.stage import StageAction
 
 
 @dataclass
@@ -52,7 +54,7 @@ class Messenger:
         """
         Called after an action was applied to a conversation managed by this messenger.
         """
-        if action.conversation is not None and action.conversation not in self.conversations:
+        if isinstance(action, ConversationAction) and action.conversation not in self.conversations:
             self.add_conversation(action.conversation)
         self._update_on_action(action)
 
@@ -75,5 +77,7 @@ def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None
 
 def on_action(action: Action):
     for messenger in ALL_MESSENGERS:
-        if action.conversation is None or messenger.first_person in action.conversation.participants:
+        if isinstance(action, StageAction) \
+                or isinstance(action, ConversationAction) \
+                and messenger.first_person in action.conversation.participants:
             messenger.on_action(action)
