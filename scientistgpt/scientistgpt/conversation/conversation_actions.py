@@ -69,7 +69,8 @@ class ChangeConversationParticipants(ConversationAction):
     participants: Set[Agent] = None
 
     def _pretty_attrs(self) -> str:
-        return f'participants={self.participants}'
+        return f'name={self.conversation_name} web={self.web_conversation_name}, ' \
+               f'participants={[p.name for p in self.participants]}'
 
     def apply_to_web(self) -> bool:
         return False
@@ -81,6 +82,8 @@ class CreateConversation(ChangeConversationParticipants):
     """
 
     def apply(self):
+        if self.conversation_name is None:
+            return
         get_or_create_conversation(conversation_name=self.conversation_name, participants=self.participants,
                                    is_web=False)
 

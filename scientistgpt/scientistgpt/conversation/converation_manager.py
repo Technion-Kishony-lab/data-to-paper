@@ -61,12 +61,14 @@ class ConversationManager:
         apply_action(action, should_print=self.should_print, is_color=True)
 
     def create_conversation(self):
-        self._append_and_apply_action(CreateConversation(conversation_name=self.conversation_name,
+        self._append_and_apply_action(CreateConversation(web_conversation_name=self.web_conversation_name,
+                                                         conversation_name=self.conversation_name,
                                                          driver=self.driver,
                                                          participants=self.participants))
 
     def add_participants(self, agents: Iterable[Agent]):
-        self._append_and_apply_action(AddParticipantsToConversation(conversation_name=self.conversation_name,
+        self._append_and_apply_action(AddParticipantsToConversation(web_conversation_name=self.web_conversation_name,
+                                                                    conversation_name=self.conversation_name,
                                                                     driver=self.driver,
                                                                     participants=set(agents)))
 
@@ -82,6 +84,7 @@ class ConversationManager:
         Append a message to a specified conversation.
         """
         self._append_and_apply_action(AppendMessage(
+            web_conversation_name=self.web_conversation_name,
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
@@ -166,6 +169,7 @@ class ConversationManager:
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             RegenerateLastResponse(
+                web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=last_action.driver, comment=comment,
                 message=create_message_from_other_message(last_action.message, content=content),
                 hidden_messages=last_action.hidden_messages),
@@ -188,6 +192,7 @@ class ConversationManager:
         content = try_get_chatgpt_response(self.conversation, hidden_messages, model_engine=model_engine, **kwargs)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
+                web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 exception=content)
@@ -195,6 +200,7 @@ class ConversationManager:
             if is_code:
                 content = add_python_to_first_triple_quotes_if_missing(content)
             action = AppendChatgptResponse(
+                web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
                 message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
@@ -210,6 +216,7 @@ class ConversationManager:
         The message with the specified tag will be kept.
         """
         self._append_and_apply_action(ResetToTag(
+            web_conversation_name=self.web_conversation_name,
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, tag=tag))
 
     def delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):
@@ -218,6 +225,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             DeleteMessages(
+                web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 message_designation=message_designation))
 
@@ -227,6 +235,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             ReplaceLastResponse(
+                web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent)))
         return content
@@ -239,6 +248,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             CopyMessagesBetweenConversations(
+                web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 source_conversation_name=source_conversation.conversation_name,
                 message_designation=message_designation))
