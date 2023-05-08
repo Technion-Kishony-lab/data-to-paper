@@ -116,12 +116,13 @@ class Message:
                 f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
         return content, is_replacing
 
-    def pretty_content(self, text_color, block_color, width):
+    def pretty_content(self, text_color, block_color, width, is_html=False):
         """
         Returns a pretty repr of just the message content.
         """
         return format_text_with_code_blocks(text=self.get_content_after_hiding_incomplete_code()[0],
-                                            text_color=text_color, block_color=block_color, width=width)
+                                            text_color=text_color, block_color=block_color, width=width,
+                                            is_html=is_html)
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
@@ -166,7 +167,7 @@ class CodeMessage(Message):
         diff = list(diff)[3:]
         return '\n'.join(diff)
 
-    def pretty_content(self, text_color, block_color, width):
+    def pretty_content(self, text_color, block_color, width, is_html=False):
         """
         We override this method to replace the code within the message with the diff.
         """
@@ -179,7 +180,7 @@ class CodeMessage(Message):
                     self.extracted_code,
                     "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
                     else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
-        return format_text_with_code_blocks(content, text_color, block_color, width)
+        return format_text_with_code_blocks(content, text_color, block_color, width, is_html=is_html)
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
