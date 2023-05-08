@@ -34,8 +34,8 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
     goal_verb: str = 'suggest'
-    assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
-    user_agent: ScientificAgent = ScientificAgent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.GoalReviewer
+    user_agent: ScientificAgent = ScientificAgent.Performer
     termination_phrase: str = \
         'I hereby approve that the research goal is well-defined and can be studied using only the provided dataset'
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -71,7 +71,7 @@ class PlanReviewGPT(BaseProductsQuotedReviewGPT):
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
-    user_agent: ScientificAgent = ScientificAgent.Student
+    user_agent: ScientificAgent = ScientificAgent.Performer
     sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
@@ -82,8 +82,8 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
     conversation_name: str = 'results_interpretation'
     goal_noun: str = 'description and interpretation of the results'
     goal_verb: str = 'write'
-    assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
-    user_agent: ScientificAgent = ScientificAgent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
+    user_agent: ScientificAgent = ScientificAgent.Performer
     model_engine = ModelEngine.GPT4
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
@@ -105,7 +105,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     performer: str = 'scientific writer'
     reviewer: str = 'scientific reviewer'
     assistant_agent: ScientificAgent = ScientificAgent.Writer
-    user_agent: ScientificAgent = ScientificAgent.Student
+    user_agent: ScientificAgent = ScientificAgent.Performer
     section_names: Optional[Union[str, list[str]]] = None
 
     def __post_init__(self):
@@ -184,6 +184,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
+    assistant_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -207,7 +208,7 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
     conversation_name: str = 'code_debugging'
     assistant_agent: ScientificAgent = ScientificAgent.Debugger
-    user_agent: ScientificAgent = ScientificAgent.Student
+    user_agent: ScientificAgent = ScientificAgent.Performer
     code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
         All results we may need for a scientific paper should be saved to that file, including \
         analysis findings, summary statistics, etc. 

@@ -101,8 +101,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     # see _get_background_product_fields()
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
     conversation_name: str = 'add_citations_{section_name}'
-    assistant_agent: ScientificAgent = ScientificAgent.Secretary
-    user_agent: ScientificAgent = ScientificAgent.Student
+    assistant_agent: ScientificAgent = ScientificAgent.CitationExpert
+    user_agent: ScientificAgent = ScientificAgent.Performer
     max_reviewing_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
 

@@ -38,7 +38,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         director_converser = DirectorProductGPT(
             products=products,
             assistant_agent=ScientificAgent.Director,
-            user_agent=ScientificAgent.Student,
+            user_agent=ScientificAgent.Performer,
             conversation_name='with_director',
         )
         self.advance_stage(ScientificStage.DATA)
