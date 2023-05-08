@@ -24,7 +24,7 @@ class Messenger:
 
     def add_contacts(self, agents: Optional[List[Agent]] = None):
         """
-        Add specified agents to contact. If no agents are specified, add all agents except the Student.
+        Add specified agents to contact. If no agents are specified, add all agents except the Performer.
         """
         if agents is None:
             agents = [agent for agent in Agent if agent != self.first_person]

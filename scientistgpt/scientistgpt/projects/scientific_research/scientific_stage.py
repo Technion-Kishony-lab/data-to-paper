@@ -2,9 +2,13 @@ from scientistgpt.conversation.stage import Stage
 
 
 class ScientificStage(Stage):
-    PLANNING = "planning"
-    CODING = "coding"
-    ANALYSIS = "analysis"
+    DATA = "data"
+    GOAL = "goal"
+    PLAN = "plan"
+    CODE = "code"
+    INTERPRETATION = "interpretation"
     WRITING = "writing"
+    CITATIONS = "citations"
+    TABLES = "tables"
     FINISHED = "finished"
-    FAILED = "failed"
+    failure = "failure"
