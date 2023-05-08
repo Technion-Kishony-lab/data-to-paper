@@ -13,7 +13,7 @@ from pygments import highlight
 style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
 html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
-html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight")
+html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
 def highlight_python_code(code_str: str, is_html: bool = False) -> str:
