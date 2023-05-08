@@ -26,7 +26,7 @@ class ConverserGPT(Replacer):
 
     conversation_name: str = 'default'
 
-    web_conversation_name: Optional[str] = None
+    web_conversation_name: Optional[str] = True
     # None - do not post to web conversation, True - use default name, str - use given name
 
     driver: str = ''

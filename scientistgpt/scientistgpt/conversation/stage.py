@@ -17,6 +17,9 @@ class StageAction(Action):
     def _pretty_attrs(self) -> str:
         return f'{self.stage}'
 
+    def apply_to_web(self) -> bool:
+        return True
+
 
 @dataclass(frozen=True)
 class AdvanceStage(StageAction):

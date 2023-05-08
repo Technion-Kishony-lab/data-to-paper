@@ -52,7 +52,7 @@ AGENTS_TO_CONVERSATION_NAMES = {
     ScientificAgent.PlanReviewer: 'review plan',
     ScientificAgent.Debugger: 'debug',
     ScientificAgent.InterpretationReviewer: 'results interpretation',
-    ScientificAgent.Writer: 'write the paper',
+    ScientificAgent.Writer: 'write paper',
     ScientificAgent.CitationExpert: 'add citations',
     ScientificAgent.TableExpert: 'add tables',
 }

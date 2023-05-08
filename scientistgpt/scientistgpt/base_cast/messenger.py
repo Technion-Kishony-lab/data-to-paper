@@ -6,6 +6,7 @@ from scientistgpt.conversation import Conversation, Action
 from .cast import Agent
 from ..conversation.conversation_actions import ConversationAction
 from ..conversation.stage import StageAction
+from ..projects.scientific_research.cast import ScientificAgent
 
 
 @dataclass
@@ -54,8 +55,8 @@ class Messenger:
         """
         Called after an action was applied to a conversation managed by this messenger.
         """
-        if isinstance(action, ConversationAction) and action.conversation not in self.conversations:
-            self.add_conversation(action.conversation)
+        if isinstance(action, ConversationAction) and action.web_conversation not in self.conversations:
+            self.add_conversation(action.web_conversation)
         self._update_on_action(action)
 
     def _update_on_action(self, action: Action):
@@ -79,5 +80,5 @@ def on_action(action: Action):
     for messenger in ALL_MESSENGERS:
         if isinstance(action, StageAction) \
                 or isinstance(action, ConversationAction) \
-                and messenger.first_person in action.conversation.participants:
+                and messenger.first_person in action.web_conversation.participants:
             messenger.on_action(action)
