@@ -111,3 +111,18 @@ class Conversation(List[Message]):
         for message in self:
             print(message.pretty_repr())
             print()
+
+
+class WebConversation(Conversation):
+    """
+    Describes a conversation as it appears on the client frontend.
+    We only allow appending to the conversation, and not deletion.
+    """
+    def pop(self, *args, **kwargs):
+        raise NotImplementedError('Pop allow deleting.')
+
+    def __delitem__(self, index):
+        raise NotImplementedError("Deletion not allowed")
+
+    def __setitem__(self, index, value):
+        raise NotImplementedError("Assignment not allowed")

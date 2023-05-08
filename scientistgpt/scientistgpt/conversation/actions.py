@@ -24,7 +24,8 @@ def apply_action(action: Action, should_print: bool = True, is_color: bool = Tru
     action.apply()
 
     # update the messenger system:
-    update_cast_and_messenger_on_action(action)
+    if action.apply_to_web():
+        update_cast_and_messenger_on_action(action)
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,9 @@ class Action:
         Apply the action.
         """
         pass
+
+    def apply_to_web(self) -> bool:
+        return False
 
 
 APPLIED_ACTIONS: List[Action] = []

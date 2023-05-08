@@ -4,6 +4,7 @@ import shutil
 from dataclasses import dataclass
 
 from pathlib import Path
+from typing import Type
 
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
@@ -15,6 +16,9 @@ from scientistgpt.conversation.stage import append_advance_stage, Stage
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
 from .types import DataFileDescriptions
+from ..base_cast import Agent
+from ..conversation.actions import apply_action
+from ..conversation.conversation_actions import CreateConversation
 
 
 @dataclass
@@ -26,9 +30,20 @@ class BaseStepsRunner(BaseProductsHandler):
     OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
 
+    cast = None  # Type[Agent]
     output_directory: Path = None
     data_file_descriptions: DataFileDescriptions = None
     mock_servers: bool = False
+
+    def create_web_conversations(self):
+        if self.cast is None:
+            return
+        for agent in self.cast:
+            if agent.get_conversation_name():
+                apply_action(CreateConversation(
+                    web_conversation_name=agent.get_conversation_name(),
+                    participants={agent, self.cast.get_primary_agent()},
+                ))
 
     def advance_stage(self, stage: Stage):
         """
@@ -72,6 +87,7 @@ class BaseStepsRunner(BaseProductsHandler):
         @CROSSREF_SERVER_CALLER.record_or_replay(self.output_directory / self.CROSSREF_RESPONSES_FILENAME,
                                                  should_mock=self.mock_servers)
         def run():
+            self.create_web_conversations()
             self._run_all_steps()
 
         try:
