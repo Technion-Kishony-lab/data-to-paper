@@ -13,14 +13,15 @@ USER_NAME = 'User'
 
 
 class ScientificAgent(Agent):
-    Student = 'Student'
-    Mentor = 'Mentor'
-    PlanReviewer = 'PlanReviewer'
-    Secretary = 'Secretary'
-    Debugger = 'Debugger'
-    Writer = 'Writer'
-    LiteratureReviewer = 'LiteratureReviewer'
+    Performer = 'Performer'
     Director = 'Director'
+    GoalReviewer = 'GoalReviewer'
+    PlanReviewer = 'PlanReviewer'
+    Debugger = 'Debugger'
+    InterpretationReviewer = 'InterpretationReviewer'
+    Writer = 'Writer'
+    CitationExpert = 'CitationExpert'
+    TableExpert = 'TableExpert'
 
     @property
     def profile(self) -> Profile:
