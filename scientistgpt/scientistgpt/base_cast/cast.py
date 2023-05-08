@@ -8,7 +8,7 @@ from .types import Profile, Algorithm
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from scientistgpt.conversation.actions import Action
+    from scientistgpt.conversation.conversation_actions import Action
 
 
 class Agent(Enum):
@@ -63,6 +63,6 @@ def on_action(action: Action):
     This is called after an action was applied to a conversation.
     """
     from scientistgpt import Role
-    from scientistgpt.conversation.actions import AppendMessage
+    from scientistgpt.conversation.conversation_actions import AppendMessage
     if isinstance(action, AppendMessage) and action.message.role is Role.SYSTEM:
         set_system_prompt(agent=action.message.agent, prompt=action.message.content)

@@ -5,14 +5,15 @@ from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import ModelEngine
+from .actions import apply_action
 
-from .actions_and_conversations import get_actions_for_conversation, get_conversation
+from .store_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
-from .actions import Action, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
+from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, apply_action, AddParticipantsToConversation
+    CreateConversation, AddParticipantsToConversation
 
 
 @dataclass
@@ -47,7 +48,7 @@ class ConversationManager:
     def participants(self) -> Set[Agent]:
         return {self.assistant_agent, self.user_agent}
 
-    def _append_and_apply_action(self, action: Action):
+    def _append_and_apply_action(self, action: ConversationAction):
         """
         Apply an action to a conversation and append to the actions list.
         """

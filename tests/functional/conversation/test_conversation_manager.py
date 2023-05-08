@@ -1,8 +1,8 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
-from scientistgpt.conversation.actions import ReplaceLastResponse
-from scientistgpt.conversation.actions_and_conversations import APPLIED_ACTIONS
+from scientistgpt.conversation.conversation_actions import ReplaceLastResponse
+from scientistgpt.conversation.actions import APPLIED_ACTIONS
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.message_designation import RangeMessageDesignation

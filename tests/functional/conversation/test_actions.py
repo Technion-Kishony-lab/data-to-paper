@@ -1,12 +1,13 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
-from scientistgpt.conversation.actions import AppendMessage, AppendChatgptResponse, FailedChatgptResponse, \
-    NoAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse, \
-    CopyMessagesBetweenConversations, CreateConversation
-from scientistgpt.conversation.actions_and_conversations import get_conversation
+from scientistgpt.conversation.conversation_actions import AppendMessage, AppendChatgptResponse, \
+    FailedChatgptResponse, CopyMessagesBetweenConversations, CreateConversation, \
+    NullConversationAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse
+
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from scientistgpt.conversation.store_conversations import get_conversation
 
 
 @fixture()
@@ -53,7 +54,7 @@ def test_failed_chatgpt_response(conversation, assistant_message):
 
 def test_no_action(conversation):
     original_length = len(conversation)
-    action = NoAction(conversation_name=conversation.conversation_name, comment='no action was taken')
+    action = NullConversationAction(conversation_name=conversation.conversation_name, comment='no action was taken')
     print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length

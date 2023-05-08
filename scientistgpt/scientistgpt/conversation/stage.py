@@ -11,15 +11,20 @@ class Stage:
 
 
 @dataclass(frozen=True)
-class AdvanceStage(Action):
+class StageAction(Action):
     stage: Stage = None
 
     def _pretty_attrs(self) -> str:
         return f'{self.stage}'
 
 
+@dataclass(frozen=True)
+class AdvanceStage(StageAction):
+    pass
+
+
 def append_advance_stage(stage: Stage):
     """
     Append an action to advance the stage of the process.
     """
-    apply_action(AdvanceStage(stage=stage, conversation_name=None, driver=None))
+    apply_action(AdvanceStage(stage=stage))
