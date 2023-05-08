@@ -31,6 +31,8 @@ class ConversationManager:
 
     conversation_name: Optional[str] = None
 
+    web_conversation_name: Optional[str] = None
+
     driver: str = ''
     "Name of the algorithm that is instructing this conversation manager."
 
@@ -43,6 +45,10 @@ class ConversationManager:
     @property
     def conversation(self) -> Conversation:
         return get_conversation(self.conversation_name)
+
+    @property
+    def web_conversation(self) -> Conversation:
+        return get_conversation(self.web_conversation_name)
 
     @property
     def participants(self) -> Set[Agent]:

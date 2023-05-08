@@ -34,6 +34,6 @@ def test_messenger_on_action():
     messenger = create_messenger(first_person=TestAgent.GOOD_AGENT)
     messenger.on_action = Mock()
     messenger.tag = 'test'
-    action = CreateConversation(participants={TestAgent.GOOD_AGENT, TestAgent.BAD_AGENT})
+    action = CreateConversation(participants={TestAgent.GOOD_AGENT, TestAgent.BAD_AGENT}, web_conversation_name='test')
     apply_action(action)
     messenger.on_action.assert_called_once()

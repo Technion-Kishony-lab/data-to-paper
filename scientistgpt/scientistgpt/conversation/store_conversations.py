@@ -1,8 +1,8 @@
-from typing import Dict, List, Optional
-
+from typing import Dict, List, Optional, Set
 
 from .actions import Action, get_all_actions
-from .conversation import Conversation
+from .conversation import Conversation, WebConversation
+from scientistgpt.base_cast import Agent
 
 CONVERSATION_NAMES_TO_CONVERSATIONS: Dict[str, Conversation] = {}
 """
@@ -26,10 +26,12 @@ def get_conversation(conversation_name: str) -> Optional[Conversation]:
     return CONVERSATION_NAMES_TO_CONVERSATIONS.get(conversation_name, None)
 
 
-def add_conversation(conversation: Conversation) -> Conversation:
-    """
-    Add a conversation to the dict of conversations.
-    """
+def get_or_create_conversation(conversation_name: str, participants: Set[Agent] = None, is_web: bool = False
+                               ) -> Conversation:
+    if conversation_name in CONVERSATION_NAMES_TO_CONVERSATIONS:
+        return CONVERSATION_NAMES_TO_CONVERSATIONS[conversation_name]
+    conversation = Conversation(conversation_name=conversation_name, participants=participants) if not is_web \
+        else WebConversation(conversation_name=conversation_name, participants=participants)
     CONVERSATION_NAMES_TO_CONVERSATIONS[conversation.conversation_name] = conversation
     return conversation
 
@@ -44,3 +46,10 @@ def get_conversation_name_with_new_number(conversation_name: str) -> str:
         if new_name not in CONVERSATION_NAMES_TO_CONVERSATIONS:
             return new_name
         i += 1
+
+
+def get_name_for_web_conversation(participants: Set[Agent]) -> str:
+    """
+    Return a new conversation name for a web conversation, which is not already taken.
+    """
+    return get_conversation_name_with_new_number(conversation_name)

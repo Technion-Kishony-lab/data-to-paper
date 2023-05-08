@@ -7,10 +7,10 @@ from scientistgpt.base_cast import Agent
 
 from .actions import Action
 from .message import Message
-from .conversation import Conversation
+from .conversation import Conversation, WebConversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-from .store_conversations import get_conversation, add_conversation
+from .store_conversations import get_conversation, get_or_create_conversation
 
 NoneType = type(None)
 
@@ -24,6 +24,9 @@ class ConversationAction(Action):
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
 
+    web_conversation_name: Optional[str] = None
+    "The name of the web-conversation. None means do not apply the action to a web-conversation."
+
     driver: Optional[str] = None
     "The algorithm performing the action."
 
@@ -33,6 +36,10 @@ class ConversationAction(Action):
     @property
     def conversation(self) -> Conversation:
         return get_conversation(self.conversation_name)
+
+    @property
+    def web_conversation(self) -> Conversation:
+        return get_conversation(self.web_conversation_name)
 
     def _pretty_attrs(self) -> str:
         return ''
@@ -50,6 +57,9 @@ class ConversationAction(Action):
             s = red_text(s)
         return s
 
+    def apply_to_web(self) -> bool:
+        return self.web_conversation is not None
+
 
 @dataclass(frozen=True)
 class ChangeConversationParticipants(ConversationAction):
@@ -61,6 +71,9 @@ class ChangeConversationParticipants(ConversationAction):
     def _pretty_attrs(self) -> str:
         return f'participants={self.participants}'
 
+    def apply_to_web(self) -> bool:
+        return False
+
 
 class CreateConversation(ChangeConversationParticipants):
     """
@@ -68,7 +81,15 @@ class CreateConversation(ChangeConversationParticipants):
     """
 
     def apply(self):
-        add_conversation(Conversation(conversation_name=self.conversation_name, participants=self.participants))
+        get_or_create_conversation(conversation_name=self.conversation_name, participants=self.participants,
+                                   is_web=False)
+
+    def apply_to_web(self) -> bool:
+        if self.web_conversation_name is None:
+            return False
+        get_or_create_conversation(conversation_name=self.web_conversation_name, participants=self.participants,
+                                   is_web=True)
+        return True
 
 
 class AddParticipantsToConversation(ChangeConversationParticipants):
@@ -141,6 +162,15 @@ class AppendMessage(ConversationAction):
             del self.conversation[index:]
         assert len(self.conversation) == message_index
         self.conversation.append(self.message)
+
+    def apply_to_web(self) -> bool:
+        if not super().apply_to_web():
+            return False
+        if any(self.message == m for m in self.web_conversation):
+            # in web conversation, we only append messages that are not already there
+            return False
+        self.web_conversation.append(self.message)
+        return True
 
 
 @dataclass(frozen=True)
@@ -285,3 +315,5 @@ class CopyMessagesBetweenConversations(ConversationAction):
     def apply(self):
         for index in self._get_indices_to_copy():
             self.conversation.append(self.source_conversation[index])
+
+    # TODO:  implement apply_to_web

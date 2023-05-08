@@ -19,6 +19,8 @@ class DualConverserGPT(ConverserGPT):
 
     other_conversation_name: str = None
 
+    other_web_conversation_name: Optional[str] = None
+
     suppress_printing_other_conversation: bool = False
 
     @with_attribute_replacement
@@ -28,6 +30,7 @@ class DualConverserGPT(ConverserGPT):
             self.other_conversation_name = f'{self.conversation_name}_other'
         self.other_conversation_manager = ConversationManager(
             conversation_name=self.other_conversation_name,
+            web_conversation_name=self.other_web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
             should_print=not self.suppress_printing_other_conversation,
         )
