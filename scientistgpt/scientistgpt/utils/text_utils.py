@@ -21,8 +21,10 @@ def highlight_python_code(code_str: str, is_html: bool = False) -> str:
         return highlight(code_str, PythonLexer(), html_code_formatter)
     return highlight(code_str, PythonLexer(), terminal_formatter)
 
+
 def text_to_html(text: str) -> str:
     return highlight(text, TextLexer(), html_formatter)
+
 
 def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
     """
