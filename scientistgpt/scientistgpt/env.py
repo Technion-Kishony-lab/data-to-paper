@@ -25,3 +25,6 @@ HIDE_INCOMPLETE_CODE = True
 
 # Max number of characters allowed in output txt file of gpt code:
 MAX_SENSIBLE_OUTPUT_SIZE = 3000
+
+# Coalesce conversations with the same participants into one web-conversation:
+COALESCE_WEB_CONVERSATIONS = True

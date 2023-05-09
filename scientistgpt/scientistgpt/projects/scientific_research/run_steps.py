@@ -21,6 +21,7 @@ SECTIONS_TO_ADD_TABLES_TO = ['results']
 @dataclass
 class ScientificStepsRunner(BaseStepsRunner):
 
+    cast = ScientificAgent
     products: ScientificProducts = field(default_factory=ScientificProducts)
     research_goal: Optional[str] = None
 

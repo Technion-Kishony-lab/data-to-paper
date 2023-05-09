@@ -19,6 +19,9 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     rewrite the sentence with the citations.
     This class is called on already initialized conversation.
     """
+    assistant_agent: ScientificAgent = ScientificAgent.CitationExpert
+    user_agent: ScientificAgent = ScientificAgent.Performer
+
     value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
     max_attempts_per_round: int = 2
