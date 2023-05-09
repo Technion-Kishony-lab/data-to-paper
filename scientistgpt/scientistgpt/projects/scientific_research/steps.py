@@ -89,7 +89,7 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
     """)
-    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}." + \
+    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \
                                   "Briefly mention the tools used to preform the analysis."
 
 
