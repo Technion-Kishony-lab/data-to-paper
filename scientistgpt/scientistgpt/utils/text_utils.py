@@ -3,18 +3,27 @@ import re
 from typing import Tuple, Union, Optional
 
 import colorama
-
+from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import PythonLexer
 from pygments.formatters import Terminal256Formatter
+from pygments.lexers.special import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight
 
 style = get_style_by_name("monokai")
-python_formatter = Terminal256Formatter(style=style)
+terminal_formatter = Terminal256Formatter(style=style)
+html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
+html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
-def highlight_python_code(code_str: str):
-    return highlight(code_str, PythonLexer(), python_formatter)
+def highlight_python_code(code_str: str, is_html: bool = False) -> str:
+    if is_html:
+        return highlight(code_str, PythonLexer(), html_code_formatter)
+    return highlight(code_str, PythonLexer(), terminal_formatter)
+
+
+def text_to_html(text: str) -> str:
+    return highlight(text, TextLexer(), html_formatter)
 
 
 def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
@@ -66,22 +75,33 @@ def print_magenta(text: str, **kwargs):
     print(colored_text(text, colorama.Fore.MAGENTA), **kwargs)
 
 
-def format_text_with_code_blocks(text: str, text_color: str, block_color: str, width: int) -> str:
+def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
+                                 width: int = 80, is_html: bool = False, is_comment=False) -> str:
+    if is_comment:
+        # return the text in html bold and italic gery font inside a pre tag
+        return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">Information: {text}</pre>'
     sections = text.split("```")
     s = ''
     in_text_block = True
     for section in sections:
         if in_text_block:
-            s += text_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL + '\n'
+            if is_html:
+                s += text_to_html(wrap_string(section, width=width))
+            else:
+                s += text_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL + '\n'
         else:
             if section.startswith('python'):
-                highlighted_code = highlight_python_code(section)
+                highlighted_code = highlight_python_code(section, is_html)
                 # check if the first line is the language name
                 if 'python' in highlighted_code.splitlines()[0].lower():
-                    highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
+                    if not is_html:
+                        highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
                 s += highlighted_code
             else:
-                s += block_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL
+                if is_html:
+                    s += f'<b>{text_to_html(wrap_string(section, width=width))}</b>'
+                else:
+                    s += block_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL
         in_text_block = not in_text_block
     return s
 

@@ -25,6 +25,11 @@ setup(
     python_requires='>=3.8',
     long_description_content_type='text/markdown',
     packages=find_packages(),
+    package_data={
+        'scientistgpt': [
+            'scientistgpt/projects/scientific_research/templates/*',
+        ],
+    },
     install_requires=[
         "openai",
         "numpy",
