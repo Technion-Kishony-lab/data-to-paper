@@ -48,7 +48,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Goal
         self.advance_stage(ScientificStage.GOAL)
-        if self.research_goal is None:
+        if self.research_goal is None or self.research_goal == '':
             products.research_goal = GoalReviewGPT(products=products).initialize_and_run_dialog()
         else:
             products.research_goal = director_converser.get_product_from_director(
