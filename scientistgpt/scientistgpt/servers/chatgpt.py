@@ -70,5 +70,5 @@ def try_get_chatgpt_response(conversation, hidden_messages: GeneralMessageDesign
         return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
     except openai.error.InvalidRequestError as e:
         return e
-    except Exception:
-        raise RuntimeError("Failed accessing openai.")
+    except Exception as e:
+        raise RuntimeError(f'Unexpected OPENAI error:\n{e}')
