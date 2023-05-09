@@ -46,10 +46,3 @@ def get_conversation_name_with_new_number(conversation_name: str) -> str:
         if new_name not in CONVERSATION_NAMES_TO_CONVERSATIONS:
             return new_name
         i += 1
-
-
-def get_name_for_web_conversation(participants: Set[Agent]) -> str:
-    """
-    Return a new conversation name for a web conversation, which is not already taken.
-    """
-    return get_conversation_name_with_new_number(conversation_name)

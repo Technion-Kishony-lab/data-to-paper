@@ -1,9 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Optional, Type
+from typing import Optional
 
 from scientistgpt.base_steps.base_steps_runner import BaseStepsRunner
 from scientistgpt.base_steps.request_products_from_user import DirectorProductGPT
-from scientistgpt.base_cast import Agent
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT

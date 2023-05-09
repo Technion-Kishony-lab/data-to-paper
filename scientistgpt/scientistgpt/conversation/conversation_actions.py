@@ -7,7 +7,7 @@ from scientistgpt.base_cast import Agent
 
 from .actions import Action
 from .message import Message
-from .conversation import Conversation, WebConversation
+from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 from .store_conversations import get_conversation, get_or_create_conversation
@@ -89,6 +89,8 @@ class CreateConversation(ChangeConversationParticipants):
 
     def apply_to_web(self) -> bool:
         if self.web_conversation_name is None:
+            return False
+        if get_conversation(self.web_conversation_name) is not None:
             return False
         get_or_create_conversation(conversation_name=self.web_conversation_name, participants=self.participants,
                                    is_web=True)

@@ -4,7 +4,6 @@ import shutil
 from dataclasses import dataclass
 
 from pathlib import Path
-from typing import Type
 
 from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
@@ -14,7 +13,7 @@ from scientistgpt.conversation.actions import apply_action
 from scientistgpt.conversation.conversation_actions import CreateConversation
 from scientistgpt.conversation.stage import append_advance_stage, Stage
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
-from scientistgpt.base_cast import Agent
+from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
@@ -43,7 +42,7 @@ class BaseStepsRunner(BaseProductsHandler):
         for agent in self.cast:
             if agent.get_conversation_name():
                 apply_action(CreateConversation(
-                    web_conversation_name=agent.get_conversation_name(),
+                    web_conversation_name=WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name(),
                     participants={agent, self.cast.get_primary_agent()},
                 ))
 

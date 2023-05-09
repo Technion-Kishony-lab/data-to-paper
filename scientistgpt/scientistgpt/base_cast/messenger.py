@@ -2,11 +2,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from scientistgpt.conversation import Conversation, Action
+from scientistgpt.conversation.conversation_actions import ConversationAction
+from scientistgpt.conversation.stage import StageAction
 
 from .cast import Agent
-from ..conversation.conversation_actions import ConversationAction
-from ..conversation.stage import StageAction
-from ..projects.scientific_research.cast import ScientificAgent
 
 
 @dataclass
