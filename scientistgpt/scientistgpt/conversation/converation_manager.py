@@ -5,15 +5,15 @@ from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import ModelEngine
-from .actions import apply_action
 
+from .actions import apply_action
 from .store_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
-from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, RegenerateLastResponse, \
+from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, AddParticipantsToConversation
+    CreateConversation, AddParticipantsToConversation, RegenerateLastResponse
 
 
 @dataclass

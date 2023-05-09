@@ -1,7 +1,7 @@
 import openai
 from _pytest.fixtures import fixture
 
-from scientistgpt import Conversation, Role, Message
+from scientistgpt import Role, Message
 from scientistgpt.conversation.store_conversations import get_or_create_conversation
 
 

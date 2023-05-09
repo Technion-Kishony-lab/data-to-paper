@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from scientistgpt.base_cast import Agent
 
 
-WEB_CONVERSATION_NAME_PREFIX = 'web_'
+WEB_CONVERSATION_NAME_PREFIX = '[web]'
 
 
 class Conversation(List[Message]):
