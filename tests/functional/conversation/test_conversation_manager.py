@@ -10,7 +10,7 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 
 @fixture()
 def manager():
-    manager = ConversationManager()
+    manager = ConversationManager(conversation_name='test')
     manager.create_conversation()
     manager.append_system_message('You are a helpful assistant.')
     return manager
