@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, ClassVar
 
+from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
+from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
@@ -35,8 +37,14 @@ class ConverserGPT(Replacer):
     def __post_init__(self):
         if self.web_conversation_name is True:
             # we determine an automatic conversation name based on the agent that the main agent is talking to:
-            self.web_conversation_name = self.user_agent.get_conversation_name() \
-                                         or self.assistant_agent.get_conversation_name()
+            if COALESCE_WEB_CONVERSATIONS:
+                web_conversation_name = \
+                    self.user_agent.get_conversation_name() or self.assistant_agent.get_conversation_name()
+            else:
+                web_conversation_name = self.conversation_name
+            if web_conversation_name:
+                web_conversation_name = WEB_CONVERSATION_NAME_PREFIX + web_conversation_name
+            self.web_conversation_name = web_conversation_name
         self.conversation_manager = ConversationManager(
             conversation_name=self.conversation_name,
             web_conversation_name=self.web_conversation_name,
