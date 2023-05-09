@@ -76,7 +76,10 @@ def print_magenta(text: str, **kwargs):
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
-                                 width: int = 80, is_html: bool = False) -> str:
+                                 width: int = 80, is_html: bool = False, is_comment=False) -> str:
+    if is_comment:
+        # return the text in html bold and italic gery font inside a pre tag
+        return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">Information: {text}</pre>'
     sections = text.split("```")
     s = ''
     in_text_block = True
