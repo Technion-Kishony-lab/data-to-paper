@@ -13,6 +13,15 @@ if TYPE_CHECKING:
 
 class Agent(Enum):
 
+    @classmethod
+    @abstractmethod
+    def get_primary_agent(cls) -> Agent:
+        pass
+
+    @abstractmethod
+    def get_conversation_name(self) -> str:
+        pass
+
     @property
     @abstractmethod
     def profile(self) -> Profile:

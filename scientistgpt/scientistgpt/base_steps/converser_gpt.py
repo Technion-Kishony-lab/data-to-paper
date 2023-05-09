@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, ClassVar
 
+from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
+from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
@@ -26,12 +28,26 @@ class ConverserGPT(Replacer):
 
     conversation_name: str = 'default'
 
+    web_conversation_name: Optional[str] = True
+    # None - do not post to web conversation, True - use default name, str - use given name
+
     driver: str = ''
 
     @with_attribute_replacement
     def __post_init__(self):
+        if self.web_conversation_name is True:
+            # we determine an automatic conversation name based on the agent that the main agent is talking to:
+            if COALESCE_WEB_CONVERSATIONS:
+                web_conversation_name = \
+                    self.user_agent.get_conversation_name() or self.assistant_agent.get_conversation_name()
+            else:
+                web_conversation_name = self.conversation_name
+            if web_conversation_name:
+                web_conversation_name = WEB_CONVERSATION_NAME_PREFIX + web_conversation_name
+            self.web_conversation_name = web_conversation_name
         self.conversation_manager = ConversationManager(
             conversation_name=self.conversation_name,
+            web_conversation_name=self.web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
             assistant_agent=self.assistant_agent,
             user_agent=self.user_agent,

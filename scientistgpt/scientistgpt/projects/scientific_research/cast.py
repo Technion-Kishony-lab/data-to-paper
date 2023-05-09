@@ -23,6 +23,13 @@ class ScientificAgent(Agent):
     CitationExpert = 'CitationExpert'
     TableExpert = 'TableExpert'
 
+    @classmethod
+    def get_primary_agent(cls) -> Agent:
+        return cls.Performer
+
+    def get_conversation_name(self) -> str:
+        return AGENTS_TO_CONVERSATION_NAMES[self]
+
     @property
     def profile(self) -> Profile:
         return getattr(theme, self.name)
@@ -36,3 +43,16 @@ class ScientificAgent(Agent):
 
 assert all(agent.profile.agent_name == agent.name for agent in Agent), \
     f"Agent name in theme {THEME_NAME} does not match Agent enum"
+
+
+AGENTS_TO_CONVERSATION_NAMES = {
+    ScientificAgent.Performer: None,
+    ScientificAgent.Director: 'get data',
+    ScientificAgent.GoalReviewer: 'review goal',
+    ScientificAgent.PlanReviewer: 'review plan',
+    ScientificAgent.Debugger: 'debug',
+    ScientificAgent.InterpretationReviewer: 'results interpretation',
+    ScientificAgent.Writer: 'write paper',
+    ScientificAgent.CitationExpert: 'add citations',
+    ScientificAgent.TableExpert: 'add tables',
+}
