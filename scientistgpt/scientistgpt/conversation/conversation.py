@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from scientistgpt.base_cast import Agent
 
 
+WEB_CONVERSATION_NAME_PREFIX = 'web_'
+
+
 class Conversation(List[Message]):
     """
     Maintain a list of messages as exchanged between user and chatgpt.
@@ -118,6 +121,10 @@ class WebConversation(Conversation):
     Describes a conversation as it appears on the client frontend.
     We only allow appending to the conversation, and not deletion.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert self.conversation_name.startswith(WEB_CONVERSATION_NAME_PREFIX)
+
     def pop(self, *args, **kwargs):
         raise NotImplementedError('Pop allow deleting.')
 

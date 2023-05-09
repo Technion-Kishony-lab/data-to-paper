@@ -6,19 +6,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Type
 
+from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
-
 from scientistgpt.conversation import save_actions_to_file
-from scientistgpt.run_gpt_code.dynamic_code import module_dir
+from scientistgpt.conversation.actions import apply_action
+from scientistgpt.conversation.conversation_actions import CreateConversation
 from scientistgpt.conversation.stage import append_advance_stage, Stage
+from scientistgpt.run_gpt_code.dynamic_code import module_dir
+from scientistgpt.base_cast import Agent
 
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
 from .types import DataFileDescriptions
-from ..base_cast import Agent
-from ..conversation.actions import apply_action
-from ..conversation.conversation_actions import CreateConversation
 
 
 @dataclass
@@ -36,6 +36,8 @@ class BaseStepsRunner(BaseProductsHandler):
     mock_servers: bool = False
 
     def create_web_conversations(self):
+        if not COALESCE_WEB_CONVERSATIONS:
+            return
         if self.cast is None:
             return
         for agent in self.cast:
