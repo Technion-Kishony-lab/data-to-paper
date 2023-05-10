@@ -29,6 +29,7 @@ sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
 
 @dataclass
 class GoalReviewGPT(BaseProductsQuotedReviewGPT):
+    max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions']
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
@@ -44,6 +45,8 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
         as in the description of our dataset, above).
+        
+        {quote_request}
         """)
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
@@ -91,7 +94,8 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
     """)
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \
-                                  "Briefly mention the tools used to preform the analysis."
+                                  "Briefly mention the tools used to preform the analysis.\n\n" \
+                                  "{quote_request}"
 
 
 @dataclass
@@ -124,9 +128,9 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         4. Do not cite any papers.
         """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-        only the {goal_noun} section of a scientific paper. Do not write any other parts!
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above (research goal, analysis plan, and results description), \
+        please {goal_verb} only the {goal_noun} section of a scientific paper. Do not write any other parts!
         Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
         """)
 
@@ -152,10 +156,10 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+    user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
         only the {goal_noun} of a scientific paper. Do not write any other parts!
-        Write in tex format including the \\title{{}} and \\begin{{abstract}} ... \\end{{abstract}} commands, 
+        Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
     """)
 
@@ -166,10 +170,10 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-        only the {goal_noun} section of a scientific paper. Do not write any other parts!
-        Write in tex format including the \\section{{}} command, and any math or symbols that needs tex escapes.
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above (research goal, analysis plan, and results description), \
+        please {goal_verb} only the {goal_noun} section of a scientific paper. Do not write any other parts!
+        Write in tex format including the \\\\section{{}} command, and any math or symbols that needs tex escapes.
     """)
 
     def __post_init__(self):

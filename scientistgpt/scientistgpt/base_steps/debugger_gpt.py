@@ -133,7 +133,7 @@ class DebuggerGPT(ConverserGPT):
             tag = 'no_code'
         elif number_of_code_edges % 2 == 1:
             response = dedent_triple_quote_str("""
-            Your code is incomplete. Please try again with a shorter code. Remove comments to help condense the code
+            Your code is incomplete. Please try again with a shorter code. Remove comments to help condense the code \
             into a single code block.
             """)
             tag = 'incomplete_code'
@@ -155,7 +155,7 @@ class DebuggerGPT(ConverserGPT):
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
                 Please do not use the `print` function. 
-                Anything you want to print, must be written to the output file. 
+                Anything you want to print must be written to the output file. 
                 """),
                 comment=f'{self.iteration_str}: Code uses `print`.')
             return
@@ -265,6 +265,7 @@ class DebuggerGPT(ConverserGPT):
                 self._respond_to_large_output()
             else:
                 # All good!
+                self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
                 self.comment("GPT code completed successfully.")
                 return code_and_output
 
