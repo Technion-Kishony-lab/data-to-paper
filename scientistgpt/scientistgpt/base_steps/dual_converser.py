@@ -114,7 +114,8 @@ class DialogDualConverserGPT(DualConverserGPT):
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
-    fake_performer_message_to_add_after_max_rounds: str = "No more need for feedback. Thanks much - I think I have it now!"
+    fake_performer_message_to_add_after_max_rounds: str = \
+        "No need for additional feedback. Thanks much - I think I have it now!"
     fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
     max_attempts_per_round: int = 4
