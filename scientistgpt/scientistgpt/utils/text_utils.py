@@ -81,7 +81,7 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
         return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">Information: {text}</pre>'
     elif is_system:
         return f'<pre style="background-color: #2A2525; color: #72E52D; font-weight: bold">' \
-               f'System Prompt:<br>==============<br>{wrap_string(text, width=width)}</pre>'
+               f'System Prompt:<br>{"="*width}<br>{wrap_string(text, width=width)}</pre>'
     sections = text.split("```")
     s = ''
     in_text_block = True
