@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .actions import Action, apply_action
+from .actions_and_conversations import Action
 
 
 class Stage:
@@ -24,10 +24,3 @@ class StageAction(Action):
 @dataclass(frozen=True)
 class AdvanceStage(StageAction):
     pass
-
-
-def append_advance_stage(stage: Stage):
-    """
-    Append an action to advance the stage of the process.
-    """
-    apply_action(AdvanceStage(stage=stage))

@@ -3,8 +3,9 @@ from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
-def test_role_reversal_dialog_converser():
+def test_role_reversal_dialog_converser(actions_and_conversations):
     converser = ReviewDialogDualConverserGPT(
+        actions_and_conversations=actions_and_conversations,
         performer='scientist',
         reviewer='scientific reviewer',
         conversation_name='scientist',

@@ -1,19 +1,18 @@
 import glob
 import os
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pathlib import Path
 
 from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
-from scientistgpt.conversation import save_actions_to_file
-from scientistgpt.conversation.actions import apply_action
 from scientistgpt.conversation.conversation_actions import CreateConversation
-from scientistgpt.conversation.stage import append_advance_stage, Stage
+from scientistgpt.conversation.stage import Stage, AdvanceStage
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
+from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
@@ -29,10 +28,21 @@ class BaseStepsRunner(BaseProductsHandler):
     OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
 
+    actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
+
     cast = None  # Type[Agent]
     output_directory: Path = None
     data_file_descriptions: DataFileDescriptions = None
     mock_servers: bool = False
+
+    def _get_converser(self, converser_type: type, **kwargs):
+        """
+        Get a converser of the given type.
+        """
+        return converser_type(
+            actions_and_conversations=self.actions_and_conversations,
+            products=self.products,
+            **kwargs)
 
     def create_web_conversations(self):
         if not COALESCE_WEB_CONVERSATIONS:
@@ -41,7 +51,8 @@ class BaseStepsRunner(BaseProductsHandler):
             return
         for agent in self.cast:
             if agent.get_conversation_name():
-                apply_action(CreateConversation(
+                self.actions_and_conversations.actions.apply_action(CreateConversation(
+                    conversations=self.actions_and_conversations.conversations,
                     web_conversation_name=WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name(),
                     participants={agent, self.cast.get_primary_agent()},
                 ))
@@ -50,7 +61,7 @@ class BaseStepsRunner(BaseProductsHandler):
         """
         Advance the stage of the research goal.
         """
-        append_advance_stage(stage=stage)
+        self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
 
     @property
     def absolute_data_folder(self):
@@ -104,7 +115,7 @@ class BaseStepsRunner(BaseProductsHandler):
         output_directory = self.output_directory
 
         # Save conversation to text file:
-        save_actions_to_file(output_directory / self.ACTIONS_FILENAME)
+        self.actions_and_conversations.actions.save_actions_to_file(output_directory / self.ACTIONS_FILENAME)
 
         # Move all gpt analysis result files to output folder:
         for file in glob.glob(str(absolute_data_path / (BASE_GPT_SCRIPT_FILE_NAME + '*.txt'))):

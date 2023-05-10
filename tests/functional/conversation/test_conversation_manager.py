@@ -2,15 +2,14 @@ from _pytest.fixtures import fixture
 
 from scientistgpt import Message, Role
 from scientistgpt.conversation.conversation_actions import ReplaceLastResponse
-from scientistgpt.conversation.actions import APPLIED_ACTIONS
 from scientistgpt.conversation.converation_manager import ConversationManager
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
 
 @fixture()
-def manager():
-    manager = ConversationManager(conversation_name='test')
+def manager(actions_and_conversations):
+    manager = ConversationManager(actions_and_conversations=actions_and_conversations, conversation_name='test')
     manager.create_conversation()
     manager.append_system_message('You are a helpful assistant.')
     return manager
@@ -53,7 +52,7 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
     assert manager.conversation.get_last_response() in ['a', 'b', 'c']
 
 
-def test_conversation_manager_regenerate_response(manager):
+def test_conversation_manager_regenerate_response(manager, actions):
     with OPENAI_SERVER_CALLER.mock([
         'The answer is ...',
         'The answer is 4',
@@ -63,11 +62,11 @@ def test_conversation_manager_regenerate_response(manager):
         manager.regenerate_previous_response()
 
     assert len(manager.conversation) == 3
-    assert len(APPLIED_ACTIONS) == 5
+    assert len(actions) == 5
     assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
 
 
-def test_conversation_manager_retry_response(manager, openai_exception):
+def test_conversation_manager_retry_response(manager, actions, openai_exception):
     with OPENAI_SERVER_CALLER.mock([
         openai_exception,
         'The answer is 4',
@@ -78,10 +77,10 @@ def test_conversation_manager_retry_response(manager, openai_exception):
         manager.get_and_append_assistant_message(tag='math answer')
 
     assert len(manager.conversation) == 5
-    assert len(APPLIED_ACTIONS) == 7  # 5 + create + failed
+    assert len(actions) == 7  # 5 + create + failed
     assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
     # message #1 was hidden after the first failed attempt:
-    assert APPLIED_ACTIONS[-1].hidden_messages == [1]
+    assert actions[-1].hidden_messages == [1]
 
 
 def test_conversation_manager_reset_to_tag_when_tag_repeats(manager):
@@ -113,24 +112,26 @@ def test_conversation_manager_delete_messages(manager):
     assert [m.content for m in manager.conversation[1:]] == ['m1', 'm4']
 
 
-def test_conversation_manager_replace_last_response(manager):
+def test_conversation_manager_replace_last_response(manager, actions):
     manager.append_surrogate_message('preliminary message. to be replaced')
     original_len = len(manager.conversation)
     manager.replace_last_response('new response')
     assert manager.conversation.get_last_response() == 'new response'
-    assert isinstance(APPLIED_ACTIONS[-1], ReplaceLastResponse)
+    assert isinstance(actions[-1], ReplaceLastResponse)
     assert len(manager.conversation) == original_len
 
 
-def test_conversation_manager_copy_messages_from_another_conversations():
-    manager1 = ConversationManager(conversation_name='conversation1')
+def test_conversation_manager_copy_messages_from_another_conversations(actions_and_conversations):
+    manager1 = ConversationManager(actions_and_conversations=actions_and_conversations,
+                                   conversation_name='conversation1')
     manager1.create_conversation()
     manager1.append_user_message('m1')
     manager1.append_user_message('m2', tag='tag2')
     manager1.append_user_message('m3')
     manager1.append_user_message('m4')
 
-    manager2 = ConversationManager(conversation_name='conversation2')
+    manager2 = ConversationManager(actions_and_conversations=actions_and_conversations,
+                                   conversation_name='conversation2')
     manager2.create_conversation()
     manager2.copy_messages_from_another_conversations(
         message_designation=RangeMessageDesignation.from_('tag2', -1),

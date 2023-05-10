@@ -5,9 +5,8 @@ from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import ModelEngine
+from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 
-from .actions import apply_action
-from .store_conversations import get_actions_for_conversation, get_conversation
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
@@ -26,6 +25,8 @@ class ConversationManager:
     Maintains a list of these actions.
     """
 
+    actions_and_conversations: ActionsAndConversations
+
     should_print: bool = True
     "Indicates whether to print added actions to the console."
 
@@ -43,12 +44,20 @@ class ConversationManager:
     "The agent who is playing the user in the conversation."
 
     @property
+    def conversations(self) -> Conversations:
+        return self.actions_and_conversations.conversations
+
+    @property
+    def actions(self) -> Actions:
+        return self.actions_and_conversations.actions
+
+    @property
     def conversation(self) -> Conversation:
-        return get_conversation(self.conversation_name)
+        return self.conversations.get_conversation(self.conversation_name)
 
     @property
     def web_conversation(self) -> Conversation:
-        return get_conversation(self.web_conversation_name)
+        return self.conversations.get_conversation(self.web_conversation_name)
 
     @property
     def participants(self) -> Set[Agent]:
@@ -58,16 +67,18 @@ class ConversationManager:
         """
         Apply an action to a conversation and append to the actions list.
         """
-        apply_action(action, should_print=self.should_print, is_color=True)
+        self.actions.apply_action(action, should_print=self.should_print, is_color=True)
 
     def create_conversation(self):
-        self._append_and_apply_action(CreateConversation(web_conversation_name=self.web_conversation_name,
+        self._append_and_apply_action(CreateConversation(conversations=self.conversations,
+                                                         web_conversation_name=self.web_conversation_name,
                                                          conversation_name=self.conversation_name,
                                                          driver=self.driver,
                                                          participants=self.participants))
 
     def add_participants(self, agents: Iterable[Agent]):
-        self._append_and_apply_action(AddParticipantsToConversation(web_conversation_name=self.web_conversation_name,
+        self._append_and_apply_action(AddParticipantsToConversation(conversations=self.conversations,
+                                                                    web_conversation_name=self.web_conversation_name,
                                                                     conversation_name=self.conversation_name,
                                                                     driver=self.driver,
                                                                     participants=set(agents)))
@@ -84,6 +95,7 @@ class ConversationManager:
         Append a message to a specified conversation.
         """
         self._append_and_apply_action(AppendMessage(
+            conversations=self.conversations,
             web_conversation_name=self.web_conversation_name,
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
@@ -162,13 +174,14 @@ class ConversationManager:
             actual_hidden_messages.append(index)
 
     def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
-        last_action = get_actions_for_conversation(self.conversation_name)[-1]
+        last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         # get response with the same messages removed as last time plus the last response (-1).
         content = try_get_chatgpt_response(self.conversation, last_action.hidden_messages + [-1])
         assert content is not None  # because this same query already succeeded getting response.
         self._append_and_apply_action(
             RegenerateLastResponse(
+                conversations=self.conversations,
                 web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=last_action.driver, comment=comment,
                 message=create_message_from_other_message(last_action.message, content=content),
@@ -192,6 +205,7 @@ class ConversationManager:
         content = try_get_chatgpt_response(self.conversation, hidden_messages, model_engine=model_engine, **kwargs)
         if isinstance(content, Exception):
             action = FailedChatgptResponse(
+                conversations=self.conversations,
                 web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
@@ -200,6 +214,7 @@ class ConversationManager:
             if is_code:
                 content = add_python_to_first_triple_quotes_if_missing(content)
             action = AppendChatgptResponse(
+                conversations=self.conversations,
                 web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 hidden_messages=hidden_messages,
@@ -216,6 +231,7 @@ class ConversationManager:
         The message with the specified tag will be kept.
         """
         self._append_and_apply_action(ResetToTag(
+            conversations=self.conversations,
             web_conversation_name=self.web_conversation_name,
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, tag=tag))
 
@@ -225,6 +241,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             DeleteMessages(
+                conversations=self.conversations,
                 web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 message_designation=message_designation))
@@ -235,6 +252,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             ReplaceLastResponse(
+                conversations=self.conversations,
                 web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent)))
@@ -248,6 +266,7 @@ class ConversationManager:
         """
         self._append_and_apply_action(
             CopyMessagesBetweenConversations(
+                conversations=self.conversations,
                 web_conversation_name=self.web_conversation_name,
                 conversation_name=self.conversation_name, driver=self.driver, comment=comment,
                 source_conversation_name=source_conversation.conversation_name,

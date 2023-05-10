@@ -29,6 +29,7 @@ class DualConverserGPT(ConverserGPT):
         if self.other_conversation_name is None:
             self.other_conversation_name = f'{self.conversation_name}_other'
         self.other_conversation_manager = ConversationManager(
+            actions_and_conversations=self.actions_and_conversations,
             conversation_name=self.other_conversation_name,
             web_conversation_name=self.other_web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
