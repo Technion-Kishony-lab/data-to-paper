@@ -265,7 +265,7 @@ class DebuggerGPT(ConverserGPT):
                 self._respond_to_large_output()
             else:
                 # All good!
-                self.comment("GPT code completed successfully. Returning results to ScientistGPT.")
+                self.comment("GPT code completed successfully.")
                 return code_and_output
 
         # if code was extracted ok, we clean up a bit, deleting the previous debug iterations

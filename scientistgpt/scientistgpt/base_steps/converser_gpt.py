@@ -99,7 +99,9 @@ class ConverserGPT(Replacer):
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
+                                       show_on_web: bool = True,
                                        previous_code: Optional[str] = None, is_background: bool = False):
         return self.conversation_manager.append_surrogate_message(
             content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            show_on_web=show_on_web,
             previous_code=previous_code, is_background=is_background)
