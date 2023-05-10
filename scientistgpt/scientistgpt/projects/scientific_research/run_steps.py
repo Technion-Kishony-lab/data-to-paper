@@ -42,16 +42,17 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                  conversation_name='with_director',
                                                  )
         self.advance_stage(ScientificStage.DATA)
-        products.data_file_descriptions = director_converser.get_product_from_director(
+        products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
             product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
 
         # Goal
         self.advance_stage(ScientificStage.GOAL)
-        if self.research_goal is None or self.research_goal == '':
+        products.research_goal = director_converser.get_product_or_no_product_from_director(
+            product_field='research_goal', returned_product=self.research_goal,
+            acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
+        if products.research_goal is None:
+            # we did not get a goal from the director, so we need to devise it ourselves:
             products.research_goal = self._get_converser(GoalReviewGPT).initialize_and_run_dialog()
-        else:
-            products.research_goal = director_converser.get_product_from_director(
-                product_field='research_goal', returned_product=self.research_goal)
 
         # Analysis plan
         self.advance_stage(ScientificStage.PLAN)

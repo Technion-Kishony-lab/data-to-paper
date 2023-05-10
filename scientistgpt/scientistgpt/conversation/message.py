@@ -53,6 +53,7 @@ class Message:
     agent: Optional[Agent] = None
     model_engine: ModelEngine = None
     ignore: bool = False  # if True, this message will be skipped when calling openai
+    is_background: bool = False  # if True, repeated messages will not be shown in the web conversation
 
     def to_chatgpt_dict(self):
         return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()
@@ -185,16 +186,25 @@ class CodeMessage(Message):
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
                    model_engine: ModelEngine = None,
-                   previous_code: str = None) -> Message:
+                   previous_code: str = None,
+                   is_background: bool = False) -> Message:
     if previous_code:
         return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                           model_engine=model_engine, previous_code=previous_code)
+                           model_engine=model_engine, previous_code=previous_code,
+                           is_background=is_background)
     else:
-        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore, model_engine=model_engine)
+        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore, model_engine=model_engine,
+                       is_background=is_background)
 
 
-def create_message_from_other_message(other_message: Message, content: str) -> Message:
-    return create_message(role=other_message.role, content=content, tag=other_message.tag, agent=other_message.agent,
+def create_message_from_other_message(other_message: Message,
+                                      content: Optional[str] = None,
+                                      agent: Optional[Agent] = None) -> Message:
+    return create_message(role=other_message.role,
+                          content=content if content else other_message.content,
+                          tag=other_message.tag,
+                          agent=agent if agent else other_message.agent,
                           ignore=other_message.ignore,
                           model_engine=other_message.model_engine,
-                          previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None)
+                          previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None,
+                          is_background=other_message.is_background)
