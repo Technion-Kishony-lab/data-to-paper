@@ -197,8 +197,13 @@ def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agen
                        is_background=is_background)
 
 
-def create_message_from_other_message(other_message: Message, content: str) -> Message:
-    return create_message(role=other_message.role, content=content, tag=other_message.tag, agent=other_message.agent,
+def create_message_from_other_message(other_message: Message,
+                                      content: Optional[str] = None,
+                                      agent: Optional[Agent] = None) -> Message:
+    return create_message(role=other_message.role,
+                          content=content if content else other_message.content,
+                          tag=other_message.tag,
+                          agent=agent if agent else other_message.agent,
                           ignore=other_message.ignore,
                           model_engine=other_message.model_engine,
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None,

@@ -87,10 +87,10 @@ class ConverserGPT(Replacer):
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                  ignore: bool = False,
+                                  ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False):
         return self.conversation_manager.append_user_message(
-            content=content, tag=tag, comment=comment, ignore=ignore,
+            content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background)
 
     def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
@@ -98,8 +98,8 @@ class ConverserGPT(Replacer):
             content=content, tag=tag, comment=comment)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                       ignore: bool = False,
+                                       ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False):
         return self.conversation_manager.append_surrogate_message(
-            content=content, tag=tag, comment=comment, ignore=ignore,
+            content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background)
