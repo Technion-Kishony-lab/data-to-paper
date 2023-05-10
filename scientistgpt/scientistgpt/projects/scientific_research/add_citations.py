@@ -19,11 +19,15 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     rewrite the sentence with the citations.
     This class is called on already initialized conversation.
     """
-    assistant_agent: ScientificAgent = ScientificAgent.CitationExpert
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.CitationExpert
+
+    goal_noun: str = 'literature citations'
+    goal_verb: str = 'find'
 
     value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
+    fake_performer_message_to_add_after_max_rounds: str = None
     max_attempts_per_round: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
@@ -98,14 +102,17 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     """
     Given a section of a paper, add citations to the factual sentences in the section.
     """
+    fake_performer_request_for_help: str = 'Hi, can you please help me with adding citations to my paper?'
+    fake_reviewer_agree_to_help: str = 'Sure, I am happy to guide and help you with adding citations to your paper.\n' \
+                                       'Please just provide some context first.'
     value_type: type = Dict[str, str]
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
     # see _get_background_product_fields()
     background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
     conversation_name: str = 'add_citations_{section_name}'
-    assistant_agent: ScientificAgent = ScientificAgent.CitationExpert
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.CitationExpert
     max_reviewing_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
 

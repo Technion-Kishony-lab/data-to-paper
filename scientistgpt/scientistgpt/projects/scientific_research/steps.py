@@ -29,13 +29,14 @@ sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
 
 @dataclass
 class GoalReviewGPT(BaseProductsQuotedReviewGPT):
+    max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions']
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
     goal_verb: str = 'suggest'
-    assistant_agent: ScientificAgent = ScientificAgent.GoalReviewer
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
         'I hereby approve that the research goal is well-defined and can be studied using only the provided dataset'
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -44,6 +45,8 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
         as in the description of our dataset, above).
+
+        {quote_request}
         """)
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
@@ -66,12 +69,13 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class PlanReviewGPT(BaseProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 0  # no review cycles
+    fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
     background_product_fields = ['data_file_descriptions', 'research_goal']
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
-    assistant_agent: ScientificAgent = ScientificAgent.PlanReviewer
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.PlanReviewer
     sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
@@ -82,15 +86,16 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
     conversation_name: str = 'results_interpretation'
     goal_noun: str = 'description and interpretation of the results'
     goal_verb: str = 'write'
-    assistant_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     model_engine = ModelEngine.GPT4
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
     """)
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \
-                                  "Briefly mention the tools used to preform the analysis."
+                                  "Briefly mention the tools used to preform the analysis.\n\n" \
+                                  "{quote_request}"
 
 
 @dataclass
@@ -104,8 +109,8 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
     reviewer: str = 'scientific reviewer'
-    assistant_agent: ScientificAgent = ScientificAgent.Writer
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.Writer
     section_names: Optional[Union[str, list[str]]] = None
 
     def __post_init__(self):
@@ -123,9 +128,9 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         4. Do not cite any papers.
         """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-        only the {goal_noun} of a scientific paper. Do not write any other parts!
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above (research goal, analysis plan, and results description), \
+        please {goal_verb} only the {goal_noun} section of a scientific paper. Do not write any other parts!
         Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
         """)
 
@@ -151,10 +156,10 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
+    user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
         only the {goal_noun} of a scientific paper. Do not write any other parts!
-        Write in tex format including the \\title{{}} and \\begin{{abstract}} ... \\end{{abstract}} commands, 
+        Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
     """)
 
@@ -165,10 +170,10 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Based on the material provided above (research goal, analysis plan, and results description), please {goal_verb} 
-        only the {goal_noun} of a scientific paper. Do not write any other parts!
-        Write in tex format including the \\section{{}} command, and any math or symbols that needs tex escapes.
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above (research goal, analysis plan, and results description), \
+        please {goal_verb} only the {goal_noun} section of a scientific paper. Do not write any other parts!
+        Write in tex format including the \\\\section{{}} command, and any math or symbols that needs tex escapes.
     """)
 
     def __post_init__(self):
@@ -184,7 +189,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
-    assistant_agent: ScientificAgent = ScientificAgent.TableExpert
+    user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -207,8 +212,8 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     products: ScientificProducts = None
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
     conversation_name: str = 'code_debugging'
-    assistant_agent: ScientificAgent = ScientificAgent.Debugger
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.Debugger
     code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
         All results we may need for a scientific paper should be saved to that file, including \
         analysis findings, summary statistics, etc. 

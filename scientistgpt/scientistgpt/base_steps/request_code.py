@@ -23,6 +23,11 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 class BaseCodeProductsGPT(BaseProductsGPT):
     revision_round: int = 0
 
+    fake_performer_request_for_help: str = "Hi, could you please help me write code for my project?"
+    fake_reviewer_agree_to_help: str = "Well, I think this is something you can do yourself, but I am certainly " \
+                                       "happy to provide guidance and feedback.\n" \
+                                       "Please just provide some background and context first.\n"
+
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 
@@ -31,7 +36,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
         Write a complete short Python code to perform the data analysis plan.
-        Don't state what the code should do in comments, write the code itself.
+        Don't provide a sketch or pseudocode; write a complete runnable code.
         If needed, you can use the following packages in your code: {{}}.
         The output of your code should be a text file named "{{}}".
         """)
@@ -159,6 +164,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 self.apply_append_surrogate_message(
                     content=self.present_code_as_fresh.format(self._get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
+                    show_on_web=False,
                 )
             return code_and_output
         return None

@@ -20,3 +20,5 @@ scientistgpt/scientistgpt.egg-info/
 sciserv/sciserv/build/
 
 frontend/Documentation/dist/assets/libs/chance/chance.min.js
+
+*.lock

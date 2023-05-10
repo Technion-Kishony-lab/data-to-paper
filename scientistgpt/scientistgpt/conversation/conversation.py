@@ -44,6 +44,13 @@ class Conversation(List[Message]):
         if self.participants is not None:
             self.participants.remove(agent)
 
+    def get_other_participant(self, agent: Agent) -> Agent:
+        if len(self.participants) != 2:
+            raise ValueError('Conversation must have exactly two participants.')
+        for participant in self.participants:
+            if participant is not agent:
+                return participant
+
     def append(self, message: Message):
         if self.participants is not None and message.role is not Role.COMMENTER:
             assert message.agent in self.participants, f'Agent {message.agent} not in conversation participants.'
