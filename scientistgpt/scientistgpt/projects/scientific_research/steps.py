@@ -45,7 +45,7 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
         as in the description of our dataset, above).
-        
+
         {quote_request}
         """)
     other_system_prompt: str = dedent_triple_quote_str("""
