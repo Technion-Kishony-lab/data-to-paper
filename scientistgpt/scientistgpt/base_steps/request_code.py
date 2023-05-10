@@ -23,6 +23,11 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 class BaseCodeProductsGPT(BaseProductsGPT):
     revision_round: int = 0
 
+    fake_performer_request_for_help: str = "Hi, could you please help me write code for my project?"
+    fake_reviewer_agree_to_help: str = "Well, I think this is something you can do yourself, but I am certainly " \
+                                       "happy to provide guidance and feedback.\n" \
+                                       "Please just provide some background and context first.\n"
+
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 
@@ -159,6 +164,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 self.apply_append_surrogate_message(
                     content=self.present_code_as_fresh.format(self._get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
+                    show_on_web=False,
                 )
             return code_and_output
         return None

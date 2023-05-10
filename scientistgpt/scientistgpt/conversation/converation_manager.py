@@ -90,20 +90,22 @@ class ConversationManager:
             if self.participants - self.conversation.participants:
                 self.add_participants(self.participants - self.conversation.participants)
 
-    def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False):
+    def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False,
+                       show_on_web: bool = True):
         """
         Append a message to a specified conversation.
         """
         self._append_and_apply_action(AppendMessage(
             conversations=self.conversations,
-            web_conversation_name=self.web_conversation_name,
+            web_conversation_name=self.web_conversation_name if show_on_web else None,
             adjust_message_for_web=
             {'agent': self.web_conversation.get_other_participant(message.agent)} if reverse_roles_for_web else None,
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None,
-                                  is_background: bool = False, reverse_roles_for_web: bool = False):
+                                  is_background: bool = False, reverse_roles_for_web: bool = False,
+                                  show_on_web: bool = True):
         """
         Append a message to a specified conversation.
         """
@@ -115,7 +117,7 @@ class ConversationManager:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                                  previous_code=previous_code, is_background=is_background)
-        self.append_message(message, comment, reverse_roles_for_web)
+        self.append_message(message, comment, reverse_roles_for_web, show_on_web)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -145,12 +147,13 @@ class ConversationManager:
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                  ignore: bool = False, reverse_roles_for_web: bool = False,
                                  previous_code: Optional[str] = None,
+                                 show_on_web: bool = True,
                                  is_background: bool = False):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
         self.create_and_append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code, is_background,
-                                       reverse_roles_for_web)
+                                       reverse_roles_for_web, show_on_web)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,

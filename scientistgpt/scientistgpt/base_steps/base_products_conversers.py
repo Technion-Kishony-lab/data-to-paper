@@ -74,7 +74,7 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
-    fake_performer_request_for_help: str = "Hi, could you please help me {goal_verb} the {goal_noun}?"
+    fake_performer_request_for_help: str = "Hi, could you please help me {goal_verb} a {goal_noun}?"
     fake_reviewer_agree_to_help: str = "Well, I am certainly happy to help guide you and provide some feedback.\n" \
                                        "Please just give me some context first.\n"
 

@@ -19,11 +19,15 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     rewrite the sentence with the citations.
     This class is called on already initialized conversation.
     """
-    assistant_agent: ScientificAgent = ScientificAgent.CitationExpert
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.CitationExpert
+
+    goal_noun: str = 'literature citations'
+    goal_verb: str = 'find'
 
     value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
+    fake_performer_message_to_add_after_max_rounds: str = None
     max_attempts_per_round: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 

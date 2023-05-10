@@ -213,8 +213,8 @@ class DialogDualConverserGPT(DualConverserGPT):
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_reviewing_rounds:
-            if self.fake_user_message_to_end_after_max_rounds is not None:
-                self.apply_append_surrogate_message(self.fake_user_message_to_end_after_max_rounds, ignore=True)
+            if self.fake_performer_message_to_add_after_max_rounds is not None:
+                self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
 
         other_response = self.get_response_from_other_in_response_to_response_from_self(self_response)
