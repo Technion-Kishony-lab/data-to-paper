@@ -14,5 +14,4 @@ def test_role_reversal_dialog_converser(actions_and_conversations):
         goal_noun='a one-paragraph summary on the solar system',
         goal_verb='write',
     )
-    print()
     converser.initialize_and_run_dialog()
