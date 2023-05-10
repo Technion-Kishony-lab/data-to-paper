@@ -34,8 +34,8 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
     goal_verb: str = 'suggest'
-    assistant_agent: ScientificAgent = ScientificAgent.GoalReviewer
-    user_agent: ScientificAgent = ScientificAgent.Performer
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
         'I hereby approve that the research goal is well-defined and can be studied using only the provided dataset'
     user_initiation_prompt: str = dedent_triple_quote_str("""

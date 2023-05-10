@@ -119,6 +119,9 @@ class AppendMessage(ConversationAction):
     """
     message: Message = None
 
+    adjust_message_for_web: dict = None
+    # If True, show the message on the web conversation as if it was sent by the other participant.
+
     def _get_index_of_tag(self) -> Optional[int]:
         """
         Return the index of the message with the provided tag.
@@ -170,13 +173,23 @@ class AppendMessage(ConversationAction):
         assert len(self.conversation) == message_index
         self.conversation.append(self.message)
 
+    def get_message_for_web(self) -> Message:
+        """
+        Return the message that will be appended to the web conversation.
+        """
+        if self.adjust_message_for_web:
+            return create_message_from_other_message(
+                self.message,
+                **self.adjust_message_for_web)
+        return self.message
+
     def apply_to_web(self) -> bool:
         if not super().apply_to_web():
             return False
         if self.message.is_background and any(self.message == m for m in self.web_conversation):
             # in web conversation, we only append messages that are not already there
             return False
-        self.web_conversation.append(self.message)
+        self.web_conversation.append(self.get_message_for_web())
         return True
 
 
