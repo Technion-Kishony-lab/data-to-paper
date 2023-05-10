@@ -100,7 +100,8 @@ class ConversationManager:
             conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
-                                  ignore: bool = False, previous_code: Optional[str] = None):
+                                  ignore: bool = False, previous_code: Optional[str] = None,
+                                  is_background: bool = False):
         """
         Append a message to a specified conversation.
         """
@@ -111,7 +112,7 @@ class ConversationManager:
         else:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 previous_code=previous_code)
+                                 previous_code=previous_code, is_background=is_background)
         self.append_message(message, comment)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
@@ -122,11 +123,11 @@ class ConversationManager:
         self.create_and_append_message(Role.SYSTEM, content, tag, comment)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                            ignore: bool = False, previous_code: Optional[str] = None):
+                            ignore: bool = False, previous_code: Optional[str] = None, is_background: bool = False):
         """
         Append a user-message to a specified conversation.
         """
-        self.create_and_append_message(Role.USER, content, tag, comment, ignore, previous_code)
+        self.create_and_append_message(Role.USER, content, tag, comment, ignore, previous_code, is_background)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -138,11 +139,12 @@ class ConversationManager:
         self.create_and_append_message(Role.COMMENTER, content, tag, comment)
 
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                 ignore: bool = False, previous_code: Optional[str] = None):
+                                 ignore: bool = False, previous_code: Optional[str] = None,
+                                 is_background: bool = False):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.create_and_append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code)
+        self.create_and_append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code, is_background)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,

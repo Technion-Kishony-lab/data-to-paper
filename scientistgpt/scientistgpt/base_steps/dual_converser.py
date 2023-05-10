@@ -57,9 +57,9 @@ class DualConverserGPT(ConverserGPT):
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                           previous_code: Optional[str] = None):
+                                           previous_code: Optional[str] = None, is_background: bool = False):
         return self.other_conversation_manager.append_user_message(
-            content, tag=tag, comment=comment, previous_code=previous_code)
+            content, tag=tag, comment=comment, previous_code=previous_code, is_background=is_background)
 
     def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None,
                                              comment: Optional[str] = None):
@@ -67,9 +67,10 @@ class DualConverserGPT(ConverserGPT):
 
     def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
                                                 comment: Optional[str] = None,
-                                                previous_code: Optional[str] = None):
+                                                previous_code: Optional[str] = None,
+                                                is_background: bool = False):
         return self.other_conversation_manager.append_surrogate_message(
-            content, tag=tag, comment=comment, previous_code=previous_code)
+            content, tag=tag, comment=comment, previous_code=previous_code, is_background=is_background)
 
 
 class CycleStatus(Enum):

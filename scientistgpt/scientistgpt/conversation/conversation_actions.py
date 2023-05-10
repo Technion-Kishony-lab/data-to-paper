@@ -173,7 +173,7 @@ class AppendMessage(ConversationAction):
     def apply_to_web(self) -> bool:
         if not super().apply_to_web():
             return False
-        if any(self.message == m for m in self.web_conversation):
+        if self.message.is_background and any(self.message == m for m in self.web_conversation):
             # in web conversation, we only append messages that are not already there
             return False
         self.web_conversation.append(self.message)
