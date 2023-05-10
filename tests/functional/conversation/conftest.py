@@ -2,12 +2,11 @@ import openai
 from _pytest.fixtures import fixture
 
 from scientistgpt import Role, Message
-from scientistgpt.conversation.store_conversations import get_or_create_conversation
 
 
 @fixture()
-def conversation():
-    conversation = get_or_create_conversation(conversation_name='default')
+def conversation(conversations):
+    conversation = conversations.get_or_create_conversation(conversation_name='default')
     conversation.append(Message(Role.SYSTEM, 'You are a helpful assistant.'))
     conversation.append(Message(Role.USER, 'Write a short code.', 'write_code'))
     conversation.append(Message(Role.ASSISTANT, 'Here is my code:\n\n'

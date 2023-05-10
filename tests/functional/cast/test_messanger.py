@@ -3,7 +3,6 @@ from unittest.mock import Mock
 from scientistgpt import Conversation
 from scientistgpt.base_cast import Agent
 from scientistgpt.base_cast.messenger import Messenger, create_messenger
-from scientistgpt.conversation.actions import apply_action
 from scientistgpt.conversation.conversation_actions import CreateConversation
 
 
@@ -30,11 +29,13 @@ def test_messenger_add_delete_conversation():
     assert len(messenger.conversations) == 0
 
 
-def test_messenger_on_action():
+def test_messenger_on_action(actions, conversations):
     messenger = create_messenger(first_person=TestAgent.GOOD_AGENT)
     messenger.on_action = Mock()
     messenger.tag = 'test'
-    action = CreateConversation(participants={TestAgent.GOOD_AGENT, TestAgent.BAD_AGENT},
-                                web_conversation_name='[web]test')
-    apply_action(action)
+    action = CreateConversation(
+        conversations=conversations,
+        participants={TestAgent.GOOD_AGENT, TestAgent.BAD_AGENT},
+        web_conversation_name='[web]test')
+    actions.apply_action(action)
     messenger.on_action.assert_called_once()

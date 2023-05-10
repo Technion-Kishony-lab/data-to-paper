@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, ClassVar
 
+from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
@@ -15,6 +16,9 @@ class ConverserGPT(Replacer):
     """
     A base class for agents interacting with chatgpt.
     """
+
+    actions_and_conversations: ActionsAndConversations
+
     model_engine: ClassVar[ModelEngine] = None
     """
     The openai model engine to use. If None, use the default model engine.
@@ -46,6 +50,7 @@ class ConverserGPT(Replacer):
                 web_conversation_name = WEB_CONVERSATION_NAME_PREFIX + web_conversation_name
             self.web_conversation_name = web_conversation_name
         self.conversation_manager = ConversationManager(
+            actions_and_conversations=self.actions_and_conversations,
             conversation_name=self.conversation_name,
             web_conversation_name=self.web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,

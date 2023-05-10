@@ -133,6 +133,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
+                actions_and_conversations=self.actions_and_conversations,
                 conversation_name=self.conversation_name,
                 user_agent=self.user_agent,
                 assistant_agent=self.assistant_agent,

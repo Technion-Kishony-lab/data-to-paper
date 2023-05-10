@@ -5,12 +5,12 @@ from typing import Optional, List, Set
 from scientistgpt.utils.text_utils import red_text
 from scientistgpt.base_cast import Agent
 
-from .actions import Action
+from .actions_and_conversations import Action
 from .message import Message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
-from .store_conversations import get_conversation, get_or_create_conversation
+from .actions_and_conversations import Conversations
 
 NoneType = type(None)
 
@@ -20,6 +20,8 @@ class ConversationAction(Action):
     """
     Base class for actions performed on a chatgpt conversation.
     """
+
+    conversations: Conversations
 
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
@@ -35,11 +37,11 @@ class ConversationAction(Action):
 
     @property
     def conversation(self) -> Conversation:
-        return get_conversation(self.conversation_name)
+        return self.conversations.get_conversation(self.conversation_name)
 
     @property
     def web_conversation(self) -> Conversation:
-        return get_conversation(self.web_conversation_name)
+        return self.conversations.get_conversation(self.web_conversation_name)
 
     def _pretty_attrs(self) -> str:
         return ''
@@ -84,16 +86,16 @@ class CreateConversation(ChangeConversationParticipants):
     def apply(self):
         if self.conversation_name is None:
             return
-        get_or_create_conversation(conversation_name=self.conversation_name, participants=self.participants,
-                                   is_web=False)
+        self.conversations.get_or_create_conversation(
+            conversation_name=self.conversation_name, participants=self.participants, is_web=False)
 
     def apply_to_web(self) -> bool:
         if self.web_conversation_name is None:
             return False
-        if get_conversation(self.web_conversation_name) is not None:
+        if self.conversations.get_conversation(self.web_conversation_name) is not None:
             return False
-        get_or_create_conversation(conversation_name=self.web_conversation_name, participants=self.participants,
-                                   is_web=True)
+        self.conversations.get_or_create_conversation(
+            conversation_name=self.web_conversation_name, participants=self.participants, is_web=True)
         return True
 
 
@@ -305,7 +307,7 @@ class CopyMessagesBetweenConversations(ConversationAction):
 
     @property
     def source_conversation(self) -> Conversation:
-        return get_conversation(self.source_conversation_name)
+        return self.conversations.get_conversation(self.source_conversation_name)
 
     def _get_indices_to_copy(self) -> List[int]:
         """

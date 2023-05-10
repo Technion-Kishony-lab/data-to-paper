@@ -25,8 +25,9 @@ def data_file_descriptions():
 
 
 @fixture()
-def goal_reviewer(data_file_descriptions):
+def goal_reviewer(data_file_descriptions, actions_and_conversations):
     return GoalReviewGPT(
+        actions_and_conversations=actions_and_conversations,
         suppress_printing_other_conversation=False,
         products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
@@ -35,8 +36,9 @@ def goal_reviewer(data_file_descriptions):
 
 
 @fixture()
-def plan_reviewer(data_file_descriptions):
+def plan_reviewer(data_file_descriptions, actions_and_conversations):
     return PlanReviewGPT(
+        actions_and_conversations=actions_and_conversations,
         suppress_printing_other_conversation=False,
         products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
@@ -46,8 +48,9 @@ def plan_reviewer(data_file_descriptions):
 
 
 @fixture()
-def code_reviewer(data_file_descriptions):
+def code_reviewer(data_file_descriptions, actions_and_conversations):
     return ScientificCodeProductsGPT(
+        actions_and_conversations=actions_and_conversations,
         products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
             research_goal='to test whether there is a gender bias in the birth records',
