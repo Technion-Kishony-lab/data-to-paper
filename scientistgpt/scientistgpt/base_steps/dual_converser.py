@@ -114,7 +114,8 @@ class DialogDualConverserGPT(DualConverserGPT):
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
-
+    fake_performer_message_to_add_after_max_rounds: str = "No more need for feedback. Thanks much - I think I have it now!"
+    fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
     max_attempts_per_round: int = 4
 
@@ -212,6 +213,8 @@ class DialogDualConverserGPT(DualConverserGPT):
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_reviewing_rounds:
+            if self.fake_user_message_to_end_after_max_rounds is not None:
+                self.apply_append_surrogate_message(self.fake_user_message_to_end_after_max_rounds, ignore=True)
             return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
 
         other_response = self.get_response_from_other_in_response_to_response_from_self(self_response)
@@ -219,6 +222,9 @@ class DialogDualConverserGPT(DualConverserGPT):
         if self.is_completed():
             if append_termination_response_to_self:
                 self.apply_append_user_message(other_response)
+                if self.fake_performer_message_to_add_after_reviewer_approval:
+                    self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
+                                                        ignore=True)
             return self_response, CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(other_response)
