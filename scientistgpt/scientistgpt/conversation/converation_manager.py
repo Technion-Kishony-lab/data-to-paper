@@ -63,25 +63,28 @@ class ConversationManager:
     def participants(self) -> Set[Agent]:
         return {self.assistant_agent, self.user_agent}
 
-    def _append_and_apply_action(self, action: ConversationAction):
+    def _apply_action(self, action: ConversationAction):
         """
         Apply an action to a conversation and append to the actions list.
         """
         self.actions.apply_action(action, should_print=self.should_print, is_color=True)
 
+    def _create_and_apply_action(self, action_type: type, **kwargs):
+        """
+        Create and apply an action to a conversation and append to the actions list.
+        """
+        self._apply_action(action_type(
+            conversations=self.conversations,
+            web_conversation_name=kwargs.pop('web_conversation_name', self.web_conversation_name),
+            conversation_name=kwargs.pop('conversation_name', self.conversation_name),
+            driver=kwargs.pop('driver', self.driver),
+            **kwargs))
+
     def create_conversation(self):
-        self._append_and_apply_action(CreateConversation(conversations=self.conversations,
-                                                         web_conversation_name=self.web_conversation_name,
-                                                         conversation_name=self.conversation_name,
-                                                         driver=self.driver,
-                                                         participants=self.participants))
+        self._create_and_apply_action(CreateConversation, participants=self.participants)
 
     def add_participants(self, agents: Iterable[Agent]):
-        self._append_and_apply_action(AddParticipantsToConversation(conversations=self.conversations,
-                                                                    web_conversation_name=self.web_conversation_name,
-                                                                    conversation_name=self.conversation_name,
-                                                                    driver=self.driver,
-                                                                    participants=set(agents)))
+        self._create_and_apply_action(AddParticipantsToConversation, participants=set(agents))
 
     def initialize_conversation_if_needed(self):
         if self.conversation is None:
@@ -95,12 +98,12 @@ class ConversationManager:
         """
         Append a message to a specified conversation.
         """
-        self._append_and_apply_action(AppendMessage(
-            conversations=self.conversations,
+        self._create_and_apply_action(
+            AppendMessage,
             web_conversation_name=self.web_conversation_name if show_on_web else None,
             adjust_message_for_web=
             {'agent': self.web_conversation.get_other_participant(message.agent)} if reverse_roles_for_web else None,
-            conversation_name=self.conversation_name, driver=self.driver, comment=comment, message=message))
+            message=message, comment=comment)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None,
@@ -190,14 +193,12 @@ class ConversationManager:
         # get response with the same messages removed as last time plus the last response (-1).
         content = try_get_chatgpt_response(self.conversation, last_action.hidden_messages + [-1])
         assert content is not None  # because this same query already succeeded getting response.
-        self._append_and_apply_action(
-            RegenerateLastResponse(
-                conversations=self.conversations,
-                web_conversation_name=self.web_conversation_name,
-                conversation_name=self.conversation_name, driver=last_action.driver, comment=comment,
-                message=create_message_from_other_message(last_action.message, content=content),
-                hidden_messages=last_action.hidden_messages),
-        )
+        self._create_and_apply_action(
+            RegenerateLastResponse,
+            driver=last_action.driver,
+            comment=comment,
+            message=create_message_from_other_message(last_action.message, content=content),
+            hidden_messages=last_action.hidden_messages)
         return content
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
@@ -215,24 +216,15 @@ class ConversationManager:
         """
         content = try_get_chatgpt_response(self.conversation, hidden_messages, model_engine=model_engine, **kwargs)
         if isinstance(content, Exception):
-            action = FailedChatgptResponse(
-                conversations=self.conversations,
-                web_conversation_name=self.web_conversation_name,
-                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
-                hidden_messages=hidden_messages,
-                exception=content)
+            self._create_and_apply_action(
+                FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
         else:
             if is_code:
                 content = add_python_to_first_triple_quotes_if_missing(content)
-            action = AppendChatgptResponse(
-                conversations=self.conversations,
-                web_conversation_name=self.web_conversation_name,
-                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
-                hidden_messages=hidden_messages,
+            self._create_and_apply_action(
+                AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages,
                 message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
-                                       model_engine=model_engine,
-                                       previous_code=previous_code))
-        self._append_and_apply_action(action)
+                                       model_engine=model_engine, previous_code=previous_code))
         return content
 
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
@@ -241,32 +233,22 @@ class ConversationManager:
         All messages following the message with the specified tag will be deleted.
         The message with the specified tag will be kept.
         """
-        self._append_and_apply_action(ResetToTag(
-            conversations=self.conversations,
-            web_conversation_name=self.web_conversation_name,
-            conversation_name=self.conversation_name, driver=self.driver, comment=comment, tag=tag))
+        self._create_and_apply_action(ResetToTag, comment=comment, tag=tag)
 
     def delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):
         """
         Delete messages from a conversation.
         """
-        self._append_and_apply_action(
-            DeleteMessages(
-                conversations=self.conversations,
-                web_conversation_name=self.web_conversation_name,
-                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
-                message_designation=message_designation))
+        self._create_and_apply_action(DeleteMessages, comment=comment, message_designation=message_designation)
 
     def replace_last_response(self, content: str, comment: Optional[str] = None, tag: Optional[str] = None):
         """
         Replace the last response with the specified content.
         """
-        self._append_and_apply_action(
-            ReplaceLastResponse(
-                conversations=self.conversations,
-                web_conversation_name=self.web_conversation_name,
-                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
-                message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent)))
+        self._create_and_apply_action(
+            ReplaceLastResponse,
+            comment=comment,
+            message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent))
         return content
 
     def copy_messages_from_another_conversations(self, source_conversation: Conversation,
@@ -275,10 +257,8 @@ class ConversationManager:
         """
         Copy messages from one conversation to another.
         """
-        self._append_and_apply_action(
-            CopyMessagesBetweenConversations(
-                conversations=self.conversations,
-                web_conversation_name=self.web_conversation_name,
-                conversation_name=self.conversation_name, driver=self.driver, comment=comment,
-                source_conversation_name=source_conversation.conversation_name,
-                message_designation=message_designation))
+        self._create_and_apply_action(
+            CopyMessagesBetweenConversations,
+            comment=comment,
+            source_conversation_name=source_conversation.conversation_name,
+            message_designation=message_designation)
