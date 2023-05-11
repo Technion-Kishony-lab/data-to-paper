@@ -46,6 +46,9 @@ class Agent(Enum):
                f"{profile.description}\n" \
                f"{algorithm_repr}"
 
+    def pretty_name(self):
+        return f"{self.profile.name} ({self.value})"
+
 
 AGENTS_TO_SYSTEM_PROMPTS: Dict[Agent, str] = {}
 
