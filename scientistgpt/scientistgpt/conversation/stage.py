@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from .actions_and_conversations import Action
+from ..base_cast import Agent
 
 
 class Stage:
@@ -29,7 +30,11 @@ class AdvanceStage(StageAction):
 
 @dataclass(frozen=True)
 class SetActiveConversation(Action):
-    conversation_name: str = None
+    agent: Agent = None
+
+    @property
+    def conversation_name(self) -> str:
+        return self.agent.get_conversation_name()
 
     def _pretty_attrs(self) -> str:
         return f'{self.conversation_name}'
