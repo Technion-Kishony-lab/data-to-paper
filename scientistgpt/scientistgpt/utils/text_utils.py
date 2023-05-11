@@ -6,7 +6,7 @@ import colorama
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import PythonLexer
 from pygments.formatters import Terminal256Formatter
-from pygments.lexers.special import TextLexer
+from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight
 

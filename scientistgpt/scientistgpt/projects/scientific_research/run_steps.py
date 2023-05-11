@@ -52,7 +52,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
         if products.research_goal is None:
             # we did not get a goal from the director, so we need to devise it ourselves:
-            self.set_active_conversation(self.get_conversation_name_for_agent(ScientificAgent.Director))
+            self.set_active_conversation(ScientificAgent.Director)
             products.research_goal = self._get_converser(GoalReviewGPT).initialize_and_run_dialog()
 
         # Analysis plan
