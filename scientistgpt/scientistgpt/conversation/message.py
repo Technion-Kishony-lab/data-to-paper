@@ -33,7 +33,7 @@ class Role(Enum):
 class ResponseStyle(NamedTuple):
     color: str
     block_color: str
-    seperator: str
+    separator: str
 
 
 ROLE_TO_STYLE = {
@@ -76,7 +76,7 @@ class Message:
         agent_text = f' {{{agent.value}}}' if agent else ''
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
-        sep = style.seperator
+        sep = style.separator
         if is_color:
             text_color, block_color, reset_color = style.color, style.block_color, colorama.Style.RESET_ALL
         else:
