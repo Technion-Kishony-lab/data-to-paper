@@ -128,6 +128,12 @@ class BaseStepsRunner(BaseProductsHandler):
 
         try:
             run()
+        except Exception as e:
+            self.advance_stage(Stage.FAILURE)
+            print('----- FAILURE ------')
+            print(e)
+        else:
+            self.advance_stage(Stage.FINISHED)
         finally:
             self._save_all_files_to_output_folder()
 

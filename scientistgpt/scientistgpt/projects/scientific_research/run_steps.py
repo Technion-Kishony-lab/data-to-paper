@@ -92,6 +92,5 @@ class ScientificStepsRunner(BaseStepsRunner):
                 self._get_converser(PaperSectionWithTablesReviewGPT, section_name=section_name).get_section()
 
         paper_producer.assemble_compile_paper()
-        self.advance_stage(ScientificStage.FINISHED)
 
         return products

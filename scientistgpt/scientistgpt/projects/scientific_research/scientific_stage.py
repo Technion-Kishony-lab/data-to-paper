@@ -10,5 +10,3 @@ class ScientificStage(Stage):
     WRITING = "writing"
     CITATIONS = "citations"
     TABLES = "tables"
-    FINISHED = "finished"
-    failure = "failure"
