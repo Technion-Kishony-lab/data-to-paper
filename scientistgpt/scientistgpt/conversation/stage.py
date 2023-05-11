@@ -7,7 +7,8 @@ class Stage:
     """
     Store a class attribute that designates each stage in the process.
     """
-    pass
+    FINISHED = "finished"
+    FAILURE = "failure"
 
 
 @dataclass(frozen=True)
