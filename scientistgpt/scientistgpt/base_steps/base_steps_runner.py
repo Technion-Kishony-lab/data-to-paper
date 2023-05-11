@@ -72,11 +72,11 @@ class BaseStepsRunner(BaseProductsHandler):
         """
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
 
-    def set_active_conversation(self, conversation_name: str):
+    def set_active_conversation(self, agent: Agent):
         """
         Advance the stage of the research goal.
         """
-        self.actions_and_conversations.actions.apply_action(SetActiveConversation(conversation_name=conversation_name))
+        self.actions_and_conversations.actions.apply_action(SetActiveConversation(agent=agent))
 
     def advance_stage_and_set_active_conversation(self, stage: Stage = None, agent: Agent = None):
         """
@@ -85,7 +85,7 @@ class BaseStepsRunner(BaseProductsHandler):
         if stage is not None:
             self.advance_stage(stage=stage)
         if agent is not None:
-            self.set_active_conversation(conversation_name=self.get_conversation_name_for_agent(agent))
+            self.set_active_conversation(agent=agent)
 
     @property
     def absolute_data_folder(self):
