@@ -13,14 +13,17 @@ class Stage:
 
 
 @dataclass(frozen=True)
-class StageAction(Action):
+class MessengerAction(Action):
+    def apply_to_web(self) -> bool:
+        return True
+
+
+@dataclass(frozen=True)
+class StageAction(MessengerAction):
     stage: Stage = None
 
     def _pretty_attrs(self) -> str:
         return f'{self.stage}'
-
-    def apply_to_web(self) -> bool:
-        return True
 
 
 @dataclass(frozen=True)
@@ -29,7 +32,7 @@ class AdvanceStage(StageAction):
 
 
 @dataclass(frozen=True)
-class SetActiveConversation(Action):
+class SetActiveConversation(MessengerAction):
     agent: Agent = None
 
     @property

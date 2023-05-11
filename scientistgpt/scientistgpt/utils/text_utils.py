@@ -80,7 +80,7 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
     if is_comment:
         return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">Information: {text}</pre>'
     elif is_system:
-        return f'<pre style="background-color: #2A2525; color: #72E52D; font-weight: bold;">' \
+        return f'<pre style="color: #20191D; font-weight: bold; font-style: italic;">' \
                f'{wrap_string(text, width=width)}</pre>'
     sections = text.split("```")
     s = ''
