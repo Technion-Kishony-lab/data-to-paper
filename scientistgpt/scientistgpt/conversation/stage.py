@@ -24,3 +24,11 @@ class StageAction(Action):
 @dataclass(frozen=True)
 class AdvanceStage(StageAction):
     pass
+
+
+@dataclass(frozen=True)
+class SetActiveConversation(Action):
+    conversation_name: str = None
+
+    def _pretty_attrs(self) -> str:
+        return f'{self.conversation_name}'

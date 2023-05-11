@@ -9,7 +9,7 @@ from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.conversation.conversation_actions import CreateConversation
-from scientistgpt.conversation.stage import Stage, AdvanceStage
+from scientistgpt.conversation.stage import Stage, AdvanceStage, SetActiveConversation
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
@@ -17,6 +17,7 @@ from scientistgpt.conversation.actions_and_conversations import ActionsAndConver
 from .base_products_conversers import BaseProductsHandler
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
 from .types import DataFileDescriptions
+from ..base_cast import Agent
 
 
 @dataclass
@@ -53,15 +54,38 @@ class BaseStepsRunner(BaseProductsHandler):
             if agent.get_conversation_name():
                 self.actions_and_conversations.actions.apply_action(CreateConversation(
                     conversations=self.actions_and_conversations.conversations,
-                    web_conversation_name=WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name(),
+                    web_conversation_name=self.get_conversation_name_for_agent(agent),
                     participants={agent, self.cast.get_primary_agent()},
                 ))
+
+    def get_conversation_name_for_agent(self, agent):
+        """
+        Get the conversation name for the given agent.
+        """
+        if agent.get_conversation_name():
+            return WEB_CONVERSATION_NAME_PREFIX + agent.get_conversation_name()
+        return None
 
     def advance_stage(self, stage: Stage):
         """
         Advance the stage of the research goal.
         """
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
+
+    def set_active_conversation(self, conversation_name: str):
+        """
+        Advance the stage of the research goal.
+        """
+        self.actions_and_conversations.actions.apply_action(SetActiveConversation(conversation_name=conversation_name))
+
+    def advance_stage_and_set_active_conversation(self, stage: Stage = None, agent: Agent = None):
+        """
+        Advance the stage of the research goal.
+        """
+        if stage is not None:
+            self.advance_stage(stage=stage)
+        if agent is not None:
+            self.set_active_conversation(conversation_name=self.get_conversation_name_for_agent(agent))
 
     @property
     def absolute_data_folder(self):
