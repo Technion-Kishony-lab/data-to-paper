@@ -146,6 +146,8 @@ class AppendMessage(ConversationAction):
         # Note 1: the conversation len assumes this method is called right before the message is appended.
         # Note 2: we are only adding the text from the super method we have comments or are rewinding. Otherwise, we
         #         the message we print has the other information (conversation name and role).
+        if self.conversation_name is None:
+            return ''
         s = ''
         if self.comment or self._pretty_attrs():
             s += super().pretty_repr(is_color=is_color, with_conversation_name=False) + '\n'
@@ -166,6 +168,8 @@ class AppendMessage(ConversationAction):
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
         """
+        if self.conversation_name is None:
+            return
         message_index = self._get_message_index()
         index = self._get_index_of_tag()
         if index is not None:
