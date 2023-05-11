@@ -94,12 +94,13 @@ class ConversationManager:
                 self.add_participants(self.participants - self.conversation.participants)
 
     def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False,
-                       show_on_web: bool = True):
+                       show_on_web: bool = True, add_to_conversation: bool = True):
         """
         Append a message to a specified conversation.
         """
         self._create_and_apply_action(
             AppendMessage,
+            conversation_name=self.conversation_name if add_to_conversation else None,
             web_conversation_name=self.web_conversation_name if show_on_web else None,
             adjust_message_for_web=
             {'agent': self.web_conversation.get_other_participant(message.agent)} if reverse_roles_for_web else None,
@@ -108,7 +109,7 @@ class ConversationManager:
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None,
                                   is_background: bool = False, reverse_roles_for_web: bool = False,
-                                  show_on_web: bool = True):
+                                  show_on_web: bool = True, add_to_conversation: bool = True):
         """
         Append a message to a specified conversation.
         """
@@ -120,14 +121,17 @@ class ConversationManager:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                                  previous_code=previous_code, is_background=is_background)
-        self.append_message(message, comment, reverse_roles_for_web, show_on_web)
+        self.append_message(message, comment, reverse_roles_for_web, show_on_web,
+                            add_to_conversation=add_to_conversation)
 
-    def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+                              ignore: bool = False, add_to_conversation: bool = True):
         """
         Append a system-message to a specified conversation.
         """
         tag = tag or 'system_prompt'
-        self.create_and_append_message(Role.SYSTEM, content, tag, comment)
+        self.create_and_append_message(Role.SYSTEM, content, tag, comment, ignore=ignore,
+                                       add_to_conversation=add_to_conversation)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                             ignore: bool = False, reverse_roles_for_web: bool = False,
