@@ -45,6 +45,8 @@ class DualConverserGPT(ConverserGPT):
         self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
             self.apply_to_other_append_system_message(self.other_system_prompt)
+            # add the message also to the web conversation:
+            self.apply_append_system_message(self.other_system_prompt, add_to_conversation=False, ignore=True)
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,

@@ -93,9 +93,10 @@ class ConverserGPT(Replacer):
             content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background)
 
-    def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+                                    ignore: bool = False, add_to_conversation: bool = True):
         return self.conversation_manager.append_system_message(
-            content=content, tag=tag, comment=comment)
+            content=content, tag=tag, comment=comment, ignore=ignore, add_to_conversation=add_to_conversation)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
