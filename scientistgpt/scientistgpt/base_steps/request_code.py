@@ -11,6 +11,7 @@ from scientistgpt.utils.text_utils import NiceList
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseProductsGPT
+from .exceptions import FailedCreatingProductException
 
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
 MAX_CODE_REVISIONS = 3
@@ -123,7 +124,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 code_and_output.explanation = self._ask_for_code_explanation()
                 return code_and_output
             self.revision_round += 1
-        return None
+        raise FailedCreatingProductException(product_field='code_and_output')
 
     def _ask_for_code(self):
         if self.revision_round == 0:
@@ -197,8 +198,12 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 self.comment('ChatGPT declared it is satisfied with the analysis.')
                 return 1
             elif 'b' in response and 'a' not in response and len(response) < 5:
-                self.comment(f'ChatGPT declared it needs to revise the code. Starting a new revision.'
-                             f'({self.revision_round + 1}/{MAX_CODE_REVISIONS}).')
+                if self.revision_round + 1 == MAX_CODE_REVISIONS:
+                    self.comment(f'ChatGPT declared it needs to revise the code, '
+                                 f'but we are at the last allowed revision. Aborting.')
+                else:
+                    self.comment(f'ChatGPT declared it needs to revise the code. Starting a new revision.'
+                                 f'({self.revision_round + 1 + 1}/{MAX_CODE_REVISIONS}).')  # +1 for the next revision
                 return 2
             elif is_code_in_response(response):
                 # the scientist sent code, so we assume it wants to change the code (choosing "2")

@@ -15,6 +15,7 @@ from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 
 from .base_products_conversers import BaseProductsHandler
+from .exceptions import FailedCreatingProductException
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
 from .types import DataFileDescriptions
 from ..base_cast import Agent
@@ -139,12 +140,17 @@ class BaseStepsRunner(BaseProductsHandler):
 
         try:
             run()
-        # except Exception as e:
-        #     self.advance_stage(Stage.FAILURE)
-        #     print('----- FAILURE ------')
-        #     print(e)
-        # else:
-        #     self.advance_stage(Stage.FINISHED)
+        except FailedCreatingProductException as e:
+            self.advance_stage(Stage.FAILURE)
+            print('----- FAILURE ------')
+            print(f'Failed creating product: {e.product_field}')
+        except Exception as e:
+            raise
+            # self.advance_stage(Stage.FAILURE)
+            # print('----- FAILURE ------')
+            # print(e)
+        else:
+            self.advance_stage(Stage.FINISHED)
         finally:
             self._save_all_files_to_output_folder()
 
