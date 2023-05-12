@@ -35,7 +35,7 @@ class ScientificAgent(Agent):
         return getattr(theme, self.name)
 
     @property
-    def actual_name(self) -> str:
+    def skin_name(self) -> str:
         if self is ScientificAgent.Director:
             return USER_NAME
         return self.profile.name

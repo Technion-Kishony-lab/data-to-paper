@@ -28,7 +28,7 @@ class Agent(Enum):
         pass
 
     @property
-    def actual_name(self) -> str:
+    def skin_name(self) -> str:
         return self.profile.name
 
     @property
@@ -42,7 +42,7 @@ class Agent(Enum):
     def pretty_repr(self):
         profile = self.profile
         algorithm_repr = self.algorithm.pretty_repr(self.system_prompt)
-        return f"{self.actual_name} ({profile.title})\n" \
+        return f"{self.skin_name} ({profile.title})\n" \
                f"{profile.description}\n" \
                f"{algorithm_repr}"
 

@@ -278,7 +278,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
         """)
 
-    sentence_to_add_at_the_end_of_reviewee_response: str = ""
+    sentence_to_add_at_the_end_of_performer_response: str = ""
 
     @property
     def are_we_reviewing_at_all(self) -> bool:
@@ -288,7 +288,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
     def _alter_self_response(self, response: str) -> str:
-        return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewee_response
+        return response + '\n\n' + self.sentence_to_add_at_the_end_of_performer_response
 
     def _pre_populate_background(self):
         """
@@ -301,7 +301,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.comment('Background messages completed.', tag='after_background')
+        self.comment('Background messages completed', tag='after_background')
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     @with_attribute_replacement
@@ -326,7 +326,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
 
     flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
-    quote_request: str = 'Please return the {goal_noun} enclosed within triple-backticks'
+    quote_request: str = 'Please return the {goal_noun} enclosed within triple-backticks (but send text, not code).'
     user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""

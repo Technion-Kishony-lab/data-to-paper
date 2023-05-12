@@ -17,6 +17,8 @@ class ConverserGPT(Replacer):
     A base class for agents interacting with chatgpt.
     """
 
+    ADDITIONAL_DICT_ATTRS = ('user_skin_name', 'assistant_skin_name')
+
     actions_and_conversations: ActionsAndConversations
 
     model_engine: ClassVar[ModelEngine] = None
@@ -57,6 +59,14 @@ class ConverserGPT(Replacer):
             assistant_agent=self.assistant_agent,
             user_agent=self.user_agent,
         )
+
+    @property
+    def user_skin_name(self):
+        return self.user_agent.skin_name
+
+    @property
+    def assistant_skin_name(self):
+        return self.assistant_agent.skin_name
 
     @property
     def conversation(self):
