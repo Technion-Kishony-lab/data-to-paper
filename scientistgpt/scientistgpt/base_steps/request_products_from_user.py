@@ -14,6 +14,7 @@ class DirectorProductGPT(BaseProductsGPT):
     """
     ADDITIONAL_DICT_ATTRS = ('product_name', )
 
+    system_prompt: str = None
     request_product_message: str = 'Hi, do you have a {product_name} for me?'
     provide_product_message: str = 'Yes, here is the {product_name}:\n{returned_product}\n'
     thanks_message: str = 'Thank you!'
