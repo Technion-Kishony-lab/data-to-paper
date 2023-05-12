@@ -4,6 +4,7 @@ import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
+from typing import Union
 
 from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
@@ -13,12 +14,12 @@ from scientistgpt.conversation.stage import Stage, AdvanceStage, SetActiveConver
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
+from scientistgpt.base_cast import Agent
 
 from .base_products_conversers import BaseProductsHandler
 from .exceptions import FailedCreatingProductException
 from .request_code import BASE_GPT_SCRIPT_FILE_NAME
 from .types import DataFileDescriptions
-from ..base_cast import Agent
 
 
 @dataclass
@@ -35,7 +36,7 @@ class BaseStepsRunner(BaseProductsHandler):
     cast = None  # Type[Agent]
     output_directory: Path = None
     data_file_descriptions: DataFileDescriptions = None
-    mock_servers: bool = False
+    mock_servers: Union[bool, str] = False
 
     def _get_converser(self, converser_type: type, **kwargs):
         """
@@ -124,16 +125,26 @@ class BaseStepsRunner(BaseProductsHandler):
         else:
             os.makedirs(self.output_directory)
 
+    def get_mock_responses_file(self, file_name: str = None):
+        if self.mock_servers is False:
+            return None
+        directory = self.output_directory if self.mock_servers is True else self.mock_servers
+        return Path(directory).absolute() / file_name
+
+    @property
+    def should_mock(self):
+        return self.mock_servers is not False
+
     def run_all_steps(self):
         """
         Run all steps and save all created files to the output folder.
         """
         self.create_empty_output_folder()
 
-        @OPENAI_SERVER_CALLER.record_or_replay(self.output_directory / self.OPENAI_RESPONSES_FILENAME,
-                                               should_mock=self.mock_servers)
-        @CROSSREF_SERVER_CALLER.record_or_replay(self.output_directory / self.CROSSREF_RESPONSES_FILENAME,
-                                                 should_mock=self.mock_servers)
+        @OPENAI_SERVER_CALLER.record_or_replay(self.get_mock_responses_file(self.OPENAI_RESPONSES_FILENAME),
+                                               should_mock=self.should_mock)
+        @CROSSREF_SERVER_CALLER.record_or_replay(self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME),
+                                                 should_mock=self.should_mock)
         def run():
             self.create_web_conversations()
             self._run_all_steps()
@@ -146,9 +157,6 @@ class BaseStepsRunner(BaseProductsHandler):
             print(f'Failed creating product: {e.product_field}')
         except Exception as e:
             raise
-            # self.advance_stage(Stage.FAILURE)
-            # print('----- FAILURE ------')
-            # print(e)
         else:
             self.advance_stage(Stage.FINISHED)
         finally:
