@@ -1,9 +1,12 @@
+import time
 from dataclasses import dataclass
 
+from scientistgpt.base_cast import Agent
+from scientistgpt.base_steps import Products
+from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES
+from scientistgpt.utils import format_text_with_code_blocks
+
 from .actions_and_conversations import Action
-from ..base_cast import Agent
-from ..base_steps import Products
-from ..utils import format_text_with_code_blocks
 
 
 class Stage:
@@ -57,3 +60,7 @@ class SetActiveConversation(MessengerAction):
 
     def _pretty_attrs(self) -> str:
         return f'{self.conversation_name}'
+
+    def apply_to_web(self) -> bool:
+        time.sleep(DELAY_AUTOMATIC_RESPONSES)
+        return super().apply_to_web()

@@ -84,7 +84,7 @@ class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
     conversation_name: str = 'results_interpretation'
-    goal_noun: str = '"description and interpretation" of the results of a data analysis code'
+    goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
@@ -119,32 +119,33 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
-        You are a scientist with experience in writing full-length, accurate scientific research papers.
+        You are a data-scientist with experience writing accurate scientific research papers.
 
         You should:
-        1. Write every part of the paper in scientific language, in `.tex` format.
+        1. Write every section of the paper in scientific language, in `.tex` format.
         2. Write the paper section by section.
-        3. Write the paper in a way that is consistent with the scientific products provided to you.
-        4. Do not cite any papers.
+        3. Write the paper in a way that is fully consistent with the scientific products we have.
+        4. Write the text without adding any citations (we will only add citations in a later stage).
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above (research goal, analysis plan, and results description), \
-        please {goal_verb} only the {goal_noun} section of a scientific paper. Do not write any other parts!
+        please {goal_verb} only the "{goal_noun}" section of a scientific paper. Do not write any other parts!
         Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
         """)
 
-    termination_phrase: str = 'I hereby approve that the section is well-written and accurate.'
+    termination_phrase: str = 'I hereby approve that this section is well-written and accurate'
 
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a {reviewer} for a {performer} who needs to {goal_verb} a "{goal_noun}" for a scientific paper.
-        Your job is to advise me, the {performer}, and provide constructive bullet-point feedback in repeated cycles \
+        You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
+        Your job is to provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
-
-        When you feel that the goal has been achieved, respond explicitly with:
+        We will write each section of paper separately. 
+        When you feel that the paper section we are writing is correct and well written, respond explicitly with:
          "{termination_phrase}".
-        If you feel that my initial response is already good enough, it is perfectly fine and encouraged \
-        to respond with "{termination-phrase}" immediately, without requesting any improvement cycles.
+        If you feel that my initial writing is already good enough, it is perfectly fine \
+        to respond immediately with the above phrase ("{termination_phrase}"), \
+        without requesting any improvement cycles.
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
@@ -153,7 +154,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """)
 
     sentence_to_add_at_the_end_of_performer_response: str = \
-        "Please provide constructive feedback on the above {goal_noun}"
+        "Please provide constructive feedback on the above {goal_noun} for my paper"
 
 
 @dataclass
@@ -162,7 +163,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above (research goal, analysis plan, and results description), \
-        please {goal_verb} only the {goal_noun} of a scientific paper. Do not write any other parts at this stage!
+        please {goal_verb} only the "{goal_noun}" of a scientific paper. Do not write any other parts at this stage!
         Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
     """)
@@ -175,8 +176,9 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above (research goal, analysis plan, and results description), \
-        please {goal_verb} only the {goal_noun} section of a scientific paper. Do not write any other parts!
+        Based on the material provided above (research goal, analysis plan, results description, and \
+        the paper title and abstract), \
+        please {goal_verb} only the "{goal_noun}" section of a scientific paper. Do not write any other parts!
         Write in tex format including the \\\\section{{}} command, and any math or symbols that needs tex escapes.
     """)
 
@@ -191,14 +193,14 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 
 @dataclass
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
-    goal_noun: str = '{section_name} section with tables'
+    goal_noun: str = '"{section_name}" section with tables'
     goal_verb: str = 'rewrite'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
-        only the {goal_noun}.
+        only the "{goal_noun}".
         Usually in scientific papers include one or two tables summarizing the main findings.
         The tables should include information that was only extracted from the information provided.
         Add the tables centered in booktabs, multirow format with caption and label. 
@@ -219,9 +221,9 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Debugger
     code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
-        All results we may need for a scientific paper should be saved to that text file, including \
+        All results we may need for a scientific paper should be saved to this text file, including \
         analysis findings, summary statistics, etc. Do not write to any other files.
-        Do not create any graphics plots.
+        Do not create any graphics, figures or any plots.
         """)
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \

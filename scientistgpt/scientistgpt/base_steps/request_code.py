@@ -27,10 +27,10 @@ class BaseCodeProductsGPT(BaseProductsGPT):
         You are a brilliant data scientist. You are writing a Python code to analyze data.
         """)
 
-    fake_performer_request_for_help: str = "Hi, could you please help me write code for my project?"
-    fake_reviewer_agree_to_help: str = "Well, I think this is something you can do yourself, but I am certainly " \
-                                       "happy to provide guidance and feedback.\n" \
-                                       "Please just provide some background and context first.\n"
+    fake_performer_request_for_help: str = "Hi {user_skin_name}, could you please help me write code for my project?"
+    fake_reviewer_agree_to_help: str = "Hey {assistant_skin_name} - I think this is something you can do yourself, " \
+                                       "but I am certainly happy to provide guidance and feedback.\n" \
+                                       "I suggest that you start with providing some background and context first.\n"
 
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
@@ -65,7 +65,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
         """)  # set to None to skip asking for explanation
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file ({{}}):
+        I ran your code. Here is the content of the output file that it created ("{{}}"):
         ```
         {{}}
         ```
@@ -138,7 +138,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {self.revision_round + 1}/{MAX_CODE_REVISIONS} " \
                                    f"(attempt {attempt + 1}/{MAX_CODE_WRITING_ATTEMPTS})"
-            self.comment(f'Transfer to DebuggerGPT {revision_and_attempt}.', tag=start_tag)
+            self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT(
