@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import time
 from dataclasses import dataclass
 from typing import Optional, List, Set
 
@@ -6,11 +8,12 @@ from scientistgpt.utils.text_utils import red_text
 from scientistgpt.base_cast import Agent
 
 from .actions_and_conversations import Action
-from .message import Message, create_message_from_other_message
+from .message import Message, create_message_from_other_message, Role
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 from .actions_and_conversations import Conversations
+from ..env import DELAY_AUTOMATIC_RESPONSES
 
 NoneType = type(None)
 
@@ -117,10 +120,24 @@ class AppendMessage(ConversationAction):
     Message will be tagged with `tag`.
     If `tag` already exists, conversation will reset to the previous tag.
     """
+
+    ROLE_TO_DELAY = {
+        Role.ASSISTANT: 0,
+        Role.USER: DELAY_AUTOMATIC_RESPONSES,
+        Role.COMMENTER: 0,
+        Role.SURROGATE: DELAY_AUTOMATIC_RESPONSES,
+        Role.SYSTEM: DELAY_AUTOMATIC_RESPONSES * 0.5,
+    }
+
     message: Message = None
 
     adjust_message_for_web: dict = None
     # If True, show the message on the web conversation as if it was sent by the other participant.
+
+    delay: float = DELAY_AUTOMATIC_RESPONSES
+
+    def _get_delay(self):
+        return self.ROLE_TO_DELAY[self.message.role]
 
     def _get_index_of_tag(self) -> Optional[int]:
         """
@@ -193,6 +210,8 @@ class AppendMessage(ConversationAction):
         if self.message.is_background and any(self.get_message_for_web() == m for m in self.web_conversation):
             # in web conversation, we only append messages that are not already there
             return False
+        if self.delay is not None:
+            time.sleep(self.delay)
         self.web_conversation.append(self.get_message_for_web())
         return True
 
