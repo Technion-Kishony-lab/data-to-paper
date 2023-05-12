@@ -93,6 +93,21 @@ def get_from_most_updated_paper_sections(products: ScientificProducts, section_n
     assert False, f'No section named "{section_name}"'
 
 
+def get_paper(products: ScientificProducts, product_field: str) -> str:
+    """
+    Compose the paper from the different paper sections.
+    product_field can be one of the following:
+    paper_sections
+    cited_paper_sections
+    paper_sections_with_tables
+    """
+    paper_sections = getattr(products, product_field)
+    paper = ''
+    for section_name, section_content in paper_sections.items():
+        paper += f"``{section_name}``\n\n{section_content}\n\n\n"
+    return paper
+
+
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
 PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] = {
@@ -104,6 +119,12 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] 
     'code_and_output': ('code and output', get_code_and_output_description),
     'results_summary': ('results summary', 'Here is a summary of our results:\n\n{}'),
     'title_and_abstract': ('title and abstract', get_title_and_abstract_description),
+    'paper_sections':
+        ('paper sections', lambda products: get_paper(products, 'paper_sections')),
+    'cited_paper_sections':
+        ('cited paper sections', lambda products: get_paper(products, 'cited_paper_sections')),
+    'paper_sections_with_tables':
+        ('paper sections with tables', lambda products: get_paper(products, 'paper_sections_with_tables')),
 }
 
 SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {

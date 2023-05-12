@@ -9,7 +9,7 @@ from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.conversation.conversation_actions import CreateConversation
-from scientistgpt.conversation.stage import Stage, AdvanceStage, SetActiveConversation
+from scientistgpt.conversation.stage import Stage, AdvanceStage, SetActiveConversation, SetProduct
 from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
@@ -88,6 +88,16 @@ class BaseStepsRunner(BaseProductsHandler):
         if agent is not None:
             self.set_active_conversation(agent=agent)
 
+    def send_product_to_client(self, stage: Stage, product_field: str):
+        """
+        Get the base GPT script file.
+        """
+        self.actions_and_conversations.actions.apply_action(
+            SetProduct(
+                stage=stage,
+                products=self.products,
+                product_field=product_field))
+
     @property
     def absolute_data_folder(self):
         return self.data_file_descriptions.data_folder
@@ -129,12 +139,12 @@ class BaseStepsRunner(BaseProductsHandler):
 
         try:
             run()
-        except Exception as e:
-            self.advance_stage(Stage.FAILURE)
-            print('----- FAILURE ------')
-            print(e)
-        else:
-            self.advance_stage(Stage.FINISHED)
+        # except Exception as e:
+        #     self.advance_stage(Stage.FAILURE)
+        #     print('----- FAILURE ------')
+        #     print(e)
+        # else:
+        #     self.advance_stage(Stage.FINISHED)
         finally:
             self._save_all_files_to_output_folder()
 
