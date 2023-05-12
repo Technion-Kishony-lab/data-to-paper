@@ -108,6 +108,9 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
+    fake_performer_request_for_help: str = 'Hi {user_skin_name}, could you please help me {goal_verb} ' \
+                                           'the "{goal_noun}" section for my paper?'
+
     max_reviewing_rounds: int = 3
     goal_noun: str = None
     conversation_name: str = None

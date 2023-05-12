@@ -49,10 +49,10 @@ class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
         """
         if self.fake_performer_request_for_help:
             self.apply_append_surrogate_message(
-                content=self.fake_performer_request_for_help, is_background=True, ignore=True)
+                content=self.fake_performer_request_for_help, ignore=True)
             if self.fake_reviewer_agree_to_help:
                 self.apply_append_user_message(
-                    content=self.fake_reviewer_agree_to_help, is_background=True, ignore=True)
+                    content=self.fake_reviewer_agree_to_help, ignore=True)
 
     def _pre_populate_background(self):
         """
