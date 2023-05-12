@@ -65,7 +65,7 @@ class ConverserGPT(Replacer):
     @with_attribute_replacement
     def initialize_conversation_if_needed(self):
         self.conversation_manager.initialize_conversation_if_needed()
-        if len(self.conversation) == 0:
+        if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
     def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True):
@@ -94,9 +94,11 @@ class ConverserGPT(Replacer):
             previous_code=previous_code, is_background=is_background)
 
     def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                                    ignore: bool = False, add_to_conversation: bool = True):
+                                    ignore: bool = False, reverse_roles_for_web: bool = False,
+                                    add_to_conversation: bool = True):
         return self.conversation_manager.append_system_message(
-            content=content, tag=tag, comment=comment, ignore=ignore, add_to_conversation=add_to_conversation)
+            content=content, tag=tag, comment=comment, ignore=ignore,
+            add_to_conversation=add_to_conversation, reverse_roles_for_web=reverse_roles_for_web)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,

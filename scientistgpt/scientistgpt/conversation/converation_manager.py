@@ -125,12 +125,14 @@ class ConversationManager:
                             add_to_conversation=add_to_conversation)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
-                              ignore: bool = False, add_to_conversation: bool = True):
+                              ignore: bool = False, reverse_roles_for_web: bool = False,
+                              add_to_conversation: bool = True):
         """
         Append a system-message to a specified conversation.
         """
         tag = tag or 'system_prompt'
-        self.create_and_append_message(Role.SYSTEM, content, tag, comment, ignore=ignore,
+        self.create_and_append_message(Role.SYSTEM, content, tag, comment, ignore,
+                                       reverse_roles_for_web=reverse_roles_for_web,
                                        add_to_conversation=add_to_conversation)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
