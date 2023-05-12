@@ -18,17 +18,21 @@ from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
 
-sentence_to_add_at_the_end_of_performer_response = dedent_triple_quote_str("""\n
-    Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
-    studied using only the provided dataset, without requiring any additional data \
-    (pay attention to using only data explicitly available in the provided headers of the our data files \
-    as described in our dataset, above).
-    Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
-    """)
+
+@dataclass
+class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
+
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
+        Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
+        studied using only the provided dataset, without requiring any additional data \
+        (pay attention to using only data explicitly available in the provided headers of the our data files \
+        as described in our dataset, above).
+        Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+        """)
 
 
 @dataclass
-class GoalReviewGPT(BaseProductsQuotedReviewGPT):
+class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions']
     conversation_name: str = 'research_goal'
@@ -63,11 +67,10 @@ class GoalReviewGPT(BaseProductsQuotedReviewGPT):
         and fits the provided data, it is perfectly fine and encouraged to respond with with termination-phrase \
         immediately, without requesting any improvement cycles.
         """)
-    sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
 @dataclass
-class PlanReviewGPT(BaseProductsQuotedReviewGPT):
+class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 0  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
     background_product_fields = ['data_file_descriptions', 'research_goal']
@@ -76,11 +79,10 @@ class PlanReviewGPT(BaseProductsQuotedReviewGPT):
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
-    sentence_to_add_at_the_end_of_performer_response: str = sentence_to_add_at_the_end_of_performer_response
 
 
 @dataclass
-class ResultsInterpretationReviewGPT(BaseProductsQuotedReviewGPT):
+class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
     conversation_name: str = 'results_interpretation'
