@@ -51,7 +51,7 @@ def get_code_output_description(products: ScientificProducts) -> str:
 
 
 def get_code_and_output_description(products: ScientificProducts) -> str:
-    return get_code_description(products) + '\n\n' + get_code_output_description(products)
+    return get_code_description(products) + '\n\n\n' + get_code_output_description(products)
 
 
 def get_title_and_abstract_description(products: ScientificProducts) -> str:

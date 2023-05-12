@@ -126,12 +126,13 @@ class ConversationManager:
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                               ignore: bool = False, reverse_roles_for_web: bool = False,
-                              add_to_conversation: bool = True):
+                              add_to_conversation: bool = True, is_background: bool = True):
         """
         Append a system-message to a specified conversation.
         """
         tag = tag or 'system_prompt'
-        self.create_and_append_message(Role.SYSTEM, content, tag, comment, ignore,
+        self.create_and_append_message(Role.SYSTEM, content, tag, comment,
+                                       ignore=ignore, is_background=is_background,
                                        reverse_roles_for_web=reverse_roles_for_web,
                                        add_to_conversation=add_to_conversation)
 
@@ -141,8 +142,9 @@ class ConversationManager:
         """
         Append a user-message to a specified conversation.
         """
-        self.create_and_append_message(Role.USER, content, tag, comment, ignore, previous_code, is_background,
-                                       reverse_roles_for_web)
+        self.create_and_append_message(Role.USER, content, tag, comment,
+                                       ignore=ignore, previous_code=previous_code, is_background=is_background,
+                                       reverse_roles_for_web=reverse_roles_for_web)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -161,8 +163,9 @@ class ConversationManager:
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
-        self.create_and_append_message(Role.SURROGATE, content, tag, comment, ignore, previous_code, is_background,
-                                       reverse_roles_for_web, show_on_web)
+        self.create_and_append_message(Role.SURROGATE, content, tag, comment,
+                                       ignore=ignore, previous_code=previous_code, is_background=is_background,
+                                       reverse_roles_for_web=reverse_roles_for_web, show_on_web=show_on_web)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
