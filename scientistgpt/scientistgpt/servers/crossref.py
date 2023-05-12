@@ -127,6 +127,42 @@ class CrossrefServerCaller(ServerCaller):
     file_extension = "_crossref.txt"
 
     @staticmethod
+    def crossref_item_to_citation(item):
+        # create authors as a string in the format
+        # "first_name1 last_name1 and first_name2 last_name2 and first_name3 last_name3"
+        authors_string = ""
+        for author in item["author"]:
+            if author != item["author"][-1]:
+                authors_string += f"{author.get('given', '')} {author.get('family', '')} and "
+            else:
+                authors_string += f"{author.get('given', '')} {author.get('family', '')}"
+
+        # if editors are present, add them to the same way as authors
+        editor_string = ""
+        if item.get("editor", None) is not None:
+            for editor in item["editor"]:
+                if editor != item["editor"][-1]:
+                    editor_string += f"{editor.get('given', '')} {editor.get('family', '')} and "
+                else:
+                    editor_string += f"{editor.get('given', '')} {editor.get('family', '')}"
+        return {
+            "title": item["title"][0],
+            "first_author_family": item["author"][0]["family"].split(" ")[0],
+            "authors": authors_string,
+            "journal": item.get("container-title", [None])[0],
+            "doi": item.get("DOI", ''),
+            "type": item.get("type", ''),
+            "year": item["published"]["date-parts"][0][0] if "published" in item else
+            item["published-print"]["date-parts"][0][0] if "published-print" in item else '',
+            "publisher": item.get("publisher", ''),
+            "volume": item.get("volume", ''),
+            "issue": item.get("issue", ''),
+            "page": item.get("page", ''),
+            "editors": editor_string if item.get("editor", None) is not None else '',
+            "isbn": item.get("ISBN", '')
+        }
+
+    @staticmethod
     def _get_server_response(query, rows=4) -> List[dict]:
         """
         Get the response from the crossref server as a list of CrossrefCitation objects.
@@ -149,42 +185,10 @@ class CrossrefServerCaller(ServerCaller):
         citations: List[dict] = []
 
         for item in items:
-            if item.get("author", None) is None:
+            try:
+                citation = CrossrefServerCaller.crossref_item_to_citation(item)
+            except KeyError:
                 continue
-            # create authors as a string in the format
-            # "first_name1 last_name1 and first_name2 last_name2 and first_name3 last_name3"
-            authors_string = ""
-            for author in item["author"]:
-                if author != item["author"][-1]:
-                    authors_string += f"{author.get('given', '')} {author.get('family', '')} and "
-                else:
-                    authors_string += f"{author.get('given', '')} {author.get('family', '')}"
-
-            # if editors are present, add them to the same way as authors
-            editor_string = ""
-            if item.get("editor", None) is not None:
-                for editor in item["editor"]:
-                    if editor != item["editor"][-1]:
-                        editor_string += f"{editor.get('given', '')} {editor.get('family', '')} and "
-                    else:
-                        editor_string += f"{editor.get('given', '')} {editor.get('family', '')}"
-
-            citation = {
-                "title": item["title"][0],
-                "first_author_family": item["author"][0]["family"].split(" ")[0],
-                "authors": authors_string,
-                "journal": item.get("container-title", [None])[0],
-                "doi": item.get("DOI", ''),
-                "type": item.get("type", ''),
-                "year": item["published"]["date-parts"][0][0] if "published" in item else
-                item["published-print"]["date-parts"][0][0] if "published-print" in item else '',
-                "publisher": item.get("publisher", ''),
-                "volume": item.get("volume", ''),
-                "issue": item.get("issue", ''),
-                "page": item.get("page", ''),
-                "editors": editor_string if item.get("editor", None) is not None else '',
-                "isbn": item.get("ISBN", '')
-            }
             citations.append(citation)
 
         return citations
