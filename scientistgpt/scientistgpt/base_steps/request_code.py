@@ -23,6 +23,10 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 class BaseCodeProductsGPT(BaseProductsGPT):
     revision_round: int = 0
 
+    system_prompt: str = dedent_triple_quote_str("""
+        You are a brilliant data scientist. You are writing a Python code to analyze data.
+        """)
+
     fake_performer_request_for_help: str = "Hi, could you please help me write code for my project?"
     fake_reviewer_agree_to_help: str = "Well, I think this is something you can do yourself, but I am certainly " \
                                        "happy to provide guidance and feedback.\n" \
