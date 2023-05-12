@@ -169,7 +169,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 self.apply_append_surrogate_message(
                     content=self.present_code_as_fresh.format(self._get_output_filename(), code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
-                    show_on_web=False,
+                    web_conversation_name=None,
                 )
             return code_and_output
         return None

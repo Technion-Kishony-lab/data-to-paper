@@ -4,7 +4,7 @@ from typing import Optional, Set, Iterable
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
-from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 
 from .conversation import Conversation
@@ -94,23 +94,20 @@ class ConversationManager:
                 self.add_participants(self.participants - self.conversation.participants)
 
     def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False,
-                       show_on_web: bool = True, add_to_conversation: bool = True):
+                       **kwargs):
         """
         Append a message to a specified conversation.
         """
         self._create_and_apply_action(
             AppendMessage,
-            conversation_name=self.conversation_name if add_to_conversation else None,
-            web_conversation_name=self.web_conversation_name if show_on_web else None,
             adjust_message_for_web=
             {'agent': self.web_conversation.get_other_participant(message.agent)}
             if reverse_roles_for_web and self.web_conversation else None,
-            message=message, comment=comment)
+            message=message, comment=comment, **kwargs)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None,
-                                  is_background: bool = False, reverse_roles_for_web: bool = False,
-                                  show_on_web: bool = True, add_to_conversation: bool = True):
+                                  is_background: bool = False, reverse_roles_for_web: bool = False, **kwargs):
         """
         Append a message to a specified conversation.
         """
@@ -122,30 +119,28 @@ class ConversationManager:
             agent = None
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                                  previous_code=previous_code, is_background=is_background)
-        self.append_message(message, comment, reverse_roles_for_web, show_on_web,
-                            add_to_conversation=add_to_conversation)
+        self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                               ignore: bool = False, reverse_roles_for_web: bool = False,
-                              add_to_conversation: bool = True, is_background: bool = True):
+                              is_background: bool = True, **kwargs):
         """
         Append a system-message to a specified conversation.
         """
         tag = tag or 'system_prompt'
         self.create_and_append_message(Role.SYSTEM, content, tag, comment,
                                        ignore=ignore, is_background=is_background,
-                                       reverse_roles_for_web=reverse_roles_for_web,
-                                       add_to_conversation=add_to_conversation)
+                                       reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                             ignore: bool = False, reverse_roles_for_web: bool = False,
-                            previous_code: Optional[str] = None, is_background: bool = False):
+                            previous_code: Optional[str] = None, is_background: bool = False, **kwargs):
         """
         Append a user-message to a specified conversation.
         """
         self.create_and_append_message(Role.USER, content, tag, comment,
                                        ignore=ignore, previous_code=previous_code, is_background=is_background,
-                                       reverse_roles_for_web=reverse_roles_for_web)
+                                       reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
         """
@@ -159,19 +154,18 @@ class ConversationManager:
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                  ignore: bool = False, reverse_roles_for_web: bool = False,
                                  previous_code: Optional[str] = None,
-                                 show_on_web: bool = True,
-                                 is_background: bool = False):
+                                 is_background: bool = False, **kwargs):
         """
         Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
         """
         self.create_and_append_message(Role.SURROGATE, content, tag, comment,
                                        ignore=ignore, previous_code=previous_code, is_background=is_background,
-                                       reverse_roles_for_web=reverse_roles_for_web, show_on_web=show_on_web)
+                                       reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
-                                         model_engine: ModelEngine = None,
-                                         hidden_messages: GeneralMessageDesignation = None, **kwargs) -> str:
+                                         hidden_messages: GeneralMessageDesignation = None,
+                                         **kwargs) -> str:
         """
         Get and append a response from openai to a specified conversation.
 
@@ -186,7 +180,6 @@ class ConversationManager:
         while True:
             content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
                                                                is_code=is_code, previous_code=previous_code,
-                                                               model_engine=model_engine,
                                                                hidden_messages=actual_hidden_messages,
                                                                **kwargs)
             if isinstance(content, str):
@@ -213,8 +206,8 @@ class ConversationManager:
 
     def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             is_code: bool = False, previous_code: Optional[str] = None,
-                                            model_engine: ModelEngine = None,
-                                            hidden_messages: GeneralMessageDesignation = None, **kwargs
+                                            hidden_messages: GeneralMessageDesignation = None,
+                                            **kwargs  # for create_message and openai params
                                             ) -> Optional[str]:
         """
         Try to get and append a response from openai to a specified conversation.
@@ -224,7 +217,11 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return the exception.
         """
-        content = try_get_chatgpt_response(self.conversation, hidden_messages, model_engine=model_engine, **kwargs)
+
+        # extract all OPENAI_CALL_PARAMETERS_NAMES from kwargs:
+        openai_call_parameters = \
+            OpenaiCallParameters(**{k: kwargs.pop(k) for k in OPENAI_CALL_PARAMETERS_NAMES if k in kwargs})
+        content = try_get_chatgpt_response(self.conversation, hidden_messages, **openai_call_parameters.to_dict())
         if isinstance(content, Exception):
             self._create_and_apply_action(
                 FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
@@ -233,8 +230,10 @@ class ConversationManager:
                 content = add_python_to_first_triple_quotes_if_missing(content)
             self._create_and_apply_action(
                 AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages,
-                message=create_message(role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
-                                       model_engine=model_engine, previous_code=previous_code))
+                message=create_message(
+                    role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
+                    openai_call_parameters=None if openai_call_parameters.is_all_none() else openai_call_parameters,
+                    previous_code=previous_code), **kwargs)
         return content
 
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):

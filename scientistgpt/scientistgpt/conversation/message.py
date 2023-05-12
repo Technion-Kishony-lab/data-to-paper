@@ -9,7 +9,7 @@ from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, H
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
-from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.servers.openai_models import ModelEngine, OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count
 
 # noinspection PyUnresolvedReferences
@@ -51,7 +51,7 @@ class Message:
     content: str
     tag: str = ''
     agent: Optional[Agent] = None
-    model_engine: ModelEngine = None
+    openai_call_parameters: Optional[OpenaiCallParameters] = None
     ignore: bool = False  # if True, this message will be skipped when calling openai
     is_background: bool = False  # if True, repeated messages will not be shown in the web conversation
 
@@ -81,7 +81,7 @@ class Message:
             text_color, block_color, reset_color = style.color, style.block_color, colorama.Style.RESET_ALL
         else:
             text_color = block_color = reset_color = ''
-        role_text = role.name + ('' if self.model_engine is None else f'({self.model_engine.value})')
+        role_text = role.name + ('' if self.openai_call_parameters is None else f'({self.openai_call_parameters})')
         if role == Role.SYSTEM:
             role_model_agent_conversation_tag = f'{role_text} casting {agent_text} for {conversation_name} '
         else:
@@ -186,15 +186,17 @@ class CodeMessage(Message):
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
-                   model_engine: ModelEngine = None,
+                   openai_call_parameters: OpenaiCallParameters = None,
                    previous_code: str = None,
                    is_background: bool = False) -> Message:
     if previous_code:
         return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                           model_engine=model_engine, previous_code=previous_code,
+                           openai_call_parameters=openai_call_parameters,
+                           previous_code=previous_code,
                            is_background=is_background)
     else:
-        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore, model_engine=model_engine,
+        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
+                       openai_call_parameters=openai_call_parameters,
                        is_background=is_background)
 
 
@@ -206,6 +208,6 @@ def create_message_from_other_message(other_message: Message,
                           tag=other_message.tag,
                           agent=agent if agent else other_message.agent,
                           ignore=other_message.ignore,
-                          model_engine=other_message.model_engine,
+                          openai_call_parameters=other_message.openai_call_parameters,
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None,
                           is_background=other_message.is_background)

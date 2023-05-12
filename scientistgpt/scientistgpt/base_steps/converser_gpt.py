@@ -98,23 +98,22 @@ class ConverserGPT(Replacer):
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
-                                  previous_code: Optional[str] = None, is_background: bool = False):
+                                  previous_code: Optional[str] = None, is_background: bool = False, **kwargs):
         return self.conversation_manager.append_user_message(
             content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
-            previous_code=previous_code, is_background=is_background)
+            previous_code=previous_code, is_background=is_background, **kwargs)
 
     def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
-                                    add_to_conversation: bool = True):
+                                    **kwargs):
         return self.conversation_manager.append_system_message(
             content=content, tag=tag, comment=comment, ignore=ignore,
-            add_to_conversation=add_to_conversation, reverse_roles_for_web=reverse_roles_for_web)
+            reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
-                                       show_on_web: bool = True,
-                                       previous_code: Optional[str] = None, is_background: bool = False):
+                                       previous_code: Optional[str] = None, is_background: bool = False,
+                                       **kwargs):
         return self.conversation_manager.append_surrogate_message(
             content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
-            show_on_web=show_on_web,
-            previous_code=previous_code, is_background=is_background)
+            previous_code=previous_code, is_background=is_background, **kwargs)
