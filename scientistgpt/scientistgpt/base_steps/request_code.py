@@ -118,7 +118,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
             self._ask_for_code()
             code_and_output = self._run_debugger(code_and_output.code)
             if code_and_output is None:
-                return None
+                raise FailedCreatingProductException(product_field='code_and_output')
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
             if gpt_choice == 1:
                 code_and_output.explanation = self._ask_for_code_explanation()
@@ -214,4 +214,5 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 if num_tries < MAX_REGENERATING_MULTI_CHOICE_RESPONSE - 1:
                     response = self.conversation_manager.regenerate_previous_response(
                         comment='ChatGPT did not choose a valid option. Regenerating response.')
-        return None
+
+        raise FailedCreatingProductException(product_field='code_and_output')
