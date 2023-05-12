@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass
 
 from scientistgpt.base_cast import Agent
-from scientistgpt.base_steps import Products
 from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES
 from scientistgpt.utils import format_text_with_code_blocks
 
 from .actions_and_conversations import Action
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from scientistgpt.base_steps import Products
 
 
 class Stage:

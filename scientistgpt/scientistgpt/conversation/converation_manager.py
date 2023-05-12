@@ -103,7 +103,8 @@ class ConversationManager:
             conversation_name=self.conversation_name if add_to_conversation else None,
             web_conversation_name=self.web_conversation_name if show_on_web else None,
             adjust_message_for_web=
-            {'agent': self.web_conversation.get_other_participant(message.agent)} if reverse_roles_for_web else None,
+            {'agent': self.web_conversation.get_other_participant(message.agent)}
+            if reverse_roles_for_web and self.web_conversation else None,
             message=message, comment=comment)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,

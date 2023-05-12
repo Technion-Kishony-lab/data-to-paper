@@ -62,11 +62,11 @@ class ConverserGPT(Replacer):
 
     @property
     def user_skin_name(self):
-        return self.user_agent.skin_name
+        return None if self.user_agent is None else self.user_agent.skin_name
 
     @property
     def assistant_skin_name(self):
-        return self.assistant_agent.skin_name
+        return None if self.assistant_agent is None else self.assistant_agent.skin_name
 
     @property
     def conversation(self):
