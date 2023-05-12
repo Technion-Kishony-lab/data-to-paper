@@ -183,12 +183,23 @@ class DebuggerGPT(ConverserGPT):
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_forbidden_read(self, file: str):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
-            Please rewrite the complete code again, noting that we only have {}. 
-            """).format(file, self.data_files),
-            comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
+        if file == self.output_filename:
+            self.apply_append_user_message(
+                content=dedent_triple_quote_str("""
+                I ran the code, but it tried to read from the output file `{}`.
+                The code should create and write to this output file, but should not read from it.
+                Please rewrite the complete code again, making sure it does not read from the output file.
+                Note that the input files from which we can read the data are: {}. 
+                """).format(file, self.data_files),
+                comment=f'{self.iteration_str}: Code reads from output file {file}.')
+            return
+        else:
+            self.apply_append_user_message(
+                content=dedent_triple_quote_str("""
+                I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
+                Please rewrite the complete code again, noting that we only have {}. 
+                """).format(file, self.data_files),
+                comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_empty_output(self):
         self.apply_append_user_message(
