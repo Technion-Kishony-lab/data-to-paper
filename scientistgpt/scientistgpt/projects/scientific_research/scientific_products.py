@@ -128,10 +128,10 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] 
 }
 
 SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
-    'most_updated_paper_sections': get_from_most_updated_paper_sections,
-    'paper_sections_with_tables': get_from_paper_sections_with_tables,
-    'cited_paper_sections': get_from_cited_paper_sections,
-    'paper_sections': get_from_paper_sections,
+    'most_updated_paper_sections_': get_from_most_updated_paper_sections,
+    'paper_sections_with_tables_': get_from_paper_sections_with_tables,
+    'cited_paper_sections_': get_from_cited_paper_sections,
+    'paper_sections_': get_from_paper_sections,
 }
 
 
@@ -141,7 +141,7 @@ def get_name_and_description(product_field: str) -> Tuple[str, Union[str, Callab
     """
     for section_type, func in SECTION_TYPES_TO_FUNCS.items():
         if product_field.startswith(section_type):
-            section_name = product_field[len(section_type) + 1:]  # +1 for the '_' after the section type
+            section_name = product_field[len(section_type):]
             return f'"{section_name}" section of the paper', \
                 lambda products: format_paper_section_description(func(products, section_name), section_name)
 
