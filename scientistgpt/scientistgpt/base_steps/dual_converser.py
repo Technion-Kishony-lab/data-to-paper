@@ -46,7 +46,7 @@ class DualConverserGPT(ConverserGPT):
         if len(self.other_conversation) == 0:
             self.apply_to_other_append_system_message(self.other_system_prompt)
             # add the message also to the web conversation:
-            self.apply_append_system_message(self.other_system_prompt, add_to_conversation=False, ignore=True,
+            self.apply_append_system_message(self.other_system_prompt, conversation_name=None, ignore=True,
                                              reverse_roles_for_web=True)
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
@@ -190,7 +190,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         Check the response from self. If the response is not allowed, return a message to chatgpt describing
         the problem and requesting a new response.
-        Otherwise return None.
+        Otherwise, return None.
         """
         return None
 
