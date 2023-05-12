@@ -288,6 +288,8 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     sentence_to_add_at_the_end_of_performer_response: str = None
 
+    post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
+
     @property
     def are_we_reviewing_at_all(self) -> bool:
         return self.max_reviewing_rounds > 0
@@ -312,7 +314,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.comment('Background messages completed', tag='after_background')
+        self.comment(self.post_background_comment, tag='after_background')
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     @with_attribute_replacement
