@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from scientistgpt.conversation import Conversation, Action
 from scientistgpt.conversation.conversation_actions import ConversationAction
-from scientistgpt.conversation.stage import StageAction, MessengerAction
+from scientistgpt.conversation.stage import MessengerAction
 
 from .cast import Agent
 
