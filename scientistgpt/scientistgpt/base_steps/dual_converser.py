@@ -131,12 +131,12 @@ class DialogDualConverserGPT(DualConverserGPT):
         self.other_conversation_manager.user_agent = self.assistant_agent
         self.round_num = 0
 
-    def get_response_from_other_in_response_to_response_from_self(self, self_response: str) -> str:
+    def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> str:
         """
         Append response from self as user message to other conversation, and get response from other assistant.
         """
         self.round_num += 1
-        self.apply_to_other_append_user_message(self._alter_self_response(self_response))
+        self.apply_to_other_append_user_message(altered_self_response)
         return self.apply_to_other_get_and_append_assistant_message()
 
     def get_response_from_self_in_response_to_response_from_other(self, other_response: str) -> str:
@@ -202,13 +202,16 @@ class DialogDualConverserGPT(DualConverserGPT):
         self_response = None
         for _ in range(self.max_attempts_per_round):
             # to allow starting either before or after the first self response:
-            if self.conversation.get_last_non_commenter_message().role is Role.USER:
-                self_response = self.apply_get_and_append_assistant_message()
-            else:
+            is_preexisting_self_response = self.conversation.get_last_non_commenter_message().role is not Role.USER
+            if is_preexisting_self_response:
                 self_response = self.conversation.get_last_response()
+            else:
+                self_response = self.apply_get_and_append_assistant_message(web_conversation_name=None)
             problem_in_response = self._check_self_response(self_response)
             if problem_in_response is None:
                 break
+            if not is_preexisting_self_response:
+                self.apply_append_surrogate_message(content=self_response, conversation_name=None)
             self.apply_append_user_message(problem_in_response + '\n' +
                                            self.sentence_to_add_to_error_message_upon_failed_check_self_response,
                                            tag='error')
@@ -217,11 +220,16 @@ class DialogDualConverserGPT(DualConverserGPT):
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_reviewing_rounds:
+            if not is_preexisting_self_response:
+                self.apply_append_surrogate_message(content=self_response, conversation_name=None)
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
 
-        other_response = self.get_response_from_other_in_response_to_response_from_self(self_response)
+        altered_self_response = self._alter_self_response(self_response)
+        if not is_preexisting_self_response:
+            self.apply_append_surrogate_message(content=altered_self_response, conversation_name=None)
+        other_response = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
 
         if self.is_completed():
             if append_termination_response_to_self:
