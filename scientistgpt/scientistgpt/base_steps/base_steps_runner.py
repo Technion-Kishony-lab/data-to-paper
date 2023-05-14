@@ -155,7 +155,7 @@ class BaseStepsRunner(BaseProductsHandler):
             self.advance_stage(Stage.FAILURE)
             print('----- FAILURE ------')
             print(f'Failed creating product: {e.product_field}')
-        except Exception as e:
+        except Exception:
             raise
         else:
             self.advance_stage(Stage.FINISHED)

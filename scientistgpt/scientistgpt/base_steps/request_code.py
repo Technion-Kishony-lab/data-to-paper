@@ -191,6 +191,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
             user_agent=self.user_agent,
             assistant_agent=self.assistant_agent,
             actions_and_conversations=self.actions_and_conversations,
-            multi_choice_question=self.offer_revision_prompt.format(self._get_output_filename(), code_and_output.output),
+            multi_choice_question=self.offer_revision_prompt.format(self._get_output_filename(),
+                                                                    code_and_output.output),
             possible_choices=('1', '2'),
         ).get_chosen_option()

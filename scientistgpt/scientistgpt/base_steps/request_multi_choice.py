@@ -58,4 +58,3 @@ class BaseMultiChoiceProductsGPT(BaseProductsGPT):
             if chosen_choice is not None:
                 return chosen_choice
         raise FailedCreatingProductException()
-

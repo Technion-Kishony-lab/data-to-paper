@@ -36,5 +36,3 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     @property
     def data_folder(self) -> Optional[Path]:
         return Path(self.products.data_file_descriptions.data_folder)
-
-
