@@ -86,7 +86,7 @@ class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
-        
+
         If you are satisfied, respond with "{termination_phrase}".
     """)
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \

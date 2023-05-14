@@ -100,9 +100,8 @@ class ConversationManager:
         """
         self._create_and_apply_action(
             AppendMessage,
-            adjust_message_for_web=
-            {'agent': self.web_conversation.get_other_participant(message.agent)}
-            if reverse_roles_for_web and self.web_conversation else None,
+            adjust_message_for_web={'agent': self.web_conversation.get_other_participant(message.agent)
+                                    } if reverse_roles_for_web and self.web_conversation else None,
             message=message, comment=comment, **kwargs)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,

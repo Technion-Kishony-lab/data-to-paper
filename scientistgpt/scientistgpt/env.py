@@ -29,4 +29,4 @@ MAX_SENSIBLE_OUTPUT_SIZE = 3000
 # Coalesce conversations with the same participants into one web-conversation:
 COALESCE_WEB_CONVERSATIONS = True
 
-DELAY_AUTOMATIC_RESPONSES = 1.0  # seconds
+DELAY_AUTOMATIC_RESPONSES = 0.1  # seconds

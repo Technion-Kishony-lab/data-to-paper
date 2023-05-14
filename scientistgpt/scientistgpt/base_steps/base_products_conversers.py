@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
-from ..utils import dedent_triple_quote_str
 
 
 @dataclass
