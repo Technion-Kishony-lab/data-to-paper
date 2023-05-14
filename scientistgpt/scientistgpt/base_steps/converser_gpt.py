@@ -8,23 +8,22 @@ from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 from scientistgpt.utils.text_utils import print_red
 from scientistgpt.base_cast import Agent
 
 
-_T = TypeVar("_T")
-
-
 @dataclass
-class ConverserGPT(Replacer):
+class ConverserGPT(Replacer, Copier):
     """
     A base class for agents interacting with chatgpt.
     """
-
+    COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
+                       'user_agent'}
     ADDITIONAL_DICT_ATTRS = ('user_skin_name', 'assistant_skin_name')
 
-    actions_and_conversations: ActionsAndConversations
+    actions_and_conversations: ActionsAndConversations = None
 
     model_engine: ClassVar[ModelEngine] = None
     """
@@ -63,20 +62,6 @@ class ConverserGPT(Replacer):
             driver=self.driver if self.driver is not None else type(self).__name__,
             assistant_agent=self.assistant_agent,
             user_agent=self.user_agent,
-        )
-
-    @classmethod
-    def from_converser(cls: Type[_T], converser: ConverserGPT, **kwargs) -> _T:
-        """
-        Create a new converser from an existing one, with the same conversation manager.
-        """
-        return cls(
-            actions_and_conversations=kwargs.pop('actions_and_conversations', converser.actions_and_conversations),
-            conversation_name=kwargs.pop('conversation_name', converser.conversation_name),
-            web_conversation_name=kwargs.pop('web_conversation_name', converser.web_conversation_name),
-            assistant_agent=kwargs.pop('assistant_agent', converser.assistant_agent),
-            user_agent=kwargs.pop('user_agent', converser.user_agent),
-            **kwargs,
         )
 
     @property

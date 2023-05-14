@@ -235,8 +235,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
                 chosen_citations = set()
             else:
                 rewritten_sentence, chosen_citations = \
-                    RewriteSentenceWithCitations.from_converser(
-                        converser=self,
+                    RewriteSentenceWithCitations.from_(
+                        self,
                         sentence=sentence,
                         citations=NiceList(sentence_citations, separator='\n\n', last_separator=None),
                     ).get_rewritten_sentence_and_chosen_citations()
