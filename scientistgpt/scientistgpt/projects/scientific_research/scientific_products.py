@@ -20,7 +20,7 @@ class ScientificProducts(Products):
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
-    paper_sections_with_tables: Dict[str, str] = field(default_factory=dict)
+    tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     def get_description(self, product_field: str) -> str:
         """
@@ -81,7 +81,7 @@ def get_from_cited_paper_sections(products: ScientificProducts, section_name: st
 
 
 def get_from_paper_sections_with_tables(products: ScientificProducts, section_name: str) -> str:
-    return products.paper_sections_with_tables[section_name]
+    return products.tabled_paper_sections[section_name]
 
 
 def get_from_most_updated_paper_sections(products: ScientificProducts, section_name: str) -> str:
@@ -99,7 +99,7 @@ def get_paper(paper_sections: Dict[str, str]) -> str:
     product_field can be one of the following:
     paper_sections
     cited_paper_sections
-    paper_sections_with_tables
+    tabled_paper_sections
     """
     paper = ''
     for section_name, section_content in paper_sections.items():
@@ -141,8 +141,8 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] 
     'paper_sections':
         ('Paper Sections', lambda products: get_paper(getattr(products, 'paper_sections'))),
     'cited_paper_sections': ('Cited Paper Sections and Citations', get_cited_sections_and_citations),
-    'paper_sections_with_tables':
-        ('Paper Sections with Tables', lambda products: get_paper(getattr(products, 'paper_sections_with_tables'))),
+    'tabled_paper_sections':
+        ('Paper Sections with Tables', lambda products: get_paper(getattr(products, 'tabled_paper_sections'))),
 }
 
 SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {

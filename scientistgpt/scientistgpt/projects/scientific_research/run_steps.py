@@ -96,9 +96,9 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Add tables to results section
         self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
         for section_name in SECTIONS_TO_ADD_TABLES_TO:
-            products.paper_sections_with_tables[section_name] = \
+            products.tabled_paper_sections[section_name] = \
                 self._get_converser(PaperSectionWithTablesReviewGPT, section_name=section_name).get_section()
-        self.send_product_to_client(stage=ScientificStage.TABLES, product_field='paper_sections_with_tables')
+        self.send_product_to_client(stage=ScientificStage.TABLES, product_field='tabled_paper_sections')
 
         paper_producer.assemble_compile_paper()
 
