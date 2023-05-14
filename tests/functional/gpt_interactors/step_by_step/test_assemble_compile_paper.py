@@ -2,9 +2,9 @@ import os
 
 from _pytest.fixtures import fixture
 
+from scientistgpt.projects.scientific_research.produce_pdf_step import ProduceScientificPaperPDF
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.projects.scientific_research.get_template import get_paper_template_path
-from scientistgpt.projects.scientific_research.steps import ProduceScientificPaperPDF
 from scientistgpt.servers.crossref import CrossrefCitation
 
 
