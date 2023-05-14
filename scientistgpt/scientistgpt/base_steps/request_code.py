@@ -5,23 +5,25 @@ from typing import Optional
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.utils import dedent_triple_quote_str, is_code_in_response
+from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.text_utils import NiceList
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseProductsGPT
 from .exceptions import FailedCreatingProductException
+from .request_multi_choice import BaseMultiChoiceProductsGPT
 
 BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
-MAX_CODE_REVISIONS = 3
-MAX_CODE_WRITING_ATTEMPTS = 2
-MAX_DEBUG_ITERATIONS_PER_ATTEMPT = 12
 MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 
 
 @dataclass
 class BaseCodeProductsGPT(BaseProductsGPT):
+    max_code_revisions: int = 3
+    max_code_writing_attempts: int = 2
+    max_debug_iterations_per_attempt: int = 12
+
     revision_round: int = 0
 
     system_prompt: str = dedent_triple_quote_str("""
@@ -73,12 +75,9 @@ class BaseCodeProductsGPT(BaseProductsGPT):
 
         Please choose one of the following options:
 
-        a. The results seem reasonable. Let's proceed.
+        1. The results seem reasonable. Let's proceed.
 
-        b. Something is wrong. I need to go back and change the code.
-
-        Answer with just the letter designating the option you choose \
-        (only type a single character: "a", or "b").
+        2. Something is wrong. I need to go back and change the code.
         """)  # set to None to skip option for revision
 
     @property
@@ -114,13 +113,13 @@ class BaseCodeProductsGPT(BaseProductsGPT):
         self.initialize_conversation_if_needed()
         self._pre_populate_background()
         code_and_output = CodeAndOutput()
-        while self.revision_round < MAX_CODE_REVISIONS:
+        while self.revision_round < self.max_code_revisions:
             self._ask_for_code()
             code_and_output = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException(product_field='code_and_output')
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
-            if gpt_choice == 1:
+            if gpt_choice == '1':
                 code_and_output.explanation = self._ask_for_code_explanation()
                 return code_and_output
             self.revision_round += 1
@@ -135,10 +134,10 @@ class BaseCodeProductsGPT(BaseProductsGPT):
 
     def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
         start_tag = self._request_code_tag + '_debugging'
-        for attempt in range(MAX_CODE_WRITING_ATTEMPTS):
+        for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
-            revision_and_attempt = f"Revision {self.revision_round + 1}/{MAX_CODE_REVISIONS} " \
-                                   f"(attempt {attempt + 1}/{MAX_CODE_WRITING_ATTEMPTS})"
+            revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
+                                   f"(attempt {attempt + 1}/{self.max_code_writing_attempts})"
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
@@ -150,7 +149,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
                 output_filename=self._get_output_filename(),
                 data_files=self.data_filenames,
                 data_folder=self.data_folder,
-                max_debug_iterations=MAX_DEBUG_ITERATIONS_PER_ATTEMPT,
+                max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
                 previous_code=previous_code,
             ).run_debugging()
@@ -182,37 +181,16 @@ class BaseCodeProductsGPT(BaseProductsGPT):
         )
         return self.apply_get_and_append_assistant_message()
 
-    def _ask_chatgpt_whether_further_code_revisions_are_needed(self, code_and_output: CodeAndOutput) -> Optional[int]:
+    def _ask_chatgpt_whether_further_code_revisions_are_needed(self, code_and_output: CodeAndOutput) -> Optional[str]:
         if self.offer_revision_prompt is None:
-            return 1
+            return '1'
 
-        user_prompt = self.offer_revision_prompt.format(
-            self._get_output_filename(),
-            code_and_output.output,
-        )
-        self.apply_append_user_message(content=user_prompt, tag='output_file_content')
-
-        response = self.apply_get_and_append_assistant_message(max_tokens=1)
-        for num_tries in range(MAX_REGENERATING_MULTI_CHOICE_RESPONSE):
-            if 'a' in response and 'b' not in response and len(response) < 5:
-                self.comment('ChatGPT declared it is satisfied with the analysis.')
-                return 1
-            elif 'b' in response and 'a' not in response and len(response) < 5:
-                if self.revision_round + 1 == MAX_CODE_REVISIONS:
-                    self.comment(f'ChatGPT declared it needs to revise the code, '
-                                 f'but we are at the last allowed revision. Aborting.')
-                else:
-                    self.comment(f'ChatGPT declared it needs to revise the code. Starting a new revision.'
-                                 f'({self.revision_round + 1 + 1}/{MAX_CODE_REVISIONS}).')  # +1 for the next revision
-                return 2
-            elif is_code_in_response(response):
-                # the scientist sent code, so we assume it wants to change the code (choosing "2")
-                response = self.conversation_manager.replace_last_response(
-                    content='b',
-                    comment='ChatGPT sent code instead of "a"/"b". We assume it wants to change the code ("b").')
-            else:
-                if num_tries < MAX_REGENERATING_MULTI_CHOICE_RESPONSE - 1:
-                    response = self.conversation_manager.regenerate_previous_response(
-                        comment='ChatGPT did not choose a valid option. Regenerating response.')
-
-        raise FailedCreatingProductException(product_field='code_and_output')
+        return BaseMultiChoiceProductsGPT(
+            conversation_name=self.conversation_name,
+            web_conversation_name=self.web_conversation_name,
+            user_agent=self.user_agent,
+            assistant_agent=self.assistant_agent,
+            actions_and_conversations=self.actions_and_conversations,
+            multi_choice_question=self.offer_revision_prompt.format(self._get_output_filename(), code_and_output.output),
+            possible_choices=('1', '2'),
+        ).get_chosen_option()
