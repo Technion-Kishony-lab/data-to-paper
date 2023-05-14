@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
+from ..utils import dedent_triple_quote_str
 
 
 @dataclass
@@ -78,7 +79,7 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
     fake_reviewer_agree_to_help: str = "Well, I am certainly happy to help guide you and provide some feedback.\n" \
                                        "Please just give me some context first.\n"
     sentence_to_add_at_the_end_of_performer_response: str = \
-        '\n\nPlease provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
+        'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)

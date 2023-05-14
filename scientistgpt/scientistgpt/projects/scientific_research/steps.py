@@ -22,12 +22,13 @@ from .scientific_products import ScientificProducts, get_from_most_updated_paper
 @dataclass
 class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
         studied using only the provided dataset, without requiring any additional data \
         (pay attention to using only data explicitly available in the provided headers of the our data files \
         as described in our dataset, above).
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+        If you are satisfied, respond with "{termination_phrase}".
         """)
 
 
@@ -94,6 +95,8 @@ class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
+        
+        If you are satisfied, respond with "{termination_phrase}".
     """)
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \
                                   "Briefly mention the tools used to preform the analysis.\n\n" \
@@ -136,14 +139,14 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
         """)
 
-    termination_phrase: str = 'I hereby approve that this section is well-written and accurate'
+    termination_phrase: str = 'I hereby approve the paper section'
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
         Your job is to provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
-        We will write each section of paper separately. 
-        When you feel that the paper section we are writing is correct and well written, respond explicitly with:
+        We will write each section of the research paper separately. 
+        When you feel that the paper section i well-written and accurate, respond explicitly with:
          "{termination_phrase}".
         If you feel that my initial writing is already good enough, it is perfectly fine \
         to respond immediately with the above phrase ("{termination_phrase}"), \
@@ -155,8 +158,10 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
     """)
 
-    sentence_to_add_at_the_end_of_performer_response: str = \
-        "Please provide constructive feedback on the above {goal_noun} for my paper"
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide constructive feedback on the above "{goal_noun}" for my paper.
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
 
 
 @dataclass

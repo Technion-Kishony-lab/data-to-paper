@@ -286,7 +286,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
         """)
 
-    sentence_to_add_at_the_end_of_performer_response: str = ""
+    sentence_to_add_at_the_end_of_performer_response: str = None
 
     @property
     def are_we_reviewing_at_all(self) -> bool:
@@ -296,7 +296,10 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
     def _alter_self_response(self, response: str) -> str:
-        return response + '\n\n' + self.sentence_to_add_at_the_end_of_performer_response
+        if self.sentence_to_add_at_the_end_of_performer_response:
+            return response + '\n\n' + self.sentence_to_add_at_the_end_of_performer_response
+        else:
+            return response
 
     def _pre_populate_background(self):
         """
