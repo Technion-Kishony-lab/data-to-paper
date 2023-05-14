@@ -22,7 +22,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
 
-    goal_noun: str = 'literature citations'
+    goal_noun: str = 'Choose citations for a given sentence'
     goal_verb: str = 'find'
 
     value_type: type = List[str]

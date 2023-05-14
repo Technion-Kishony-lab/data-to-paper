@@ -18,7 +18,7 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.Debugger
     code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
         All results we may need for a scientific paper should be saved to this text file, including \
-        analysis findings, summary statistics, etc. Do not write to any other files.
+        analysis results, summary statistics, etc. Do not write to any other files.
         Do not create any graphics, figures or any plots.
         """)
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
