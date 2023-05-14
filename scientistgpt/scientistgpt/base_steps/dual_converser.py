@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple, TypeVar, Type
+from typing import Optional, Tuple
 
 from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation
 from scientistgpt.utils.replacer import with_attribute_replacement
@@ -9,14 +9,12 @@ from scientistgpt.utils.text_utils import extract_text_between_tags, dedent_trip
 from .converser_gpt import ConverserGPT
 
 
-_T = TypeVar("_T")
-
-
 @dataclass
 class DualConverserGPT(ConverserGPT):
     """
     A base class for agents running two chatgpts.
     """
+    COPY_ATTRIBUTES = ConverserGPT.COPY_ATTRIBUTES | {'other_conversation_name', 'other_web_conversation_name'}
 
     other_system_prompt: str = 'You are a helpful scientist.'
 
@@ -37,25 +35,6 @@ class DualConverserGPT(ConverserGPT):
             web_conversation_name=self.other_web_conversation_name,
             driver=self.driver if self.driver is not None else type(self).__name__,
             should_print=not self.suppress_printing_other_conversation,
-        )
-
-    @classmethod
-    def from_converser(cls: Type[_T], converser: ConverserGPT, **kwargs) -> _T:
-        """
-        Create a new converser from an existing one.
-        """
-        if isinstance(converser, DualConverserGPT):
-            dual_kwargs = {
-                'other_conversation_name':
-                    kwargs.pop('other_conversation_name', converser.other_conversation_name),
-                'other_web_conversation_name':
-                    kwargs.pop('other_web_conversation_name', converser.other_web_conversation_name),
-            }
-        else:
-            dual_kwargs = {}
-        return super().from_converser(
-            converser=converser,
-            **{**kwargs, **dual_kwargs},
         )
 
     @property

@@ -2,13 +2,16 @@ from dataclasses import dataclass
 
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
+from ..utils.copier import Copier
 
 
 @dataclass
-class BaseProductsHandler:
+class BaseProductsHandler(Copier):
     """
     Base class for steps that deal with Products.
     """
+    COPY_ATTRIBUTES = {'products'}
+
     products: Products = None
 
 
@@ -18,6 +21,7 @@ class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
+    COPY_ATTRIBUTES = BaseProductsHandler.COPY_ATTRIBUTES | ConverserGPT.COPY_ATTRIBUTES
 
     background_product_fields = None
     product_acknowledgement: str = "Thank you for the {{}}. \n"
@@ -71,6 +75,7 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
     """
+    COPY_ATTRIBUTES = BaseProductsGPT.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"

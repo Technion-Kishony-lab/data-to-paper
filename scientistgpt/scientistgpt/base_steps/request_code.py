@@ -141,8 +141,8 @@ class BaseCodeProductsGPT(BaseProductsGPT):
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_and_output = DebuggerGPT.from_converser(
-                converser=self,
+            code_and_output = DebuggerGPT.from_(
+                self,
                 output_filename=self._get_output_filename(),
                 data_files=self.data_filenames,
                 data_folder=self.data_folder,
