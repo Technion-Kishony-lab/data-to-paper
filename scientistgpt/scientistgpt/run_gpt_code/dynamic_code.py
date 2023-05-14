@@ -11,7 +11,7 @@ from typing import Optional, List, Type, Tuple, Any, Union
 from scientistgpt import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
-from scientistgpt.utils.file_utils import run_in_directory
+from scientistgpt.utils.file_utils import run_in_directory, UnAllowedFilesCreated
 
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
@@ -93,10 +93,12 @@ def run_code_using_module_reload(
                     prevent_calling(forbidden_modules_and_functions), \
                     PreventImport(FORBIDDEN_IMPORTS), \
                     prevent_file_open(allowed_read_files, allowed_write_files), \
-                    run_in_directory(run_in_folder):
+                    run_in_directory(run_in_folder, allowed_create_files=allowed_write_files):
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError
+            raise FailedRunningCode(exception=e, tb=None, code=code)
+        except UnAllowedFilesCreated as e:
             raise FailedRunningCode(exception=e, tb=None, code=code)
         except BaseRunContextException as e:
             tb = traceback.extract_tb(e.__traceback__)

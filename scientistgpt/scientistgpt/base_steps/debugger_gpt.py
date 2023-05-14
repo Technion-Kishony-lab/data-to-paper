@@ -1,7 +1,7 @@
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, ClassVar
+from typing import Optional, ClassVar, List
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
@@ -14,6 +14,7 @@ from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.servers.openai_models import ModelEngine
 
 from .converser_gpt import ConverserGPT
+from ..utils.file_utils import UnAllowedFilesCreated
 
 
 @dataclass
@@ -182,6 +183,14 @@ class DebuggerGPT(ConverserGPT):
             """).format(file, self.output_filename),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
+    def _respond_to_un_allowed_files_created(self, files: List[str]):
+        self.apply_append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code, but it created the following files: `{}` which is not allowed.
+            Please rewrite the complete code again, making sure it only creates "{}". 
+            """).format(files, self.output_filename),
+            comment=f'{self.iteration_str}: Code created forbidden files {files}.')
+
     def _respond_to_forbidden_read(self, file: str):
         if file == self.output_filename:
             self.apply_append_user_message(
@@ -242,6 +251,9 @@ class DebuggerGPT(ConverserGPT):
             except TimeoutError:
                 # code took too long to run
                 self._respond_to_timeout()
+            except UnAllowedFilesCreated as e:
+                # code created files that we do not allow
+                self._respond_to_un_allowed_files_created(str(e.un_allowed_files))
             except FileNotFoundError:
                 # the code tried to load file that we do not have
                 self._respond_to_file_not_found(str(e.exception))
