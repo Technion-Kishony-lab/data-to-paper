@@ -1,22 +1,13 @@
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional, Union
-
-from pygments import highlight
-from pygments.formatters.latex import LatexFormatter
-from pygments.lexers import PythonLexer
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
-from scientistgpt.utils.text_utils import nicely_join, NiceList, wrap_python_code
+from scientistgpt.utils.text_utils import nicely_join
 from scientistgpt.servers.openai_models import ModelEngine
-
-from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix, BaseCodeProductsGPT, \
-    BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
-
+from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
 from .cast import ScientificAgent
-from .scientific_products import ScientificProducts, get_from_most_updated_paper_sections
 
 
 @dataclass
@@ -221,97 +212,3 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
 
     def _get_background_product_fields(self):
         return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
-
-
-@dataclass
-class ScientificCodeProductsGPT(BaseCodeProductsGPT):
-    products: ScientificProducts = None
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
-    conversation_name: str = 'code_debugging'
-    assistant_agent: ScientificAgent = ScientificAgent.Performer
-    user_agent: ScientificAgent = ScientificAgent.Debugger
-    code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
-        All results we may need for a scientific paper should be saved to this text file, including \
-        analysis findings, summary statistics, etc. Do not write to any other files.
-        Do not create any graphics, figures or any plots.
-        """)
-    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
-        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain what does the code writes into the {{}} file.
-        """)
-
-    @property
-    def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.products.data_file_descriptions.get_data_filenames(),
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')
-
-    @property
-    def data_folder(self) -> Optional[Path]:
-        return Path(self.products.data_file_descriptions.data_folder)
-
-
-@dataclass
-class ProduceScientificPaperPDF(BaseLatexToPDF):
-    products: ScientificProducts = None
-
-    def _choose_sections_to_add_to_paper_and_collect_references(self):
-        """
-        Chooses what sections to add to the paper.
-        Start by choosing section with tables, then cited sections, then without both of those.
-        If there are references we also collect them to a set.
-        """
-        references = set()
-        sections = {}
-        for section_name in self.get_paper_section_names():
-            sections[section_name] = get_from_most_updated_paper_sections(self.products, section_name)
-            if section_name in self.products.cited_paper_sections:
-                references |= self.products.cited_paper_sections[section_name][1]  # 1 is the references set
-
-        return sections, references
-
-
-@dataclass
-class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceScientificPaperPDF):
-    latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True,
-                                                     verboptions=r"formatcom=\footnotesize")
-
-    def _create_code_section(self):
-        """
-        Create the code section.
-        """
-        code_and_output = self.products.code_and_output
-        code = wrap_python_code(code_and_output.code)
-        latex_code = highlight(code, PythonLexer(), self.latex_formatter)
-        code_section = "\\section{Python Analysis Code} \\label{sec:code} \\subsection{Code}" \
-                       "Data analysis was carried out using the " \
-                       "following custom code (created by ChatGPT):"
-        code_section += '\n\n' + latex_code
-        code_section += "\\subsection{Code Description}"
-        code_section += '\n\n' + code_and_output.explanation
-        code_section += '\n\n' + "\\subsection{Code Output}"
-        code_section += '\n\n' + self.wrap_with_lstlisting(code_and_output.output)
-        return code_section
-
-    def _create_data_description_section(self):
-        """
-        Create the data description section.
-        """
-        data_file_descriptions = self.products.data_file_descriptions
-        data_description_section = "\\section{Data Description} \\label{sec:data_description} Here is the data " \
-                                   "description, as provided by the user:"""
-        data_description_section += '\n\n' + self.wrap_with_lstlisting(
-            data_file_descriptions.pretty_repr(num_lines=0))
-        return data_description_section
-
-    def add_preamble(self, paper: str) -> str:
-        return self.latex_formatter.get_style_defs() + paper
-
-    def _create_appendix(self):
-        """
-        Create the appendix.
-        """
-        appendix = self._create_data_description_section()
-        appendix += '\n\n' + self._create_code_section()
-        return appendix

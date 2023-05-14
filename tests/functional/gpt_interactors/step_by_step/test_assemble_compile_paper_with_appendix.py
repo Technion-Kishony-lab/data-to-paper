@@ -5,8 +5,8 @@ from _pytest.fixtures import fixture
 
 from scientistgpt.base_steps.types import DataFileDescription, DataFileDescriptions
 from scientistgpt.projects.scientific_research.get_template import get_paper_template_path
+from scientistgpt.projects.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
-from scientistgpt.projects.scientific_research.steps import ProduceScientificPaperPDFWithAppendix
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.servers.crossref import CrossrefCitation
 
