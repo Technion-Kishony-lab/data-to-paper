@@ -2,9 +2,10 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
+from scientistgpt.projects.scientific_research.coding_steps import ScientificCodeProductsGPT
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from scientistgpt.projects.scientific_research.steps import GoalReviewGPT, PlanReviewGPT, ScientificCodeProductsGPT
+from scientistgpt.projects.scientific_research.reviewing_steps import GoalReviewGPT, PlanReviewGPT
 from scientistgpt.base_steps.types import DataFileDescriptions, DataFileDescription
 
 

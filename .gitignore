@@ -22,3 +22,6 @@ sciserv/sciserv/build/
 frontend/Documentation/dist/assets/libs/chance/chance.min.js
 
 *.lock
+
+# all files starting with gpt_code_attempt
+gpt_code_attempt*

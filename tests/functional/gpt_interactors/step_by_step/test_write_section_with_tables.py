@@ -3,7 +3,7 @@ from _pytest.fixtures import fixture
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 
-from scientistgpt.projects.scientific_research.steps import PaperSectionWithTablesReviewGPT
+from scientistgpt.projects.scientific_research.reviewing_steps import PaperSectionWithTablesReviewGPT
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 
 SECTIONS_TO_ADD_TABLES_TO = ['results']
@@ -42,9 +42,9 @@ def products():
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_table_gpt(products, actions_and_conversations):
     for section_name in SECTIONS_TO_ADD_TABLES_TO:
-        products.paper_sections_with_tables[section_name] = \
+        products.tabled_paper_sections[section_name] = \
             PaperSectionWithTablesReviewGPT(actions_and_conversations=actions_and_conversations,
                                             products=products, section_name=section_name).get_section()
 
     # check that we get the output with additional tables
-    assert "\\begin{table}" in products.paper_sections_with_tables['results']
+    assert "\\begin{table}" in products.tabled_paper_sections['results']
