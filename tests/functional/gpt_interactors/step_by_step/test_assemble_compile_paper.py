@@ -35,7 +35,7 @@ def products():
         cited_paper_sections={'introduction': ('\\section{Introduction}'
                                                'This is the intro with citation'
                                                '\\cite{' + introduction_citation_id + '}', introduction_citation)},
-        paper_sections_with_tables={'results': """
+        tabled_paper_sections={'results': """
                                             \\section{Results}
                                             This is the results with table:
                                             \\begin{table}
