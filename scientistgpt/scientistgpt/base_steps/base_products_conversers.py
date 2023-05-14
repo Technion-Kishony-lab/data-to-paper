@@ -48,10 +48,10 @@ class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
         """
         if self.fake_performer_request_for_help:
             self.apply_append_surrogate_message(
-                content=self.fake_performer_request_for_help, is_background=True, ignore=True)
+                content=self.fake_performer_request_for_help, ignore=True)
             if self.fake_reviewer_agree_to_help:
                 self.apply_append_user_message(
-                    content=self.fake_reviewer_agree_to_help, is_background=True, ignore=True)
+                    content=self.fake_reviewer_agree_to_help, ignore=True)
 
     def _pre_populate_background(self):
         """
@@ -74,9 +74,11 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
-    fake_performer_request_for_help: str = "Hi, could you please help me {goal_verb} a {goal_noun}?"
+    fake_performer_request_for_help: str = "Hi {user_skin_name}, could you please help me {goal_verb} a {goal_noun}?"
     fake_reviewer_agree_to_help: str = "Well, I am certainly happy to help guide you and provide some feedback.\n" \
                                        "Please just give me some context first.\n"
+    sentence_to_add_at_the_end_of_performer_response: str = \
+        'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)

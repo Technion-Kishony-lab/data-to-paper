@@ -22,11 +22,13 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
 
-    goal_noun: str = 'literature citations'
+    goal_noun: str = 'Choose citations for a given sentence'
     goal_verb: str = 'find'
 
     value_type: type = List[str]
     max_reviewing_rounds: int = 0  # no review
+    fake_performer_request_for_help: str = None
+    fake_reviewer_agree_to_help: str = None
     fake_performer_message_to_add_after_max_rounds: str = None
     max_attempts_per_round: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -115,6 +117,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
     max_reviewing_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
+    goal_noun: str = '{section_name} citations'
 
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str(r"""

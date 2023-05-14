@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from scientistgpt.conversation import Conversation, Action
 from scientistgpt.conversation.conversation_actions import ConversationAction
-from scientistgpt.conversation.stage import StageAction
+from scientistgpt.conversation.stage import MessengerAction
 
 from .cast import Agent
 
@@ -77,7 +77,7 @@ def create_messenger(first_person: Agent, contacts: Optional[List[Agent]] = None
 
 def on_action(action: Action):
     for messenger in ALL_MESSENGERS:
-        if isinstance(action, StageAction) \
+        if isinstance(action, MessengerAction) \
                 or isinstance(action, ConversationAction) \
                 and messenger.first_person in action.web_conversation.participants:
             messenger.on_action(action)

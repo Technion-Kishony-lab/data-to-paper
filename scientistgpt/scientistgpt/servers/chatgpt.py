@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import openai
 import re
 
@@ -18,6 +20,8 @@ if TYPE_CHECKING:
 
 # Set up the OpenAI API client
 openai.api_key = OPENAI_API_KEY
+
+MAX_NUM_OPENAI_ATTEMPTS = 5
 
 
 class OpenaiSeverCaller(ServerCaller):
@@ -66,9 +70,12 @@ def try_get_chatgpt_response(conversation, hidden_messages: GeneralMessageDesign
     """
     indices_and_messages = conversation.get_chosen_indices_and_messages(hidden_messages)
     messages = [message for _, message in indices_and_messages]
-    try:
-        return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
-    except openai.error.InvalidRequestError as e:
-        return e
-    except Exception as e:
-        raise RuntimeError(f'Unexpected OPENAI error:\n{e}')
+    for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
+        try:
+            return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        except openai.error.InvalidRequestError as e:
+            return e
+        except Exception as e:
+            print(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
+        time.sleep(1.0 * 2 ** attempt)
+    raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')

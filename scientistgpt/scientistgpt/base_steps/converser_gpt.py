@@ -17,6 +17,8 @@ class ConverserGPT(Replacer):
     A base class for agents interacting with chatgpt.
     """
 
+    ADDITIONAL_DICT_ATTRS = ('user_skin_name', 'assistant_skin_name')
+
     actions_and_conversations: ActionsAndConversations
 
     model_engine: ClassVar[ModelEngine] = None
@@ -59,13 +61,21 @@ class ConverserGPT(Replacer):
         )
 
     @property
+    def user_skin_name(self):
+        return None if self.user_agent is None else self.user_agent.skin_name
+
+    @property
+    def assistant_skin_name(self):
+        return None if self.assistant_agent is None else self.assistant_agent.skin_name
+
+    @property
     def conversation(self):
         return self.conversation_manager.conversation
 
     @with_attribute_replacement
     def initialize_conversation_if_needed(self):
         self.conversation_manager.initialize_conversation_if_needed()
-        if len(self.conversation) == 0:
+        if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
     def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True):
@@ -88,20 +98,22 @@ class ConverserGPT(Replacer):
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
-                                  previous_code: Optional[str] = None, is_background: bool = False):
+                                  previous_code: Optional[str] = None, is_background: bool = False, **kwargs):
         return self.conversation_manager.append_user_message(
             content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
-            previous_code=previous_code, is_background=is_background)
+            previous_code=previous_code, is_background=is_background, **kwargs)
 
-    def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+                                    ignore: bool = False, reverse_roles_for_web: bool = False,
+                                    **kwargs):
         return self.conversation_manager.append_system_message(
-            content=content, tag=tag, comment=comment)
+            content=content, tag=tag, comment=comment, ignore=ignore,
+            reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
-                                       show_on_web: bool = True,
-                                       previous_code: Optional[str] = None, is_background: bool = False):
+                                       previous_code: Optional[str] = None, is_background: bool = False,
+                                       **kwargs):
         return self.conversation_manager.append_surrogate_message(
             content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
-            show_on_web=show_on_web,
-            previous_code=previous_code, is_background=is_background)
+            previous_code=previous_code, is_background=is_background, **kwargs)

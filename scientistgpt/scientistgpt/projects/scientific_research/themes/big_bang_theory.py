@@ -21,7 +21,7 @@ Director = Profile(
 
 GoalReviewer = Profile(
     agent_name='GoalReviewer',
-    name='Prof. Arthur Jeffries',
+    name='Prof. Proton',
     title='goal reviewer',
     description='',
     image_file='',
@@ -30,7 +30,7 @@ GoalReviewer = Profile(
 
 PlanReviewer = Profile(
     agent_name='PlanReviewer',
-    name='Amy Farrah Fowler',
+    name='Amy',
     title='research plan reviewer',
     description='',
     image_file='',
@@ -39,7 +39,7 @@ PlanReviewer = Profile(
 
 Debugger = Profile(
     agent_name='Debugger',
-    name='Raj Koothrappali',
+    name='Raj',
     title='debugger',
     description='',
     image_file='',
@@ -48,7 +48,7 @@ Debugger = Profile(
 
 InterpretationReviewer = Profile(
     agent_name='InterpretationReviewer',
-    name='Dr. Bernadette Rostenkowski-Wolowitz',
+    name='Bernie',
     title='interpretation reviewer',
     description='',
     image_file='',
@@ -66,7 +66,7 @@ Writer = Profile(
 
 CitationExpert = Profile(
     agent_name='CitationExpert',
-    name='Dr. Stuart Bloom',
+    name='Stewie',
     title='Great with literature citations',
     description='',
     image_file='',
@@ -75,7 +75,7 @@ CitationExpert = Profile(
 
 TableExpert = Profile(
     agent_name='TableExpert',
-    name='Howard Wolowitz',
+    name='Howie',
     title='Data-presentation expert',
     description='',
     image_file='',

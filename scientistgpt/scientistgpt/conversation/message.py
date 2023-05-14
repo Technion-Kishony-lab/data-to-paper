@@ -9,7 +9,7 @@ from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, H
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
-from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.servers.openai_models import OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count
 
 # noinspection PyUnresolvedReferences
@@ -33,7 +33,7 @@ class Role(Enum):
 class ResponseStyle(NamedTuple):
     color: str
     block_color: str
-    seperator: str
+    separator: str
 
 
 ROLE_TO_STYLE = {
@@ -51,7 +51,7 @@ class Message:
     content: str
     tag: str = ''
     agent: Optional[Agent] = None
-    model_engine: ModelEngine = None
+    openai_call_parameters: Optional[OpenaiCallParameters] = None
     ignore: bool = False  # if True, this message will be skipped when calling openai
     is_background: bool = False  # if True, repeated messages will not be shown in the web conversation
 
@@ -76,12 +76,12 @@ class Message:
         agent_text = f' {{{agent.value}}}' if agent else ''
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
-        sep = style.seperator
+        sep = style.separator
         if is_color:
             text_color, block_color, reset_color = style.color, style.block_color, colorama.Style.RESET_ALL
         else:
             text_color = block_color = reset_color = ''
-        role_text = role.name + ('' if self.model_engine is None else f'({self.model_engine.value})')
+        role_text = role.name + ('' if self.openai_call_parameters is None else f'({self.openai_call_parameters})')
         if role == Role.SYSTEM:
             role_model_agent_conversation_tag = f'{role_text} casting {agent_text} for {conversation_name} '
         else:
@@ -117,13 +117,13 @@ class Message:
                 f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
         return content, is_replacing
 
-    def pretty_content(self, text_color, block_color, width, is_html=False, is_comment=False) -> str:
+    def pretty_content(self, text_color, block_color, width, is_html=False, is_comment=False, is_system=False) -> str:
         """
         Returns a pretty repr of just the message content.
         """
         return format_text_with_code_blocks(text=self.get_content_after_hiding_incomplete_code()[0],
                                             text_color=text_color, block_color=block_color, width=width,
-                                            is_html=is_html, is_comment=is_comment)
+                                            is_html=is_html, is_comment=is_comment, is_system=is_system)
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
@@ -168,7 +168,7 @@ class CodeMessage(Message):
         diff = list(diff)[3:]
         return '\n'.join(diff)
 
-    def pretty_content(self, text_color, block_color, width, is_html=False, is_comment=False):
+    def pretty_content(self, text_color, block_color, width, is_html=False, is_comment=False, is_system=False):
         """
         We override this method to replace the code within the message with the diff.
         """
@@ -181,19 +181,22 @@ class CodeMessage(Message):
                     self.extracted_code,
                     "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
                     else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
-        return format_text_with_code_blocks(content, text_color, block_color, width, is_html=is_html)
+        return format_text_with_code_blocks(content, text_color, block_color, width, is_html=is_html,
+                                            is_comment=is_comment, is_system=is_system)
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
-                   model_engine: ModelEngine = None,
+                   openai_call_parameters: OpenaiCallParameters = None,
                    previous_code: str = None,
                    is_background: bool = False) -> Message:
     if previous_code:
         return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                           model_engine=model_engine, previous_code=previous_code,
+                           openai_call_parameters=openai_call_parameters,
+                           previous_code=previous_code,
                            is_background=is_background)
     else:
-        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore, model_engine=model_engine,
+        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
+                       openai_call_parameters=openai_call_parameters,
                        is_background=is_background)
 
 
@@ -205,6 +208,6 @@ def create_message_from_other_message(other_message: Message,
                           tag=other_message.tag,
                           agent=agent if agent else other_message.agent,
                           ignore=other_message.ignore,
-                          model_engine=other_message.model_engine,
+                          openai_call_parameters=other_message.openai_call_parameters,
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None,
                           is_background=other_message.is_background)

@@ -6,7 +6,7 @@ import colorama
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import PythonLexer
 from pygments.formatters import Terminal256Formatter
-from pygments.lexers.special import TextLexer
+from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight
 
@@ -76,10 +76,12 @@ def print_magenta(text: str, **kwargs):
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
-                                 width: int = 80, is_html: bool = False, is_comment=False) -> str:
+                                 width: int = 80, is_html: bool = False, is_comment=False, is_system=False) -> str:
     if is_comment:
-        # return the text in html bold and italic gery font inside a pre tag
-        return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">Information: {text}</pre>'
+        return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">{text}</pre>'
+    elif is_system:
+        return f'<pre style="color: #20191D; font-weight: bold; font-style: italic;">' \
+               f'{wrap_string(text, width=width)}</pre>'
     sections = text.split("```")
     s = ''
     in_text_block = True
