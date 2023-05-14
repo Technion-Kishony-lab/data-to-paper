@@ -34,7 +34,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
-        'I hereby approve that the research goal is well-defined and can be studied using only the provided dataset'
+        'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal.
         Make sure you suggest a research goal that can be studied using only the provided dataset, without requiring \
@@ -194,7 +194,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 
 @dataclass
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
-    goal_noun: str = '"{section_name}" section with tables'
+    goal_noun: str = '{section_name} section with tables'
     goal_verb: str = 'rewrite'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
