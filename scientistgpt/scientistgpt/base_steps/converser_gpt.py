@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional, ClassVar
+from typing import Optional, ClassVar, TypeVar, Type
 
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
@@ -9,6 +11,9 @@ from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 from scientistgpt.utils.text_utils import print_red
 from scientistgpt.base_cast import Agent
+
+
+_T = TypeVar("_T")
 
 
 @dataclass
@@ -58,6 +63,20 @@ class ConverserGPT(Replacer):
             driver=self.driver if self.driver is not None else type(self).__name__,
             assistant_agent=self.assistant_agent,
             user_agent=self.user_agent,
+        )
+
+    @classmethod
+    def from_converser(cls: Type[_T], converser: ConverserGPT, **kwargs) -> _T:
+        """
+        Create a new converser from an existing one, with the same conversation manager.
+        """
+        return cls(
+            actions_and_conversations=kwargs.pop('actions_and_conversations', converser.actions_and_conversations),
+            conversation_name=kwargs.pop('conversation_name', converser.conversation_name),
+            web_conversation_name=kwargs.pop('web_conversation_name', converser.web_conversation_name),
+            assistant_agent=kwargs.pop('assistant_agent', converser.assistant_agent),
+            user_agent=kwargs.pop('user_agent', converser.user_agent),
+            **kwargs,
         )
 
     @property
