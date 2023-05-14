@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.utils.text_utils import dedent_triple_quote_str
+from scientistgpt.utils.text_utils import dedent_triple_quote_str, NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products
 from scientistgpt.servers.crossref import CrossrefCitation
 
@@ -93,7 +93,7 @@ def get_from_most_updated_paper_sections(products: ScientificProducts, section_n
     assert False, f'No section named "{section_name}"'
 
 
-def get_paper(products: ScientificProducts, product_field: str) -> str:
+def get_paper(paper_sections: Dict[str, str]) -> str:
     """
     Compose the paper from the different paper sections.
     product_field can be one of the following:
@@ -101,30 +101,48 @@ def get_paper(products: ScientificProducts, product_field: str) -> str:
     cited_paper_sections
     paper_sections_with_tables
     """
-    paper_sections = getattr(products, product_field)
     paper = ''
     for section_name, section_content in paper_sections.items():
         paper += f"``{section_name}``\n\n{section_content}\n\n\n"
     return paper
 
 
+def get_citations(products: ScientificProducts) -> NiceList[CrossrefCitation]:
+    """
+    Return the citations of the paper.
+    """
+    citations = set()
+    for section_content, section_citations in products.cited_paper_sections.values():
+        citations.update(section_citations)
+    return NiceList(citations, separator='\n\n', last_separator=None)
+
+
+def get_cited_sections_and_citations(products: ScientificProducts) -> str:
+    """
+    Return the cited sections and the citation list.
+    """
+    citations = get_citations(products)
+    cited_sections = get_paper(
+        {section_name: section_content for section_name, (section_content, _) in products.cited_paper_sections.items()})
+    return f'{cited_sections}\n\n\n``Citations``\n\n{citations}'
+
+
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
 PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] = {
-    'data_file_descriptions': ('dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
-    'research_goal': ('research goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
-    'analysis_plan': ('data analysis plan', 'Here is our data analysis plan:\n\n{}'),
+    'data_file_descriptions': ('Dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
+    'research_goal': ('Research Goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
+    'analysis_plan': ('Data Analysis Plan', 'Here is our data analysis plan:\n\n{}'),
     'code': ('code', get_code_description),
-    'code_output': ('output of the code', get_code_output_description),
-    'code_and_output': ('code and output', get_code_and_output_description),
-    'results_summary': ('results summary', 'Here is a summary of our results:\n\n{}'),
-    'title_and_abstract': ('title and abstract', get_title_and_abstract_description),
+    'code_output': ('Output of the Code', get_code_output_description),
+    'code_and_output': ('Code and Output', get_code_and_output_description),
+    'results_summary': ('Results Summary', 'Here is a summary of our results:\n\n{}'),
+    'title_and_abstract': ('Title and Abstract', get_title_and_abstract_description),
     'paper_sections':
-        ('paper sections', lambda products: get_paper(products, 'paper_sections')),
-    'cited_paper_sections':
-        ('cited paper sections', lambda products: get_paper(products, 'cited_paper_sections')),
+        ('Paper Sections', lambda products: get_paper(getattr(products, 'paper_sections'))),
+    'cited_paper_sections': ('Cited Paper Sections and Citations', get_cited_sections_and_citations),
     'paper_sections_with_tables':
-        ('paper sections with tables', lambda products: get_paper(products, 'paper_sections_with_tables')),
+        ('Paper Sections with Tables', lambda products: get_paper(getattr(products, 'paper_sections_with_tables'))),
 }
 
 SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
