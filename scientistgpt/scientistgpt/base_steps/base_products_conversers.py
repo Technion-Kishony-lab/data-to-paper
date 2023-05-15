@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from pathlib import Path
+from typing import List
 
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
@@ -8,20 +10,42 @@ from ..utils.copier import Copier
 @dataclass
 class BaseProductsHandler(Copier):
     """
-    Base class for steps that deal with Products.
+    Base class for steps that deal with Products and may also create output files.
     """
-    COPY_ATTRIBUTES = {'products'}
+    COPY_ATTRIBUTES = {'products', 'output_directory'}
 
     products: Products = None
+
+    output_directory: Path = None  # if not None, save any output files to this directory
+
+    def __post_init__(self):
+        if self.output_directory:
+            self.output_directory = Path(self.output_directory).absolute()
+
+    def _move_files_to_output_directory(self, file_paths: List[Path]):
+        """
+        Move any output files to the output directory.
+        """
+        if self.output_directory:
+            for file_path in file_paths:
+                file_path.rename(self.output_directory / file_path.name)
 
 
 @dataclass
 class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
+    COPY_ATTRIBUTES = BaseProductsHandler.COPY_ATTRIBUTES | ConverserGPT.COPY_ATTRIBUTES
+
+    def __post_init__(self):
+        BaseProductsHandler.__post_init__(self)
+        ConverserGPT.__post_init__(self)
+
+
+@dataclass
+class BaseBackgroundProductsGPT(BaseProductsGPT):
     """
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    COPY_ATTRIBUTES = BaseProductsHandler.COPY_ATTRIBUTES | ConverserGPT.COPY_ATTRIBUTES
 
     background_product_fields = None
     product_acknowledgement: str = "Thank you for the {{}}. \n"
@@ -70,12 +94,12 @@ class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
 
 
 @dataclass
-class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
+class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverserGPT):
     """
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
     """
-    COPY_ATTRIBUTES = BaseProductsGPT.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
+    COPY_ATTRIBUTES = BaseBackgroundProductsGPT.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
@@ -84,6 +108,10 @@ class BaseProductsReviewGPT(BaseProductsGPT, ReviewDialogDualConverserGPT):
                                        "Please just give me some context first.\n"
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
+
+    def __post_init__(self):
+        BaseBackgroundProductsGPT.__post_init__(self)
+        ReviewDialogDualConverserGPT.__post_init__(self)
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)

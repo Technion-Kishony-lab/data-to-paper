@@ -12,13 +12,13 @@ from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRun
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.servers.openai_models import ModelEngine
+from .base_products_conversers import BaseProductsGPT
 
-from .converser_gpt import ConverserGPT
 from ..utils.file_utils import UnAllowedFilesCreated
 
 
 @dataclass
-class DebuggerGPT(ConverserGPT):
+class DebuggerGPT(BaseProductsGPT):
     """
     Interact with chatgpt to debug a code that needs to create an output file.
 
@@ -66,7 +66,7 @@ class DebuggerGPT(ConverserGPT):
 
     def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:
         result = code_runner.run_code()
-        shutil.move(self.data_folder / self.output_filename, self.script_filename + '.txt')
+        shutil.move(self.data_folder / self.output_filename, self.output_directory / (self.script_filename + '.txt'))
         return result
 
     def _respond_to_allowed_packages(self, error_message: str):
