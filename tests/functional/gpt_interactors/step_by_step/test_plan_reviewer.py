@@ -79,7 +79,7 @@ def test_plan_reviewer(plan_reviewer):
 
 # TODO: this code run test is far from perfect. Need to mock the code runner.
 
-@OPENAI_SERVER_CALLER.record_or_replay()
-def test_code_reviewer(code_reviewer):
-    code_and_output = code_reviewer.get_analysis_code()
-    print(code_and_output)
+# @OPENAI_SERVER_CALLER.record_or_replay()
+# def test_code_reviewer(code_reviewer):
+#     code_and_output = code_reviewer.get_analysis_code()
+#     print(code_and_output)

@@ -17,4 +17,3 @@ class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseProduc
     def __post_init__(self):
         BaseProductsReviewGPT.__post_init__(self)
         QuotedReviewDialogDualConverserGPT.__post_init__(self)
-

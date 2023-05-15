@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, ClassVar, TypeVar, Type
+from typing import Optional, ClassVar
 
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
