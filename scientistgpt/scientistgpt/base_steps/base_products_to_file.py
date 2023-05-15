@@ -6,20 +6,14 @@ from .base_products_conversers import BaseProductsHandler
 
 @dataclass
 class BaseFileProducer(BaseProductsHandler):
+    COPY_ATTRIBUTES = BaseProductsHandler.COPY_ATTRIBUTES | {'output_filename'}
 
-    output_file_path: Path = None
-
-    @property
-    def output_folder(self):
-        return Path(self.output_file_path).parent
+    output_filename: str = None
 
     @property
-    def output_filename(self):
-        return Path(self.output_file_path).name
+    def output_file_path(self):
+        return Path(self.output_directory) / self.output_filename
 
     @property
     def output_file_stem(self):
         return Path(self.output_file_path).stem
-
-    def produce(self):
-        raise NotImplementedError

@@ -3,16 +3,16 @@ from typing import Any
 
 from scientistgpt.utils.replacer import with_attribute_replacement
 
-from .base_products_conversers import BaseProductsGPT
+from .base_products_conversers import BaseBackgroundProductsGPT
 
 
 @dataclass
-class DirectorProductGPT(BaseProductsGPT):
+class DirectorProductGPT(BaseBackgroundProductsGPT):
     """
     Create a fake (pre-meditated) conversation, where a performer asks the Director (the application user) for a
     specific product.
     """
-    ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS + ('product_name', )
+    ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS + ('product_name',)
 
     system_prompt: str = None
     request_product_message: str = 'Hi, do you have a {product_name} for me?'

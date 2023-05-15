@@ -14,6 +14,7 @@ class DualConverserGPT(ConverserGPT):
     """
     A base class for agents running two chatgpts.
     """
+    COPY_ATTRIBUTES = ConverserGPT.COPY_ATTRIBUTES | {'other_conversation_name', 'other_web_conversation_name'}
 
     other_system_prompt: str = 'You are a helpful scientist.'
 
