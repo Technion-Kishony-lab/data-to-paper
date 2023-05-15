@@ -35,6 +35,10 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
     latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True,
                                                      verboptions=r"formatcom=\footnotesize")
 
+    def __post_init__(self):
+        BaseLatexToPDFWithAppendix.__post_init__(self)
+        ProduceScientificPaperPDF.__post_init__(self)
+
     def _create_code_section(self):
         """
         Create the code section.

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional, ClassVar
 
@@ -6,20 +8,22 @@ from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 from scientistgpt.utils.text_utils import print_red
 from scientistgpt.base_cast import Agent
 
 
 @dataclass
-class ConverserGPT(Replacer):
+class ConverserGPT(Replacer, Copier):
     """
     A base class for agents interacting with chatgpt.
     """
-
+    COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
+                       'user_agent'}
     ADDITIONAL_DICT_ATTRS = ('user_skin_name', 'assistant_skin_name')
 
-    actions_and_conversations: ActionsAndConversations
+    actions_and_conversations: ActionsAndConversations = None
 
     model_engine: ClassVar[ModelEngine] = None
     """

@@ -10,7 +10,7 @@ from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.text_utils import NiceList
 
 from .debugger_gpt import DebuggerGPT
-from .base_products_conversers import BaseProductsGPT
+from .base_products_conversers import BaseBackgroundProductsGPT
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import BaseMultiChoiceProductsGPT
 
@@ -19,7 +19,7 @@ MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
 
 
 @dataclass
-class BaseCodeProductsGPT(BaseProductsGPT):
+class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
@@ -141,11 +141,8 @@ class BaseCodeProductsGPT(BaseProductsGPT):
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_and_output = DebuggerGPT(
-                actions_and_conversations=self.actions_and_conversations,
-                conversation_name=self.conversation_name,
-                user_agent=self.user_agent,
-                assistant_agent=self.assistant_agent,
+            code_and_output = DebuggerGPT.from_(
+                self,
                 output_filename=self._get_output_filename(),
                 data_files=self.data_filenames,
                 data_folder=self.data_folder,
@@ -177,7 +174,7 @@ class BaseCodeProductsGPT(BaseProductsGPT):
         if self.requesting_code_explanation_prompt is None:
             return None
         self.apply_append_user_message(
-            content=self.requesting_code_explanation_prompt.format(self.output_filename),
+            content=self.requesting_code_explanation_prompt.format(self._get_output_filename()),
         )
         return self.apply_get_and_append_assistant_message()
 

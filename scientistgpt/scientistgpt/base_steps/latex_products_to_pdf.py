@@ -81,7 +81,7 @@ class BaseLatexToPDF(BaseFileProducer):
         """
         Save the latex paper to .tex file and compile to pdf file.
         """
-        save_latex_and_compile_to_pdf(self.latex_paper, self.output_file_stem, self.output_folder, references)
+        save_latex_and_compile_to_pdf(self.latex_paper, self.output_file_stem, str(self.output_directory), references)
 
     def assemble_compile_paper(self):
         sections, references = self._choose_sections_to_add_to_paper_and_collect_references()

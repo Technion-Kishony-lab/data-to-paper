@@ -108,7 +108,6 @@ def run_code_using_module_reload(
             tb = traceback.extract_tb(e.__traceback__)
             raise FailedRunningCode(exception=e, tb=tb, code=code)
         finally:
-            if save_as is None:
-                save_code_to_module_file()
-            else:
+            if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
+            save_code_to_module_file()
