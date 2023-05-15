@@ -200,15 +200,17 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above (research goal, results description, and outputs), please {goal_verb} \
-        only the "{goal_noun}".
-        Usually in scientific papers include one or two tables summarizing the main findings.
-        The tables should include information that was only extracted from the information provided.
+        Based on the material provided above (research goal, results description, and outputs), please rewrite \
+        the "{section_name}" while adding relevant Tables".
+        In scientific papers, we typically add one or two tables summarizing the main findings.
+        The tables should only include information that is explicitly extracted from the results data.
         Add the tables centered in booktabs, multirow format with caption and label. 
-        In addition, change the results section text to refer to the tables (use their labels if necessary),
-        to incorporate them as integral part of the {section_name} section. Do not add figures, only tables.
-        Write in tex format including \\\\section{{}} command, any math or symbols that needs tex escapes.
-    """)
+        In addition, change the {section_name} section text to refer to the tables (use their labels if necessary),
+        so that the tables are incorporated as integral part of the {section_name} section. 
+        Do not add figures, only add tables.
+        Write the section with tables in tex format including \\\\section{{}} command, and any math or symbols that \
+        needs tex escapes.
+        """)
 
     def _get_background_product_fields(self):
         return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
