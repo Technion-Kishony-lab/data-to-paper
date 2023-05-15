@@ -24,7 +24,7 @@ class ConversationAction(Action):
     Base class for actions performed on a chatgpt conversation.
     """
 
-    conversations: Conversations
+    conversations: Conversations = None
 
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
@@ -121,23 +121,19 @@ class AppendMessage(ConversationAction):
     If `tag` already exists, conversation will reset to the previous tag.
     """
 
-    ROLE_TO_DELAY = {
-        Role.ASSISTANT: 0,
-        Role.USER: DELAY_AUTOMATIC_RESPONSES,
-        Role.COMMENTER: 0,
-        Role.SURROGATE: DELAY_AUTOMATIC_RESPONSES,
-        Role.SYSTEM: DELAY_AUTOMATIC_RESPONSES * 0.5,
-    }
-
     message: Message = None
 
     adjust_message_for_web: dict = None
     # If True, show the message on the web conversation as if it was sent by the other participant.
 
-    delay: float = DELAY_AUTOMATIC_RESPONSES
-
-    def _get_delay(self):
-        return self.ROLE_TO_DELAY[self.message.role]
+    @property
+    def web_delay(self):
+        if self.message.role is Role.COMMENTER:
+            return 0
+        content = self.get_message_for_web().content
+        # find the len of the content in the text parts, not the code blocks:
+        len_content = sum([len(part) for part in content.split('```')[::2]])
+        return len_content * 0.01  # 10ms per character
 
     def _get_index_of_tag(self) -> Optional[int]:
         """
@@ -210,8 +206,6 @@ class AppendMessage(ConversationAction):
         if self.message.is_background and any(self.get_message_for_web() == m for m in self.web_conversation):
             # in web conversation, we only append messages that are not already there
             return False
-        if self.delay is not None:
-            time.sleep(self.delay)
         self.web_conversation.append(self.get_message_for_web())
         return True
 

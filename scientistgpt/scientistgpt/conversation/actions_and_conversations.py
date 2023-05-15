@@ -24,6 +24,10 @@ class Action:
     Base class for actions performed on a Conversation, Stage, or Cast.
     """
 
+    @property
+    def web_delay(self):
+        return 0.0
+
     def _pretty_attrs(self) -> str:
         return ''
 

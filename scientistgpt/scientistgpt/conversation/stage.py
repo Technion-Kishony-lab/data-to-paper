@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass
 
 from scientistgpt.base_cast import Agent
@@ -60,12 +59,12 @@ class SetActiveConversation(MessengerAction):
     agent: Agent = None
 
     @property
+    def web_delay(self):
+        return DELAY_AUTOMATIC_RESPONSES
+
+    @property
     def conversation_name(self) -> str:
         return self.agent.get_conversation_name()
 
     def _pretty_attrs(self) -> str:
         return f'{self.conversation_name}'
-
-    def apply_to_web(self) -> bool:
-        time.sleep(DELAY_AUTOMATIC_RESPONSES)
-        return super().apply_to_web()
