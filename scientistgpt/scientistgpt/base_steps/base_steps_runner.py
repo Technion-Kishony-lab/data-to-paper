@@ -1,6 +1,5 @@
 import glob
 import os
-import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
@@ -11,14 +10,12 @@ from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.conversation.conversation_actions import CreateConversation
 from scientistgpt.conversation.stage import Stage, AdvanceStage, SetActiveConversation, SetProduct
-from scientistgpt.run_gpt_code.dynamic_code import module_dir
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.base_cast import Agent
 
 from .base_products_conversers import BaseProductsHandler
 from .exceptions import FailedCreatingProductException
-from .request_code import BASE_GPT_SCRIPT_FILE_NAME
 from .types import DataFileDescriptions
 
 
