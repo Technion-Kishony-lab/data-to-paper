@@ -60,7 +60,7 @@ class DebuggerGPT(BaseProductsGPT):
         return CodeRunner(response=response,
                           allowed_read_files=self.data_files,
                           output_file=self.output_filename,
-                          script_file=self.script_filename,
+                          script_file_path=self.output_directory / self.script_filename,
                           data_folder=self.data_folder,
                           )
 

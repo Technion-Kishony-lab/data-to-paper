@@ -49,7 +49,7 @@ class CodeRunner:
     response: str
     allowed_read_files: Optional[list] = None
     output_file: Optional[str] = None
-    script_file: Optional[str] = None
+    script_file_path: Optional[Path] = None
     data_folder: Optional[Path] = None
 
     @property
@@ -107,7 +107,7 @@ class CodeRunner:
         code = self.extract_and_modify_code()
         self.delete_output_file()
         run_code_using_module_reload(code,
-                                     save_as=None,  # change to self.script_file in order to keep records of the code
+                                     save_as=self.script_file_path,  # None to delete
                                      run_in_folder=self.data_folder,
                                      allowed_read_files=self.allowed_read_files,
                                      allowed_write_files=None if self.output_file is None else [self.output_file])
