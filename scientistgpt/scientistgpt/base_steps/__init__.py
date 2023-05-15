@@ -27,7 +27,7 @@ from .request_products_from_user import DirectorProductGPT
 # --- REQUESTS PRODUCTS FROM CHATGPT ---
 
 # Requesting un-structured text:
-from .base_products_conversers import BaseProductsGPT
+from .base_products_conversers import BaseBackgroundProductsGPT
 
 # Requesting un-structured text as part of a gpt-gpt review process:
 from .base_products_conversers import BaseProductsReviewGPT

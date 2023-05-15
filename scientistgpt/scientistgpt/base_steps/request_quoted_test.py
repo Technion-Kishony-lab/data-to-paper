@@ -13,4 +13,8 @@ class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseProduc
     The goal is requested from the user as a triple quoted text thereby allowing extraction.
     Option for reviewing the sections (set max_review_turns > 0).
     """
-    pass
+
+    def __post_init__(self):
+        BaseProductsReviewGPT.__post_init__(self)
+        QuotedReviewDialogDualConverserGPT.__post_init__(self)
+

@@ -34,18 +34,8 @@ class BaseStepsRunner(BaseProductsHandler):
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
 
     cast = None  # Type[Agent]
-    output_directory: Path = None
     data_file_descriptions: DataFileDescriptions = None
     mock_servers: Union[bool, str] = False
-
-    def _get_converser(self, converser_type: type, **kwargs):
-        """
-        Get a converser of the given type.
-        """
-        return converser_type(
-            actions_and_conversations=self.actions_and_conversations,
-            products=self.products,
-            **kwargs)
 
     def create_web_conversations(self):
         if not COALESCE_WEB_CONVERSATIONS:
@@ -103,9 +93,6 @@ class BaseStepsRunner(BaseProductsHandler):
     @property
     def absolute_data_folder(self):
         return self.data_file_descriptions.data_folder
-
-    def __post_init__(self):
-        self.output_directory = Path(self.output_directory).absolute()
 
     def _run_all_steps(self):
         """
