@@ -15,6 +15,7 @@ from scientistgpt.servers.openai_models import ModelEngine
 from .base_products_conversers import BaseProductsGPT
 
 from ..utils.file_utils import UnAllowedFilesCreated
+from ..utils.text_utils import extract_to_nearest_newline
 
 
 @dataclass
@@ -225,10 +226,12 @@ class DebuggerGPT(BaseProductsGPT):
             I ran the code, it created the output file {}, but the file is too long!
             
             Here is the beginning of the output:
+            ```
             {}
+            ```
             
             Please rewrite the complete code so that only sensible length output is written to the file. 
-            """).format(self.output_filename, extract_first_lines(output, 25)),
+            """).format(self.output_filename, extract_to_nearest_newline(output, 500)),
             comment=f'{self.iteration_str}: Code completed, but output file is too long.')
 
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
