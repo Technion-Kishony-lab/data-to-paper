@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
