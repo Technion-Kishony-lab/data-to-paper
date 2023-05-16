@@ -300,3 +300,14 @@ def extract_first_lines(text: str, num_lines: int = 1):
     Extract the first num_lines lines from the text.
     """
     return '\n'.join(text.splitlines()[:num_lines])
+
+
+def extract_to_nearest_newline(text: str, end: int):
+    """
+    Extract the text from the beginning of the text to the nearest newline before end.
+    If no newline is found, extract the text from the beginning of the text to end.
+    """
+    newline_before_end = text.rfind('\n', 0, end)
+    if newline_before_end == -1:
+        return text[:end]
+    return text[:newline_before_end]
