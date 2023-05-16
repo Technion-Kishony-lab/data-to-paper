@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, ClassVar, List
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
-from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils import dedent_triple_quote_str, extract_first_lines
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
@@ -218,12 +218,17 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but output file is empty.')
 
-    def _respond_to_large_output(self):
+    def _respond_to_large_output(self, output: str):
+        print(output)
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is too long!
+            
+            Here is the beginning of the output:
+            {}
+            
             Please rewrite the complete code so that only sensible length output is written to the file. 
-            """).format(self.output_filename),
+            """).format(self.output_filename, extract_first_lines(output, 25)),
             comment=f'{self.iteration_str}: Code completed, but output file is too long.')
 
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
@@ -285,7 +290,7 @@ class DebuggerGPT(BaseProductsGPT):
                 self._respond_to_empty_output()
             elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE:
                 # The code ran successfully, but the output file is too large.
-                self._respond_to_large_output()
+                self._respond_to_large_output(output)
             else:
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)

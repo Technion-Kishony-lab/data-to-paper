@@ -293,3 +293,10 @@ class NiceList(list):
 
     def __repr__(self):
         return str(self)
+
+
+def extract_first_lines(text: str, num_lines: int = 1):
+    """
+    Extract the first num_lines lines from the text.
+    """
+    return '\n'.join(text.splitlines()[:num_lines])
