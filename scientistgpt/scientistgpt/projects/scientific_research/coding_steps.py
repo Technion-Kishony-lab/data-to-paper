@@ -10,22 +10,12 @@ from scientistgpt.utils.text_utils import NiceList
 
 
 @dataclass
-class ScientificCodeProductsGPT(BaseCodeProductsGPT):
+class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
     products: ScientificProducts = None
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan')
     conversation_name: str = 'code_debugging'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Debugger
-    code_requesting_prompt: str = BaseCodeProductsGPT.code_requesting_prompt + dedent_triple_quote_str("""
-        All results we may need for a scientific paper should be saved to this text file, including \
-        analysis results, summary statistics, etc. Do not write to any other files.
-        Do not create any graphics, figures or any plots.
-        """)
-    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
-        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain what does the code writes into the {} file.
-        """)
 
     @property
     def data_filenames(self) -> NiceList[str]:
@@ -36,3 +26,20 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     @property
     def data_folder(self) -> Optional[Path]:
         return Path(self.products.data_file_descriptions.data_folder)
+
+
+@dataclass
+class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
+    conversation_name: str = 'data_analysis_code'
+    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
+    gpt_script_filename: str = 'data_analysis_code'
+    output_content_prompt: str = dedent_triple_quote_str("""
+        All results we may need for a scientific paper should be saved to this text file, including \
+        analysis findings, summary statistics, etc.
+        """)
+    code_mission: str = 'to perform the data analysis plan'
+    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
+        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. Also explain what does the code writes into the "{actual_output_filename}" file.
+        """)

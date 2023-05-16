@@ -17,12 +17,11 @@ from .request_multi_choice import BaseMultiChoiceProductsGPT
 
 @dataclass
 class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
-    ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS + ('actual_output_filename', )
+    ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS \
+                            + ('actual_output_filename', 'supported_packages')
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
-
-    supported_packages: List[str] = SUPPORTED_PACKAGES
 
     revision_round: int = 0
 
@@ -102,6 +101,10 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         Need to be overridden by subclasses, to include the folder of the data files from Products
         """
         return None
+
+    @property
+    def supported_packages(self) -> NiceList[str]:
+        return SUPPORTED_PACKAGES
 
     @property
     def actual_output_filename(self):
