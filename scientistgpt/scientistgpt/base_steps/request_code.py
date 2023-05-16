@@ -35,6 +35,8 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 
+    code_name: str = ''  # e.g. "data analysis"
+
     gpt_script_filename: str = 'gpt_code'
     "The base name of the python file in which the code written by gpt is saved."
 
@@ -130,6 +132,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
             if gpt_choice == '1':
                 code_and_output.explanation = self._ask_for_code_explanation()
+                code_and_output.name = self.code_name
                 return code_and_output
             self.revision_round += 1
         raise FailedCreatingProductException(product_field='code_and_output')

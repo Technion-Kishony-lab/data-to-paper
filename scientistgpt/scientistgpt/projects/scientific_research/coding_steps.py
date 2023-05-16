@@ -31,6 +31,7 @@ class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     conversation_name: str = 'data_analysis_code'
+    code_name: str = 'data analysis'
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
     gpt_script_filename: str = 'data_analysis_code'
     output_content_prompt: str = dedent_triple_quote_str("""
