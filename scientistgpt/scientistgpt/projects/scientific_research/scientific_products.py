@@ -14,7 +14,8 @@ class ScientificProducts(Products):
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
-    data_file_descriptions: DataFileDescriptions = None
+    data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
+    data_exploration_code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     code_and_output: CodeAndOutput = None
