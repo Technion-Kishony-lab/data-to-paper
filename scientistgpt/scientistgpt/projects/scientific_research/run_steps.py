@@ -6,7 +6,7 @@ from scientistgpt.base_steps.request_products_from_user import DirectorProductGP
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import ScientificCodeProductsGPT
+from .coding_steps import DataAnalysisCodeProductsGPT
 from .get_template import get_paper_template_path
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -67,7 +67,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Code and output
         self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
-        products.code_and_output = ScientificCodeProductsGPT.from_(self).get_analysis_code()
+        products.code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
         self.send_product_to_client('code_and_output')
 
         # Results interpretation
