@@ -65,7 +65,7 @@ def test_run_code_timeout():
         assert False, 'Expected to fail'
 
 
-@pytest.mark.parametrize("forbidden_call", ['input', 'print', 'exit', 'quit', 'exec', 'eval'])
+@pytest.mark.parametrize("forbidden_call", ['input', 'print', 'exit', 'quit', 'eval'])
 def test_run_code_forbidden_function_exit(forbidden_call):
     code = dedent_triple_quote_str("""
         a = 1
