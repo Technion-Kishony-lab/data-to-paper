@@ -40,16 +40,17 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     gpt_script_filename: str = 'gpt_code'
     "The base name of the python file in which the code written by gpt is saved."
 
-    code_mission: str = ''  # e.g. "to perform the data analysis plan"
+    code_mission: str = ''  # e.g. "Write a complete short Python code to perform the data analysis plan"
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
-        Write a complete short Python code to {code_mission}.
+        {code_mission}
         Don't provide a sketch or pseudocode; write a complete runnable code.
         If needed, you can use the following packages in your code: {supported_packages}.
         The output of your code should be a text file named "{actual_output_filename}".
         {output_content_prompt}
         Do not write to any other files.
         Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
         """)
 
     output_content_prompt: str = ''  # e.g. "All results we may need should be saved to this text file"
@@ -79,11 +80,12 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         {}
         ```
 
-        Please choose one of the following options:
+        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else
+        that may indicate that code improvements are needed), then choose one of the following options:
 
         1. The results seem reasonable. Let's proceed.
 
-        2. Something is wrong. I need to go back and change the code.
+        2. Something is wrong. I need to go back and change/improve the code.
         """)  # set to None to skip option for revision
 
     @property

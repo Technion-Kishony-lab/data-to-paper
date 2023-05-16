@@ -6,7 +6,7 @@ from scientistgpt.base_steps.request_products_from_user import DirectorProductGP
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import DataAnalysisCodeProductsGPT
+from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProductsGPT
 from .get_template import get_paper_template_path
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -48,6 +48,11 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
             product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
+
+        # Data exploration
+        self.advance_stage_and_set_active_conversation(ScientificStage.EXPLORATION, ScientificAgent.DataExplorer)
+        products.data_exploration_code_and_output = DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
+        self.send_product_to_client(stage=ScientificStage.EXPLORATION, product_field='data_exploration_code_and_output')
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)

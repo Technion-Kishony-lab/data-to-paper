@@ -25,7 +25,11 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
+<<<<<<<
     background_product_fields = ('data_file_descriptions', )
+=======
+    background_product_fields = ['data_file_descriptions', 'data_exploration_code_and_output']
+>>>>>>>
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -64,9 +68,18 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 0  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
+<<<<<<<
     background_product_fields = ('data_file_descriptions', 'research_goal')
+=======
+    background_product_fields = ['data_file_descriptions', 'data_exploration_code_and_output', 'research_goal']
+>>>>>>>
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} a {goal_noun}. 
+        Do not include any data visualization steps.
+        Explicitly specify all relevant analysis results and values that should be calculated.
+        """)
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer

@@ -157,8 +157,8 @@ class DebuggerGPT(BaseProductsGPT):
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
                 Please do not use the `print` function. 
-                Anything you want to print must be written to the output file. 
-                """),
+                Anything you want to print must be written to the output file ("{}"). 
+                """).format(self.output_filename),
                 comment=f'{self.iteration_str}: Code uses `print`.')
             return
         self.apply_append_user_message(
