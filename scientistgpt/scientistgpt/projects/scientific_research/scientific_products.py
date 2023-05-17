@@ -146,10 +146,10 @@ PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] 
 }
 
 SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
-    'most_updated_paper_sections_': get_from_most_updated_paper_sections,
-    'paper_sections_with_tables_': get_from_paper_sections_with_tables,
-    'cited_paper_sections_': get_from_cited_paper_sections,
-    'paper_sections_': get_from_paper_sections,
+    'most_updated_paper_sections:': get_from_most_updated_paper_sections,
+    'paper_sections_with_tables:': get_from_paper_sections_with_tables,
+    'cited_paper_sections:': get_from_cited_paper_sections,
+    'paper_sections:': get_from_paper_sections,
 }
 
 
