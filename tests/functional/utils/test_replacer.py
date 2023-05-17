@@ -8,7 +8,7 @@ from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
 
 @dataclass
 class Greeter(Replacer):
-    REPLACED_ATTRS = ('greeting', 'name', 'adjective', 'age', )
+    REPLACED_ATTRS = {'greeting', 'name', 'adjective', 'age'}
     age: int = 20
     adjective: str = 'amazing'
     name: str = 'the {adjective} john'

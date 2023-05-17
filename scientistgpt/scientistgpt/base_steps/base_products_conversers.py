@@ -100,6 +100,8 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
     to be suggested and reviewed.
     """
     COPY_ATTRIBUTES = BaseBackgroundProductsGPT.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
+    ADDITIONAL_DICT_ATTRS = \
+        BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS | ReviewDialogDualConverserGPT.ADDITIONAL_DICT_ATTRS
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
