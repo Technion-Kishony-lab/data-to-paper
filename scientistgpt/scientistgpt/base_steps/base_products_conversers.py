@@ -84,6 +84,10 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
             [self.products.get_name(product_field) for product_field in self.actual_background_product_fields],
             wrap_with='"', separator=', ', last_separator=None, empty_str='')
 
+            # TODO: add the link tags:
+            # [self.products.get_stage(product_field) for product_field in self.actual_background_product_fields],
+            # wrap_with=('<ClickStageNameToOpenModal>', '</ClickStageNameToOpenModal>'), separator=', ', last_separator=None, empty_str='')
+
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
         self.apply_append_surrogate_message(
