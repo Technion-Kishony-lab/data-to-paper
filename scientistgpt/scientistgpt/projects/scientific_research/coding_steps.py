@@ -12,7 +12,7 @@ from scientistgpt.utils.text_utils import NiceList
 @dataclass
 class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     products: ScientificProducts = None
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan']
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan')
     conversation_name: str = 'code_debugging'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Debugger
