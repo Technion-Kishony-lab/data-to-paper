@@ -2,11 +2,12 @@ from dataclasses import dataclass
 from typing import Optional, Set, Iterable
 
 from scientistgpt.base_cast import Agent
-from scientistgpt.run_gpt_code.code_runner import add_python_to_first_triple_quotes_if_missing
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
-from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
+from scientistgpt.utils.extract_code import add_python_label_to_first_triple_quotes_if_missing, \
+    remove_text_label_from_text_blocks
 
+from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
 from .message import Message, Role, create_message, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
@@ -237,7 +238,8 @@ class ConversationManager:
                 FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
         else:
             if is_code:
-                content = add_python_to_first_triple_quotes_if_missing(content)
+                content = add_python_label_to_first_triple_quotes_if_missing(content)
+                content = remove_text_label_from_text_blocks(content)
             self._create_and_apply_action(
                 AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages,
                 message=create_message(
