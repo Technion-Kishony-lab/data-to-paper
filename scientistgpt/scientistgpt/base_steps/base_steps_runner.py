@@ -77,13 +77,13 @@ class BaseStepsRunner(BaseProductsHandler):
         if agent is not None:
             self.set_active_conversation(agent=agent)
 
-    def send_product_to_client(self, stage: Stage, product_field: str):
+    def send_product_to_client(self, product_field: str):
         """
         Get the base GPT script file.
         """
         self.actions_and_conversations.actions.apply_action(
             SetProduct(
-                stage=stage,
+                stage=self.products.get_stage(product_field),
                 products=self.products,
                 product_field=product_field))
 

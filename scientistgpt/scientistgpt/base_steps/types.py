@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
+from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
 
 
@@ -74,5 +75,11 @@ class Products(ABC):
     def get_name(self, product_field: str) -> str:
         """
         Return the name of the given product.
+        """
+        pass
+
+    def get_stage(self, product_field: str) -> Stage:
+        """
+        Return the stage of the given product.
         """
         pass
