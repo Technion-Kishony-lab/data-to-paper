@@ -1,9 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, Union
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
-from scientistgpt.utils.text_utils import nicely_join
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
@@ -100,10 +98,10 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     Base class for the writer of a paper section in latex format.
     """
     fake_performer_request_for_help: str = \
-        'Hi {user_skin_name}, could you please help me {goal_verb} the "{goal_noun}" for my paper?'
+        'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 3
-    goal_noun: str = '{section_names} of the paper'
+    goal_noun: str = '{pretty_section_names} of the paper'
     conversation_name: str = None
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
@@ -112,7 +110,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.Writer
 
     def __post_init__(self):
-        self.conversation_name = self.conversation_name or self.goal_noun.replace(' ', '_')
+        self.conversation_name = self.conversation_name or str(self.section_names).replace(' ', '_')
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
@@ -127,9 +125,12 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({background_product_names}), \
-        please {goal_verb} only the "{section_name}" section of a scientific paper. Do not write any other parts!
-        Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
+        please {goal_verb} only the {pretty_section_names} of a scientific paper.
+        Do not write any other parts!
+        {latex_instructions}
         """)
+
+    latex_instructions: str = ''
 
     termination_phrase: str = 'I hereby approve the paper section'
 
@@ -146,12 +147,13 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
-        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
-        Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
+        Please correct your response according to my feedback and send back a complete rewrite \
+        of the {pretty_section_names}.
+        Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
     """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide constructive feedback on the above {goal_noun} for my paper.
+        Please provide constructive feedback on the above {pretty_section_names} for my paper.
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
@@ -160,12 +162,10 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({background_product_names}), \
-        please {goal_verb} only the {goal_noun} of a scientific paper. Do not write any other parts!
+    latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
-    """)
+        """)
 
 
 @dataclass
@@ -173,15 +173,10 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({background_product_names}), \
-        please {goal_verb} only the "{section_name}" section of a scientific paper. Do not write any other parts!
-        Write in tex format including the \\\\section{{}} command, and any math or symbols that needs tex escapes.
-    """)
-
-    @with_attribute_replacement
-    def get_section(self):
-        return self.get_sections()[0]
+    latex_instructions: str = dedent_triple_quote_str("""
+        Write in tex format including the \\\\section{{}} command, \
+        and any math or symbols that needs tex escapes.
+        """)
 
 
 @dataclass
@@ -192,12 +187,12 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({background_product_names}), please rewrite \
-        the "{section_name}" while adding relevant Tables".
+        the "{pretty_section_names}" while adding relevant Tables".
         In scientific papers, we typically add one or two tables summarizing the main findings.
         The tables should only include information that is explicitly extracted from the results data.
         Add the tables centered in booktabs, multirow format with caption and label. 
         In addition, change the text to refer to the tables (use their labels if necessary),
-        so that the tables are incorporated as integral part of the {section_name} section. 
+        so that the tables are incorporated as integral part of the {pretty_section_names} section. 
         Do not add figures, only add tables.
         Write the section with tables in tex format including \\\\section{{}} command, and any math or symbols that \
         needs tex escapes.
