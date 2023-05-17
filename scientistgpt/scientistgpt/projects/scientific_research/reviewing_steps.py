@@ -200,5 +200,6 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         needs tex escapes.
         """)
 
-    def _get_background_product_fields(self):
-        return self.background_product_fields + ('most_updated_paper_sections:' + self.section_name, )
+    @property
+    def actual_background_product_fields(self):
+        return super().actual_background_product_fields + ('most_updated_paper_sections:' + self.section_name, )

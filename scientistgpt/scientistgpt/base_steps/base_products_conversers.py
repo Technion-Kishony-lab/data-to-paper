@@ -47,7 +47,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'background_product_names'}
+    ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'background_product_names'} | {'actual_background_product_fields'}
 
     background_product_fields = []
     product_acknowledgement: str = "Thank you for the {{}}. \n"
@@ -60,7 +60,8 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         return NiceList((self.products.get_name(product_field) for product_field in self.background_product_fields),
                         wrap_with='"', separator=', ', last_separator=' and ')
 
-    def _get_background_product_fields(self):
+    @property
+    def actual_background_product_fields(self):
         return self.background_product_fields
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
@@ -93,7 +94,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         Add background information to the conversation.
         """
         self._add_fake_pre_conversation_exchange()
-        previous_product_items = self._get_background_product_fields()
+        previous_product_items = self.actual_background_product_fields
         for i, product_field in enumerate(previous_product_items or []):
             is_last = i == len(previous_product_items) - 1
             self._add_product_description(product_field)
