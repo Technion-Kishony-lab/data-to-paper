@@ -5,6 +5,7 @@ from scientistgpt.latex import FailedToExtractLatexContent, extract_latex_sectio
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
+from scientistgpt.utils.text_utils import NiceList
 
 from .base_products_conversers import BaseProductsReviewGPT
 
@@ -16,11 +17,22 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
-
+    ADDITIONAL_DICT_ATTRS = BaseProductsReviewGPT.ADDITIONAL_DICT_ATTRS | {'section_name'}
     should_remove_citations_from_section = True
 
     # outputs:
     section_contents: Union[str, List[str]] = field(default_factory=list)
+    section_names: Optional[NiceList[str]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        if not isinstance(self.section_names, NiceList):
+            self.section_names = NiceList(self.section_names, wrap_with='"', separator=', ', last_separator=' and ')
+
+    @property
+    def section_name(self):
+        assert len(self.section_names) == 1
+        return self.section_names[0]
 
     def _check_self_response(self, response: str) -> Optional[str]:
         """

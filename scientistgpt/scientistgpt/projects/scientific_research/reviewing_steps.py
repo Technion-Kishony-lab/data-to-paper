@@ -110,7 +110,6 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     reviewer: str = 'scientific reviewer'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Writer
-    section_names: Optional[Union[str, list[str]]] = None
 
     def __post_init__(self):
         self.goal_noun = self.goal_noun or nicely_join(self.section_names)
@@ -172,7 +171,6 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
-    section_name: str = None
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
@@ -182,10 +180,6 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
         please {goal_verb} only the "{goal_noun}" section of a scientific paper. Do not write any other parts!
         Write in tex format including the \\\\section{{}} command, and any math or symbols that needs tex escapes.
     """)
-
-    def __post_init__(self):
-        self.section_names = [self.section_name]
-        super().__post_init__()
 
     @with_attribute_replacement
     def get_section(self):
