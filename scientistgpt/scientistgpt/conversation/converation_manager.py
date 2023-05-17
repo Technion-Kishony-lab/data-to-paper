@@ -128,7 +128,7 @@ class ConversationManager:
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                               ignore: bool = False, reverse_roles_for_web: bool = False,
-                              is_background: bool = True, **kwargs):
+                              is_background: bool = None, **kwargs):
         """
         Append a system-message to a specified conversation.
         """
