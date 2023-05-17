@@ -49,7 +49,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     """
     ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'background_product_names'}
 
-    background_product_fields = None
+    background_product_fields = []
     product_acknowledgement: str = "Thank you for the {{}}. \n"
 
     fake_performer_request_for_help: str = None

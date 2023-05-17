@@ -92,7 +92,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         self.advance_stage_and_set_active_conversation(ScientificStage.CITATIONS, ScientificAgent.CitationExpert)
         for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
             products.cited_paper_sections[section_name] = \
-                AddCitationReviewGPT.from_(self, section_names=[section_name]).rewrite_section_with_citations()
+                AddCitationReviewGPT.from_(self, section_name=section_name).rewrite_section_with_citations()
         self.send_product_to_client(stage=ScientificStage.CITATIONS, product_field='cited_paper_sections')
 
         # Add tables to results section
