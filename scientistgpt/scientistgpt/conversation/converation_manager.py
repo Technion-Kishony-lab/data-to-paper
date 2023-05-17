@@ -215,10 +215,10 @@ class ConversationManager:
         return content
 
     def _try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
-                                            is_code: bool = False, previous_code: Optional[str] = None,
-                                            hidden_messages: GeneralMessageDesignation = None,
-                                            **kwargs  # for create_message and openai params
-                                            ) -> Optional[str]:
+                                             is_code: bool = False, previous_code: Optional[str] = None,
+                                             hidden_messages: GeneralMessageDesignation = None,
+                                             **kwargs  # for create_message and openai params
+                                             ) -> Optional[str]:
         """
         Try to get and append a response from openai to a specified conversation.
 

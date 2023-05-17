@@ -124,7 +124,12 @@ class AddParticipantsToConversation(ChangeConversationParticipants):
 
 
 @dataclass(frozen=True)
-class AppendMessage(ConversationAction):
+class ChangeMessagesConversationAction(ConversationAction):
+    pass
+
+
+@dataclass(frozen=True)
+class AppendMessage(ChangeMessagesConversationAction):
     """
     Append a message to the conversation.
 
@@ -228,7 +233,7 @@ class AppendMessage(ConversationAction):
 
 
 @dataclass(frozen=True)
-class BaseChatgptResponse(ConversationAction):
+class BaseChatgptResponse(ChangeMessagesConversationAction):
     """
     Base class for an action involving getting a response from chatgpt.
     """
@@ -281,7 +286,7 @@ class RegenerateLastResponse(AppendChatgptResponse):
 
 
 @dataclass(frozen=True)
-class ResetToTag(ConversationAction):
+class ResetToTag(ChangeMessagesConversationAction):
     """
     Reset the conversation back to right after the specified tag.
 
@@ -307,7 +312,7 @@ class ResetToTag(ConversationAction):
 
 
 @dataclass(frozen=True)
-class DeleteMessages(ConversationAction):
+class DeleteMessages(ChangeMessagesConversationAction):
     """
     Delete all messages between `start` and `end`
 
@@ -345,7 +350,7 @@ class ReplaceLastResponse(AppendMessage):
 
 
 @dataclass(frozen=True)
-class CopyMessagesBetweenConversations(ConversationAction):
+class CopyMessagesBetweenConversations(ChangeMessagesConversationAction):
     """
     Copy messages from a source conversation to current conversation.
     """

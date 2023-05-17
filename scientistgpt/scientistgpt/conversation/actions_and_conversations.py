@@ -106,9 +106,9 @@ class Actions(List[Action]):
         """
         Return a list of actions that were applied to the conversation with the provided name.
         """
-        from .conversation_actions import ConversationAction
+        from .conversation_actions import ChangeMessagesConversationAction
         return [action for action in self if
-                isinstance(action, ConversationAction) and action.conversation_name == conversation_name]
+                isinstance(action, ChangeMessagesConversationAction) and action.conversation_name == conversation_name]
 
 
 @dataclass(frozen=True)

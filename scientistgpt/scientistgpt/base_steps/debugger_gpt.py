@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, ClassVar, List
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
-from scientistgpt.utils import dedent_triple_quote_str, extract_first_lines
+from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
@@ -224,12 +224,12 @@ class DebuggerGPT(BaseProductsGPT):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is too long!
-            
+
             Here is the beginning of the output:
             ```
             {}
             ```
-            
+
             Please rewrite the complete code so that only sensible length output is written to the file. 
             """).format(self.output_filename, extract_to_nearest_newline(output, 500)),
             comment=f'{self.iteration_str}: Code completed, but output file is too long.')
