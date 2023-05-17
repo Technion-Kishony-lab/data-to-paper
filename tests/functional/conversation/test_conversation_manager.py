@@ -62,7 +62,7 @@ def test_conversation_manager_regenerate_response(manager, actions):
         manager.regenerate_previous_response()
 
     assert len(manager.conversation) == 3
-    assert len(actions) == 5
+    assert len(actions) == 7
     assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
 
 
@@ -77,7 +77,7 @@ def test_conversation_manager_retry_response(manager, actions, openai_exception)
         manager.get_and_append_assistant_message(tag='math answer')
 
     assert len(manager.conversation) == 5
-    assert len(actions) == 7  # 5 + create + failed
+    assert len(actions) == 8  # 5 + create + failed + set_typing
     assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer')
     # message #1 was hidden after the first failed attempt:
     assert actions[-1].hidden_messages == [1]
