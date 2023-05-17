@@ -2,6 +2,7 @@ import re
 
 from contextlib import contextmanager
 from dataclasses import dataclass, fields
+from typing import Set
 
 
 def with_attribute_replacement(func):
@@ -48,14 +49,16 @@ class Replacer:
 
     name: str = 'john'
     greeting: str = 'hello {name}'
-    REPLACED_ATTRS: tuple = ('greeting', )
-    ADDITIONAL_DICT_ATTRS: tuple = ('name', )
+    REPLACED_ATTRS: set = {'greeting'}
+    ADDITIONAL_DICT_ATTRS: set = {'name'}
     """
 
     _is_replacing = False
 
-    REPLACED_ATTRS = None  # type: tuple # e.g. ('greeting', 'name'), or None to replace all str attributes
-    ADDITIONAL_DICT_ATTRS = None  # type: tuple # e.g. ('age', ), or None to add all non-str attributes
+    REPLACED_ATTRS = None  # type: set # e.g. ('greeting', 'name'), or None to replace all str attributes
+
+    ADDITIONAL_DICT_ATTRS = set()
+    "Attributes, like class properties, to add in addition to the dataclass fields"
 
     def _format_text(self, text):
         while True:
@@ -65,15 +68,14 @@ class Replacer:
                 return text.format()
 
     @classmethod
-    def get_replaced_attributes(cls):
+    def get_replaced_attributes(cls) -> Set[str]:
         if cls.REPLACED_ATTRS is not None:
             return cls.REPLACED_ATTRS
-        return tuple(attr.name for attr in fields(cls) if not attr.name.startswith('_'))
+        return set(attr.name for attr in fields(cls) if not attr.name.startswith('_'))
 
     def _get_formatting_dict(self):
         with self.not_replacing_attributes():
-            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes() +
-                    (self.ADDITIONAL_DICT_ATTRS or ())}
+            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes() | self.ADDITIONAL_DICT_ATTRS}
 
     def __getattribute__(self, item):
         raw_value = _super_getatter(self, item)
