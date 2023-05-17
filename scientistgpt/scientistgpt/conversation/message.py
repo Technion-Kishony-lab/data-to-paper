@@ -53,7 +53,7 @@ class Message:
     agent: Optional[Agent] = None
     openai_call_parameters: Optional[OpenaiCallParameters] = None
     ignore: bool = False  # if True, this message will be skipped when calling openai
-    is_background: bool = False  # if True, repeated messages will not be shown in the web conversation
+    is_background: bool = False  # if True, message will not be shown in the web conversation
 
     def to_chatgpt_dict(self):
         return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()

@@ -223,8 +223,9 @@ class AppendMessage(ChangeMessagesConversationAction):
     def apply_to_web(self) -> bool:
         if not super().apply_to_web():
             return False
-        if self.message.is_background and any(self.get_message_for_web() == m for m in self.web_conversation):
-            # in web conversation, we only append messages that are not already there
+        # if self.message.is_background and any(self.get_message_for_web() == m for m in self.web_conversation):
+        if self.message.is_background:
+            # in web conversation, we do not show background messages
             return False
         if self.delay is not None:
             time.sleep(self.delay)
