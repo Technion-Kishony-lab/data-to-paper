@@ -15,7 +15,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
         studied using only the provided dataset, without requiring any additional data \
-        (pay attention to using only data explicitly available in the provided headers of the our data files \
+        (pay attention to using only data explicitly available in the provided headers of our data files \
         as described in our dataset, above).
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
@@ -125,7 +125,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({background_product_names}), \
+        Based on the material provided above ({actual_background_product_names}), \
         please {goal_verb} only the {pretty_section_names} of a scientific paper.
         Do not write any other parts!
         {latex_instructions}
@@ -189,7 +189,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         In scientific papers, we typically add one or two tables summarizing the main findings.
         
-        Based on the material provided above ({background_product_names}), please rewrite \
+        Based on the material provided above ({actual_background_product_names}), please rewrite \
         the "{pretty_section_names}" while adding relevant Tables".
         
         The tables should only include information that is explicitly extracted from the results data.

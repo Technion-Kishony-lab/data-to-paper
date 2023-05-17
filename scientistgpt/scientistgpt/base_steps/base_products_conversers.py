@@ -48,9 +48,9 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'background_product_names'} | {'actual_background_product_fields'}
-        BaseProductsGPT.ADDITIONAL_DICT_ATTRS + ('actual_background_product_fields', 'actual_background_product_names')
-    background_product_fields = []
+    ADDITIONAL_DICT_ATTRS = \
+        BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'actual_background_product_fields', 'actual_background_product_names'}
+    background_product_fields = ()
     product_acknowledgement: str = "Thank you for the {{}}. \n"
     goal_noun: str = None
     goal_verb: str = None
@@ -59,18 +59,22 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
         Sure, I am happy to guide you and provide feedback on your {goal_noun}.
 
-        Please follow my guidelines below, in light of the following products that you have previously created: 
+        Note that your {goal_noun} should be based on the following research products that you have now \
+        already obtained: 
         {actual_background_product_names}
+        
+        Please carefully review these intermediate products and then proceed according to my guidelines below. 
         """)
-
-    @property
-    def background_product_names(self) -> NiceList[str]:
-        return NiceList((self.products.get_name(product_field) for product_field in self.background_product_fields),
-                        wrap_with='"', separator=', ', last_separator=' and ')
 
     @property
     def actual_background_product_fields(self) -> Tuple[str, ...]:
         return self.background_product_fields
+
+    @property
+    def background_product_names(self) -> NiceList[str]:
+        return NiceList((self.products.get_name(product_field)
+                         for product_field in self.actual_background_product_fields),
+                        wrap_with='"', separator=', ', last_separator=' and ')
 
     @property
     def actual_background_product_names(self) -> NiceList:
