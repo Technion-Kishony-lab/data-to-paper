@@ -44,7 +44,7 @@ def test_table_gpt(products, actions_and_conversations):
     for section_name in SECTIONS_TO_ADD_TABLES_TO:
         products.tabled_paper_sections[section_name] = \
             PaperSectionWithTablesReviewGPT(actions_and_conversations=actions_and_conversations,
-                                            products=products, section_name=section_name).get_section()
+                                            products=products, section_names=[section_name]).get_section()
 
     # check that we get the output with additional tables
     assert "\\begin{table}" in products.tabled_paper_sections['results']
