@@ -147,14 +147,15 @@ class ConversationManager:
                                        ignore=ignore, previous_code=previous_code, is_background=is_background,
                                        reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
-    def append_commenter_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None):
+    def append_commenter_message(self, content: str, tag: Optional[str] = None,
+                                 comment: Optional[str] = None, **kwargs):
         """
         Append a commenter-message to a specified conversation.
 
         Commenter messages are messages that are not sent to chatgpt,
         rather they are just used as comments to the chat.
         """
-        self.create_and_append_message(Role.COMMENTER, content, tag, comment)
+        self.create_and_append_message(Role.COMMENTER, content, tag, comment, **kwargs)
 
     def append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                  ignore: bool = False, reverse_roles_for_web: bool = False,
