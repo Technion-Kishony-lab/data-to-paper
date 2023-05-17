@@ -261,7 +261,7 @@ class DebuggerGPT(BaseProductsGPT):
                 self._respond_to_timeout()
             except UnAllowedFilesCreated as e:
                 # code created files that we do not allow
-                self._respond_to_un_allowed_files_created(str(e.un_allowed_files))
+                self._respond_to_un_allowed_files_created(e.un_allowed_files)
             except FileNotFoundError:
                 # the code tried to load file that we do not have
                 self._respond_to_file_not_found(str(e.exception))

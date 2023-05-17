@@ -110,7 +110,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     value_type: type = Dict[str, str]
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
-    # see _get_background_product_fields()
+    # see self.actual_background_product_fields
     background_product_fields = ('research_goal', 'results_summary', 'title_and_abstract')
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -197,8 +197,9 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
 
         return sentences_to_citations
 
-    def _get_background_product_fields(self):
-        return super()._get_background_product_fields() + ('paper_sections:' + self.section_name, )
+    @property
+    def actual_background_product_fields(self):
+        return super().actual_background_product_fields + ('paper_sections:' + self.section_name, )
 
     def _check_response_value(self, response_value: Any) -> Optional[str]:
         """
