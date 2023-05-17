@@ -96,7 +96,7 @@ class ServerCaller:
         if self.should_save:
             self.save_records(self.file_path)
         if self.fail_if_not_all_responses_used and self.index_in_old_records < len(self.old_records):
-            raise AssertionError(f'Not all responses were used: {self.old_records}')
+            raise AssertionError(f'Not all responses were used')
         return False  # do not suppress exceptions
 
     def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
