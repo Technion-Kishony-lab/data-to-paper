@@ -5,6 +5,7 @@ from typing import List
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
 from ..utils.copier import Copier
+from ..utils.text_utils import NiceList
 
 
 @dataclass
@@ -46,12 +47,18 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
+    ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'background_product_names'}
 
     background_product_fields = None
     product_acknowledgement: str = "Thank you for the {{}}. \n"
 
     fake_performer_request_for_help: str = None
     fake_reviewer_agree_to_help: str = "Sure, just please provide some background first.\n"
+
+    @property
+    def background_product_names(self) -> NiceList[str]:
+        return NiceList((self.products.get_name(product_field) for product_field in self.background_product_fields),
+                        wrap_with='"', separator=', ', last_separator=' and ')
 
     def _get_background_product_fields(self):
         return self.background_product_fields
