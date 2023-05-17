@@ -1,9 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, Union
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
-from scientistgpt.utils.text_utils import nicely_join
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
@@ -99,22 +97,20 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """
     Base class for the writer of a paper section in latex format.
     """
-    fake_performer_request_for_help: str = 'Hi {user_skin_name}, could you please help me {goal_verb} ' \
-                                           'the "{goal_noun}" section for my paper?'
+    fake_performer_request_for_help: str = \
+        'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 3
-    goal_noun: str = None
+    goal_noun: str = '{pretty_section_names} of the paper'
     conversation_name: str = None
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
     reviewer: str = 'scientific reviewer'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Writer
-    section_names: Optional[Union[str, list[str]]] = None
 
     def __post_init__(self):
-        self.goal_noun = self.goal_noun or nicely_join(self.section_names)
-        self.conversation_name = self.conversation_name or self.goal_noun.replace(' ', '_')
+        self.conversation_name = self.conversation_name or str(self.section_names).replace(' ', '_')
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
@@ -128,10 +124,13 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above (research goal, analysis plan, and results description), \
-        please {goal_verb} only the "{goal_noun}" section of a scientific paper. Do not write any other parts!
-        Write in tex format including the proper latex commands, any math or symbols that needs tex escapes.
+        Based on the material provided above ({background_product_names}), \
+        please {goal_verb} only the {pretty_section_names} of a scientific paper.
+        Do not write any other parts!
+        {latex_instructions}
         """)
+
+    latex_instructions: str = ''
 
     termination_phrase: str = 'I hereby approve the paper section'
 
@@ -140,7 +139,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         Your job is to provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
         We will write each section of the research paper separately. 
-        When you feel that the paper section i well-written and accurate, respond explicitly with:
+        When you feel that the paper section is well-written and accurate, you should explicitly say:
          "{termination_phrase}".
         If you feel that my initial writing is already good enough, it is perfectly fine \
         to respond immediately with the above phrase ("{termination_phrase}"), \
@@ -148,12 +147,13 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
-        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
-        Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
+        Please correct your response according to my feedback and send back a complete rewrite \
+        of the {pretty_section_names}.
+        Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
     """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide constructive feedback on the above "{goal_noun}" for my paper.
+        Please provide constructive feedback on the above {pretty_section_names} for my paper.
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
@@ -162,55 +162,41 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above (research goal, analysis plan, and results description), \
-        please {goal_verb} only the "{goal_noun}" of a scientific paper. Do not write any other parts at this stage!
+    latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
-    """)
+        """)
 
 
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
-    section_name: str = None
     max_reviewing_rounds: int = 1
     background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract']
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above (research goal, analysis plan, results description, and \
-        the paper title and abstract), \
-        please {goal_verb} only the "{goal_noun}" section of a scientific paper. Do not write any other parts!
-        Write in tex format including the \\\\section{{}} command, and any math or symbols that needs tex escapes.
-    """)
-
-    def __post_init__(self):
-        self.section_names = [self.section_name]
-        super().__post_init__()
-
-    @with_attribute_replacement
-    def get_section(self):
-        return self.get_sections()[0]
+    latex_instructions: str = dedent_triple_quote_str("""
+        Write in tex format including the \\\\section{{}} command, \
+        and any math or symbols that needs tex escapes.
+        """)
 
 
 @dataclass
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
-    goal_noun: str = '{section_name} section with tables'
-    goal_verb: str = 'rewrite'
+    goal_verb: str = 'add tables to'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above (research goal, results description, and outputs), please rewrite \
-        the "{section_name}" while adding relevant Tables".
+        Based on the material provided above ({background_product_names}), please rewrite \
+        the "{pretty_section_names}" while adding relevant Tables".
         In scientific papers, we typically add one or two tables summarizing the main findings.
         The tables should only include information that is explicitly extracted from the results data.
         Add the tables centered in booktabs, multirow format with caption and label. 
-        In addition, change the {section_name} section text to refer to the tables (use their labels if necessary),
-        so that the tables are incorporated as integral part of the {section_name} section. 
+        In addition, change the text to refer to the tables (use their labels if necessary),
+        so that the tables are incorporated as integral part of the {pretty_section_names} section. 
         Do not add figures, only add tables.
         Write the section with tables in tex format including \\\\section{{}} command, and any math or symbols that \
         needs tex escapes.
         """)
 
     def _get_background_product_fields(self):
-        return self.background_product_fields + ['most_updated_paper_sections_' + self.section_name]
+        return self.background_product_fields + ['most_updated_paper_sections:' + self.section_name]
