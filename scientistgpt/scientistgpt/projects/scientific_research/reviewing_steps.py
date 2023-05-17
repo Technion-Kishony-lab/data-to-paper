@@ -112,7 +112,6 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.Writer
 
     def __post_init__(self):
-        self.goal_noun = self.goal_noun or nicely_join(self.section_names)
         self.conversation_name = self.conversation_name or self.goal_noun.replace(' ', '_')
         super().__post_init__()
 

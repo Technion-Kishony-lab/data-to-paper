@@ -27,12 +27,13 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
     def __post_init__(self):
         super().__post_init__()
         if not isinstance(self.section_names, NiceList):
-            self.section_names = NiceList(self.section_names, wrap_with='"', separator=', ', last_separator=' and ')
+            self.section_names = NiceList(self.section_names, wrap_with='', separator=', ', last_separator=' and ')
 
     @property
-    def section_name(self):
-        assert len(self.section_names) == 1
-        return self.section_names[0]
+    def section_name(self) -> Optional[str]:
+        if len(self.section_names) == 1:
+            return self.section_names[0]
+        return None
 
     def _check_self_response(self, response: str) -> Optional[str]:
         """
