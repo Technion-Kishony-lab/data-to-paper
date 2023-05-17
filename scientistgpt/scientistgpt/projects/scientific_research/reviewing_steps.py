@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional, Union, Tuple
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
@@ -201,5 +202,5 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         """)
 
     @property
-    def actual_background_product_fields(self):
+    def actual_background_product_fields(self) -> Tuple[str, ...]:
         return super().actual_background_product_fields + ('most_updated_paper_sections:' + self.section_name, )

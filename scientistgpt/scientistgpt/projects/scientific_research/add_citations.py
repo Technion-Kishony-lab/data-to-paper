@@ -198,7 +198,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         return sentences_to_citations
 
     @property
-    def actual_background_product_fields(self):
+    def actual_background_product_fields(self) -> Tuple[str, ...]:
         return super().actual_background_product_fields + ('paper_sections:' + self.section_name, )
 
     def _check_response_value(self, response_value: Any) -> Optional[str]:

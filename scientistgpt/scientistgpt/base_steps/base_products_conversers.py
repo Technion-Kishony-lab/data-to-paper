@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
+from ..utils import dedent_triple_quote_str
 from ..utils.copier import Copier
 from ..utils.text_utils import NiceList
 
@@ -48,12 +49,12 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Allows for the addition of background information about prior products to the conversation.
     """
     ADDITIONAL_DICT_ATTRS = BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'background_product_names'} | {'actual_background_product_fields'}
-
+        BaseProductsGPT.ADDITIONAL_DICT_ATTRS + ('actual_background_product_fields', 'actual_background_product_names')
     background_product_fields = []
     product_acknowledgement: str = "Thank you for the {{}}. \n"
 
     fake_performer_request_for_help: str = None
-    fake_reviewer_agree_to_help: str = "Sure, just please provide some background first.\n"
+    fake_reviewer_agree_to_help: str = None
 
     @property
     def background_product_names(self) -> NiceList[str]:
@@ -61,8 +62,16 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
                         wrap_with='"', separator=', ', last_separator=' and ')
 
     @property
-    def actual_background_product_fields(self):
+    def actual_background_product_fields(self) -> Tuple[str, ...]:
         return self.background_product_fields
+
+    @property
+    def actual_background_product_names(self) -> NiceList:
+        if not self.actual_background_product_fields:
+            return NiceList()
+        return NiceList(
+            [self.products.get_name(product_field) for product_field in self.actual_background_product_fields],
+            wrap_with='"', separator=', ', last_separator=' and ', empty_str='')
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
@@ -113,9 +122,15 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
-    fake_performer_request_for_help: str = "Hi {user_skin_name}, could you please help me {goal_verb} a {goal_noun}?"
-    fake_reviewer_agree_to_help: str = "Well, I am certainly happy to help guide you and provide some feedback.\n" \
-                                       "Please just give me some context first.\n"
+    fake_performer_request_for_help: str = \
+        "Hi {user_skin_name}, I need to {goal_verb} a {goal_noun}. Could you please guide me?"
+    fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
+        Sure, I am happy to guide you and provide feedback on your {goal_noun}.
+        
+        In light of the products you have previously created {actual_background_product_names}:
+        
+        {user_initiation_prompt}
+        """)
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
