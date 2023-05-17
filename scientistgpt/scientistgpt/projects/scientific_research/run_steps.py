@@ -85,21 +85,21 @@ class ScientificStepsRunner(BaseStepsRunner):
         for section_name in paper_section_names:
             if section_name not in title_and_abstract_names:
                 products.paper_sections[section_name] = \
-                    PaperSectionReviewGPT.from_(self, section_name=section_name).get_section()
+                    PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
         self.send_product_to_client(stage=ScientificStage.WRITING, product_field='paper_sections')
 
         # Add citations to relevant paper sections
         self.advance_stage_and_set_active_conversation(ScientificStage.CITATIONS, ScientificAgent.CitationExpert)
         for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
             products.cited_paper_sections[section_name] = \
-                AddCitationReviewGPT.from_(self, section_name=section_name).rewrite_section_with_citations()
+                AddCitationReviewGPT.from_(self, section_names=[section_name]).rewrite_section_with_citations()
         self.send_product_to_client(stage=ScientificStage.CITATIONS, product_field='cited_paper_sections')
 
         # Add tables to results section
         self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
         for section_name in SECTIONS_TO_ADD_TABLES_TO:
             products.tabled_paper_sections[section_name] = \
-                PaperSectionWithTablesReviewGPT.from_(self, section_name=section_name).get_section()
+                PaperSectionWithTablesReviewGPT.from_(self, section_names=[section_name]).get_section()
         self.send_product_to_client(stage=ScientificStage.TABLES, product_field='tabled_paper_sections')
 
         paper_producer.assemble_compile_paper()
