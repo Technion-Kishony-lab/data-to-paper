@@ -67,6 +67,17 @@ class ConversationAction(Action):
 
 
 @dataclass(frozen=True)
+class SetTypingAgent(ConversationAction):
+    """
+    Set the typing agent.
+    """
+    agent: Agent = None
+
+    def _pretty_attrs(self) -> str:
+        return f'{self.agent}'
+
+
+@dataclass(frozen=True)
 class ChangeConversationParticipants(ConversationAction):
     """
     Create a new conversation.

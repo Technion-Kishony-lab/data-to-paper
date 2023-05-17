@@ -12,7 +12,7 @@ from .message import Message, Role, create_message, create_message_from_other_me
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, AddParticipantsToConversation, RegenerateLastResponse
+    CreateConversation, AddParticipantsToConversation, RegenerateLastResponse, SetTypingAgent
 
 
 @dataclass
@@ -116,6 +116,11 @@ class ConversationManager:
             agent = self.user_agent
         else:
             agent = None
+        if agent is not None:
+            self._create_and_apply_action(
+                SetTypingAgent,
+                agent=self.web_conversation.get_other_participant(agent) if reverse_roles_for_web else agent,
+            )
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                                  previous_code=previous_code, is_background=is_background)
         self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
@@ -170,6 +175,8 @@ class ConversationManager:
 
         If failed, retry while removing more messages upstream.
         """
+        self._create_and_apply_action(SetTypingAgent, agent=self.assistant_agent)
+
         hidden_messages = convert_general_message_designation_to_list(hidden_messages)
         indices_and_messages = self.conversation.get_chosen_indices_and_messages(hidden_messages)
         actual_hidden_messages = hidden_messages.copy()
@@ -177,10 +184,9 @@ class ConversationManager:
         # we try to get a response. if we fail we gradually remove messages from the top,
         # starting at message 1 (message 0 is the system message).
         while True:
-            content = self.try_get_and_append_chatgpt_response(tag=tag, comment=comment,
-                                                               is_code=is_code, previous_code=previous_code,
-                                                               hidden_messages=actual_hidden_messages,
-                                                               **kwargs)
+            content = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
+                                                                previous_code=previous_code,
+                                                                hidden_messages=actual_hidden_messages, **kwargs)
             if isinstance(content, str):
                 return content
             if len(indices_and_messages) <= 1:
@@ -190,6 +196,8 @@ class ConversationManager:
             actual_hidden_messages.append(index)
 
     def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
+        self._create_and_apply_action(SetTypingAgent, agent=self.assistant_agent)
+
         last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
         openai_call_parameters = last_action.message.openai_call_parameters
@@ -206,7 +214,7 @@ class ConversationManager:
             hidden_messages=last_action.hidden_messages)
         return content
 
-    def try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
+    def _try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                             is_code: bool = False, previous_code: Optional[str] = None,
                                             hidden_messages: GeneralMessageDesignation = None,
                                             **kwargs  # for create_message and openai params
