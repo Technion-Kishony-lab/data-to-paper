@@ -30,10 +30,8 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         You are a brilliant data scientist. You are writing a Python code to analyze data.
         """)
 
-    fake_performer_request_for_help: str = "Hi {user_skin_name}, could you please help me write code for my project?"
-    fake_reviewer_agree_to_help: str = "Hey {assistant_skin_name} - I think this is something you can do yourself, " \
-                                       "but I am certainly happy to provide guidance and feedback.\n" \
-                                       "I suggest that you start with providing some background and context first.\n"
+    goal_noun: str = 'code'
+    goal_verb: str = 'write'
 
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."

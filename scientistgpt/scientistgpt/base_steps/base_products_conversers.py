@@ -52,9 +52,16 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         BaseProductsGPT.ADDITIONAL_DICT_ATTRS + ('actual_background_product_fields', 'actual_background_product_names')
     background_product_fields = []
     product_acknowledgement: str = "Thank you for the {{}}. \n"
+    goal_noun: str = None
+    goal_verb: str = None
+    fake_performer_request_for_help: str = \
+        "Hi {user_skin_name}, I need to {goal_verb} a {goal_noun}. Could you please guide me?"
+    fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
+        Sure, I am happy to guide you and provide feedback on your {goal_noun}.
 
-    fake_performer_request_for_help: str = None
-    fake_reviewer_agree_to_help: str = None
+        Please follow my guidelines below, in light of the following products that you have previously created: 
+        {actual_background_product_names}
+        """)
 
     @property
     def background_product_names(self) -> NiceList[str]:
@@ -71,7 +78,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
             return NiceList()
         return NiceList(
             [self.products.get_name(product_field) for product_field in self.actual_background_product_fields],
-            wrap_with='"', separator=', ', last_separator=' and ', empty_str='')
+            wrap_with='"', separator='\n', last_separator=None, empty_str='')
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
@@ -122,15 +129,6 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
-    fake_performer_request_for_help: str = \
-        "Hi {user_skin_name}, I need to {goal_verb} a {goal_noun}. Could you please guide me?"
-    fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
-        Sure, I am happy to guide you and provide feedback on your {goal_noun}.
-        
-        In light of the products you have previously created {actual_background_product_names}:
-        
-        {user_initiation_prompt}
-        """)
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 

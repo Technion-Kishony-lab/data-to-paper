@@ -315,7 +315,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.comment(self.post_background_comment, tag='after_background')
+        self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     @with_attribute_replacement

@@ -104,9 +104,6 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     """
     Given a section of a paper, add citations to the factual sentences in the section.
     """
-    fake_performer_request_for_help: str = 'Hi, can you please help me with adding citations to my paper?'
-    fake_reviewer_agree_to_help: str = 'Sure, I am happy to guide and help you with adding citations to your paper.\n' \
-                                       'Please just provide some context first.'
     value_type: type = Dict[str, str]
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
