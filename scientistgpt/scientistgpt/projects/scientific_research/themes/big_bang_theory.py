@@ -19,6 +19,15 @@ Director = Profile(
     algorithm=Algorithm.PRE_PROGRAMMED,
 )
 
+DataExplorer = Profile(
+    agent_name='DataExplorer',
+    name='Lenny',
+    title='data explorer',
+    description='',
+    image_file='',
+    algorithm=Algorithm.PRE_PROGRAMMED,
+)
+
 GoalReviewer = Profile(
     agent_name='GoalReviewer',
     name='Prof. Proton',
