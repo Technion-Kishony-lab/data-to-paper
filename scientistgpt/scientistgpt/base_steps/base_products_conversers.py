@@ -72,7 +72,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
 
     def _get_available_background_product_fields(self, product_fields: Tuple[str, ...]) -> Tuple[str, ...]:
         return tuple(product_field for product_field in product_fields
-                     if self.products.get_description(product_field) is not None)
+                     if self.products.is_product_available(product_field))
 
     @property
     def background_product_names(self) -> NiceList[str]:
