@@ -130,11 +130,11 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         For each of the chosen sentences, create a short query for a citation search for this sentence.
         You need to return a dict mapping each sentence to its respective reference search query.
         Your response should be in the following format: 
-        {{
+        {
          "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
-        }}
+        }
         This is of course just an example. 
         Identify *all* the sentences that you think we need to add citations to.
 
@@ -144,8 +144,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = dedent_triple_quote_str("""
         Please try again making sure you return the results with the correct format, like this:
         ``` 
-        {{"sentence extracted from the section": "query of the key sentence", 
-        "another sentence extracted from the section": "the query of this sentence"}}
+        {"sentence extracted from the section": "query of the key sentence", 
+        "another sentence extracted from the section": "the query of this sentence"}
         ```
     """)
 
