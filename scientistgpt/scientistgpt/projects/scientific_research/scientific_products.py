@@ -21,7 +21,7 @@ class ScientificProducts(Products):
     code_and_output: CodeAndOutput = None
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
-    cited_paper_sections: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
+    cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
     tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
@@ -30,24 +30,24 @@ class ScientificProducts(Products):
         Return the citations of the paper.
         """
         citations = set()
-        for section_content, section_citations in self.cited_paper_sections.values():
+        for section_content, section_citations in self.cited_paper_sections_and_citations.values():
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n', last_separator=None)
 
     @property
-    def actual_cited_paper_sections(self) -> Dict[str, str]:
+    def cited_paper_sections(self) -> Dict[str, str]:
         """
         Return the actual cited paper sections.
         """
         return {section_name: section_content
-                for section_name, (section_content, _) in self.cited_paper_sections.items()}
+                for section_name, (section_content, _) in self.cited_paper_sections_and_citations.items()}
 
     @property
     def most_updated_paper_sections(self) -> Dict[str, str]:
         section_names_to_content = {}
         for section_name, section in self.paper_sections.items():
-            if section_name in self.actual_cited_paper_sections:
-                section = self.actual_cited_paper_sections[section_name]
+            if section_name in self.cited_paper_sections:
+                section = self.cited_paper_sections[section_name]
             if section_name in self.tabled_paper_sections:
                 section = self.tabled_paper_sections[section_name]
             section_names_to_content[section_name] = section
@@ -58,7 +58,7 @@ class ScientificProducts(Products):
         Compose the paper from the different paper sections.
         product_field can be one of the following:
             'paper_sections'
-            'actual_cited_paper_sections'
+            'cited_paper_sections'
             'tabled_paper_sections'
             'most_updated_paper_sections'
         """
@@ -134,10 +134,10 @@ class ScientificProducts(Products):
             '{self.get_paper("paper_sections")}',
         ),
 
-        'cited_paper_sections': (
+        'cited_paper_sections_and_citations': (
             'Cited Paper Sections and Citations',
             ScientificStage.CITATIONS,
-            '{self.get_paper("actual_cited_paper_sections")}\n\n\n``Citations``\n\n{self.citations}'
+            '{self.get_paper("cited_paper_sections")}\n\n\n``Citations``\n\n{self.citations}'
         ),
 
         'tabled_paper_sections': (
@@ -158,13 +158,13 @@ class ScientificProducts(Products):
             'Here is the {"{xxx}".title()} section of the paper:\n\n{self.paper_sections["{xxx}"]}'
         ),
 
-        'cited_paper_sections:{xxx}': (
+        'cited_paper_sections_and_citations:{xxx}': (
             'The {"{xxx}".title()} Section of the Paper with Citations',
             ScientificStage.CITATIONS,
             'Here is the cited {"{xxx}".title()} section of the paper:\n\n'
-            '{self.cited_paper_sections["{xxx}"][0]}\n\n'
+            '{self.cited_paper_sections_and_citations["{xxx}"][0]}\n\n'
             '``Citations``\n\n'
-            '{NiceList(self.cited_paper_sections["{xxx}"][1], separator="\\n\\n", last_separator=None)}'
+            '{NiceList(self.cited_paper_sections_and_citations["{xxx}"][1], separator="\\n\\n", last_separator=None)}'
         ),
 
         'tabled_paper_sections:{xxx}': (
