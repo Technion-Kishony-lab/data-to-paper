@@ -15,6 +15,7 @@ USER_NAME = 'User'
 class ScientificAgent(Agent):
     Performer = 'Performer'
     Director = 'Director'
+    DataExplorer = 'DataExplorer'
     GoalReviewer = 'GoalReviewer'
     PlanReviewer = 'PlanReviewer'
     Debugger = 'Debugger'
@@ -48,6 +49,7 @@ assert all(agent.profile.agent_name == agent.name for agent in Agent), \
 AGENTS_TO_CONVERSATION_NAMES = {
     ScientificAgent.Performer: None,
     ScientificAgent.Director: 'get data',
+    ScientificAgent.DataExplorer: 'explore data',
     ScientificAgent.GoalReviewer: 'review goal',
     ScientificAgent.PlanReviewer: 'review plan',
     ScientificAgent.Debugger: 'debug',
