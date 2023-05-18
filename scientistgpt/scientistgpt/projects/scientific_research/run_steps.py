@@ -52,7 +52,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Data exploration
         self.advance_stage_and_set_active_conversation(ScientificStage.EXPLORATION, ScientificAgent.DataExplorer)
         products.data_exploration_code_and_output = DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
-        self.send_product_to_client(stage=ScientificStage.EXPLORATION, product_field='data_exploration_code_and_output')
+        self.send_product_to_client('data_exploration_code_and_output')
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
