@@ -311,3 +311,40 @@ def extract_to_nearest_newline(text: str, end: int):
     if newline_before_end == -1:
         return text[:end]
     return text[:newline_before_end]
+
+
+def replace_text_by_dict(text: str, replacements: dict):
+    """
+    Replace all occurrences of the keys in replacements by their corresponding values.
+    """
+    for key, value in replacements.items():
+        text = text.replace(key, value)
+    return text
+
+
+def evaluate_string(string):
+    """
+    Evaluate all expressions in curly braces in the string.
+    For example: evaluate_string('The answer is {2 + 2}.') returns 'The answer is 4.'
+    """
+    result = ""
+    i = 0
+    while i < len(string):
+        if string[i] == '{':
+            expr_start = i + 1
+            expr_end = string.find('}', expr_start)
+            if expr_end != -1:
+                expr = string[expr_start:expr_end]
+                try:
+                    evaluated_expr = str(eval(expr))
+                    result += evaluated_expr
+                except:
+                    result += string[i:expr_end + 1]
+            else:
+                result += string[i:]
+                break
+            i = expr_end + 1
+        else:
+            result += string[i]
+            i += 1
+    return result
