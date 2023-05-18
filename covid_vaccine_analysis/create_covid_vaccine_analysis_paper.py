@@ -14,5 +14,6 @@ ScientificStepsRunner(
     data_file_descriptions=data_file_descriptions,
     research_goal=None,
     output_directory=OUTPUT_FOLDER + '/out3',
-    mock_servers='out1'  # <==== use True to mock/record openai responses
+    mock_servers='out1',  # <==== use True to mock/record openai responses
+    should_do_data_exploration=False,
 ).run_all_steps()

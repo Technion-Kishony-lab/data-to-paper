@@ -33,8 +33,9 @@ def products():
                         'discussion': '\\section{Discussion}{content of discussion}',
                         'conclusion': '\\section{Conclusion}{content of conclusion}', },
         cited_paper_sections_and_citations={'introduction': ('\\section{Introduction}'
-                                               'This is the intro with citation'
-                                               '\\cite{' + introduction_citation_id + '}', introduction_citation)},
+                                                             'This is the intro with citation'
+                                                             '\\cite{' + introduction_citation_id + '}',
+                                                             introduction_citation)},
         tabled_paper_sections={'results': """
                                             \\section{Results}
                                             This is the results with table:

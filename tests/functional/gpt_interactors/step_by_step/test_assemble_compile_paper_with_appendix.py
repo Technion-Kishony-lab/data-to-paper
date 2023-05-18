@@ -75,8 +75,9 @@ def products():
                         'discussion': '\\section{Discussion}{content of discussion}',
                         'conclusion': '\\section{Conclusion}{content of conclusion}', },
         cited_paper_sections_and_citations={'introduction': ('\\section{Introduction}'
-                                               'This is the intro with citation'
-                                               '\\cite{' + INTRODUCTION_CITATION_ID + '}', INTRODUCTION_CITATION)},
+                                                             'This is the intro with citation'
+                                                             '\\cite{' + INTRODUCTION_CITATION_ID + '}',
+                                                             INTRODUCTION_CITATION)},
         tabled_paper_sections={'results': """
                                             \\section{Results}
                                             This is the results with table:
@@ -94,7 +95,8 @@ def products():
                                             \\caption{The means and 95\\% confidence intervals for each temperature.}
                                             \\end{table}
                                             """},
-        data_analysis_code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt', explanation=EXPLANATION),
+        data_analysis_code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt',
+                                                    explanation=EXPLANATION),
     )
 
 

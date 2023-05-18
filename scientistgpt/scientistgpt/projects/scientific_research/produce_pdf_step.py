@@ -24,7 +24,7 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         for section_name in self.get_paper_section_names():
             sections[section_name] = self.products.most_updated_paper_sections[section_name]
             if section_name in self.products.cited_paper_sections_and_citations:
-                references |= self.products.cited_paper_sections_and_citations[section_name][1]  # 1 is the references set
+                references |= self.products.cited_paper_sections_and_citations[section_name][1]  # 1 is the references
 
         return sections, references
 
