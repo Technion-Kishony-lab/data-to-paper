@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, Union, Tuple
+from typing import Tuple
 
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
@@ -102,7 +101,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 3
-    goal_noun: str = '{pretty_section_names} of the paper'
+    goal_noun: str = '{pretty_section_names} section of the paper'
     conversation_name: str = None
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
@@ -188,10 +187,10 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
         In scientific papers, we typically add one or two tables summarizing the main findings.
-        
+
         Based on the material provided above ({actual_background_product_names}), please rewrite \
         the "{pretty_section_names}" while adding relevant Tables".
-        
+
         The tables should only include information that is explicitly extracted from the results data.
         Add the tables centered in booktabs, multirow format with caption and label. 
         In addition, change the text to refer to the tables (use their labels if necessary),
