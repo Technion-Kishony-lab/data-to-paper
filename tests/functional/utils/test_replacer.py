@@ -12,7 +12,7 @@ class Greeter(Replacer):
     age: int = 20
     adjective: str = 'amazing'
     name: str = 'the {adjective} john'
-    greeting: str = 'hello, I am {name}, and I am {age} years old. I like {{BRACKETS}}'
+    greeting: str = 'hello, I am {name}, and I am {age} years old. I like {BRACKETS}'
 
     @with_attribute_replacement
     def get_greeting(self):
@@ -44,7 +44,7 @@ def test_replacer_automatic_replacement(auto_greeter, is_replacing):
 
 
 def test_replacer_has_unformatted_attrs_when_not_replacing(greeter):
-    assert greeter.greeting == 'hello, I am {name}, and I am {age} years old. I like {{BRACKETS}}'
+    assert greeter.greeting == 'hello, I am {name}, and I am {age} years old. I like {BRACKETS}'
     assert greeter.name == 'the {adjective} john'
 
 
@@ -56,5 +56,5 @@ def test_replacer_has_formatted_attrs_when_replacing(greeter):
 
 def test_with_attribute_replacement_decorator(greeter):
     assert greeter.get_greeting() == 'hello, I am the amazing john, and I am 20 years old. I like {BRACKETS}'
-    assert greeter.greeting == 'hello, I am {name}, and I am {age} years old. I like {{BRACKETS}}'
+    assert greeter.greeting == 'hello, I am {name}, and I am {age} years old. I like {BRACKETS}'
     assert greeter.name == 'the {adjective} john'
