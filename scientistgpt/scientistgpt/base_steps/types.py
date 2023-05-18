@@ -125,6 +125,7 @@ class Products:
         """
         (name, stage, description), variables_to_subfields = self.get_unformatted_name_stage_description(field)
         replacements = {'{' + var + '}': val for var, val in variables_to_subfields.items()}
+        replacements['{}'] = f'{{self.{field}}}'
         name = replace_text_by_dict(name, replacements)
         description = replace_text_by_dict(description, replacements)
         return name, stage, description
@@ -134,8 +135,8 @@ class Products:
         Return the name, stage, and description of the given field, formatted with the given variables.
         """
         name, stage, description = self.get_formatted_name_stage_description(field)
-        name = evaluate_string(name)
-        description = evaluate_string(description)
+        name = evaluate_string(name, {'self': self})
+        description = evaluate_string(description, {'self': self})
         return name, stage, description
 
     def __getitem__(self, item):

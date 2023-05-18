@@ -1,6 +1,6 @@
 import textwrap
 import re
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union, Optional, Dict, Any
 
 import colorama
 from pygments.formatters.html import HtmlFormatter
@@ -322,11 +322,12 @@ def replace_text_by_dict(text: str, replacements: dict):
     return text
 
 
-def evaluate_string(string):
+def evaluate_string(string: str, context: Dict[str, Any] = None):
     """
     Evaluate all expressions in curly braces in the string.
     For example: evaluate_string('The answer is {2 + 2}.') returns 'The answer is 4.'
     """
+    context = context or {}
     result = ""
     i = 0
     while i < len(string):
@@ -335,7 +336,7 @@ def evaluate_string(string):
             expr_end = string.find('}', expr_start)
             if expr_end != -1:
                 expr = string[expr_start:expr_end]
-                evaluated_expr = str(eval(expr))
+                evaluated_expr = str(eval(expr, context))
                 result += evaluated_expr
             else:
                 result += string[i:]
