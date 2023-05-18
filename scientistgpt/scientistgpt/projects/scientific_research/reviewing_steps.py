@@ -165,7 +165,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\title{} and \\begin{{abstract}} ... \\end{{abstract}} commands, \
+        Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
         """)
 
