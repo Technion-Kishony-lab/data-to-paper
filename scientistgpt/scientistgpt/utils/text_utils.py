@@ -335,11 +335,8 @@ def evaluate_string(string):
             expr_end = string.find('}', expr_start)
             if expr_end != -1:
                 expr = string[expr_start:expr_end]
-                try:
-                    evaluated_expr = str(eval(expr))
-                    result += evaluated_expr
-                except:
-                    result += string[i:expr_end + 1]
+                evaluated_expr = str(eval(expr))
+                result += evaluated_expr
             else:
                 result += string[i:]
                 break
