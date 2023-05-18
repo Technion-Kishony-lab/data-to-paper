@@ -51,7 +51,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     ADDITIONAL_DICT_ATTRS = \
         BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'actual_background_product_fields', 'actual_background_product_names'}
     background_product_fields = ()
-    product_acknowledgement: str = "Thank you for the {{}}. \n"
+    product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
     goal_verb: str = None
     fake_performer_request_for_help: str = \

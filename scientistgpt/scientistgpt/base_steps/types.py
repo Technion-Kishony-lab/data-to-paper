@@ -4,7 +4,7 @@ from typing import Optional, List, Union, Tuple, ClassVar, Dict
 
 from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
-from scientistgpt.utils.text_utils import replace_text_by_dict, evaluate_string
+from scientistgpt.utils.text_utils import format_str_by_direct_replace, evaluate_string
 
 
 @dataclass(frozen=True)
@@ -124,10 +124,9 @@ class Products:
         Return the name, stage, and description of the given field, formatted with the given variables.
         """
         (name, stage, description), variables_to_subfields = self.get_unformatted_name_stage_description(field)
-        replacements = {'{' + var + '}': val for var, val in variables_to_subfields.items()}
-        replacements['{}'] = f'{{self.{field}}}'
-        name = replace_text_by_dict(name, replacements)
-        description = replace_text_by_dict(description, replacements)
+        variables_to_subfields[''] = f'{{self.{field}}}'  # replacing `{}` with `{self.field}`
+        name = format_str_by_direct_replace(name, variables_to_subfields)
+        description = format_str_by_direct_replace(description, variables_to_subfields)
         return name, stage, description
 
     def get_evaluated_name_stage_description(self, field: str) -> NameStageDescription:
