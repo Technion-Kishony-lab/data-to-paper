@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field, fields
 from typing import Optional, List, Dict, Tuple, Union, Callable, Set
 
+from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.text_utils import dedent_triple_quote_str, NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products
@@ -26,7 +27,7 @@ class ScientificProducts(Products):
         """
         Return the description of the given product.
         """
-        name, description = get_name_and_description(product_field)
+        name, stage, description = get_name_stage_and_description(product_field)
         if isinstance(description, str):
             return description.format(getattr(self, product_field))
         else:
@@ -36,8 +37,15 @@ class ScientificProducts(Products):
         """
         Return the name of the given product.
         """
-        name, description = get_name_and_description(product_field)
+        name, stage, description = get_name_stage_and_description(product_field)
         return name
+
+    def get_stage(self, product_field: str) -> ScientificStage:
+        """
+        Return the stage of the given product.
+        """
+        name, stage, description = get_name_stage_and_description(product_field)
+        return stage
 
 
 def get_code_description(products: ScientificProducts) -> str:
@@ -85,7 +93,7 @@ def get_from_paper_sections_with_tables(products: ScientificProducts, section_na
 
 
 def get_from_most_updated_paper_sections(products: ScientificProducts, section_name: str) -> str:
-    for _, func in list(SECTION_TYPES_TO_FUNCS.items())[1:]:  # skip the 'most_updated' section type
+    for _, (func, stage) in list(SECTION_TYPES_TO_FUNCS_AND_STAGES.items())[1:]:  # skip the 'most_updated' section type
         try:
             return func(products, section_name)
         except KeyError:
@@ -129,38 +137,41 @@ def get_cited_sections_and_citations(products: ScientificProducts) -> str:
 
 PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
 
-PRODUCT_FIELDS_TO_NAME_DESCRIPTION: Dict[str, Tuple[str, Union[str, Callable]]] = {
-    'data_file_descriptions': ('Dataset', 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
-    'research_goal': ('Research Goal', 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
-    'analysis_plan': ('Data Analysis Plan', 'Here is our data analysis plan:\n\n{}'),
-    'code': ('code', get_code_description),
-    'code_output': ('Output of the Code', get_code_output_description),
-    'code_and_output': ('Code and Output', get_code_and_output_description),
-    'results_summary': ('Results Summary', 'Here is a summary of our results:\n\n{}'),
-    'title_and_abstract': ('Title and Abstract', get_title_and_abstract_description),
+PRODUCT_FIELDS_TO_NAME_STAGE_DESCRIPTION: Dict[str, Tuple[str, Optional[ScientificStage], Union[str, Callable]]] = {
+    'data_file_descriptions': ('Dataset', ScientificStage.DATA, 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
+    'research_goal': ('Research Goal', ScientificStage.GOAL, 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
+    'analysis_plan': ('Data Analysis Plan', ScientificStage.PLAN, 'Here is our data analysis plan:\n\n{}'),
+    'code': ('code', ScientificStage.CODE, get_code_description),
+    'code_output': ('Output of the Code', ScientificStage.CODE, get_code_output_description),
+    'code_and_output': ('Code and Output', ScientificStage.CODE, get_code_and_output_description),
+    'results_summary': ('Results Summary', ScientificStage.INTERPRETATION, 'Here is a summary of our results:\n\n{}'),
+    'title_and_abstract': ('Title and Abstract', ScientificStage.WRITING, get_title_and_abstract_description),
     'paper_sections':
-        ('Paper Sections', lambda products: get_paper(getattr(products, 'paper_sections'))),
-    'cited_paper_sections': ('Cited Paper Sections and Citations', get_cited_sections_and_citations),
+        ('Paper Sections', ScientificStage.WRITING, lambda products: get_paper(getattr(products, 'paper_sections'))),
+    'cited_paper_sections':
+        ('Cited Paper Sections and Citations', ScientificStage.CITATIONS, get_cited_sections_and_citations),
     'tabled_paper_sections':
-        ('Paper Sections with Tables', lambda products: get_paper(getattr(products, 'tabled_paper_sections'))),
+        ('Paper Sections with Tables', ScientificStage.TABLES,
+         lambda products: get_paper(getattr(products, 'tabled_paper_sections'))),
 }
 
-SECTION_TYPES_TO_FUNCS: Dict[str, Callable] = {
-    'most_updated_paper_sections:': get_from_most_updated_paper_sections,
-    'paper_sections_with_tables:': get_from_paper_sections_with_tables,
-    'cited_paper_sections:': get_from_cited_paper_sections,
-    'paper_sections:': get_from_paper_sections,
+SECTION_TYPES_TO_FUNCS_AND_STAGES: Dict[str, Tuple[Callable, Optional[ScientificStage]]] = {
+    'most_updated_paper_sections:': (get_from_most_updated_paper_sections, None),
+    'paper_sections_with_tables:': (get_from_paper_sections_with_tables, ScientificStage.TABLES),
+    'cited_paper_sections:': (get_from_cited_paper_sections, ScientificStage.CITATIONS),
+    'paper_sections:': (get_from_paper_sections, ScientificStage.WRITING),
 }
 
 
-def get_name_and_description(product_field: str) -> Tuple[str, Union[str, Callable]]:
+def get_name_stage_and_description(product_field: str) -> Tuple[str, ScientificStage, Union[str, Callable]]:
     """
     For the of the given product field, return the name, description, and whether the product is code.
     """
-    for section_type, func in SECTION_TYPES_TO_FUNCS.items():
+    for section_type, (func, stage) in SECTION_TYPES_TO_FUNCS_AND_STAGES.items():
         if product_field.startswith(section_type):
             section_name = product_field[len(section_type):]
-            return f'"{section_name}" section of the paper', \
+            return f'{section_name.title()} section of the paper', \
+                stage, \
                 lambda products: format_paper_section_description(func(products, section_name), section_name)
 
-    return PRODUCT_FIELDS_TO_NAME_DESCRIPTION[product_field]
+    return PRODUCT_FIELDS_TO_NAME_STAGE_DESCRIPTION[product_field]

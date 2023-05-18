@@ -82,12 +82,12 @@ class ConverserGPT(Replacer, Copier):
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
-    def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True):
+    def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True, **kwargs):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
         if as_action:
-            self.conversation_manager.append_commenter_message(comment, tag=tag)
+            self.conversation_manager.append_commenter_message(comment, tag=tag, **kwargs)
         else:
             print_red(comment)
 
