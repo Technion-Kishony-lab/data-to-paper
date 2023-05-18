@@ -145,7 +145,7 @@ class CrossrefServerCaller(ServerCaller):
                     editor_string += f"{editor.get('given', '')} {editor.get('family', '')} and "
                 else:
                     editor_string += f"{editor.get('given', '')} {editor.get('family', '')}"
-        return {
+        citation = {
             "title": item["title"][0],
             "first_author_family": item["author"][0]["family"].split(" ")[0],
             "authors": authors_string,
@@ -161,6 +161,10 @@ class CrossrefServerCaller(ServerCaller):
             "editors": editor_string if item.get("editor", None) is not None else '',
             "isbn": item.get("ISBN", '')
         }
+        for key, value in citation.items():
+            if isinstance(value, str) and "&NA;" in value:
+                raise ValueError(f"Value {value} for key {key} is not valid")
+        return citation
 
     @staticmethod
     def _get_server_response(query, rows=4) -> List[dict]:
@@ -187,7 +191,7 @@ class CrossrefServerCaller(ServerCaller):
         for item in items:
             try:
                 citation = CrossrefServerCaller.crossref_item_to_citation(item)
-            except KeyError:
+            except (KeyError, ValueError):
                 continue
             citations.append(citation)
 
@@ -196,7 +200,7 @@ class CrossrefServerCaller(ServerCaller):
     @staticmethod
     def _post_process_response(response: List[dict]) -> List[CrossrefCitation]:
         """
-        Post process the response from the server. This is used to remove duplicates.
+        Post process the response from the server.
         """
         return [CrossrefCitation(citation) for citation in response]
 
