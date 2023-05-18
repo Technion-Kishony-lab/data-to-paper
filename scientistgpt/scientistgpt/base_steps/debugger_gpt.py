@@ -220,7 +220,7 @@ class DebuggerGPT(BaseProductsGPT):
             comment=f'{self.iteration_str}: Code completed, but output file is empty.')
 
     def _respond_to_large_output(self, output: str):
-        print(output)
+        print('ChatGPT code created the folowing too-long output:\n{output}')
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is too long!

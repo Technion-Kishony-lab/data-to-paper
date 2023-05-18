@@ -24,7 +24,7 @@ class ScientificCodeProductsGPT(BaseCodeProductsGPT):
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain what does the code writes into the {{}} file.
+        paper. Also explain what does the code writes into the {} file.
         """)
 
     @property

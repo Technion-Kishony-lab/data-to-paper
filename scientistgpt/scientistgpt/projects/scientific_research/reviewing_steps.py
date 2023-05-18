@@ -163,7 +163,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
+        Write in tex format including the \\title{} and \\begin{{abstract}} ... \\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
         """)
 
@@ -174,7 +174,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract')
     latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\\\section{{}} command, \
+        Write in tex format including the \\section{} command, \
         and any math or symbols that needs tex escapes.
         """)
 
@@ -196,7 +196,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         In addition, change the text to refer to the tables (use their labels if necessary),
         so that the tables are incorporated as integral part of the {pretty_section_names} section. 
         Do not add figures, only add tables.
-        Write the section with tables in tex format including \\\\section{{}} command, and any math or symbols that \
+        Write the section with tables in tex format including \\section{} command, and any math or symbols that \
         needs tex escapes.
         """)
 
