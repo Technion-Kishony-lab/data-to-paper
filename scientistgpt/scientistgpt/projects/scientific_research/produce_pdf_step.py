@@ -5,8 +5,7 @@ from pygments.formatters.latex import LatexFormatter
 from pygments.lexers import PythonLexer
 
 from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix
-from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts, \
-    get_from_most_updated_paper_sections
+from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.utils.text_utils import wrap_python_code
 
 
@@ -23,7 +22,7 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         references = set()
         sections = {}
         for section_name in self.get_paper_section_names():
-            sections[section_name] = get_from_most_updated_paper_sections(self.products, section_name)
+            sections[section_name] = self.products.most_updated_paper_sections[section_name]
             if section_name in self.products.cited_paper_sections:
                 references |= self.products.cited_paper_sections[section_name][1]  # 1 is the references set
 
