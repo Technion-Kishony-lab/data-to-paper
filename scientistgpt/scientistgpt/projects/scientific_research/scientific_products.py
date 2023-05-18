@@ -52,6 +52,21 @@ class ScientificProducts(Products):
             section_names_to_content[section_name] = section
         return section_names_to_content
 
+    def get_paper(self, product_field: str) -> str:
+        """
+        Compose the paper from the different paper sections.
+        product_field can be one of the following:
+            'paper_sections'
+            'actual_cited_paper_sections'
+            'tabled_paper_sections'
+            'most_updated_paper_sections'
+        """
+        paper_sections = getattr(self, product_field)
+        paper = ''
+        for section_name, section_content in paper_sections.items():
+            paper += f"``{section_name}``\n\n{section_content}\n\n\n"
+        return paper
+
     FIELDS_TO_NAME_STAGE_DESCRIPTION: ClassVar[Dict[str, Tuple[str, ScientificStage, str]]] = {
         'data_file_descriptions': (
             'Dataset',
@@ -107,31 +122,31 @@ class ScientificProducts(Products):
         'paper_sections': (
             'Paper Sections',
             ScientificStage.WRITING,
-            '{get_paper(self.paper_sections)}',
+            '{self.get_paper("paper_sections")}',
         ),
 
         'cited_paper_sections': (
             'Cited Paper Sections and Citations',
             ScientificStage.CITATIONS,
-            '{get_paper(self.actual_cited_paper_sections)}\n\n\n``Citations``\n\n{self.citations}'
+            '{self.get_paper("actual_cited_paper_sections")}\n\n\n``Citations``\n\n{self.citations}'
         ),
 
         'tabled_paper_sections': (
             'Paper Sections with Tables',
             ScientificStage.TABLES,
-            'get_paper(self.tabled_paper_sections)',
+            'self.get_paper("tabled_paper_sections")',
         ),
 
         'most_updated_paper_sections': (
             'Most Updated Paper Sections',
             ScientificStage.WRITING,
-            '{get_paper(self.most_updated_paper_sections)}',
+            '{self.get_paper("most_updated_paper_sections")}',
         ),
 
         'paper_sections:{xxx}': (
             'The {"{xxx}".title()} Section of the Paper',
             ScientificStage.WRITING,
-            'Here is the {"{xxx}".title()} section of the paper:\n\n{"{self.paper_sections["{xxx}"]}"}'
+            'Here is the {"{xxx}".title()} section of the paper:\n\n{self.paper_sections["{xxx}"]}'
         ),
 
         'cited_paper_sections:{xxx}': (
@@ -140,20 +155,20 @@ class ScientificProducts(Products):
             'Here is the cited {"{xxx}".title()} section of the paper:\n\n'
             '{self.cited_paper_sections["{xxx}"][0]}\n\n'
             '``Citations``\n\n'
-            '{"{NiceList(self.cited_paper_sections["{xxx}"][1], separator="\\n\\n", last_separator=None)}"}'
+            '{NiceList(self.cited_paper_sections["{xxx}"][1], separator="\\n\\n", last_separator=None)}'
         ),
 
         'tabled_paper_sections:{xxx}': (
             'The {"{xxx}".title()} Section of the Paper with Tables',
             ScientificStage.TABLES,
             'Here is the {"{xxx}".title()} section of the paper with tables:\n\n'
-            '{"{self.tabled_paper_sections["{xxx}"]}"}'
+            '{self.tabled_paper_sections["{xxx}"]}'
         ),
 
         'most_updated_paper_sections:{xxx}': (
             'The most-updated {"{xxx}".title()} Section of the Paper',
             ScientificStage.TABLES,
             'Here is the most-updated {"{xxx}".title()} section of the paper:\n\n'
-            '{"{self.most_updated_paper_sections["{xxx}"]}"}'
+            '{self.most_updated_paper_sections["{xxx}"]}'
         ),
     }
