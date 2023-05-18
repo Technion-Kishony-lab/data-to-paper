@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.text_utils import nicely_join
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
@@ -110,7 +111,8 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.Writer
 
     def __post_init__(self):
-        self.conversation_name = self.conversation_name or str(self.section_names).replace(' ', '_')
+        self.conversation_name = self.conversation_name or nicely_join(self.section_names,
+                                                                       separator='_', last_separator=None)
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""

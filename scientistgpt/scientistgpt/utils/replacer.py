@@ -22,7 +22,11 @@ def format_str_while_preserving_curly_brackets(string: str, **kwargs):
     format_str_while_preserving_curly_brackets('hello {{KEEP ME}} {name}', name='john') == 'hello {{KEEP ME}} john'
     """
     for key, value in kwargs.items():
-        string = re.sub(r"(?<!{){" + key + r"}(?!})", str(value), string)
+        try:
+            string = re.sub(r"(?<!{){" + key + r"}(?!})", str(value), string)
+        except Exception as e:
+            print(f'failed to replace {key} -> {value} in {string}')
+            raise e
     return string
 
 
@@ -65,7 +69,7 @@ class Replacer:
             old_text = text
             text = format_str_while_preserving_curly_brackets(text, **self._get_formatting_dict())
             if text == old_text:
-                return text.format()
+                return text
 
     @classmethod
     def get_replaced_attributes(cls) -> Set[str]:
