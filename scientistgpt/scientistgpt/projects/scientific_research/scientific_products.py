@@ -1,9 +1,9 @@
-from dataclasses import dataclass, field, fields
-from typing import Optional, List, Dict, Tuple, Union, Callable, Set, ClassVar
+from dataclasses import dataclass, field
+from typing import Optional, Dict, Tuple, Set, ClassVar
 
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.utils.text_utils import dedent_triple_quote_str, NiceList
+from scientistgpt.utils.text_utils import NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products
 from scientistgpt.servers.crossref import CrossrefCitation
 
