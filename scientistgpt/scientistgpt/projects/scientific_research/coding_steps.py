@@ -45,7 +45,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     code_mission: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
-        first sense of the data. For example, depending on the specific dataset, you might want ot include:
+        first sense of the data. For example, depending on the specific dataset, you might want to include:
 
         * Measure of data scale (e.g., number of rows, number of columns)
         * Translation of different units into a common sensible unit

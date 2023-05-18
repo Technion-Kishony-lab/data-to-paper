@@ -49,7 +49,9 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Allows for the addition of background information about prior products to the conversation.
     """
     ADDITIONAL_DICT_ATTRS = \
-        BaseProductsGPT.ADDITIONAL_DICT_ATTRS | {'actual_background_product_fields', 'actual_background_product_names'}
+        BaseProductsGPT.ADDITIONAL_DICT_ATTRS | \
+        {'actual_background_product_fields', 'actual_background_product_names',
+         'vertical_actual_background_product_names'}
     background_product_fields = ()
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
@@ -60,9 +62,10 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         Sure, I am happy to guide you {goal_verb} the {goal_noun} and can also provide feedback.
 
         Note that your {goal_noun} should be based on the following research products that you have now \
-        already obtained: 
-        {actual_background_product_names}
-
+        already obtained:
+        ```highlight
+        {vertical_actual_background_product_names}
+        ```
         Please carefully review these intermediate products and then proceed according to my guidelines below. 
         """)
 
@@ -87,6 +90,11 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         return NiceList(
             [self.products.get_name(product_field) for product_field in self.actual_background_product_fields],
             wrap_with='"', separator=', ', last_separator=None, empty_str='')
+
+    @property
+    def vertical_actual_background_product_names(self) -> NiceList:
+        return NiceList([name for name in self.actual_background_product_names],
+                        wrap_with='', separator='\n', last_separator=None, empty_str='NO BACKGROUND PRODUCTS')
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))

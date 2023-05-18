@@ -345,7 +345,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
         Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
-        {quote_request}.
+        {quote_request}
         """)
 
     def _extract_goal_from_response(self, response: str) -> str:
