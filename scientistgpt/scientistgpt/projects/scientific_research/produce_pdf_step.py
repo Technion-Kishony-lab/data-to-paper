@@ -42,7 +42,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         """
         Create the code section.
         """
-        code_and_output = self.products.code_and_output
+        code_and_output = self.products.data_analysis_code_and_output
         code = wrap_python_code(code_and_output.code)
         latex_code = highlight(code, PythonLexer(), self.latex_formatter)
         code_section = "\\section{Python Analysis Code} \\label{sec:code} \\subsection{Code}" \

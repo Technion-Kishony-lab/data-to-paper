@@ -72,8 +72,8 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Code and output
         self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
-        products.code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
-        self.send_product_to_client('code_and_output')
+        products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
+        self.send_product_to_client('data_analysis_code_and_output')
 
         # Results interpretation
         self.advance_stage_and_set_active_conversation(

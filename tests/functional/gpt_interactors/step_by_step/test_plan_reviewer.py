@@ -81,5 +81,5 @@ def test_plan_reviewer(plan_reviewer):
 
 # @OPENAI_SERVER_CALLER.record_or_replay()
 # def test_code_reviewer(code_reviewer):
-#     code_and_output = code_reviewer.get_analysis_code()
-#     print(code_and_output)
+#     data_analysis_code_and_output = code_reviewer.get_analysis_code()
+#     print(data_analysis_code_and_output)

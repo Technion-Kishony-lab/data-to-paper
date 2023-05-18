@@ -18,7 +18,7 @@ class ScientificProducts(Products):
     data_exploration_code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
-    code_and_output: CodeAndOutput = None
+    data_analysis_code_and_output: CodeAndOutput = None
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
@@ -95,23 +95,23 @@ class ScientificProducts(Products):
             'Here is our data analysis plan:\n\n{}',
         ),
 
-        'code': (
-            'code',
+        'data_analysis_code': (
+            'Data Analysis Code',
             ScientificStage.CODE,
-            'Here is our code:\n\n```python\n{self.code_and_output.code}\n```\n',
+            'Here is our code:\n\n```python\n{self.data_analysis_code_and_output.code}\n```\n',
         ),
 
-        'code_output': (
-            'Output of the Code',
+        'data_analysis_output': (
+            'Output of the Data Analysis Code',
             ScientificStage.CODE,
-            'Here is our code:\n\n```python\n{self.code_and_output.code}\n```\n'
-            '```\n{self.code_and_output.output}\n```\n',
+            'Here is our code:\n\n```python\n{self.data_analysis_code_and_output.code}\n```\n'
+            '```\n{self.data_analysis_code_and_output.output}\n```\n',
         ),
 
-        'code_and_output': (
-            'Code and Output',
+        'data_analysis_code_and_output': (
+            'Data Analysis Code and Output',
             ScientificStage.CODE,
-            '{self["code"]}\n\n{self["code_output"][2]}',
+            '{self["data_analysis_code"]}\n\n{self["data_analysis_output"][2]}',
         ),
 
         'results_summary': (

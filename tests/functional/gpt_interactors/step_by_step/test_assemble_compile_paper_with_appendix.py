@@ -94,7 +94,7 @@ def products():
                                             \\caption{The means and 95\\% confidence intervals for each temperature.}
                                             \\end{table}
                                             """},
-        code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt', explanation=EXPLANATION),
+        data_analysis_code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt', explanation=EXPLANATION),
     )
 
 
