@@ -47,11 +47,12 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         As part of a data-exploration phase, please write a complete short Python code for getting a \
         first sense of the data. For example, depending on the specific dataset, you might want ot include:
 
-        1. Translation of different units into a common sensible unit
-        2. Summary statistics of key variables
-        3. List of most common values and abundances of categorical variables (if any) 
-        4. Counts of missing values
-        5. Any other data exploration analysis you deem relevant
+        * Measure of data scale (e.g., number of rows, number of columns)
+        * Translation of different units into a common sensible unit
+        * Summary statistics of key variables
+        * List of most common values and abundances of categorical variables (if any) 
+        * Counts of missing values
+        * Any other data exploration analysis you deem relevant
         """)
     requesting_code_explanation_prompt: str = None
 
