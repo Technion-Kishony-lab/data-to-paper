@@ -222,7 +222,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         Rewrite the section with the citations.
         """
         self.initialize_and_run_dialog()
-        # this tuns the dialog and updates self.sentences_to_queries
+        # this runs the dialog and updates self.sentences_to_queries
         # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
         # we might have accumulated some sentences through the process.
 
@@ -243,4 +243,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
                     ).get_rewritten_sentence_and_chosen_citations()
             updated_section = updated_section.replace(sentence, rewritten_sentence)
             all_citations |= chosen_citations
+        nice_citations = NiceList(all_citations, separator='\n\n', last_separator=None)
+        self.apply_append_user_message(
+            f'Nice - you now have the {self.section_name.title()} with citations!\n\nHere it is\n\n'
+            f'{updated_section}\n\n{nice_citations}', ignore=True)
         return updated_section, all_citations
