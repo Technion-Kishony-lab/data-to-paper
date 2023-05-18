@@ -104,6 +104,18 @@ def replace_special_chars(text):
     return "".join(result)
 
 
+def remove_figure_envs_from_latex(latex_content):
+    # remove any figure environments from the given latex content
+    latex_content = regex.sub(r'\\begin\{figure\}.*?\\end\{figure\}', '', latex_content, flags=regex.DOTALL)
+
+    # find sentences that contain references to figures and remove them completely
+    sentences = regex.findall(r'[^\.]*?\\ref\{fig:.*?\}[^\.]*?\.', latex_content)
+    for sentence in sentences:
+        latex_content = latex_content.replace(sentence, '')
+
+    return latex_content
+
+
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: str,
                                   references: Set[CrossrefCitation] = None):
     references = references or set()
@@ -111,6 +123,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     latex_file_name = file_stem + '.tex'
     preamble = latex_content[:latex_content.find(r'\begin{document}')]
     latex_content = latex_content[latex_content.find(r'\begin{document}'):]
+    latex_content = remove_figure_envs_from_latex(latex_content)
     latex_content = preamble + replace_special_chars(latex_content)
     with run_in_temp_directory():
 
