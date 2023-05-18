@@ -104,27 +104,25 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     """
     Given a section of a paper, add citations to the factual sentences in the section.
     """
-    fake_performer_request_for_help: str = 'Hi, can you please help me with adding citations to my paper?'
-    fake_reviewer_agree_to_help: str = 'Sure, I am happy to guide and help you with adding citations to your paper.\n' \
-                                       'Please just provide some context first.'
     value_type: type = Dict[str, str]
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
-    # see _get_background_product_fields()
-    background_product_fields = ['research_goal', 'results_summary', 'title_and_abstract']
+    # see self.actual_background_product_fields
+    background_product_fields = ('research_goal', 'results_summary', 'title_and_abstract')
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
     max_reviewing_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
-    goal_noun: str = '{section_name} citations'
+    goal_verb: str = 'add citations to'
+    goal_noun: str = '{section_name} section of the paper'
 
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str(r"""
         You are a scientific citation expert. 
         You are given a section of a paper, and you need to follow the following steps:
         1. Choose factual sentences that need to be cited.
-        2. Provided with list of possible citations, choose the most appropriate ones for each of the sentences. 
+        2. Provided with a list of possible citations, choose the most appropriate ones for each of the sentences. 
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
@@ -150,6 +148,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         "another sentence extracted from the section": "the query of this sentence"}}
         ```
     """)
+
+    fake_performer_message_to_add_after_max_rounds: str = None
 
     # input:
     section_name: str = None  # The section of the paper to which we are adding citations to.
@@ -184,21 +184,22 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         sentences_to_citations = {}
         for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
-                message = f'Searching citations for sentence {sentence_number + 1}, try {number_of_tries + 1}... '
                 try:
                     sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
                     break
                 except ServerErrorCitationException as e:
-                    self.comment(message + f"CrossRef server error: {e}")
+                    self.comment(f"CrossRef server error: {e}", web_conversation_name=None)
             else:
-                self.comment(f"Could not find citations for the sentence:\n{sentence}.")
+                self.apply_append_user_message(f"I failed finding citations for sentence #{sentence_number + 1}",
+                                               ignore=True)
                 continue
-            self.comment(message + 'Successful!')
-
+            self.apply_append_user_message(f"I found {len(sentences_to_citations[sentence])} citations "
+                                           f"for sentence #{sentence_number + 1}", ignore=True)
         return sentences_to_citations
 
-    def _get_background_product_fields(self):
-        return super()._get_background_product_fields() + ['paper_sections:' + self.section_name]
+    @property
+    def actual_background_product_fields(self) -> Tuple[str, ...]:
+        return super().actual_background_product_fields + ('paper_sections:' + self.section_name, )
 
     def _check_response_value(self, response_value: Any) -> Optional[str]:
         """

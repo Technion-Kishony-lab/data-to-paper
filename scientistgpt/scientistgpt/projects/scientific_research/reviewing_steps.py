@@ -1,7 +1,7 @@
 from dataclasses import dataclass
+from typing import Tuple
 
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
@@ -14,7 +14,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether it can be \
         studied using only the provided dataset, without requiring any additional data \
-        (pay attention to using only data explicitly available in the provided headers of the our data files \
+        (pay attention to using only data explicitly available in the provided headers of our data files \
         as described in our dataset, above).
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
@@ -24,7 +24,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ['data_file_descriptions']
+    background_product_fields = ('data_file_descriptions', )
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -63,7 +63,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 0  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
-    background_product_fields = ['data_file_descriptions', 'research_goal']
+    background_product_fields = ('data_file_descriptions', 'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
@@ -74,7 +74,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'code_and_output']
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'code_and_output')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
@@ -101,7 +101,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 3
-    goal_noun: str = '{pretty_section_names} of the paper'
+    goal_noun: str = '{pretty_section_names} section of the paper'
     conversation_name: str = None
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
@@ -124,7 +124,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({background_product_names}), \
+        Based on the material provided above ({actual_background_product_names}), \
         please {goal_verb} only the {pretty_section_names} of a scientific paper.
         Do not write any other parts!
         {latex_instructions}
@@ -161,7 +161,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary']
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
         and any math or symbols that needs tex escapes.
@@ -171,8 +171,8 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ['data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
-                                 'title_and_abstract']
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
+                                 'title_and_abstract')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\\\section{{}} command, \
         and any math or symbols that needs tex escapes.
@@ -183,12 +183,14 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'add tables to'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ['results_summary', 'code_and_output', 'title_and_abstract']
+    background_product_fields = ('results_summary', 'code_and_output', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({background_product_names}), please rewrite \
-        the "{pretty_section_names}" while adding relevant Tables".
         In scientific papers, we typically add one or two tables summarizing the main findings.
+
+        Based on the material provided above ({actual_background_product_names}), please rewrite \
+        the "{pretty_section_names}" while adding relevant Tables".
+
         The tables should only include information that is explicitly extracted from the results data.
         Add the tables centered in booktabs, multirow format with caption and label. 
         In addition, change the text to refer to the tables (use their labels if necessary),
@@ -198,5 +200,6 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         needs tex escapes.
         """)
 
-    def _get_background_product_fields(self):
-        return self.background_product_fields + ['most_updated_paper_sections:' + self.section_name]
+    @property
+    def actual_background_product_fields(self) -> Tuple[str, ...]:
+        return super().actual_background_product_fields + ('most_updated_paper_sections:' + self.section_name, )
