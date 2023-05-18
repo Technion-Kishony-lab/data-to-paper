@@ -30,10 +30,10 @@ def products():
 @CROSSREF_SERVER_CALLER.record_or_replay()
 def test_citation_gpt(actions_and_conversations, products):
     for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
-        products.cited_paper_sections[section_name] = \
+        products.cited_paper_sections_and_citations[section_name] = \
             AddCitationReviewGPT(
                 actions_and_conversations=actions_and_conversations,
                 products=products, section_name=section_name).rewrite_section_with_citations()
 
     # check that we get the output with additional citations
-    assert "\\cite{" in products.cited_paper_sections['introduction'][0]
+    assert "\\cite{" in products.cited_paper_sections_and_citations['introduction'][0]

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.projects.scientific_research.coding_steps import ScientificCodeProductsGPT
+from scientistgpt.projects.scientific_research.coding_steps import DataAnalysisCodeProductsGPT
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.projects.scientific_research.reviewing_steps import GoalReviewGPT, PlanReviewGPT
@@ -50,7 +50,7 @@ def plan_reviewer(data_file_descriptions, actions_and_conversations):
 
 @fixture()
 def code_reviewer(data_file_descriptions, actions_and_conversations):
-    return ScientificCodeProductsGPT(
+    return DataAnalysisCodeProductsGPT(
         actions_and_conversations=actions_and_conversations,
         products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
@@ -81,5 +81,5 @@ def test_plan_reviewer(plan_reviewer):
 
 # @OPENAI_SERVER_CALLER.record_or_replay()
 # def test_code_reviewer(code_reviewer):
-#     code_and_output = code_reviewer.get_analysis_code()
-#     print(code_and_output)
+#     data_analysis_code_and_output = code_reviewer.get_analysis_code()
+#     print(data_analysis_code_and_output)

@@ -23,8 +23,8 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         sections = {}
         for section_name in self.get_paper_section_names():
             sections[section_name] = self.products.most_updated_paper_sections[section_name]
-            if section_name in self.products.cited_paper_sections:
-                references |= self.products.cited_paper_sections[section_name][1]  # 1 is the references set
+            if section_name in self.products.cited_paper_sections_and_citations:
+                references |= self.products.cited_paper_sections_and_citations[section_name][1]  # 1 is the references
 
         return sections, references
 
@@ -42,7 +42,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         """
         Create the code section.
         """
-        code_and_output = self.products.code_and_output
+        code_and_output = self.products.data_analysis_code_and_output
         code = wrap_python_code(code_and_output.code)
         latex_code = highlight(code, PythonLexer(), self.latex_formatter)
         code_section = "\\section{Python Analysis Code} \\label{sec:code} \\subsection{Code}" \
