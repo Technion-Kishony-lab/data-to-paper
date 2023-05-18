@@ -13,6 +13,7 @@ from pygments import highlight
 style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
 html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
+html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
 html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
@@ -22,7 +23,9 @@ def highlight_python_code(code_str: str, is_html: bool = False) -> str:
     return highlight(code_str, PythonLexer(), terminal_formatter)
 
 
-def text_to_html(text: str) -> str:
+def text_to_html(text: str, textblock: bool = False) -> str:
+    if textblock:
+        return highlight(text, TextLexer(), html_textblock_formatter)
     return highlight(text, TextLexer(), html_formatter)
 
 
@@ -78,10 +81,11 @@ def print_magenta(text: str, **kwargs):
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
                                  width: int = 80, is_html: bool = False, is_comment=False, is_system=False) -> str:
     if is_comment:
-        return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">{text}</pre>'
+        return f'<pre style="color: #424141; font-weight: bold; font-style: italic; font-size: 16px;">{text}</pre>'
     elif is_system:
-        return f'<pre style="color: #20191D; font-weight: bold; font-style: italic;">' \
-               f'{wrap_string(text, width=width)}</pre>'
+        font_family = "font-family: 'Cousine', sans-serif;"
+        return f'<pre style="color: #20191D; font-style: italic; font-size: 16px;' \
+               f'{font_family}">{wrap_string(text, width=width)}</pre>'
     sections = text.split("```")
     s = ''
     in_text_block = True
@@ -101,7 +105,7 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
                 s += highlighted_code
             else:
                 if is_html:
-                    s += f'<b>{text_to_html(wrap_string(section, width=width))}</b>'
+                    s += text_to_html(wrap_string(section, width=width), textblock=True)
                 else:
                     s += block_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL
         in_text_block = not in_text_block
