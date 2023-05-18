@@ -134,8 +134,17 @@ class Products:
         Return the name, stage, and description of the given field, formatted with the given variables.
         """
         name, stage, description = self.get_formatted_name_stage_description(field)
-        name = evaluate_string(name, {'self': self})
-        description = evaluate_string(description, {'self': self})
+
+        try:
+            name = evaluate_string(name, {'self': self})
+        except KeyError:
+            name = None
+
+        try:
+            description = evaluate_string(description, {'self': self})
+        except KeyError:
+            description = None
+
         return name, stage, description
 
     def __getitem__(self, item):
