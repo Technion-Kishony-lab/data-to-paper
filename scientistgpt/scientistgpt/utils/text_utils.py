@@ -78,7 +78,7 @@ def print_magenta(text: str, **kwargs):
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
                                  width: int = 80, is_html: bool = False, is_comment=False, is_system=False) -> str:
     if is_comment:
-        return f'<pre style="color: #424141; font-weight: bold; font-style: italic;">{text}</pre>'
+        return f'<pre style="color: #424141; font-weight: bold; font-style: italic; font-size: 16px;">{text}</pre>'
     elif is_system:
         font_family = "font-family: 'Cousine', sans-serif;"
         return f'<pre style="color: #20191D; font-style: italic; font-size: 16px;' \
