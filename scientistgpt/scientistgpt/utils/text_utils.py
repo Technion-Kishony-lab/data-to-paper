@@ -318,7 +318,7 @@ def replace_text_by_dict(text: str, replacements: dict):
     Replace all occurrences of the keys in replacements by their corresponding values.
     """
     for key, value in replacements.items():
-        text = text.replace(key, value)
+        text = text.replace(key, str(value))
     return text
 
 
