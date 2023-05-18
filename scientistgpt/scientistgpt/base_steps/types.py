@@ -134,18 +134,20 @@ class Products:
         Return the name, stage, and description of the given field, formatted with the given variables.
         """
         name, stage, description = self.get_formatted_name_stage_description(field)
-
-        try:
-            name = evaluate_string(name, {'self': self})
-        except KeyError:
-            name = None
-
-        try:
-            description = evaluate_string(description, {'self': self})
-        except KeyError:
-            description = None
-
+        name = evaluate_string(name, {'self': self})
+        description = evaluate_string(description, {'self': self})
         return name, stage, description
+
+    def is_product_available(self, field: str) -> bool:
+        """
+        Return whether the given product is available.
+        """
+        name, stage, description = self.get_formatted_name_stage_description(field)
+        try:
+            evaluate_string(description, {'self': self}, raise_on_none=True)
+        except (ValueError, KeyError):
+            return False
+        return True
 
     def __getitem__(self, item):
         return self.get_evaluated_name_stage_description(item)
