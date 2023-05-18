@@ -1,10 +1,10 @@
-from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple, ClassVar, Dict
 
 from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
+from scientistgpt.utils.text_utils import replace_text_by_dict, evaluate_string
 
 
 @dataclass(frozen=True)
@@ -57,29 +57,87 @@ class DataFileDescriptions(List[DataFileDescription]):
         return [data_file_description.file_path for data_file_description in self]
 
 
+NameStageDescription = Tuple[str, Stage, str]
+
+
+def get_subfield_variable(subfield: str) -> Optional[str]:
+    if subfield.startswith('{') and subfield.endswith('}'):
+        return subfield[1:-1]
+    return None
+
+
 @dataclass
-class Products(ABC):
+class Products:
     """
     Contains the different outcomes of the process.
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
 
-    @abstractmethod
-    def get_description(self, product_field: str) -> str:
-        """
-        Return the description of the given product.
-        """
-        pass
+    FIELDS_TO_NAME_STAGE_DESCRIPTION: ClassVar[Dict[str, NameStageDescription]] = {}
 
-    @abstractmethod
     def get_name(self, product_field: str) -> str:
         """
         Return the name of the given product.
         """
-        pass
+        return self.get_evaluated_name_stage_description(product_field)[0]
 
     def get_stage(self, product_field: str) -> Stage:
         """
         Return the stage of the given product.
         """
-        pass
+        return self.get_evaluated_name_stage_description(product_field)[1]
+
+    def get_description(self, product_field: str) -> str:
+        """
+        Return the description of the given product.
+        """
+        return self.get_evaluated_name_stage_description(product_field)[2]
+
+    @staticmethod
+    def extract_subfields(field: str) -> List[str]:
+        """
+        Return a list of subfields of the given field.
+        """
+        return field.split(':')
+
+    def get_unformatted_name_stage_description(self, field: str) -> Tuple[NameStageDescription, Dict[str, str]]:
+        """
+        Return the name, stage, and description of the given field.
+        """
+        subfields = self.extract_subfields(field)
+        for current_field, name_stage_description in self.FIELDS_TO_NAME_STAGE_DESCRIPTION.items():
+            current_subfields = self.extract_subfields(current_field)
+            variables_to_subfields = {}
+            if len(subfields) == len(current_subfields):
+                for subfield, current_subfield in zip(subfields, current_subfields):
+                    current_subfield_variable = get_subfield_variable(current_subfield)
+                    if current_subfield_variable:
+                        variables_to_subfields[current_subfield_variable] = subfield
+                    elif subfield != current_subfield:
+                        break
+                else:
+                    return name_stage_description, variables_to_subfields
+        raise ValueError(f'Unknown product field: {field}')
+
+    def get_formatted_name_stage_description(self, field: str) -> NameStageDescription:
+        """
+        Return the name, stage, and description of the given field, formatted with the given variables.
+        """
+        (name, stage, description), variables_to_subfields = self.get_unformatted_name_stage_description(field)
+        replacements = {'{' + var + '}': val for var, val in variables_to_subfields.items()}
+        replacements['{}'] = f'{{self.{field}}}'
+        name = replace_text_by_dict(name, replacements)
+        description = replace_text_by_dict(description, replacements)
+        return name, stage, description
+
+    def get_evaluated_name_stage_description(self, field: str) -> NameStageDescription:
+        """
+        Return the name, stage, and description of the given field, formatted with the given variables.
+        """
+        name, stage, description = self.get_formatted_name_stage_description(field)
+        name = evaluate_string(name, {'self': self})
+        description = evaluate_string(description, {'self': self})
+        return name, stage, description
+
+    def __getitem__(self, item):
+        return self.get_evaluated_name_stage_description(item)
