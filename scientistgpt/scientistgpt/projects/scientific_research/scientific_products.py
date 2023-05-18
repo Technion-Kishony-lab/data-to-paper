@@ -170,7 +170,7 @@ def get_name_stage_and_description(product_field: str) -> Tuple[str, ScientificS
     for section_type, (func, stage) in SECTION_TYPES_TO_FUNCS_AND_STAGES.items():
         if product_field.startswith(section_type):
             section_name = product_field[len(section_type):]
-            return f'"{section_name}" section of the paper', \
+            return f'{section_name.title()} section of the paper', \
                 stage, \
                 lambda products: format_paper_section_description(func(products, section_name), section_name)
 

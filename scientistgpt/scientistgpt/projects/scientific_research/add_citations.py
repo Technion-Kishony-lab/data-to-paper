@@ -114,14 +114,15 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
     max_reviewing_rounds: int = 0  # 0 no review
     max_attempts_per_round: int = 2
-    goal_noun: str = '{section_name} citations'
+    goal_verb: str = 'add citations to'
+    goal_noun: str = '{section_name} section of the paper'
 
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str(r"""
         You are a scientific citation expert. 
         You are given a section of a paper, and you need to follow the following steps:
         1. Choose factual sentences that need to be cited.
-        2. Provided with list of possible citations, choose the most appropriate ones for each of the sentences. 
+        2. Provided with a list of possible citations, choose the most appropriate ones for each of the sentences. 
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
@@ -147,6 +148,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         "another sentence extracted from the section": "the query of this sentence"}}
         ```
     """)
+
+    fake_performer_message_to_add_after_max_rounds: str = None
 
     # input:
     section_name: str = None  # The section of the paper to which we are adding citations to.

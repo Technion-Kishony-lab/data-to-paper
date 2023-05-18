@@ -57,12 +57,12 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     fake_performer_request_for_help: str = \
         "Hi {user_skin_name}, I need to {goal_verb} a {goal_noun}. Could you please guide me?"
     fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
-        Sure, I am happy to guide you and provide feedback on your {goal_noun}.
+        Sure, I am happy to guide you {goal_verb} the {goal_noun} and can also provide feedback.
 
         Note that your {goal_noun} should be based on the following research products that you have now \
         already obtained: 
         {actual_background_product_names}
-        
+
         Please carefully review these intermediate products and then proceed according to my guidelines below. 
         """)
 
@@ -82,7 +82,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
             return NiceList()
         return NiceList(
             [self.products.get_name(product_field) for product_field in self.actual_background_product_fields],
-            wrap_with='"', separator='\n', last_separator=None, empty_str='')
+            wrap_with='"', separator=', ', last_separator=None, empty_str='')
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
