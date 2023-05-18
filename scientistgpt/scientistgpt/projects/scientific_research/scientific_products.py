@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, fields
-from typing import Optional, List, Dict, Tuple, Union, Callable, Set
+from typing import Optional, List, Dict, Tuple, Union, Callable, Set, ClassVar
 
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
 from scientistgpt.run_gpt_code.types import CodeAndOutput
@@ -14,164 +14,146 @@ class ScientificProducts(Products):
     Contains the different scientific outcomes of the research.
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
-    data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
+    data_file_descriptions: DataFileDescriptions = None
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
-    code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
+    code_and_output: CodeAndOutput = None
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
     tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
-    def get_description(self, product_field: str) -> str:
+    @property
+    def citations(self) -> NiceList[CrossrefCitation]:
         """
-        Return the description of the given product.
+        Return the citations of the paper.
         """
-        name, stage, description = get_name_stage_and_description(product_field)
-        if isinstance(description, str):
-            return description.format(getattr(self, product_field))
-        else:
-            return description(self)
+        citations = set()
+        for section_content, section_citations in self.cited_paper_sections.values():
+            citations.update(section_citations)
+        return NiceList(citations, separator='\n\n', last_separator=None)
 
-    def get_name(self, product_field: str) -> str:
+    @property
+    def actual_cited_paper_sections(self) -> Dict[str, str]:
         """
-        Return the name of the given product.
+        Return the actual cited paper sections.
         """
-        name, stage, description = get_name_stage_and_description(product_field)
-        return name
+        return {section_name: section_content
+                for section_name, (section_content, _) in self.cited_paper_sections.items()}
 
-    def get_stage(self, product_field: str) -> ScientificStage:
-        """
-        Return the stage of the given product.
-        """
-        name, stage, description = get_name_stage_and_description(product_field)
-        return stage
+    @property
+    def most_updated_paper_sections(self) -> Dict[str, str]:
+        section_names_to_content = {}
+        for section_name, section in self.paper_sections.items():
+            if section_name in self.actual_cited_paper_sections:
+                section = self.actual_cited_paper_sections[section_name]
+            if section_name in self.tabled_paper_sections:
+                section = self.tabled_paper_sections[section_name]
+            section_names_to_content[section_name] = section
+        return section_names_to_content
 
+    FIELDS_TO_NAME_STAGE_DESCRIPTION: ClassVar[Dict[str, Tuple[str, ScientificStage, str]]] = {
+        'data_file_descriptions': (
+            'Dataset',
+            ScientificStage.DATA,
+            'DESCRIPTION OF DATASET\n\nWe have the following {}',
+        ),
 
-def get_code_description(products: ScientificProducts) -> str:
-    return f'Here is our code:\n\n' \
-           f'```python\n{products.code_and_output.code}\n```\n'
+        'research_goal': (
+            'Research Goal',
+            ScientificStage.GOAL,
+            'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}',
+        ),
 
+        'analysis_plan': (
+            'Data Analysis Plan',
+            ScientificStage.PLAN,
+            'Here is our data analysis plan:\n\n{}',
+        ),
 
-def get_code_output_description(products: ScientificProducts) -> str:
-    return f'Here is the output of the code (the content of "{products.code_and_output.output_file}"):\n\n' \
-           f'```\n{products.code_and_output.output}\n```\n'
+        'code': (
+            'code',
+            ScientificStage.CODE,
+            'Here is our code:\n\n```python\n{self.code_and_output.code}\n```\n',
+        ),
 
+        'code_output': (
+            'Output of the Code',
+            ScientificStage.CODE,
+            'Here is our code:\n\n```python\n{self.code_and_output.code}\n```\n'
+            '```\n{self.code_and_output.output}\n```\n',
+        ),
 
-def get_code_and_output_description(products: ScientificProducts) -> str:
-    return get_code_description(products) + '\n\n\n' + get_code_output_description(products)
+        'code_and_output': (
+            'Code and Output',
+            ScientificStage.CODE,
+            '{self["code"]}\n\n{self["code_output"][2]}',
+        ),
 
+        'results_summary': (
+            'Results Summary',
+            ScientificStage.INTERPRETATION,
+            'Here is a summary of our results:\n\n{}',
+        ),
 
-def get_title_and_abstract_description(products: ScientificProducts) -> str:
-    return dedent_triple_quote_str("""
-        Here are the title and abstract of the paper:
+        'title_and_abstract': (
+            'Title and Abstract',
+            ScientificStage.WRITING,
+            "Here are the title and abstract of the paper:\n\n"
+            "{self.paper_sections['title']}\n\n"
+            "{self.paper_sections['abstract']}",
+        ),
 
-        {}
+        'paper_sections': (
+            'Paper Sections',
+            ScientificStage.WRITING,
+            '{get_paper(self.paper_sections)}',
+        ),
 
-        {}
-        """).format(products.paper_sections['title'], products.paper_sections['abstract'])
+        'cited_paper_sections': (
+            'Cited Paper Sections and Citations',
+            ScientificStage.CITATIONS,
+            '{get_paper(self.actual_cited_paper_sections)}\n\n\n``Citations``\n\n{self.citations}'
+        ),
 
+        'tabled_paper_sections': (
+            'Paper Sections with Tables',
+            ScientificStage.TABLES,
+            'get_paper(self.tabled_paper_sections)',
+        ),
 
-def format_paper_section_description(section_content: str, section_name: str) -> str:
-    return dedent_triple_quote_str("""
-        Here is the "{}" section of the paper:
+        'most_updated_paper_sections': (
+            'Most Updated Paper Sections',
+            ScientificStage.WRITING,
+            '{get_paper(self.most_updated_paper_sections)}',
+        ),
 
-        {}
-        """).format(section_name, section_content)
+        'paper_sections:{xxx}': (
+            'The {"{xxx}".title()} Section of the Paper',
+            ScientificStage.WRITING,
+            'Here is the {"{xxx}".title()} section of the paper:\n\n{"{self.paper_sections["{xxx}"]}"}'
+        ),
 
+        'cited_paper_sections:{xxx}': (
+            'The {"{xxx}".title()} Section of the Paper with Citations',
+            ScientificStage.CITATIONS,
+            'Here is the cited {"{xxx}".title()} section of the paper:\n\n'
+            '{self.cited_paper_sections["{xxx}"][0]}\n\n'
+            '``Citations``\n\n'
+            '{"{NiceList(self.cited_paper_sections["{xxx}"][1], separator="\\n\\n", last_separator=None)}"}'
+        ),
 
-def get_from_paper_sections(products: ScientificProducts, section_name: str) -> str:
-    return products.paper_sections[section_name]
+        'tabled_paper_sections:{xxx}': (
+            'The {"{xxx}".title()} Section of the Paper with Tables',
+            ScientificStage.TABLES,
+            'Here is the {"{xxx}".title()} section of the paper with tables:\n\n'
+            '{"{self.tabled_paper_sections["{xxx}"]}"}'
+        ),
 
-
-def get_from_cited_paper_sections(products: ScientificProducts, section_name: str) -> str:
-    return products.cited_paper_sections[section_name][0]
-
-
-def get_from_paper_sections_with_tables(products: ScientificProducts, section_name: str) -> str:
-    return products.tabled_paper_sections[section_name]
-
-
-def get_from_most_updated_paper_sections(products: ScientificProducts, section_name: str) -> str:
-    for _, (func, stage) in list(SECTION_TYPES_TO_FUNCS_AND_STAGES.items())[1:]:  # skip the 'most_updated' section type
-        try:
-            return func(products, section_name)
-        except KeyError:
-            pass
-    assert False, f'No section named "{section_name}"'
-
-
-def get_paper(paper_sections: Dict[str, str]) -> str:
-    """
-    Compose the paper from the different paper sections.
-    product_field can be one of the following:
-    paper_sections
-    cited_paper_sections
-    tabled_paper_sections
-    """
-    paper = ''
-    for section_name, section_content in paper_sections.items():
-        paper += f"``{section_name}``\n\n{section_content}\n\n\n"
-    return paper
-
-
-def get_citations(products: ScientificProducts) -> NiceList[CrossrefCitation]:
-    """
-    Return the citations of the paper.
-    """
-    citations = set()
-    for section_content, section_citations in products.cited_paper_sections.values():
-        citations.update(section_citations)
-    return NiceList(citations, separator='\n\n', last_separator=None)
-
-
-def get_cited_sections_and_citations(products: ScientificProducts) -> str:
-    """
-    Return the cited sections and the citation list.
-    """
-    citations = get_citations(products)
-    cited_sections = get_paper(
-        {section_name: section_content for section_name, (section_content, _) in products.cited_paper_sections.items()})
-    return f'{cited_sections}\n\n\n``Citations``\n\n{citations}'
-
-
-PRODUCT_FIELD_NAMES: List[str] = [field.name for field in fields(Products)]
-
-PRODUCT_FIELDS_TO_NAME_STAGE_DESCRIPTION: Dict[str, Tuple[str, Optional[ScientificStage], Union[str, Callable]]] = {
-    'data_file_descriptions': ('Dataset', ScientificStage.DATA, 'DESCRIPTION OF DATASET\n\nWe have the following {}'),
-    'research_goal': ('Research Goal', ScientificStage.GOAL, 'DESCRIPTION OF OUR RESEARCH GOAL.\n\n{}'),
-    'analysis_plan': ('Data Analysis Plan', ScientificStage.PLAN, 'Here is our data analysis plan:\n\n{}'),
-    'code': ('code', ScientificStage.CODE, get_code_description),
-    'code_output': ('Output of the Code', ScientificStage.CODE, get_code_output_description),
-    'code_and_output': ('Code and Output', ScientificStage.CODE, get_code_and_output_description),
-    'results_summary': ('Results Summary', ScientificStage.INTERPRETATION, 'Here is a summary of our results:\n\n{}'),
-    'title_and_abstract': ('Title and Abstract', ScientificStage.WRITING, get_title_and_abstract_description),
-    'paper_sections':
-        ('Paper Sections', ScientificStage.WRITING, lambda products: get_paper(getattr(products, 'paper_sections'))),
-    'cited_paper_sections':
-        ('Cited Paper Sections and Citations', ScientificStage.CITATIONS, get_cited_sections_and_citations),
-    'tabled_paper_sections':
-        ('Paper Sections with Tables', ScientificStage.TABLES,
-         lambda products: get_paper(getattr(products, 'tabled_paper_sections'))),
-}
-
-SECTION_TYPES_TO_FUNCS_AND_STAGES: Dict[str, Tuple[Callable, Optional[ScientificStage]]] = {
-    'most_updated_paper_sections:': (get_from_most_updated_paper_sections, None),
-    'paper_sections_with_tables:': (get_from_paper_sections_with_tables, ScientificStage.TABLES),
-    'cited_paper_sections:': (get_from_cited_paper_sections, ScientificStage.CITATIONS),
-    'paper_sections:': (get_from_paper_sections, ScientificStage.WRITING),
-}
-
-
-def get_name_stage_and_description(product_field: str) -> Tuple[str, ScientificStage, Union[str, Callable]]:
-    """
-    For the of the given product field, return the name, description, and whether the product is code.
-    """
-    for section_type, (func, stage) in SECTION_TYPES_TO_FUNCS_AND_STAGES.items():
-        if product_field.startswith(section_type):
-            section_name = product_field[len(section_type):]
-            return f'{section_name.title()} section of the paper', \
-                stage, \
-                lambda products: format_paper_section_description(func(products, section_name), section_name)
-
-    return PRODUCT_FIELDS_TO_NAME_STAGE_DESCRIPTION[product_field]
+        'most_updated_paper_sections:{xxx}': (
+            'The most-updated {"{xxx}".title()} Section of the Paper',
+            ScientificStage.TABLES,
+            'Here is the most-updated {"{xxx}".title()} section of the paper:\n\n'
+            '{"{self.most_updated_paper_sections["{xxx}"]}"}'
+        ),
+    }
