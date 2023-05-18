@@ -14,12 +14,11 @@ from .base_products_conversers import BaseBackgroundProductsGPT
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import BaseMultiChoiceProductsGPT
 
-BASE_GPT_SCRIPT_FILE_NAME = 'gpt_code'
-MAX_REGENERATING_MULTI_CHOICE_RESPONSE = 3
-
 
 @dataclass
 class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
+    ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS \
+                            | {'actual_output_filename', 'supported_packages'}
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
@@ -36,25 +35,35 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     output_filename: str = 'results.txt'
     "The name of the file that gpt code is instructed to save the results to."
 
-    gpt_script_filename: str = BASE_GPT_SCRIPT_FILE_NAME
+    code_name: str = ''  # e.g. "data analysis"
+
+    gpt_script_filename: str = 'gpt_code'
     "The base name of the python file in which the code written by gpt is saved."
 
+    code_mission: str = ''  # e.g. "Write a complete short Python code to perform the data analysis plan"
+
     code_requesting_prompt: str = dedent_triple_quote_str("""
-        Write a complete short Python code to perform the data analysis plan.
+        {code_mission}
         Don't provide a sketch or pseudocode; write a complete runnable code.
-        If needed, you can use the following packages in your code: {}.
-        The output of your code should be a text file named "{}".
+        If needed, you can use the following packages in your code: {supported_packages}.
+        The output of your code should be a text file named "{actual_output_filename}".
+        {output_content_prompt}
+        Do not write to any other files.
+        Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
         """)
+
+    output_content_prompt: str = ''  # e.g. "All results we may need should be saved to this text file"
 
     code_revision_requesting_prompt: str = dedent_triple_quote_str("""
         Revise the code, or just change any key parameters within the code as needed.
-        The output of your new code should be a text file named "{}".
+        The output of your new code should be a text file named "{actual_output_filename}".
         Send me back the complete revised code.
         Do not just point to what needs to be changed, send the full complete code.
         """)
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
-        Here is the code to perform the analysis. It saves results to the file "{}".
+        Here is the code to perform the analysis. It saves results to the file "{actual_output_filename}".
         ```python
         {}
         ```
@@ -62,20 +71,21 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
 
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. 
-        Also explain what does the code writes into the {} file.
+        Also explain what does the code writes into the "{actual_output_filename}" file.
         """)  # set to None to skip asking for explanation
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{}"):
+        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
         ```
         {}
         ```
 
-        Please choose one of the following options:
+        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else
+        that may indicate that code improvements are needed), then choose one of the following options:
 
         1. The results seem reasonable. Let's proceed.
 
-        2. Something is wrong. I need to go back and change the code.
+        2. Something is wrong. I need to go back and change/improve the code.
         """)  # set to None to skip option for revision
 
     @property
@@ -96,7 +106,12 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         """
         return None
 
-    def _get_output_filename(self):
+    @property
+    def supported_packages(self) -> NiceList[str]:
+        return SUPPORTED_PACKAGES
+
+    @property
+    def actual_output_filename(self):
         if self.revision_round == 0:
             return self.output_filename
         else:
@@ -115,20 +130,19 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             self._ask_for_code()
             code_and_output = self._run_debugger(code_and_output.code)
             if code_and_output is None:
-                raise FailedCreatingProductException(product_field='code_and_output')
+                raise FailedCreatingProductException(product_field='data_analysis_code_and_output')
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
             if gpt_choice == '1':
                 code_and_output.explanation = self._ask_for_code_explanation()
+                code_and_output.name = self.code_name
                 return code_and_output
             self.revision_round += 1
-        raise FailedCreatingProductException(product_field='code_and_output')
+        raise FailedCreatingProductException(product_field='data_analysis_code_and_output')
 
     def _ask_for_code(self):
-        if self.revision_round == 0:
-            user_prompt = self.code_requesting_prompt.format(SUPPORTED_PACKAGES, self._get_output_filename())
-        else:
-            user_prompt = self.code_revision_requesting_prompt.format(self._get_output_filename())
-        self.apply_append_user_message(user_prompt, tag=self._request_code_tag)
+        self.apply_append_user_message(
+            content=self.code_requesting_prompt if self.revision_round == 0 else self.code_revision_requesting_prompt,
+            tag=self._request_code_tag)
 
     def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
         start_tag = self._request_code_tag + '_debugging'
@@ -141,7 +155,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerGPT.from_(
                 self,
-                output_filename=self._get_output_filename(),
+                output_filename=self.actual_output_filename,
                 data_files=self.data_filenames,
                 data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
@@ -161,7 +175,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
                 assert self.conversation[-1].tag == self._request_code_tag
 
                 self.apply_append_surrogate_message(
-                    content=self.present_code_as_fresh.format(self._get_output_filename(), code_and_output.code),
+                    content=self.present_code_as_fresh.format(code_and_output.code),
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
@@ -172,7 +186,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         if self.requesting_code_explanation_prompt is None:
             return None
         self.apply_append_user_message(
-            content=self.requesting_code_explanation_prompt.format(self._get_output_filename()),
+            content=self.requesting_code_explanation_prompt,
         )
         return self.apply_get_and_append_assistant_message()
 
@@ -186,7 +200,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             user_agent=self.user_agent,
             assistant_agent=self.assistant_agent,
             actions_and_conversations=self.actions_and_conversations,
-            multi_choice_question=self.offer_revision_prompt.format(self._get_output_filename(),
-                                                                    code_and_output.output),
+            multi_choice_question=self.offer_revision_prompt.format(code_and_output.output),
             possible_choices=('1', '2'),
         ).get_chosen_option()

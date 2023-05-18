@@ -25,7 +25,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', )
+    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -64,9 +64,14 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 0  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
-    background_product_fields = ('data_file_descriptions', 'research_goal')
+    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} a {goal_noun}. 
+        Do not include any data visualization steps.
+        Explicitly specify all relevant analysis results and values that should be calculated.
+        """)
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
@@ -75,7 +80,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'code_and_output')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_analysis_code_and_output')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
@@ -87,7 +92,7 @@ class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
         is fully supported by our data (pay specific attention to the output of our analysis code, above).
 
         If you are satisfied, respond with "{termination_phrase}".
-    """)
+        """)
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \
                                   "Briefly mention the tools used to preform the analysis.\n\n" \
                                   "{quote_request}"
@@ -185,7 +190,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'add tables to'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('results_summary', 'code_and_output', 'title_and_abstract')
+    background_product_fields = ('results_summary', 'data_analysis_code_and_output', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
         In scientific papers, we typically add one or two tables summarizing the main findings.

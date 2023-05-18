@@ -322,7 +322,7 @@ def format_str_by_direct_replace(text: str, replacements: dict):
     return text
 
 
-def evaluate_string(string: str, context: Dict[str, Any] = None):
+def evaluate_string(string: str, context: Dict[str, Any] = None, raise_on_none: bool = False):
     """
     Evaluate all expressions in curly braces in the string.
     For example: evaluate_string('The answer is {2 + 2}.') returns 'The answer is 4.'
@@ -336,8 +336,10 @@ def evaluate_string(string: str, context: Dict[str, Any] = None):
             expr_end = string.find('}', expr_start)
             if expr_end != -1:
                 expr = string[expr_start:expr_end]
-                evaluated_expr = str(eval(expr, context))
-                result += evaluated_expr
+                evaluated_expr = eval(expr, context)
+                if raise_on_none and evaluated_expr is None:
+                    raise ValueError(f'expression {expr} evaluated to None')
+                result += str(evaluated_expr)
             else:
                 result += string[i:]
                 break
