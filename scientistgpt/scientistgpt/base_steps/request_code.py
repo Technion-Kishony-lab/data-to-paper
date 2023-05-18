@@ -130,14 +130,14 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             self._ask_for_code()
             code_and_output = self._run_debugger(code_and_output.code)
             if code_and_output is None:
-                raise FailedCreatingProductException(product_field='code_and_output')
+                raise FailedCreatingProductException(product_field='data_analysis_code_and_output')
             gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
             if gpt_choice == '1':
                 code_and_output.explanation = self._ask_for_code_explanation()
                 code_and_output.name = self.code_name
                 return code_and_output
             self.revision_round += 1
-        raise FailedCreatingProductException(product_field='code_and_output')
+        raise FailedCreatingProductException(product_field='data_analysis_code_and_output')
 
     def _ask_for_code(self):
         self.apply_append_user_message(

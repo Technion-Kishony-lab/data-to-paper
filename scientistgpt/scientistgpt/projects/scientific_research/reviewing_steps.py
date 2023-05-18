@@ -80,7 +80,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'code_and_output')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_analysis_code_and_output')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
@@ -190,7 +190,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'add tables to'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('results_summary', 'code_and_output', 'title_and_abstract')
+    background_product_fields = ('results_summary', 'data_analysis_code_and_output', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     user_initiation_prompt: str = dedent_triple_quote_str("""
         In scientific papers, we typically add one or two tables summarizing the main findings.
