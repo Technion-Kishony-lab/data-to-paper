@@ -313,12 +313,12 @@ def extract_to_nearest_newline(text: str, end: int):
     return text[:newline_before_end]
 
 
-def replace_text_by_dict(text: str, replacements: dict):
+def format_str_by_direct_replace(text: str, replacements: dict):
     """
-    Replace all occurrences of the keys in replacements by their corresponding values.
+    Replace all occurrences of the keys in replacements with their corresponding values.
     """
     for key, value in replacements.items():
-        text = text.replace(key, value)
+        text = text.replace('{' + key + '}', str(value))
     return text
 
 

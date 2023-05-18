@@ -42,33 +42,33 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     code_requesting_prompt: str = dedent_triple_quote_str("""
         Write a complete short Python code to perform the data analysis plan.
         Don't provide a sketch or pseudocode; write a complete runnable code.
-        If needed, you can use the following packages in your code: {{}}.
-        The output of your code should be a text file named "{{}}".
+        If needed, you can use the following packages in your code: {}.
+        The output of your code should be a text file named "{}".
         """)
 
     code_revision_requesting_prompt: str = dedent_triple_quote_str("""
         Revise the code, or just change any key parameters within the code as needed.
-        The output of your new code should be a text file named "{{}}".
+        The output of your new code should be a text file named "{}".
         Send me back the complete revised code.
         Do not just point to what needs to be changed, send the full complete code.
         """)
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
-        Here is the code to perform the analysis. It saves results to the file "{{}}".
+        Here is the code to perform the analysis. It saves results to the file "{}".
         ```python
-        {{}}
+        {}
         ```
         """)  # set to None to not present code
 
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. 
-        Also explain what does the code writes into the {{}} file.
+        Also explain what does the code writes into the {} file.
         """)  # set to None to skip asking for explanation
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{{}}"):
+        I ran your code. Here is the content of the output file that it created ("{}"):
         ```
-        {{}}
+        {}
         ```
 
         Please choose one of the following options:

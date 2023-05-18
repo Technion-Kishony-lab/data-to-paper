@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.text_utils import nicely_join
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
@@ -110,7 +111,8 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.Writer
 
     def __post_init__(self):
-        self.conversation_name = self.conversation_name or str(self.section_names).replace(' ', '_')
+        self.conversation_name = self.conversation_name or nicely_join(self.section_names,
+                                                                       separator='_', last_separator=None)
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
@@ -163,7 +165,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\\\title{{}} and \\\\begin{{abstract}} ... \\\\end{{abstract}} commands, \
+        Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
         """)
 
@@ -174,7 +176,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
                                  'title_and_abstract')
     latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\\\section{{}} command, \
+        Write in tex format including the \\section{} command, \
         and any math or symbols that needs tex escapes.
         """)
 
@@ -196,7 +198,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
         In addition, change the text to refer to the tables (use their labels if necessary),
         so that the tables are incorporated as integral part of the {pretty_section_names} section. 
         Do not add figures, only add tables.
-        Write the section with tables in tex format including \\\\section{{}} command, and any math or symbols that \
+        Write the section with tables in tex format including \\section{} command, and any math or symbols that \
         needs tex escapes.
         """)
 
