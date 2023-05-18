@@ -1,8 +1,8 @@
-import re
-
 from contextlib import contextmanager
 from dataclasses import dataclass, fields
 from typing import Set
+
+from scientistgpt.utils.text_utils import format_str_by_direct_replace
 
 
 def with_attribute_replacement(func):
@@ -13,21 +13,6 @@ def with_attribute_replacement(func):
         with self.attributes_replacement():
             return func(self, *args, **kwargs)
     return wrapper
-
-
-def format_str_while_preserving_curly_brackets(string: str, **kwargs):
-    """
-    Format a string while preserving curly brackets.
-    For example:
-    format_str_while_preserving_curly_brackets('hello {{KEEP ME}} {name}', name='john') == 'hello {{KEEP ME}} john'
-    """
-    for key, value in kwargs.items():
-        try:
-            string = re.sub(r"(?<!{){" + key + r"}(?!})", str(value), string)
-        except Exception as e:
-            print(f'failed to replace {key} -> {value} in {string}')
-            raise e
-    return string
 
 
 def _super_getatter(self, name):
@@ -67,7 +52,7 @@ class Replacer:
     def _format_text(self, text):
         while True:
             old_text = text
-            text = format_str_while_preserving_curly_brackets(text, **self._get_formatting_dict())
+            text = format_str_by_direct_replace(text, self._get_formatting_dict())
             if text == old_text:
                 return text
 
