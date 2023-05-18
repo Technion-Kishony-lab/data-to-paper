@@ -31,7 +31,7 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
 
 @dataclass
 class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceScientificPaperPDF):
-    latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=True, mathescape=True,
+    latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=False, mathescape=False,
                                                      verboptions=r"formatcom=\footnotesize")
 
     def __post_init__(self):
