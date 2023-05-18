@@ -83,6 +83,13 @@ class ScientificProducts(Products):
             '```\n{self.data_exploration_code_and_output.output}\n```\n',
         ),
 
+        'data_exploration_output': (
+            'Output of Data Exploration',
+            ScientificStage.EXPLORATION,
+            'Here is the output of our data exploration code:\n\n'
+            '```\n{self.data_exploration_code_and_output.output}\n```\n',
+        ),
+
         'research_goal': (
             'Research Goal',
             ScientificStage.GOAL,

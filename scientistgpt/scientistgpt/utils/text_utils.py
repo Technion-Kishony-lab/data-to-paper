@@ -24,9 +24,21 @@ def highlight_python_code(code_str: str, is_html: bool = False) -> str:
 
 
 def text_to_html(text: str, textblock: bool = False) -> str:
+
+    # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>
+    text = '|' + text + '|'
     if textblock:
-        return highlight(text, TextLexer(), html_textblock_formatter)
-    return highlight(text, TextLexer(), html_formatter)
+        html = highlight(text, TextLexer(), html_textblock_formatter)
+    else:
+        html = highlight(text, TextLexer(), html_formatter)
+    html = html.replace('|', '', 1).replace('|', '', -1)
+
+    return html.replace('\n', '<br>').replace('<br></pre>', '</pre>', -1)
+
+
+def highlight_html(text):
+    font_family = "font-family: 'Courier', sans-serif;"
+    return f'<pre style="color: #228B22; font-weight: bold; font-size: 20px; {font_family}">{text}</pre>'
 
 
 def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
@@ -39,7 +51,7 @@ def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
     return s
 
 
-def wrap_string(input_string, width=40, indent=0):
+def wrap_string(input_string, width: Optional[int] = 40, indent=0):
     """
     Add linebreaks to wrap a long string.
     """
@@ -49,7 +61,10 @@ def wrap_string(input_string, width=40, indent=0):
 
     # wrap each line individually
     for line in lines:
-        wrapped_line = textwrap.fill(line, width=width)
+        if width is None:
+            wrapped_line = line
+        else:
+            wrapped_line = textwrap.fill(line, width=width)
         wrapped_lines.append(wrapped_line)
 
     # join wrapped lines back together with preserved line breaks
@@ -80,6 +95,7 @@ def print_magenta(text: str, **kwargs):
 
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
                                  width: int = 80, is_html: bool = False, is_comment=False, is_system=False) -> str:
+    text = text.strip()
     if is_comment:
         return f'<pre style="color: #424141; font-weight: bold; font-style: italic; font-size: 16px;">{text}</pre>'
     elif is_system:
@@ -97,12 +113,13 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
                 s += text_color + wrap_string(section, width=width) + colorama.Style.RESET_ALL + '\n'
         else:
             if section.startswith('python'):
-                highlighted_code = highlight_python_code(section, is_html)
-                # check if the first line is the language name
-                if 'python' in highlighted_code.splitlines()[0].lower():
-                    if not is_html:
-                        highlighted_code = '\n'.join(highlighted_code.splitlines()[1:])
-                s += highlighted_code
+                # remove the first line of the language name
+                section = '\n'.join(section.splitlines()[1:])
+                s += highlight_python_code(section, is_html)
+            elif section.startswith('highlight'):
+                # remove the first line of the language name
+                section = '\n'.join(section.splitlines()[1:])
+                s += highlight_html(wrap_string(section, width=width))
             else:
                 if is_html:
                     s += text_to_html(wrap_string(section, width=width), textblock=True)
