@@ -3,7 +3,7 @@ from typing import Optional, Dict, Tuple, Set
 
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products, NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 

@@ -3,7 +3,7 @@ import pytest
 from _pytest.fixtures import fixture
 
 from scientistgpt import Role, Message
-from scientistgpt.utils.text_utils import highlight_python_code
+from scientistgpt.utils.create_html import highlight_python_code
 
 
 @fixture()

@@ -4,7 +4,8 @@ from typing import Optional, Tuple
 
 from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation
 from scientistgpt.utils.replacer import with_attribute_replacement
-from scientistgpt.utils.text_utils import extract_text_between_tags, dedent_triple_quote_str
+from scientistgpt.utils.text_extractors import extract_text_between_tags
+from scientistgpt.utils import dedent_triple_quote_str
 
 from .converser_gpt import ConverserGPT
 
