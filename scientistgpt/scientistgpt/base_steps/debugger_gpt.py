@@ -1,3 +1,4 @@
+import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -121,10 +122,10 @@ class DebuggerGPT(BaseProductsGPT):
         # TODO: this is a hack. Not general.
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            I ran the code. It created {created_files}. But, it didn't save the modified dataframes.
-            Please rewrite the complete code again so that any modified or new dataframes ae saved as new files 
+            I ran the code. It created "{self.output_filename}", but it didn't save the modified dataframes.
+            Please rewrite the complete code again so that any modified/new dataframes are saved as new files \
             in the same directory as the code.
-            """).format(self.output_filename),
+            """),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
     def _respond_to_timeout(self):
@@ -242,7 +243,7 @@ class DebuggerGPT(BaseProductsGPT):
             comment=f'{self.iteration_str}: Code completed, but output file is empty.')
 
     def _respond_to_large_output(self, output: str):
-        print('ChatGPT code created the folowing too-long output:\n{output}')
+        print('ChatGPT code created the following too-long output:\n{output}')
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code, it created the output file {}, but the file is too long!
@@ -263,6 +264,7 @@ class DebuggerGPT(BaseProductsGPT):
         """
         response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code)
         failed_extracting_code = False
+        code_and_output = None
         code_runner = self._get_code_runner(response)
         try:
             code_and_output = self._run_code_runner(code_runner)
@@ -331,6 +333,13 @@ class DebuggerGPT(BaseProductsGPT):
                 message_designation=RangeMessageDesignation.from_(
                     SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -3),  # keeps the last 2 messages
                 comment="Deleting previous debug iterations.")
+
+        # if the code ran, but output was incorrect, we delete any created output files:
+        if code_and_output is not None:
+            with run_in_directory(self.data_folder):
+                for file in code_and_output.created_files:
+                    os.remove(file)
+
         return None  # code failed
 
     def _get_tag(self):

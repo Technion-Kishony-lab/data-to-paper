@@ -17,6 +17,11 @@ class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     fake_performer_request_for_help: str = \
         "Hi {user_skin_name}, could you please help me write {code_name} code for my project?"
+    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
+        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. Also explain what does the code writes into the "{actual_output_filename}" file.
+        """)
 
     @property
     def data_filenames(self) -> NiceList[str]:
@@ -48,7 +53,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Depending on the specifics of the dataset, you might want to include:
 
         * Measure of the scale of our data (e.g., number of rows, number of columns)
-        * Translation of different units into a common sensible unit
+        * Conversion of numeric values with different units into same-unit values
         * Summary statistics of key variables
         * List of most common values of categorical variables (if any) 
         * Counts of missing values
@@ -57,7 +62,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         The output file should be self-contained: any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
 
-        If needed, you can use the following packages which are already installed: {supported_packages}.
+        If needed, you can use the following packages which are already installed:
+        {supported_packages}
         
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
@@ -91,11 +97,15 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Write a complete short Python code to achieve the research goal specified above.
         
         As input, you can load the following raw data files:
+        ```
         {raw_data_filenames}
+        ```
         {description_of_additional_data_files_if_any}
         
         Don't provide a sketch or pseudocode; write a complete runnable code.
-        If needed, you can use the following packages in your code: `numpy`, `pandas` and `scipy`.
+
+        If needed, you can use the following packages which are already installed:
+        {supported_packages}
         
         The output of your code should be a text file named "{actual_output_filename}".
         All results we may need for a scientific paper should be saved to this text file,
@@ -104,12 +114,6 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not write to any other files.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
-        """)
-
-    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
-        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain what does the code writes into the "{actual_output_filename}" file.
         """)
 
     @property
@@ -121,7 +125,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         if self.products.data_exploration_code_and_output is None:
             return NiceList()
         return NiceList(self.products.data_exploration_code_and_output.get_created_files_beside_output_file(),
-                        wrap_with='"')
+                        wrap_with='"', separator='\n', last_separator=None)
 
     @property
     def data_filenames(self) -> NiceList[str]:
@@ -132,4 +136,6 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         if len(self.files_created_during_data_exploration) == 0:
             return ''
         return f'Or you can also use the processed files created above by the data exploration code:\n' \
-               f'{self.files_created_during_data_exploration}'
+               f'```\n' \
+               f'{self.files_created_during_data_exploration}' \
+               f'```\n'
