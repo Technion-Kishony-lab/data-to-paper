@@ -67,7 +67,11 @@ class Replacer:
             return {attr: getattr(self, attr) for attr in self.get_replaced_attributes() | self.ADDITIONAL_DICT_ATTRS}
 
     def __getattribute__(self, item):
-        raw_value = _super_getatter(self, item)
+        try:
+            raw_value = _super_getatter(self, item)
+        except Exception:
+            print(f'Error getting attribute {item} from {self.__class__.__name__}')
+            raise
         if isinstance(raw_value, str) and _super_get_is_replacing(self) and \
                 item in type(self).get_replaced_attributes():
             return _super_getatter(self, '_format_text')(raw_value)
