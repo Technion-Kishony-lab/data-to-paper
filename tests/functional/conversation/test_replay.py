@@ -1,6 +1,6 @@
 from scientistgpt import Role
 from scientistgpt.conversation.conversation_actions import AppendMessage, Message, AppendChatgptResponse
-from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.conversation.conversation_manager import ConversationManager
 from scientistgpt.conversation.replay import replay_actions
 
 

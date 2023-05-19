@@ -5,7 +5,7 @@ from scientistgpt.conversation.conversation_actions import AppendMessage, Append
     FailedChatgptResponse, CopyMessagesBetweenConversations, CreateConversation, \
     NullConversationAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse
 
-from scientistgpt.conversation.converation_manager import ConversationManager
+from scientistgpt.conversation.conversation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 
 
