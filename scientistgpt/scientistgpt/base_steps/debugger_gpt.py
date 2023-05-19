@@ -67,9 +67,9 @@ class DebuggerGPT(BaseProductsGPT):
                           )
 
     def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:
-        result = code_runner.run_code()
-        shutil.move(self.data_folder / self.output_filename, self.output_directory / (self.script_filename + '.txt'))
-        return result
+        code_and_output = code_runner.run_code()
+        # shutil.move(self.data_folder / self.output_filename, self.output_directory / (self.script_filename + '.txt'))
+        return code_and_output
 
     def _respond_to_allowed_packages(self, error_message: str):
         self.apply_append_user_message(

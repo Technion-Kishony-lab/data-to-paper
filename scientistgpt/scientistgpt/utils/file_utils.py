@@ -37,11 +37,12 @@ def run_in_directory(folder: Union[Path, str] = None, allowed_create_files: Set[
     if folder is not None:
         os.chdir(folder)
     pre_existing_files = set(os.listdir())
+    created_files = set()
     try:
-        yield
+        yield created_files
     finally:
+        created_files.update(set(os.listdir()) - pre_existing_files)
         if allowed_create_files is not None:
-            created_files = set(os.listdir()) - pre_existing_files
             un_allowed_created_files = created_files - set(allowed_create_files)
             if un_allowed_created_files:
                 # delete created files:

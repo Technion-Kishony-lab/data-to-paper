@@ -39,8 +39,12 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     output_filename: str = 'data_exploration.txt'
 
     output_content_prompt: str = dedent_triple_quote_str("""
-        Any results you choose to save to this file should be accompanied with a short text description so that \
-        the content of the output file is self-contained, and can be understood even in absence of the Python code.
+        The output file should be self-contained: any results you choose to save to this file \
+        should be accompanied with a short text explaining what they represent, and their \
+        respective units, if any.
+        
+        If you modify or add any new variables to the raw data, you should save the modified
+        dataset in a new file.
         """)
 
     code_mission: str = dedent_triple_quote_str("""
@@ -59,19 +63,35 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
+    ADDITIONAL_DICT_ATTRS = BaseScientificCodeProductsGPT.ADDITIONAL_DICT_ATTRS | {'available_input_files_description'}
     user_agent: ScientificAgent = ScientificAgent.Debugger
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
-    background_product_fields = ['data_file_descriptions', 'data_exploration_code_and_output',
-                                 'research_goal', 'analysis_plan']
+    background_product_fields = ['data_file_descriptions',
+                                 'analysis_plan', 'data_exploration_code_and_output', 'research_goal']
     gpt_script_filename: str = 'data_analysis_code'
     output_content_prompt: str = dedent_triple_quote_str("""
         All results we may need for a scientific paper should be saved to this text file, including \
         analysis findings, summary statistics, etc.
         """)
-    code_mission: str = 'Write a complete short Python code to perform the data analysis plan.'
+    code_mission: str = dedent_triple_quote_str("""
+        Write a complete short Python code to achieve the goal specified above.
+        {available_input_files_description}
+        """)
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
         paper. Also explain what does the code writes into the "{actual_output_filename}" file.
         """)
+
+    @property
+    def available_input_files_description(self) -> str:
+        if self.products.data_exploration_code_and_output is None:
+            return ''
+
+        created_data_files = self.products.data_exploration_code_and_output.get_created_files_beside_output_file()
+        if len(created_data_files) == 0:
+            return ''
+        return f'The following files are available at the code folder:\n' \
+               f'The raw data files: {self.data_filenames}.\n' \
+               f'The files created by the data exploration code: {created_data_files}.\n'

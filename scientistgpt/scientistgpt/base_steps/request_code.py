@@ -48,7 +48,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         If needed, you can use the following packages in your code: {supported_packages}.
         The output of your code should be a text file named "{actual_output_filename}".
         {output_content_prompt}
-        Do not write to any other files.
+
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
         """)

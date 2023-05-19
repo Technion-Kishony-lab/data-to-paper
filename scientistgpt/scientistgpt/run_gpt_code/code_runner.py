@@ -79,9 +79,16 @@ class CodeRunner:
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        run_code_using_module_reload(code,
-                                     save_as=self.script_file_path,  # None to delete
-                                     run_in_folder=self.data_folder,
-                                     allowed_read_files=self.allowed_read_files,
-                                     allowed_write_files=None if self.output_file is None else [self.output_file])
-        return CodeAndOutput(code=code, output=self.read_output_file(), output_file=self.output_file)
+        created_files = run_code_using_module_reload(
+            code=code,
+            save_as=self.script_file_path,  # None to delete
+            run_in_folder=self.data_folder,
+            allowed_read_files=self.allowed_read_files,
+            allowed_write_files=None  # if self.output_file is None else [self.output_file],
+        )
+        return CodeAndOutput(
+            code=code,
+            output=self.read_output_file(),
+            output_file=self.output_file,
+            created_files=created_files,
+        )
