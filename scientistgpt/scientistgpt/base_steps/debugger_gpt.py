@@ -18,7 +18,6 @@ from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 from .base_products_conversers import BaseProductsGPT
 
 
-
 @dataclass
 class DebuggerGPT(BaseProductsGPT):
     """

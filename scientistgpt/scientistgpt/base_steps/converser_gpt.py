@@ -10,7 +10,7 @@ from scientistgpt.conversation import ConversationManager, GeneralMessageDesigna
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
-from scientistgpt.utils.create_html import print_red
+from scientistgpt.utils.highlighted_text import print_red
 from scientistgpt.base_cast import Agent
 
 
