@@ -13,4 +13,6 @@ class CodeAndOutput:
     explanation: Optional[str] = None
 
     def get_created_files_beside_output_file(self) -> Set[str]:
+        if self.created_files is None:
+            return set()
         return self.created_files - {self.output_file}

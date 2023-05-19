@@ -37,6 +37,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     background_product_fields = ['data_file_descriptions']
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
+    allow_creating_files: bool = True
 
     output_content_prompt: str = dedent_triple_quote_str("""
         The output file should be self-contained: any results you choose to save to this file \
@@ -74,7 +75,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         All results we may need for a scientific paper should be saved to this text file, including \
         analysis findings, summary statistics, etc.
         """)
-    code_mission: str = dedent_triple_quote_str("""
+    allow_creating_files: bool = False
         Write a complete short Python code to achieve the goal specified above.
         {available_input_files_description}
         """)

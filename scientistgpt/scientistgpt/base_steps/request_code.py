@@ -23,6 +23,8 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
 
+    allow_creating_files: bool = False
+
     revision_round: int = 0
 
     system_prompt: str = dedent_triple_quote_str("""

@@ -24,6 +24,7 @@ class CodeRunner:
 
     response: str
     allowed_read_files: Optional[list] = None
+    allow_creating_files: bool = False
     output_file: Optional[str] = None
     script_file_path: Optional[Path] = None
     data_folder: Optional[Path] = None
@@ -84,7 +85,8 @@ class CodeRunner:
             save_as=self.script_file_path,  # None to delete
             run_in_folder=self.data_folder,
             allowed_read_files=self.allowed_read_files,
-            allowed_write_files=None  # if self.output_file is None else [self.output_file],
+            allowed_write_files=None if self.allow_creating_files else
+            ([] if self.output_file is None else [self.output_file]),
         )
         return CodeAndOutput(
             code=code,
