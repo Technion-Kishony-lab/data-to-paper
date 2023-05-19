@@ -32,7 +32,7 @@ class ScientificProducts(Products):
         citations = set()
         for section_content, section_citations in self.cited_paper_sections_and_citations.values():
             citations.update(section_citations)
-        return NiceList(citations, separator='\n\n', last_separator=None)
+        return NiceList(citations, separator='\n\n')
 
     @property
     def cited_paper_sections(self) -> Dict[str, str]:

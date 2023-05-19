@@ -5,7 +5,7 @@ StrOrTupleStr = Union[str, Tuple[str, str]]
 
 def nicely_join(words: list, wrap_with: StrOrTupleStr = '',
                 prefix: StrOrTupleStr = '', suffix: StrOrTupleStr = '',
-                separator: str = ', ', last_separator: Optional[str] = ' and ', empty_str: str = ''):
+                separator: str = ', ', last_separator: Optional[str] = None, empty_str: str = ''):
     """
     Concatenate a list of words with commas and an 'and' at the end.
 
@@ -64,7 +64,7 @@ class NiceList(list):
     A list that can be printed nicely.
     """
     def __init__(self, *args, wrap_with: StrOrTupleStr = '', prefix: StrOrTupleStr = '',
-                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: Optional[str] = ' and ',
+                 suffix: StrOrTupleStr = '', separator: str = ', ', last_separator: Optional[str] = None,
                  empty_str: str = ''):
         super().__init__(*args)
         self.wrap_with = wrap_with
