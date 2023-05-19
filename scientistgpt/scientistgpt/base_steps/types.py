@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, List, Union, Tuple, ClassVar, Dict
+from typing import Optional, List, Union, Tuple, Dict, Callable, NamedTuple
 
 from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
-from scientistgpt.utils.text_utils import format_str_by_direct_replace, evaluate_string
 
 
 @dataclass(frozen=True)
@@ -57,13 +56,40 @@ class DataFileDescriptions(List[DataFileDescription]):
         return [data_file_description.file_path for data_file_description in self]
 
 
-NameStageDescription = Tuple[str, Stage, str]
+class NameDescriptionStage(NamedTuple):
+    name: str
+    description: str
+    stage: Stage
 
 
-def get_subfield_variable(subfield: str) -> Optional[str]:
-    if subfield.startswith('{') and subfield.endswith('}'):
-        return subfield[1:-1]
-    return None
+class NameDescriptionStageGenerator(NamedTuple):
+    name: str
+    description: str
+    stage: Stage
+    func: Callable
+
+
+ArgsOrKwargs = Union[Tuple[str], Dict[str, str]]
+
+
+def _format_with_args_or_kwargs(text: str, args_or_kwargs: ArgsOrKwargs) -> str:
+    """
+    Return the text formatted with the given args or kwargs.
+    """
+    if isinstance(args_or_kwargs, tuple):
+        return text.format(*args_or_kwargs)
+    else:
+        return text.format(**args_or_kwargs)
+
+
+def _convert_args_or_kwargs_to_args(args_or_kwargs: ArgsOrKwargs) -> Tuple[str]:
+    """
+    Convert the given args or kwargs to args.
+    """
+    if isinstance(args_or_kwargs, tuple):
+        return args_or_kwargs
+    else:
+        return tuple(args_or_kwargs.values())
 
 
 @dataclass
@@ -73,25 +99,37 @@ class Products:
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
 
-    FIELDS_TO_NAME_STAGE_DESCRIPTION: ClassVar[Dict[str, NameStageDescription]] = {}
+    _fields_to_name_description_stage: Dict[str, NameDescriptionStageGenerator] = None
+    _raise_on_none: bool = False
+
+    def __post_init__(self):
+        self._fields_to_name_description_stage = self._get_generators()
+
+    def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
+        """
+        Return a dictionary mapping product fields to a tuple of
+        (name: str, description: str, stage: Stage, func: Callable).
+        func is a function that creates args for the name and description to be formatted with.
+        """
+        return {}
 
     def get_name(self, product_field: str) -> str:
         """
         Return the name of the given product.
         """
-        return self.get_evaluated_name_stage_description(product_field)[0]
-
-    def get_stage(self, product_field: str) -> Stage:
-        """
-        Return the stage of the given product.
-        """
-        return self.get_evaluated_name_stage_description(product_field)[1]
+        return self._get_name_description_stage(product_field).name
 
     def get_description(self, product_field: str) -> str:
         """
         Return the description of the given product.
         """
-        return self.get_evaluated_name_stage_description(product_field)[2]
+        return self._get_name_description_stage(product_field).description
+
+    def get_stage(self, product_field: str) -> Stage:
+        """
+        Return the stage of the given product.
+        """
+        return self._get_name_description_stage(product_field).stage
 
     @staticmethod
     def extract_subfields(field: str) -> List[str]:
@@ -100,54 +138,59 @@ class Products:
         """
         return field.split(':')
 
-    def get_unformatted_name_stage_description(self, field: str) -> Tuple[NameStageDescription, Dict[str, str]]:
+    def _get_name_description_stage_generators_and_variables(self, field: str) -> Tuple[NameDescriptionStage, ArgsOrKwargs]:
+        """
+        Return the name, stage, and description variables of the given field.
+        """
+        (name, description, stage, func), args = self._get_name_stage_description_generator_and_args(field)
+        variables = func(*args)
+        if not isinstance(variables, (tuple, dict)):
+            variables = (variables, )
+        return NameDescriptionStage(name, description, stage), variables
+
+    def _get_name_description_stage(self, field: str) -> NameDescriptionStage:
+        """
+        Return the name, stage, and description generator of the given field.
+        """
+        (name, description, stage), variables = self._get_name_description_stage_generators_and_variables(field)
+        if self._raise_on_none and any(v is None for v in _convert_args_or_kwargs_to_args(variables)):
+            raise ValueError(f'One of the variables in {variables} is None')
+        name = _format_with_args_or_kwargs(name, variables)
+        description = _format_with_args_or_kwargs(description, variables)
+        return NameDescriptionStage(name, description, stage)
+
+    def _get_name_stage_description_generator_and_args(self, field: str
+                                                       ) -> Tuple[NameDescriptionStageGenerator, List[str]]:
         """
         Return the name, stage, and description of the given field.
         """
         subfields = self.extract_subfields(field)
-        for current_field, name_stage_description in self.FIELDS_TO_NAME_STAGE_DESCRIPTION.items():
+        for current_field, name_stage_description in self._fields_to_name_description_stage.items():
             current_subfields = self.extract_subfields(current_field)
-            variables_to_subfields = {}
+            wildcard_subfields = []
             if len(subfields) == len(current_subfields):
                 for subfield, current_subfield in zip(subfields, current_subfields):
-                    current_subfield_variable = get_subfield_variable(current_subfield)
-                    if current_subfield_variable:
-                        variables_to_subfields[current_subfield_variable] = subfield
+                    if current_subfield == '{}':
+                        wildcard_subfields.append(subfield)
                     elif subfield != current_subfield:
                         break
                 else:
-                    return name_stage_description, variables_to_subfields
+                    return name_stage_description, wildcard_subfields
         raise ValueError(f'Unknown product field: {field}')
-
-    def get_formatted_name_stage_description(self, field: str) -> NameStageDescription:
-        """
-        Return the name, stage, and description of the given field, formatted with the given variables.
-        """
-        (name, stage, description), variables_to_subfields = self.get_unformatted_name_stage_description(field)
-        variables_to_subfields[''] = f'{{self.{field}}}'  # replacing `{}` with `{self.field}`
-        name = format_str_by_direct_replace(name, variables_to_subfields)
-        description = format_str_by_direct_replace(description, variables_to_subfields)
-        return name, stage, description
-
-    def get_evaluated_name_stage_description(self, field: str) -> NameStageDescription:
-        """
-        Return the name, stage, and description of the given field, formatted with the given variables.
-        """
-        name, stage, description = self.get_formatted_name_stage_description(field)
-        name = evaluate_string(name, {'self': self})
-        description = evaluate_string(description, {'self': self})
-        return name, stage, description
 
     def is_product_available(self, field: str) -> bool:
         """
         Return whether the given product is available.
         """
-        name, stage, description = self.get_formatted_name_stage_description(field)
         try:
-            evaluate_string(description, {'self': self}, raise_on_none=True)
-        except (ValueError, KeyError):
+            self._raise_on_none = True
+            _, variables = self._get_name_description_stage_generators_and_variables(field)
+            variables = _convert_args_or_kwargs_to_args(variables)
+            return variables[0] is not None
+        except (KeyError, AttributeError, ValueError):
             return False
-        return True
+        finally:
+            self._raise_on_none = False
 
-    def __getitem__(self, item):
-        return self.get_evaluated_name_stage_description(item)
+    def __getitem__(self, item) -> NameDescriptionStage:
+        return self._get_name_description_stage(item)
