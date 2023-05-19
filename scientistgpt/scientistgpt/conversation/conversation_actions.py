@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, List, Set
 
+from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES, DEBUG
 from scientistgpt.utils.text_utils import red_text
 from scientistgpt.base_cast import Agent
 
@@ -13,7 +14,6 @@ from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
 from .actions_and_conversations import Conversations
-from ..env import DELAY_AUTOMATIC_RESPONSES
 
 NoneType = type(None)
 
@@ -148,9 +148,10 @@ class AppendMessage(ChangeMessagesConversationAction):
     message: Message = None
 
     adjust_message_for_web: dict = None
-    # If True, show the message on the web conversation as if it was sent by the other participant.
 
     delay: float = DELAY_AUTOMATIC_RESPONSES
+
+    parameters_for_web: dict = field(default_factory=dict)
 
     def _get_delay(self):
         return self.ROLE_TO_DELAY[self.message.role]
@@ -175,11 +176,17 @@ class AppendMessage(ChangeMessagesConversationAction):
             return len(self.conversation)
         return tag_index
 
+    def should_add_to_conversation(self) -> bool:
+        """
+        Return True if the message should be added to the conversation.
+        """
+        return self.conversation_name is not None and not self.message.ignore
+
     def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
         # Note 1: the conversation len assumes this method is called right before the message is appended.
         # Note 2: we are only adding the text from the super method we have comments or are rewinding. Otherwise, we
         #         the message we print has the other information (conversation name and role).
-        if self.conversation_name is None:
+        if not self.should_add_to_conversation():
             return ''
         s = ''
         if self.comment or self._pretty_attrs():
@@ -201,7 +208,7 @@ class AppendMessage(ChangeMessagesConversationAction):
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
         """
-        if self.conversation_name is None:
+        if not self.should_add_to_conversation():
             return
         message_index = self._get_message_index()
         index = self._get_index_of_tag()
@@ -226,6 +233,13 @@ class AppendMessage(ChangeMessagesConversationAction):
         if self.message.is_background is None and any(self.get_message_for_web() == m for m in self.web_conversation) \
                 or self.message.is_background is True:
             return False
+        if DEBUG and self.conversation is not None and self.should_add_to_conversation() and \
+                self.message.role != Role.COMMENTER:
+            self.parameters_for_web['real_index'] = len(self.conversation.get_chosen_indices_and_messages())
+        else:
+            self.parameters_for_web['real_index'] = None
+
+        print('REAL INDEX = ', self.parameters_for_web['real_index'])
         if self.delay is not None:
             time.sleep(self.delay)
         self.web_conversation.append(self.get_message_for_web())

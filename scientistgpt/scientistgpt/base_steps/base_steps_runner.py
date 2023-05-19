@@ -65,7 +65,6 @@ class BaseStepsRunner(BaseProductsHandler):
         """
         Advance the stage of the research goal.
         """
-        print('SENDING SET ACTIVE CONVERSATION')
         self.actions_and_conversations.actions.apply_action(SetActiveConversation(agent=agent))
 
     def advance_stage_and_set_active_conversation(self, stage: Stage = None, agent: Agent = None):

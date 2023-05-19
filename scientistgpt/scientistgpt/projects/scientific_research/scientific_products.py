@@ -78,8 +78,8 @@ class ScientificProducts(Products):
         'data_exploration_code_and_output': (
             'Data Exploration',
             ScientificStage.EXPLORATION,
-            'Here is our data exploration code:\n\n```python\n{self.data_exploration_code_and_output.code}\n```\n'
-            'Here is the output of our data exploration code:\n\n'
+            'Here is our data exploration code:\n\n```python\n{self.data_exploration_code_and_output.code}\n```\n\n'
+            'Here is the output of our data exploration code:\n'
             '```\n{self.data_exploration_code_and_output.output}\n```\n',
         ),
 

@@ -11,7 +11,7 @@ data_file_descriptions: DataFileDescriptions = DataFileDescriptions([
             This is a csv file containing reports of side effects followed by vaccination with the \
             "Pfizer BioNTech (BNT162b2) COVID-19 vaccine" vaccine, in Israel.
 
-            Each line indicates a side effect event, of a patient reporting a side effect event after vaccination. 
+            Each line indicates a reported side effect of a patient after vaccination. 
             
             The file has 6 columns: 
             #1 "PortionNum" - the number of inoculated vaccine portions (1, 2, 3 or 4).
