@@ -175,11 +175,17 @@ class AppendMessage(ChangeMessagesConversationAction):
             return len(self.conversation)
         return tag_index
 
+    def should_add_to_conversation(self) -> bool:
+        """
+        Return True if the message should be added to the conversation.
+        """
+        return self.conversation_name is not None and not self.message.ignore
+
     def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
         # Note 1: the conversation len assumes this method is called right before the message is appended.
         # Note 2: we are only adding the text from the super method we have comments or are rewinding. Otherwise, we
         #         the message we print has the other information (conversation name and role).
-        if self.conversation_name is None:
+        if not self.should_add_to_conversation():
             return ''
         s = ''
         if self.comment or self._pretty_attrs():
@@ -201,7 +207,7 @@ class AppendMessage(ChangeMessagesConversationAction):
         Append a message to the conversation.
         Reset the conversation to the previous tag if the tag already exists.
         """
-        if self.conversation_name is None:
+        if not self.should_add_to_conversation():
             return
         message_index = self._get_message_index()
         index = self._get_index_of_tag()
