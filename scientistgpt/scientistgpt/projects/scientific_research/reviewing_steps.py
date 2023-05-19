@@ -116,8 +116,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.Writer
 
     def __post_init__(self):
-        self.conversation_name = self.conversation_name or nicely_join(self.section_names,
-                                                                       separator='_', last_separator=None)
+        self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
 
     system_prompt: str = dedent_triple_quote_str("""
