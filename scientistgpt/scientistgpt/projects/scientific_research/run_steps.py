@@ -75,7 +75,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
         self.send_product_to_client('analysis_plan')
 
-        # Code and output
+        # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
         products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
         self.send_product_to_client('data_analysis_code_and_output')

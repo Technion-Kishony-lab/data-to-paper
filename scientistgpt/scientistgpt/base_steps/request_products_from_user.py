@@ -34,13 +34,13 @@ class DirectorProductGPT(BaseBackgroundProductsGPT):
         """
         Ask the user for a product, such as data description, or goal.
         """
-        self.apply_append_surrogate_message(self.provide_product_message)
-        self.apply_append_user_message(self.thanks_message)
+        self.apply_append_surrogate_message(self.provide_product_message, ignore=True)
+        self.apply_append_user_message(self.thanks_message, ignore=True)
         return self.returned_product
 
     def _get_no_product(self):
-        self.apply_append_surrogate_message(self.no_product_message)
-        self.apply_append_user_message(self.acknowledge_no_product_message)
+        self.apply_append_surrogate_message(self.no_product_message, ignore=True)
+        self.apply_append_user_message(self.acknowledge_no_product_message, ignore=True)
         return None
 
     @with_attribute_replacement
@@ -50,7 +50,7 @@ class DirectorProductGPT(BaseBackgroundProductsGPT):
         """
         self.set(**kwargs)
         self.initialize_conversation_if_needed()
-        self.apply_append_user_message(self.request_product_message)
+        self.apply_append_user_message(self.request_product_message, ignore=True)
         if self.returned_product is None:
             return self._get_no_product()
         else:
