@@ -239,7 +239,6 @@ class AppendMessage(ChangeMessagesConversationAction):
         else:
             self.parameters_for_web['real_index'] = None
 
-        print('REAL INDEX = ', self.parameters_for_web['real_index'])
         if self.delay is not None:
             time.sleep(self.delay)
         self.web_conversation.append(self.get_message_for_web())
