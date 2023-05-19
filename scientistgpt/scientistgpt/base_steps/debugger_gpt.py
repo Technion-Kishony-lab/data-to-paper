@@ -34,8 +34,8 @@ class DebuggerGPT(BaseProductsGPT):
     * too long runs (timeout)
     * output file not created
     """
-
     model_engine: ModelEngine = ModelEngine.GPT35_TURBO
+    allow_creating_files: bool = False
     assistant_agent: Agent = None
     user_agent: Agent = None
 
@@ -62,6 +62,7 @@ class DebuggerGPT(BaseProductsGPT):
         return CodeRunner(response=response,
                           allowed_read_files=self.data_files,
                           output_file=self.output_filename,
+                          allow_creating_files=self.allow_creating_files,
                           script_file_path=self.output_directory / self.script_filename,
                           data_folder=self.data_folder,
                           )
