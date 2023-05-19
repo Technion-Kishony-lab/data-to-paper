@@ -1,6 +1,6 @@
 import textwrap
 import re
-from typing import Tuple, Union, Optional, Dict, Any
+from typing import Tuple, Union, Optional
 
 import colorama
 from pygments.formatters.html import HtmlFormatter
@@ -341,31 +341,3 @@ def format_str_by_direct_replace(text: str, replacements: dict):
     for key, value in replacements.items():
         text = text.replace('{' + key + '}', str(value))
     return text
-
-
-def evaluate_string(string: str, context: Dict[str, Any] = None, raise_on_none: bool = False):
-    """
-    Evaluate all expressions in curly braces in the string.
-    For example: evaluate_string('The answer is {2 + 2}.') returns 'The answer is 4.'
-    """
-    context = context or {}
-    result = ""
-    i = 0
-    while i < len(string):
-        if string[i] == '{':
-            expr_start = i + 1
-            expr_end = string.find('}', expr_start)
-            if expr_end != -1:
-                expr = string[expr_start:expr_end]
-                evaluated_expr = eval(expr, context)
-                if raise_on_none and evaluated_expr is None:
-                    raise ValueError(f'expression {expr} evaluated to None')
-                result += str(evaluated_expr)
-            else:
-                result += string[i:]
-                break
-            i = expr_end + 1
-        else:
-            result += string[i]
-            i += 1
-    return result
