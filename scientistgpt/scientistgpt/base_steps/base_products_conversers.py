@@ -4,9 +4,9 @@ from typing import List, Tuple
 
 from .types import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
-from ..utils import dedent_triple_quote_str
-from ..utils.copier import Copier
-from ..utils.text_utils import NiceList
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.copier import Copier
+from scientistgpt.utils.nice_list import NiceList
 
 
 @dataclass
@@ -89,12 +89,12 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
             return NiceList()
         return NiceList(
             [self.products.get_name(product_field) for product_field in self.actual_background_product_fields],
-            wrap_with='"', separator=', ', last_separator=None, empty_str='')
+            wrap_with='"', separator=', ', empty_str='')
 
     @property
     def vertical_actual_background_product_names(self) -> NiceList:
         return NiceList([name for name in self.actual_background_product_names],
-                        wrap_with='', separator='\n', last_separator=None, empty_str='NO BACKGROUND PRODUCTS')
+                        wrap_with='', separator='\n', empty_str='NO BACKGROUND PRODUCTS')
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, fields
 from typing import Set
 
-from scientistgpt.utils.text_utils import format_str_by_direct_replace
+from scientistgpt.utils.text_formatting import format_str_by_direct_replace
 
 
 def with_attribute_replacement(func):

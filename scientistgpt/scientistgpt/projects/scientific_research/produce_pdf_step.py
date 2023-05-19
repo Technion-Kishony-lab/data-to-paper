@@ -6,7 +6,7 @@ from pygments.lexers import PythonLexer
 
 from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
-from scientistgpt.utils.text_utils import wrap_python_code
+from scientistgpt.utils.code_utils import wrap_python_code
 
 
 @dataclass

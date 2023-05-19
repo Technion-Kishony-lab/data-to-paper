@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Set
 
 from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES, DEBUG
-from scientistgpt.utils.text_utils import red_text
+from scientistgpt.utils.highlighted_text import red_text
 from scientistgpt.base_cast import Agent
 
 from .actions_and_conversations import Action

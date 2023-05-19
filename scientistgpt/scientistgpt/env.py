@@ -1,8 +1,8 @@
 # SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'seaborn', 'sklearn']
 from scientistgpt.servers.openai_models import ModelEngine
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 
-SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy'], wrap_with='`')
+SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy'], wrap_with='`', prefix='[', suffix=']')
 
 OPENAI_API_KEY = "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"
 
