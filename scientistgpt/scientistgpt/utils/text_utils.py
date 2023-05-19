@@ -38,7 +38,7 @@ def text_to_html(text: str, textblock: bool = False) -> str:
 
 def highlight_html(text):
     font_family = "font-family: 'Courier', sans-serif;"
-    return f'<pre style="color: #228B22; font-weight: bold; font-size: 20px; {font_family}">{text}</pre>'
+    return f'<pre style="color: #334499; font-weight: bold; font-size: 20px; {font_family}">{text}</pre>'
 
 
 def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
