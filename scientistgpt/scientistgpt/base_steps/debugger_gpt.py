@@ -116,6 +116,17 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
+    def _respond_to_missing_output_files(self, created_files: List[str]):
+
+        # TODO: this is a hack. Not general.
+        self.apply_append_user_message(
+            content=dedent_triple_quote_str(f"""
+            I ran the code. It created {created_files}. But, it didn't save the modified dataframes.
+            Please rewrite the complete code again so that any modified or new dataframes ae saved as new files 
+            in the same directory as the code.
+            """).format(self.output_filename),
+            comment=f'{self.iteration_str}: Code completed, but no output file created.')
+
     def _respond_to_timeout(self):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
@@ -305,6 +316,9 @@ class DebuggerGPT(BaseProductsGPT):
             elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE:
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
+            elif len(code_and_output.created_files) < self.number_of_required_output_files:
+                # The code ran successfully, but not all required output files were created.
+                self._respond_to_missing_output_files(list(code_and_output.created_files))
             else:
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
