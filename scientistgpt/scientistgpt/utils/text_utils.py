@@ -1,6 +1,6 @@
 import textwrap
 import re
-from typing import Tuple, Union, Optional, Dict, Any
+from typing import Tuple, Union, Optional
 
 import colorama
 from pygments.formatters.html import HtmlFormatter

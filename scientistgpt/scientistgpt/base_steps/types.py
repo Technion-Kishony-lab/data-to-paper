@@ -138,7 +138,8 @@ class Products:
         """
         return field.split(':')
 
-    def _get_name_description_stage_generators_and_variables(self, field: str) -> Tuple[NameDescriptionStage, ArgsOrKwargs]:
+    def _get_name_description_stage_generators_and_variables(self, field: str
+                                                             ) -> Tuple[NameDescriptionStage, ArgsOrKwargs]:
         """
         Return the name, stage, and description variables of the given field.
         """

@@ -179,7 +179,9 @@ class ScientificProducts(Products):
                 'The {section_name} Section of the Paper',
                 'Here is the {section_name} section of the paper:\n\n{content}',
                 ScientificStage.WRITING,
-                lambda section_name: {'section_name': section_name.title(), 'content': self.paper_sections[section_name], },
+                lambda section_name: {'section_name': section_name.title(),
+                                      'content': self.paper_sections[section_name],
+                                      },
             ),
 
             'cited_paper_sections_and_citations:{}': NameDescriptionStageGenerator(
