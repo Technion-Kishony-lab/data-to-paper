@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
-from scientistgpt.utils.extract_code import extract_code_from_text
+from scientistgpt.utils.code_utils import extract_code_from_text
 
 from .types import CodeAndOutput
 from .exceptions import FailedExtractingCode, FailedLoadingOutput

@@ -12,10 +12,11 @@ from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRun
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.servers.openai_models import ModelEngine
+from scientistgpt.utils.file_utils import UnAllowedFilesCreated
+from scientistgpt.utils.text_extractors import extract_to_nearest_newline
+
 from .base_products_conversers import BaseProductsGPT
 
-from ..utils.file_utils import UnAllowedFilesCreated
-from ..utils.text_utils import extract_to_nearest_newline
 
 
 @dataclass

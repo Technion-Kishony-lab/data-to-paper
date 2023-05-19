@@ -1,6 +1,6 @@
 # SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'seaborn', 'sklearn']
 from scientistgpt.servers.openai_models import ModelEngine
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 
 SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy'], wrap_with='`')
 

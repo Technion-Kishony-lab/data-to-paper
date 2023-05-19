@@ -5,7 +5,7 @@ from scientistgpt.latex import FailedToExtractLatexContent, extract_latex_sectio
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 
 from .base_products_conversers import BaseProductsReviewGPT
 
