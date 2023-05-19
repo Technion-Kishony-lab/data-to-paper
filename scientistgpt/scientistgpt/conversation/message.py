@@ -11,6 +11,7 @@ from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count
+from scientistgpt.utils.code_utils import wrap_text_with_triple_quotes
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -120,14 +121,18 @@ class Message:
                 f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
         return content, is_replacing
 
-    def pretty_content(self, text_color, block_color, width, is_html=False, is_comment=False, is_system=False,
-                       header: str = '') -> str:
+    def pretty_content(self, text_color, block_color, width, is_html=False, header: str = '') -> str:
         """
         Returns a pretty repr of just the message content.
         """
-        return format_text_with_code_blocks(text=header + self.get_content_after_hiding_incomplete_code()[0],
+        content = header + self.get_content_after_hiding_incomplete_code()[0]
+        if self.role == Role.SYSTEM:
+            content = wrap_text_with_triple_quotes(content, 'system')
+        if self.role == Role.COMMENTER:
+            content = wrap_text_with_triple_quotes(content, 'comment')
+        return format_text_with_code_blocks(text=content,
                                             text_color=text_color, block_color=block_color, width=width,
-                                            is_html=is_html, is_comment=is_comment, is_system=is_system)
+                                            is_html=is_html)
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
@@ -172,8 +177,7 @@ class CodeMessage(Message):
         diff = list(diff)[3:]
         return '\n'.join(diff)
 
-    def pretty_content(self, text_color, block_color, width, is_html=False, is_comment=False, is_system=False,
-                       header: str = ''):
+    def pretty_content(self, text_color, block_color, width, is_html=False, header: str = ''):
         """
         We override this method to replace the code within the message with the diff.
         """
@@ -186,8 +190,7 @@ class CodeMessage(Message):
                     self.extracted_code,
                     "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
                     else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
-        return format_text_with_code_blocks(header + content, text_color, block_color, width, is_html=is_html,
-                                            is_comment=is_comment, is_system=is_system)
+        return format_text_with_code_blocks(header + content, text_color, block_color, width, is_html=is_html)
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,

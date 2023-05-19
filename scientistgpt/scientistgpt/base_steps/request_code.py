@@ -7,7 +7,7 @@ from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseBackgroundProductsGPT

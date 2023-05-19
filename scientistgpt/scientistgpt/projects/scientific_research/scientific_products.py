@@ -3,7 +3,7 @@ from typing import Optional, Dict, Tuple, Set
 
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products, NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
@@ -32,7 +32,7 @@ class ScientificProducts(Products):
         citations = set()
         for section_content, section_citations in self.cited_paper_sections_and_citations.values():
             citations.update(section_citations)
-        return NiceList(citations, separator='\n\n', last_separator=None)
+        return NiceList(citations, separator='\n\n')
 
     @property
     def cited_paper_sections(self) -> Dict[str, str]:

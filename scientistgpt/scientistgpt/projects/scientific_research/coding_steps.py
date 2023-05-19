@@ -6,7 +6,7 @@ from scientistgpt.base_steps import BaseCodeProductsGPT
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.text_utils import NiceList
+from scientistgpt.utils.nice_list import NiceList
 
 
 @dataclass
