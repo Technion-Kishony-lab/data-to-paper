@@ -51,6 +51,13 @@ def is_code_in_response(response: str) -> bool:
     return len(sections) > 1 and PYTHON_KEYWORD in sections[1]
 
 
+def wrap_text_with_triple_quotes(text: str, header: str = '') -> str:
+    """
+    Wrap text with triple quotes.
+    """
+    return f'```{header}\n{text}\n```'
+
+
 def wrap_python_code(code, width=70):
     wrapped_lines = []
     for line in code.splitlines():
