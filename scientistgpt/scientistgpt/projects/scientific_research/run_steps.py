@@ -27,6 +27,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     research_goal: Optional[str] = None
 
     should_do_data_exploration: bool = True
+    should_prepare_data_analysis_plan: bool = False
     should_add_citations: bool = True
     should_add_tables: bool = True
 
@@ -71,9 +72,10 @@ class ScientificStepsRunner(BaseStepsRunner):
         self.send_product_to_client('research_goal')
 
         # Analysis plan
-        self.advance_stage_and_set_active_conversation(ScientificStage.PLAN, ScientificAgent.PlanReviewer)
-        products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
-        self.send_product_to_client('analysis_plan')
+        if self.should_prepare_data_analysis_plan:
+            self.advance_stage_and_set_active_conversation(ScientificStage.PLAN, ScientificAgent.PlanReviewer)
+            products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
+            self.send_product_to_client('analysis_plan')
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
