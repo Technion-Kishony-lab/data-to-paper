@@ -3,7 +3,6 @@ from typing import Tuple
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
-from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
 
 from .cast import ScientificAgent

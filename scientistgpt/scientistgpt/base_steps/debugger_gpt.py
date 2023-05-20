@@ -1,7 +1,7 @@
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, ClassVar, List
+from typing import Optional, List
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
