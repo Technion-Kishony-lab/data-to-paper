@@ -34,7 +34,7 @@ class DebuggerGPT(BaseProductsGPT):
     * too long runs (timeout)
     * output file not created
     """
-    model_engine: ClassVar[ModelEngine] = None
+
     assistant_agent: Agent = None
     user_agent: Agent = None
 
