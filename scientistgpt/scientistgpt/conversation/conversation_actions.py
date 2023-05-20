@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, List, Set
 
-from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES, DEBUG
+from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES
 from scientistgpt.utils.highlighted_text import red_text
 from scientistgpt.base_cast import Agent
 
