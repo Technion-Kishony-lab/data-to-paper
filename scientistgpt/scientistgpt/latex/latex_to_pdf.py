@@ -63,6 +63,20 @@ MATH_PATTERN = r"""
 """
 
 
+def process_non_math_part(text):
+    # Process non-math part and replace special characters if not already escaped
+    processed_part = ""
+    i = 0
+    while i < len(text):
+        char = text[i]
+        if char in CHARS and (i == 0 or text[i - 1] != '\\'):
+            processed_part += CHARS[char]
+        else:
+            processed_part += char
+        i += 1
+    return processed_part
+
+
 def replace_special_chars(text):
     result = []
     last_end = 0
@@ -70,35 +84,19 @@ def replace_special_chars(text):
     for match in regex.finditer(MATH_PATTERN, text, flags=regex.VERBOSE):
         non_math_part = text[last_end:match.start()]
 
-        # Process non-math part and replace special characters if not already escaped
-        processed_part = ""
-        i = 0
-        while i < len(non_math_part):
-            char = non_math_part[i]
-            if char in CHARS and (i == 0 or non_math_part[i - 1] != '\\'):
-                processed_part += CHARS[char]
-            else:
-                processed_part += char
-            i += 1
-
+        processed_part = process_non_math_part(non_math_part)
         result.append(processed_part)
 
-        math_part = match.group()
+        possibly_math_part = match.group()
+        # find `\caption{...} parts in possibly_math_part and apply escaping on what's inside the curly braces
+        math_part = regex.sub(r'\\caption\{.*?\}', lambda m: m.group().replace(m.group(0)[9:-1], process_non_math_part(m.group(0)[9:-1])), possibly_math_part)
         result.append(math_part)
 
         last_end = match.end()
 
     # Process the remaining non-math part after the last match
     non_math_part = text[last_end:]
-    processed_part = ""
-    i = 0
-    while i < len(non_math_part):
-        char = non_math_part[i]
-        if char in CHARS and (i == 0 or non_math_part[i - 1] != '\\'):
-            processed_part += CHARS[char]
-        else:
-            processed_part += char
-        i += 1
+    processed_part = process_non_math_part(non_math_part)
     result.append(processed_part)
 
     return "".join(result)
