@@ -90,4 +90,3 @@ def collect_changed_data_frames(allow_changing_existing_series=False):
         yield changed_data_frames
     finally:
         ChangeReportingDataFrame.set_on_change(original_on_change, original_allow_changing_existing_series)
-
