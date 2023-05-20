@@ -35,6 +35,7 @@ class DebuggerGPT(BaseProductsGPT):
     * output file not created
     """
 
+    model_engine: ModelEngine = ModelEngine.GPT35_TURBO
     assistant_agent: Agent = None
     user_agent: Agent = None
 
@@ -122,23 +123,32 @@ class DebuggerGPT(BaseProductsGPT):
             """),
             comment=f'{self.iteration_str}: GPT code has timed out.')
 
-    def _respond_to_missing_or_incomplete_code(self, number_of_code_edges: int):
+    def _respond_to_incomplete_code(self):
+        if self.model_engine <= ModelEngine.GPT35_TURBO:
+            response = "Your sent incomplete code. Let's bump you up to GPT-4 and retry!"
+        else:
+            response = "Your sent incomplete code. Please regenerate response."
+        self.apply_append_user_message(
+            content=response,
+            comment=f'{self.iteration_str}: GPT code is incomplete.')
+
+        # delete the last two messages (incomplete code and this just-posted user response):
+        self.conversation_manager.delete_messages((-2, -1))
+        self.model_engine = ModelEngine.GPT4
+
+    def _respond_to_missing_multiple_or_incomplete_code(self, number_of_code_edges: int):
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
         """
+        if number_of_code_edges % 2 == 1:
+            self._respond_to_incomplete_code()
         if number_of_code_edges == 0:
             response = dedent_triple_quote_str("""
             You did not send any code. 
             Please try again, make sure your code is enclosed within triple-backticks.
             """)
             tag = 'no_code'
-        elif number_of_code_edges % 2 == 1:
-            response = dedent_triple_quote_str("""
-            Your code is incomplete. Please try again with a shorter code. Remove comments to help condense the code \
-            into a single code block.
-            """)
-            tag = 'incomplete_code'
         else:
             response = dedent_triple_quote_str("""
             Please send your code in a single code block.
@@ -247,7 +257,7 @@ class DebuggerGPT(BaseProductsGPT):
         except FailedExtractingCode as e:
             # code is missing or incomplete
             failed_extracting_code = True
-            self._respond_to_missing_or_incomplete_code(e.number_of_code_edges)
+            self._respond_to_missing_multiple_or_incomplete_code(e.number_of_code_edges)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
             self.previous_code = code_runner.extract_code()
