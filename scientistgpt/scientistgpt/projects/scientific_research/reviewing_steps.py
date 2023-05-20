@@ -54,15 +54,15 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         When you feel that the provided research goal is interesting and can be achieved without requiring \
         additional data except the provided dataset, respond explicitly with: 
         "{termination_phrase}" (termination-phrase).
-        If you feel that the initial goal description that I send you is already interesting, well defined, \
-        and fits the provided data, it is perfectly fine and encouraged to respond with with termination-phrase \
+        Only if you feel that the initial goal description that I send you is already interesting, well defined, \
+        and fits the provided data, respond with with termination-phrase \
         immediately, without requesting any improvement cycles.
         """)
 
 
 @dataclass
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
-    max_reviewing_rounds: int = 0  # no review cycles
+    max_reviewing_rounds: int = 1  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
     background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
     conversation_name: str = 'analysis_plan'
@@ -190,7 +190,7 @@ class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'add tables to'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ('results_summary', 'data_analysis_code_and_output', 'title_and_abstract')
-    max_reviewing_rounds: int = 0
+    max_reviewing_rounds: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
         In scientific papers, we typically add one or two tables summarizing the main findings.
 
