@@ -53,14 +53,14 @@ def test_dataframe_context_collects_changed_dataframes():
 
 
 def test_dataframe_read_csv_creates_reporting_dataframe(tmpdir_with_csv_file):
-    with collect_changed_data_frames() as changed_data_frames:
+    with collect_changed_data_frames():
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
     assert type(df) is ChangeReportingDataFrame
 
 
 def test_dataframe_read_csv_is_not_collected_if_did_not_changed(tmpdir_with_csv_file):
     with collect_changed_data_frames() as changed_data_frames:
-        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+        pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
     assert len(changed_data_frames) == 0
 
 

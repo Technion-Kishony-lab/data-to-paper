@@ -28,7 +28,7 @@ def test_server_mock_exception_when_no_responses_left():
     server = MockServer()
     with server.mock(old_records=['response1'], record_more_if_needed=False) as mock:
         assert mock.get_server_response() == 'response1'
-        with pytest.raises(AssertionError) as e:
+        with pytest.raises(AssertionError):
             mock.get_server_response()
 
 
@@ -67,11 +67,11 @@ def test_mock_server_save_load_responses_to_file(tmpdir):
     file_path = os.path.join(tmpdir, 'responses.txt')
     with server.mock(file_path=file_path, should_save=True) as mock:
         assert mock.get_server_response() == 'response'
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ValueError):
             mock.get_server_response(True)
 
     new_server = MockServer()
     with new_server.mock_with_file(file_path=file_path) as mock:
         assert mock.get_server_response() == 'response'
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ValueError):
             mock.get_server_response()

@@ -119,7 +119,7 @@ class ServerCaller:
         """
         # create the directory if not exist
         Path(os.path.dirname(file_path)).mkdir(parents=True, exist_ok=True)
-        self._save_records( self.old_records + self.new_records, file_path)
+        self._save_records(self.old_records + self.new_records, file_path)
 
     def mock_with_file(self, file_path, record_more_if_needed=True, fail_if_not_all_responses_used=True,
                        should_save=True):
@@ -166,4 +166,3 @@ class ServerCaller:
             return wrapper if should_mock else func
 
         return decorator
-
