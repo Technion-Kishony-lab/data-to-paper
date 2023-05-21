@@ -10,8 +10,8 @@ __pycache__/
 *.so
 
 .DS_Store
-icd_analysis/local_paths.py
-covid_vaccine_analysis/local_paths.py
+examples/icd_analysis/local_paths.py
+examples/covid_vaccine_analysis/local_paths.py
 
 sciserv/sciserv.egg-info/
 

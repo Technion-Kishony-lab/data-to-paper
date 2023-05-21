@@ -1,7 +1,0 @@
-Total patients: 46517
-Total male patients: 26119
-Total female patients: 20398
-Total diagnoses: 651000
-Total male diagnoses: 362740
-Total female diagnoses: 288260
-Based on the t-test, the hypothesis that there is a significant difference in the prevalence of diagnoses between males and females is REJECTED. 
