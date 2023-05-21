@@ -87,7 +87,7 @@ class CodeRunner:
             allowed_read_files=self.allowed_read_files,
             allowed_write_files=None if self.allowed_created_files is None  # allow all files to be created
             else (self.allowed_created_files if self.output_file is None
-                  else set(self.allowed_created_files).add(self.output_file)),
+                  else set(self.allowed_created_files) | {self.output_file}),
             allow_dataframes_to_change_existing_series=False,
             run_in_folder=self.data_folder)
         return CodeAndOutput(
