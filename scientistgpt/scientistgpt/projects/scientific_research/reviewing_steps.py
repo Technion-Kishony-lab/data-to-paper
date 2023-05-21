@@ -102,13 +102,13 @@ class TablesReviewGPT(BasePythonValueProductsReviewGPT):
         The tables should be centered, in booktabs, multirow format with caption and label. 
         Make sure that the tables are not too wide, so that they fit text width.
         The tables should be returned in a dictionary, where the keys are the table titles, and the values are the \
-        latex code for the tables.
+        latex for the tables.
         like this:
         {
             'my_first_table': '\\begin{{table}} ... \\end{{table}}',
             'my_second_table': '\\begin{{table}} ... \\end{{table}}',
         }
-        {quote_request}
+        Do not write code! write the tables in latex format.
         """)
 
     def _check_response_value(self, response_value: Any) -> Optional[str]:
@@ -148,7 +148,6 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are relevant to the specific \
         results we got in the output.
-        {quote_request}
         """)
 
 
