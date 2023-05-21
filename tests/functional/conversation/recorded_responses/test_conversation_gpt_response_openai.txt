@@ -1,4 +1,3 @@
-START>>>>>
-As an AI language model, I don't have feelings like humans do, but I am functioning properly and ready to assist you in any way I can. Thank you for asking!
-<<<<<END
-
+[
+    "As an AI language model, I do not have feelings like humans, but I am functioning properly. Thank you for asking! How may I assist you?"
+]

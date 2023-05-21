@@ -1,7 +1,7 @@
 import builtins
 import traceback
 from contextlib import contextmanager
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Iterable
 
 from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
@@ -12,7 +12,7 @@ IMPORTING_PACKAGES = []
 
 
 @contextmanager
-def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files: List[str] = None):
+def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_files: Iterable[str] = None):
     """
     Context manager for restricting the code from opening un-allowed files.
 
@@ -43,7 +43,7 @@ def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files:
 
 
 @contextmanager
-def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
+def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str]] = None):
     """
     Context manager for catching when the code tries to use certain forbidden functions.
 
