@@ -31,15 +31,6 @@ class OpenaiSeverCaller(ServerCaller):
     file_extension = '_openai.txt'
 
     @staticmethod
-    def _save_records(file, records):
-        for response in records:
-            file.write(SAVE_TAGS.wrap(response) + '\n')
-
-    @staticmethod
-    def _load_records(file):
-        return re.findall(SAVE_TAGS.wrap("(.*?)"), file.read(), re.DOTALL)
-
-    @staticmethod
     def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
         """
         Connect with openai to get response to conversation.
