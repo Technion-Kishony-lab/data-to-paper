@@ -133,7 +133,7 @@ class Message:
             content = wrap_text_with_triple_quotes(content, 'system')
         if self.role == Role.COMMENTER:
             content = wrap_text_with_triple_quotes(content, 'comment')
-        if with_header:
+        if with_header and self.role != Role.COMMENTER and self.effective_index_in_conversation is not None:
             chatgpt_parameters = f'({self.openai_call_parameters})' if self.openai_call_parameters else ''
             header = f'#{self.effective_index_in_conversation} {chatgpt_parameters}\n'
             header = wrap_text_with_triple_quotes(header, 'header')

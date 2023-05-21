@@ -142,7 +142,7 @@ class DebuggerGPT(BaseProductsGPT):
         If the conversation already has this notification, we regenerate gpt response instead.
         """
         if number_of_code_edges % 2 == 1:
-            self._respond_to_incomplete_code()
+            return self._respond_to_incomplete_code()
         if number_of_code_edges == 0:
             response = dedent_triple_quote_str("""
             You did not send any code. 
