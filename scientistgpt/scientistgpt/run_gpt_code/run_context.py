@@ -8,6 +8,9 @@ from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
 from scientistgpt.utils.file_utils import is_name_matches_list_of_wildcard_names
 
 
+IMPORTING_PACKAGES = []
+
+
 @contextmanager
 def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files: List[str] = None):
     """
@@ -27,7 +30,8 @@ def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files:
         if is_opening_for_writing and allowed_write_files is not None \
                 and not is_name_matches_list_of_wildcard_names(file_name, allowed_write_files):
             raise CodeWriteForbiddenFile(file=file_name)
-        if not is_opening_for_writing and allowed_read_files is not None and file_name not in allowed_read_files:
+        if not is_opening_for_writing and allowed_read_files is not None and file_name not in allowed_read_files \
+                and len(IMPORTING_PACKAGES) == 0:  # allow read files when importing packages
             raise CodeReadForbiddenFile(file=file_name)
         return original_open(*args, **kwargs)
 
@@ -74,6 +78,18 @@ def prevent_calling(modules_and_functions: List[Tuple[Any, str]] = None):
             setattr(module, function_name, original_functions.pop(0))
 
 
+@contextmanager
+def within_import(package_name):
+    """
+    Context manager for tracking when we enter an import statement.
+    """
+    IMPORTING_PACKAGES.append(package_name)
+    try:
+        yield
+    finally:
+        IMPORTING_PACKAGES.pop()
+
+
 class PreventImport:
     def __init__(self, modules):
         from scientistgpt.run_gpt_code.dynamic_code import module_filename
@@ -93,4 +109,5 @@ class PreventImport:
             frame = traceback.extract_stack()[-2]
             if frame.filename.endswith(self.module_filename):
                 raise CodeImportForbiddenModule(module=name)
-        return self.original_import(name, *args, **kwargs)
+        with within_import(name):
+            return self.original_import(name, *args, **kwargs)
