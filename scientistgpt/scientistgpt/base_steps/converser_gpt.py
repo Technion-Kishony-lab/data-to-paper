@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, ClassVar
+from typing import Optional
 
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
-from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
+from scientistgpt.env import COALESCE_WEB_CONVERSATIONS, DEFAULT_MODEL_ENGINE
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
@@ -25,7 +25,7 @@ class ConverserGPT(Replacer, Copier):
 
     actions_and_conversations: ActionsAndConversations = None
 
-    model_engine: ClassVar[ModelEngine] = None
+    model_engine: ModelEngine = DEFAULT_MODEL_ENGINE
     """
     The openai model engine to use. If None, use the default model engine.
     A call to apply_get_and_append_assistant_message can override this value.

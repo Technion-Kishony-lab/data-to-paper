@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, List, Set
 
-from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES, DEBUG
+from scientistgpt.env import DELAY_AUTOMATIC_RESPONSES
 from scientistgpt.utils.highlighted_text import red_text
 from scientistgpt.base_cast import Agent
 
@@ -151,8 +151,6 @@ class AppendMessage(ChangeMessagesConversationAction):
 
     delay: float = DELAY_AUTOMATIC_RESPONSES
 
-    parameters_for_web: dict = field(default_factory=dict)
-
     def _get_delay(self):
         return self.ROLE_TO_DELAY[self.message.role]
 
@@ -215,6 +213,8 @@ class AppendMessage(ChangeMessagesConversationAction):
         if index is not None:
             del self.conversation[index:]
         assert len(self.conversation) == message_index
+        self.message.index_in_conversation = len(self.conversation)
+        self.message.effective_index_in_conversation = len(self.conversation.get_chosen_indices_and_messages())
         self.conversation.append(self.message)
 
     def get_message_for_web(self) -> Message:
@@ -233,12 +233,6 @@ class AppendMessage(ChangeMessagesConversationAction):
         if self.message.is_background is None and any(self.get_message_for_web() == m for m in self.web_conversation) \
                 or self.message.is_background is True:
             return False
-        if DEBUG and self.conversation is not None and self.should_add_to_conversation() and \
-                self.message.role != Role.COMMENTER:
-            self.parameters_for_web['real_index'] = len(self.conversation.get_chosen_indices_and_messages())
-        else:
-            self.parameters_for_web['real_index'] = None
-
         if self.delay is not None:
             time.sleep(self.delay)
         self.web_conversation.append(self.get_message_for_web())
