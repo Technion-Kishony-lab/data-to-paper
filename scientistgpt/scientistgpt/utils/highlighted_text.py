@@ -88,6 +88,13 @@ def format_highlight(text: str, is_html: bool = False, text_color: str = '', blo
         return colored_text(text, text_color)
 
 
+def format_header(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
+    if is_html:
+        return _get_pre_html_format(text, color='#FF0000', font_size=12)
+    else:
+        return colored_text(text, block_color)
+
+
 def format_normal_text(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
     if is_html:
         return text_to_html(text)
@@ -113,6 +120,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, bool]] = {
     'highlight': (format_highlight, True),
     'comment': (format_comment, True),
     'system': (format_system, True),
+    'header': (format_header, True),
 }
 
 
