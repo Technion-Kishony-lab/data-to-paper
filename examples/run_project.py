@@ -3,40 +3,40 @@ from pathlib import Path
 from typing import List, Optional
 
 from scientistgpt.base_steps import DataFileDescriptions, DataFileDescription
-from local_paths import LOCAL_FOLDER_ROOT
 from scientistgpt.projects.scientific_research.run_steps import ScientificStepsRunner
+from .local_paths import LOCAL_FOLDER_ROOT
 
 
 LOCAL_PATH = Path(LOCAL_FOLDER_ROOT)
 
+
 def read_file_description(project: str, filename: str):
-    with open(LOCAL_PATH / project / (filename + '.txt'), 'r') as f:
+    with open(LOCAL_PATH / project / filename, 'r') as f:
         return f.read()
 
 
-def get_file_description(project: str, filename: str):
-    DataFileDescription(
-        file_path=filename,
-        description=read_file_description(project, filename),
+def get_file_description(project: str, data_filename: str):
+    return DataFileDescription(
+        file_path=data_filename,
+        description=read_file_description(project, data_filename.split('.')[0] + '.txt'),
     )
 
 
-def get_file_descriptions(project: str, filenames: List[str]):
-    return DataFileDescriptions([get_file_description(project, filename) for filename in filenames])
+def get_file_descriptions(project: str, data_filenames: List[str]):
+    return DataFileDescriptions([get_file_description(project, data_filename) for data_filename in data_filenames],
+                                data_folder=LOCAL_PATH / 'temp_folder')
 
 
-def get_paper(project: str, files: List[str], research_goal: Optional[str], output_folder: str,
+def get_paper(project: str, data_filenames: List[str], research_goal: Optional[str], output_folder: str,
               should_do_data_exploration: bool = True, should_mock_servers: bool = True):
 
-    # copy files to temp folder:
-    for filename in files:
-        # copy file from Path(LOCAL_FOLDER_ROOT) / project / 'outputs'
-        # to Path(LOCAL_FOLDER_ROOT) / 'temp':
-        shutil.copyfile(LOCAL_PATH / project / 'outputs' / filename, LOCAL_PATH / 'temp' / filename)
-
+    # clear temp folder and copy files to it:
+    shutil.rmtree(LOCAL_PATH / 'temp_folder' / '*', ignore_errors=True)
+    for filename in data_filenames:
+        shutil.copyfile(LOCAL_PATH / project / filename, LOCAL_PATH / 'temp_folder' / filename)
 
     ScientificStepsRunner(
-        data_file_descriptions=get_file_descriptions(project, files),
+        data_file_descriptions=get_file_descriptions(project, data_filenames),
         research_goal=research_goal,
         output_directory=LOCAL_PATH / project / 'outputs' / output_folder,
         mock_servers=should_mock_servers,
