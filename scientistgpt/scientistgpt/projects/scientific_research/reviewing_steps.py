@@ -265,14 +265,20 @@ class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields = ('title_and_abstract', 'numerical_values', 'tables')
     max_reviewing_rounds: int = 1
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
+        contain only information that is explicitly extracted from the Tables and Numerical Values. \
+        Compare the numbers in the {goal_noun} to the numbers in the Tables and Numerical Values data and explicitly \
+        mention any discrepancies that need to get fixed.
+        Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        In scientific papers, we typically refer to one or two tables summarizing the main findings.
-
-        Based on the material provided above ({actual_background_product_names}), please rewrite \
-        the "{pretty_section_names}" while referring to the relevant Tables".
-
-        In addition, change the text to refer to the tables (use their labels if necessary),
-        so that the tables are incorporated as integral part of the {pretty_section_names}.
+        Based on the material provided above ({actual_background_product_names}), please write \
+        the "{pretty_section_names}" while referring to the relevant Tables and Numerical Values.
+        Dont add the tables themselves, just refer to them and their content. I will add the tables manually.
+        Make sure that you are only mention details that are explicitly found within the Tables and Numerical Values.
+        {latex_instructions}
         """)
 
 
