@@ -12,7 +12,8 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStage
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
+    TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -30,6 +31,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_prepare_data_analysis_plan: bool = False
     should_add_citations: bool = True
     should_add_tables: bool = True
+    should_interpret_results: bool = False
 
     def _run_all_steps(self) -> ScientificProducts:
 
@@ -82,16 +84,22 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
         self.send_product_to_client('data_analysis_code_and_output')
 
+        self.advance_stage_and_set_active_conversation(ScientificStage.INTERPRETATION,
+                                                       ScientificAgent.InterpretationReviewer)
         # Tables
         if self.should_add_tables:
-            self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
-            products.tables = TablesReviewGPT.from_(self).get_tabels()
+            products.tables = TablesReviewGPT.from_(self).initialize_and_run_dialog()
 
-        # Results interpretation
-        self.advance_stage_and_set_active_conversation(
-            ScientificStage.INTERPRETATION, ScientificAgent.InterpretationReviewer)
-        products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()
-        self.send_product_to_client('results_summary')
+        # Numerical results
+        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).initialize_and_run_dialog()
+        self.send_product_to_client('tables_and_numeric_values')
+
+        if self.should_interpret_results:
+            # Results interpretation
+            self.advance_stage_and_set_active_conversation(
+                ScientificStage.INTERPRETATION, ScientificAgent.InterpretationReviewer)
+            products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()
+            self.send_product_to_client('results_summary')
 
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStage.WRITING, ScientificAgent.Writer)
@@ -100,9 +108,16 @@ class ScientificStepsRunner(BaseStepsRunner):
             TitleAbstractReviewGPT.from_(self, section_names=title_and_abstract_names).get_sections()
 
         for section_name in paper_section_names:
-            if section_name not in title_and_abstract_names:
+            if section_name not in title_and_abstract_names + ['results']:
                 products.paper_sections[section_name] = \
                     PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
+
+        if self.should_add_tables:
+            products.paper_sections['results'] = \
+                PaperSectionReferringTablesReviewGPT.from_(self, section_names=['results']).get_section()
+        else:
+            products.paper_sections['results'] = \
+                PaperSectionReviewGPT.from_(self, section_names=['results']).get_section()
         self.send_product_to_client('paper_sections')
 
         # Add citations to relevant paper sections
