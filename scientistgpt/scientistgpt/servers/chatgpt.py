@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import time
-
 import openai
-import re
 
 from typing import List, Union
 
 from scientistgpt.conversation.message_designation import GeneralMessageDesignation
 from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
-from scientistgpt.utils.tag_pairs import SAVE_TAGS
 
 from .base_server import ServerCaller
 from .openai_models import ModelEngine
@@ -29,15 +26,6 @@ class OpenaiSeverCaller(ServerCaller):
     Class to call OpenAI API.
     """
     file_extension = '_openai.txt'
-
-    @staticmethod
-    def _save_records(file, records):
-        for response in records:
-            file.write(SAVE_TAGS.wrap(response) + '\n')
-
-    @staticmethod
-    def _load_records(file):
-        return re.findall(SAVE_TAGS.wrap("(.*?)"), file.read(), re.DOTALL)
 
     @staticmethod
     def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:

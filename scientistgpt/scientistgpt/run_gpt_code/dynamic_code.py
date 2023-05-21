@@ -6,7 +6,7 @@ import os
 import importlib
 import traceback
 import warnings
-from typing import Optional, List, Type, Tuple, Any, Union, Set
+from typing import Optional, List, Type, Tuple, Any, Union, Set, Iterable
 
 from scientistgpt import chatgpt_created_scripts
 
@@ -61,11 +61,11 @@ CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + M
 def run_code_using_module_reload(
         code: str, save_as: Optional[str] = None,
         timeout_sec: int = MAX_EXEC_TIME,
-        warnings_to_raise: List[Type[Warning]] = None,
-        warnings_to_ignore: List[Type[Warning]] = None,
-        forbidden_modules_and_functions: List[Tuple[Any, str]] = None,
-        allowed_read_files: List[str] = None,
-        allowed_write_files: List[str] = None,
+        warnings_to_raise: Iterable[Type[Warning]] = None,
+        warnings_to_ignore: Iterable[Type[Warning]] = None,
+        forbidden_modules_and_functions: Iterable[Tuple[Any, str]] = None,
+        allowed_read_files: Iterable[str] = None,
+        allowed_write_files: Iterable[str] = None,
         allow_dataframes_to_change_existing_series: bool = True,
         run_in_folder: Union[Path, str] = None) -> Tuple[Set[str], List[ChangeReportingDataFrame]]:
     """

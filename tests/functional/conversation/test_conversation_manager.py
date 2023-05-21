@@ -62,7 +62,7 @@ def test_conversation_manager_regenerate_response(manager, actions):
         manager.regenerate_previous_response()
 
     assert len(manager.conversation) == 3
-    assert len(actions) == 7
+    assert len(actions) == 5
     assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer',
                                                index_in_conversation=2, effective_index_in_conversation=2)
 

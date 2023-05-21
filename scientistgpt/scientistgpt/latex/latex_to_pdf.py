@@ -89,7 +89,9 @@ def replace_special_chars(text):
 
         possibly_math_part = match.group()
         # find `\caption{...} parts in possibly_math_part and apply escaping on what's inside the curly braces
-        math_part = regex.sub(r'\\caption\{.*?\}', lambda m: m.group().replace(m.group(0)[9:-1], process_non_math_part(m.group(0)[9:-1])), possibly_math_part)
+        math_part = regex.sub(r'\\caption\{.*?\}',
+                              lambda m: m.group().replace(m.group(0)[9:-1], process_non_math_part(m.group(0)[9:-1])),
+                              possibly_math_part)
         result.append(math_part)
 
         last_end = match.end()

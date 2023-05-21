@@ -49,7 +49,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_requesting_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
         first sense of the data. 
-        
+
         Your code should create an output text file named "{actual_output_filename}", which should \
         contain a summary of the data.
         Depending on the specifics of the dataset, you might want to include:
@@ -66,11 +66,11 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
-        
+
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
-        
+
         IMPORTANT: If you create a new dataframe or modify or add any new variables to the original dataframe, 
         you should save the modified/new dataframes in new files.
         """)
@@ -102,22 +102,22 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_creating_files: bool = False
     code_requesting_prompt: str = dedent_triple_quote_str("""
         Write a complete short Python code to achieve the research goal specified above.
-        
+
         As input, you can load the following raw data files:
         ```
         {raw_data_filenames}
         ```
         {description_of_additional_data_files_if_any}
-        
+
         Don't provide a sketch or pseudocode; write a complete runnable code.
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
-        
+
         The output of your code should be a text file named "{actual_output_filename}".
         All results we may need for a scientific paper should be saved to this text file,
         including analysis findings, summary statistics, statistical tests, etc.
-        
+
         Do not write to any other files.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
