@@ -232,7 +232,7 @@ class DebuggerGPT(BaseProductsGPT):
                 """).format(file, self.data_files),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
-    def _respond_to_dataframe_series_changed(self, series: str):
+    def _respond_to_dataframe_series_change(self, series: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
             Your code changes the series `{series}` of your dataframe.
