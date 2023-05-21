@@ -36,7 +36,7 @@ class DebuggerGPT(BaseProductsGPT):
     * too long runs (timeout)
     * output file not created
     """
-    model_engine: ModelEngine = ModelEngine.GPT35_TURBO
+    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT35_TURBO)
     allowed_created_files: Iterable[str] = None
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
