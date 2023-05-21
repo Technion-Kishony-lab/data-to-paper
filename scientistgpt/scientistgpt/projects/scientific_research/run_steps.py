@@ -32,6 +32,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_add_citations: bool = True
     should_add_tables: bool = True
     should_interpret_results: bool = False
+    should_rewrite_results_section_with_tables: bool = False
 
     def _run_all_steps(self) -> ScientificProducts:
 
@@ -88,7 +89,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                        ScientificAgent.InterpretationReviewer)
         # Tables
         if self.should_add_tables:
-            products.tables = TablesReviewGPT.from_(self).initialize_and_run_dialog()
+            products.tables['results'] = TablesReviewGPT.from_(self).initialize_and_run_dialog()
 
         # Numerical results
         products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).initialize_and_run_dialog()
@@ -129,7 +130,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.send_product_to_client('cited_paper_sections_and_citations')
 
         # Add tables to results section
-        if self.should_add_tables:
+        if self.should_add_tables and self.should_rewrite_results_section_with_tables:
             self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
             for section_name in SECTIONS_TO_ADD_TABLES_TO:
                 products.tabled_paper_sections[section_name] = \
