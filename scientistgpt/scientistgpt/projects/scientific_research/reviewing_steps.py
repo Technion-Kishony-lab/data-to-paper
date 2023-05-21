@@ -1,11 +1,13 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Dict, Any, Optional
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
-from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
+from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT, \
+    BasePythonValueProductsReviewGPT
 
 from .cast import ScientificAgent
+from ...latex import extract_latex_section_from_response
 
 
 @dataclass
@@ -75,6 +77,79 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
+
+
+@dataclass
+class TablesReviewGPT(BasePythonValueProductsReviewGPT):
+    max_reviewing_rounds: int = 1
+    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
+    conversation_name: str = 'tables'
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'two to three tables for a scientific paper'
+    goal_verb: str = 'produce'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.TableExpert
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above tables, with specific attention to whether the tables \
+        contain only information that is explicitly extracted from the results data. Compare the numbers in the tables \
+        to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
+        Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun} that summarize the results we got in the output.
+        The {goal_noun} should only include information that is explicitly extracted from the results data.
+        The tables should be centered, in booktabs, multirow format with caption and label. 
+        Make sure that the tables are not too wide, so that they fit text width.
+        The tables should be returned in a dictionary, where the keys are the table titles, and the values are the \
+        latex code for the tables.
+        like this:
+        {
+            'Table 1: My first table': '\\begin{{table}} ... \\end{{table}}',
+            'Table 2: My second table': '\\begin{{table}} ... \\end{{table}}',
+        }
+        {quote_request}
+        """)
+
+    def _check_response_value(self, response_value: Any) -> Optional[str]:
+        for table_name, table_content in response_value.items():
+            extract_latex_section_from_response(table_content, 'table')
+        return None
+
+
+@dataclass
+class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
+    max_reviewing_rounds: int = 1
+    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
+    conversation_name: str = 'key_numerical_results_extractor'
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'key numerical results'
+    goal_verb: str = 'extract'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
+        contain only information that is explicitly extracted from the results data. Compare the numbers in the \
+        {goal_noun} to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
+
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun} that {goal_verb} the essence of the results we got in the output.
+        The {goal_noun} you choose should be those that are cannot be presented in tables but are essential to the \
+        resulted paper. 
+        The {goal_noun} should only include information that is explicitly extracted from the results data.
+        The {goal_noun} should be returned in a dictionary, where the keys are the names of the numerical results, \
+        and the values are the actual numeric values themselves.
+        like this:
+        {
+            'accuracy of logistic regression': 0.835,
+            'AUC ROC of logistic regression': 0.77,
+        }
+        Obviously, this is just an example. You should choose the {goal_noun} that are relevant to the specific \
+        results we got in the output.
+        {quote_request}
+        """)
 
 
 @dataclass
@@ -181,6 +256,23 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\section{} command, \
         and any math or symbols that needs tex escapes.
+        """)
+
+
+@dataclass
+class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
+    goal_verb: str = 'refer to tables in'
+    user_agent: ScientificAgent = ScientificAgent.TableExpert
+    background_product_fields = ('title_and_abstract', 'numerical_values', 'tables')
+    max_reviewing_rounds: int = 1
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        In scientific papers, we typically refer to one or two tables summarizing the main findings.
+
+        Based on the material provided above ({actual_background_product_names}), please rewrite \
+        the "{pretty_section_names}" while referring to the relevant Tables".
+
+        In addition, change the text to refer to the tables (use their labels if necessary),
+        so that the tables are incorporated as integral part of the {pretty_section_names}.
         """)
 
 
