@@ -210,7 +210,7 @@ class ConversationManager:
         # get response with the same messages removed as last time plus the last response (-1).
         content = try_get_chatgpt_response(self.conversation, last_action.hidden_messages + [-1],
                                            **openai_call_parameters)
-        assert content is not None  # because this same query already succeeded getting response.
+        assert not isinstance(content,Exception)  # because this same query already succeeded getting response.
         self._create_and_apply_action(
             RegenerateLastResponse,
             driver=last_action.driver,
