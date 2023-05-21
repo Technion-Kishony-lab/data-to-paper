@@ -45,6 +45,31 @@ class ScientificProducts(Products):
                 for section_name, (section_content, _) in self.cited_paper_sections_and_citations.items()}
 
     @property
+    def tabled_paper_sections(self) -> Dict[str, str]:
+        """
+        Insert the tables into the ready_to_be_tabled_paper_sections.
+        """
+        tabled_paper_sections = self.ready_to_be_tabled_paper_sections.copy()
+        for section_name, section_content in tabled_paper_sections.items():
+            if section_name in self.tables:
+                for table_name, table in self.tables[section_name].items():
+                    # find the sentence that contains the table reference
+                    table_reference_sentence = None
+                    for sentence in section_content.split('. '):
+                        if table_name in sentence:
+                            table_reference_sentence = sentence
+                            break
+                    if table_reference_sentence is None:
+                        # add the table at the end of the section
+                        section_content += table
+                    else:
+                        # add the table after the table reference sentence
+                        section_content = section_content.replace(table_reference_sentence,
+                                                                  table_reference_sentence + table)
+                    tabled_paper_sections[section_name] = section_content
+        return tabled_paper_sections
+
+    @property
     def most_updated_paper_sections(self) -> Dict[str, str]:
         section_names_to_content = {}
         for section_name, section in self.paper_sections.items():
