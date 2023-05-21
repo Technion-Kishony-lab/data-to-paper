@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -23,7 +23,11 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
 
-    allow_creating_files: bool = False
+    allowed_created_files: Iterable[str] = None
+    # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
+
+    allow_dataframes_to_change_existing_series: bool = True
+    enforce_saving_altered_dataframes: bool = False
 
     revision_round: int = 0
 
@@ -150,8 +154,9 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
                 previous_code=previous_code,
-                allow_creating_files=self.allow_creating_files,
-                number_of_required_output_files=2 if self.allow_creating_files else 1,
+                allowed_created_files=self.allowed_created_files,
+                allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
+                enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,
             ).run_debugging()
             if code_and_output is None:
                 # debugging failed

@@ -1,4 +1,5 @@
 import functools
+from typing import List
 
 import pandas as pd
 
@@ -71,7 +72,7 @@ def hook_dataframe():
 
 
 @contextmanager
-def collect_changed_data_frames(allow_changing_existing_series=False):
+def collect_changed_data_frames(allow_changing_existing_series=False) -> List[ChangeReportingDataFrame]:
     """
     Context manager that collects all the data frames that were changed during the context.
     """
