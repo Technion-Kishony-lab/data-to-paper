@@ -78,7 +78,7 @@ def test_conversation_manager_retry_response(manager, actions, openai_exception)
         manager.get_and_append_assistant_message(tag='math answer')
 
     assert len(manager.conversation) == 5
-    assert len(actions) == 8  # 5 + create + failed + set_typing
+    assert len(actions) == 7  # 5 + create + failed
     assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer',
                                                index_in_conversation=4, effective_index_in_conversation=4)
     # message #1 was hidden after the first failed attempt:
