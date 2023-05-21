@@ -28,7 +28,7 @@ class BaseMultiChoiceProductsGPT(BaseBackgroundProductsGPT):
 
     possible_choices: Tuple[str, ...] = ('1', '2')
 
-    CHATGPT_PARAMETERS = {'temperature': 0.0, 'max_tokens': 10}
+    CHATGPT_PARAMETERS = {'temperature': 0.0, 'max_tokens': 30}
 
     def _get_chosen_choice_from_response(self, response: str) -> Optional[str]:
         choices_in_response = [choice for choice in self.possible_choices if choice in response]

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -18,10 +18,16 @@ from .request_multi_choice import BaseMultiChoiceProductsGPT
 @dataclass
 class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS \
-                            | {'actual_output_filename', 'supported_packages'}
+                            | {'actual_output_filename', 'supported_packages', 'data_filenames'}
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
+
+    allowed_created_files: Iterable[str] = None
+    # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
+
+    allow_dataframes_to_change_existing_series: bool = True
+    enforce_saving_altered_dataframes: bool = False
 
     revision_round: int = 0
 
@@ -33,27 +39,14 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     goal_verb: str = 'write'
 
     output_filename: str = 'results.txt'
-    "The name of the file that gpt code is instructed to save the results to."
+    # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
 
     gpt_script_filename: str = 'gpt_code'
-    "The base name of the python file in which the code written by gpt is saved."
+    # The base name of the python file in which the code written by gpt is saved.
 
-    code_mission: str = ''  # e.g. "Write a complete short Python code to perform the data analysis plan"
-
-    code_requesting_prompt: str = dedent_triple_quote_str("""
-        {code_mission}
-        Don't provide a sketch or pseudocode; write a complete runnable code.
-        If needed, you can use the following packages in your code: {supported_packages}.
-        The output of your code should be a text file named "{actual_output_filename}".
-        {output_content_prompt}
-        Do not write to any other files.
-        Do not create any graphics, figures or any plots.
-        Do not send any presumed output examples.
-        """)
-
-    output_content_prompt: str = ''  # e.g. "All results we may need should be saved to this text file"
+    code_requesting_prompt: str = ''
 
     code_revision_requesting_prompt: str = dedent_triple_quote_str("""
         Revise the code, or just change any key parameters within the code as needed.
@@ -161,6 +154,9 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
                 previous_code=previous_code,
+                allowed_created_files=self.allowed_created_files,
+                allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
+                enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,
             ).run_debugging()
             if code_and_output is None:
                 # debugging failed

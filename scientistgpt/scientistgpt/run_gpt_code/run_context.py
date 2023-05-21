@@ -5,6 +5,7 @@ from typing import List, Tuple, Any
 
 from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+from scientistgpt.utils.file_utils import is_name_matches_list_of_wildcard_names
 
 
 @contextmanager
@@ -14,6 +15,7 @@ def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files:
 
     allowed_read_files: list of files that the code is allowed to read from. If None, all files are allowed.
     allowed_write_files: list of files that the code is allowed to write to. If None, all files are allowed.
+        can also be a wildcard filename, e.g. '*.csv'.
     """
 
     original_open = builtins.open
@@ -22,7 +24,8 @@ def prevent_file_open(allowed_read_files: List[str] = None, allowed_write_files:
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
         open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
         is_opening_for_writing = open_mode in ['w', 'a', 'x']
-        if is_opening_for_writing and allowed_write_files is not None and file_name not in allowed_write_files:
+        if is_opening_for_writing and allowed_write_files is not None \
+                and not is_name_matches_list_of_wildcard_names(file_name, allowed_write_files):
             raise CodeWriteForbiddenFile(file=file_name)
         if not is_opening_for_writing and allowed_read_files is not None and file_name not in allowed_read_files:
             raise CodeReadForbiddenFile(file=file_name)

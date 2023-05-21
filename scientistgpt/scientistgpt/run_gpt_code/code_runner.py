@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple, List, Iterable
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 from scientistgpt.utils.code_utils import extract_code_from_text
@@ -24,6 +24,8 @@ class CodeRunner:
 
     response: str
     allowed_read_files: Optional[list] = None
+    allowed_created_files: Iterable[str] = None
+    allow_dataframes_to_change_existing_series: bool = True
     output_file: Optional[str] = None
     script_file_path: Optional[Path] = None
     data_folder: Optional[Path] = None
@@ -73,15 +75,31 @@ class CodeRunner:
         except FileNotFoundError:
             pass
 
-    def run_code(self) -> CodeAndOutput:
+    def run_code_and_get_code_output_and_changed_dataframes(self) -> Tuple[CodeAndOutput, List]:
         """
         Run code from GPT response, and return the output and the code.
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        run_code_using_module_reload(code,
-                                     save_as=self.script_file_path,  # None to delete
-                                     run_in_folder=self.data_folder,
-                                     allowed_read_files=self.allowed_read_files,
-                                     allowed_write_files=None if self.output_file is None else [self.output_file])
-        return CodeAndOutput(code=code, output=self.read_output_file(), output_file=self.output_file)
+        created_files, changes_dataframe = run_code_using_module_reload(
+            code=code,
+            save_as=self.script_file_path,
+            allowed_read_files=self.allowed_read_files,
+            allowed_write_files=None if self.allowed_created_files is None  # allow all files to be created
+            else (self.allowed_created_files if self.output_file is None
+                  else set(self.allowed_created_files).add(self.output_file)),
+            allow_dataframes_to_change_existing_series=False,
+            run_in_folder=self.data_folder)
+        return CodeAndOutput(
+            code=code,
+            output=self.read_output_file(),
+            output_file=self.output_file,
+            created_files=created_files,
+        ), changes_dataframe
+
+    def run_code(self) -> CodeAndOutput:
+        """
+        Run code from GPT response, and return the output.
+        """
+        code_and_output, _ = self.run_code_and_get_code_output_and_changed_dataframes()
+        return code_and_output

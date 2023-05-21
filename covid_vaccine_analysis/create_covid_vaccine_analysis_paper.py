@@ -13,7 +13,7 @@ data_file_descriptions.data_folder = Path(DATA_FOLDER).absolute()
 ScientificStepsRunner(
     data_file_descriptions=data_file_descriptions,
     research_goal=None,
-    output_directory=OUTPUT_FOLDER + '/out3',
-    mock_servers='out1',  # <==== use True to mock/record openai responses
-    should_do_data_exploration=False,
+    output_directory=OUTPUT_FOLDER + '/out5',
+    mock_servers=True,  # <==== use True to mock/record openai responses
+    should_do_data_exploration=True,
 ).run_all_steps()
