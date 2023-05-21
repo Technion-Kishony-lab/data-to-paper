@@ -70,6 +70,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
         Please {goal_verb} a {goal_noun}. 
         Do not include any data visualization steps.
         Explicitly specify all relevant analysis results and values that should be calculated.
+        {quote_request}
         """)
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
