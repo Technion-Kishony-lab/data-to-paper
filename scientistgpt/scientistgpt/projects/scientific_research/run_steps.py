@@ -82,6 +82,11 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
         self.send_product_to_client('data_analysis_code_and_output')
 
+        # Tables
+        if self.should_add_tables:
+            self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
+            products.tables = TablesReviewGPT.from_(self).get_tabels()
+
         # Results interpretation
         self.advance_stage_and_set_active_conversation(
             ScientificStage.INTERPRETATION, ScientificAgent.InterpretationReviewer)
