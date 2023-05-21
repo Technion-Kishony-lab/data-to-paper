@@ -81,6 +81,13 @@ class ConversationManager:
             driver=kwargs.pop('driver', self.driver),
             **kwargs))
 
+    def _create_and_apply_set_typing_action(self, agent: Agent, reverse_roles_for_web: bool = False, **kwargs):
+        if agent is not None and self.web_conversation and kwargs.get('web_conversation_name', True) is not None:
+            self._create_and_apply_action(
+                SetTypingAgent,
+                agent=self.web_conversation.get_other_participant(agent) if reverse_roles_for_web else agent,
+            )
+
     def create_conversation(self):
         self._create_and_apply_action(CreateConversation, participants=self.participants)
 
@@ -117,11 +124,7 @@ class ConversationManager:
             agent = self.user_agent
         else:
             agent = None
-        if agent is not None:
-            self._create_and_apply_action(
-                SetTypingAgent,
-                agent=self.web_conversation.get_other_participant(agent) if reverse_roles_for_web else agent,
-            )
+        self._create_and_apply_set_typing_action(agent=agent, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                                  previous_code=previous_code, is_background=is_background)
         self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
@@ -177,7 +180,7 @@ class ConversationManager:
 
         If failed, retry while removing more messages upstream.
         """
-        self._create_and_apply_action(SetTypingAgent, agent=self.assistant_agent)
+        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False, **kwargs)
 
         hidden_messages = convert_general_message_designation_to_list(hidden_messages)
         indices_and_messages = self.conversation.get_chosen_indices_and_messages(hidden_messages)
@@ -198,7 +201,7 @@ class ConversationManager:
             actual_hidden_messages.append(index)
 
     def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
-        self._create_and_apply_action(SetTypingAgent, agent=self.assistant_agent)
+        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False, **kwargs)
 
         last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
