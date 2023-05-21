@@ -6,8 +6,6 @@ import pandas as pd
 from contextlib import contextmanager
 from dataclasses import dataclass
 
-import pytest
-
 from scientistgpt.utils.singleton import run_once
 
 
@@ -17,7 +15,7 @@ class DataFrameSeriesChange(Exception):
     Exception that is raised when a data frame series is changed.
     """
     changed_series: str = None
-    
+
     def __str__(self):
         return f'Changed series: {self.changed_series}'
 

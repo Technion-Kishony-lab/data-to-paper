@@ -28,7 +28,7 @@ def load_from_json(filename):
             exception_type = item['type']
             message = item['message']
             args = (message,) + tuple(item['args'])
-            exception =  getattr(builtins, exception_type)(*args)
+            exception = getattr(builtins, exception_type)(*args)
             data.append(exception)
         else:
             data.append(item)

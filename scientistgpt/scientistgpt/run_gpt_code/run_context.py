@@ -1,7 +1,7 @@
 import builtins
 import traceback
 from contextlib import contextmanager
-from typing import List, Tuple, Any, Iterable
+from typing import Tuple, Any, Iterable
 
 from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
