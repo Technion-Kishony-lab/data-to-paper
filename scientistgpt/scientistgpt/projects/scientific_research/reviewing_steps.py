@@ -54,8 +54,8 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         When you feel that the provided research goal is interesting and can be achieved without requiring \
         additional data except the provided dataset, respond explicitly with: 
         "{termination_phrase}" (termination-phrase).
-        Only if you feel that the initial goal description that I send you is already interesting, well defined, \
-        and fits the provided data, respond with with termination-phrase \
+        If you feel that the initial goal description that I send you is already interesting, well defined, \
+        and fits the provided data, you can respond with with termination-phrase \
         immediately, without requesting any improvement cycles.
         """)
 
