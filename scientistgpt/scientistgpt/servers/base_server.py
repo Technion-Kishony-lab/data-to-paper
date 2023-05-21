@@ -1,9 +1,10 @@
 import functools
-import json
 import os
 
 from pathlib import Path
 from typing import Union
+
+from .json import save_to_json, load_from_json
 
 
 class ServerCaller:
@@ -32,6 +33,12 @@ class ServerCaller:
         """
         raise NotImplementedError()
 
+    def _get_server_response_without_raising(self, *args, **kwargs):
+        try:
+            return self._get_server_response(*args, **kwargs)
+        except Exception as e:
+            return e
+
     @staticmethod
     def _post_process_response(response):
         """
@@ -40,18 +47,18 @@ class ServerCaller:
         return response
 
     @staticmethod
-    def _save_records(file, records):
+    def _save_records(records, filepath):
         """
         saves the records to a file.
         """
-        json.dump(records, file, indent=4, sort_keys=True)
+        save_to_json(records, filepath)
 
     @staticmethod
     def _load_records(file):
         """
         loads the records from a file.
         """
-        return json.load(file)
+        return load_from_json(file)
 
     def get_server_response(self, *args, **kwargs):
         """
@@ -59,7 +66,7 @@ class ServerCaller:
         """
         response = self._get_raw_server_response(*args, **kwargs)
         if isinstance(response, Exception):
-            return response
+            raise response
         return self._post_process_response(response)
 
     def _get_raw_server_response(self, *args, **kwargs):
@@ -67,21 +74,16 @@ class ServerCaller:
         returns the raw response from the server, allows recording and replaying.
         """
         if not self.is_playing_or_recording:
-            return self._get_server_response(*args, **kwargs)
+            return self._get_server_response_without_raising(*args, **kwargs)
 
         if self.index_in_old_records < len(self.old_records):
             response = self.old_records[self.index_in_old_records]
             self.index_in_old_records += 1
-            if isinstance(response, Exception):
-                raise response
             return response
         else:
             if not self.record_more_if_needed:
                 raise AssertionError('No more responses to mock')
-            try:
-                response = self._get_server_response(*args, **kwargs)
-            except Exception as e:
-                response = e
+            response = self._get_server_response_without_raising(*args, **kwargs)
             self.new_records.append(response)
             return response
 
@@ -104,7 +106,7 @@ class ServerCaller:
         """
         Returns a context manager to mock the server responses (specified as old_records).
         """
-        self.old_records = old_records
+        self.old_records = old_records or []
         self.record_more_if_needed = record_more_if_needed
         self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
         self.should_save = should_save
@@ -117,8 +119,7 @@ class ServerCaller:
         """
         # create the directory if not exist
         Path(os.path.dirname(file_path)).mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w') as f:
-            self._save_records(f, self.old_records + self.new_records)
+        self._save_records( self.old_records + self.new_records, file_path)
 
     def mock_with_file(self, file_path, record_more_if_needed=True, fail_if_not_all_responses_used=True,
                        should_save=True):
@@ -127,8 +128,7 @@ class ServerCaller:
         """
         # load the old records from the file if exist
         if os.path.isfile(file_path):
-            with open(file_path, 'r') as f:
-                old_records = self._load_records(f)
+            old_records = self._load_records(file_path)
         else:
             old_records = []
 
@@ -166,3 +166,4 @@ class ServerCaller:
             return wrapper if should_mock else func
 
         return decorator
+
