@@ -1,19 +1,20 @@
 import os
-import shutil
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Iterable
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+from scientistgpt.run_gpt_code.types import CodeAndOutput
+from scientistgpt.run_gpt_code.overrides.override_dataframe import DataFrameSeriesChange
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from scientistgpt.base_cast import Agent
-from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.servers.openai_models import ModelEngine
-from scientistgpt.utils.file_utils import UnAllowedFilesCreated
+from scientistgpt.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BaseProductsGPT
@@ -36,7 +37,10 @@ class DebuggerGPT(BaseProductsGPT):
     * output file not created
     """
     model_engine: ModelEngine = ModelEngine.GPT35_TURBO
-    allow_creating_files: bool = False
+    allowed_created_files: Iterable[str] = None
+    allow_dataframes_to_change_existing_series: bool = True
+    enforce_saving_altered_dataframes: bool = False
+
     assistant_agent: Agent = None
     user_agent: Agent = None
 
@@ -63,15 +67,11 @@ class DebuggerGPT(BaseProductsGPT):
         return CodeRunner(response=response,
                           allowed_read_files=self.data_files,
                           output_file=self.output_filename,
-                          allow_creating_files=self.allow_creating_files,
+                          allowed_created_files=self.allowed_created_files,
+                          allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
                           script_file_path=self.output_directory / self.script_filename,
                           data_folder=self.data_folder,
                           )
-
-    def _run_code_runner(self, code_runner: CodeRunner) -> CodeAndOutput:
-        code_and_output = code_runner.run_code()
-        # shutil.move(self.data_folder / self.output_filename, self.output_directory / (self.script_filename + '.txt'))
-        return code_and_output
 
     def _respond_to_allowed_packages(self, error_message: str):
         self.apply_append_user_message(
@@ -118,15 +118,13 @@ class DebuggerGPT(BaseProductsGPT):
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
     def _respond_to_missing_output_files(self, created_files: List[str]):
-
-        # TODO: this is a hack. Not general.
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            I ran the code. It created "{self.output_filename}", but it didn't save the modified dataframes.
-            Please rewrite the complete code again so that any modified/new dataframes are saved as new files \
+            I ran the code. It created "{self.output_filename}", but it didn't save some of the modified dataframes.
+            Please rewrite the complete code again so that all modified dataframes are saved as new files \
             in the same directory as the code.
             """),
-            comment=f'{self.iteration_str}: Code completed, but no output file created.')
+            comment=f'{self.iteration_str}: Code completed, but not all modified dataframes were saved.')
 
     def _respond_to_timeout(self):
         self.apply_append_user_message(
@@ -234,6 +232,16 @@ class DebuggerGPT(BaseProductsGPT):
                 """).format(file, self.data_files),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
+    def _respond_to_dataframe_series_changed(self, series: str):
+        self.apply_append_user_message(
+            content=dedent_triple_quote_str(f"""
+            Your code changes the series `{series}` of your dataframe.
+            Instead of changing an existing dataframe series, please create a new series, and give it a \
+            new sensible name.
+            Please rewrite the complete code again, making sure you create new series instead of changing existing ones. 
+            """),
+            comment=f'{self.iteration_str}: Code modifies dataframe series "{series}".')
+
     def _respond_to_empty_output(self):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
@@ -267,7 +275,7 @@ class DebuggerGPT(BaseProductsGPT):
         code_and_output = None
         code_runner = self._get_code_runner(response)
         try:
-            code_and_output = self._run_code_runner(code_runner)
+            code_and_output, changed_data_frames = code_runner.run_code_and_get_code_output_and_changed_dataframes()
         except FailedExtractingCode as e:
             # code is missing or incomplete
             failed_extracting_code = True
@@ -297,6 +305,8 @@ class DebuggerGPT(BaseProductsGPT):
                 self._respond_to_forbidden_write(f.file)
             except CodeReadForbiddenFile as f:
                 self._respond_to_forbidden_read(f.file)
+            except DataFrameSeriesChange as f:
+                self._respond_to_dataframe_series_change(f.changed_series)
             except Warning:
                 # the code raised a warning
                 self._respond_to_error_message(e.get_traceback_message(), is_warning=True)
@@ -318,9 +328,10 @@ class DebuggerGPT(BaseProductsGPT):
             elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE:
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
-            elif len(code_and_output.created_files) < self.number_of_required_output_files:
-                # The code ran successfully, but not all required output files were created.
-                self._respond_to_missing_output_files(list(code_and_output.created_files))
+            elif self.enforce_saving_altered_dataframes \
+                    and len(code_and_output.get_created_files_beside_output_file()) < len(set(changed_data_frames)):
+                # The code ran successfully, but not all changed dataframes were saved to files.
+                self._respond_to_missing_output_files(list(code_and_output.get_created_files_beside_output_file()))
             else:
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)

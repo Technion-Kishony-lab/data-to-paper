@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable
 
 from scientistgpt.base_steps import BaseCodeProductsGPT
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
@@ -42,7 +42,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     background_product_fields = ['data_file_descriptions']
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
-    allow_creating_files: bool = True
+    allowed_created_files: Iterable[str] = ('*.csv',)
+    allow_dataframes_to_change_existing_series = False
+    enforce_saving_altered_dataframes: bool = True
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
@@ -88,6 +90,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     background_product_fields = ['data_file_descriptions',
                                  'analysis_plan', 'data_exploration_code_and_output', 'research_goal']
     gpt_script_filename: str = 'data_analysis_code'
+    output_filename: str = 'results.txt'
+    allowed_created_files: Iterable[str] = ()
+    allow_dataframes_to_change_existing_series = True
+    enforce_saving_altered_dataframes: bool = False
+
     output_content_prompt: str = dedent_triple_quote_str("""
         All results we may need for a scientific paper should be saved to this text file, including \
         analysis findings, summary statistics, etc.

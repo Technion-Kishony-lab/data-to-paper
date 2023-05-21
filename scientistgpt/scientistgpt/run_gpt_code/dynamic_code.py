@@ -12,6 +12,7 @@ from scientistgpt import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 from scientistgpt.utils.file_utils import run_in_directory, UnAllowedFilesCreated
+from .overrides.override_dataframe import collect_changed_data_frames, ChangeReportingDataFrame
 
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
@@ -65,7 +66,8 @@ def run_code_using_module_reload(
         forbidden_modules_and_functions: List[Tuple[Any, str]] = None,
         allowed_read_files: List[str] = None,
         allowed_write_files: List[str] = None,
-        run_in_folder: Union[Path, str] = None) -> Set[str]:
+        allow_dataframes_to_change_existing_series: bool = True,
+        run_in_folder: Union[Path, str] = None) -> Tuple[Set[str], List[ChangeReportingDataFrame]]:
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -93,6 +95,7 @@ def run_code_using_module_reload(
                     prevent_calling(forbidden_modules_and_functions), \
                     PreventImport(FORBIDDEN_IMPORTS), \
                     prevent_file_open(allowed_read_files, allowed_write_files), \
+                    collect_changed_data_frames(allow_dataframes_to_change_existing_series) as changed_data_frames, \
                     run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
@@ -111,4 +114,4 @@ def run_code_using_module_reload(
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()
-    return created_files
+    return created_files, changed_data_frames
