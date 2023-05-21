@@ -124,7 +124,7 @@ class Message:
             partial_code = sections[-1]
             content = content.replace(
                 partial_code,
-                f"\n# NOT SHOWING {line_count(partial_code)} LINES OF INCOMPLETE CODE SENT BY CHATGPT\n```\n")
+                f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n```\n")
         return content, is_incomplete_code
 
     def _get_triple_quote_formatted_content(self, with_header: bool = True) -> (str, bool):

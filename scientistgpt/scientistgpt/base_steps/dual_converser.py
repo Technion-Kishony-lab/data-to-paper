@@ -118,6 +118,8 @@ class DialogDualConverserGPT(DualConverserGPT):
     termination_phrase: str = 'Job completed'
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
+    append_termination_response_to_self: bool = True
+
     sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
     fake_performer_message_to_add_after_max_rounds: str = \
         "No need for additional feedback. Thanks much - I think I have it now!"
@@ -141,11 +143,11 @@ class DialogDualConverserGPT(DualConverserGPT):
         self.apply_to_other_append_user_message(altered_self_response)
         return self.apply_to_other_get_and_append_assistant_message()
 
-    def get_response_from_self_in_response_to_response_from_other(self, other_response: str) -> str:
+    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> str:
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
-        self.apply_append_user_message(self._alter_other_response(other_response))
+        self.apply_append_user_message(altered_other_response)
         return self.apply_get_and_append_assistant_message()
 
     def _alter_self_response(self, response: str) -> str:
@@ -169,7 +171,7 @@ class DialogDualConverserGPT(DualConverserGPT):
             self.termination_phrase.lower() in self.other_conversation.get_last_response().lower()
 
     @with_attribute_replacement
-    def run_dialog(self, append_termination_response_to_self: bool = True) -> Optional[str]:
+    def run_dialog(self) -> Optional[str]:
         """
         Run the dialog until it is completed.
         Returns the last chatgpt response from self.
@@ -178,7 +180,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         last_self_response = None
         while True:
-            self_response, cycle_status = self.run_one_cycle(append_termination_response_to_self)
+            self_response, cycle_status = self.run_one_cycle()
             if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
                 return last_self_response
             if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
@@ -197,7 +199,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         return None
 
     @with_attribute_replacement
-    def run_one_cycle(self, append_termination_response_to_self: bool = True) -> Tuple[str, CycleStatus]:
+    def run_one_cycle(self) -> Tuple[str, CycleStatus]:
         """
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
         """
@@ -232,16 +234,16 @@ class DialogDualConverserGPT(DualConverserGPT):
         if not is_preexisting_self_response:
             self.apply_append_surrogate_message(content=altered_self_response, conversation_name=None)
         other_response = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
-
+        altered_other_response = self._alter_other_response(other_response)
         if self.is_completed():
-            if append_termination_response_to_self:
+            if self.append_termination_response_to_self:
                 self.apply_append_user_message(other_response)
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
             return self_response, CycleStatus.APPROVED_BY_OTHER
 
-        self.get_response_from_self_in_response_to_response_from_other(other_response)
+        self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
         return self_response, CycleStatus.NOT_APPROVED_BY_OTHER
 
 
