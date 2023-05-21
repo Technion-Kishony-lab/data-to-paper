@@ -105,8 +105,8 @@ class TablesReviewGPT(BasePythonValueProductsReviewGPT):
         latex code for the tables.
         like this:
         {
-            'Table 1: My first table': '\\begin{{table}} ... \\end{{table}}',
-            'Table 2: My second table': '\\begin{{table}} ... \\end{{table}}',
+            'my_first_table': '\\begin{{table}} ... \\end{{table}}',
+            'my_second_table': '\\begin{{table}} ... \\end{{table}}',
         }
         {quote_request}
         """)
