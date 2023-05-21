@@ -201,7 +201,7 @@ class ConversationManager:
             actual_hidden_messages.append(index)
 
     def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
-        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False, **kwargs)
+        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False)
 
         last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)

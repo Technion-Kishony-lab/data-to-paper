@@ -23,8 +23,8 @@ class CodeRunner:
     """
 
     response: str
-    allowed_read_files: Optional[list] = None
-    allowed_created_files: Iterable[str] = None
+    allowed_read_files: Iterable[str] = ()
+    allowed_created_files: Iterable[str] = ()
     allow_dataframes_to_change_existing_series: bool = True
     output_file: Optional[str] = None
     script_file_path: Optional[Path] = None
