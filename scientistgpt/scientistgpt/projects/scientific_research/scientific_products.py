@@ -19,12 +19,12 @@ class ScientificProducts(Products):
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     data_analysis_code_and_output: CodeAndOutput = None
-    tables: Dict[str, str] = None
+    tables: Dict[str, Dict[str, str]] = None
     numeric_values: Dict[str, str] = None
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
-    tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
+    ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
     def citations(self) -> NiceList[CrossrefCitation]:
