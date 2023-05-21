@@ -134,8 +134,14 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
         if in_text_block:
             tag = None
         else:
+
             tag = None if section == '' else section.split('\n')[0]
-            section = '\n'.join(section.splitlines()[1:])
+            if tag not in TAGS_TO_FORMATTERS:
+                # case like this: ```hello there```:
+                tag = ''
+            else:
+                # case like this: ```text\nhello there\n```:
+                section = '\n'.join(section.splitlines()[1:])
         if section:
             formatter, should_wrap = TAGS_TO_FORMATTERS.get(tag, BLOCK_FORMATTER)
             if should_wrap:
