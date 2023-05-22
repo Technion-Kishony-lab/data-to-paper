@@ -184,7 +184,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         self.apply_append_user_message(
             content=self.requesting_code_explanation_prompt,
         )
-        return self.apply_get_and_append_assistant_message()
+        return self.apply_get_and_append_assistant_message().content
 
     def _ask_chatgpt_whether_further_code_revisions_are_needed(self, code_and_output: CodeAndOutput) -> Optional[str]:
         if self.offer_revision_prompt is None:

@@ -1,6 +1,5 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt import Message, Role
 from scientistgpt.conversation.conversation_actions import ReplaceLastResponse
 from scientistgpt.conversation.conversation_manager import ConversationManager
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
@@ -62,9 +61,8 @@ def test_conversation_manager_regenerate_response(manager, actions):
         manager.regenerate_previous_response()
 
     assert len(manager.conversation) == 3
-    assert len(actions) == 5
-    assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer',
-                                               index_in_conversation=2, effective_index_in_conversation=2)
+    assert len(actions) == 6
+    assert manager.conversation[-1].content == 'The answer is 4'
 
 
 def test_conversation_manager_retry_response(manager, actions, openai_exception):
@@ -79,8 +77,7 @@ def test_conversation_manager_retry_response(manager, actions, openai_exception)
 
     assert len(manager.conversation) == 5
     assert len(actions) == 7  # 5 + create + failed
-    assert manager.conversation[-1] == Message(Role.ASSISTANT, 'The answer is 4', tag='math answer',
-                                               index_in_conversation=4, effective_index_in_conversation=4)
+    assert manager.conversation[-1].content == 'The answer is 4'
     # message #1 was hidden after the first failed attempt:
     assert actions[-1].hidden_messages == [1]
 
@@ -153,5 +150,5 @@ def test_conversation_manager_adds_python_header(manager):
         'hello world\n'
         '```\n',
     ]):
-        content = manager.get_and_append_assistant_message(is_code=True)
+        content = manager.get_and_append_assistant_message(is_code=True).content
     assert content == 'the code is:\n```python\nprint("hello world")\n```\n\nthe output is:\n```\nhello world\n```\n'

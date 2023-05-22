@@ -67,12 +67,46 @@ def extract_first_lines(text: str, num_lines: int = 1):
     return '\n'.join(text.splitlines()[:num_lines])
 
 
+def _extract_to_nearest(text: str, max_length: int, char: str = '\n'):
+    """
+    Extract the text from the beginning of the text to the nearest char before end.
+    If no char is found, extract the text from the beginning of the text to end.
+    if max_length is negative, extract the text from the end of the text to the nearest char before end.
+    """
+    if abs(max_length) > len(text):
+        return text
+    if max_length >= 0:
+        text = text[:max_length]
+        end = text.rfind(char) if char in text else max_length
+        return text[:end]
+    else:
+        text = text[max_length:]
+        end = text.find(char) + 1 if char in text else max_length
+        return text[end:]
+
+
 def extract_to_nearest_newline(text: str, end: int):
     """
     Extract the text from the beginning of the text to the nearest newline before end.
     If no newline is found, extract the text from the beginning of the text to end.
     """
-    newline_before_end = text.rfind('\n', 0, end)
-    if newline_before_end == -1:
-        return text[:end]
-    return text[:newline_before_end]
+    return _extract_to_nearest(text, end, '\n')
+
+
+def extract_to_nearest_space(text: str, end: int):
+    """
+    Extract the text from the beginning of the text to the nearest space before end.
+    If no space is found, extract the text from the beginning of the text to end.
+    """
+    return _extract_to_nearest(text, end, ' ')
+
+
+def get_dot_dot_dot_text(text: str, start: int, end: int):
+    """
+    Get the text from the beginning of the text to the nearest space before start and from the nearest space after end
+    to the end of the text.
+    """
+    fill = ' ... '
+    if start - end + len(fill) > len(text):
+        return text
+    return extract_to_nearest_space(text, start) + fill + extract_to_nearest_space(text, end)

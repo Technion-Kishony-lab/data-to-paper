@@ -1,19 +1,18 @@
 from dataclasses import dataclass
-from typing import Optional, Set, Iterable
+from typing import Optional, Set, Iterable, Union, List
 
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
-from scientistgpt.utils.code_utils import add_python_label_to_first_triple_quotes_if_missing, \
-    remove_text_label_from_text_blocks
+from scientistgpt.utils.code_utils import add_python_label_to_first_triple_quotes_if_missing
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
-from .message import Message, Role, create_message, create_message_from_other_message
+from .message import Message, Role, create_message, CodeMessage
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, AddParticipantsToConversation, RegenerateLastResponse, SetTypingAgent
+    CreateConversation, AddParticipantsToConversation, SetTypingAgent
 
 
 @dataclass
@@ -114,6 +113,7 @@ class ConversationManager:
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None,
+                                  context: Optional[List[Message]] = None,
                                   is_background: bool = False, reverse_roles_for_web: bool = False, **kwargs):
         """
         Append a message to a specified conversation.
@@ -126,7 +126,7 @@ class ConversationManager:
             agent = None
         self._create_and_apply_set_typing_action(agent=agent, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 previous_code=previous_code, is_background=is_background)
+                                 context=context, previous_code=previous_code, is_background=is_background)
         self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
@@ -174,7 +174,7 @@ class ConversationManager:
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None,
-                                         **kwargs) -> str:
+                                         **kwargs) -> Message:
         """
         Get and append a response from openai to a specified conversation.
 
@@ -189,41 +189,38 @@ class ConversationManager:
         # we try to get a response. if we fail we gradually remove messages from the top,
         # starting at message 1 (message 0 is the system message).
         while True:
-            content = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
+            message = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
                                                                 previous_code=previous_code,
                                                                 hidden_messages=actual_hidden_messages, **kwargs)
-            if isinstance(content, str):
-                return content
+            if isinstance(message, Message):
+                return message
             if len(indices_and_messages) <= 1:
                 # we tried removing all messages and failed.
-                raise RuntimeError('Failed accessing openai despite removing all messages.')
+                raise RuntimeError('Failed accessing openai despite removing all messages from context.')
             index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
 
-    def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
-        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False)
-
+    def regenerate_previous_response(self, comment: Optional[str] = None) -> Message:
         last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
-        openai_call_parameters = last_action.message.openai_call_parameters
+        last_message = self.conversation[-1]
+        assert last_message.role is Role.ASSISTANT
+        openai_call_parameters = last_message.openai_call_parameters
         openai_call_parameters = openai_call_parameters.to_dict() if openai_call_parameters else {}
-        # get response with the same messages removed as last time plus the last response (-1).
-        content = try_get_chatgpt_response(self.conversation, last_action.hidden_messages + [-1],
-                                           **openai_call_parameters)
-        assert not isinstance(content, Exception)  # because this same query already succeeded getting response.
-        self._create_and_apply_action(
-            RegenerateLastResponse,
-            driver=last_action.driver,
+        self.delete_messages(-1)  # delete last message.
+        return self.get_and_append_assistant_message(
             comment=comment,
-            message=create_message_from_other_message(last_action.message, content=content),
-            hidden_messages=last_action.hidden_messages)
-        return content
+            tag=last_message.tag,
+            is_code=isinstance(last_message, CodeMessage),
+            previous_code=last_message.previous_code if isinstance(last_message, CodeMessage) else None,
+            hidden_messages=last_action.hidden_messages,
+            **openai_call_parameters)
 
     def _try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                              is_code: bool = False, previous_code: Optional[str] = None,
                                              hidden_messages: GeneralMessageDesignation = None,
-                                             **kwargs  # for create_message and openai params
-                                             ) -> Optional[str]:
+                                             **kwargs  # for both create_message and openai params
+                                             ) -> Union[Message, Exception]:
         """
         Try to get and append a response from openai to a specified conversation.
 
@@ -236,21 +233,23 @@ class ConversationManager:
         # extract all OPENAI_CALL_PARAMETERS_NAMES from kwargs:
         openai_call_parameters = \
             OpenaiCallParameters(**{k: kwargs.pop(k) for k in OPENAI_CALL_PARAMETERS_NAMES if k in kwargs})
-        content = try_get_chatgpt_response(self.conversation, hidden_messages, **openai_call_parameters.to_dict())
+        messages = self.conversation.get_chosen_messages(hidden_messages)
+        content = try_get_chatgpt_response(messages, **openai_call_parameters.to_dict())
         if isinstance(content, Exception):
             self._create_and_apply_action(
                 FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
-        else:
-            if is_code:
-                content = add_python_label_to_first_triple_quotes_if_missing(content)
-                content = remove_text_label_from_text_blocks(content)
-            self._create_and_apply_action(
-                AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages,
-                message=create_message(
-                    role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
-                    openai_call_parameters=None if openai_call_parameters.is_all_none() else openai_call_parameters,
-                    previous_code=previous_code), **kwargs)
-        return content
+            return content
+
+        if is_code:
+            content = add_python_label_to_first_triple_quotes_if_missing(content)
+        message = create_message(
+            context=messages,
+            role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
+            openai_call_parameters=None if openai_call_parameters.is_all_none() else openai_call_parameters,
+            previous_code=previous_code, is_code=is_code)
+        self._create_and_apply_action(
+            AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
+        return message
 
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
         """

@@ -1,17 +1,20 @@
+from __future__ import annotations
+
 import difflib
 import colorama
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, List
 
 from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
-from scientistgpt.utils import format_text_with_code_blocks, line_count
+from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
 from scientistgpt.utils.code_utils import wrap_text_with_triple_quotes
+from scientistgpt.utils.text_extractors import get_dot_dot_dot_text
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -64,6 +67,8 @@ class Message:
 
     effective_index_in_conversation: Optional[int] = None
     # index of the message in the conversation, ignoring commenter and ignored messages
+
+    context: List[Message] = None
 
     def to_chatgpt_dict(self):
         return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()
@@ -127,17 +132,37 @@ class Message:
                 f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n```\n")
         return content, is_incomplete_code
 
+    @property
+    def number_of_tokens(self) -> int:
+        return word_count(self.content)
+
+    @property
+    def number_of_tokens_in_context(self) -> int:
+        if self.context is None:
+            return 0
+        return sum([m.number_of_tokens for m in self.context])
+
     def _get_triple_quote_formatted_content(self, with_header: bool = True) -> (str, bool):
         content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
         if self.role == Role.SYSTEM:
             content = wrap_text_with_triple_quotes(content, 'system')
         if self.role == Role.COMMENTER:
             content = wrap_text_with_triple_quotes(content, 'comment')
-        if with_header and self.role != Role.COMMENTER and self.effective_index_in_conversation is not None:
+        if self.effective_index_in_conversation is not None:
+            index = self.effective_index_in_conversation
+        else:
+            index = len(self.context) if self.context else None
+
+        if with_header and self.role != Role.COMMENTER and index is not None:
             chatgpt_parameters = f'({self.openai_call_parameters})' if self.openai_call_parameters else ''
-            header = f'#{self.effective_index_in_conversation} {chatgpt_parameters}\n'
+            header = f'#{index} {chatgpt_parameters}\n'
+            if self.context:
+                header += f'\nCONTEXT TOTAL ({self.number_of_tokens_in_context} tokens):\n'
+                for i, message in enumerate(self.context):
+                    header += f'#{i:>2} {message.get_short_description()}\n'
             header = wrap_text_with_triple_quotes(header, 'header')
             content = header + content
+
         return content, is_incomplete_code
 
     def pretty_content(self, text_color, block_color, width, is_html=False, with_header: bool = True) -> str:
@@ -148,6 +173,10 @@ class Message:
         return format_text_with_code_blocks(text=content,
                                             text_color=text_color, block_color=block_color, width=width,
                                             is_html=is_html)
+
+    def get_short_description(self):
+        s = f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {get_dot_dot_dot_text(self.content, 35, -20)}'
+        return s.replace('\n', ' ').replace('```', '')
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
@@ -209,18 +238,17 @@ class CodeMessage(Message):
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
-                   openai_call_parameters: OpenaiCallParameters = None,
-                   previous_code: str = None,
+                   openai_call_parameters: OpenaiCallParameters = None, context: List[Message] = None,
+                   previous_code: str = None, is_code: bool = False,
                    is_background: bool = False) -> Message:
-    if previous_code:
-        return CodeMessage(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                           openai_call_parameters=openai_call_parameters,
-                           previous_code=previous_code,
-                           is_background=is_background)
+    kwargs = dict(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
+                  openai_call_parameters=openai_call_parameters, context=context,
+                  is_background=is_background)
+    is_code = is_code or previous_code is not None
+    if is_code:
+        return CodeMessage(previous_code=previous_code, **kwargs)
     else:
-        return Message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                       openai_call_parameters=openai_call_parameters,
-                       is_background=is_background)
+        return Message(**kwargs)
 
 
 def create_message_from_other_message(other_message: Message,
@@ -232,5 +260,7 @@ def create_message_from_other_message(other_message: Message,
                           agent=agent if agent else other_message.agent,
                           ignore=other_message.ignore,
                           openai_call_parameters=other_message.openai_call_parameters,
+                          context=other_message.context,
+                          is_code=isinstance(other_message, CodeMessage),
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None,
                           is_background=other_message.is_background)
