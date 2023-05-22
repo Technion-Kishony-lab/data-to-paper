@@ -9,7 +9,7 @@ from scientistgpt.utils.code_utils import add_python_label_to_first_triple_quote
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
-from .message import Message, Role, create_message
+from .message import Message, Role, create_message, CodeMessage
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
@@ -211,8 +211,8 @@ class ConversationManager:
         return self.get_and_append_assistant_message(
             comment=comment,
             tag=last_message.tag,
-            is_code=last_message.is_code,
-            previous_code=last_message.previous_code,
+            is_code=isinstance(last_message, CodeMessage),
+            previous_code=last_message.previous_code if isinstance(last_message, CodeMessage) else None,
             hidden_messages=last_action.hidden_messages,
             **openai_call_parameters)
 
