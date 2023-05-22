@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Set, Iterable, Union
+from typing import Optional, Set, Iterable, Union, List
 
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
@@ -114,6 +114,7 @@ class ConversationManager:
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
                                   ignore: bool = False, previous_code: Optional[str] = None,
+                                  context: Optional[List[Message]] = None,
                                   is_background: bool = False, reverse_roles_for_web: bool = False, **kwargs):
         """
         Append a message to a specified conversation.
@@ -126,7 +127,7 @@ class ConversationManager:
             agent = None
         self._create_and_apply_set_typing_action(agent=agent, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 previous_code=previous_code, is_background=is_background)
+                                 context=context, previous_code=previous_code, is_background=is_background)
         self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,

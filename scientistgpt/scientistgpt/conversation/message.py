@@ -169,8 +169,8 @@ class Message:
                                             is_html=is_html)
 
     def get_short_description(self):
-        return f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {self.content[:60]}' \
-            .replace('\n', ' ').replace('```', '')
+        s = f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {self.content[:45]} [...] {self.content[-15:]}'
+        return s.replace('\n', ' ').replace('```', '')
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
