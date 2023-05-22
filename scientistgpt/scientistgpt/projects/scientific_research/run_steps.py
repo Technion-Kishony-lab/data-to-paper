@@ -121,6 +121,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_add_tables:
             products.paper_sections['results'] = \
                 PaperSectionReferringTablesReviewGPT.from_(self, section_names=['results']).get_section()
+            products.ready_to_be_tabled_paper_sections['results'] = products.paper_sections['results']
         else:
             products.paper_sections['results'] = \
                 PaperSectionReviewGPT.from_(self, section_names=['results']).get_section()
