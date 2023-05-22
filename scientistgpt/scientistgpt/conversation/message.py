@@ -233,12 +233,13 @@ class CodeMessage(Message):
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
                    openai_call_parameters: OpenaiCallParameters = None, context: List[Message] = None,
-                   previous_code: str = None,
+                   previous_code: str = None, is_code: bool = False,
                    is_background: bool = False) -> Message:
     kwargs = dict(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
                   openai_call_parameters=openai_call_parameters, context=context,
                   is_background=is_background)
-    if previous_code:
+    is_code = is_code or previous_code is not None
+    if is_code:
         return CodeMessage(previous_code=previous_code, **kwargs)
     else:
         return Message(**kwargs)
@@ -254,5 +255,6 @@ def create_message_from_other_message(other_message: Message,
                           ignore=other_message.ignore,
                           openai_call_parameters=other_message.openai_call_parameters,
                           context=other_message.context,
+                          is_code=isinstance(other_message, CodeMessage),
                           previous_code=other_message.previous_code if isinstance(other_message, CodeMessage) else None,
                           is_background=other_message.is_background)
