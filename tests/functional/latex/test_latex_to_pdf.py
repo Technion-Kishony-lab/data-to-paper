@@ -1,8 +1,11 @@
 import os
 
+import pytest
 from _pytest.fixtures import fixture
 
 from scientistgpt.latex import save_latex_and_compile_to_pdf
+from scientistgpt.latex.exceptions import LatexCompilationError
+from scientistgpt.latex.latex_to_pdf import clean_latex
 from scientistgpt.servers.crossref import CrossrefCitation
 
 
@@ -12,6 +15,16 @@ def latex_content():
 \documentclass{article}
 \begin{document}
 Hello World!
+\end{document}
+'''
+
+
+@fixture()
+def wrong_latex_content():
+    return r'''
+\documentclass{article}
+\begin{document}
+Hello & World!
 \end{document}
 '''
 
@@ -85,7 +98,7 @@ file_name = 'test'
 
 
 def test_latex_to_pdf(tmpdir, latex_content):
-    save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath, )
+    save_latex_and_compile_to_pdf(latex_content, file_name, tmpdir.strpath)
 
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
@@ -104,9 +117,28 @@ def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations, citation
 
 
 def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_characters):
-    save_latex_and_compile_to_pdf(latex_content_with_unescaped_characters, file_name, tmpdir.strpath, )
-
+    save_latex_and_compile_to_pdf(
+        clean_latex(latex_content_with_unescaped_characters), file_name, tmpdir.strpath, )
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.log'))
+
+
+@pytest.mark.parametrize('latex, expected', [
+    ('Hello & World!', r'Hello \& World!'),
+    ('Hello % World!', r'Hello \% World!'),
+    ('Hello # World!', r'Hello \# World!'),
+    ('Hello _ World!', r'Hello \_ World!'),
+])
+def test_clean_latex(latex, expected):
+    latex = r'\begin{document}' + latex + r'\end{document}'
+    assert clean_latex(latex) == r'\begin{document}' + expected + r'\end{document}'
+
+
+def test_latex_to_pdf_exception(tmpdir, wrong_latex_content):
+    with pytest.raises(LatexCompilationError) as e:
+        save_latex_and_compile_to_pdf(wrong_latex_content, file_name, tmpdir.strpath)
+    e = e.value
+    assert e.latex_content == wrong_latex_content
+    assert e.get_latex_exception_line_number() == 3
