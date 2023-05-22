@@ -10,7 +10,7 @@ from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
-from scientistgpt.utils import format_text_with_code_blocks, line_count
+from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
 from scientistgpt.utils.code_utils import wrap_text_with_triple_quotes
 
 # noinspection PyUnresolvedReferences
@@ -148,6 +148,15 @@ class Message:
         return format_text_with_code_blocks(text=content,
                                             text_color=text_color, block_color=block_color, width=width,
                                             is_html=is_html)
+
+    def get_short_name(self):
+        if self.tag:
+            name = self.tag
+        else:
+            name = self.content[:20]
+        name = name.replace('\n', ' ')
+        name += f' ({len(self.content)} chars, {word_count(self.content)} words)'
+        return name
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
