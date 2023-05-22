@@ -69,6 +69,13 @@ class Conversation(List[Message]):
                 and message.role is not Role.COMMENTER
                 and not message.ignore]
 
+    def get_chosen_messages(self, hidden_messages: GeneralMessageDesignation = None) -> List[Message]:
+        """
+        Return sub-list of messages.
+        Remove commenter messages, ignore=True messages, as well as all messages indicated in `hidden_messages`.
+        """
+        return [message for _, message in self.get_chosen_indices_and_messages(hidden_messages)]
+
     def get_last_response(self) -> str:
         """
         Return the last response from the assistant.
