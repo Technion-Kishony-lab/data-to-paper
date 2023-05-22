@@ -83,7 +83,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class TablesReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_analysis_output', 'research_goal', 'tables')
+    background_product_fields = ('research_goal', 'data_analysis_output', 'tables')
     conversation_name: str = 'tables'
     value_type: type = Dict[str, str]
     goal_noun: str = 'table for a scientific paper'
@@ -136,7 +136,7 @@ class TablesReviewGPT(BasePythonValueProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
+    background_product_fields = ('research_goal', 'data_exploration_output', 'data_analysis_output')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, str]
     goal_noun: str = 'key numerical results'

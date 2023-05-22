@@ -20,7 +20,7 @@ class ScientificProducts(Products):
     analysis_plan: Optional[str] = None
     data_analysis_code_and_output: CodeAndOutput = None
     tables: Dict[str, Dict[str, str]] = field(default_factory=dict)
-    numeric_values: Dict[str, str] = None
+    numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
@@ -243,7 +243,7 @@ class ScientificProducts(Products):
                 'The Tables of the Paper',
                 'Here are the tables of the paper:\n\n{}',
                 ScientificStage.TABLES,
-                lambda: NiceList([f"Table {i}, {table_name}:\n\n {table_content}"
+                lambda: NiceList([f"Table {i+1}, {table_name}:\n\n {table_content}"
                                   for i, (table_name, table_content) in enumerate(self.tables.items())],
                                  separator='\n\n'), ),
 
@@ -251,7 +251,7 @@ class ScientificProducts(Products):
                 'The Numeric Values of the Paper',
                 'Here are the numeric values of the paper:\n\n{}',
                 ScientificStage.INTERPRETATION,
-                lambda: NiceList([f"Numeric Value {i}, {numeric_value_name}:\n\n {numeric_value_content}"
+                lambda: NiceList([f"Numeric Value {i+1}, {numeric_value_name}:\n\n {numeric_value_content}"
                                   for i, (numeric_value_name, numeric_value_content) in
                                   enumerate(self.numeric_values.items())], separator='\n\n'), ),
 
