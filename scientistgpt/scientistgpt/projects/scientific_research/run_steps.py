@@ -34,6 +34,8 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_interpret_results: bool = False
     should_rewrite_results_section_with_tables: bool = False
 
+    number_of_tables_to_add: int = 2
+
     def _run_all_steps(self) -> ScientificProducts:
 
         products = self.products  # Start with empty products
@@ -89,7 +91,10 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                        ScientificAgent.InterpretationReviewer)
         # Tables
         if self.should_add_tables:
-            products.tables['results'] = TablesReviewGPT.from_(self).initialize_and_run_dialog()
+            products.tables['results'] = dict()
+            for i in range(self.number_of_tables_to_add):
+                table_name, table_content = TablesReviewGPT.from_(self).get_table()
+                products.tables['results'][table_name] = table_content
 
         # Numerical results
         products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).initialize_and_run_dialog()
