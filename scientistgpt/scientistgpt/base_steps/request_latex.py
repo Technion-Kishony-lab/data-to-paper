@@ -6,6 +6,8 @@ from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.latex.exceptions import LatexCompilationError
+from scientistgpt.latex.latex_to_pdf import test_latex_compilation
 
 from .base_products_conversers import BaseProductsReviewGPT
 
@@ -20,9 +22,10 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
     ADDITIONAL_DICT_ATTRS = BaseProductsReviewGPT.ADDITIONAL_DICT_ATTRS | {'section_name', 'pretty_section_names'}
     should_remove_citations_from_section = True
 
+    section_names: List[str] = field(default_factory=list)
+
     # outputs:
     section_contents: List[str] = field(default_factory=list)
-    section_names: List[str] = field(default_factory=list)
 
     @property
     def section_name(self) -> Optional[str]:
@@ -48,8 +51,9 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
                 extracted_section = extract_latex_section_from_response(response, section_name)
                 if self.should_remove_citations_from_section:
                     extracted_section = remove_citations_from_section(extracted_section)
+                test_latex_compilation(extracted_section)
                 self.section_contents.append(extracted_section)
-        except FailedToExtractLatexContent as e:
+        except (FailedToExtractLatexContent, LatexCompilationError) as e:
             error_message = dedent_triple_quote_str("""
                 {}
 

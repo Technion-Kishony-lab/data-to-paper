@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 import regex
@@ -6,6 +7,10 @@ from typing import Set
 
 from scientistgpt.servers.crossref import CrossrefCitation
 from scientistgpt.utils.file_utils import run_in_temp_directory
+
+from .exceptions import LatexCompilationError
+
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 BIB_FILENAME: str = 'citations.bib'
 
@@ -116,15 +121,26 @@ def remove_figure_envs_from_latex(latex_content):
     return latex_content
 
 
+def clean_latex(latex_content):
+    preamble = latex_content[:latex_content.find(r'\begin{document}')]
+    latex_content = latex_content[latex_content.find(r'\begin{document}'):]
+    latex_content = remove_figure_envs_from_latex(latex_content)
+    latex_content = preamble + replace_special_chars(latex_content)
+    return latex_content
+
+
+def test_latex_compilation(latex_content: str):
+    with open(os.path.join(THIS_FOLDER, 'compilation_tamplate.tex'), 'r') as f:
+        latex_document = f.read().replace('@@@content@@@', latex_content)
+    with run_in_temp_directory() as temp_dir:
+        save_latex_and_compile_to_pdf(latex_document, 'test', temp_dir)
+
+
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: str,
                                   references: Set[CrossrefCitation] = None):
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
-    preamble = latex_content[:latex_content.find(r'\begin{document}')]
-    latex_content = latex_content[latex_content.find(r'\begin{document}'):]
-    latex_content = remove_figure_envs_from_latex(latex_content)
-    latex_content = preamble + replace_special_chars(latex_content)
     with run_in_temp_directory():
 
         # Create the bib file:
@@ -135,7 +151,12 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
 
         with open(latex_file_name, 'w') as f:
             f.write(latex_content)
-        subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
+        try:
+            subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
+
         if should_compile_with_bib:
             subprocess.run(['bibtex', file_stem], check=True)
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)

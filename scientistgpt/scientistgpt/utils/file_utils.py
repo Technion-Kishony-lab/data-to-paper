@@ -1,13 +1,13 @@
 import os
 import shutil
+import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Union, List, Set, Iterable
 
-# Temp directory for latex complication:
-module_dir = os.path.dirname(__file__)
-TEMP_FOLDER = (Path(module_dir) / 'temp').absolute()
+# Get the path of the current folder:
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 
 def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: Iterable[str]):
@@ -40,14 +40,15 @@ class UnAllowedFilesCreated(PermissionError):
 @contextmanager
 def run_in_temp_directory():
     cwd = os.getcwd()
-    if not os.path.exists(TEMP_FOLDER):
-        os.mkdir(TEMP_FOLDER)
-    os.chdir(TEMP_FOLDER)
+    folder = os.path.join(THIS_FOLDER, str(uuid.uuid4()))
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    os.chdir(folder)
     try:
-        yield
+        yield folder
     finally:
         os.chdir(cwd)
-        shutil.rmtree(TEMP_FOLDER)
+        shutil.rmtree(folder)
 
 
 @contextmanager
