@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional
 
 from scientistgpt.utils import dedent_triple_quote_str
@@ -7,7 +7,8 @@ from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProduc
     BasePythonValueProductsReviewGPT
 
 from .cast import ScientificAgent
-from ...latex import extract_latex_section_from_response
+from ...latex import extract_latex_section_from_response, FailedToExtractLatexContent
+from ...servers.openai_models import ModelEngine
 
 
 @dataclass
@@ -82,16 +83,17 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class TablesReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
+    background_product_fields = ('data_analysis_output', 'research_goal', 'tables')
     conversation_name: str = 'tables'
     value_type: type = Dict[str, str]
-    goal_noun: str = 'two to three tables for a scientific paper'
+    goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
+    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above tables, with specific attention to whether the tables \
-        contain only information that is explicitly extracted from the results data. Compare the numbers in the tables \
+        Please provide feedback on the above table, with specific attention to whether the table \
+        contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
         to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
@@ -99,23 +101,37 @@ class TablesReviewGPT(BasePythonValueProductsReviewGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} {goal_noun} that summarize the results we got in the output.
         The {goal_noun} should only include information that is explicitly extracted from the results data.
-        The tables should be centered, in booktabs, multirow format with caption and label. 
-        Make sure that the tables are not too wide, so that they fit text width.
-        The tables should be returned in a dictionary, where the keys are the table titles, and the values are the \
+        Notice that the table should add new information that is not already in the given tables. 
+        The table should be centered, in booktabs, multirow format with caption and label.
+        Make sure that the table is not too wide, so that it will fit within document text width.
+        The table should be returned in a dictionary, where the key is the table title, and the value is the \
         latex for the tables.
         like this:
         {
-            'my_first_table': '\\begin{{table}} ... \\end{{table}}',
-            'my_second_table': '\\begin{{table}} ... \\end{{table}}',
+            'the_table_title': '\\begin{{table}} ... \\end{{table}}',
         }
-        Do not write code! write the tables in latex format.
+        Do not write code! write the table in latex format.
         """)
 
     def _check_response_value(self, response_value: Any) -> Optional[str]:
-        for table_name, table_content in response_value.items():
-            extract_latex_section_from_response(table_content, 'table')
+        if len(response_value) == 0:
+            return 'You returned an empty dictionary. You need to return a dictionary with one table.'
+        if len(response_value) > 1:
+            return 'You need to return only one table at a time.'
+        else:
+            table_content = list(response_value.values())[0]
+            try:
+                extract_latex_section_from_response(table_content, 'table')
+            except FailedToExtractLatexContent as e:
+                return f'The response should be from of type {self.value_type}. {e}'
         return None
 
+    def get_table(self):
+        response = super().initialize_and_run_dialog()
+        feedback, table_dict = self.extract_python_value_from_response(response)
+        table_name = list(table_dict.keys())[0]
+        table_content = list(table_dict.values())[0]
+        return table_name, table_content
 
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
