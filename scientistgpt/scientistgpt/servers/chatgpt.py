@@ -7,7 +7,7 @@ from typing import List, Union
 
 from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
 
-from .base_server import ServerCaller
+from .base_server import ServerCaller, NoMoreResponsesToMockError
 from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
@@ -60,6 +60,8 @@ def try_get_chatgpt_response(messages: List[Message],
             return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         except openai.error.InvalidRequestError as e:
             return e
+        except NoMoreResponsesToMockError:
+            raise
         except Exception as e:
             print(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
         time.sleep(1.0 * 2 ** attempt)

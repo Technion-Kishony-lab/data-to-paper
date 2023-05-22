@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from scientistgpt.servers.base_server import ServerCaller
+from scientistgpt.servers.base_server import ServerCaller, NoMoreResponsesToMockError
 
 
 @dataclass
@@ -28,7 +28,7 @@ def test_server_mock_exception_when_no_responses_left():
     server = MockServer()
     with server.mock(old_records=['response1'], record_more_if_needed=False) as mock:
         assert mock.get_server_response() == 'response1'
-        with pytest.raises(AssertionError):
+        with pytest.raises(NoMoreResponsesToMockError):
             mock.get_server_response()
 
 
