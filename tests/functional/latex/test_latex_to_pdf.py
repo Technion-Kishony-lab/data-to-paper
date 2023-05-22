@@ -117,8 +117,8 @@ def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations, citation
 
 
 def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_characters):
-    save_latex_and_compile_to_pdf(latex_content_with_unescaped_characters, file_name, tmpdir.strpath, )
-
+    save_latex_and_compile_to_pdf(
+        clean_latex(latex_content_with_unescaped_characters), file_name, tmpdir.strpath, )
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
