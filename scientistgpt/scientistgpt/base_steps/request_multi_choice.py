@@ -38,9 +38,9 @@ class BaseMultiChoiceProductsGPT(BaseBackgroundProductsGPT):
 
     def _get_chosen_choice(self, regenerate: bool = False) -> str:
         if regenerate:
-            response = self.conversation_manager.regenerate_previous_response()
+            response = self.conversation_manager.regenerate_previous_response().content
         else:
-            response = self.apply_get_and_append_assistant_message(**self.CHATGPT_PARAMETERS)
+            response = self.apply_get_and_append_assistant_message(**self.CHATGPT_PARAMETERS).content
         return self._get_chosen_choice_from_response(response)
 
     @with_attribute_replacement
