@@ -46,6 +46,9 @@ class ChangeReportingDataFrame(pd.DataFrame):
         super().__delitem__(key)
         self._notify_on_change()
 
+    def __str__(self):
+        return self.to_string()
+
 
 pd.DataFrame = ChangeReportingDataFrame
 
