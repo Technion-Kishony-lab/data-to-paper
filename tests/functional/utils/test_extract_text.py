@@ -1,6 +1,7 @@
 import pytest
 
 from scientistgpt.utils import extract_text_between_tags
+from scientistgpt.utils.text_extractors import extract_to_nearest_space
 
 text_1 = 'hello, here is a list [1, 2, 3, [4], 5] of numbers and lists'
 
@@ -24,3 +25,12 @@ text_3 = '\\section{Introduction} \n' \
 ])
 def test_extract_text_between_tags(text, start_tag, end_tag, leave_tags, expected):
     assert extract_text_between_tags(text, start_tag, end_tag, leave_tags) == expected
+
+
+def test_extract_to_nearest_space():
+    text = 'This is a test text to test the extract_to_nearest_space function.'
+    assert extract_to_nearest_space(text, 18) == 'This is a test'
+    assert extract_to_nearest_space(text, 200) == text
+    assert extract_to_nearest_space(text, -13) == 'function.'
+    assert extract_to_nearest_space(text, 3) == 'Thi'
+    assert extract_to_nearest_space(text, -4) == 'ion.'

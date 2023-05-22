@@ -8,6 +8,7 @@ from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 
 from .converser_gpt import ConverserGPT
+from .. import Message
 
 
 @dataclass
@@ -55,7 +56,7 @@ class DualConverserGPT(ConverserGPT):
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         model_engine: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None, **kwargs,
-                                                        ) -> str:
+                                                        ) -> Message:
         return self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
@@ -135,7 +136,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         self.other_conversation_manager.user_agent = self.assistant_agent
         self.round_num = 0
 
-    def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> str:
+    def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> Message:
         """
         Append response from self as user message to other conversation, and get response from other assistant.
         """
@@ -143,7 +144,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         self.apply_to_other_append_user_message(altered_self_response)
         return self.apply_to_other_get_and_append_assistant_message()
 
-    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> str:
+    def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> Message:
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
@@ -204,18 +205,21 @@ class DialogDualConverserGPT(DualConverserGPT):
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
         """
         self_response = None
+        self_message = None
         for _ in range(self.max_attempts_per_round):
             # to allow starting either before or after the first self response:
             is_preexisting_self_response = self.conversation.get_last_non_commenter_message().role is not Role.USER
             if is_preexisting_self_response:
                 self_response = self.conversation.get_last_response()
             else:
-                self_response = self.apply_get_and_append_assistant_message(web_conversation_name=None)
+                self_message = self.apply_get_and_append_assistant_message(web_conversation_name=None)
+                self_response = self_message.content
             problem_in_response = self._check_self_response(self_response)
             if problem_in_response is None:
                 break
             if not is_preexisting_self_response:
-                self.apply_append_surrogate_message(content=self_response, conversation_name=None)
+                self.apply_append_surrogate_message(content=self_response, conversation_name=None,
+                                                    context=self_message.context)
             self.apply_append_user_message(problem_in_response + '\n' +
                                            self.sentence_to_add_to_error_message_upon_failed_check_self_response,
                                            tag='error')
@@ -225,19 +229,22 @@ class DialogDualConverserGPT(DualConverserGPT):
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_reviewing_rounds:
             if not is_preexisting_self_response:
-                self.apply_append_surrogate_message(content=self_response, conversation_name=None)
+                self.apply_append_surrogate_message(content=self_response, conversation_name=None,
+                                                    context=self_message.context)
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
 
         altered_self_response = self._alter_self_response(self_response)
         if not is_preexisting_self_response:
-            self.apply_append_surrogate_message(content=altered_self_response, conversation_name=None)
-        other_response = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
+            self.apply_append_surrogate_message(content=altered_self_response, conversation_name=None,
+                                                context=self_message.context)
+        other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
+        other_response = other_message.content
         altered_other_response = self._alter_other_response(other_response)
         if self.is_completed():
             if self.append_termination_response_to_self:
-                self.apply_append_user_message(other_response)
+                self.apply_append_user_message(other_response, context=other_message.context)
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
@@ -299,11 +306,11 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         return self.max_reviewing_rounds > 0
 
     def _alter_other_response(self, response: str) -> str:
-        return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewer_response
+        return response + '\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
     def _alter_self_response(self, response: str) -> str:
         if self.sentence_to_add_at_the_end_of_performer_response:
-            return response + '\n\n' + self.sentence_to_add_at_the_end_of_performer_response
+            return response + '\n' + self.sentence_to_add_at_the_end_of_performer_response
         else:
             return response
 

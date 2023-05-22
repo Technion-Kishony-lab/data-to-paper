@@ -5,7 +5,6 @@ import openai
 
 from typing import List, Union
 
-from scientistgpt.conversation.message_designation import GeneralMessageDesignation
 from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
 
 from .base_server import ServerCaller
@@ -44,7 +43,7 @@ class OpenaiSeverCaller(ServerCaller):
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
 
 
-def try_get_chatgpt_response(conversation, hidden_messages: GeneralMessageDesignation = None,
+def try_get_chatgpt_response(messages: List[Message],
                              model_engine: ModelEngine = None,
                              **kwargs) -> Union[str, Exception]:
     """
@@ -56,8 +55,6 @@ def try_get_chatgpt_response(conversation, hidden_messages: GeneralMessageDesign
     If getting a response is successful then return response string.
     If failed due to openai exception, return None.
     """
-    indices_and_messages = conversation.get_chosen_indices_and_messages(hidden_messages)
-    messages = [message for _, message in indices_and_messages]
     for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
         try:
             return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
