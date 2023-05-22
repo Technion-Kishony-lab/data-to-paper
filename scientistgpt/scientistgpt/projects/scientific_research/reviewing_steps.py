@@ -166,6 +166,11 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         results we got in the output.
         """)
 
+    def get_numeric_values(self):
+        response = super().initialize_and_run_dialog()
+        feedback, numeric_values = self.extract_python_value_from_response(response)
+        return numeric_values
+
 
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
