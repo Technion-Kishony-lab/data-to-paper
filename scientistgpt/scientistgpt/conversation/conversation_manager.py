@@ -4,8 +4,7 @@ from typing import Optional, Set, Iterable, Union, List
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
-from scientistgpt.utils.code_utils import add_python_label_to_first_triple_quotes_if_missing, \
-    remove_text_label_from_text_blocks
+from scientistgpt.utils.code_utils import add_python_label_to_first_triple_quotes_if_missing
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation

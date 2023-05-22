@@ -306,11 +306,11 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         return self.max_reviewing_rounds > 0
 
     def _alter_other_response(self, response: str) -> str:
-        return response + '\n\n' + self.sentence_to_add_at_the_end_of_reviewer_response
+        return response + '\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
     def _alter_self_response(self, response: str) -> str:
         if self.sentence_to_add_at_the_end_of_performer_response:
-            return response + '\n\n' + self.sentence_to_add_at_the_end_of_performer_response
+            return response + '\n' + self.sentence_to_add_at_the_end_of_performer_response
         else:
             return response
 

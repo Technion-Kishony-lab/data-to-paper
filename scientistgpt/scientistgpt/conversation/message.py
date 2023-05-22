@@ -14,6 +14,7 @@ from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
 from scientistgpt.utils.code_utils import wrap_text_with_triple_quotes
+from scientistgpt.utils.text_extractors import get_dot_dot_dot_text
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -154,9 +155,9 @@ class Message:
 
         if with_header and self.role != Role.COMMENTER and index is not None:
             chatgpt_parameters = f'({self.openai_call_parameters})' if self.openai_call_parameters else ''
-            header = f'#{self.effective_index_in_conversation} {chatgpt_parameters}\n'
+            header = f'#{index} {chatgpt_parameters}\n'
             if self.context:
-                header += f'\nCONTEXT (Total {self.number_of_tokens_in_context} tokens):\n'
+                header += f'\nCONTEXT TOTAL ({self.number_of_tokens_in_context} tokens):\n'
                 for i, message in enumerate(self.context):
                     header += f'#{i:>2} {message.get_short_description()}\n'
             header = wrap_text_with_triple_quotes(header, 'header')
@@ -174,7 +175,7 @@ class Message:
                                             is_html=is_html)
 
     def get_short_description(self):
-        s = f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {self.content[:45]} [...] {self.content[-15:]}'
+        s = f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {get_dot_dot_dot_text(self.content, 35, -20)}'
         return s.replace('\n', ' ').replace('```', '')
 
     def convert_to_text(self):
