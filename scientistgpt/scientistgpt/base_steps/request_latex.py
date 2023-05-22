@@ -22,9 +22,10 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
     ADDITIONAL_DICT_ATTRS = BaseProductsReviewGPT.ADDITIONAL_DICT_ATTRS | {'section_name', 'pretty_section_names'}
     should_remove_citations_from_section = True
 
+    section_names: List[str] = field(default_factory=list)
+
     # outputs:
     section_contents: List[str] = field(default_factory=list)
-    section_names: List[str] = field(default_factory=list)
 
     @property
     def section_name(self) -> Optional[str]:
