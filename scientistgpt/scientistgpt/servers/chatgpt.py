@@ -5,7 +5,6 @@ import openai
 
 from typing import List, Union
 
-from scientistgpt.conversation.message_designation import GeneralMessageDesignation
 from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
 
 from .base_server import ServerCaller
