@@ -8,6 +8,7 @@ from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 
 from .converser_gpt import ConverserGPT
+from .. import Message
 
 
 @dataclass
@@ -55,7 +56,7 @@ class DualConverserGPT(ConverserGPT):
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         model_engine: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None, **kwargs,
-                                                        ) -> str:
+                                                        ) -> Message:
         return self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
@@ -141,14 +142,14 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         self.round_num += 1
         self.apply_to_other_append_user_message(altered_self_response)
-        return self.apply_to_other_get_and_append_assistant_message()
+        return self.apply_to_other_get_and_append_assistant_message().content
 
     def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> str:
         """
         Append response from other as user message to self conversation, and get response from assistant.
         """
         self.apply_append_user_message(altered_other_response)
-        return self.apply_get_and_append_assistant_message()
+        return self.apply_get_and_append_assistant_message().content
 
     def _alter_self_response(self, response: str) -> str:
         """
@@ -210,7 +211,7 @@ class DialogDualConverserGPT(DualConverserGPT):
             if is_preexisting_self_response:
                 self_response = self.conversation.get_last_response()
             else:
-                self_response = self.apply_get_and_append_assistant_message(web_conversation_name=None)
+                self_response = self.apply_get_and_append_assistant_message(web_conversation_name=None).content
             problem_in_response = self._check_self_response(self_response)
             if problem_in_response is None:
                 break
