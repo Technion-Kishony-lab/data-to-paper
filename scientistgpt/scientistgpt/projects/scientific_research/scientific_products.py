@@ -19,7 +19,7 @@ class ScientificProducts(Products):
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     data_analysis_code_and_output: CodeAndOutput = None
-    tables: Dict[str, Dict[str, str]] = None
+    tables: Dict[str, Dict[str, str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = None
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
