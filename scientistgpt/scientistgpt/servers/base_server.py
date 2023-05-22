@@ -7,6 +7,10 @@ from typing import Union
 from .json import save_to_json, load_from_json
 
 
+class NoMoreResponsesToMockError(Exception):
+    pass
+
+
 class ServerCaller:
     """
     A base class for calling a remote server, while allowing recording and replaying server responses.
@@ -82,7 +86,7 @@ class ServerCaller:
             return response
         else:
             if not self.record_more_if_needed:
-                raise AssertionError('No more responses to mock')
+                raise NoMoreResponsesToMockError()
             response = self._get_server_response_without_raising(*args, **kwargs)
             self.new_records.append(response)
             return response
