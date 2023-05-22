@@ -208,8 +208,8 @@ class ConversationManager:
         openai_call_parameters = last_action.message.openai_call_parameters
         openai_call_parameters = openai_call_parameters.to_dict() if openai_call_parameters else {}
         # get response with the same messages removed as last time plus the last response (-1).
-        content = try_get_chatgpt_response(self.conversation, last_action.hidden_messages + [-1],
-                                           **openai_call_parameters)
+        messages = self.conversation.get_chosen_messages(last_action.hidden_messages + [-1])
+        content = try_get_chatgpt_response(messages, **openai_call_parameters)
         assert not isinstance(content, Exception)  # because this same query already succeeded getting response.
         self._create_and_apply_action(
             RegenerateLastResponse,
@@ -236,7 +236,8 @@ class ConversationManager:
         # extract all OPENAI_CALL_PARAMETERS_NAMES from kwargs:
         openai_call_parameters = \
             OpenaiCallParameters(**{k: kwargs.pop(k) for k in OPENAI_CALL_PARAMETERS_NAMES if k in kwargs})
-        content = try_get_chatgpt_response(self.conversation, hidden_messages, **openai_call_parameters.to_dict())
+        messages = self.conversation.get_chosen_messages(hidden_messages)
+        content = try_get_chatgpt_response(messages, **openai_call_parameters.to_dict())
         if isinstance(content, Exception):
             self._create_and_apply_action(
                 FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
@@ -247,6 +248,7 @@ class ConversationManager:
             self._create_and_apply_action(
                 AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages,
                 message=create_message(
+                    context=messages,
                     role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,
                     openai_call_parameters=None if openai_call_parameters.is_all_none() else openai_call_parameters,
                     previous_code=previous_code), **kwargs)
