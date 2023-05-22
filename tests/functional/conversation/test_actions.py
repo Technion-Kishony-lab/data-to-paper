@@ -3,7 +3,7 @@ from _pytest.fixtures import fixture
 from scientistgpt import Message, Role
 from scientistgpt.conversation.conversation_actions import AppendMessage, AppendChatgptResponse, \
     FailedChatgptResponse, CopyMessagesBetweenConversations, CreateConversation, \
-    NullConversationAction, RegenerateLastResponse, ResetToTag, DeleteMessages, ReplaceLastResponse
+    NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastResponse
 
 from scientistgpt.conversation.conversation_manager import ConversationManager
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
@@ -66,19 +66,6 @@ def test_no_action(conversations, conversation):
     print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length
-
-
-def test_regenerate_last_response(conversations, conversation, assistant_message):
-    conversation.pop(-1)  # so that we have an assistant message last, to regenerate
-    original_length = len(conversation)
-    action = RegenerateLastResponse(conversations=conversations,
-                                    conversation_name=conversation.conversation_name,
-                                    comment='this is a test', hidden_messages=[1, 3],
-                                    message=assistant_message)
-    print('\n' + action.pretty_repr())
-    action.apply()
-    assert len(conversation) == original_length
-    conversation[-1] = assistant_message
 
 
 def test_reset_to_tag(conversations, conversation, assistant_message):

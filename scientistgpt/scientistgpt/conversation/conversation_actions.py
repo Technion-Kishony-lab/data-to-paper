@@ -281,17 +281,6 @@ class NullConversationAction(ConversationAction):
     pass
 
 
-class RegenerateLastResponse(AppendChatgptResponse):
-    """
-    Delete the last chatgpt response and regenerate.
-    """
-    def _pretty_attrs(self) -> str:
-        return ' '  # not empty, to invoke printing the comment line in pretty_repr()
-
-    def _get_index_of_tag(self) -> Optional[int]:
-        return len(self.conversation) - 1
-
-
 @dataclass(frozen=True)
 class ResetToTag(ChangeMessagesConversationAction):
     """

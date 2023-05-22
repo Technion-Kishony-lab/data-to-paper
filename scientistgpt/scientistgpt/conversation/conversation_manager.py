@@ -13,7 +13,7 @@ from .message import Message, Role, create_message, create_message_from_other_me
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
     AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
-    CreateConversation, AddParticipantsToConversation, RegenerateLastResponse, SetTypingAgent
+    CreateConversation, AddParticipantsToConversation, SetTypingAgent
 
 
 @dataclass
@@ -201,23 +201,20 @@ class ConversationManager:
             actual_hidden_messages.append(index)
 
     def regenerate_previous_response(self, comment: Optional[str] = None) -> str:
-        self._create_and_apply_set_typing_action(agent=self.assistant_agent, reverse_roles_for_web=False)
-
         last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
         assert isinstance(last_action, AppendChatgptResponse)
-        openai_call_parameters = last_action.message.openai_call_parameters
+        last_message = self.conversation[-1]
+        assert last_message.role is Role.ASSISTANT
+        openai_call_parameters = last_message.openai_call_parameters
         openai_call_parameters = openai_call_parameters.to_dict() if openai_call_parameters else {}
-        # get response with the same messages removed as last time plus the last response (-1).
-        messages = self.conversation.get_chosen_messages(last_action.hidden_messages + [-1])
-        content = try_get_chatgpt_response(messages, **openai_call_parameters)
-        assert not isinstance(content, Exception)  # because this same query already succeeded getting response.
-        self._create_and_apply_action(
-            RegenerateLastResponse,
-            driver=last_action.driver,
+        self.delete_messages(-1)  # delete last message.
+        return self.get_and_append_assistant_message(
             comment=comment,
-            message=create_message_from_other_message(last_action.message, content=content),
-            hidden_messages=last_action.hidden_messages)
-        return content
+            tag=last_message.tag,
+            is_code=last_message.is_code,
+            previous_code=last_message.previous_code,
+            hidden_messages=last_action.hidden_messages,
+            **openai_call_parameters)
 
     def _try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                              is_code: bool = False, previous_code: Optional[str] = None,
