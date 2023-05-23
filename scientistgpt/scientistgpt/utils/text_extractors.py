@@ -50,6 +50,8 @@ def extract_text_between_brackets(text: str, open_bracket: str, leave_brackets: 
     end = start + 1
     stack = [open_bracket]
     while len(stack) > 0:
+        if end == len(text):
+            raise ValueError(f'Could not find matching closing bracket for open bracket {open_bracket} in text')
         if text[end] == open_bracket:
             stack.append(open_bracket)
         elif text[end] == FROM_OPEN_BRACKET_TO_CLOSE_BRACKET[open_bracket]:
