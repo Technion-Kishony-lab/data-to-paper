@@ -6,7 +6,6 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.nice_list import NiceList
 
 from .debugger_gpt import DebuggerGPT
@@ -114,7 +113,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     def _request_code_tag(self):
         return f'code_revision_{self.revision_round}'
 
-    @with_attribute_replacement
     def get_analysis_code(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         self._pre_populate_background()

@@ -3,8 +3,6 @@ from dataclasses import dataclass
 import pytest
 from _pytest.fixtures import fixture
 
-from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
-
 
 @dataclass
 class Greeter(Replacer):
@@ -14,7 +12,6 @@ class Greeter(Replacer):
     name: str = 'the {adjective} john'
     greeting: str = 'hello, I am {name}, and I am {age} years old. I like {BRACKETS}'
 
-    @with_attribute_replacement
     def get_greeting(self):
         return self.greeting
 
