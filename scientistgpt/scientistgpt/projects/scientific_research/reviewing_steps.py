@@ -120,6 +120,8 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
         contain only information that is explicitly extracted from the results data. Compare the numbers in the \
         {goal_noun} to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
+        The format of the {goal_noun} should be a dictionary from string to string, where the keys are the names of \
+        the numerical results, and the values are the actual numeric values themselves.
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
