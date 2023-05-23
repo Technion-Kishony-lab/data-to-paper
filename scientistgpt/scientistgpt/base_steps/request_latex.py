@@ -7,7 +7,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.latex.exceptions import LatexCompilationError
-from scientistgpt.latex.latex_to_pdf import test_latex_compilation
+from scientistgpt.latex.latex_to_pdf import test_latex_compilation, remove_figure_envs_from_latex, replace_special_chars
 
 from .base_products_conversers import BaseProductsReviewGPT
 
@@ -51,6 +51,8 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
                 extracted_section = extract_latex_section_from_response(response, section_name)
                 if self.should_remove_citations_from_section:
                     extracted_section = remove_citations_from_section(extracted_section)
+                extracted_section = remove_figure_envs_from_latex(extracted_section)
+                extracted_section = replace_special_chars(extracted_section)
                 test_latex_compilation(extracted_section)
                 self.section_contents.append(extracted_section)
         except (FailedToExtractLatexContent, LatexCompilationError) as e:
