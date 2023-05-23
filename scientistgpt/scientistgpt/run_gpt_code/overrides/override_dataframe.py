@@ -25,7 +25,7 @@ class ChangeReportingDataFrame(pd.DataFrame):
     ON_CHANGE = None
 
     def __hash__(self):
-        return int(pd.util.hash_pandas_object(self).sum())
+        return id(self)
 
     @staticmethod
     def set_on_change(on_change, allow_changing_existing_series=True):
