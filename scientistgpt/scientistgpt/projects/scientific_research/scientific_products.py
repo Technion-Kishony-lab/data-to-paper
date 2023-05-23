@@ -19,7 +19,7 @@ class ScientificProducts(Products):
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     data_analysis_code_and_output: CodeAndOutput = None
-    tables: Dict[str, Dict[str, str]] = field(default_factory=dict)
+    tables: List[str] = None
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
@@ -52,17 +52,20 @@ class ScientificProducts(Products):
         return {section_name: self.add_tables_to_paper_section(section_content)
                 for section_name, section_content in self.ready_to_be_tabled_paper_sections.items()}
 
-    def add_tables_to_paper_section(self, section: str) -> str:
+    def add_tables_to_paper_section(self, section_content: str) -> str:
         """
         Insert the tables into the ready_to_be_tabled_paper_sections.
         """
-        updated_section = self.ready_to_be_tabled_paper_sections[section]
-        if section in self.tables:
-            for table_name, table in self.tables[section].items():
+        updated_section = section_content
+        if self.tables is not None:
+            for table in self.tables:
+                table_label_start = table.find('label{') + len('label{') # find the start of the label
+                table_label_end = table.find('}', table_label_start) # find the end of the label
+                table_label = table[table_label_start:table_label_end] # extract the label
                 # find the sentence that contains the table reference
                 table_reference_sentence = None
                 for sentence in updated_section.split('. '):
-                    if table_name in sentence:
+                    if table_label in sentence:
                         table_reference_sentence = sentence
                         break
                 if table_reference_sentence is None:
@@ -81,7 +84,7 @@ class ScientificProducts(Products):
             if section_name in self.cited_paper_sections:
                 section = self.cited_paper_sections[section_name]
             if section_name in self.ready_to_be_tabled_paper_sections:
-                section = self.add_tables_to_paper_section(section_name)
+                section = self.tabled_paper_sections[section_name]
             section_names_to_content[section_name] = section
         return section_names_to_content
 
@@ -248,8 +251,8 @@ class ScientificProducts(Products):
                 'The Tables of the Paper',
                 'Here are the tables of the paper:\n\n{}',
                 ScientificStage.TABLES,
-                lambda: NiceList([f"Table {i+1}, {table_name}:\n\n {table_content}"
-                                  for i, (table_name, table_content) in enumerate(self.tables.items())],
+                lambda: NiceList([f"Table {i+1}:\n\n {table}"
+                                  for i, table in enumerate(self.tables)],
                                  separator='\n\n'), ),
 
             'numeric_values': NameDescriptionStageGenerator(

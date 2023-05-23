@@ -69,7 +69,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
 
         if len(ids_not_in_options) > 0:
             return \
-                f'You returned citations that are not included in the provided citation options.' \
+                f'You returned citations that are not included in the provided citation options. ' \
                 f'Specifically, you returned {ids_not_in_options}, while the allowed options are: {self.citation_ids}.'
         return None
 

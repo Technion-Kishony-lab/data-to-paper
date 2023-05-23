@@ -7,7 +7,6 @@ from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProduc
     BasePythonValueProductsReviewGPT
 
 from .cast import ScientificAgent
-from ...latex import extract_latex_section_from_response, FailedToExtractLatexContent
 from ...servers.openai_models import ModelEngine
 
 
@@ -81,16 +80,23 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class TablesReviewGPT(BasePythonValueProductsReviewGPT):
+class TablesReviewGPT(BaseLatexProductsReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ('research_goal', 'data_analysis_output', 'tables')
     conversation_name: str = 'tables'
-    value_type: type = Dict[str, str]
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun} that summarize the results we got in the output.
+        The {goal_noun} should only include information that is explicitly extracted from the results data.
+        Notice that the table should add new information that is not already in the given tables. 
+        The table should be centered, in booktabs, multirow format with caption and label.
+        Make sure that the table is not too wide, so that it will fit within document text width.
+        Do not write code! write the table in latex format.
+        """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above table, with specific attention to whether the table \
         contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
@@ -98,40 +104,6 @@ class TablesReviewGPT(BasePythonValueProductsReviewGPT):
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
         """)
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun} that summarize the results we got in the output.
-        The {goal_noun} should only include information that is explicitly extracted from the results data.
-        Notice that the table should add new information that is not already in the given tables. 
-        The table should be centered, in booktabs, multirow format with caption and label.
-        Make sure that the table is not too wide, so that it will fit within document text width.
-        The table should be returned in a dictionary, where the key is the table title, and the value is the \
-        latex for the tables.
-        like this:
-        {
-            'the_table_title': '\\begin{{table}} ... \\end{{table}}',
-        }
-        Do not write code! write the table in latex format.
-        """)
-
-    def _check_response_value(self, response_value: Any) -> Optional[str]:
-        if len(response_value) == 0:
-            return 'You returned an empty dictionary. You need to return a dictionary with one table.'
-        if len(response_value) > 1:
-            return 'You need to return only one table at a time.'
-        else:
-            table_content = list(response_value.values())[0]
-            try:
-                extract_latex_section_from_response(table_content, 'table')
-            except FailedToExtractLatexContent as e:
-                return f'The response should be from of type {self.value_type}. {e}'
-        return None
-
-    def get_table(self):
-        response = super().initialize_and_run_dialog()
-        feedback, table_dict = self.extract_python_value_from_response(response)
-        table_name = list(table_dict.keys())[0]
-        table_content = list(table_dict.values())[0]
-        return table_name, table_content
 
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
@@ -283,8 +255,16 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'refer to tables in'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('title_and_abstract', 'numerical_values', 'tables')
+    background_product_fields = ('title_and_abstract', 'numerical_values', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above ({actual_background_product_names}), please write \
+        the "{pretty_section_names}" while referring to the relevant Tables by their labels and mentioning \
+        key Numerical Values that are worth appearing in a scientific paper.
+        Dont add the tables themselves, just refer to them and their content. I will add the tables manually.
+        Make sure that you are only mention details that are explicitly found within the Tables and Numerical Values.
+        {latex_instructions}
+        """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
         contain only information that is explicitly extracted from the Tables and Numerical Values. \
@@ -292,13 +272,6 @@ class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
         mention any discrepancies that need to get fixed.
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
-        """)
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({actual_background_product_names}), please write \
-        the "{pretty_section_names}" while referring to the relevant Tables and Numerical Values.
-        Dont add the tables themselves, just refer to them and their content. I will add the tables manually.
-        Make sure that you are only mention details that are explicitly found within the Tables and Numerical Values.
-        {latex_instructions}
         """)
 
 
