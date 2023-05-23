@@ -1,6 +1,4 @@
-from contextlib import contextmanager
-from dataclasses import dataclass, fields
-from typing import Set
+from dataclasses import dataclass
 
 from scientistgpt.utils.text_formatting import format_str_by_direct_replace
 
@@ -13,8 +11,6 @@ class Replacer:
 
     name: str = 'john'
     greeting: str = 'hello {name}'
-    REPLACED_ATTRS: set = {'greeting'}
-    ADDITIONAL_DICT_ATTRS: set = {'name'}
     """
 
     def _format_text(self, text):

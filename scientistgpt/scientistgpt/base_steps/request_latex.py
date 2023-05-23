@@ -18,7 +18,6 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
-    ADDITIONAL_DICT_ATTRS = BaseProductsReviewGPT.ADDITIONAL_DICT_ATTRS | {'section_name', 'pretty_section_names'}
     should_remove_citations_from_section = True
 
     section_names: List[str] = field(default_factory=list)

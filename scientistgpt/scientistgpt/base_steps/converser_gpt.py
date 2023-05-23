@@ -22,8 +22,6 @@ class ConverserGPT(Replacer, Copier):
     """
     COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
                        'user_agent'}
-    ADDITIONAL_DICT_ATTRS = Replacer.ADDITIONAL_DICT_ATTRS | {'user_skin_name', 'assistant_skin_name'}
-
     actions_and_conversations: ActionsAndConversations = None
 
     model_engine: ModelEngine = field(default_factory=lambda: DEFAULT_MODEL_ENGINE)
