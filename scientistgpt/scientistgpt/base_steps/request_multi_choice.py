@@ -5,7 +5,6 @@ from scientistgpt.utils import dedent_triple_quote_str
 
 from .base_products_conversers import BaseBackgroundProductsGPT
 from .exceptions import FailedCreatingProductException
-from ..utils.replacer import with_attribute_replacement
 
 
 @dataclass
@@ -43,7 +42,6 @@ class BaseMultiChoiceProductsGPT(BaseBackgroundProductsGPT):
             response = self.apply_get_and_append_assistant_message(**self.CHATGPT_PARAMETERS).content
         return self._get_chosen_choice_from_response(response)
 
-    @with_attribute_replacement
     def get_chosen_option(self) -> str:
         self.apply_append_user_message(
             content=self.multi_choice_question + '\n' + self.choice_instructions,

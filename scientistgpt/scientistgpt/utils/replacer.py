@@ -5,31 +5,6 @@ from typing import Set
 from scientistgpt.utils.text_formatting import format_str_by_direct_replace
 
 
-def with_attribute_replacement(func):
-    """
-    a decorator for methods of a Replacer class that should run while replacing attributes.
-    """
-    def wrapper(self, *args, **kwargs):
-        with self.attributes_replacement():
-            return func(self, *args, **kwargs)
-    return wrapper
-
-
-def _super_getatter(self, name):
-    return super(Replacer, self).__getattribute__(name)
-
-
-def _super_get_is_replacing(self):
-    return _super_getatter(self, '_is_replacing')
-
-
-def _do_not_replace(self):
-    """
-    A context manager for temporarily not replacing attributes of a Replacer class.
-    """
-    return super(Replacer, self).__getattribute__('not_replacing_attributes')()
-
-
 @dataclass
 class Replacer:
     """
@@ -42,13 +17,6 @@ class Replacer:
     ADDITIONAL_DICT_ATTRS: set = {'name'}
     """
 
-    _is_replacing = False
-
-    REPLACED_ATTRS = None  # type: set # e.g. ('greeting', 'name'), or None to replace all str attributes
-
-    ADDITIONAL_DICT_ATTRS = set()
-    "Attributes, like class properties, to add in addition to the dataclass fields"
-
     def _format_text(self, text):
         while True:
             old_text = text
@@ -56,49 +24,3 @@ class Replacer:
             if text == old_text:
                 return text
 
-    @classmethod
-    def get_replaced_attributes(cls) -> Set[str]:
-        if cls.REPLACED_ATTRS is not None:
-            return cls.REPLACED_ATTRS
-        return set(attr.name for attr in fields(cls) if not attr.name.startswith('_'))
-
-    def _get_formatting_dict(self):
-        with self.not_replacing_attributes():
-            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes() | self.ADDITIONAL_DICT_ATTRS}
-
-    def __getattribute__(self, item):
-        try:
-            raw_value = _super_getatter(self, item)
-        except Exception:
-            print(f'Error getting attribute {item} from {self.__class__.__name__}')
-            raise
-        if isinstance(raw_value, str) and _super_get_is_replacing(self) and \
-                item in type(self).get_replaced_attributes():
-            return _super_getatter(self, '_format_text')(raw_value)
-        return raw_value
-
-    @contextmanager
-    def attributes_replacement(self):
-        old_is_replacing = _super_get_is_replacing(self)
-        self._is_replacing = True
-        try:
-            yield
-        finally:
-            self._is_replacing = old_is_replacing
-
-    @contextmanager
-    def not_replacing_attributes(self):
-        old_is_replacing = _super_get_is_replacing(self)
-        self._is_replacing = False
-        try:
-            yield
-        finally:
-            self._is_replacing = old_is_replacing
-
-    def set(self, **kwargs):
-        """
-        Set attributes of the class.
-        """
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        return self

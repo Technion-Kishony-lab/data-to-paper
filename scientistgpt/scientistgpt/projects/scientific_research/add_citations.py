@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, Optional, List, Any
 
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.nice_list import NiceList
 
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
@@ -216,7 +215,6 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
                 f'{sentences_not_in_section}.\n'
         return None
 
-    @with_attribute_replacement
     def rewrite_section_with_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
         """
         Rewrite the section with the citations.

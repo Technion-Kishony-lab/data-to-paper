@@ -10,7 +10,7 @@ from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.copier import Copier
-from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
+from scientistgpt.utils.replacer import Replacer
 from scientistgpt.utils.highlighted_text import print_red
 from scientistgpt.base_cast import Agent
 
@@ -44,7 +44,6 @@ class ConverserGPT(Replacer, Copier):
 
     driver: str = ''
 
-    @with_attribute_replacement
     def __post_init__(self):
         if self.web_conversation_name is True:
             # we determine an automatic conversation name based on the agent that the main agent is talking to:
@@ -77,7 +76,6 @@ class ConverserGPT(Replacer, Copier):
     def conversation(self):
         return self.conversation_manager.conversation
 
-    @with_attribute_replacement
     def initialize_conversation_if_needed(self):
         self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0 and self.system_prompt:

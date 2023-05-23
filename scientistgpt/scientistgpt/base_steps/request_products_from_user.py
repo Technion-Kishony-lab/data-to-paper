@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-from scientistgpt.utils.replacer import with_attribute_replacement
-
 from .base_products_conversers import BaseBackgroundProductsGPT
 
 
@@ -43,7 +41,6 @@ class DirectorProductGPT(BaseBackgroundProductsGPT):
         self.apply_append_user_message(self.acknowledge_no_product_message, ignore=True)
         return None
 
-    @with_attribute_replacement
     def get_product_or_no_product_from_director(self, **kwargs):
         """
         Ask the user for a product, such as data description, or goal.
