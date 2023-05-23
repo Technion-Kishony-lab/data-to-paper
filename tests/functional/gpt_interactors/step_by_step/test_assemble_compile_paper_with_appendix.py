@@ -59,6 +59,22 @@ EXPLANATION = "This is the explanation of the code:" \
               "The code is a recursive function that calculates the fibonacci sequence." \
               "The output is a list of the first 20 fibonacci numbers."
 
+
+EXPLORATION_CODE = """
+# this is just random code to test the exploration section
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(0, 2 * np.pi, 4)
+y = np.sin(x)
+print(y)
+"""
+
+EXPLORATION_OUTPUT = "array([ 0.        ,  1.04719755,  2.0943951 ,  3.14159265])"
+
+EXPLORATION_EXPLANATION = "This is the explanation of the code:" \
+                            "The code is a calculating PI in 4 points"
+
 INTRODUCTION_CITATION_ID = next(iter(INTRODUCTION_CITATION)).get_bibtex_id()
 DATA_FILE_DESCRIPTION = DataFileDescriptions([TestDataFileDescription('data_file_1', 'this is important data')])
 
@@ -78,7 +94,7 @@ def products():
                                                              'This is the intro with citation'
                                                              '\\cite{' + INTRODUCTION_CITATION_ID + '}',
                                                              INTRODUCTION_CITATION)},
-        tabled_paper_sections={'results': """
+        ready_to_be_tabled_paper_sections={'results': """
                                             \\section{Results}
                                             This is the results with table:
                                             \\begin{table}
@@ -97,7 +113,8 @@ def products():
                                             """},
         data_analysis_code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt',
                                                     explanation=EXPLANATION),
-    )
+        data_exploration_code_and_output=CodeAndOutput(code=EXPLORATION_CODE, output=EXPLORATION_OUTPUT, output_file='',
+                                                       explanation=EXPLORATION_EXPLANATION),)
 
 
 def test_paper_appendix_creator(tmpdir, products):

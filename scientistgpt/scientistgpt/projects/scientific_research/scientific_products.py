@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple, Set
+from typing import Optional, Dict, Tuple, Set, List
 
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
 from scientistgpt.run_gpt_code.types import CodeAndOutput
@@ -19,10 +19,12 @@ class ScientificProducts(Products):
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     data_analysis_code_and_output: CodeAndOutput = None
+    tables: List[str] = None
+    numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
-    tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
+    ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
     def citations(self) -> NiceList[CrossrefCitation]:
@@ -43,12 +45,45 @@ class ScientificProducts(Products):
                 for section_name, (section_content, _) in self.cited_paper_sections_and_citations.items()}
 
     @property
+    def tabled_paper_sections(self) -> Dict[str, str]:
+        """
+        Return the actual tabled paper sections.
+        """
+        return {section_name: self.add_tables_to_paper_section(section_content)
+                for section_name, section_content in self.ready_to_be_tabled_paper_sections.items()}
+
+    def add_tables_to_paper_section(self, section_content: str) -> str:
+        """
+        Insert the tables into the ready_to_be_tabled_paper_sections.
+        """
+        updated_section = section_content
+        if self.tables is not None:
+            for table in self.tables:
+                table_label_start = table.find('label{') + len('label{')  # find the start of the label
+                table_label_end = table.find('}', table_label_start)  # find the end of the label
+                table_label = table[table_label_start:table_label_end]  # extract the label
+                # find the sentence that contains the table reference
+                table_reference_sentence = None
+                for sentence in updated_section.split('. '):
+                    if table_label in sentence:
+                        table_reference_sentence = sentence
+                        break
+                if table_reference_sentence is None:
+                    # add the table at the end of the section
+                    updated_section += table
+                else:
+                    # add the table after the table reference sentence
+                    updated_section = updated_section.replace(table_reference_sentence,
+                                                              table_reference_sentence + table)
+        return updated_section
+
+    @property
     def most_updated_paper_sections(self) -> Dict[str, str]:
         section_names_to_content = {}
         for section_name, section in self.paper_sections.items():
             if section_name in self.cited_paper_sections:
                 section = self.cited_paper_sections[section_name]
-            if section_name in self.tabled_paper_sections:
+            if section_name in self.ready_to_be_tabled_paper_sections:
                 section = self.tabled_paper_sections[section_name]
             section_names_to_content[section_name] = section
         return section_names_to_content
@@ -210,5 +245,30 @@ class ScientificProducts(Products):
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.most_updated_paper_sections[section_name],
                                       },
+            ),
+
+            'tables': NameDescriptionStageGenerator(
+                'The Tables of the Paper',
+                'Here are the tables of the paper:\n\n{}',
+                ScientificStage.TABLES,
+                lambda: NiceList([f"Table {i+1}:\n\n {table}"
+                                  for i, table in enumerate(self.tables)],
+                                 separator='\n\n'), ),
+
+            'numeric_values': NameDescriptionStageGenerator(
+                'The Numeric Values of the Paper',
+                'Here are the numeric values of the paper:\n\n{}',
+                ScientificStage.INTERPRETATION,
+                lambda: NiceList([f"Numeric Value {i+1}, {numeric_value_name}:\n\n {numeric_value_content}"
+                                  for i, (numeric_value_name, numeric_value_content) in
+                                  enumerate(self.numeric_values.items())], separator='\n\n'), ),
+
+            'tables_and_numeric_values': NameDescriptionStageGenerator(
+                'The Tables and Numeric Values of the Paper',
+                '{tables}\n\n{numeric_values}',
+                ScientificStage.INTERPRETATION,
+                lambda: {'tables': self['tables'].description,
+                         'numeric_values': self['numeric_values'].description,
+                         },
             ),
         }

@@ -12,7 +12,8 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStage
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
+    TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -30,6 +31,10 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_prepare_data_analysis_plan: bool = False
     should_add_citations: bool = True
     should_add_tables: bool = True
+    should_interpret_results: bool = False
+    should_rewrite_results_section_with_tables: bool = False
+
+    number_of_tables_to_add: int = 2
 
     def _run_all_steps(self) -> ScientificProducts:
 
@@ -82,11 +87,25 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
         self.send_product_to_client('data_analysis_code_and_output')
 
-        # Results interpretation
-        self.advance_stage_and_set_active_conversation(
-            ScientificStage.INTERPRETATION, ScientificAgent.InterpretationReviewer)
-        products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()
-        self.send_product_to_client('results_summary')
+        self.advance_stage_and_set_active_conversation(ScientificStage.INTERPRETATION,
+                                                       ScientificAgent.InterpretationReviewer)
+        # Tables
+        if self.should_add_tables:
+            products.tables = []
+            for i in range(self.number_of_tables_to_add):
+                table = TablesReviewGPT.from_(self, section_names=['table']).get_section()
+                products.tables.append(table)
+
+        # Numerical results
+        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).get_numeric_values()
+        self.send_product_to_client('tables_and_numeric_values')
+
+        if self.should_interpret_results:
+            # Results interpretation
+            self.advance_stage_and_set_active_conversation(
+                ScientificStage.INTERPRETATION, ScientificAgent.InterpretationReviewer)
+            products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()
+            self.send_product_to_client('results_summary')
 
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStage.WRITING, ScientificAgent.Writer)
@@ -95,9 +114,17 @@ class ScientificStepsRunner(BaseStepsRunner):
             TitleAbstractReviewGPT.from_(self, section_names=title_and_abstract_names).get_sections()
 
         for section_name in paper_section_names:
-            if section_name not in title_and_abstract_names:
+            if section_name not in title_and_abstract_names + ['results']:
                 products.paper_sections[section_name] = \
                     PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
+
+        if self.should_add_tables:
+            products.paper_sections['results'] = \
+                PaperSectionReferringTablesReviewGPT.from_(self, section_names=['results']).get_section()
+            products.ready_to_be_tabled_paper_sections['results'] = products.paper_sections['results']
+        else:
+            products.paper_sections['results'] = \
+                PaperSectionReviewGPT.from_(self, section_names=['results']).get_section()
         self.send_product_to_client('paper_sections')
 
         # Add citations to relevant paper sections
@@ -109,10 +136,10 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.send_product_to_client('cited_paper_sections_and_citations')
 
         # Add tables to results section
-        if self.should_add_tables:
+        if self.should_add_tables and self.should_rewrite_results_section_with_tables:
             self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
             for section_name in SECTIONS_TO_ADD_TABLES_TO:
-                products.tabled_paper_sections[section_name] = \
+                products.ready_to_be_tabled_paper_sections[section_name] = \
                     PaperSectionWithTablesReviewGPT.from_(self, section_names=[section_name]).get_section()
             self.send_product_to_client('tabled_paper_sections')
 

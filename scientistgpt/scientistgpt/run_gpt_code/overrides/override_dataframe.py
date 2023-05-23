@@ -24,6 +24,9 @@ class ChangeReportingDataFrame(pd.DataFrame):
     ALLOW_CHANGING_EXISTING_SERIES = True
     ON_CHANGE = None
 
+    def __hash__(self):
+        return int(pd.util.hash_pandas_object(self).sum())
+
     @staticmethod
     def set_on_change(on_change, allow_changing_existing_series=True):
         ChangeReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES = allow_changing_existing_series
@@ -42,6 +45,9 @@ class ChangeReportingDataFrame(pd.DataFrame):
     def __delitem__(self, key):
         super().__delitem__(key)
         self._notify_on_change()
+
+    def __str__(self):
+        return self.to_string()
 
 
 pd.DataFrame = ChangeReportingDataFrame
