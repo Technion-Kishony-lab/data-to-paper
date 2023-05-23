@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from scientistgpt import Message
@@ -26,7 +26,7 @@ class ConverserGPT(Replacer, Copier):
 
     actions_and_conversations: ActionsAndConversations = None
 
-    model_engine: ModelEngine = DEFAULT_MODEL_ENGINE
+    model_engine: ModelEngine = field(default_factory=lambda: DEFAULT_MODEL_ENGINE)
     """
     The openai model engine to use. If None, use the default model engine.
     A call to apply_get_and_append_assistant_message can override this value.

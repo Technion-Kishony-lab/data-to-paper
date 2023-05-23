@@ -161,7 +161,7 @@ class Message:
                 for i, message in enumerate(self.context):
                     header += f'#{i:>2} {message.get_short_description()}\n'
             header = wrap_text_with_triple_quotes(header, 'header')
-            content = header + content
+            content = header + '\n\n' + content
 
         return content, is_incomplete_code
 

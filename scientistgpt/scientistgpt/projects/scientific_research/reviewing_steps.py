@@ -1,11 +1,13 @@
-from dataclasses import dataclass
-from typing import Tuple
+from dataclasses import dataclass, field
+from typing import Tuple, Dict
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
-from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT
+from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT, \
+    BasePythonValueProductsReviewGPT
 
 from .cast import ScientificAgent
+from ...servers.openai_models import ModelEngine
 
 
 @dataclass
@@ -75,6 +77,74 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
+
+
+@dataclass
+class TablesReviewGPT(BaseLatexProductsReviewGPT):
+    max_reviewing_rounds: int = 1
+    background_product_fields = ('research_goal', 'data_analysis_output', 'tables')
+    conversation_name: str = 'tables'
+    goal_noun: str = 'table for a scientific paper'
+    goal_verb: str = 'produce'
+    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.TableExpert
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun} that summarize the results we got in the output.
+        The {goal_noun} should only include information that is explicitly extracted from the results data.
+        Notice that the table should add new information that is not already in the given tables. 
+        The table should be centered, in booktabs, multirow format with caption and label.
+        Make sure that the table is not too wide, so that it will fit within document text width.
+        Do not write code! write the table in latex format.
+        """)
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above table, with specific attention to whether the table \
+        contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
+        to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
+        Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
+
+
+@dataclass
+class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
+    max_reviewing_rounds: int = 1
+    background_product_fields = ('data_file_descriptions', 'data_exploration_output', 'data_analysis_output')
+    conversation_name: str = 'key_numerical_results_extractor'
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'key numerical results'
+    goal_verb: str = 'extract'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
+        contain only information that is explicitly extracted from the results data. Compare the numbers in the \
+        {goal_noun} to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
+        The format of the {goal_noun} should be a dictionary from string to string, where the keys are the names of \
+        the numerical results, and the values are the actual numeric values themselves.
+
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun} that {goal_verb} the essence of the results we got in the output.
+        The {goal_noun} you choose should be those that are cannot be presented in tables but are essential to the \
+        resulted paper. 
+        The {goal_noun} should only include information that is explicitly extracted from the results data.
+        The {goal_noun} should be returned in a dictionary, where the keys are the names of the numerical results, \
+        and the values are the actual numeric values themselves.
+        like this:
+        {
+            'accuracy of logistic regression': 0.835,
+            'AUC ROC of logistic regression': 0.77,
+        }
+        Obviously, this is just an example. You should choose the {goal_noun} that are relevant to the specific \
+        results we got in the output.
+        """)
+
+    def get_numeric_values(self):
+        response = super().initialize_and_run_dialog()
+        feedback, numeric_values = self.extract_python_value_from_response(response)
+        return numeric_values
 
 
 @dataclass
@@ -181,6 +251,30 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\section{} command, \
         and any math or symbols that needs tex escapes.
+        """)
+
+
+@dataclass
+class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
+    goal_verb: str = 'refer to tables in'
+    user_agent: ScientificAgent = ScientificAgent.TableExpert
+    background_product_fields = ('title_and_abstract', 'numerical_values', 'tables_and_numeric_values')
+    max_reviewing_rounds: int = 1
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above ({actual_background_product_names}), please write \
+        the "{pretty_section_names}" while referring to the relevant Tables by their labels and mentioning \
+        key Numerical Values that are worth appearing in a scientific paper.
+        Dont add the tables themselves, just refer to them and their content. I will add the tables manually.
+        Make sure that you are only mention details that are explicitly found within the Tables and Numerical Values.
+        {latex_instructions}
+        """)
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
+        contain only information that is explicitly extracted from the Tables and Numerical Values. \
+        Compare the numbers in the {goal_noun} to the numbers in the Tables and Numerical Values data and explicitly \
+        mention any discrepancies that need to get fixed.
+        Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
+        If you are satisfied, respond with "{termination_phrase}".
         """)
 
 

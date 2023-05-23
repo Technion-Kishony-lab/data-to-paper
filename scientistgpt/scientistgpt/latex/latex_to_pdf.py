@@ -130,7 +130,7 @@ def clean_latex(latex_content):
 
 
 def test_latex_compilation(latex_content: str):
-    with open(os.path.join(THIS_FOLDER, 'compilation_tamplate.tex'), 'r') as f:
+    with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
     save_latex_and_compile_to_pdf(latex_document, 'test')
 

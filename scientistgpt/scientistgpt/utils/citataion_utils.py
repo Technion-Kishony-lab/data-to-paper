@@ -5,7 +5,11 @@ def remove_citations_from_section(section):
     """
     Remove the citations that ChatGPT inserted by mistake.
     """
-    return re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', section)
+    section = re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', section)
+    # also remove \bibliographystyle{} and \bibliography{} commands
+    section = re.sub(r'\s*\\bibliographystyle\{.*?\}', '', section)
+    section = re.sub(r'\s*\\bibliography\{.*?\}', '', section)
+    return section
 
 
 def choose_first_citation(sentence_citations):

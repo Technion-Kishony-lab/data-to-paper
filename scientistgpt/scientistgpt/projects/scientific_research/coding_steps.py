@@ -63,6 +63,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         The output file should be self-contained: any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
+        If you are writing dataframes to the output file, you should first convert them to strings using \
+        the `to_string()` method, and then write the strings to the file.
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
@@ -117,6 +119,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         The output of your code should be a text file named "{actual_output_filename}".
         All results we may need for a scientific paper should be saved to this text file,
         including analysis findings, summary statistics, statistical tests, etc.
+        If you are writing dataframes to the output file, you should first convert them to strings using \
+        the `to_string()` method, and then write the strings to the file.
 
         Do not write to any other files.
         Do not create any graphics, figures or any plots.
