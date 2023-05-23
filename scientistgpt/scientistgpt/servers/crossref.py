@@ -110,6 +110,8 @@ class CrossrefCitation(dict):
         """
         bibtex_id = unidecode(self['first_author_family']) + (str(self.get("year")) if self.get("year") else "")
         bibtex_id += self['title'].split(" ")[0] if self.get("title") else ""
+        # remove special characters from end of the id like .,;: etc.
+        bibtex_id = bibtex_id.rstrip(".,;:!?")
         return bibtex_id
 
     def __str__(self):
