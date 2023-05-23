@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
@@ -104,6 +104,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
         Do not suggest changes to the {goal_noun} that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
         """)
+
 
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
