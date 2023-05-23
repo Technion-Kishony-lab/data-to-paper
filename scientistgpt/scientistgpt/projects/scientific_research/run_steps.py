@@ -91,10 +91,10 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                        ScientificAgent.InterpretationReviewer)
         # Tables
         if self.should_add_tables:
-            products.tables['results'] = dict()
+            products.tables = []
             for i in range(self.number_of_tables_to_add):
-                table_name, table_content = TablesReviewGPT.from_(self).get_table()
-                products.tables['results'][table_name] = table_content
+                table = TablesReviewGPT.from_(self, section_names=['table']).get_section()
+                products.tables.append(table)
 
         # Numerical results
         products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).get_numeric_values()
