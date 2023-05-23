@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import regex
 
-from typing import Set
+from typing import Set, Optional
 
 from scientistgpt.servers.crossref import CrossrefCitation
 from scientistgpt.utils.file_utils import run_in_temp_directory
@@ -132,11 +132,10 @@ def clean_latex(latex_content):
 def test_latex_compilation(latex_content: str):
     with open(os.path.join(THIS_FOLDER, 'compilation_tamplate.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
-    with run_in_temp_directory() as temp_dir:
-        save_latex_and_compile_to_pdf(latex_document, 'test', temp_dir)
+    save_latex_and_compile_to_pdf(latex_document, 'test')
 
 
-def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: str,
+def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
                                   references: Set[CrossrefCitation] = None):
     references = references or set()
     should_compile_with_bib = len(references) > 0
@@ -163,7 +162,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
 
         # Move the pdf and the latex and the citation file to the original directory:
-        shutil.move(file_stem + '.pdf', output_directory)
-        shutil.move(latex_file_name, output_directory)
-        if should_compile_with_bib:
-            shutil.move('citations.bib', output_directory)
+        if output_directory is not None:
+            shutil.move(file_stem + '.pdf', output_directory)
+            shutil.move(latex_file_name, output_directory)
+            if should_compile_with_bib:
+                shutil.move('citations.bib', output_directory)
