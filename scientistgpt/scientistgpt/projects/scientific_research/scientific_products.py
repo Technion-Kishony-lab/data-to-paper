@@ -59,9 +59,9 @@ class ScientificProducts(Products):
         updated_section = section_content
         if self.tables is not None:
             for table in self.tables:
-                table_label_start = table.find('label{') + len('label{') # find the start of the label
-                table_label_end = table.find('}', table_label_start) # find the end of the label
-                table_label = table[table_label_start:table_label_end] # extract the label
+                table_label_start = table.find('label{') + len('label{')  # find the start of the label
+                table_label_end = table.find('}', table_label_start)  # find the end of the label
+                table_label = table[table_label_start:table_label_end]  # extract the label
                 # find the sentence that contains the table reference
                 table_reference_sentence = None
                 for sentence in updated_section.split('. '):
