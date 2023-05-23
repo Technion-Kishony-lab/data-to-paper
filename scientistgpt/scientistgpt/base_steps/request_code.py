@@ -16,8 +16,6 @@ from .request_multi_choice import BaseMultiChoiceProductsGPT
 
 @dataclass
 class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
-    ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS \
-                            | {'actual_output_filename', 'supported_packages', 'data_filenames'}
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12

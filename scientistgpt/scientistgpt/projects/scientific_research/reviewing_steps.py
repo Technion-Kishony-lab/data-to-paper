@@ -81,8 +81,6 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 @dataclass
 class TablesReviewGPT(BaseLatexProductsReviewGPT):
-    ADDITIONAL_DICT_ATTRS = \
-        BaseLatexProductsReviewGPT.ADDITIONAL_DICT_ATTRS | {'do_not_repeat_information_from_previous_tables'}
     max_reviewing_rounds: int = 1
     background_product_fields = ('research_goal', 'data_analysis_output', 'tables')
     conversation_name: str = 'tables'

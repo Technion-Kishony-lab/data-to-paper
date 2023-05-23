@@ -48,10 +48,6 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    ADDITIONAL_DICT_ATTRS = \
-        BaseProductsGPT.ADDITIONAL_DICT_ATTRS | \
-        {'actual_background_product_fields', 'actual_background_product_names',
-         'vertical_actual_background_product_names'}
     background_product_fields = ()
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
@@ -140,8 +136,6 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
     to be suggested and reviewed.
     """
     COPY_ATTRIBUTES = BaseBackgroundProductsGPT.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
-    ADDITIONAL_DICT_ATTRS = \
-        BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS | ReviewDialogDualConverserGPT.ADDITIONAL_DICT_ATTRS
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
