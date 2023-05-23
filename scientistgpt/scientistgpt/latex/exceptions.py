@@ -15,7 +15,7 @@ class FailedToExtractLatexContent(ScientistGPTException, ValueError):
         return self.reason
 
 
-@dataclass(frozen=True)
+@dataclass
 class LatexCompilationError(ScientistGPTException, ValueError):
     """
     Raised when the latex content could not be compiled.
