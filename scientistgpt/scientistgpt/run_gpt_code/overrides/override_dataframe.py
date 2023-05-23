@@ -25,7 +25,7 @@ class ChangeReportingDataFrame(pd.DataFrame):
     ON_CHANGE = None
 
     def __hash__(self):
-        return id(self)
+        return hash(id(self))
 
     @staticmethod
     def set_on_change(on_change, allow_changing_existing_series=True):
