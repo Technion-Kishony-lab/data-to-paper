@@ -109,7 +109,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('research_goal', 'data_exploration_output', 'data_analysis_output')
+    background_product_fields = ('data_file_descriptions', 'data_exploration_output', 'data_analysis_output')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, str]
     goal_noun: str = 'key numerical results'
