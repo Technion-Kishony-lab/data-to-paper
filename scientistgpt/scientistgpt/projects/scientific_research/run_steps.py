@@ -139,7 +139,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_add_tables and self.should_rewrite_results_section_with_tables:
             self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
             for section_name in SECTIONS_TO_ADD_TABLES_TO:
-                products.tabled_paper_sections[section_name] = \
+                products.ready_to_be_tabled_paper_sections[section_name] = \
                     PaperSectionWithTablesReviewGPT.from_(self, section_names=[section_name]).get_section()
             self.send_product_to_client('tabled_paper_sections')
 
