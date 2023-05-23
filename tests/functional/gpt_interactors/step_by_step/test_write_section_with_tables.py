@@ -42,7 +42,7 @@ def products():
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_table_gpt(products, actions_and_conversations):
     for section_name in SECTIONS_TO_ADD_TABLES_TO:
-        products.tabled_paper_sections[section_name] = \
+        products.ready_to_be_tabled_paper_sections[section_name] = \
             PaperSectionWithTablesReviewGPT(actions_and_conversations=actions_and_conversations,
                                             products=products, section_names=[section_name]).get_section()
 
