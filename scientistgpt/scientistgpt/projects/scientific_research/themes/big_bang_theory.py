@@ -37,6 +37,15 @@ GoalReviewer = Profile(
     algorithm=Algorithm.PRE_PROGRAMMED,
 )
 
+DataPreprocessor = Profile(
+    agent_name='DataPreprocessor',
+    name='Leslie',
+    title='data preprocessor',
+    description='',
+    image_file='',
+    algorithm=Algorithm.PRE_PROGRAMMED,
+)
+
 PlanReviewer = Profile(
     agent_name='PlanReviewer',
     name='Amy',

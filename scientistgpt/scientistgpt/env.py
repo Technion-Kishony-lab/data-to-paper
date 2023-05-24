@@ -2,7 +2,7 @@
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.nice_list import NiceList
 
-SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy', 'sklearn'], wrap_with='"', prefix='[', suffix=']')
+SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy', 'sklearn', 'xgboost'], wrap_with='"', prefix='[', suffix=']')
 
 OPENAI_API_KEY = "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"
 

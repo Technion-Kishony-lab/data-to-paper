@@ -16,6 +16,7 @@ class ScientificProducts(Products):
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     data_exploration_code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
+    data_preprocessing_code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
     data_analysis_code_and_output: CodeAndOutput = None
@@ -166,6 +167,27 @@ class ScientificProducts(Products):
                 '{}\n\n{}',
                 ScientificStage.CODE,
                 lambda: (self["data_analysis_code"].description, self["data_analysis_output"].description)
+            ),
+
+            'data_preprocessing_code': NameDescriptionStageGenerator(
+                'Data Preprocessing Code',
+                'Here is our Data Preprocessing Code:\n```python\n{}\n```\n',
+                ScientificStage.PREPROCESSING,
+                lambda: self.data_preprocessing_code_and_output.code,
+            ),
+
+            'data_preprocessing_output': NameDescriptionStageGenerator(
+                'Output of the Data Preprocessing Code',
+                'Here is the output of our Data Preprocessing code:\n```\n{}\n```\n',
+                ScientificStage.PREPROCESSING,
+                lambda: self.data_preprocessing_code_and_output.output,
+            ),
+
+            'data_preprocessing_code_and_output': NameDescriptionStageGenerator(
+                'Data Preprocessing Code and Output',
+                '{}\n\n{}',
+                ScientificStage.PREPROCESSING,
+                lambda: (self["data_preprocessing_code"].description, self["data_preprocessing_output"].description)
             ),
 
             'results_summary': NameDescriptionStageGenerator(

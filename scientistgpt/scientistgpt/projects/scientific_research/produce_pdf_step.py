@@ -79,6 +79,8 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         appendix = self._create_data_description_section()
         if getattr(self.products, 'data_exploration_code_and_output') != CodeAndOutput():
             appendix += '\n\n' + self._create_code_section("Data Exploration", 'data_exploration_code_and_output')
+        if getattr(self.products, 'data_preprocessing_code_and_output') != CodeAndOutput():
+            appendix += '\n\n' + self._create_code_section("Data Preprocessing", 'data_preprocessing_code_and_output')
         if getattr(self.products, 'data_analysis_code_and_output') != CodeAndOutput():
             appendix += '\n\n' + self._create_code_section("Data Analysis", 'data_analysis_code_and_output')
         return appendix
