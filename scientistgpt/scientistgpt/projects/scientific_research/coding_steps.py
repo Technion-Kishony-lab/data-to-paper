@@ -55,7 +55,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Depending on the specifics of the dataset, you might want to include:
 
         * Measure of the scale of our data (e.g., number of rows, number of columns)
-        * Conversion of numeric values with different units into same-unit values
         * Summary statistics of key variables
         * List of most common values of categorical variables (if any) 
         * Counts of missing values
@@ -77,6 +76,49 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     requesting_code_explanation_prompt: str = None
 
+@dataclass
+class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
+    user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
+    conversation_name: str = 'data_preprocessing_code'
+    code_name: str = 'Data Preprocessing'
+    background_product_fields = ['data_file_descriptions', 'data_exploration_code_and_output']
+    gpt_script_filename: str = 'data_preprocessing_code'
+    output_filename: str = 'data_preprocessing.txt'
+    allowed_created_files: Iterable[str] = ('*.csv',)
+    allow_dataframes_to_change_existing_series = False
+    enforce_saving_altered_dataframes: bool = True
+
+    code_requesting_prompt: str = dedent_triple_quote_str("""
+        As part of a data-preprocessing phase, please write a complete short Python code for getting a \
+        cleaned, normalized, balanced version of the data.
+
+        Your code should create a new .csv file containing the preprocessed data with a sensible name.
+        Any text you are willing to print should rather be saved to a text file named {actual_output_filename}.
+        Depending on the specifics of the dataset, you might want to preform the following steps:
+
+        * Dealing with missing values - imputation, deletion, etc.
+        * Normalization of numeric values with different units into same-unit values or into a \
+            common scale (e.g., 0-1) using min-max scaling, z-score, etc.
+        * Encoding categorical variables into numeric values (e.g., using one-hot encoding)
+        * Balancing the data by undersampling, oversampling, or more advanced techniques to deal with class imbalance
+        * Any other data preprocessing you deem relevant
+
+        If needed, you can use the following packages which are already installed:
+        {supported_packages}
+
+        Do not provide a sketch or pseudocode; write a complete runnable code.
+        Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
+
+        IMPORTANT: If you create a new dataframe or modify or add any new variables to the original dataframe, 
+        you should save the modified/new dataframes in new files.
+        """)
+
+    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
+        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. Also explain what does the preprocessed dataframe you created changed from the original dataframes.
+        """)
 
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
@@ -88,7 +130,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
     background_product_fields = ['data_file_descriptions',
-                                 'analysis_plan', 'data_exploration_code_and_output', 'research_goal']
+                                 'analysis_plan', 'data_exploration_output', 'data_preprocessing_code', 'research_goal']
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'
     allowed_created_files: Iterable[str] = ()
@@ -128,21 +170,21 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         return NiceList(super().data_filenames, wrap_with='"')
 
     @property
-    def files_created_during_data_exploration(self) -> NiceList[str]:
-        if self.products.data_exploration_code_and_output is None:
+    def files_created_during_data_preprocessing(self) -> NiceList[str]:
+        if self.products.data_preprocessing_code_and_output is None:
             return NiceList()
-        return NiceList(self.products.data_exploration_code_and_output.get_created_files_beside_output_file(),
+        return NiceList(self.products.data_preprocessing_code_and_output.get_created_files_beside_output_file(),
                         wrap_with='"', separator='\n', last_separator=None)
 
     @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.raw_data_filenames + self.files_created_during_data_exploration)
+        return NiceList(self.raw_data_filenames + self.files_created_during_data_preprocessing)
 
     @property
     def description_of_additional_data_files_if_any(self) -> str:
-        if len(self.files_created_during_data_exploration) == 0:
+        if len(self.files_created_during_data_preprocessing) == 0:
             return ''
         return f'Or you can also use the processed files created above by the data exploration code:\n' \
                f'```\n' \
-               f'{self.files_created_during_data_exploration}' \
+               f'{self.files_created_during_data_preprocessing}' \
                f'```\n'
