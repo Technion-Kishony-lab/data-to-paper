@@ -91,30 +91,43 @@ class ConverserGPT(Replacer, Copier):
     def apply_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
                                                model_engine: Optional[ModelEngine] = None,
-                                               hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Message:
+                                               hidden_messages: GeneralMessageDesignation = None,
+                                               should_format: bool = True, **kwargs) -> Message:
         return self.conversation_manager.get_and_append_assistant_message(
-            tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
-                                  previous_code: Optional[str] = None, is_background: bool = False, **kwargs):
+                                  previous_code: Optional[str] = None, is_background: bool = False,
+                                  should_format: bool = True, **kwargs):
         return self.conversation_manager.append_user_message(
-            content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            content=self._format_text(content, should_format),
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
     def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
-                                    **kwargs):
+                                    should_format: bool = True, **kwargs):
         return self.conversation_manager.append_system_message(
-            content=content, tag=tag, comment=comment, ignore=ignore,
+            content=self._format_text(content, should_format),
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            ignore=ignore,
             reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
-                                       **kwargs):
+                                       should_format: bool = True, **kwargs):
         return self.conversation_manager.append_surrogate_message(
-            content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            content=self._format_text(content, should_format),
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
