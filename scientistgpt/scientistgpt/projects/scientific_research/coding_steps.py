@@ -93,15 +93,16 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
         cleaned, normalized, balanced version of the data.
 
-        Your code should create a new .csv file containing the preprocessed data with a sensible name.
-        Any text you are willing to print should rather be saved to a text file named {actual_output_filename}.
+        Your code should create one or more new csv files containing the preprocessed data with a sensible file name.
+        Any text you wish to add should be saved to a text file named {actual_output_filename}.
+        
         Depending on the specifics of the dataset, you might want to preform the following steps:
 
         * Dealing with missing values - imputation, deletion, etc.
         * Normalization of numeric values with different units into same-unit values or into a \
-            common scale (e.g., 0-1) using min-max scaling, z-score, etc.
+        common scale (e.g., 0-1) using min-max scaling, z-score, etc.
         * Encoding categorical variables into numeric values (e.g., using one-hot encoding)
-        * Balancing the data by undersampling, oversampling, or more advanced techniques to deal with class imbalance
+        * Balancing the data by under-sampling, over-sampling, or more advanced techniques to deal with class imbalance
         * Any other data preprocessing you deem relevant
 
         If needed, you can use the following packages which are already installed:
@@ -118,7 +119,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
         Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain what does the preprocessed dataframe you created changed from the original dataframes.
+        paper. Also explain the new dataframes you created and in what way are they different from \
+        the original dataframes.
         """)
 
 
