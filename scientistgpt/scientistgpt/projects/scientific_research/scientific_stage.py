@@ -5,6 +5,7 @@ class ScientificStage(Stage):
     DATA = "data"
     EXPLORATION = "exploration"
     GOAL = "goal"
+    PREPROCESSING = "preprocessing"
     PLAN = "plan"
     CODE = "code"
     INTERPRETATION = "interpretation"

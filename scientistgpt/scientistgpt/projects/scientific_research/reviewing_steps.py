@@ -116,6 +116,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
         else:
             return ''
 
+
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
