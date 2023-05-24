@@ -125,14 +125,6 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     goal_verb: str = 'extract'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on these above {goal_noun}, with specific attention to whether they \
-        contain only information that is explicitly extracted from the results data. Compare the numbers in the \
-        provided Python dict values to the numbers in the results data and explicitly mention \
-        any discrepancies that need to get fixed.
-
-        If you are satisfied, respond with "{termination_phrase}".
-        """)
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} {goal_noun} that capture the essence of the results we got in the output.
         The {goal_noun} you choose should be those that cannot be presented in tables but are that we might \
@@ -149,6 +141,14 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
+        """)
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on these above {goal_noun}, with specific attention to whether they \
+        contain only information that is explicitly extracted from the results data. Compare the numbers in the \
+        provided Python dict values to the numbers in the results data and explicitly mention \
+        any discrepancies that need to get fixed.
+
+        If you are satisfied, respond with "{termination_phrase}".
         """)
 
     def get_numeric_values(self):
@@ -238,12 +238,6 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        Notice details such as:
-        * Over-specific tool mentions, like exact software or package versions used in the analysis.
-        * Inclusion of steps that were not conducted in the study, like certain data cleaning processes.
-        * Mentioned steps that are stated to be part of the current analysis, but were not executed in the study.
-        * References to variables and data files that were not used in the analysis.
-        
         Make sure that the section is grounded to the information that were provided and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         If you are satisfied, respond with "{termination_phrase}".
@@ -280,6 +274,19 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
+
+@dataclass
+class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_preprocessing_code', 'analysis_code',
+                                 'title_and_abstract')
+    max_reviewing_rounds: int = 1
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above ({actual_background_product_names}), please write \
+        the "{pretty_section_names}" of the paper.
+        Make sure that you are only refer to details that are explicitly found within \
+        the preprocessing and analysis codes.
+        {latex_instructions}
+        """)
 
 @dataclass
 class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
