@@ -9,7 +9,6 @@ def save_to_json(data: list, filename):
             item = {
                 'is_exception': True,
                 'type': type(item).__name__,
-                'message': str(item),
                 'args': item.args,
             }
         serialized_data.append(item)
@@ -26,8 +25,7 @@ def load_from_json(filename):
     for item in serialized_data:
         if isinstance(item, dict) and 'is_exception' in item and item['is_exception'] is True:
             exception_type = item['type']
-            message = item['message']
-            args = (message,) + tuple(item['args'])
+            args = tuple(item['args'])
             # if exception in builtins:
             if hasattr(builtins, exception_type):
                 exception = getattr(builtins, exception_type)(*args)
