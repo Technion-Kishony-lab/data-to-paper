@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Union, List, Set, Iterable
 
+from scientistgpt.env import DEBUG
+
 # Get the path of the current folder:
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -48,7 +50,8 @@ def run_in_temp_directory():
         yield folder
     finally:
         os.chdir(cwd)
-        shutil.rmtree(folder)
+        if not DEBUG:
+            shutil.rmtree(folder)
 
 
 @contextmanager
