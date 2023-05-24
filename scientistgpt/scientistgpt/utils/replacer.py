@@ -14,7 +14,9 @@ class Replacer:
     greeting: str = 'hello {name}'
     """
 
-    def _format_text(self, text) -> str:
+    def _format_text(self, text, should_format: bool = True) -> str:
+        if not should_format:
+            return text
         brackets = set(extract_all_external_brackets(text, '{'))
         for bracket in brackets:
             bracketed_text = bracket[1:-1]

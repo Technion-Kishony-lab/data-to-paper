@@ -52,32 +52,47 @@ class DualConverserGPT(ConverserGPT):
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         model_engine: Optional[str] = None,
-                                                        hidden_messages: GeneralMessageDesignation = None, **kwargs,
-                                                        ) -> Message:
+                                                        hidden_messages: GeneralMessageDesignation = None,
+                                                        should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.get_and_append_assistant_message(
-            tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
                                            ignore: bool = False,
-                                           previous_code: Optional[str] = None, is_background: bool = False):
+                                           previous_code: Optional[str] = None, is_background: bool = False,
+                                           should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_user_message(
-            content, tag=tag, comment=comment, previous_code=previous_code,
-            ignore=ignore, is_background=is_background)
+            content=self._format_text(content, should_format),
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            previous_code=previous_code,
+            ignore=ignore, is_background=is_background, **kwargs)
 
     def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None,
-                                             comment: Optional[str] = None):
-        return self.other_conversation_manager.append_system_message(content, tag=tag, comment=comment)
+                                             comment: Optional[str] = None,
+                                             should_format: bool = True, **kwargs) -> Message:
+        return self.other_conversation_manager.append_system_message(
+            content=self._format_text(content, should_format),
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            **kwargs)
 
     def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
                                                 comment: Optional[str] = None,
                                                 ignore: bool = False,
                                                 previous_code: Optional[str] = None,
-                                                is_background: bool = False):
+                                                is_background: bool = False,
+                                                should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_surrogate_message(
-            content, tag=tag, comment=comment, previous_code=previous_code,
-            ignore=ignore, is_background=is_background)
+            content=self._format_text(content, should_format),
+            tag=self._format_text(tag, should_format),
+            comment=self._format_text(comment, should_format),
+            previous_code=previous_code,
+            ignore=ignore, is_background=is_background, **kwargs)
 
 
 class CycleStatus(Enum):
