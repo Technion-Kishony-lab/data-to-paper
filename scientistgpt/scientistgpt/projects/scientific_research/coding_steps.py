@@ -76,6 +76,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     requesting_code_explanation_prompt: str = None
 
+
 @dataclass
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
@@ -119,6 +120,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         high-level explanation of the code in a language suitable for a Methods section of a research \
         paper. Also explain what does the preprocessed dataframe you created changed from the original dataframes.
         """)
+
 
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
