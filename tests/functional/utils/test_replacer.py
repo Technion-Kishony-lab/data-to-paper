@@ -9,10 +9,9 @@ class Greeter(Replacer):
     age: int = 20
     adjective: str = 'amazing'
     name: str = 'the {adjective} john'
+    inline_formatted_name: str = 'the {} joe'
     greeting: str = 'hello, I am {name}, and I am {age} years old. I like {BRACKETS}'
-
-    def get_greeting(self):
-        return self._format_text(self.greeting)
+    inline_formatted_greeting: str = 'hello, I am {inline_formatted_name}.'
 
 
 @fixture
@@ -21,4 +20,10 @@ def greeter():
 
 
 def test_replacer(greeter):
-    assert greeter.get_greeting() == 'hello, I am the amazing john, and I am 20 years old. I like {BRACKETS}'
+    assert greeter.format_text(greeter.greeting) == \
+           'hello, I am the amazing john, and I am 20 years old. I like {BRACKETS}'
+
+
+def test_replacer_with_inline_formatting(greeter):
+    assert greeter.format_text((greeter.inline_formatted_greeting, ('lousy', ))) == \
+           'hello, I am the lousy joe.'
