@@ -240,13 +240,10 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
         Notice details such as:
-        * Mentioning the tools used to preform the analysis are too specific, like mentioning the exact \
-        version of the software or packages used.
-        * Mentioning steps that were not performed in the current analysis, like data cleaning steps that \
-        were not performed in the study itself.
-        * Mentioning steps that were performed in the current analysis, but were not actually performed \
-        in the study itself.
-        * Mentioning variables and data files that were not used in the current analysis.
+        * Over-specific tool mentions, like exact software or package versions used in the analysis.
+        * Inclusion of steps that were not conducted in the study, like certain data cleaning processes.
+        * Mentioned steps that are stated to be part of the current analysis, but were not executed in the study.
+        * References to variables and data files that were not used in the analysis.
         
         Make sure that the section is grounded to the information that were provided and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
