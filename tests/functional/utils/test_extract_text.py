@@ -10,6 +10,9 @@ text_2 = '\\title{\\textbf{this is some title in bold}} \n' \
 text_3 = '\\section{Introduction} \n' \
          'this is the introduction \n'
 
+text_4 = 'hello [world [inner]], what is your [name]'
+text_5 = 'hello [world [inner]], what is your [name'
+
 
 @pytest.mark.parametrize('text, start_tag, end_tag, leave_tags, expected', [
     (text_1, '[', ']', False, '1, 2, 3, [4], 5'),
@@ -24,6 +27,15 @@ text_3 = '\\section{Introduction} \n' \
 ])
 def test_extract_text_between_tags(text, start_tag, end_tag, leave_tags, expected):
     assert extract_text_between_tags(text, start_tag, end_tag, leave_tags) == expected
+
+
+@pytest.mark.parametrize('text, start_tag, expected', [
+    (text_1, '[', ['[1, 2, 3, [4], 5]']),
+    (text_4, '[', ['[world [inner]]', '[name]']),
+    (text_5, '[', ['[world [inner]]']),
+])
+def test_extract_all_external_brackets(text, start_tag, expected):
+    assert extract_all_external_brackets(text, start_tag) == expected
 
 
 def test_extract_to_nearest_space():
