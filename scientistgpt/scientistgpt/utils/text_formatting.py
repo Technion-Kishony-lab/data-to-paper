@@ -1,6 +1,18 @@
 import re
 import textwrap
-from typing import Optional
+from typing import Optional, Union, Tuple, Dict
+
+ArgsOrKwargs = Union[Tuple[str], Dict[str, str]]
+
+
+def format_with_args_or_kwargs(text: str, args_or_kwargs: ArgsOrKwargs) -> str:
+    """
+    Return the text formatted with the given args or kwargs.
+    """
+    if isinstance(args_or_kwargs, tuple):
+        return text.format(*args_or_kwargs)
+    else:
+        return text.format(**args_or_kwargs)
 
 
 def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):

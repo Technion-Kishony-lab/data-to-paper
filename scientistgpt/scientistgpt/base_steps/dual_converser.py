@@ -55,8 +55,8 @@ class DualConverserGPT(ConverserGPT):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.get_and_append_assistant_message(
-            tag=self._format_text(tag, should_format),
-            comment=self._format_text(comment, should_format),
+            tag=self.format_text(tag, should_format),
+            comment=self.format_text(comment, should_format),
             is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
@@ -66,9 +66,9 @@ class DualConverserGPT(ConverserGPT):
                                            previous_code: Optional[str] = None, is_background: bool = False,
                                            should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_user_message(
-            content=self._format_text(content, should_format),
-            tag=self._format_text(tag, should_format),
-            comment=self._format_text(comment, should_format),
+            content=self.format_text(content, should_format),
+            tag=self.format_text(tag, should_format),
+            comment=self.format_text(comment, should_format),
             previous_code=previous_code,
             ignore=ignore, is_background=is_background, **kwargs)
 
@@ -76,9 +76,9 @@ class DualConverserGPT(ConverserGPT):
                                              comment: Optional[str] = None,
                                              should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_system_message(
-            content=self._format_text(content, should_format),
-            tag=self._format_text(tag, should_format),
-            comment=self._format_text(comment, should_format),
+            content=self.format_text(content, should_format),
+            tag=self.format_text(tag, should_format),
+            comment=self.format_text(comment, should_format),
             **kwargs)
 
     def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
@@ -88,9 +88,9 @@ class DualConverserGPT(ConverserGPT):
                                                 is_background: bool = False,
                                                 should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_surrogate_message(
-            content=self._format_text(content, should_format),
-            tag=self._format_text(tag, should_format),
-            comment=self._format_text(comment, should_format),
+            content=self.format_text(content, should_format),
+            tag=self.format_text(tag, should_format),
+            comment=self.format_text(comment, should_format),
             previous_code=previous_code,
             ignore=ignore, is_background=is_background, **kwargs)
 
