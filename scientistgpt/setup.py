@@ -34,6 +34,8 @@ setup(
         "openai",
         "numpy",
         "pandas",
+        "scikit-learn",
+        "xgboost",
         "colorama",
         "unidecode",
         "pygments",
