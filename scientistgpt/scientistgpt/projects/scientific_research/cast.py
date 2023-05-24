@@ -17,6 +17,7 @@ class ScientificAgent(Agent):
     Director = 'Director'
     DataExplorer = 'DataExplorer'
     GoalReviewer = 'GoalReviewer'
+    DataPreprocessor = 'DataPreprocessor'
     PlanReviewer = 'PlanReviewer'
     Debugger = 'Debugger'
     InterpretationReviewer = 'InterpretationReviewer'
@@ -50,6 +51,7 @@ AGENTS_TO_CONVERSATION_NAMES = {
     ScientificAgent.Performer: None,
     ScientificAgent.Director: 'get data',
     ScientificAgent.DataExplorer: 'explore data',
+    ScientificAgent.DataPreprocessor: 'preprocess data',
     ScientificAgent.GoalReviewer: 'review goal',
     ScientificAgent.PlanReviewer: 'review plan',
     ScientificAgent.Debugger: 'debug',

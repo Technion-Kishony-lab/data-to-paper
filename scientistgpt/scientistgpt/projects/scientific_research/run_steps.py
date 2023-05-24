@@ -6,7 +6,7 @@ from scientistgpt.base_steps.request_products_from_user import DirectorProductGP
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProductsGPT
+from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProductsGPT, DataPreprocessingCodeProductsGPT
 from .get_template import get_paper_template_path
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -28,6 +28,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     research_goal: Optional[str] = None
 
     should_do_data_exploration: bool = True
+    should_do_data_preprocessing: bool = True
     should_prepare_data_analysis_plan: bool = False
     should_add_citations: bool = True
     should_add_tables: bool = True
@@ -75,6 +76,12 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.set_active_conversation(ScientificAgent.GoalReviewer)
             products.research_goal = GoalReviewGPT.from_(self).initialize_and_run_dialog()
         self.send_product_to_client('research_goal')
+
+        # Data Preprocessing
+        if self.should_do_data_preprocessing:
+            self.advance_stage_and_set_active_conversation(ScientificStage.PREPROCESSING, ScientificAgent.DataPreprocessor)
+            products.data_preprocessing_code_and_output = DataPreprocessingCodeProductsGPT.from_(self).get_analysis_code()
+            self.send_product_to_client('data_preprocessing_code_and_output')
 
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
