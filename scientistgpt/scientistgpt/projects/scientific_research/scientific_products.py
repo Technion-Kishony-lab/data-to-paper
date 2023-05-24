@@ -169,6 +169,27 @@ class ScientificProducts(Products):
                 lambda: (self["data_analysis_code"].description, self["data_analysis_output"].description)
             ),
 
+            'data_preprocessing_code': NameDescriptionStageGenerator(
+                'Data Preprocessing Code',
+                'Here is our Data Preprocessing Code:\n```python\n{}\n```\n',
+                ScientificStage.PREPROCESSING,
+                lambda: self.data_preprocessing_code_and_output.code,
+            ),
+
+            'data_preprocessing_output': NameDescriptionStageGenerator(
+                'Output of the Data Preprocessing Code',
+                'Here is the output of our Data Preprocessing code:\n```\n{}\n```\n',
+                ScientificStage.PREPROCESSING,
+                lambda: self.data_preprocessing_code_and_output.output,
+            ),
+
+            'data_preprocessing_code_and_output': NameDescriptionStageGenerator(
+                'Data Preprocessing Code and Output',
+                '{}\n\n{}',
+                ScientificStage.PREPROCESSING,
+                lambda: (self["data_preprocessing_code"].description, self["data_preprocessing_output"].description)
+            ),
+
             'results_summary': NameDescriptionStageGenerator(
                 'Results Summary',
                 'Here is our Results Summary:\n\n{}',
