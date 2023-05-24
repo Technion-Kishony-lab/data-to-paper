@@ -117,11 +117,12 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
-    def _respond_to_missing_output_files(self, created_files: List[str]):
+    def _respond_to_unsaved_dataframes(self, created_files: List[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            I ran the code. It created "{self.output_filename}", but it didn't save some of the modified dataframes.
-            Please rewrite the complete code again so that all modified dataframes are saved as new files \
+            I see that your code modifies some of the dataframes. \
+            I would like the code to save the modified dataframes.  
+            Please rewrite the complete code again adding commands to save all modified dataframe as new files \
             in the same directory as the code.
             """),
             comment=f'{self.iteration_str}: Code completed, but not all modified dataframes were saved.')
@@ -331,7 +332,7 @@ class DebuggerGPT(BaseProductsGPT):
             elif self.enforce_saving_altered_dataframes \
                     and len(code_and_output.get_created_files_beside_output_file()) < len(set(changed_data_frames)):
                 # The code ran successfully, but not all changed dataframes were saved to files.
-                self._respond_to_missing_output_files(list(code_and_output.get_created_files_beside_output_file()))
+                self._respond_to_unsaved_dataframes(list(code_and_output.get_created_files_beside_output_file()))
             else:
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
