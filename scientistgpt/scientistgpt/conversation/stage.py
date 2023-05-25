@@ -67,5 +67,5 @@ class SetActiveConversation(MessengerAction):
         return f'{self.conversation_name}'
 
     def apply_to_web(self) -> bool:
-        time.sleep(DELAY_AUTOMATIC_RESPONSES)
+        time.sleep(DELAY_AUTOMATIC_RESPONSES.val)
         return super().apply_to_web()

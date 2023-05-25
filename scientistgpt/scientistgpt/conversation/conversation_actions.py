@@ -137,22 +137,11 @@ class AppendMessage(ChangeMessagesConversationAction):
     If `tag` already exists, conversation will reset to the previous tag.
     """
 
-    ROLE_TO_DELAY = {
-        Role.ASSISTANT: 0,
-        Role.USER: DELAY_AUTOMATIC_RESPONSES,
-        Role.COMMENTER: 0,
-        Role.SURROGATE: DELAY_AUTOMATIC_RESPONSES,
-        Role.SYSTEM: DELAY_AUTOMATIC_RESPONSES * 0.5,
-    }
-
     message: Message = None
 
     adjust_message_for_web: dict = None
 
-    delay: float = DELAY_AUTOMATIC_RESPONSES
-
-    def _get_delay(self):
-        return self.ROLE_TO_DELAY[self.message.role]
+    delay: float = None
 
     def _get_index_of_tag(self) -> Optional[int]:
         """
@@ -233,8 +222,9 @@ class AppendMessage(ChangeMessagesConversationAction):
         if self.message.is_background is None and any(self.get_message_for_web() == m for m in self.web_conversation) \
                 or self.message.is_background is True:
             return False
-        if self.delay is not None:
-            time.sleep(self.delay)
+        delay = DELAY_AUTOMATIC_RESPONSES.val if self.delay is None else self.delay
+        if delay > 0:
+            time.sleep(delay)
         self.web_conversation.append(self.get_message_for_web())
         return True
 
