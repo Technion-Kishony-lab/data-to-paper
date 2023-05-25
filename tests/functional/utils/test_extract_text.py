@@ -1,7 +1,8 @@
 import pytest
 
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.text_extractors import extract_text_between_tags, extract_to_nearest_space, split_text_by_triple_backticks
+from scientistgpt.utils.text_extractors import extract_text_between_tags, extract_to_nearest_space, \
+    get_formatted_sections, convert_formatted_sections_to_text
 
 text_1 = 'hello, here is a list [1, 2, 3, [4], 5] of numbers and lists'
 
@@ -36,14 +37,18 @@ def test_extract_to_nearest_space():
     assert extract_to_nearest_space(text, -4) == 'ion.'
 
 
-@pytest.mark.parametrize('text, label, is_complete', [
-    ('hello', None, True),
-    ("```python\na = 2\n```", 'python', True),
-    ("```\na = 2\n```", '', True),
-    ("```\na = 2\n", '', False),
+@pytest.mark.parametrize('text, label, is_complete, assembled_to', [
+    ('hello', None, True, None),
+    ("```python\na = 2\n```", 'python', True, None),
+    ("``` python\na = 2\n```", 'python', True, "```python\na = 2\n```"),
+    ("```python \na = 2\n```", 'python', True, "```python\na = 2\n```"),
+    ("```\na = 2\n```", '', True, None),
+    ("```\na = 2\n", '', False, None),
 ])
-def test_split_text_by_triple_backticks(text, label, is_complete):
-    labels_texts_complete = split_text_by_triple_backticks(text)
-    print(labels_texts_complete)
-    assert labels_texts_complete[0][0] == label
-    assert labels_texts_complete[0][2] == is_complete
+def test_split_text_by_triple_backticks(text, label, is_complete, assembled_to):
+    labels_sections_complete = get_formatted_sections(text)
+    assembled_to = assembled_to or text
+    print(labels_sections_complete)
+    assert labels_sections_complete[0].label == label
+    assert labels_sections_complete[0].is_complete == is_complete
+    assert convert_formatted_sections_to_text(labels_sections_complete) == assembled_to

@@ -8,7 +8,7 @@ from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight
 
-from .text_extractors import split_text_by_triple_backticks
+from .text_extractors import get_formatted_sections
 from .text_formatting import wrap_string
 
 style = get_style_by_name("monokai")
@@ -128,7 +128,8 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, bool]] = {
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
                                  width: int = 80, is_html: bool = False) -> str:
     s = ''
-    for label, section, is_complete in split_text_by_triple_backticks(text):
+    for formatted_sections in get_formatted_sections(text):
+        label, section, _ = formatted_sections.to_tuple()
         formatter, should_wrap = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
         if should_wrap:
             section = wrap_string(section, width=width)
