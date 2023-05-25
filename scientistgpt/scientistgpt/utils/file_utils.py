@@ -50,8 +50,7 @@ def run_in_temp_directory():
         yield folder
     finally:
         os.chdir(cwd)
-        if not DEBUG:
-            shutil.rmtree(folder)
+        shutil.rmtree(folder)
 
 
 @contextmanager
