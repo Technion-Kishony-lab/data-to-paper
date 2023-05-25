@@ -1,6 +1,17 @@
-from typing import List, Tuple, Optional
+from dataclasses import dataclass
+from typing import List, Tuple, Optional, NamedTuple
 
 FROM_OPEN_BRACKET_TO_CLOSE_BRACKET = {'[': ']', '{': '}', '(': ')'}
+
+
+@dataclass
+class FormattedSection:
+    label: Optional[str]
+    section: str
+    is_complete: bool
+
+    def to_tuple(self):
+        return self.label, self.section, self.is_complete
 
 
 def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, leave_tags: bool = False):
@@ -116,7 +127,7 @@ def get_dot_dot_dot_text(text: str, start: int, end: int):
     return extract_to_nearest_space(text, start) + fill + extract_to_nearest_space(text, end)
 
 
-def split_text_by_triple_backticks(text: str) -> List[Tuple[Optional[str], str, bool]]:
+def get_formatted_sections(text: str) -> List[FormattedSection]:
     """
     Split the text by triple quotes. Return all sections and their labels.
     For example:
@@ -141,9 +152,8 @@ def split_text_by_triple_backticks(text: str) -> List[Tuple[Optional[str], str, 
             continue
         if is_block:
             is_single_line = '\n' not in section
-            text_in_quote_line = section.split('\n')[0]
-            is_label = not is_single_line and ' ' not in text_in_quote_line
-            if is_label:
+            text_in_quote_line = section.split('\n')[0].strip()
+            if not is_single_line and ' ' not in text_in_quote_line:
                 label = text_in_quote_line
                 section = '\n' + '\n'.join(section.split('\n')[1:])
             else:
@@ -152,6 +162,20 @@ def split_text_by_triple_backticks(text: str) -> List[Tuple[Optional[str], str, 
             label = None
         is_last = i == len(sections) - 1
         incomplete = is_last and is_block
-        labels_texts_complete.append((label, section, not incomplete))
+        labels_texts_complete.append(FormattedSection(label, section, not incomplete))
     return labels_texts_complete
 
+
+def convert_formatted_sections_to_text(formatted_sections: List[FormattedSection]) -> str:
+    """
+    Convert a LabelTextComplete to text.
+    """
+    text = ''
+    for formatted_section in formatted_sections:
+        label, section, is_complete = formatted_section.to_tuple()
+        if label is not None:
+            text += f'```{label}'
+        text += section
+        if label is not None and is_complete:
+            text += '```'
+    return text
