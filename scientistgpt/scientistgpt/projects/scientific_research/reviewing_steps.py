@@ -82,13 +82,15 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class TablesReviewGPT(BaseLatexProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('research_goal', 'data_exploration_output' , 'data_analysis_output', 'tables')
+    background_product_fields = ('research_goal', 'data_exploration_output', 'data_analysis_output', 'tables')
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
+    table_number: int = 1
+    total_number_of_tables: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun} that summarize the key results we got in the code analysis output.
         The table should only include information that is explicitly extracted from the results data.
@@ -96,6 +98,8 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
         The table should be centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
         Do not write code! write the table in latex format.
+        This is table number {table_number} out of {total_number_of_tables} you need to produce, plan the tables \
+        so that each table will show unique information.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above table, with specific attention to whether the table \
@@ -263,12 +267,6 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        Notice details such as:
-        * Over-specific tool mentions, like exact software or package versions used in the analysis.
-        * Inclusion of steps that were not conducted in the study, like certain data cleaning processes.
-        * Mentioned steps that are stated to be part of the current analysis, but were not executed in the study.
-        * References to variables and data files that were not used in the analysis.
-
         Make sure that the section is grounded to the information that were provided and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         If you are satisfied, respond with "{termination_phrase}".
@@ -279,13 +277,30 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
     background_product_fields = ('data_file_descriptions', 'research_goal', 'data_preprocessing_code', 'analysis_code',
                                  'title_and_abstract')
-    max_reviewing_rounds: int = 1
+    max_reviewing_rounds: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), please write \
         the "{pretty_section_names}" of the paper.
-        Make sure that you are only refer to details that are explicitly found within \
+        Make sure that you are only referring to details that are explicitly found within \
         the preprocessing and analysis codes.
+        
+        Focus on the methods that were used to achieve the research goal, detail about them and their contribution \
+        for the research. 
         {latex_instructions}
+        """)
+
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide constructive feedback on the above {pretty_section_names} for my paper.
+        
+        Notice details such as:
+        * Over-specific tool mentions, like exact software or package versions used in the analysis.
+        * Inclusion of steps that were not conducted in the study, like certain data cleaning processes.
+        * Mentioned steps that are stated to be part of the current analysis, but were not executed in the study.
+        * References to variables and data files that were not used in the analysis.
+
+        Make sure that the section is grounded to the information that were provided and is consistent with it.
+        If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
+        If you are satisfied, respond with "{termination_phrase}".
         """)
 
 @dataclass
