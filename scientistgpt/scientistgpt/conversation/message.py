@@ -14,8 +14,8 @@ from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
 from scientistgpt.utils.code_utils import wrap_text_with_triple_quotes
-from scientistgpt.utils.text_extractors import get_dot_dot_dot_text, get_formatted_sections, \
-    convert_formatted_sections_to_text
+from scientistgpt.utils.formatted_sections import FormattedSections
+from scientistgpt.utils.text_extractors import get_dot_dot_dot_text
 
 # noinspection PyUnresolvedReferences
 colorama.just_fix_windows_console()
@@ -124,7 +124,7 @@ class Message:
         Detect if the message contains incomplete code.
         """
         content = self.content.strip()
-        formatted_sections = get_formatted_sections(content)
+        formatted_sections = FormattedSections.from_text(content)
         if len(formatted_sections) == 0:
             return content, False
         last_section = formatted_sections[-1]
@@ -134,7 +134,7 @@ class Message:
             last_section.section = \
                 f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n)"
             last_section.is_complete = True
-            content = convert_formatted_sections_to_text(formatted_sections)
+            content = formatted_sections.to_text()
         return content, is_incomplete_code
 
     @property
