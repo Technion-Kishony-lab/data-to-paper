@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 import pytest
+from _pytest.fixtures import fixture
 
 from scientistgpt.base_steps import BaseLatexProductsReviewGPT
 from scientistgpt.base_steps.debugger_gpt import DebuggerGPT
@@ -19,6 +20,11 @@ class TestDebuggerGPT(DebuggerGPT):
     output_filename: str = 'test_output.txt'
 
 
+@fixture()
+def debugger(tmpdir):
+    return TestDebuggerGPT(data_folder=tmpdir)
+
+
 code_creating_file_correctly = r"""```python
 with open('test_output.txt', 'w') as f:
     f.write('The answer is 42')
@@ -26,23 +32,23 @@ with open('test_output.txt', 'w') as f:
 """
 
 
-def test_debugger_run_and_get_outputs():
+def test_debugger_run_and_get_outputs(debugger):
     with OPENAI_SERVER_CALLER.mock([f'Here is the correct code:\n{code_creating_file_correctly}\nShould be all good.'],
                                    record_more_if_needed=False):
-        assert TestDebuggerGPT().run_debugging().output == 'The answer is 42'
+        assert debugger.run_debugging().output == 'The answer is 42'
 
 
 @pytest.mark.parametrize('correct_code, replaced_value, replace_with, error_includes', [
+    (code_creating_file_correctly, '```python', '```latex', []),
     (code_creating_file_correctly, 'f.write', 'f.write(', ['SyntaxError']),
     (code_creating_file_correctly, 'test_output', 'wrong_file', ['test_output']),
 ])
-def test_request_latex_with_error(correct_code, replaced_value, replace_with, error_includes):
+def test_request_latex_with_error(correct_code, replaced_value, replace_with, error_includes, debugger):
     incorrect_code = correct_code.replace(replaced_value, replace_with)
     with OPENAI_SERVER_CALLER.mock([f'Here is an wrong code:\n{incorrect_code}\nLet me know what is wrong with it.',
                                     f'Here is the correct code:\n{correct_code}\nShould be fine now.'
                                     ],
                                    record_more_if_needed=False):
-        debugger = TestDebuggerGPT()
         code_and_output = debugger.run_debugging()
         assert code_and_output.output == 'The answer is 42'
         error_message = debugger.conversation[2]
