@@ -9,11 +9,10 @@ from typing import NamedTuple, Optional, List
 
 from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from scientistgpt.base_cast import Agent
-from scientistgpt.run_gpt_code.code_runner import CodeRunner
-from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode
+from scientistgpt.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
-from scientistgpt.utils.code_utils import wrap_text_with_triple_quotes
+from scientistgpt.utils.text_formatting import wrap_text_with_triple_quotes
 from scientistgpt.utils.formatted_sections import FormattedSections
 from scientistgpt.utils.text_extractors import get_dot_dot_dot_text
 
@@ -127,10 +126,11 @@ class Message:
         formatted_sections = FormattedSections.from_text(content)
         if len(formatted_sections) == 0:
             return content, False
-        last_section = formatted_sections[-1]
-        is_incomplete_code = HIDE_INCOMPLETE_CODE and not last_section.is_complete
+        last_section = formatted_sections.get_last_block()
+
+        is_incomplete_code = HIDE_INCOMPLETE_CODE and last_section is not None and not last_section.is_complete
         if is_incomplete_code:
-            partial_code = formatted_sections[-1].section
+            partial_code = last_section.section
             last_section.section = \
                 f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n)"
             last_section.is_complete = True
@@ -211,7 +211,7 @@ class CodeMessage(Message):
         Extract the code from the response.
         """
         try:
-            return CodeRunner(response=self.content).extract_code()
+            return extract_code_from_text(self.content)
         except FailedExtractingCode:
             return None
 
