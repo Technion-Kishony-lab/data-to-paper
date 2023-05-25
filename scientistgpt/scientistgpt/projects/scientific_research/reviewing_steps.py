@@ -261,7 +261,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_code', 'title_and_abstract')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_analysis_code', 'title_and_abstract')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\section{} command, and any math or symbols that needs tex escapes.
         """)
@@ -275,9 +275,10 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 
 @dataclass
 class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_preprocessing_code', 'analysis_code',
-                                 'title_and_abstract')
-    max_reviewing_rounds: int = 2
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_preprocessing_code',
+                                 'data_analysis_code', 'title_and_abstract')
+    max_reviewing_rounds: int = 1
+    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), please write \
         the "{pretty_section_names}" of the paper.
