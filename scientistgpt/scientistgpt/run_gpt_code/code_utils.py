@@ -27,7 +27,7 @@ class MultiBlocksFailedExtractingCode(FailedExtractingCode):
 @dataclass
 class IncompleteBlockFailedExtractingCode(FailedExtractingCode):
     def __str__(self):
-        return "Your sent incomplete code."
+        return "Your sent incomplete code. Please resend."
 
 
 @dataclass
