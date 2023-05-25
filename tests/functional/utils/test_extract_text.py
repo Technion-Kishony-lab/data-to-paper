@@ -1,7 +1,7 @@
 import pytest
 
-from scientistgpt.utils import extract_text_between_tags
-from scientistgpt.utils.text_extractors import extract_to_nearest_space
+from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.text_extractors import extract_text_between_tags, extract_to_nearest_space, split_text_by_triple_backticks
 
 text_1 = 'hello, here is a list [1, 2, 3, [4], 5] of numbers and lists'
 
@@ -34,3 +34,16 @@ def test_extract_to_nearest_space():
     assert extract_to_nearest_space(text, -13) == 'function.'
     assert extract_to_nearest_space(text, 3) == 'Thi'
     assert extract_to_nearest_space(text, -4) == 'ion.'
+
+
+@pytest.mark.parametrize('text, label, is_complete', [
+    ('hello', None, True),
+    ("```python\na = 2\n```", 'python', True),
+    ("```\na = 2\n```", '', True),
+    ("```\na = 2\n", '', False),
+])
+def test_split_text_by_triple_backticks(text, label, is_complete):
+    labels_texts_complete = split_text_by_triple_backticks(text)
+    print(labels_texts_complete)
+    assert labels_texts_complete[0][0] == label
+    assert labels_texts_complete[0][2] == is_complete
