@@ -263,7 +263,7 @@ class DebuggerGPT(BaseProductsGPT):
             ```
 
             Please rewrite the complete code so that only sensible length output is written to the file. 
-            """).format(self.output_filename, extract_to_nearest_newline(output, MAX_SENSIBLE_OUTPUT_SIZE)),
+            """).format(self.output_filename, extract_to_nearest_newline(output, MAX_SENSIBLE_OUTPUT_SIZE.val)),
             comment=f'{self.iteration_str}: Code completed, but output file is too long.')
 
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
@@ -326,7 +326,7 @@ class DebuggerGPT(BaseProductsGPT):
             if len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()
-            elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE:
+            elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE.val:
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
             elif self.enforce_saving_altered_dataframes \

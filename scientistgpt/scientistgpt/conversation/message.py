@@ -228,7 +228,7 @@ class CodeMessage(Message):
         content, is_incomplete_code = self._get_triple_quote_formatted_content(with_header)
         if self.extracted_code and not is_incomplete_code and self.previous_code:
             diff = self.get_code_diff()
-            if line_count(self.extracted_code) - line_count(diff) > MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF:
+            if MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF < line_count(self.extracted_code) - line_count(diff):
                 # if the code diff is substantially shorter than the code, we replace the code with the diff:
                 content = content.replace(
                     self.extracted_code,

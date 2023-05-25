@@ -60,7 +60,7 @@ CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + M
 
 def run_code_using_module_reload(
         code: str, save_as: Optional[str] = None,
-        timeout_sec: int = MAX_EXEC_TIME,
+        timeout_sec: int = None,
         warnings_to_raise: Iterable[Type[Warning]] = None,
         warnings_to_ignore: Iterable[Type[Warning]] = None,
         forbidden_modules_and_functions: Iterable[Tuple[Any, str]] = None,
@@ -78,7 +78,7 @@ def run_code_using_module_reload(
 
     save_as: name of file to save the code.  None to skip saving.
     """
-
+    timeout_sec = timeout_sec or MAX_EXEC_TIME.val
     warnings_to_raise = warnings_to_raise or WARNINGS_TO_RAISE
     warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
     forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
