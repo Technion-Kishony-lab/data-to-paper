@@ -102,7 +102,9 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_add_tables:
             products.tables = []
             for i in range(self.number_of_tables_to_add):
-                table = TablesReviewGPT.from_(self, section_names=['table']).get_section()
+                table = TablesReviewGPT.from_(
+                    self, section_names=['table'], table_number=i+1,
+                    total_number_of_tables=self.number_of_tables_to_add).get_section()
                 products.tables.append(table)
 
         # Numerical results
