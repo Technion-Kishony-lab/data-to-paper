@@ -10,7 +10,7 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.run_gpt_code.overrides.override_dataframe import DataFrameSeriesChange
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
-from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.openai_models import ModelEngine

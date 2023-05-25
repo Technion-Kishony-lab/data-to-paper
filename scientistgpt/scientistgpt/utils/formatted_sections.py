@@ -6,9 +6,10 @@ from typing import List, Optional
 class FormattedSection:
     label: Optional[str]
     section: str
+    is_complete: bool = True
 
     def to_tuple(self):
-        return self.label, self.section
+        return self.label, self.section, self.is_complete
 
 
 class FormattedSections(List[FormattedSection]):
@@ -29,9 +30,6 @@ class FormattedSections(List[FormattedSection]):
     ('python', "\na = 2\n", True),
     ]
     """
-    def __init__(self, *args, is_complete: bool = True, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.is_complete = is_complete
 
     @classmethod
     def from_text(cls, text: str, strip_label: bool = True):
@@ -39,7 +37,7 @@ class FormattedSections(List[FormattedSection]):
         sections = text.split('```')
         is_block = True
         self = cls()
-        for section in sections:
+        for i, section in enumerate(sections):
             is_block = not is_block
             if section == '':
                 continue
@@ -55,17 +53,40 @@ class FormattedSections(List[FormattedSection]):
                     label = ''
             else:
                 label = None
-            self.append(FormattedSection(label, section))
-        self.is_complete = not is_block
+            is_last = i == len(sections) - 1
+            is_incomplete = is_last and is_block
+            self.append(FormattedSection(label, section, not is_incomplete))
         return self
 
     def to_text(self) -> str:
         text = ''
         for i, formatted_section in enumerate(self):
-            label, section = formatted_section.to_tuple()
-            if label is not None:
-                text += f'```{label}'
-            text += section
-            if label is not None and (self.is_complete or i < len(self) - 1):
-                text += '```'
+            label, section, is_complete = formatted_section.to_tuple()
+            if label is None:
+                # regular text
+                text += section
+            else:
+                # block
+                text += f'```{label}{section}'
+                if is_complete:
+                    text += '```'
         return text
+
+    def get_first_block(self) -> Optional[FormattedSection]:
+        for formatted_section in self:
+            if formatted_section.label is not None:
+                return formatted_section
+        return None
+
+    def get_last_block(self) -> Optional[FormattedSection]:
+        for formatted_section in reversed(self):
+            if formatted_section.label is not None:
+                return formatted_section
+        return None
+
+    def get_all_blocks(self) -> List[FormattedSection]:
+        return [formatted_section for formatted_section in self if formatted_section.label is not None]
+
+    def is_last_block_incomplete(self):
+        last_block = self.get_last_block()
+        return last_block is not None and not last_block.is_complete

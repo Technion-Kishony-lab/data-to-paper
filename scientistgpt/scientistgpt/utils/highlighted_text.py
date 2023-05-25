@@ -130,7 +130,7 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
-        label, section = formatted_section.to_tuple()
+        label, section, _ = formatted_section.to_tuple()
         formatter, should_wrap = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
         if should_wrap:
             section = wrap_string(section, width=width)

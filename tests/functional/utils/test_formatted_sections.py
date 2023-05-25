@@ -12,7 +12,7 @@ from scientistgpt.utils.formatted_sections import FormattedSections
 def test_formatted_sections_converts_back_perfectly(text, labels, is_complete):
     formatted_sections = FormattedSections.from_text(text, strip_label=False)
     assert tuple(fs.label for fs in formatted_sections) == labels
-    assert formatted_sections.is_complete == is_complete
+    assert formatted_sections.is_last_block_incomplete() == (not is_complete)
     assert formatted_sections.to_text() == text
 
 
@@ -25,5 +25,5 @@ def test_formatted_sections_strip_labels():
 def test_empty_formatted_sections():
     formatted_sections = FormattedSections.from_text('')
     assert formatted_sections.to_text() == ''
-    assert formatted_sections.is_complete
+    assert not formatted_sections.is_last_block_incomplete()
     assert len(formatted_sections) == 0
