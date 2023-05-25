@@ -1,3 +1,5 @@
+from typing import List, Tuple, Optional
+
 FROM_OPEN_BRACKET_TO_CLOSE_BRACKET = {'[': ']', '{': '}', '(': ')'}
 
 
@@ -112,3 +114,44 @@ def get_dot_dot_dot_text(text: str, start: int, end: int):
     if start - end + len(fill) > len(text):
         return text
     return extract_to_nearest_space(text, start) + fill + extract_to_nearest_space(text, end)
+
+
+def split_text_by_triple_backticks(text: str) -> List[Tuple[Optional[str], str, bool]]:
+    """
+    Split the text by triple quotes. Return all sections and their labels.
+    For example:
+    text =
+    '''
+    Hello here is my code:
+    ```python
+    a = 2
+    ```
+    should return the following list:
+    [
+    (None, "\nHello here is my code:\n", True),
+    ('python', "\na = 2\n", True),
+    ]
+    """
+    sections = text.split('```')
+    is_block = True
+    labels_texts_complete = []
+    for i, section in enumerate(sections):
+        is_block = not is_block
+        if section == '':
+            continue
+        if is_block:
+            is_single_line = '\n' not in section
+            text_in_quote_line = section.split('\n')[0]
+            is_label = not is_single_line and ' ' not in text_in_quote_line
+            if is_label:
+                label = text_in_quote_line
+                section = '\n' + '\n'.join(section.split('\n')[1:])
+            else:
+                label = ''
+        else:
+            label = None
+        is_last = i == len(sections) - 1
+        incomplete = is_last and is_block
+        labels_texts_complete.append((label, section, not incomplete))
+    return labels_texts_complete
+
