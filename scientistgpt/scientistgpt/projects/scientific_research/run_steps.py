@@ -13,7 +13,8 @@ from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStage
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
-    TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT
+    TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT, \
+    MethodPaperSectionReviewGPT
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -125,9 +126,12 @@ class ScientificStepsRunner(BaseStepsRunner):
             TitleAbstractReviewGPT.from_(self, section_names=title_and_abstract_names).get_sections()
 
         for section_name in paper_section_names:
-            if section_name not in title_and_abstract_names + ['results']:
+            if section_name not in title_and_abstract_names + ['results', 'methods']:
                 products.paper_sections[section_name] = \
                     PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
+
+        products.paper_sections['methods'] = \
+            MethodPaperSectionReviewGPT.from_(self, section_names=['methods']).get_section()
 
         if self.should_add_tables:
             products.paper_sections['results'] = \
