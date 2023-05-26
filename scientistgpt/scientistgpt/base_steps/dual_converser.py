@@ -8,6 +8,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 
 from .converser_gpt import ConverserGPT
 from .. import Message
+from ..utils.replacer import StrOrTextFormat
 
 
 @dataclass
@@ -49,7 +50,8 @@ class DualConverserGPT(ConverserGPT):
             self.apply_append_system_message(self.other_system_prompt, conversation_name=None, ignore=True,
                                              reverse_roles_for_web=True)
 
-    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
+                                                        comment: Optional[StrOrTextFormat] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         model_engine: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None,
@@ -61,7 +63,8 @@ class DualConverserGPT(ConverserGPT):
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
-    def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_to_other_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                           comment: Optional[StrOrTextFormat] = None,
                                            ignore: bool = False,
                                            previous_code: Optional[str] = None, is_background: bool = False,
                                            should_format: bool = True, **kwargs) -> Message:
@@ -72,8 +75,8 @@ class DualConverserGPT(ConverserGPT):
             previous_code=previous_code,
             ignore=ignore, is_background=is_background, **kwargs)
 
-    def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None,
-                                             comment: Optional[str] = None,
+    def apply_to_other_append_system_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                             comment: Optional[StrOrTextFormat] = None,
                                              should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_system_message(
             content=self.format_text(content, should_format),
@@ -81,8 +84,9 @@ class DualConverserGPT(ConverserGPT):
             comment=self.format_text(comment, should_format),
             **kwargs)
 
-    def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
-                                                comment: Optional[str] = None,
+    def apply_to_other_append_surrogate_message(self, content: StrOrTextFormat,
+                                                tag: Optional[StrOrTextFormat] = None,
+                                                comment: Optional[StrOrTextFormat] = None,
                                                 ignore: bool = False,
                                                 previous_code: Optional[str] = None,
                                                 is_background: bool = False,

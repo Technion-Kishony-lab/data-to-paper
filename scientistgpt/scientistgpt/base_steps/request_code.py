@@ -12,6 +12,7 @@ from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseBackgroundProductsGPT
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import BaseMultiChoiceProductsGPT
+from ..utils.replacer import TextFormat
 
 
 @dataclass
@@ -76,6 +77,8 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         1. The results seem reasonable. Let's proceed.
 
         2. Something is wrong. I need to go back and change/improve the code.
+        
+        {choice_instructions}
         """)  # set to None to skip option for revision
 
     @property
@@ -167,7 +170,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
                 assert self.conversation[-1].tag == self._request_code_tag
 
                 self.apply_append_surrogate_message(
-                    content=self.present_code_as_fresh.format(code_and_output.code),
+                    content=TextFormat(text=self.present_code_as_fresh, args=(code_and_output.code, )),
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
@@ -192,6 +195,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             user_agent=self.user_agent,
             assistant_agent=self.assistant_agent,
             actions_and_conversations=self.actions_and_conversations,
-            multi_choice_question=self.offer_revision_prompt.format(code_and_output.output),
+            multi_choice_question=TextFormat(text=self.offer_revision_prompt, args=(code_and_output.output, )),
             possible_choices=('1', '2'),
         ).get_chosen_option()

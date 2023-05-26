@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
-from scientistgpt.utils.replacer import Replacer
+from scientistgpt.utils.replacer import Replacer, TextFormat
 
 
 @dataclass
@@ -25,5 +25,5 @@ def test_replacer(greeter):
 
 
 def test_replacer_with_inline_formatting(greeter):
-    assert greeter.format_text((greeter.inline_formatted_greeting, ('lousy', ))) == \
+    assert greeter.format_text(TextFormat(greeter.inline_formatted_greeting, args=('lousy',))) == \
            'hello, I am the lousy joe.'

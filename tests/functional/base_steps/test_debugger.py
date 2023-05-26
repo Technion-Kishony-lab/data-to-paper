@@ -42,7 +42,7 @@ def test_debugger_run_and_get_outputs(debugger):
     (code_creating_file_correctly, 'f.write', 'f.write(', ['SyntaxError']),
     (code_creating_file_correctly, 'test_output', 'wrong_file', ['test_output']),
 ])
-def test_request_latex_with_error(correct_code, replaced_value, replace_with, error_includes, debugger):
+def test_request_code_with_error(correct_code, replaced_value, replace_with, error_includes, debugger):
     incorrect_code = correct_code.replace(replaced_value, replace_with)
     with OPENAI_SERVER_CALLER.mock([f'Here is a wrong code:\n{incorrect_code}\nLet me know what is wrong with it.',
                                     f'Here is the correct code:\n{correct_code}\nShould be fine now.'
