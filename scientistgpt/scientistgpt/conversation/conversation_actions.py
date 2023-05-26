@@ -9,7 +9,7 @@ from scientistgpt.utils.highlighted_text import red_text
 from scientistgpt.base_cast import Agent
 
 from .actions_and_conversations import Action
-from .message import Message, create_message_from_other_message, Role
+from .message import Message, create_message_from_other_message
 from .conversation import Conversation
 from .message_designation import GeneralMessageDesignation, SingleMessageDesignation, \
     convert_general_message_designation_to_int_list
