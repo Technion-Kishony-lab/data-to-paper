@@ -95,7 +95,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Your code should create one or more new csv files containing the preprocessed data with a sensible file name.
         Any text you wish to add should be saved to a text file named {actual_output_filename}.
-        
+
         Depending on the specifics of the dataset, you might want to preform the following steps:
 
         * Dealing with missing values - imputation, deletion, etc.
