@@ -41,6 +41,7 @@ setup(
         "pygments",
         "regex",
         "scipy",
+        "imblearn",
     ],
     extras_require={
         'dev': [
