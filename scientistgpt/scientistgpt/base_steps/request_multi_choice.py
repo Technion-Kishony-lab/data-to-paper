@@ -15,9 +15,12 @@ class BaseMultiChoiceProductsGPT(BaseBackgroundProductsGPT):
 
     max_regenerating_multi_choice_response: int = 4
 
-    multi_choice_question: str = 'Please choose one of the following options:\n' \
-                                 '1. Looks good.\n' \
-                                 '2. Something is wrong.\n'
+    multi_choice_question: str = dedent_triple_quote_str("""
+        Please choose one of the following options:
+        1. Looks good.
+        2. Something is wrong.
+        {choice_instructions}
+        """)
 
     choice_instructions: str = dedent_triple_quote_str("""
         Answer with just a single character, designating the option you choose {possible_choices}.
@@ -44,7 +47,7 @@ class BaseMultiChoiceProductsGPT(BaseBackgroundProductsGPT):
 
     def get_chosen_option(self) -> str:
         self.apply_append_user_message(
-            content=self.multi_choice_question + '\n' + self.choice_instructions,
+            content=self.multi_choice_question,
             tag=self.multi_choice_question_tag)
         chosen_choice = self._get_chosen_choice()
         if chosen_choice is not None:

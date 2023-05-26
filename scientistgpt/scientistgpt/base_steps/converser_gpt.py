@@ -10,7 +10,7 @@ from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.copier import Copier
-from scientistgpt.utils.replacer import Replacer
+from scientistgpt.utils.replacer import Replacer, StrOrTextFormat
 from scientistgpt.utils.highlighted_text import print_red
 from scientistgpt.base_cast import Agent
 
@@ -79,16 +79,21 @@ class ConverserGPT(Replacer, Copier):
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
-    def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True, **kwargs):
+    def comment(self, comment: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None, as_action: bool = True,
+                should_format: bool = True, **kwargs):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
         if as_action:
-            self.conversation_manager.append_commenter_message(comment, tag=tag, **kwargs)
+            self.conversation_manager.append_commenter_message(
+                content=self.format_text(comment, should_format),
+                tag=self.format_text(tag, should_format),
+                **kwargs)
         else:
             print_red(comment)
 
-    def apply_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
+                                               comment: Optional[StrOrTextFormat] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
                                                model_engine: Optional[ModelEngine] = None,
                                                hidden_messages: GeneralMessageDesignation = None,
@@ -100,7 +105,8 @@ class ConverserGPT(Replacer, Copier):
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
-    def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                  comment: Optional[StrOrTextFormat] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   should_format: bool = True, **kwargs):
@@ -111,7 +117,8 @@ class ConverserGPT(Replacer, Copier):
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
-    def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_append_system_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                    comment: Optional[StrOrTextFormat] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
                                     should_format: bool = True, **kwargs):
         return self.conversation_manager.append_system_message(
@@ -121,7 +128,8 @@ class ConverserGPT(Replacer, Copier):
             ignore=ignore,
             reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
-    def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_append_surrogate_message(self, content: StrOrTextFormat,
+                                       tag: Optional[StrOrTextFormat] = None, comment: Optional[StrOrTextFormat] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
                                        should_format: bool = True, **kwargs):
