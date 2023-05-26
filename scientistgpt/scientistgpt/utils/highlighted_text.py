@@ -8,6 +8,7 @@ from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
 from pygments import highlight
 
+from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
 
 style = get_style_by_name("monokai")
@@ -126,26 +127,12 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, bool]] = {
 
 def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
                                  width: int = 80, is_html: bool = False) -> str:
-    text = text.strip()
-    sections = text.split("```")
     s = ''
-    in_text_block = True
-    for section in sections:
-        if in_text_block:
-            tag = None
-        else:
-
-            tag = None if section == '' else section.split('\n')[0]
-            if tag not in TAGS_TO_FORMATTERS:
-                # case like this: ```hello there```:
-                tag = ''
-            else:
-                # case like this: ```text\nhello there\n```:
-                section = '\n'.join(section.splitlines()[1:])
-        if section:
-            formatter, should_wrap = TAGS_TO_FORMATTERS.get(tag, BLOCK_FORMATTER)
-            if should_wrap:
-                section = wrap_string(section, width=width)
-            s += formatter(section, is_html, text_color, block_color)
-        in_text_block = not in_text_block
+    formatted_sections = FormattedSections.from_text(text)
+    for formatted_section in formatted_sections:
+        label, section, _ = formatted_section.to_tuple()
+        formatter, should_wrap = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
+        if should_wrap:
+            section = wrap_string(section, width=width)
+        s += formatter(section, is_html, text_color, block_color)
     return s

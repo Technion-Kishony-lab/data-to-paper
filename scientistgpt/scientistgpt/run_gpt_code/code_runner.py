@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Optional, Tuple, List, Iterable
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
-from scientistgpt.utils.code_utils import extract_code_from_text
+from scientistgpt.run_gpt_code.code_utils import extract_code_from_text
 
 from .types import CodeAndOutput
-from .exceptions import FailedExtractingCode, FailedLoadingOutput
+from .exceptions import FailedLoadingOutput
 
 
 LINES_ADDED_BY_MODIFYING_CODE = 0
@@ -37,9 +37,6 @@ class CodeRunner:
         return self.data_folder / self.output_file
 
     def extract_code(self) -> str:
-        num_block_edges = self.response.count('```')
-        if num_block_edges != 2:
-            raise FailedExtractingCode(num_block_edges)
         return extract_code_from_text(self.response)
 
     def modify_extracted_code(self, code: str) -> str:

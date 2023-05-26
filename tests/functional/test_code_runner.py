@@ -1,19 +1,18 @@
 import pytest
 import os
 
-from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedExtractingCode, FailedLoadingOutput
+from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedLoadingOutput
 from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
+from scientistgpt.run_gpt_code.code_utils import FailedExtractingCode
 
 
 OUTPUT_FILE = "output.txt"
 
-code_encoded_in_response = f'with open("{OUTPUT_FILE}", "w") as f:\n    f.write("hello")'
+code_encoded_in_response = f'\nwith open("{OUTPUT_FILE}", "w") as f:\n    f.write("hello")\n'
 
 valid_response = f"""
 Here is a code that does what you want:
-```python
-{code_encoded_in_response}
-```
+```python{code_encoded_in_response}```
 """
 
 no_code_response = """
@@ -22,9 +21,7 @@ I cannot write a code for you.
 
 two_codes_response = f"""
 Here is a code that does what you want:
-```python
-{code_encoded_in_response}
-```
+```python{code_encoded_in_response}```
 
 to run it you should first set:
 ```python

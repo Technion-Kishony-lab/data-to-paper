@@ -13,19 +13,6 @@ class RunCodeException(ScientistGPTException, metaclass=ABCMeta):
 
 
 @dataclass
-class FailedExtractingCode(RunCodeException):
-    number_of_code_edges: int
-
-    def __str__(self):
-        if self.number_of_code_edges == 0:
-            return "No code block was found."
-        elif self.number_of_code_edges % 2 == 1:
-            return "Code block is not closed."
-        else:
-            return "Multiple code blocks identified."
-
-
-@dataclass
 class FailedRunningCode(RunCodeException):
     exception: Exception
     tb: Optional[List]

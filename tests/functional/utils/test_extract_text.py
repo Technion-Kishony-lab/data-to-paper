@@ -1,7 +1,6 @@
 import pytest
 
-from scientistgpt.utils import extract_text_between_tags
-from scientistgpt.utils.text_extractors import extract_to_nearest_space
+from scientistgpt.utils.text_extractors import extract_text_between_tags, extract_to_nearest_space
 
 text_1 = 'hello, here is a list [1, 2, 3, [4], 5] of numbers and lists'
 
@@ -34,3 +33,4 @@ def test_extract_to_nearest_space():
     assert extract_to_nearest_space(text, -13) == 'function.'
     assert extract_to_nearest_space(text, 3) == 'Thi'
     assert extract_to_nearest_space(text, -4) == 'ion.'
+
