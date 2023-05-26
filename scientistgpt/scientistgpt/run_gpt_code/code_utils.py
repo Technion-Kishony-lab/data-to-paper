@@ -46,7 +46,7 @@ def add_python_label_to_first_triple_quotes_if_missing(content: str):
     first_block = formatted_sections.get_first_block()
     if first_block is not None:
         label = first_block.label
-        if label is None or label == '' or label.lower() == 'python':
+        if (label == '' or label.lower() == 'python') and not first_block.is_single_line:
             first_block.label = 'python'
     return formatted_sections.to_text()
 

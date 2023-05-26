@@ -7,9 +7,10 @@ class FormattedSection:
     label: Optional[str]
     section: str
     is_complete: bool = True
+    is_single_line: bool = False
 
     def to_tuple(self):
-        return self.label, self.section, self.is_complete
+        return self.label, self.section, self.is_complete, self.is_single_line
 
 
 class FormattedSections(List[FormattedSection]):
@@ -52,16 +53,17 @@ class FormattedSections(List[FormattedSection]):
                 else:
                     label = ''
             else:
+                is_single_line = None
                 label = None
             is_last = i == len(sections) - 1
             is_incomplete = is_last and is_block
-            self.append(FormattedSection(label, section, not is_incomplete))
+            self.append(FormattedSection(label, section, not is_incomplete, is_single_line))
         return self
 
     def to_text(self) -> str:
         text = ''
         for i, formatted_section in enumerate(self):
-            label, section, is_complete = formatted_section.to_tuple()
+            label, section, is_complete, _ = formatted_section.to_tuple()
             if label is None:
                 # regular text
                 text += section
