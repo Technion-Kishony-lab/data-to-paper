@@ -10,7 +10,7 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.run_gpt_code.overrides.override_dataframe import DataFrameSeriesChange
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
-from scientistgpt.run_gpt_code.exceptions import FailedExtractingCode, FailedRunningCode, FailedLoadingOutput, \
+from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.openai_models import ModelEngine
@@ -18,6 +18,7 @@ from scientistgpt.utils.file_utils import UnAllowedFilesCreated, run_in_director
 from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BaseProductsGPT
+from ..run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
 
 
 @dataclass
@@ -69,7 +70,8 @@ class DebuggerGPT(BaseProductsGPT):
                           output_file=self.output_filename,
                           allowed_created_files=self.allowed_created_files,
                           allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                          script_file_path=self.output_directory / self.script_filename,
+                          script_file_path=
+                          self.output_directory / self.script_filename if self.output_directory else None,
                           data_folder=self.data_folder,
                           )
 
@@ -148,29 +150,14 @@ class DebuggerGPT(BaseProductsGPT):
         self.conversation_manager.delete_messages((-2, -1))
         self.model_engine = ModelEngine.GPT4
 
-    def _respond_to_missing_multiple_or_incomplete_code(self, number_of_code_edges: int):
+    def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
         """
-        if number_of_code_edges % 2 == 1:
-            return self._respond_to_incomplete_code()
-        if number_of_code_edges == 0:
-            response = dedent_triple_quote_str("""
-            You did not send any code. 
-            Please try again, make sure your code is enclosed within triple-backticks.
-            """)
-            tag = 'no_code'
-        else:
-            response = dedent_triple_quote_str("""
-            Please send your code in a single code block.
-            """)
-            tag = 'multiple_code_blocks'
-
-        # We use a tagged message to rewind back in case the same problem repeats
         self.apply_append_user_message(
-            content=response,
-            tag=tag,
+            content=str(e),
+            tag='failed_extracting_code',
             comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
         )
 
@@ -277,10 +264,12 @@ class DebuggerGPT(BaseProductsGPT):
         code_runner = self._get_code_runner(response)
         try:
             code_and_output, changed_data_frames = code_runner.run_code_and_get_code_output_and_changed_dataframes()
-        except FailedExtractingCode as e:
-            # code is missing or incomplete
+        except IncompleteBlockFailedExtractingCode:
             failed_extracting_code = True
-            self._respond_to_missing_multiple_or_incomplete_code(e.number_of_code_edges)
+            self._respond_to_incomplete_code()
+        except FailedExtractingCode as e:
+            failed_extracting_code = True
+            self._respond_to_missing_or_multiple_code(e)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
             self.previous_code = code_runner.extract_code()
