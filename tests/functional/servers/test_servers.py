@@ -77,13 +77,14 @@ def test_mock_server_save_load_responses_to_file(tmpdir):
             else:
                 assert mock.get_server_response(response) == response
 
-    new_server = MockServer()
-    with new_server.mock_with_file(file_path=file_path) as mock:
-        for response in responses:
-            if isinstance(response, Exception):
-                with pytest.raises(type(response)) as e:
-                    mock.get_server_response(response)
-                assert str(e.value) == str(response)
-                assert e.value.args == response.args
-            else:
-                assert mock.get_server_response(response) == response
+    for i in range(2):
+        new_server = MockServer()
+        with new_server.mock_with_file(file_path=file_path) as mock:
+            for response in responses:
+                if isinstance(response, Exception):
+                    with pytest.raises(type(response)) as e:
+                        mock.get_server_response(response)
+                    assert str(e.value) == str(response)
+                    assert e.value.args == response.args
+                else:
+                    assert mock.get_server_response(response) == response
