@@ -70,10 +70,11 @@ class DebuggerGPT(BaseProductsGPT):
                           output_file=self.output_filename,
                           allowed_created_files=self.allowed_created_files,
                           allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                          script_file_path=
-                          self.output_directory / self.script_filename if self.output_directory else None,
+                          script_file_path=None,
                           data_folder=self.data_folder,
                           )
+    # to save the script file:
+    # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
     def _respond_to_allowed_packages(self, error_message: str):
         self.apply_append_user_message(
