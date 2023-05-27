@@ -20,7 +20,7 @@ class DataFrameSeriesChange(Exception):
         return f'Changed series: {self.changed_series}'
 
 
-class ChangeReportingDataFrame(pd.DataFrame):
+class ReportingDataFrame(pd.DataFrame):
     ALLOW_CHANGING_EXISTING_SERIES = True
     ON_CHANGE = None
 
@@ -29,12 +29,12 @@ class ChangeReportingDataFrame(pd.DataFrame):
 
     @staticmethod
     def set_on_change(on_change, allow_changing_existing_series=True):
-        ChangeReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES = allow_changing_existing_series
-        ChangeReportingDataFrame.ON_CHANGE = on_change
+        ReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES = allow_changing_existing_series
+        ReportingDataFrame.ON_CHANGE = on_change
 
     def _notify_on_change(self):
-        if ChangeReportingDataFrame.ON_CHANGE is not None:
-            ChangeReportingDataFrame.ON_CHANGE(self)
+        if ReportingDataFrame.ON_CHANGE is not None:
+            ReportingDataFrame.ON_CHANGE(self)
 
     def __setitem__(self, key, value):
         if not self.ALLOW_CHANGING_EXISTING_SERIES and key in self:
@@ -50,7 +50,7 @@ class ChangeReportingDataFrame(pd.DataFrame):
         return self.to_string()
 
 
-pd.DataFrame = ChangeReportingDataFrame
+pd.DataFrame = ReportingDataFrame
 
 
 DF_CREATING_FUNCTIONS = [
@@ -62,13 +62,13 @@ DF_CREATING_FUNCTIONS = [
 
 def hook_func(*args, original_func=None, **kwargs):
     df = original_func(*args, **kwargs)
-    return ChangeReportingDataFrame(df)
+    return ReportingDataFrame(df)
 
 
 @run_once
 def hook_dataframe():
     """
-    Hook all the dataframe creating functions so that they return a ChangeReportingDataFrame instance.
+    Hook all the dataframe creating functions so that they return a ReportingDataFrame instance.
     """
     for func_name in DF_CREATING_FUNCTIONS:
         original_func = getattr(pd, func_name)
@@ -76,7 +76,7 @@ def hook_dataframe():
 
 
 @contextmanager
-def collect_changed_data_frames(allow_changing_existing_series=False) -> List[ChangeReportingDataFrame]:
+def collect_changed_data_frames(allow_changing_existing_series=False) -> List[ReportingDataFrame]:
     """
     Context manager that collects all the data frames that were changed during the context.
     """
@@ -86,12 +86,12 @@ def collect_changed_data_frames(allow_changing_existing_series=False) -> List[Ch
     def on_df_change(df):
         changed_data_frames.append(df)
 
-    original_on_change = ChangeReportingDataFrame.ON_CHANGE
-    original_allow_changing_existing_series = ChangeReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES
+    original_on_change = ReportingDataFrame.ON_CHANGE
+    original_allow_changing_existing_series = ReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES
 
-    ChangeReportingDataFrame.set_on_change(on_df_change, allow_changing_existing_series)
+    ReportingDataFrame.set_on_change(on_df_change, allow_changing_existing_series)
 
     try:
         yield changed_data_frames
     finally:
-        ChangeReportingDataFrame.set_on_change(original_on_change, original_allow_changing_existing_series)
+        ReportingDataFrame.set_on_change(original_on_change, original_allow_changing_existing_series)
