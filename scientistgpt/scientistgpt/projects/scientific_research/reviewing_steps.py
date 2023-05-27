@@ -242,7 +242,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        Make sure that the section is grounded to the information that were provided and is consistent with it.
+        Make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         If you are satisfied, respond with "{termination_phrase}".
         """)
@@ -267,7 +267,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        Make sure that the section is grounded to the information that were provided and is consistent with it.
+        Make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         If you are satisfied, respond with "{termination_phrase}".
         """)
@@ -282,27 +282,28 @@ class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), please write \
         the "{pretty_section_names}" of the paper.
-        Make sure that you are only referring to details that are explicitly found within \
-        the preprocessing and analysis codes.
+        Make sure that you are only referring to analysis steps that are explicitly performed by the \
+        data preprocessing code and data analysis code (see Python blocks above).
         
-        Focus on the methods that were used to achieve the research goal, detail about them and their contribution \
-        for the research. 
+        Focus on the methods that were used to achieve the research goal.
+        
         {latex_instructions}
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
         
-        Notice details such as:
-        * Over-specific tool mentions, like exact software or package versions used in the analysis.
-        * Inclusion of steps that were not conducted in the study, like certain data cleaning processes.
-        * Mentioned steps that are stated to be part of the current analysis, but were not executed in the study.
+        Specifically, pay attention to:
+        * Over-specific description of tools, like specifying exact software or package versions used in the analysis.
+        * Description of analysis steps that were not performed by the analysis Python codes \
+        (provided above), like certain data cleaning processes.
         * References to variables and data files that were not used in the analysis.
 
-        Make sure that the section is grounded to the information that were provided and is consistent with it.
+        Make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         If you are satisfied, respond with "{termination_phrase}".
         """)
+
 
 @dataclass
 class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
