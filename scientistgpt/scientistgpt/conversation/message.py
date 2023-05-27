@@ -237,8 +237,8 @@ class CodeMessage(Message):
                 # if the code diff is substantially shorter than the code, we replace the code with the diff:
                 content = content.replace(
                     self.extracted_code,
-                    "# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
-                    else "# CHATGPT SENT THE SAME CODE AS BEFORE\n")
+                    "\n# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
+                    else "\n# CHATGPT SENT THE SAME CODE AS BEFORE\n")
         return format_text_with_code_blocks(content, text_color, block_color, width, is_html=is_html)
 
 
