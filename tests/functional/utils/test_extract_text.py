@@ -1,6 +1,7 @@
 import pytest
 
-from scientistgpt.utils.text_extractors import extract_text_between_tags, extract_to_nearest_space
+from scientistgpt.utils.text_extractors import extract_text_between_tags, extract_to_nearest_space, \
+    extract_all_external_brackets
 
 text_1 = 'hello, here is a list [1, 2, 3, [4], 5] of numbers and lists'
 

@@ -2,61 +2,44 @@ from dataclasses import dataclass, field
 from typing import Tuple, Union, Any
 
 from scientistgpt.utils.text_extractors import extract_all_external_brackets
-
-
-@dataclass
-class TextFormat:
-    text: str
-    args: Tuple = field(default_factory=tuple)
-    kwargs: dict = field(default_factory=dict)
-
-    def __str__(self):
-        return self.text.format(*self.args, **self.kwargs)
-
-
-StrOrTextFormat = Union[str, TextFormat]
+from scientistgpt.utils.text_formatting import forgiving_format
 
 
 @dataclass
 class Replacer:
-    """
-    Base class for dataclass classes that have specific str attributes that should be replaced base on the
-    values of other attributes.
-    for example:
-    name: str = 'john'
-    greeting: str = 'hello {name}'
-    """
+    obj: Any = None
+    text: str = ''
+    args: Tuple = field(default_factory=tuple)
+    kwargs: dict = field(default_factory=dict)
 
-    def format_text(self, str_or_text_format: Union[StrOrTextFormat, Any], should_format: bool = True,
-                    is_first: bool = True) -> Union[str, Any]:
-        if is_first and not isinstance(str_or_text_format, (TextFormat, str)):
-            return str_or_text_format
-        if isinstance(str_or_text_format, TextFormat):
-            text = str_or_text_format.text
-        else:
-            text = str_or_text_format
+    def __str__(self):
+        return self.format_text()
 
-        if not isinstance(text, str):
-            return str(text)
+    def format_text(self) -> str:
+        text = self.text
+        brackets = set(extract_all_external_brackets(self.text, '{'))
+        additional_kwargs = {}
+        for bracket in brackets:
+            bracketed_text = bracket[1:-1]
+            if hasattr(self.obj, bracketed_text):
+                attr = getattr(self.obj, bracketed_text)
+                if not isinstance(attr, Replacer):
+                    attr = Replacer(self.obj, str(attr))
+                attr = attr.format_text()
+                additional_kwargs[bracketed_text] = attr
 
-        if should_format:
-            brackets = set(extract_all_external_brackets(text, '{'))
-            for bracket in brackets:
-                bracketed_text = bracket[1:-1]
-                if hasattr(self, bracketed_text):
-                    replace_with = self.format_text(str(getattr(self, bracketed_text)), is_first=False)
-                    text = text.replace(bracket, replace_with)
+        return forgiving_format(text, *self.args, **self.kwargs, **additional_kwargs)
 
-        if isinstance(str_or_text_format, TextFormat):
-            str_or_text_format.text = text
-            return str(str_or_text_format)
-        else:
-            return text
 
-    def set(self, **kwargs):
-        """
-        Set attributes of the class.
-        """
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        return self
+def format_value(obj, value: Any, should_format: bool = True) -> Union[str, Any]:
+    if not should_format:
+        return value
+    if isinstance(value, Replacer):
+        return value.format_text()
+    elif isinstance(value, str):
+        return Replacer(obj, value).format_text()
+    else:
+        return value
+
+
+StrOrTextFormat = Union[str, Replacer]
