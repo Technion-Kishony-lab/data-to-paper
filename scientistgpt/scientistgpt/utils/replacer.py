@@ -1,104 +1,72 @@
-from contextlib import contextmanager
-from dataclasses import dataclass, fields
-from typing import Set
+from dataclasses import dataclass, field
+from typing import Tuple, Union, Any, Optional
 
-from scientistgpt.utils.text_formatting import format_str_by_direct_replace
-
-
-def with_attribute_replacement(func):
-    """
-    a decorator for methods of a Replacer class that should run while replacing attributes.
-    """
-    def wrapper(self, *args, **kwargs):
-        with self.attributes_replacement():
-            return func(self, *args, **kwargs)
-    return wrapper
-
-
-def _super_getatter(self, name):
-    return super(Replacer, self).__getattribute__(name)
-
-
-def _super_get_is_replacing(self):
-    return _super_getatter(self, '_is_replacing')
-
-
-def _do_not_replace(self):
-    """
-    A context manager for temporarily not replacing attributes of a Replacer class.
-    """
-    return super(Replacer, self).__getattribute__('not_replacing_attributes')()
+from scientistgpt.utils.text_extractors import extract_all_external_brackets
+from scientistgpt.utils.text_formatting import forgiving_format
 
 
 @dataclass
 class Replacer:
     """
-    Base class for dataclass classes that have specific str attributes that should be replaced base on the
-    values of other attributes.
-
-    name: str = 'john'
-    greeting: str = 'hello {name}'
-    REPLACED_ATTRS: set = {'greeting'}
-    ADDITIONAL_DICT_ATTRS: set = {'name'}
+    A class to replace placeholders in a string with the attributes of a given object (or of multiple objects).
+    Also allows adding additional args and kwargs for the string formatting.
+    Formatting is done by calling forgiving_format(), so matching placeholders are replaced and non-matching
+    are left as is.
     """
+    objs: Optional[Union[Any, list]] = None
+    text: str = ''
+    args: Tuple = field(default_factory=tuple)
+    kwargs: dict = field(default_factory=dict)
 
-    _is_replacing = False
+    def __str__(self):
+        return self.format_text()
 
-    REPLACED_ATTRS = None  # type: set # e.g. ('greeting', 'name'), or None to replace all str attributes
+    def add_obj(self, obj):
+        if self.objs is None:
+            self.objs = obj
+        elif not isinstance(self.objs, list):
+            self.objs = [self.objs] + [obj]
+        else:
+            self.objs.append(obj)
 
-    ADDITIONAL_DICT_ATTRS = set()
-    "Attributes, like class properties, to add in addition to the dataclass fields"
+    def get_objs(self):
+        if self.objs is None:
+            return []
+        elif isinstance(self.objs, list):
+            return self.objs
+        else:
+            return [self.objs]
 
-    def _format_text(self, text):
-        while True:
-            old_text = text
-            text = format_str_by_direct_replace(text, self._get_formatting_dict())
-            if text == old_text:
-                return text
+    def format_text(self) -> str:
+        text = self.text
+        brackets = set(extract_all_external_brackets(self.text, '{'))
+        additional_kwargs = {}
+        for bracket in brackets:
+            bracketed_text = bracket[1:-1]
+            for obj in self.get_objs():
+                if hasattr(obj, bracketed_text):
+                    attr = getattr(obj, bracketed_text)
+                    if not isinstance(attr, Replacer):
+                        attr = Replacer(obj, str(attr))
+                    attr = attr.format_text()
+                    additional_kwargs[bracketed_text] = attr
+                    break
+            else:
+                pass  # we don't have the attribute in any of the objects, so we don't do anything
 
-    @classmethod
-    def get_replaced_attributes(cls) -> Set[str]:
-        if cls.REPLACED_ATTRS is not None:
-            return cls.REPLACED_ATTRS
-        return set(attr.name for attr in fields(cls) if not attr.name.startswith('_'))
+        return forgiving_format(text, *self.args, **self.kwargs, **additional_kwargs)
 
-    def _get_formatting_dict(self):
-        with self.not_replacing_attributes():
-            return {attr: getattr(self, attr) for attr in self.get_replaced_attributes() | self.ADDITIONAL_DICT_ATTRS}
 
-    def __getattribute__(self, item):
-        try:
-            raw_value = _super_getatter(self, item)
-        except Exception:
-            print(f'Error getting attribute {item} from {self.__class__.__name__}')
-            raise
-        if isinstance(raw_value, str) and _super_get_is_replacing(self) and \
-                item in type(self).get_replaced_attributes():
-            return _super_getatter(self, '_format_text')(raw_value)
-        return raw_value
+def format_value(obj, value: Any, should_format: bool = True) -> Union[str, Any]:
+    if not should_format:
+        return value
+    if isinstance(value, Replacer):
+        value.add_obj(obj)
+        return value.format_text()
+    elif isinstance(value, str):
+        return Replacer(obj, value).format_text()
+    else:
+        return value
 
-    @contextmanager
-    def attributes_replacement(self):
-        old_is_replacing = _super_get_is_replacing(self)
-        self._is_replacing = True
-        try:
-            yield
-        finally:
-            self._is_replacing = old_is_replacing
 
-    @contextmanager
-    def not_replacing_attributes(self):
-        old_is_replacing = _super_get_is_replacing(self)
-        self._is_replacing = False
-        try:
-            yield
-        finally:
-            self._is_replacing = old_is_replacing
-
-    def set(self, **kwargs):
-        """
-        Set attributes of the class.
-        """
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        return self
+StrOrTextFormat = Union[str, Replacer]

@@ -3,12 +3,12 @@ from enum import Enum
 from typing import Optional, Tuple
 
 from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation
-from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 
 from .converser_gpt import ConverserGPT
 from .. import Message
+from ..utils.replacer import StrOrTextFormat, format_value
 
 
 @dataclass
@@ -26,7 +26,6 @@ class DualConverserGPT(ConverserGPT):
 
     suppress_printing_other_conversation: bool = False
 
-    @with_attribute_replacement
     def __post_init__(self):
         super().__post_init__()
         if self.other_conversation_name is None:
@@ -43,7 +42,6 @@ class DualConverserGPT(ConverserGPT):
     def other_conversation(self):
         return self.other_conversation_manager.conversation
 
-    @with_attribute_replacement
     def initialize_other_conversation_if_needed(self):
         self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
@@ -52,35 +50,53 @@ class DualConverserGPT(ConverserGPT):
             self.apply_append_system_message(self.other_system_prompt, conversation_name=None, ignore=True,
                                              reverse_roles_for_web=True)
 
-    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
+                                                        comment: Optional[StrOrTextFormat] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         model_engine: Optional[str] = None,
-                                                        hidden_messages: GeneralMessageDesignation = None, **kwargs,
-                                                        ) -> Message:
+                                                        hidden_messages: GeneralMessageDesignation = None,
+                                                        should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.get_and_append_assistant_message(
-            tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            tag=format_value(self, tag, should_format),
+            comment=comment,
+            is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
-    def apply_to_other_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_to_other_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                           comment: Optional[StrOrTextFormat] = None,
                                            ignore: bool = False,
-                                           previous_code: Optional[str] = None, is_background: bool = False):
+                                           previous_code: Optional[str] = None, is_background: bool = False,
+                                           should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_user_message(
-            content, tag=tag, comment=comment, previous_code=previous_code,
-            ignore=ignore, is_background=is_background)
+            content=format_value(self, content, should_format),
+            tag=tag,
+            comment=comment,
+            previous_code=previous_code,
+            ignore=ignore, is_background=is_background, **kwargs)
 
-    def apply_to_other_append_system_message(self, content: str, tag: Optional[str] = None,
-                                             comment: Optional[str] = None):
-        return self.other_conversation_manager.append_system_message(content, tag=tag, comment=comment)
+    def apply_to_other_append_system_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                             comment: Optional[StrOrTextFormat] = None,
+                                             should_format: bool = True, **kwargs) -> Message:
+        return self.other_conversation_manager.append_system_message(
+            content=format_value(self, content, should_format),
+            tag=tag,
+            comment=comment,
+            **kwargs)
 
-    def apply_to_other_append_surrogate_message(self, content: str, tag: Optional[str] = None,
-                                                comment: Optional[str] = None,
+    def apply_to_other_append_surrogate_message(self, content: StrOrTextFormat,
+                                                tag: Optional[StrOrTextFormat] = None,
+                                                comment: Optional[StrOrTextFormat] = None,
                                                 ignore: bool = False,
                                                 previous_code: Optional[str] = None,
-                                                is_background: bool = False):
+                                                is_background: bool = False,
+                                                should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_surrogate_message(
-            content, tag=tag, comment=comment, previous_code=previous_code,
-            ignore=ignore, is_background=is_background)
+            content=format_value(self, content, should_format),
+            tag=tag,
+            comment=comment,
+            previous_code=previous_code,
+            ignore=ignore, is_background=is_background, **kwargs)
 
 
 class CycleStatus(Enum):
@@ -128,7 +144,6 @@ class DialogDualConverserGPT(DualConverserGPT):
     max_reviewing_rounds: int = 3
     max_attempts_per_round: int = 4
 
-    @with_attribute_replacement
     def __post_init__(self):
         super().__post_init__()
         # reverse roles:
@@ -171,7 +186,6 @@ class DialogDualConverserGPT(DualConverserGPT):
         return len(self.other_conversation) > 1 and \
             self.termination_phrase.lower() in self.other_conversation.get_last_response().lower()
 
-    @with_attribute_replacement
     def run_dialog(self) -> Optional[str]:
         """
         Run the dialog until it is completed.
@@ -199,7 +213,6 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         return None
 
-    @with_attribute_replacement
     def run_one_cycle(self) -> Tuple[str, CycleStatus]:
         """
         Run one cycle of the dialog. Return str of response if completed, or None if not completed
@@ -328,14 +341,12 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
-    @with_attribute_replacement
     def initialize_dialog(self):
         self.initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
         self._pre_populate_conversations()
 
-    @with_attribute_replacement
     def initialize_and_run_dialog(self) -> str:
         self.initialize_dialog()
         return self.run_dialog()
@@ -373,7 +384,6 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             return self.quote_request
         return None
 
-    @with_attribute_replacement
     def initialize_and_run_dialog(self):
         response = super().initialize_and_run_dialog()
         return self._extract_goal_from_response(response)

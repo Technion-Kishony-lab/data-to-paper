@@ -6,8 +6,8 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import with_attribute_replacement
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.replacer import Replacer
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseBackgroundProductsGPT
@@ -17,8 +17,6 @@ from .request_multi_choice import BaseMultiChoiceProductsGPT
 
 @dataclass
 class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
-    ADDITIONAL_DICT_ATTRS = BaseBackgroundProductsGPT.ADDITIONAL_DICT_ATTRS \
-                            | {'actual_output_filename', 'supported_packages', 'data_filenames'}
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
@@ -79,6 +77,8 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         1. The results seem reasonable. Let's proceed.
 
         2. Something is wrong. I need to go back and change/improve the code.
+
+        {choice_instructions}
         """)  # set to None to skip option for revision
 
     @property
@@ -114,7 +114,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     def _request_code_tag(self):
         return f'code_revision_{self.revision_round}'
 
-    @with_attribute_replacement
     def get_analysis_code(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         self._pre_populate_background()
@@ -171,7 +170,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
                 assert self.conversation[-1].tag == self._request_code_tag
 
                 self.apply_append_surrogate_message(
-                    content=self.present_code_as_fresh.format(code_and_output.code),
+                    content=Replacer(self, self.present_code_as_fresh, args=(code_and_output.code,)),
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
@@ -196,6 +195,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             user_agent=self.user_agent,
             assistant_agent=self.assistant_agent,
             actions_and_conversations=self.actions_and_conversations,
-            multi_choice_question=self.offer_revision_prompt.format(code_and_output.output),
+            multi_choice_question=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
             possible_choices=('1', '2'),
         ).get_chosen_option()
