@@ -7,6 +7,8 @@ from scientistgpt.projects.scientific_research.run_steps import ScientificStepsR
 from .local_paths import LOCAL_FOLDER_ROOT
 
 
+THIS_FOLDER = Path(__file__).parent
+
 LOCAL_PATH = Path(LOCAL_FOLDER_ROOT)
 TEMP_FOLDER_TO_RUN_IN = LOCAL_PATH / 'temp_folder'
 
@@ -37,12 +39,16 @@ def copy_datafiles_to_data_folder(project: str, data_filenames: List[str], data_
         shutil.copyfile(LOCAL_PATH / project / filename, data_folder / filename)
 
 
-def get_output_path(project: str, output_folder: str):
-    return LOCAL_PATH / project / 'outputs' / output_folder
+def get_output_path(project: str, output_folder: str, save_on_repo: bool = False):
+    if save_on_repo:
+        return THIS_FOLDER / 'projects' / project / 'outputs' / output_folder
+    else:
+        return LOCAL_PATH / project / 'outputs' / output_folder
 
 
 def get_paper(project: str, data_filenames: List[str], research_goal: Optional[str], output_folder: str,
-              should_do_data_exploration: bool = True, should_mock_servers: bool = True):
+              should_do_data_exploration: bool = True, should_mock_servers: bool = True,
+              save_on_repo: bool = True):
 
     copy_datafiles_to_data_folder(project, data_filenames, TEMP_FOLDER_TO_RUN_IN)
     # clear temp folder and copy files to it:
@@ -53,7 +59,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     ScientificStepsRunner(
         data_file_descriptions=get_file_descriptions(project, data_filenames, TEMP_FOLDER_TO_RUN_IN),
         research_goal=research_goal,
-        output_directory=get_output_path(project, output_folder),
+        output_directory=get_output_path(project, output_folder, save_on_repo),
         mock_servers=should_mock_servers,
         should_do_data_exploration=should_do_data_exploration,
     ).run_all_steps()
