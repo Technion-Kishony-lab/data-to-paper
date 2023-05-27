@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from scientistgpt.run_gpt_code.overrides.override_dataframe import hook_dataframe, ChangeReportingDataFrame, \
+from scientistgpt.run_gpt_code.overrides.override_dataframe import hook_dataframe, ReportingDataFrame, \
     collect_changed_data_frames, DataFrameSeriesChange
 
 
@@ -16,7 +16,7 @@ def test_dataframe_allows_changing_when_not_in_context():
     hook_dataframe()
 
     df = pd.DataFrame({'a': [1, 2, 3]})
-    assert type(df) is ChangeReportingDataFrame
+    assert type(df) is ReportingDataFrame
     df['a'] = [4, 5, 6]
     assert df['a'].tolist() == [4, 5, 6]
 
@@ -31,7 +31,7 @@ def test_dataframe_allows_adding_when_not_in_context():
 def test_dataframe_context_does_not_allow_changing():
     with collect_changed_data_frames(allow_changing_existing_series=False):
         df = pd.DataFrame({'a': [1, 2, 3]})
-        assert type(df) is ChangeReportingDataFrame
+        assert type(df) is ReportingDataFrame
         with pytest.raises(DataFrameSeriesChange):
             df['a'] = [4, 5, 6]
 
@@ -39,7 +39,7 @@ def test_dataframe_context_does_not_allow_changing():
 def test_dataframe_context_allows_changing():
     with collect_changed_data_frames(allow_changing_existing_series=True):
         df = pd.DataFrame({'a': [1, 2, 3]})
-        assert type(df) is ChangeReportingDataFrame
+        assert type(df) is ReportingDataFrame
         df['a'] = [4, 5, 6]
         assert df['a'].tolist() == [4, 5, 6]
 
@@ -55,7 +55,7 @@ def test_dataframe_context_collects_changed_dataframes():
 def test_dataframe_read_csv_creates_reporting_dataframe(tmpdir_with_csv_file):
     with collect_changed_data_frames():
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
-    assert type(df) is ChangeReportingDataFrame
+    assert type(df) is ReportingDataFrame
 
 
 def test_dataframe_read_csv_is_not_collected_if_did_not_changed(tmpdir_with_csv_file):

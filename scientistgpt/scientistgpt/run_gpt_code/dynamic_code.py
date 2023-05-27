@@ -12,7 +12,7 @@ from scientistgpt import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 from scientistgpt.utils.file_utils import run_in_directory, UnAllowedFilesCreated
-from .overrides.override_dataframe import collect_changed_data_frames, ChangeReportingDataFrame
+from .overrides.override_dataframe import collect_changed_data_frames, ReportingDataFrame
 
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
@@ -67,7 +67,7 @@ def run_code_using_module_reload(
         allowed_read_files: Iterable[str] = None,
         allowed_write_files: Iterable[str] = None,
         allow_dataframes_to_change_existing_series: bool = True,
-        run_in_folder: Union[Path, str] = None) -> Tuple[Set[str], List[ChangeReportingDataFrame]]:
+        run_in_folder: Union[Path, str] = None) -> Tuple[Set[str], List[ReportingDataFrame]]:
     """
     Run the provided code and report exceptions or specific warnings.
 
