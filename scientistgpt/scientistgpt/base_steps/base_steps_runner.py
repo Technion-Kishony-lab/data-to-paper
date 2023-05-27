@@ -34,6 +34,8 @@ class BaseStepsRunner(BaseProductsHandler):
     data_file_descriptions: DataFileDescriptions = None
     mock_servers: Union[bool, str] = False
 
+    current_stage: Stage = None
+
     def create_web_conversations(self):
         if not COALESCE_WEB_CONVERSATIONS:
             return
@@ -59,6 +61,7 @@ class BaseStepsRunner(BaseProductsHandler):
         """
         Advance the stage of the research goal.
         """
+        self.current_stage = stage
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
 
     def set_active_conversation(self, agent: Agent):
@@ -134,10 +137,10 @@ class BaseStepsRunner(BaseProductsHandler):
 
         try:
             run()
-        except FailedCreatingProductException as e:
+        except FailedCreatingProductException:
             self.advance_stage(Stage.FAILURE)
             print('----- FAILURE ------')
-            print(f'Failed creating product: {e.product_field}')
+            print(f'Failed creating product during stage: {self.current_stage}')
         except Exception:
             raise
         else:
