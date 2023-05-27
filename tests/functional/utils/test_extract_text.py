@@ -33,4 +33,3 @@ def test_extract_to_nearest_space():
     assert extract_to_nearest_space(text, -13) == 'function.'
     assert extract_to_nearest_space(text, 3) == 'Thi'
     assert extract_to_nearest_space(text, -4) == 'ion.'
-
