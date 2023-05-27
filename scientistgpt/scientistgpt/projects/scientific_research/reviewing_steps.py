@@ -82,7 +82,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class TablesReviewGPT(BaseLatexProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('research_goal', 'data_analysis_output', 'tables')
+    background_product_fields = ('research_goal', 'data_exploration_output' , 'data_analysis_output', 'tables')
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
@@ -118,7 +118,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'data_exploration_output', 'data_analysis_output')
+    background_product_fields = ('research_goal', 'data_exploration_output', 'data_analysis_output')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, str]
     goal_noun: str = 'key numerical values'
@@ -239,6 +239,17 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
+        Notice details such as:
+        * Mentioning the tools used to preform the analysis are too specific, like mentioning the exact \
+        version of the software or packages used.
+        * Mentioning steps that were not performed in the current analysis, like data cleaning steps that \
+        were not performed in the study itself.
+        * Mentioning steps that were performed in the current analysis, but were not actually performed \
+        in the study itself.
+        * Mentioning variables and data files that were not used in the current analysis.
+        
+        Make sure that the section is grounded to the information that were provided and is consistent with it.
+        If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
@@ -256,10 +267,13 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary',
-                                 'title_and_abstract')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_code', 'title_and_abstract')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\section{} command, and any math or symbols that needs tex escapes.
+        """)
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide constructive feedback on the above {pretty_section_names} for my paper.
+        If you are satisfied, respond with "{termination_phrase}".
         """)
 
 
