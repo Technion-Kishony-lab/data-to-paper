@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass
 
 from scientistgpt.utils.formatted_sections import FormattedSections
