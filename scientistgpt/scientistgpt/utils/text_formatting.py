@@ -94,3 +94,33 @@ def wrap_text_with_triple_quotes(text: str, header: str = '') -> str:
     Wrap text with triple quotes.
     """
     return f'```{header}\n{text}\n```'
+
+
+def forgiving_format(string, *args, **kwargs):
+    # Regular expression pattern to match placeholders in the string
+    pattern = r'\{[^\}]*\}|\{\}'
+
+    double_pattern = re.compile(r'\{\{.*?\}\}')  # {{var}}
+    single_pattern = re.compile(r'\{.*?\}')  # {var}
+    pattern = re.compile(r'\{\{.*?\}\}|\{.*?\}')  # {{var}} or {var}
+
+    def substitute(match):
+        nonlocal args
+        match = match.group()
+        if match[:2] == '{{' and match[-2:] == '}}':
+            return match[1:-1]
+        if match == '{}':
+            if len(args) > 0:
+                replace_with = str(args[0])
+                args = args[1:]
+            else:
+                replace_with = '{}'
+        else:
+            key = match[1:-1]
+            if key in kwargs:
+                replace_with = kwargs[key]
+            else:
+                replace_with = match
+        return replace_with
+
+    return re.sub(pattern, substitute, string)
