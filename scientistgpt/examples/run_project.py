@@ -34,7 +34,10 @@ def copy_datafiles_to_data_folder(project: str, data_filenames: List[str], data_
     """
     Clear temp data folder and copy data files from project folder to data folder
     """
-    shutil.rmtree(data_folder / '*', ignore_errors=True)
+    # remove data folder and all its content:
+    shutil.rmtree(data_folder, ignore_errors=True)
+    # create clean data folder:
+    data_folder.mkdir(parents=True, exist_ok=True)
     for filename in data_filenames:
         shutil.copyfile(LOCAL_PATH / project / filename, data_folder / filename)
 
