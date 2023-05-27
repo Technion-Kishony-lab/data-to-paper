@@ -3,7 +3,7 @@ import pytest
 from _pytest.fixtures import fixture
 
 from scientistgpt import Role, Message
-from scientistgpt.utils.highlighted_text import highlight_python_code
+from scientistgpt.utils.highlighted_text import python_to_highlighted_text
 
 
 @fixture()
@@ -46,4 +46,4 @@ def test_message_repr_with_code_and_non_code_blocks():
                                  "```\nhello\n```\n\nThat's all folks!")
     pretty = message.pretty_content(text_color=colorama.Fore.CYAN, width=100)
     assert colorama.Fore.LIGHTCYAN_EX in pretty
-    assert highlight_python_code("print('hello')")[:-1] in pretty
+    assert python_to_highlighted_text("print('hello')")[:-1] in pretty
