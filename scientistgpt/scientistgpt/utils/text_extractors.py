@@ -135,6 +135,3 @@ def get_dot_dot_dot_text(text: str, start: int, end: int):
     if start - end + len(fill) > len(text):
         return text
     return extract_to_nearest_space(text, start) + fill + extract_to_nearest_space(text, end)
-
-
-print(extract_text_between_tags('hello [world] how [are] you', '[', ']'))

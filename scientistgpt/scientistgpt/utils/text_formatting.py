@@ -97,11 +97,11 @@ def wrap_text_with_triple_quotes(text: str, header: str = '') -> str:
 
 
 def forgiving_format(string, *args, **kwargs):
-    # Regular expression pattern to match placeholders in the string
-    pattern = r'\{[^\}]*\}|\{\}'
+    """
+    A forgiving version of str.format() that returns the original string if there are no matching arguments.
+    """
 
-    double_pattern = re.compile(r'\{\{.*?\}\}')  # {{var}}
-    single_pattern = re.compile(r'\{.*?\}')  # {var}
+    # Regular expression pattern to match placeholders in the string
     pattern = re.compile(r'\{\{.*?\}\}|\{.*?\}')  # {{var}} or {var}
 
     def substitute(match):
