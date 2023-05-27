@@ -284,15 +284,15 @@ class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
         the "{pretty_section_names}" of the paper.
         Make sure that you are only referring to analysis steps that are explicitly performed by the \
         data preprocessing code and data analysis code (see Python blocks above).
-        
+
         Focus on the methods that were used to achieve the research goal.
-        
+
         {latex_instructions}
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        
+
         Specifically, pay attention to:
         * Over-specific description of tools, like specifying exact software or package versions used in the analysis.
         * Description of analysis steps that were not performed by the analysis Python codes \

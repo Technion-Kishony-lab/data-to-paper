@@ -57,7 +57,7 @@ class Replacer:
         return forgiving_format(text, *self.args, **self.kwargs, **additional_kwargs)
 
 
-def format_value(obj, value: Any, should_format: bool = True) -> Union[str, Any]:
+def format_value(obj: object, value: Any, should_format: bool = True) -> Union[str, Any]:
     if not should_format:
         return value
     if isinstance(value, Replacer):

@@ -3,7 +3,7 @@ import pytest
 from _pytest.fixtures import fixture
 
 from scientistgpt import Role, Message
-from scientistgpt.utils.highlighted_text import highlight_python_code
+from scientistgpt.utils.highlighted_text import python_to_highlighted_text
 
 
 @fixture()
@@ -44,6 +44,6 @@ def test_message_convert_to_chatgpt(message_with_tag):
 def test_message_repr_with_code_and_non_code_blocks():
     message = Message(Role.USER, "Here is my hello world code:\n\n```python\nprint('hello')\n```\n\nIt produces: "
                                  "```\nhello\n```\n\nThat's all folks!")
-    pretty = message.pretty_content(text_color=colorama.Fore.CYAN, block_color=colorama.Fore.LIGHTCYAN_EX, width=100)
+    pretty = message.pretty_content(text_color=colorama.Fore.CYAN, width=100)
     assert colorama.Fore.LIGHTCYAN_EX in pretty
-    assert highlight_python_code("print('hello')")[:-1] in pretty
+    assert python_to_highlighted_text("print('hello')")[:-1] in pretty
