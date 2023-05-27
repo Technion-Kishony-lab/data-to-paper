@@ -36,7 +36,7 @@ def python_to_highlighted_html(code_str: str) -> str:
     return highlight(code_str, PythonLexer(), html_code_formatter)
 
 
-def python_to_highlighted_text(code_str: str, color) -> str:
+def python_to_highlighted_text(code_str: str, color: str = '') -> str:
     return highlight(code_str, PythonLexer(), terminal_formatter)
 
 
@@ -68,7 +68,7 @@ def print_red(text: str, **kwargs):
 
 
 def get_pre_html_format(text, color, font_style: str = 'normal', font_size: int = 16, font_weight: str = 'normal',
-                         font_family: str = None):
+                        font_family: str = None):
     s = '<pre style="'
     if color:
         s += f'color: {color};'
