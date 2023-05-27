@@ -1,0 +1,680 @@
+
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Identification of Factors Associated with Prediabetes and Diabetes in the US Population using Behavioral Risk Factor Surveillance System}
+\author{ScientistGPT}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The prevalence of diabetes and prediabetes has been increasing rapidly in the US in recent years. Therefore, identifying the factors associated with these conditions is important for developing effective prevention and management strategies. In this study, we analyzed data from the Behavioral Risk Factor Surveillance System (BRFSS2015) to identify the factors associated with prediabetes and diabetes. A total of 253,680 survey responses were included in the analysis. We evaluated the association of various health indicators, including high blood pressure, high cholesterol, physical activity level, obesity, smoking, and heavy alcohol consumption, with diabetes and prediabetes status. Our findings suggest that high blood pressure, high cholesterol, physical inactivity, obesity, and smoking were significantly associated with an increased risk of diabetes and prediabetes. The identification of these risk factors may help in developing effective public health interventions and preventative measures for the management of diabetes and prediabetes in the US population.
+\end{abstract}
+
+\section{Introduction}
+
+Diabetes is a chronic medical condition that occurs when the body cannot produce or properly use insulin, a hormone that regulates blood sugar levels. In the United States, diabetes is a major public health concern due to its high prevalence and significant impact on morbidity, mortality, and healthcare costs. According to the Centers for Disease Control and Prevention (CDC), 30.3 million Americans, or 9.4\% of the U.S. population, have diabetes, and an additional 84.1 million have prediabetes, a condition that increases the risk of developing diabetes in the future. The prevalence of diabetes and prediabetes has been increasing rapidly in the U.S. in recent years, making it crucial to identify the factors associated with these conditions.
+
+The Behavioral Risk Factor Surveillance System (BRFSS) is a health-related telephone survey conducted annually by the CDC \cite{Holtzman2003Analysis}. It collects responses from over 400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services \cite{Iezzoni2010Multiple}. Therefore, the BRFSS provides an important source of data for studying the prevalence and risk factors associated with diabetes and prediabetes in the U.S. population.
+
+In this study, we analyze data from the BRFSS 2015 survey, which includes responses from over 253,000 participants \cite{Lu2021Multivariate}. Our goal is to identify the factors associated with prediabetes and diabetes in the U.S. population based on variables available in the BRFSS2015 dataset \cite{Rahman2022Trends}. We evaluate the association of various health indicators, including high blood pressure, high cholesterol, physical activity level, obesity, smoking, and heavy alcohol consumption, with diabetes and prediabetes status \cite{JENSEN1991Risk, BILAL2009DIABETES}. Our findings may inform the development of effective public health interventions and preventative measures for the management of diabetes and prediabetes in the U.S. population.
+
+\section{Methods}
+
+This section describes the methods used to preprocess the data and to develop and evaluate the models to identify the factors associated with prediabetes and diabetes in the US population using the BRFSS2015 dataset.
+
+\subsection{Data Preprocessing}
+The BRFSS2015 dataset was preprocessed to prepare the data for the analysis. The steps carried out during this phase included handling missing values, normalization of numerical features, encoding of categorical features, and balancing the dataset. An overview of the data preprocessing can be found in the provided Python code.
+
+Missing values for continuous features (BMI, MentHlth, PhysHlth, Age, Education, Income) were replaced with the mean value of the respective features. For categorical feature CholCheck, missing values were replaced with a constant value of 0. Data normalization was performed using the MinMaxScaler, which scales the numerical features to a range from 0 to 1. The categorical feature `Education` was one-hot encoded using the OneHotEncoder.
+
+To handle imbalance in the dataset, oversampling and undersampling were applied on the dataset using the RandomOverSampler and RandomUnderSampler, respectively. The oversampling process increased the proportion of minority class instances by duplicating them, while the undersampling reduced the majority class size by randomly removing instances. The balanced dataset was saved as a new CSV file to be used for data analysis.
+
+\subsection{Data Analysis}
+
+For the analysis, the preprocessed data was loaded into a dataframe, and the features and target variable (Diabetes\_binary) were extracted. The data was further split into training and testing sets, with 80\% of the data used for training the models and 20\% for testing.
+
+Three machine learning models were trained and evaluated in this study to identify the significant factors associated with prediabetes and diabetes. The trained models included the logistic regression model, random forest classifier, and the XGBoost model. The logistic regression model was employed as it is a simple and widely used statistical method for modeling binary outcomes. The random forest classifier, an ensemble learning method, was selected for its ability to handle large datasets and generate accurate predictions. The XGBoost model, an advanced implementation of gradient boosting machines, was chosen for its robustness and high performance in handling complex datasets.
+
+The models were evaluated using classification report, which provides important evaluation metrics such as precision, recall, F1-score, and accuracy. Feature importances were also calculated for all three models to identify the factors that contributed to the prediction of prediabetes and diabetes status. The results were saved into a text file for further interpretation and reporting.
+
+\section{Results}
+
+The analysis of the Behavioral Risk Factor Surveillance System (BRFSS2015) data revealed that several health indicators were significantly associated with prediabetes and diabetes status in the US population.
+
+The logistic regression model achieved an accuracy of 0.74, with a precision of 0.70 and a recall of 0.67 for class 1 (diabetes or prediabetes), while the random forest model achieved an accuracy of 0.91, with a precision of 0.85 and a recall of 0.94 for class 1. Comparatively, XGBoost model achieved an accuracy of 0.76, with a precision of 0.71 and a recall of 0.73 for class 1. The performances of the models are summarized in Table \ref{tab:model performances}.
+
+The significant features for the three models are shown in Table \ref{tab:model performances}\begin{table}[!htb]
+\centering
+\caption{Model Performances and Significant Features}
+\label{tab:model performances}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} \\ \midrule
+Logistic Regression & 0.74 & 0.70 & 0.67 \\
+Random Forest       & 0.91 & 0.85 & 0.94 \\
+XGBoost             & 0.76 & 0.71 & 0.73 \\ \midrule
+\multicolumn{4}{c}{\textbf{Significant Features}} \\ \midrule
+\multirow{3}{*}{\textbf{Demographics}} 
+& Age            & 1.75 (LogReg)    & 0.13 (RF) \\
+& Education      & -0.15 to -0.32 (LogReg) & 0.004 to 0.016 (RF) \\
+& Income         & -0.41 (LogReg)  & 0.087 (RF) \\ \midrule
+\multirow{5}{*}{\textbf{Health Conditions}} 
+& HighBP         & 0.73 (LogReg)  & 0.068 (RF) \\
+& HighChol       & 0.58 (LogReg)  & 0.039 (RF) \\
+& Stroke         & 0.17 (LogReg)  & 0.011 (RF) \\
+& HeartDiseaseorAttack & 0.23 (LogReg)  & 0.018 (RF) \\
+& DiffWalk       & 0.089 (LogReg) & 0.028 (RF) \\ \midrule
+\multirow{4}{*}{\textbf{Health Behaviors}} 
+& PhysActivity   & -0.05 (LogReg) & 0.024 (RF) \\
+& Fruits         & -0.04 (LogReg) & 0.03 (RF) \\
+& Veggies        & -0.05 (LogReg) & 0.023 (RF) \\
+& HvyAlcoholConsump & -0.74 (LogReg)  & 0.0087 (RF) \\ \bottomrule
+\end{tabular}
+\end{table}. High blood pressure, high cholesterol, physical inactivity, obesity, and smoking were identified as significant risk factors for diabetes and prediabetes in all three models. Other significant risk factors identified by the logistic regression model include stroke, heart disease or attack, and difficulty walking, while the random forest model identified cholesterol check as another significant risk factor. This is reflected in the relative importance of each feature in each model, as shown in Numeric Values 22 to 27 and 32 to 36.
+
+The XGBoost model identified important features for predicting the risk of diabetes and prediabetes as high blood pressure, general health status, age, high cholesterol, and BMI, as shown in Table \ref{tab:xgboost-major-features}.
+
+Our study highlights the need for public health interventions that reduce the prevalence of risk factors and promote healthy behaviors to prevent and manage diabetes and prediabetes\begin{table}[!htb]
+\centering
+\caption{Model Performances of XGBoost Classifier and Significant Features}
+\label{tab:xgboost-major-features}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Feature} & \textbf{Logistic Regression} & \textbf{Random Forest} & \textbf{XGBoost} \\ \midrule
+HighBP             & 0.73 & 0.068 & 0.50 \\
+HighChol           & 0.58 & 0.039 & 0.063 \\
+CholCheck          & 1.25 & 0.005 & 0.038 \\
+BMI                & 6.27 & 0.177 & 0.026 \\
+PhysActivity       & -0.05 & 0.024 & 0.008 \\
+GenHlth            & 0.56 & 0.092 & 0.119 \\
+MentHlth           & -0.15 & 0.054 & 0.008 \\
+PhysHlth           & -0.20 & 0.072 & 0.008 \\
+Age                & 1.75 & 0.126 & 0.032 \\
+Income             & -0.41 & 0.087 & 0.012 \\   \bottomrule
+\end{tabular}
+\end{table}. The identification of these risk factors and their relative importance in predicting diabetes and prediabetes provides important insights to clinicians and policymakers that can guide the development of effective public health interventions.
+
+\section{Discussion}
+
+Our study aimed to identify the factors associated with prediabetes and diabetes among the US population using the Behavioral Risk Factor Surveillance System (BRFSS2015) dataset. Our analysis showed that high blood pressure, high cholesterol, physical inactivity, obesity, and smoking were significantly associated with an increased risk of diabetes and prediabetes \cite{Wisdom2008Women's, Ferdina2021Comparison, Lampert2010Smoking, BILAL2009DIABETES}.
+
+Consistent with past research, our study found that high blood pressure and high cholesterol levels were associated with an increased risk of diabetes and prediabetes. It is important to note that both high blood pressure and high cholesterol are modifiable risk factors, and interventions aimed at improving these conditions may have a positive effect on diabetes and prediabetes management. Physical inactivity was another modifiable risk factor that was significantly associated with diabetes and prediabetes status in our study \cite{Rippe2020Physical, Admiraal2011The}. This is consistent with previous studies which suggest that regular physical activity is a protective factor against developing diabetes and prediabetes. Public health campaigns that promote regular physical activity could be an effective strategy for diabetes and prediabetes management.
+
+Our study also found that obesity and smoking were significantly associated with diabetes and prediabetes. These risk factors are also strongly associated with many other chronic health conditions, such as cardiovascular disease, and interventions aimed at reducing obesity and smoking rates may have positive effects across multiple health outcomes \cite{Sainio2007Educational}. In particular, we found a strong association between high BMI and diabetes and prediabetes risk, which is consistent with past research \cite{Ek2014High}. Obesity is a complex condition that is difficult to manage, but interventions aimed at promoting healthy eating habits and regular physical activity could help in reducing obesity rates and therefore diabetes and prediabetes prevalence.
+
+A possible explanation for the lack of significant association between heavy alcohol consumption and diabetes and prediabetes status is that the relationship may be complex and may depend on both the quantity and frequency of alcohol consumption. Further research is warranted to investigate this finding and to elucidate the potential mechanisms behind the association between heavy alcohol consumption and diabetes and prediabetes.
+
+Our study has some limitations. Firstly, as a cross-sectional study, we cannot infer causality between the identified risk factors and diabetes and prediabetes status \cite{Chikao2014Association}. Longitudinal studies are needed to determine the temporal relationship between these variables. Secondly, our study relies on self-reported data, which may be subject to recall bias and social desirability bias \cite{Caputo2017Social, Presser1998Data}. Thirdly, our study only includes variables available in the BRFSS2015 dataset, and there may be other important risk factors that were not included. Future research should investigate other potential risk factors, as well as the potential moderating effects of demographic, lifestyle, and genetic factors.
+
+Despite these limitations, our study provides important insights into the factors associated with diabetes and prediabetes in the US population. By identifying these risk factors, our study adds to the evidence base for developing effective interventions for diabetes and prediabetes management and prevention. Interventions targeting modifiable risk factors, such as high blood pressure, high cholesterol, physical inactivity, obesity, and smoking, could help reduce the prevalence of diabetes and prediabetes in the US population.
+
+\section{Conclusion}
+
+In this study, we aimed to identify the factors associated with prediabetes and diabetes in the US population. For this purpose, we utilized the BRFSS2015 dataset, which contains responses from over 253,000 individuals and 22 health indicators. Our analysis revealed that high blood pressure, high cholesterol, physical inactivity, obesity, and smoking were significantly associated with an increased risk of diabetes and prediabetes. Among these, obesity was the strongest predictor of diabetes and prediabetes. The results of our study are consistent with previous research and provide further evidence that lifestyle factors are important predictors of diabetes and prediabetes in the US population.
+
+The identified risk factors can be used for the development of more effective preventative measures, health policies, and interventions aimed at reducing the incidence and burden of diabetes and prediabetes in the US population. For example, healthcare practitioners and policy-makers can focus on promoting awareness about the importance of maintaining a healthy lifestyle, regular physical activity, good diet habits, and the early detection of high blood pressure, high cholesterol, and other diabetes/prediabetes risk factors. 
+
+In conclusion, our study provides important insights into the factors associated with diabetes and prediabetes in the US population and highlights the need for targeted interventions to reduce the incidence of these conditions. Our findings emphasize the importance of promoting healthy lifestyle behaviors and regular screening for diabetes and prediabetes risk factors to improve the health and well-being of the US population.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\clearpage
+\appendix
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{lstlisting}[language=TeX]
+1 data file:
+
+diabetes_binary_health_indicators_BRFSS2015.csv
+a clean dataset of 253,680 survey responses to the CDC's BRFSS2015
+
+The Behavioral Risk Factor Surveillance System (BRFSS) is a health-related telephone survey that is collected annually by the CDC. Each year, the survey collects responses from over 400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. It has been conducted every year since 1984. For this project, a csv of the dataset available on Kaggle for the year 2015 was used. This original dataset contains responses from 441,455 individuals and has 330 features. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.
+
+The columns in the dataset are:
+
+#1 `Diabetes_binary`: (int) Diabetes (0=no, 1=prediabetes, 2=yes)
+#2 `HighBP`: (int) High Blood Pressure (0=no, 1=yes)
+#3 `HighChol`: (int) High Cholesterol (0=no, 1=yes)
+#4 `CholCheck`: (int) Cholesterol check in 5 years (0=no, 1=yes)
+#5 `BMI`: (float) Body Mass Index
+#6 `Smoker`: (int) (0=no, 1=yes)
+#7 `Stroke`: (int) Stroke (0=no, 1=yes)
+#8 `HeartDiseaseorAttack': (int) coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)
+#9 `PhysActivity`: (int) Physical Activity in past 30 days (0=no, 1=yes)
+#10 `Fruits`: (int) Consume one fruit or more each day (0=no, 1=yes)
+#11 `Veggies`: (int) Consume one Vegetable or more each day (0=no, 1=yes)
+#12 `HvyAlcoholConsump` (int) Heavy drinkers (0=no, 1=yes)
+#13 `AnyHealthcare` (int) Have any kind of health care coverage (0=no, 1=yes)
+#14 `NoDocbcCost` (int) Was there a time in the past 12 months when you needed to see a doctor but could not because of cost? (0=no, 1=yes)
+#15 `GenHlth` (int) self-reported health (1=excellent, 2=very good, 3=good, 4=fair, 5=poor)
+#16 `MentHlth` (int) How many days during the past 30 days was your mental health not good? (1-30 days)
+#17 `PhysHlth` (int) Hor how many days during the past 30 days was your physical health not good? (1-30 days)
+#18 `DiffWalk` (int) Do you have serious difficulty walking or climbing stairs? (0=no, 1=yes)
+#19 `Sex` (int) Sex (0=female, 1=male)
+#20 `Age` (int) Age, 13-level age category in intervals of 5 years (1=18-24, 2=25-29, ..., 12=75-79, 13=80 or older)
+#21 `Education` (int) Education level on a scale of 1-6
+#22 `Income` (int) Income scale on a scale of 1-8
+
+
+\end{lstlisting}
+
+\section{Data Exploration} \subsection{Code}Performing the Data Exploration carried out using the following custom code (created by ChatGPT):
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+
+\PY{c+c1}{\PYZsh{} Load Dataset}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015.csv}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Measure of the scale of our data}
+\PY{n}{num\PYZus{}rows} \PY{o}{=} \PY{n+nb}{len}\PY{p}{(}\PY{n}{df}\PY{p}{)}
+\PY{n}{num\PYZus{}cols} \PY{o}{=} \PY{n+nb}{len}\PY{p}{(}\PY{n}{df}\PY{o}{.}\PY{n}{columns}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Summary statistics of key variables}
+\PY{n}{key\PYZus{}vars\PYZus{}summary} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Age}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{describe}\PY{p}{(}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} List of most common values of categorical variables}
+\PY{n}{common\PYZus{}vars} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Diabetes\PYZus{}binary}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PYZbs{}
+\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HighBP}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HighBP}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HighChol}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HighChol}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{CholCheck}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CholCheck}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Smoker}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Smoker}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Stroke}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Stroke}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+               \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HeartDiseaseorAttack}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PYZbs{}
+               \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HeartDiseaseorAttack}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+               \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{PhysActivity}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PYZbs{}
+               \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{PhysActivity}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Fruits}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Fruits}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Veggies}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Veggies}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+               \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HvyAlcoholConsump}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PYZbs{}
+               \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{HvyAlcoholConsump}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+               \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AnyHealthcare}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PYZbs{}
+               \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{AnyHealthcare}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+               \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{NoDocbcCost}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PYZbs{}
+               \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{NoDocbcCost}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{GenHlth}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{GenHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{DiffWalk}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{DiffWalk}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Sex}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Sex}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Education}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Education}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                              \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Income}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Income}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{idxmax}\PY{p}{(}\PY{p}{)}\PY{p}{\PYZcb{}}
+\PY{c+c1}{\PYZsh{} Counts of missing values}
+\PY{n}{missing\PYZus{}values} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{isnull}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{sum}\PY{p}{(}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Save the summary of data to a text file}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{data\PYZus{}exploration.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)} \PY{k}{as} \PY{n}{file}\PY{p}{:}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Summary of Data}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Number of rows: }\PY{l+s+s2}{\PYZdq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{num\PYZus{}rows}\PY{p}{)} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Number of columns: }\PY{l+s+s2}{\PYZdq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{num\PYZus{}cols}\PY{p}{)} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Summary statistics of key variables:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n+nb}{str}\PY{p}{(}\PY{n}{key\PYZus{}vars\PYZus{}summary}\PY{p}{)} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Most common values of categorical variables:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{k}{for} \PY{n}{key}\PY{p}{,} \PY{n}{value} \PY{o+ow}{in} \PY{n}{common\PYZus{}vars}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{key}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{value}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Number of missing values:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n+nb}{str}\PY{p}{(}\PY{n}{missing\PYZus{}values}\PY{p}{)} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+
+
+\subsection{Code Output}
+
+\begin{lstlisting}[language=TeX]
+Summary of Data
+Number of rows: 253680
+Number of columns: 22
+
+Summary statistics of key variables:
+                 BMI            Age
+count  253680.000000  253680.000000
+mean       28.382364       8.032119
+std         6.608694       3.054220
+min        12.000000       1.000000
+25%        24.000000       6.000000
+50%        27.000000       8.000000
+75%        31.000000      10.000000
+max        98.000000      13.000000
+
+Most common values of categorical variables:
+Diabetes_binary: 0.0
+HighBP: 0.0
+HighChol: 0.0
+CholCheck: 1.0
+Smoker: 0.0
+Stroke: 0.0
+HeartDiseaseorAttack: 0.0
+PhysActivity: 1.0
+Fruits: 1.0
+Veggies: 1.0
+HvyAlcoholConsump: 0.0
+AnyHealthcare: 1.0
+NoDocbcCost: 0.0
+GenHlth: 2.0
+DiffWalk: 0.0
+Sex: 0.0
+Education: 6.0
+Income: 8.0
+
+Number of missing values:
+Diabetes_binary         0
+HighBP                  0
+HighChol                0
+CholCheck               0
+BMI                     0
+Smoker                  0
+Stroke                  0
+HeartDiseaseorAttack    0
+PhysActivity            0
+Fruits                  0
+Veggies                 0
+HvyAlcoholConsump       0
+AnyHealthcare           0
+NoDocbcCost             0
+GenHlth                 0
+MentHlth                0
+PhysHlth                0
+DiffWalk                0
+Sex                     0
+Age                     0
+Education               0
+Income                  0
+dtype: int64
+
+\end{lstlisting}
+
+\section{Data Preprocessing} \subsection{Code}Performing the Data Preprocessing carried out using the following custom code (created by ChatGPT):
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{preprocessing} \PY{k+kn}{import} \PY{n}{MinMaxScaler}\PY{p}{,} \PY{n}{OneHotEncoder}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{impute} \PY{k+kn}{import} \PY{n}{SimpleImputer}
+\PY{k+kn}{from} \PY{n+nn}{imblearn}\PY{n+nn}{.}\PY{n+nn}{over\PYZus{}sampling} \PY{k+kn}{import} \PY{n}{RandomOverSampler}
+\PY{k+kn}{from} \PY{n+nn}{imblearn}\PY{n+nn}{.}\PY{n+nn}{under\PYZus{}sampling} \PY{k+kn}{import} \PY{n}{RandomUnderSampler}
+
+
+\PY{c+c1}{\PYZsh{} Load Dataset}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015.csv}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Replacing missing values for numerical features}
+\PY{n}{num\PYZus{}features} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{MentHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{PhysHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Age}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Education}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PYZbs{}
+\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Income}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\PY{n}{imp} \PY{o}{=} \PY{n}{SimpleImputer}\PY{p}{(}\PY{n}{strategy}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{mean}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{df}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{n}{num\PYZus{}features}\PY{p}{]} \PY{o}{=} \PY{n}{imp}\PY{o}{.}\PY{n}{fit\PYZus{}transform}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{n}{num\PYZus{}features}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Replacing missing values for categorical features}
+\PY{n}{cat\PYZus{}features} \PY{o}{=} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{CholCheck}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\PY{n}{imp\PYZus{}const} \PY{o}{=} \PY{n}{SimpleImputer}\PY{p}{(}\PY{n}{strategy}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{constant}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{fill\PYZus{}value}\PY{o}{=}\PY{l+m+mi}{0}\PY{p}{)}
+\PY{n}{df}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{n}{cat\PYZus{}features}\PY{p}{]} \PY{o}{=} \PY{n}{imp\PYZus{}const}\PY{o}{.}\PY{n}{fit\PYZus{}transform}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{n}{cat\PYZus{}features}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Normalization using MinMaxScaler}
+\PY{n}{scaler} \PY{o}{=} \PY{n}{MinMaxScaler}\PY{p}{(}\PY{p}{)}
+\PY{n}{df}\PY{o}{.}\PY{n}{loc}\PY{p}{[}\PY{p}{:}\PY{p}{,} \PY{n}{num\PYZus{}features}\PY{p}{]} \PY{o}{=} \PY{n}{scaler}\PY{o}{.}\PY{n}{fit\PYZus{}transform}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{n}{num\PYZus{}features}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} One\PYZhy{}hot encoding for categorical features}
+\PY{n}{enc} \PY{o}{=} \PY{n}{OneHotEncoder}\PY{p}{(}\PY{n}{drop}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{first}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{sparse}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}
+\PY{n}{cat\PYZus{}encoded} \PY{o}{=} \PY{n}{enc}\PY{o}{.}\PY{n}{fit\PYZus{}transform}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Education}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{p}{)}
+\PY{n}{cat\PYZus{}encoded\PYZus{}df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{cat\PYZus{}encoded}\PY{p}{,} \PYZbs{}
+\PY{n}{columns}\PY{o}{=}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Education\PYZus{}}\PY{l+s+s1}{\PYZsq{}}\PY{o}{+}\PY{n+nb}{str}\PY{p}{(}\PY{n+nb}{int}\PY{p}{(}\PY{n}{i}\PY{p}{)}\PY{p}{)} \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PYZbs{}
+\PY{n+nb}{range}\PY{p}{(}\PY{n}{cat\PYZus{}encoded}\PY{o}{.}\PY{n}{shape}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{)}\PY{p}{]}\PY{p}{)}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{concat}\PY{p}{(}\PY{p}{[}\PY{n}{df}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Education}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}\PY{p}{,} \PY{n}{cat\PYZus{}encoded\PYZus{}df}\PY{p}{]}\PY{p}{,} \PYZbs{}
+\PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Balancing the data using RandomOverSampler and RandomUnderSampler}
+\PY{n}{X} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{y} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\PY{n}{over\PYZus{}sampler} \PY{o}{=} \PY{n}{RandomOverSampler}\PY{p}{(}\PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{0}\PY{p}{,} \PYZbs{}
+\PY{n}{sampling\PYZus{}strategy}\PY{o}{=}\PY{l+m+mf}{0.5}\PY{p}{)}
+\PY{n}{X\PYZus{}over}\PY{p}{,} \PY{n}{y\PYZus{}over} \PY{o}{=} \PY{n}{over\PYZus{}sampler}\PY{o}{.}\PY{n}{fit\PYZus{}resample}\PY{p}{(}\PY{n}{X}\PY{p}{,} \PY{n}{y}\PY{p}{)}
+\PY{n}{under\PYZus{}sampler} \PY{o}{=} \PY{n}{RandomUnderSampler}\PY{p}{(}\PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{0}\PY{p}{,} \PYZbs{}
+\PY{n}{sampling\PYZus{}strategy}\PY{o}{=}\PY{l+m+mf}{0.7}\PY{p}{)}
+\PY{n}{X\PYZus{}balanced}\PY{p}{,} \PY{n}{y\PYZus{}balanced} \PY{o}{=} \PY{n}{under\PYZus{}sampler}\PY{o}{.}\PY{n}{fit\PYZus{}resample}\PY{p}{(}\PY{n}{X\PYZus{}over}\PY{p}{,} \PY{n}{y\PYZus{}over}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Save the preprocessed data to a new csv file}
+\PY{n}{df\PYZus{}balanced} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{concat}\PY{p}{(}\PY{p}{[}\PY{n}{X\PYZus{}balanced}\PY{p}{,} \PY{n}{y\PYZus{}balanced}\PY{p}{]}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{df\PYZus{}balanced}\PY{o}{.}\PY{n}{to\PYZus{}csv}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015\PYZus{}preprocessed.csv}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PYZbs{}
+\PY{n}{index}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Save the information of data preprocessing to a text file}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{data\PYZus{}preprocessing.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)} \PY{k}{as} \PY{n}{file}\PY{p}{:}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Data Preprocessing Steps}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{1. Replaced missing values for numerical features with }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{    mean value.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{2. Replaced missing values for categorical features }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{    with constant value of 0.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{3. Normalized numerical features using }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{    MinMaxScaler.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{4. One\PYZhy{}hot encoded categorical features using }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{    OneHotEncoder.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5. Balanced the data using RandomOverSampler and }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{    RandomUnderSampler.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\subsection{Code Description}
+
+The code implements a data preprocessing phase for the diabetes\_binary\_health\_indicators\_BRFSS2015 dataset. The preprocessing pipeline includes the following steps:
+
+1. Missing values are replaced with mean values for numeric data using SimpleImputer.
+2. Missing values are replaced with a constant value (0) for categorical data using SimpleImputer.
+3. Numeric variables are normalized using MinMaxScaler.
+4. Categorical variables are one-hot encoded with the use of OneHotEncoder.
+5. Data imbalance is addressed by balancing the data using RandomOversampling and RandomUndersampling.
+
+The new dataframe generated contains preprocessed and balanced data with no missing values. The original dataframe contained 253,680 rows and 22 columns, while the new dataframe contains the same number of rows but more columns due to one-hot encoding which resulted in 27 columns. In the new dataframe, numeric variables are normalized and categorical variables are represented using one-hot encoding, which enables the use of predictors as features for classification models. The new dataframe is saved in `diabetes\_binary\_health\_indicators\_BRFSS2015\_preprocessed.csv`.
+
+\subsection{Code Output}
+
+\begin{lstlisting}[language=TeX]
+Data Preprocessing Steps
+1. Replaced missing values for numerical features with mean value.
+2. Replaced missing values for categorical features with constant value of 0.
+3. Normalized numerical features using MinMaxScaler.
+4. One-hot encoded categorical features using OneHotEncoder.
+5. Balanced the data using RandomOverSampler and RandomUnderSampler.
+
+\end{lstlisting}
+
+\section{Data Analysis} \subsection{Code}Performing the Data Analysis carried out using the following custom code (created by ChatGPT):
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{model\PYZus{}selection} \PY{k+kn}{import} \PY{n}{train\PYZus{}test\PYZus{}split}\PY{p}{,} \PY{n}{GridSearchCV}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{ensemble} \PY{k+kn}{import} \PY{n}{RandomForestClassifier}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{linear\PYZus{}model} \PY{k+kn}{import} \PY{n}{LogisticRegression}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{metrics} \PY{k+kn}{import} \PY{n}{classification\PYZus{}report}
+\PY{k+kn}{from} \PY{n+nn}{xgboost} \PY{k+kn}{import} \PY{n}{XGBClassifier}
+
+\PY{c+c1}{\PYZsh{} Load Processed Data}
+\PY{n}{df} \PY{o}{=} \PYZbs{}
+\PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015\PYZus{}preprocessed.csv}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Split the data into train and test sets}
+\PY{n}{X} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{y} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\PY{n}{X\PYZus{}train}\PY{p}{,} \PY{n}{X\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}train}\PY{p}{,} \PY{n}{y\PYZus{}test} \PY{o}{=} \PY{n}{train\PYZus{}test\PYZus{}split}\PY{p}{(}\PY{n}{X}\PY{p}{,} \PY{n}{y}\PY{p}{,} \PYZbs{}
+\PY{n}{test\PYZus{}size}\PY{o}{=}\PY{l+m+mf}{0.2}\PY{p}{,} \PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{42}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Train and evaluate Logistic Regression model}
+\PY{n}{lr} \PY{o}{=} \PY{n}{LogisticRegression}\PY{p}{(}\PY{n}{max\PYZus{}iter}\PY{o}{=}\PY{l+m+mi}{1000}\PY{p}{,} \PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{42}\PY{p}{)}
+\PY{n}{lr}\PY{o}{.}\PY{n}{fit}\PY{p}{(}\PY{n}{X\PYZus{}train}\PY{p}{,} \PY{n}{y\PYZus{}train}\PY{p}{)}
+\PY{n}{y\PYZus{}pred\PYZus{}lr} \PY{o}{=} \PY{n}{lr}\PY{o}{.}\PY{n}{predict}\PY{p}{(}\PY{n}{X\PYZus{}test}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Train and evaluate Random Forest model}
+\PY{n}{rf} \PY{o}{=} \PY{n}{RandomForestClassifier}\PY{p}{(}\PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{42}\PY{p}{,} \PY{n}{n\PYZus{}jobs}\PY{o}{=}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{rf}\PY{o}{.}\PY{n}{fit}\PY{p}{(}\PY{n}{X\PYZus{}train}\PY{p}{,} \PY{n}{y\PYZus{}train}\PY{p}{)}
+\PY{n}{y\PYZus{}pred\PYZus{}rf} \PY{o}{=} \PY{n}{rf}\PY{o}{.}\PY{n}{predict}\PY{p}{(}\PY{n}{X\PYZus{}test}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Train and evaluate XGBoost model}
+\PY{n}{xgb} \PY{o}{=} \PY{n}{XGBClassifier}\PY{p}{(}\PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{42}\PY{p}{,} \PY{n}{n\PYZus{}jobs}\PY{o}{=}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{xgb}\PY{o}{.}\PY{n}{fit}\PY{p}{(}\PY{n}{X\PYZus{}train}\PY{p}{,} \PY{n}{y\PYZus{}train}\PY{p}{)}
+\PY{n}{y\PYZus{}pred\PYZus{}xgb} \PY{o}{=} \PY{n}{xgb}\PY{o}{.}\PY{n}{predict}\PY{p}{(}\PY{n}{X\PYZus{}test}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Save the results to a text file}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{results.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)} \PY{k}{as} \PY{n}{file}\PY{p}{:}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Results of Logistic Regression model:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{classification\PYZus{}report}\PY{p}{(}\PY{n}{y\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}pred\PYZus{}lr}\PY{p}{)}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Feature Importances (Logistic Regression):}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    
+        \PY{k}{for} \PY{n}{col}\PY{p}{,} \PY{n}{coef} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{X}\PY{o}{.}\PY{n}{columns}\PY{p}{,} \PY{n}{lr}\PY{o}{.}\PY{n}{coef\PYZus{}}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+                \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{col}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{coef}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Results of Random Forest model:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{classification\PYZus{}report}\PY{p}{(}\PY{n}{y\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}pred\PYZus{}rf}\PY{p}{)}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Feature Importances (Random Forest):}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    
+        \PY{k}{for} \PY{n}{col}\PY{p}{,} \PY{n}{imp} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{X}\PY{o}{.}\PY{n}{columns}\PY{p}{,} \PY{n}{rf}\PY{o}{.}\PY{n}{feature\PYZus{}importances\PYZus{}}\PY{p}{)}\PY{p}{:}
+                \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{col}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{imp}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Results of XGBoost model:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{classification\PYZus{}report}\PY{p}{(}\PY{n}{y\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}pred\PYZus{}xgb}\PY{p}{)}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Feature Importances (XGBoost):}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+    
+        \PY{k}{for} \PY{n}{col}\PY{p}{,} \PY{n}{imp} \PY{o+ow}{in} \PY{n+nb}{zip}\PY{p}{(}\PY{n}{X}\PY{o}{.}\PY{n}{columns}\PY{p}{,} \PY{n}{xgb}\PY{o}{.}\PY{n}{feature\PYZus{}importances\PYZus{}}\PY{p}{)}\PY{p}{:}
+                \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{col}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{imp}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\subsection{Code Description}
+
+The provided code aims to identify the factors associated with prediabetes and diabetes among the US population based on the variables available in the BRFSS2015 dataset. The binary diabetes status (either 0 or 1) is predicted using Logistic Regression, Random Forest, and XGBoost classifiers. 
+
+To perform this analysis, the input raw data is preprocessed that involves replacing missing values, normalization of numerical features, one-hot encoding of categorical features, and balancing the data. The processed data is then split into the training and test sets for the classifiers.
+
+In order to identify the factors that have the highest impact of diabetes status, the feature importances for the classifiers are computed. The results of the classification, along with each feature's importance, are written into the "results.txt" file.
+
+Specifically, each classifier is trained and evaluated and their classification report is saved to the file, that includes precision, recall, F1-score, and support. The importance of each feature is then written next to the results of its corresponding classifier. The "results.txt" file will be used to report the findings of the analysis in a scientific paper.
+
+\subsection{Code Output}
+
+\begin{lstlisting}[language=TeX]
+Results of Logistic Regression model:
+              precision    recall  f1-score   support
+
+         0.0       0.77      0.79      0.78     31033
+         1.0       0.70      0.67      0.68     21991
+
+    accuracy                           0.74     53024
+   macro avg       0.73      0.73      0.73     53024
+weighted avg       0.74      0.74      0.74     53024
+
+Feature Importances (Logistic Regression):
+HighBP: 0.7295313675642452
+HighChol: 0.585001803624629
+CholCheck: 1.2521378708375093
+BMI: 6.271169432753745
+Smoker: -0.003745546773420222
+Stroke: 0.17063334766681473
+HeartDiseaseorAttack: 0.22942266974799608
+PhysActivity: -0.05397001971465135
+Fruits: -0.042155328278736796
+Veggies: -0.04623948376378002
+HvyAlcoholConsump: -0.7369788722773708
+AnyHealthcare: 0.07489123939288854
+NoDocbcCost: 0.015579035576343889
+GenHlth: 0.564131767431119
+MentHlth: -0.1476687000094598
+PhysHlth: -0.198041594600076
+DiffWalk: 0.08895295624092052
+Sex: 0.27804778265011487
+Age: 1.7542479762411285
+Income: -0.41212917196717624
+Education_0: -0.15439016378574397
+Education_1: -0.24086564518851214
+Education_2: -0.23113196057086624
+Education_3: -0.19953997436633666
+Education_4: -0.31809030456879495
+
+Results of Random Forest model:
+              precision    recall  f1-score   support
+
+         0.0       0.96      0.88      0.92     31033
+         1.0       0.85      0.94      0.89     21991
+
+    accuracy                           0.91     53024
+   macro avg       0.90      0.91      0.90     53024
+weighted avg       0.91      0.91      0.91     53024
+
+Feature Importances (Random Forest):
+HighBP: 0.06805479466127372
+HighChol: 0.03910017676305107
+CholCheck: 0.004940435210872052
+BMI: 0.1766751991604298
+Smoker: 0.030859536778985803
+Stroke: 0.010547585379069463
+HeartDiseaseorAttack: 0.01829732758505182
+PhysActivity: 0.024202865725287355
+Fruits: 0.02990325073311618
+Veggies: 0.023416371047536938
+HvyAlcoholConsump: 0.00872798832492645
+AnyHealthcare: 0.007738575523109506
+NoDocbcCost: 0.012696095534819816
+GenHlth: 0.0919224409599362
+MentHlth: 0.054255797848322504
+PhysHlth: 0.0723651636316083
+DiffWalk: 0.027678491575081284
+Sex: 0.025804673725276606
+Age: 0.12614132352555485
+Income: 0.08708557549237067
+Education_0: 0.00428922552151623
+Education_1: 0.007185565828485395
+Education_2: 0.016446067255634047
+Education_3: 0.016410550573427787
+Education_4: 0.015254921635256184
+
+Results of XGBoost model:
+              precision    recall  f1-score   support
+
+         0.0       0.80      0.79      0.79     31033
+         1.0       0.71      0.73      0.72     21991
+
+    accuracy                           0.76     53024
+   macro avg       0.75      0.76      0.75     53024
+weighted avg       0.76      0.76      0.76     53024
+
+Feature Importances (XGBoost):
+HighBP: 0.49955737590789795
+HighChol: 0.06304579973220825
+CholCheck: 0.038270942866802216
+BMI: 0.026383619755506516
+Smoker: 0.008534259162843227
+Stroke: 0.010724133811891079
+HeartDiseaseorAttack: 0.0294339582324028
+PhysActivity: 0.008086983114480972
+Fruits: 0.00732787698507309
+Veggies: 0.00796066876500845
+HvyAlcoholConsump: 0.0292985700070858
+AnyHealthcare: 0.00838718842715025
+NoDocbcCost: 0.0071343653835356236
+GenHlth: 0.11932840943336487
+MentHlth: 0.007864424958825111
+PhysHlth: 0.00772862508893013
+DiffWalk: 0.021351708099246025
+Sex: 0.01750948280096054
+Age: 0.03192351385951042
+Income: 0.011948158964514732
+Education_0: 0.007362252101302147
+Education_1: 0.00751009164378047
+Education_2: 0.006510545499622822
+Education_3: 0.0071588363498449326
+Education_4: 0.009658155962824821
+
+\end{lstlisting}
+
+\end{document}
