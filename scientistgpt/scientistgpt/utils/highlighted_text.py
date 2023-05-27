@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Tuple, Callable
+from functools import partial
 
 import colorama
 from pygments.formatters.html import HtmlFormatter
@@ -10,6 +11,19 @@ from pygments import highlight
 
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
+
+
+COLORS_TO_LIGHT_COLORS = {
+    colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
+    colorama.Fore.RED: colorama.Fore.LIGHTRED_EX,
+    colorama.Fore.GREEN: colorama.Fore.LIGHTGREEN_EX,
+    colorama.Fore.YELLOW: colorama.Fore.LIGHTYELLOW_EX,
+    colorama.Fore.BLUE: colorama.Fore.LIGHTBLUE_EX,
+    colorama.Fore.MAGENTA: colorama.Fore.LIGHTMAGENTA_EX,
+    colorama.Fore.CYAN: colorama.Fore.LIGHTCYAN_EX,
+    colorama.Fore.WHITE: colorama.Fore.LIGHTWHITE_EX,
+    "": "",
+}
 
 style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
@@ -125,7 +139,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, bool]] = {
 }
 
 
-def format_text_with_code_blocks(text: str, text_color: str = '', block_color: str = '',
+def format_text_with_code_blocks(text: str, text_color: str = '',
                                  width: int = 80, is_html: bool = False) -> str:
     s = ''
     formatted_sections = FormattedSections.from_text(text)
@@ -134,5 +148,5 @@ def format_text_with_code_blocks(text: str, text_color: str = '', block_color: s
         formatter, should_wrap = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
         if should_wrap:
             section = wrap_string(section, width=width)
-        s += formatter(section, is_html, text_color, block_color)
+        s += formatter(section, is_html, text_color, COLORS_TO_LIGHT_COLORS[text_color])
     return s

@@ -36,16 +36,15 @@ class Role(Enum):
 
 class ResponseStyle(NamedTuple):
     color: str
-    block_color: str
     separator: str
 
 
 ROLE_TO_STYLE = {
-    Role.SYSTEM: ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-'),
-    Role.USER: ResponseStyle(colorama.Fore.GREEN, colorama.Fore.LIGHTGREEN_EX, '-'),
-    Role.ASSISTANT: ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '='),
-    Role.SURROGATE: ResponseStyle(colorama.Fore.CYAN, colorama.Fore.LIGHTCYAN_EX, '='),
-    Role.COMMENTER: ResponseStyle(colorama.Fore.BLUE, colorama.Fore.LIGHTBLUE_EX, ' '),
+    Role.SYSTEM: ResponseStyle(colorama.Fore.GREEN, '-'),
+    Role.USER: ResponseStyle(colorama.Fore.GREEN, '-'),
+    Role.ASSISTANT: ResponseStyle(colorama.Fore.CYAN, '='),
+    Role.SURROGATE: ResponseStyle(colorama.Fore.CYAN, '='),
+    Role.COMMENTER: ResponseStyle(colorama.Fore.BLUE, ' '),
 }
 
 
@@ -93,9 +92,9 @@ class Message:
         style = ROLE_TO_STYLE[role]
         sep = style.separator
         if is_color:
-            text_color, block_color, reset_color = style.color, style.block_color, colorama.Style.RESET_ALL
+            text_color, reset_color = style.color, colorama.Style.RESET_ALL
         else:
-            text_color = block_color = reset_color = ''
+            text_color = reset_color = ''
         role_text = role.name + ('' if self.openai_call_parameters is None else f'({self.openai_call_parameters})')
         if role == Role.SYSTEM:
             role_model_agent_conversation_tag = f'{role_text} casting {agent_text} for {conversation_name} '
@@ -110,7 +109,7 @@ class Message:
             + sep * (TEXT_WIDTH - len(role_model_agent_conversation_tag) - 9 - 1) + '\n'
 
         # content:
-        s += self.pretty_content(text_color, block_color, width=TEXT_WIDTH)
+        s += self.pretty_content(text_color, width=TEXT_WIDTH)
         if s[-1] != '\n':
             s += '\n'
 
@@ -170,14 +169,12 @@ class Message:
 
         return content, is_incomplete_code
 
-    def pretty_content(self, text_color, block_color, width, is_html=False, with_header: bool = True) -> str:
+    def pretty_content(self, text_color, width, is_html=False, with_header: bool = True) -> str:
         """
         Returns a pretty repr of just the message content.
         """
         content, _ = self._get_triple_quote_formatted_content(with_header)
-        return format_text_with_code_blocks(text=content,
-                                            text_color=text_color, block_color=block_color, width=width,
-                                            is_html=is_html)
+        return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html)
 
     def get_short_description(self):
         s = f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {get_dot_dot_dot_text(self.content, 35, -20)}'
@@ -226,7 +223,7 @@ class CodeMessage(Message):
         diff = list(diff)[3:]
         return '\n'.join(diff)
 
-    def pretty_content(self, text_color, block_color, width, is_html=False, with_header: bool = True) -> str:
+    def pretty_content(self, text_color, width, is_html=False, with_header: bool = True) -> str:
         """
         We override this method to replace the code within the message with the diff.
         """
@@ -239,7 +236,7 @@ class CodeMessage(Message):
                     self.extracted_code,
                     "\n# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
                     else "\n# CHATGPT SENT THE SAME CODE AS BEFORE\n")
-        return format_text_with_code_blocks(content, text_color, block_color, width, is_html=is_html)
+        return format_text_with_code_blocks(content, text_color, width, is_html=is_html)
 
 
 def create_message(role: Role, content: str, tag: str = '', agent: Optional[Agent] = None, ignore: bool = False,
