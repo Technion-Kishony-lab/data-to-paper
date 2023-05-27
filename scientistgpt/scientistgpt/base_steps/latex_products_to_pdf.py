@@ -14,7 +14,7 @@ APPENDIX_TEMPLATE = r"""
 """
 
 CITATION_TEMPLATE = r"""
-\bibliographystyle{apalike}
+\bibliographystyle{unsrt}
 \bibliography{citations}
 """
 
