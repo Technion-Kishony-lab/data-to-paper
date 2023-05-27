@@ -26,3 +26,5 @@ frontend/Documentation/dist/assets/libs/chance/chance.min.js
 # all files starting with gpt_code_attempt
 gpt_code_attempt*
 scientistgpt/examples/diabetes/local_paths.py
+
+scientistgpt/examples/local_paths.py
