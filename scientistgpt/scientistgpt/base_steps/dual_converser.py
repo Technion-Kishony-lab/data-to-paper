@@ -2,13 +2,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Tuple
 
-from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation
+from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation, Message
 from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 
 from .converser_gpt import ConverserGPT
-from .. import Message
-from ..utils.replacer import StrOrTextFormat, format_value
 
 
 @dataclass
