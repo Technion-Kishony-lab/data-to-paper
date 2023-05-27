@@ -12,4 +12,3 @@ if __name__ == '__main__':
               output_folder='out1',
               should_mock_servers=True,
               save_on_repo=True)
-
