@@ -10,20 +10,18 @@ from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.copier import Copier
-from scientistgpt.utils.replacer import Replacer, with_attribute_replacement
+from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 from scientistgpt.utils.highlighted_text import print_red
 from scientistgpt.base_cast import Agent
 
 
 @dataclass
-class ConverserGPT(Replacer, Copier):
+class ConverserGPT(Copier):
     """
     A base class for agents interacting with chatgpt.
     """
     COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
                        'user_agent'}
-    ADDITIONAL_DICT_ATTRS = Replacer.ADDITIONAL_DICT_ATTRS | {'user_skin_name', 'assistant_skin_name'}
-
     actions_and_conversations: ActionsAndConversations = None
 
     model_engine: ModelEngine = field(default_factory=lambda: DEFAULT_MODEL_ENGINE)
@@ -44,7 +42,6 @@ class ConverserGPT(Replacer, Copier):
 
     driver: str = ''
 
-    @with_attribute_replacement
     def __post_init__(self):
         if self.web_conversation_name is True:
             # we determine an automatic conversation name based on the agent that the main agent is talking to:
@@ -77,48 +74,76 @@ class ConverserGPT(Replacer, Copier):
     def conversation(self):
         return self.conversation_manager.conversation
 
-    @with_attribute_replacement
     def initialize_conversation_if_needed(self):
         self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
-    def comment(self, comment: str, tag: Optional[str] = None, as_action: bool = True, **kwargs):
+    def comment(self, comment: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None, as_action: bool = True,
+                should_format: bool = True, **kwargs):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
         if as_action:
-            self.conversation_manager.append_commenter_message(comment, tag=tag, **kwargs)
+            self.conversation_manager.append_commenter_message(
+                content=format_value(self, comment, should_format),
+                tag=tag,
+                **kwargs)
         else:
             print_red(comment)
 
-    def apply_get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
+                                               comment: Optional[StrOrTextFormat] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
                                                model_engine: Optional[ModelEngine] = None,
-                                               hidden_messages: GeneralMessageDesignation = None, **kwargs) -> Message:
+                                               hidden_messages: GeneralMessageDesignation = None,
+                                               **kwargs) -> Message:
         return self.conversation_manager.get_and_append_assistant_message(
-            tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            tag=tag,
+            comment=comment,
+            is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             hidden_messages=hidden_messages, **kwargs)
 
-    def apply_append_user_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                  comment: Optional[StrOrTextFormat] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
-                                  previous_code: Optional[str] = None, is_background: bool = False, **kwargs):
+                                  previous_code: Optional[str] = None, is_background: bool = False,
+                                  should_format: bool = True, **kwargs):
         return self.conversation_manager.append_user_message(
-            content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            content=format_value(self, content, should_format),
+            tag=tag,
+            comment=comment,
+            ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
-    def apply_append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_append_system_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
+                                    comment: Optional[StrOrTextFormat] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
-                                    **kwargs):
+                                    should_format: bool = True, **kwargs):
         return self.conversation_manager.append_system_message(
-            content=content, tag=tag, comment=comment, ignore=ignore,
+            content=format_value(self, content, should_format),
+            tag=tag,
+            comment=comment,
+            ignore=ignore,
             reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
-    def apply_append_surrogate_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
+    def apply_append_surrogate_message(self, content: StrOrTextFormat,
+                                       tag: Optional[StrOrTextFormat] = None, comment: Optional[StrOrTextFormat] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
-                                       **kwargs):
+                                       should_format: bool = True, **kwargs):
         return self.conversation_manager.append_surrogate_message(
-            content=content, tag=tag, comment=comment, ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
+            content=format_value(self, content, should_format),
+            tag=tag,
+            comment=comment,
+            ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
+
+    def set(self, **kwargs):
+        """
+        Set attributes of the class.
+        """
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        return self

@@ -4,6 +4,7 @@ from typing import Optional, List, Union, Tuple, Dict, Callable, NamedTuple
 
 from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
+from scientistgpt.utils.text_formatting import format_with_args_or_kwargs, ArgsOrKwargs
 
 
 @dataclass(frozen=True)
@@ -67,19 +68,6 @@ class NameDescriptionStageGenerator(NamedTuple):
     description: str
     stage: Stage
     func: Callable
-
-
-ArgsOrKwargs = Union[Tuple[str], Dict[str, str]]
-
-
-def _format_with_args_or_kwargs(text: str, args_or_kwargs: ArgsOrKwargs) -> str:
-    """
-    Return the text formatted with the given args or kwargs.
-    """
-    if isinstance(args_or_kwargs, tuple):
-        return text.format(*args_or_kwargs)
-    else:
-        return text.format(**args_or_kwargs)
 
 
 def _convert_args_or_kwargs_to_args(args_or_kwargs: ArgsOrKwargs) -> Tuple[str]:
@@ -156,8 +144,8 @@ class Products:
         (name, description, stage), variables = self._get_name_description_stage_generators_and_variables(field)
         if self._raise_on_none and any(v is None for v in _convert_args_or_kwargs_to_args(variables)):
             raise ValueError(f'One of the variables in {variables} is None')
-        name = _format_with_args_or_kwargs(name, variables)
-        description = _format_with_args_or_kwargs(description, variables)
+        name = format_with_args_or_kwargs(name, variables)
+        description = format_with_args_or_kwargs(description, variables)
         return NameDescriptionStage(name, description, stage)
 
     def _get_name_stage_description_generator_and_args(self, field: str

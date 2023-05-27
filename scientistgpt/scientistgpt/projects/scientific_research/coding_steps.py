@@ -126,10 +126,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
-    ADDITIONAL_DICT_ATTRS = \
-        BaseScientificCodeProductsGPT.ADDITIONAL_DICT_ATTRS \
-        | {'description_of_additional_data_files_if_any', 'raw_data_filenames'}
-
     user_agent: ScientificAgent = ScientificAgent.Debugger
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
