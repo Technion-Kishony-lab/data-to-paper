@@ -32,11 +32,12 @@ html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highli
 html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
-def highlight_python_code(code_str: str, is_html: bool = False, *args) -> str:
-    if is_html:
-        return highlight(code_str, PythonLexer(), html_code_formatter)
-    else:
-        return highlight(code_str, PythonLexer(), terminal_formatter)
+def python_to_highlighted_html(code_str: str) -> str:
+    return highlight(code_str, PythonLexer(), html_code_formatter)
+
+
+def python_to_highlighted_text(code_str: str, color) -> str:
+    return highlight(code_str, PythonLexer(), terminal_formatter)
 
 
 def text_to_html(text: str, textblock: bool = False) -> str:
@@ -54,6 +55,10 @@ def colored_text(text: str, color: str, is_color: bool = True) -> str:
     return color + text + colorama.Style.RESET_ALL if is_color else text
 
 
+def light_text(text: str, color: str, is_color: bool = True) -> str:
+    return colored_text(text, COLORS_TO_LIGHT_COLORS[color], is_color)
+
+
 def red_text(text: str, is_color: bool = True) -> str:
     return colored_text(text, colorama.Fore.RED, is_color)
 
@@ -62,7 +67,7 @@ def print_red(text: str, **kwargs):
     print(red_text(text), **kwargs)
 
 
-def _get_pre_html_format(text, color, font_style: str = 'normal', font_size: int = 16, font_weight: str = 'normal',
+def get_pre_html_format(text, color, font_style: str = 'normal', font_size: int = 16, font_weight: str = 'normal',
                          font_family: str = None):
     s = '<pre style="'
     if color:
@@ -79,64 +84,24 @@ def _get_pre_html_format(text, color, font_style: str = 'normal', font_size: int
     return s + text + '</pre>'
 
 
-def format_system(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
-    if is_html:
-        return _get_pre_html_format(text, color='#20191D', font_style='italic', font_size=16,
-                                    font_family="'Courier', sans-serif")
-    else:
-        return colored_text(text, text_color)
+REGULAR_FORMATTER = (colored_text, text_to_html)
+BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
 
-
-def format_comment(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
-    if is_html:
-        text = text.strip()
-        return _get_pre_html_format(text, color='#424141', font_style='italic', font_size=16, font_weight='bold')
-    else:
-        return colored_text(text, text_color)
-
-
-def format_highlight(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
-    if is_html:
-        return _get_pre_html_format(text, color='#334499', font_size=20, font_weight='bold',
-                                    font_family="'Courier', sans-serif")
-    else:
-        return colored_text(text, text_color)
-
-
-def format_header(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
-    if is_html:
-        return _get_pre_html_format(text, color='#FF0000', font_size=12)
-    else:
-        return colored_text(text, block_color)
-
-
-def format_normal_text(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
-    if is_html:
-        return text_to_html(text)
-    else:
-        return colored_text(text, text_color)
-
-
-def format_text_block(text: str, is_html: bool = False, text_color: str = '', block_color: str = '') -> str:
-    if is_html:
-        return text_to_html(text, textblock=True)
-    else:
-        return colored_text(text, block_color)
-
-
-REGULAR_FORMATTER = (format_normal_text, True)
-BLOCK_FORMATTER = (format_text_block, True)
-
-TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, bool]] = {
+TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     None: REGULAR_FORMATTER,
     '': BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
-    'python': (highlight_python_code, False),
-    'highlight': (format_highlight, True),
-    'comment': (format_comment, True),
-    'system': (format_system, True),
-    'header': (format_header, True),
+    'python': (python_to_highlighted_text, python_to_highlighted_html),
+    'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
+                                        font_family="'Courier', sans-serif")),
+    'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
+                                      font_weight='bold')),
+    'system': (colored_text, partial(get_pre_html_format, color='#20191D', font_style='italic', font_size=16,
+                                     font_family="'Courier', sans-serif")),
+    'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
 }
+
+NEEDS_NO_WRAPPING = {'python'}
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '',
@@ -145,8 +110,11 @@ def format_text_with_code_blocks(text: str, text_color: str = '',
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
         label, section, _, __ = formatted_section.to_tuple()
-        formatter, should_wrap = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)
-        if should_wrap:
+        formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
+        if label not in NEEDS_NO_WRAPPING:
             section = wrap_string(section, width=width)
-        s += formatter(section, is_html, text_color, COLORS_TO_LIGHT_COLORS[text_color])
+        if is_html:
+            s += formatter(section)
+        else:
+            s += formatter(section, text_color)
     return s
