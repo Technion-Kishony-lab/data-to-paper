@@ -184,7 +184,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         termination phrase.
         """
         return len(self.other_conversation) > 1 and \
-            self.termination_phrase.lower() in self.other_conversation.get_last_response().lower()
+            format_value(self, self.termination_phrase).lower() in self.other_conversation.get_last_response().lower()
 
     def run_dialog(self) -> Optional[str]:
         """
