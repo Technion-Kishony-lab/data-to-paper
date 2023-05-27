@@ -10,4 +10,6 @@ RUN_PARAMETERS = dict(
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
               output_folder='out1',
-              should_mock_servers=True)
+              should_mock_servers=True,
+              save_on_repo=True)
+
