@@ -7,10 +7,10 @@ class FormattedSection:
     label: Optional[str]
     section: str
     is_complete: bool = True
-    is_single_line: bool = False
+    is_block: bool = False
 
     def to_tuple(self):
-        return self.label, self.section, self.is_complete, self.is_single_line
+        return self.label, self.section, self.is_complete, self.is_block
 
 
 class FormattedSections(List[FormattedSection]):
@@ -34,7 +34,10 @@ class FormattedSections(List[FormattedSection]):
 
     @classmethod
     def from_text(cls, text: str, strip_label: bool = True):
-
+        """
+        Create FormattedSections from text.
+        strip_label: if True, then ``` python \n etc``` is converted to label='python', not ' python '
+        """
         sections = text.split('```')
         is_block = True
         self = cls()
@@ -51,13 +54,12 @@ class FormattedSections(List[FormattedSection]):
                     label = text_in_quote_line
                     section = '\n' + '\n'.join(section.split('\n')[1:])
                 else:
-                    label = ''
+                    label = None
             else:
-                is_single_line = None
                 label = None
             is_last = i == len(sections) - 1
             is_incomplete = is_last and is_block
-            self.append(FormattedSection(label, section, not is_incomplete, is_single_line))
+            self.append(FormattedSection(label, section, not is_incomplete, is_block))
         return self
 
     def to_text(self) -> str:
@@ -76,18 +78,18 @@ class FormattedSections(List[FormattedSection]):
 
     def get_first_block(self) -> Optional[FormattedSection]:
         for formatted_section in self:
-            if formatted_section.label is not None:
+            if formatted_section.is_block:
                 return formatted_section
         return None
 
     def get_last_block(self) -> Optional[FormattedSection]:
         for formatted_section in reversed(self):
-            if formatted_section.label is not None:
+            if formatted_section.is_block:
                 return formatted_section
         return None
 
     def get_all_blocks(self) -> List[FormattedSection]:
-        return [formatted_section for formatted_section in self if formatted_section.label is not None]
+        return [formatted_section for formatted_section in self if formatted_section.is_block]
 
     def is_last_block_incomplete(self):
         last_block = self.get_last_block()
