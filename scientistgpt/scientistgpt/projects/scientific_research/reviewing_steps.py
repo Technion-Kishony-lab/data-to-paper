@@ -26,7 +26,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output')
+    background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -65,7 +65,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
-    background_product_fields = ('data_file_descriptions', 'data_exploration_code_and_output', 'research_goal')
+    background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration', 'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -164,7 +164,7 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'data_analysis_code_and_output')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'codes_and_outputs:data_analysis')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
@@ -335,7 +335,7 @@ class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
 class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'add tables to'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('results_summary', 'data_analysis_code_and_output', 'title_and_abstract')
+    background_product_fields = ('results_summary', 'code_and_output:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
         In scientific papers, we typically add one or two tables summarizing the main findings.

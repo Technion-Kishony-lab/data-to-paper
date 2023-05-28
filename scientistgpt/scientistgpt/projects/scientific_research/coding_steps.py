@@ -82,7 +82,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     conversation_name: str = 'data_preprocessing_code'
     code_name: str = 'Data Preprocessing'
-    background_product_fields = ['data_file_descriptions', 'data_exploration_code_and_output']
+    background_product_fields = ['data_file_descriptions', 'codes_and_outputs:data_exploration']
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = 'data_preprocessing.txt'
     allowed_created_files: Iterable[str] = ('*.csv',)
