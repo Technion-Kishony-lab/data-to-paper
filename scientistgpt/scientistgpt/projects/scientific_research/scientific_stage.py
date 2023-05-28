@@ -12,4 +12,3 @@ class ScientificStages(Stages):
     WRITING = Stage("writing")
     CITATIONS = Stage("citations")
     TABLES = Stage("tables")
-
