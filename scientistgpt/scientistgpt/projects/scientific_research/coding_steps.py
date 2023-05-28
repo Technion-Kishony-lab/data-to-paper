@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Iterable, Tuple
 
-from scientistgpt.base_steps import OfferRevisionCodeProductsGPT
+from scientistgpt.base_steps import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT, \
+    BaseBackgroundProductsGPT
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.utils import dedent_triple_quote_str
@@ -10,7 +11,7 @@ from scientistgpt.utils.nice_list import NiceList
 
 
 @dataclass
-class BaseScientificCodeProductsGPT(OfferRevisionCodeProductsGPT):
+class BaseScientificCodeProductsGPT(BaseBackgroundProductsGPT):
 
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
 
@@ -63,7 +64,7 @@ class BaseScientificCodeProductsGPT(OfferRevisionCodeProductsGPT):
 
 
 @dataclass
-class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
+class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     conversation_name: str = 'data_exploration_code'
     code_name: str = 'Data Exploration'
@@ -106,7 +107,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 @dataclass
-class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
+class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeChangingCodeProductsGPT):
 
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
 
@@ -157,7 +158,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 @dataclass
-class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
+class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCodeProductsGPT):
 
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
 
