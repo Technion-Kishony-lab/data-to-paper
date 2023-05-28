@@ -13,6 +13,12 @@ OPENAI_API_KEYS = Dict[Optional[ModelEngine], str]({
     ModelEngine.GPT4: "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",
 })
 
+# OpenAI API keys. model=None is the default key.
+OPENAI_ORGANIZATION_CODES = Dict[Optional[ModelEngine], str]({
+    None: "org-gvr0szNH28eeeuMCEG9JrwcR",
+    ModelEngine.GPT4: "org-SplsVAouKqk9mWIpVgIIVwSD",
+})
+
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 MAX_MODEL_ENGINE = ModelEngine.GPT4_32
 
