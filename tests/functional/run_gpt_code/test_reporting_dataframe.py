@@ -93,3 +93,15 @@ def test_get_changed_and_unsaved_dataframes(tmpdir_with_csv_file):
             dataframe_operations.get_read_changed_but_unsaved_ids()) == {'test.csv'}
         df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
         assert len(dataframe_operations.get_read_changed_but_unsaved_ids()) == 0
+
+
+def test_dataframe_column_names(tmpdir_with_csv_file):
+    with collect_created_and_changed_data_frames() as dataframe_operations:
+        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+        df['new'] = [4, 5]
+        df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
+    assert dataframe_operations[0].columns == ['a', 'b', 'c']
+    assert dataframe_operations[2].columns == ['a', 'b', 'c', 'new']
+    id_ = dataframe_operations[0].id
+    assert dataframe_operations.get_creation_columns(id_) == ['a', 'b', 'c']
+    assert dataframe_operations.get_save_columns(id_) == ['a', 'b', 'c', 'new']

@@ -19,6 +19,7 @@ class DataframeOperation:
 @dataclass(frozen=True)
 class FileDataframeOperation(DataframeOperation):
     file_path: Optional[str]
+    columns: Optional[List[str]]
 
     @property
     def filename(self):
@@ -76,6 +77,14 @@ class DataframeOperations(List[DataframeOperation]):
         return {operation.filename for operation in self
                 if operation.id in ids and isinstance(operation, CreationDataframeOperation)}
 
+    def get_creation_columns(self, id_: int) -> Optional[List[str]]:
+        return next((operation.columns for operation in self
+                     if isinstance(operation, CreationDataframeOperation) and operation.id == id_), None)
+
+    def get_save_columns(self, id_: int) -> Optional[List[str]]:
+        return next((operation.columns for operation in self
+                     if isinstance(operation, SaveDataframeOperation) and operation.id == id_), None)
+
 
 @dataclass
 class DataFrameSeriesChange(Exception):
@@ -98,7 +107,8 @@ class ReportingDataFrame(pd.DataFrame):
 
         self.created_by = created_by
         self.file_path = file_path
-        self._notify_on_change(CreationDataframeOperation(id(self), created_by=created_by, file_path=file_path))
+        self._notify_on_change(CreationDataframeOperation(
+            id=id(self), created_by=created_by, file_path=file_path, columns=list(self.columns.values)))
 
     def __hash__(self):
         return hash(id(self))
@@ -134,7 +144,8 @@ class ReportingDataFrame(pd.DataFrame):
     def to_csv(self, *args, **kwargs):
         result = super().to_csv(*args, **kwargs)
         file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
-        self._notify_on_change(SaveDataframeOperation(id=id(self), file_path=file_path))
+        self._notify_on_change(SaveDataframeOperation(
+            id=id(self), file_path=file_path, columns=list(self.columns.values)))
         return result
 
 
