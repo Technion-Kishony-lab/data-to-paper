@@ -3,8 +3,7 @@ import pandas as pd
 from enum import Enum
 from pathlib import Path
 from functools import partial
-from typing import List, NamedTuple, Dict, Tuple, Optional
-
+from typing import List, NamedTuple, Dict, Tuple, Optional, Set
 
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -43,6 +42,9 @@ class SeriesDataframeOperation(BaseDataframeOperation):
 
 class DataframeOperations(List[BaseDataframeOperation]):
     pass
+
+    def get_changed_dataframes(self) -> Set[int]:
+        return {operation.id for operation in self if isinstance(operation, SeriesDataframeOperation)}
 
 
 @dataclass
@@ -138,7 +140,7 @@ class DataFrameChanges:
 
 
 @contextmanager
-def collect_changed_data_frames(allow_changing_existing_series=False) -> DataframeOperations:
+def collect_created_and_changed_data_frames(allow_changing_existing_series=False) -> DataframeOperations:
     """
     Context manager that collects all the data frames that are created and their changes during the context.
     """

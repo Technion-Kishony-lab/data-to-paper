@@ -72,13 +72,13 @@ class CodeRunner:
         except FileNotFoundError:
             pass
 
-    def run_code_and_get_code_output_and_changed_dataframes(self) -> Tuple[CodeAndOutput, List]:
+    def run_code(self) -> CodeAndOutput:
         """
         Run code from GPT response, and return the output and the code.
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        created_files, changes_dataframe = run_code_using_module_reload(
+        created_files, dataframe_operations = run_code_using_module_reload(
             code=code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
@@ -92,11 +92,4 @@ class CodeRunner:
             output=self.read_output_file(),
             output_file=self.output_file,
             created_files=created_files,
-        ), changes_dataframe
-
-    def run_code(self) -> CodeAndOutput:
-        """
-        Run code from GPT response, and return the output.
-        """
-        code_and_output, _ = self.run_code_and_get_code_output_and_changed_dataframes()
-        return code_and_output
+            dataframe_operations=dataframe_operations)

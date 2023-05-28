@@ -264,7 +264,7 @@ class DebuggerGPT(BaseProductsGPT):
         code_and_output = None
         code_runner = self._get_code_runner(response)
         try:
-            code_and_output, changed_data_frames = code_runner.run_code_and_get_code_output_and_changed_dataframes()
+            code_and_output = code_runner.run_code()
         except IncompleteBlockFailedExtractingCode:
             failed_extracting_code = True
             self._respond_to_incomplete_code()
@@ -320,7 +320,8 @@ class DebuggerGPT(BaseProductsGPT):
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
             elif self.enforce_saving_altered_dataframes \
-                    and len(code_and_output.get_created_files_beside_output_file()) < len(set(changed_data_frames)):
+                    and len(code_and_output.get_created_files_beside_output_file()) < \
+                    len(code_and_output.dataframe_operations.get_changed_dataframes()):
                 # The code ran successfully, but not all changed dataframes were saved to files.
                 self._respond_to_unsaved_dataframes(list(code_and_output.get_created_files_beside_output_file()))
             else:
