@@ -83,3 +83,13 @@ def test_dataframe_reports_save_csv(tmpdir_with_csv_file):
         df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
     assert len(changed_data_frames) == 3
     assert changed_data_frames[2].filename == 'test_modified.csv'
+
+
+def test_get_changed_and_unsaved_dataframes(tmpdir_with_csv_file):
+    with collect_created_and_changed_data_frames() as dataframe_operations:
+        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+        df['new'] = [4, 5]
+        assert dataframe_operations.get_read_filenames_from_ids(
+            dataframe_operations.get_read_changed_but_unsaved_ids()) == {'test.csv'}
+        df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
+        assert len(dataframe_operations.get_read_changed_but_unsaved_ids()) == 0

@@ -58,10 +58,23 @@ class ChangeSeriesDataframeOperation(SeriesDataframeOperation):
 
 
 class DataframeOperations(List[DataframeOperation]):
-    pass
 
-    def get_changed_dataframes(self) -> Set[int]:
+    def get_read_ids(self) -> Set[int]:
+        return {operation.id for operation in self
+                if isinstance(operation, CreationDataframeOperation) and operation.file_path is not None}
+
+    def get_changed_ids(self) -> Set[int]:
         return {operation.id for operation in self if isinstance(operation, SeriesDataframeOperation)}
+
+    def get_saved_ids(self) -> Set[int]:
+        return {operation.id for operation in self if isinstance(operation, SaveDataframeOperation)}
+
+    def get_read_changed_but_unsaved_ids(self):
+        return self.get_read_ids() & self.get_changed_ids() - self.get_saved_ids()
+
+    def get_read_filenames_from_ids(self, ids: Set[int]) -> Set[Optional[str]]:
+        return {operation.filename for operation in self
+                if operation.id in ids and isinstance(operation, CreationDataframeOperation)}
 
 
 @dataclass
