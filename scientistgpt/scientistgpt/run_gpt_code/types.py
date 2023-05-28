@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Set
+from typing import Optional, Set, Dict
 
 from scientistgpt.run_gpt_code.overrides.override_dataframe import DataframeOperations
 
@@ -14,6 +14,7 @@ class CodeAndOutput:
     code_name: str = None
     explanation: Optional[str] = None
     dataframe_operations: Optional[DataframeOperations] = None
+    description_of_created_files: Optional[Dict[str, str]] = None
 
     def get_created_files_beside_output_file(self) -> Set[str]:
         if self.created_files is None:
