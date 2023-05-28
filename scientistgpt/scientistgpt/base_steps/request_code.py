@@ -218,7 +218,7 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
 class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
     requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
         Explain the content of each of the columns of "{dataframe_file_name}".
-        
+
         Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the
         strings that explain the content of each column.
         """)
