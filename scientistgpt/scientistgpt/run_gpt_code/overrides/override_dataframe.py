@@ -12,13 +12,12 @@ from scientistgpt.utils.singleton import run_once
 
 
 @dataclass(frozen=True)
-class BaseDataframeOperation:
+class DataframeOperation:
     id: int
 
 
 @dataclass(frozen=True)
-class CreationDataframeOperation(BaseDataframeOperation):
-    created_by: Optional[str]
+class FileDataframeOperation(DataframeOperation):
     file_path: Optional[str]
 
     @property
@@ -28,19 +27,37 @@ class CreationDataframeOperation(BaseDataframeOperation):
         return Path(self.file_path).name
 
 
-class SeriesOperationType(Enum):
-    ADD = 'add'
-    CHANGE = 'change'
-    DELETE = 'delete'
+@dataclass(frozen=True)
+class CreationDataframeOperation(FileDataframeOperation):
+    created_by: Optional[str]
 
 
 @dataclass(frozen=True)
-class SeriesDataframeOperation(BaseDataframeOperation):
-    operation_type: SeriesOperationType
+class SaveDataframeOperation(FileDataframeOperation):
+    pass
+
+
+@dataclass(frozen=True)
+class SeriesDataframeOperation(DataframeOperation):
     series_name: str
 
 
-class DataframeOperations(List[BaseDataframeOperation]):
+@dataclass(frozen=True)
+class AddSeriesDataframeOperation(SeriesDataframeOperation):
+    pass
+
+
+@dataclass(frozen=True)
+class RemoveSeriesDataframeOperation(SeriesDataframeOperation):
+    pass
+
+
+@dataclass(frozen=True)
+class ChangeSeriesDataframeOperation(SeriesDataframeOperation):
+    pass
+
+
+class DataframeOperations(List[DataframeOperation]):
     pass
 
     def get_changed_dataframes(self) -> Set[int]:
@@ -68,9 +85,7 @@ class ReportingDataFrame(pd.DataFrame):
 
         self.created_by = created_by
         self.file_path = file_path
-        if ReportingDataFrame.ON_CREATION is not None:
-            ReportingDataFrame.ON_CREATION(self, CreationDataframeOperation(
-                id(self), created_by=created_by, file_path=file_path))
+        self._notify_on_change(CreationDataframeOperation(id(self), created_by=created_by, file_path=file_path))
 
     def __hash__(self):
         return hash(id(self))
@@ -84,25 +99,30 @@ class ReportingDataFrame(pd.DataFrame):
         ReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES = allow_changing_existing_series
         ReportingDataFrame.ON_CHANGE = on_change
 
-    def _notify_on_change(self, operation_type: SeriesOperationType = None, series_name: str = None):
+    def _notify_on_change(self, operation: DataframeOperation):
         if ReportingDataFrame.ON_CHANGE is not None:
-            ReportingDataFrame.ON_CHANGE(self, SeriesDataframeOperation(
-                id(self), operation_type=operation_type, series_name=series_name))
+            ReportingDataFrame.ON_CHANGE(self, operation)
 
     def __setitem__(self, key, value):
-        operation_type = SeriesOperationType.CHANGE if key in self else SeriesOperationType.ADD
-        if not self.ALLOW_CHANGING_EXISTING_SERIES and operation_type == SeriesOperationType.CHANGE:
+        operation_type = ChangeSeriesDataframeOperation if key in self else AddSeriesDataframeOperation
+        if not self.ALLOW_CHANGING_EXISTING_SERIES and operation_type is ChangeSeriesDataframeOperation:
             raise DataFrameSeriesChange(changed_series=key)
         super().__setitem__(key, value)
-        self._notify_on_change(operation_type=operation_type, series_name=key)
+        self._notify_on_change(operation_type(id=id(self), series_name=key))
 
     def __delitem__(self, key):
         super().__delitem__(key)
-        self._notify_on_change(operation_type=SeriesOperationType.DELETE, series_name=key)
+        self._notify_on_change(RemoveSeriesDataframeOperation(id=id(self), series_name=key))
 
     def __str__(self):
         # to avoid printing with [...] skipping columns
         return self.to_string()
+
+    def to_csv(self, *args, **kwargs):
+        result = super().to_csv(*args, **kwargs)
+        file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
+        self._notify_on_change(SaveDataframeOperation(id=id(self), file_path=file_path))
+        return result
 
 
 pd.DataFrame = ReportingDataFrame

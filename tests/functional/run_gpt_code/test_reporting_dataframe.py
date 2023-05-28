@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from scientistgpt.run_gpt_code.overrides.override_dataframe import hook_dataframe, ReportingDataFrame, \
-    collect_created_and_changed_data_frames, DataFrameSeriesChange, SeriesOperationType
+    collect_created_and_changed_data_frames, DataFrameSeriesChange, AddSeriesDataframeOperation
 
 
 @pytest.fixture()
@@ -72,4 +72,14 @@ def test_dataframe_read_csv_is_collected_if_changed(tmpdir_with_csv_file):
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
         df['new'] = [4, 5]
     assert len(changed_data_frames) == 2
-    assert changed_data_frames[1].operation_type == SeriesOperationType.ADD
+    assert isinstance(changed_data_frames[1], AddSeriesDataframeOperation)
+    assert changed_data_frames[1].series_name == 'new'
+
+
+def test_dataframe_reports_save_csv(tmpdir_with_csv_file):
+    with collect_created_and_changed_data_frames() as changed_data_frames:
+        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+        df['new'] = [4, 5]
+        df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
+    assert len(changed_data_frames) == 3
+    assert changed_data_frames[2].filename == 'test_modified.csv'
