@@ -30,7 +30,7 @@ def wrap_string(input_string, width: Optional[int] = 40, indent=0):
     Add linebreaks to wrap a long string.
     """
     # split input string into lines
-    lines = input_string.splitlines()
+    lines = input_string.split('\n')
     wrapped_lines = []
 
     # wrap each line individually
@@ -53,7 +53,7 @@ def wrap_string(input_string, width: Optional[int] = 40, indent=0):
 
 def wrap_python_code(code, width=70):
     wrapped_lines = []
-    for line in code.splitlines():
+    for line in code.split('\n'):
         stripped_line = line.strip()
         # Wrap comments
         if stripped_line.startswith("#"):
@@ -64,7 +64,7 @@ def wrap_python_code(code, width=70):
                                             subsequent_indent=leading_whitespace + "# ",
                                             break_long_words=False,
                                             break_on_hyphens=False)
-            wrapped_lines.extend(wrapped_comment.splitlines())
+            wrapped_lines.extend(wrapped_comment.split('\n'))
         # Wrap non-empty lines that are not comments
         elif stripped_line:
             wrapped_line = textwrap.wrap(line, width=width,

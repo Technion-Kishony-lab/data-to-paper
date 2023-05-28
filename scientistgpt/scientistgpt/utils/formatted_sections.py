@@ -1,16 +1,19 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union
 
 
 @dataclass
 class FormattedSection:
-    label: Optional[str]
+    label: Union[bool, str]
     section: str
     is_complete: bool = True
-    is_block: bool = False
 
     def to_tuple(self):
-        return self.label, self.section, self.is_complete, self.is_block
+        return self.label, self.section, self.is_complete
+
+    @property
+    def is_block(self):
+        return self.label is not False
 
 
 class FormattedSections(List[FormattedSection]):
@@ -54,19 +57,19 @@ class FormattedSections(List[FormattedSection]):
                     label = text_in_quote_line
                     section = '\n' + '\n'.join(section.split('\n')[1:])
                 else:
-                    label = None
+                    label = True
             else:
-                label = None
+                label = False
             is_last = i == len(sections) - 1
             is_incomplete = is_last and is_block
-            self.append(FormattedSection(label, section, not is_incomplete, is_block))
+            self.append(FormattedSection(label, section, not is_incomplete))
         return self
 
     def to_text(self) -> str:
         text = ''
         for i, formatted_section in enumerate(self):
-            label, section, is_complete, _ = formatted_section.to_tuple()
-            if label is None:
+            label, section, is_complete = formatted_section.to_tuple()
+            if label is False:
                 # regular text
                 text += section
             else:
