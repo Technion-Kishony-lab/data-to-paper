@@ -5,7 +5,7 @@ import openai
 
 from typing import List, Union
 
-from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEYS, OPENAI_ORGANIZATION_CODES
+from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 
 from .base_server import ServerCaller, NoMoreResponsesToMockError
 from .openai_models import ModelEngine
@@ -29,9 +29,12 @@ class OpenaiSeverCaller(ServerCaller):
         """
         Connect with openai to get response to conversation.
         """
-        openai.api_key = OPENAI_API_KEYS.get(model_engine, OPENAI_API_KEYS[None])
-        openai.organization = OPENAI_ORGANIZATION_CODES.get(model_engine, OPENAI_ORGANIZATION_CODES[None])
         model_engine = model_engine or DEFAULT_MODEL_ENGINE
+        organization, api_key = OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[model_engine] \
+            if model_engine in OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS \
+            else OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[None]
+        openai.api_key = api_key
+        openai.organization = organization
         response = openai.ChatCompletion.create(
             model=min(MAX_MODEL_ENGINE, model_engine).value,
             messages=[message.to_chatgpt_dict() for message in messages],
