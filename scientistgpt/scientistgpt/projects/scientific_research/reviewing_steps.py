@@ -155,11 +155,6 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
-    def get_numeric_values(self):
-        response = super().initialize_and_run_dialog()
-        feedback, numeric_values = self.extract_python_value_from_response(response)
-        return numeric_values
-
 
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):

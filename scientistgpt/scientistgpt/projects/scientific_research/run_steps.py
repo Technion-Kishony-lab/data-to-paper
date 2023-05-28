@@ -111,7 +111,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                 products.tables.append(table)
 
         # Numerical results
-        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).get_numeric_values()
+        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).run_dialog_and_get_python_value()
         self.send_product_to_client('tables_and_numeric_values')
 
         if self.should_interpret_results:

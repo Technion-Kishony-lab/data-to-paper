@@ -117,6 +117,14 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
 
         return self._check_response_value(response_value)
 
+    def run_dialog_and_get_python_value(self):
+        """
+        Get the python value from the response.
+        """
+        response = super().initialize_and_run_dialog()
+        feedback, value = self.extract_python_value_from_response(response)
+        return value
+
 
 @dataclass
 class PythonDictWithDefinedKeysProductsReviewGPT(BasePythonValueProductsReviewGPT):
