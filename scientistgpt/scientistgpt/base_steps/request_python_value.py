@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewGPT
 
-from typing import Optional, Any, Dict, Tuple, get_args, Iterable
+from typing import Optional, Any, Dict, Tuple, get_args, Iterable, Set
 
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs

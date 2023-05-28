@@ -1,9 +1,8 @@
 import pandas as pd
 
-from enum import Enum
 from pathlib import Path
 from functools import partial
-from typing import List, NamedTuple, Dict, Tuple, Optional, Set
+from typing import List, Tuple, Optional, Set
 
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -222,4 +221,3 @@ def collect_created_and_changed_data_frames(allow_changing_existing_series=False
     finally:
         ReportingDataFrame.set_on_change(original_on_change, original_allow_changing_existing_series)
         ReportingDataFrame.set_on_creation(original_on_creation)
-
