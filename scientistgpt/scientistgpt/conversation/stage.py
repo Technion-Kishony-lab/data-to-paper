@@ -14,12 +14,16 @@ if TYPE_CHECKING:
     from scientistgpt.base_steps import Products
 
 
-class Stage:
+class Stage(str):
+    pass
+
+
+class Stages:
     """
-    Store a class attribute that designates each stage in the process.
+    Store class attributes that designates each stage in the process.
     """
-    FINISHED = "finished"
-    FAILURE = "failure"
+    FINISHED = Stage("finished")
+    FAILURE = Stage("failure")
 
 
 @dataclass(frozen=True)

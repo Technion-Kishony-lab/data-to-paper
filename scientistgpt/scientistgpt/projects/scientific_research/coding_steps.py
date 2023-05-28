@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Tuple
 
 from scientistgpt.base_steps import BaseCodeProductsGPT
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
@@ -11,6 +11,9 @@ from scientistgpt.utils.nice_list import NiceList
 
 @dataclass
 class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
+
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
+
     products: ScientificProducts = None
     background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan')
     conversation_name: str = 'code_debugging'
@@ -24,10 +27,35 @@ class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
         """)
 
     @property
+    def files_created_in_prior_stages(self) -> NiceList[str]:
+        files = NiceList([], wrap_with='"', separator='\n')
+        for section in self.allow_data_files_from_sections:
+            if section is None:
+                continue
+            if section in self.products.codes_and_outputs:
+                files += self.products.codes_and_outputs[section].get_created_files_beside_output_file()
+        return files
+
+    @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.products.data_file_descriptions.get_data_filenames(),
-                        wrap_with='"',
-                        prefix='{} data file[s]: ')
+        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages)
+
+    @property
+    def description_of_additional_data_files_if_any(self) -> str:
+        if len(self.files_created_in_prior_stages) == 0:
+            return ''
+        return f'Or you can also use the processed files created above by the data exploration code:\n' \
+               f'```\n' \
+               f'{self.files_created_in_prior_stages}' \
+               f'```\n'
+
+    @property
+    def raw_data_filenames(self) -> NiceList[str]:
+        if None in self.allow_data_files_from_sections:
+            return NiceList(self.products.data_file_descriptions.get_data_filenames(),
+                            wrap_with='"',
+                            prefix='{} data file[s]: ')
+        return NiceList([], wrap_with='"', prefix='No data files.')
 
     @property
     def data_folder(self) -> Optional[Path]:
@@ -39,7 +67,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     conversation_name: str = 'data_exploration_code'
     code_name: str = 'Data Exploration'
-    background_product_fields = ['data_file_descriptions']
+    background_product_fields = ('data_file_descriptions', )
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
     allowed_created_files: Iterable[str] = ('*.csv',)
@@ -79,10 +107,13 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 @dataclass
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
+
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
+
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     conversation_name: str = 'data_preprocessing_code'
     code_name: str = 'Data Preprocessing'
-    background_product_fields = ['data_file_descriptions', 'data_exploration_code_and_output']
+    background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = 'data_preprocessing.txt'
     allowed_created_files: Iterable[str] = ('*.csv',)
@@ -126,11 +157,14 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 @dataclass
 class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
+
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
+
     user_agent: ScientificAgent = ScientificAgent.Debugger
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
-    background_product_fields = ['data_file_descriptions',
-                                 'analysis_plan', 'data_exploration_output', 'data_preprocessing_code', 'research_goal']
+    background_product_fields = ('data_file_descriptions', 'analysis_plan', 'outputs:data_exploration',
+                                 'codes:data_preprocessing', 'research_goal')
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'
     allowed_created_files: Iterable[str] = ()
@@ -164,27 +198,3 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
         """)
-
-    @property
-    def raw_data_filenames(self) -> NiceList[str]:
-        return NiceList(super().data_filenames, wrap_with='"')
-
-    @property
-    def files_created_during_data_preprocessing(self) -> NiceList[str]:
-        if self.products.data_preprocessing_code_and_output is None:
-            return NiceList()
-        return NiceList(self.products.data_preprocessing_code_and_output.get_created_files_beside_output_file(),
-                        wrap_with='"', separator='\n', last_separator=None)
-
-    @property
-    def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.raw_data_filenames + self.files_created_during_data_preprocessing)
-
-    @property
-    def description_of_additional_data_files_if_any(self) -> str:
-        if len(self.files_created_during_data_preprocessing) == 0:
-            return ''
-        return f'Or you can also use the processed files created above by the data exploration code:\n' \
-               f'```\n' \
-               f'{self.files_created_during_data_preprocessing}' \
-               f'```\n'

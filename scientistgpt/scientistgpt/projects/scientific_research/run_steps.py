@@ -10,7 +10,7 @@ from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProduc
 from .get_template import get_paper_template_path
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
-from .scientific_stage import ScientificStage
+from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
     TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT, \
@@ -56,19 +56,20 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                       user_agent=ScientificAgent.Performer,
                                                       conversation_name='with_director',
                                                       )
-        self.advance_stage_and_set_active_conversation(ScientificStage.DATA, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStages.DATA, ScientificAgent.Director)
         products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
             product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
 
         # Data exploration
         if self.should_do_data_exploration:
-            self.advance_stage_and_set_active_conversation(ScientificStage.EXPLORATION, ScientificAgent.DataExplorer)
-            products.data_exploration_code_and_output = DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
-            self.send_product_to_client('data_exploration_code_and_output')
+            self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
+            products.codes_and_outputs['data_exploration'] = \
+                DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
+            self.send_product_to_client('codes_and_outputs:data_exploration')
 
         # Goal
-        self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
@@ -81,30 +82,31 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Data Preprocessing
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
-                ScientificStage.PREPROCESSING, ScientificAgent.DataPreprocessor)
-            products.data_preprocessing_code_and_output = \
+                ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
+            products.codes_and_outputs['data_preprocessing'] = \
                 DataPreprocessingCodeProductsGPT.from_(self).get_analysis_code()
-            self.send_product_to_client('data_preprocessing_code_and_output')
+            self.send_product_to_client('codes_and_outputs:data_preprocessing')
 
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStage.PLAN, ScientificAgent.PlanReviewer)
+            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
             products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
             self.send_product_to_client('analysis_plan')
 
         # Analysis code and output
-        self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
-        products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
-        self.send_product_to_client('data_analysis_code_and_output')
+        self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
+        products.codes_and_outputs['data_analysis'] = \
+            DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
+        self.send_product_to_client('codes_and_outputs:data_analysis')
 
-        self.advance_stage_and_set_active_conversation(ScientificStage.INTERPRETATION,
+        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)
         # Tables
         if self.should_add_tables:
             products.tables = []
             for i in range(self.number_of_tables_to_add):
                 table = TablesReviewGPT.from_(
-                    self, section_names=['table'], table_number=i+1,
+                    self, section_names=['table'], table_number=i + 1,
                     total_number_of_tables=self.number_of_tables_to_add).get_section()
                 products.tables.append(table)
 
@@ -115,12 +117,12 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_interpret_results:
             # Results interpretation
             self.advance_stage_and_set_active_conversation(
-                ScientificStage.INTERPRETATION, ScientificAgent.InterpretationReviewer)
+                ScientificStages.INTERPRETATION, ScientificAgent.InterpretationReviewer)
             products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()
             self.send_product_to_client('results_summary')
 
         # Paper sections
-        self.advance_stage_and_set_active_conversation(ScientificStage.WRITING, ScientificAgent.Writer)
+        self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         title_and_abstract_names = ['title', 'abstract']
         products.paper_sections['title'], products.paper_sections['abstract'] = \
             TitleAbstractReviewGPT.from_(self, section_names=title_and_abstract_names).get_sections()
@@ -144,7 +146,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Add citations to relevant paper sections
         if self.should_add_citations:
-            self.advance_stage_and_set_active_conversation(ScientificStage.CITATIONS, ScientificAgent.CitationExpert)
+            self.advance_stage_and_set_active_conversation(ScientificStages.CITATIONS, ScientificAgent.CitationExpert)
             for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
                 products.cited_paper_sections_and_citations[section_name] = \
                     AddCitationReviewGPT.from_(self, section_name=section_name).rewrite_section_with_citations()
@@ -152,7 +154,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Add tables to results section
         if self.should_add_tables and self.should_rewrite_results_section_with_tables:
-            self.advance_stage_and_set_active_conversation(ScientificStage.TABLES, ScientificAgent.TableExpert)
+            self.advance_stage_and_set_active_conversation(ScientificStages.TABLES, ScientificAgent.TableExpert)
             for section_name in SECTIONS_TO_ADD_TABLES_TO:
                 products.ready_to_be_tabled_paper_sections[section_name] = \
                     PaperSectionWithTablesReviewGPT.from_(self, section_names=[section_name]).get_section()

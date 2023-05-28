@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Optional
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.mutable import Mutable, Flag

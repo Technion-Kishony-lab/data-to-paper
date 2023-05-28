@@ -39,11 +39,11 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         BaseLatexToPDFWithAppendix.__post_init__(self)
         ProduceScientificPaperPDF.__post_init__(self)
 
-    def _create_code_section(self, section_name: str, product_name: str):
+    def _create_code_section(self, code_and_output: CodeAndOutput):
         """
         Create the code section.
         """
-        code_and_output = getattr(self.products, product_name)
+        section_name = code_and_output.name
         code = wrap_python_code(code_and_output.code)
         latex_code = highlight(code, PythonLexer(), self.latex_formatter)
         code_section = f"\\section{{{section_name}}} \\subsection{{Code}}" \
@@ -77,10 +77,8 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         Create the appendix.
         """
         appendix = self._create_data_description_section()
-        if getattr(self.products, 'data_exploration_code_and_output') != CodeAndOutput():
-            appendix += '\n\n' + self._create_code_section("Data Exploration", 'data_exploration_code_and_output')
-        if getattr(self.products, 'data_preprocessing_code_and_output') != CodeAndOutput():
-            appendix += '\n\n' + self._create_code_section("Data Preprocessing", 'data_preprocessing_code_and_output')
-        if getattr(self.products, 'data_analysis_code_and_output') != CodeAndOutput():
-            appendix += '\n\n' + self._create_code_section("Data Analysis", 'data_analysis_code_and_output')
+
+        for code_step in self.products.codes_and_outputs:
+            code_and_output = self.products.codes_and_outputs[code_step]
+            appendix += '\n\n' + self._create_code_section(code_and_output)
         return appendix
