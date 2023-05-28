@@ -1,17 +1,18 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Tuple, Set, List
 
-from scientistgpt.projects.scientific_research.scientific_stage import ScientificStage
+from scientistgpt.conversation.stage import Stage
+from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products, NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
 
-CODE_STEPS_TO_STAGES: Dict[str, ScientificStage] = {
-    'data_exploration': ScientificStage.EXPLORATION,
-    'data_preprocessing': ScientificStage.PREPROCESSING,
-    'data_analysis': ScientificStage.CODE,
+CODE_STEPS_TO_STAGES: Dict[str, Stage] = {
+    'data_exploration': ScientificStages.EXPLORATION,
+    'data_preprocessing': ScientificStages.PREPROCESSING,
+    'data_analysis': ScientificStages.CODE,
 }
 
 
@@ -114,21 +115,21 @@ class ScientificProducts(Products):
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Dataset',
                 'DESCRIPTION OF DATASET\n\nWe have the following {}',
-                ScientificStage.DATA,
+                ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'research_goal': NameDescriptionStageGenerator(
                 'Research Goal',
                 'Here is our Research Goal\n\n{}',
-                ScientificStage.GOAL,
+                ScientificStages.GOAL,
                 lambda: self.research_goal,
             ),
 
             'analysis_plan': NameDescriptionStageGenerator(
                 'Data Analysis Plan',
                 'Here is our Data Analysis Plan:\n\n{}',
-                ScientificStage.PLAN,
+                ScientificStages.PLAN,
                 lambda: self.analysis_plan,
             ),
 
@@ -158,49 +159,49 @@ class ScientificProducts(Products):
             'results_summary': NameDescriptionStageGenerator(
                 'Results Summary',
                 'Here is our Results Summary:\n\n{}',
-                ScientificStage.INTERPRETATION,
+                ScientificStages.INTERPRETATION,
                 lambda: self.results_summary,
             ),
 
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
-                ScientificStage.WRITING,
+                ScientificStages.WRITING,
                 lambda: (self.paper_sections['title'], self.paper_sections['abstract']),
             ),
 
             'paper_sections': NameDescriptionStageGenerator(
                 'Paper Sections',
                 '{}',
-                ScientificStage.WRITING,
+                ScientificStages.WRITING,
                 lambda: self.get_paper("paper_sections")
             ),
 
             'cited_paper_sections_and_citations': NameDescriptionStageGenerator(
                 'Cited Paper Sections and Citations',
                 '{}\n\n\n``Citations``\n\n{}',
-                ScientificStage.CITATIONS,
+                ScientificStages.CITATIONS,
                 lambda: (self.get_paper("cited_paper_sections"), self.citations),
             ),
 
             'tabled_paper_sections': NameDescriptionStageGenerator(
                 'Paper Sections with Tables',
                 '{}',
-                ScientificStage.TABLES,
+                ScientificStages.TABLES,
                 lambda: self.get_paper("tabled_paper_sections")
             ),
 
             'most_updated_paper_sections': NameDescriptionStageGenerator(
                 'Most Updated Paper Sections',
                 '{}',
-                ScientificStage.WRITING,
+                ScientificStages.WRITING,
                 lambda: self.get_paper("most_updated_paper_sections")
             ),
 
             'paper_sections:{}': NameDescriptionStageGenerator(
                 'The {section_name} Section of the Paper',
                 'Here is the {section_name} section of the paper:\n\n{content}',
-                ScientificStage.WRITING,
+                ScientificStages.WRITING,
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.paper_sections[section_name],
                                       },
@@ -209,7 +210,7 @@ class ScientificProducts(Products):
             'cited_paper_sections_and_citations:{}': NameDescriptionStageGenerator(
                 'The {section_name} Section of the Paper with Citations',
                 'Here is the cited {section_name} section of the paper:\n\n{content}\n\n``Citations``\n\n{citations}',
-                ScientificStage.CITATIONS,
+                ScientificStages.CITATIONS,
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.cited_paper_sections[section_name],
                                       'citations': self.citations[section_name],
@@ -219,7 +220,7 @@ class ScientificProducts(Products):
             'tabled_paper_sections:{}': NameDescriptionStageGenerator(
                 'The {section_name} Section of the Paper with Tables',
                 'Here is the {section_name} section of the paper with tables:\n\n{content}',
-                ScientificStage.TABLES,
+                ScientificStages.TABLES,
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.tabled_paper_sections[section_name],
                                       },
@@ -228,7 +229,7 @@ class ScientificProducts(Products):
             'most_updated_paper_sections:{}': NameDescriptionStageGenerator(
                 'The most-updated {section_name} Section of the Paper',
                 'Here is the most-updated {section_name} section of the paper:\n\n{content}',
-                ScientificStage.TABLES,
+                ScientificStages.TABLES,
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.most_updated_paper_sections[section_name],
                                       },
@@ -237,7 +238,7 @@ class ScientificProducts(Products):
             'tables': NameDescriptionStageGenerator(
                 'The Tables of the Paper',
                 'Here are the tables of the paper:\n\n{}',
-                ScientificStage.TABLES,
+                ScientificStages.TABLES,
                 lambda: NiceList([f"Table {i+1}:\n\n {table}"
                                   for i, table in enumerate(self.tables)],
                                  separator='\n\n'), ),
@@ -245,7 +246,7 @@ class ScientificProducts(Products):
             'numeric_values': NameDescriptionStageGenerator(
                 'The Numeric Values of the Paper',
                 'Here are the numeric values of the paper:\n\n{}',
-                ScientificStage.INTERPRETATION,
+                ScientificStages.INTERPRETATION,
                 lambda: NiceList([f"Numeric Value {i+1}, {numeric_value_name}:\n\n {numeric_value_content}"
                                   for i, (numeric_value_name, numeric_value_content) in
                                   enumerate(self.numeric_values.items())], separator='\n\n'), ),
@@ -253,7 +254,7 @@ class ScientificProducts(Products):
             'tables_and_numeric_values': NameDescriptionStageGenerator(
                 'The Tables and Numeric Values of the Paper',
                 '{tables}\n\n{numeric_values}',
-                ScientificStage.INTERPRETATION,
+                ScientificStages.INTERPRETATION,
                 lambda: {'tables': self['tables'].description,
                          'numeric_values': self['numeric_values'].description,
                          },

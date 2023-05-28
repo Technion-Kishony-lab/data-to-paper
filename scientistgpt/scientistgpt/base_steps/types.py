@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union, Tuple, Dict, Callable, NamedTuple
 
-from scientistgpt.conversation.stage import Stage
+from scientistgpt.conversation.stage import Stages, Stage
 from scientistgpt.utils.file_utils import run_in_directory
 from scientistgpt.utils.text_formatting import format_with_args_or_kwargs, ArgsOrKwargs
 
@@ -96,7 +96,7 @@ class Products:
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         """
         Return a dictionary mapping product fields to a tuple of
-        (name: str, description: str, stage: Stage, func: Callable).
+        (name: str, description: str, stage: Stages, func: Callable).
         func is a function that creates args for the name and description to be formatted with.
         """
         return {}
