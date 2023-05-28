@@ -8,15 +8,13 @@ SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy', 'sklearn', 'xgboost',
                               wrap_with='"', prefix='[', suffix=']')
 
 # OpenAI API keys. model=None is the default key.
-OPENAI_API_KEYS = Dict[Optional[ModelEngine], str]({
-    None: "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",
-    ModelEngine.GPT4: "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",
-})
-
-# OpenAI API keys. model=None is the default key.
-OPENAI_ORGANIZATION_CODES = Dict[Optional[ModelEngine], str]({
-    None: "org-gvr0szNH28eeeuMCEG9JrwcR",
-    ModelEngine.GPT4: "org-SplsVAouKqk9mWIpVgIIVwSD",
+OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = Dict[Optional[ModelEngine], str]({
+    None:
+        ("org-gvr0szNH28eeeuMCEG9JrwcR",
+         "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"),
+    ModelEngine.GPT4:
+        ("org-SplsVAouKqk9mWIpVgIIVwSD",
+         "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"),
 })
 
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
