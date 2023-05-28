@@ -36,6 +36,7 @@ correct_list_str_value = r"""['a', 'b', 'c']"""
 non_correct_list_str_value = r"""['a', 'b', 5]"""
 error_message_include_list_str_value = "Your response should be formatted as"
 
+
 @pytest.mark.parametrize('correct_python_value, value_type', [
     (correct_dict_str_any_value, Dict[str, Any]),
     (correct_dict_str_str_value, Dict[str, str]),
@@ -44,19 +45,23 @@ error_message_include_list_str_value = "Your response should be formatted as"
 def test_request_python_value(correct_python_value, value_type):
     with OPENAI_SERVER_CALLER.mock([f'Here is the correct python value:\n{correct_python_value}\nShould be all good.'],
                                    record_more_if_needed=False):
-        assert TestBasePythonValueProductsReviewGPT(value_type=value_type).get_python_value() == eval(correct_python_value)
+        assert TestBasePythonValueProductsReviewGPT(value_type=value_type).get_python_value() == \
+               eval(correct_python_value)
 
 
 @pytest.mark.parametrize('non_correct_python_value, correct_python_value, value_type, error_should_include', [
-    (non_correct_dict_str_any_value, correct_dict_str_any_value ,Dict[str, Any], error_message_include_dict_str_any_value),
-    (non_correct_dict_str_str_value, correct_dict_str_str_value, Dict[str, str], error_message_include_dict_str_str_value),
+    (non_correct_dict_str_any_value, correct_dict_str_any_value, Dict[str, Any],
+     error_message_include_dict_str_any_value),
+    (non_correct_dict_str_str_value, correct_dict_str_str_value, Dict[str, str],
+     error_message_include_dict_str_str_value),
     (non_correct_list_str_value, correct_list_str_value, List[str], error_message_include_list_str_value),
 ])
-def test_request_python_value_with_error(non_correct_python_value, correct_python_value, value_type, error_should_include):
-    with OPENAI_SERVER_CALLER.mock([f'Here is some wrong python value:\n{non_correct_python_value}\nLet me know if it is ok.',
-                                    f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'
-                                    ],
-                                   record_more_if_needed=False):
+def test_request_python_value_with_error(
+        non_correct_python_value, correct_python_value, value_type, error_should_include):
+    with OPENAI_SERVER_CALLER.mock(
+            [f'Here is some wrong python value:\n{non_correct_python_value}\nLet me know if it is ok.',
+             f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
+            record_more_if_needed=False):
         latex_requester = TestBasePythonValueProductsReviewGPT(value_type=value_type)
         assert latex_requester.get_python_value() == eval(correct_python_value)
         error_message = latex_requester.conversation[4]
