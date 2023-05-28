@@ -168,6 +168,15 @@ class ScientificProducts(Products):
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
+            'created_files_description:{}': NameDescriptionStageGenerator(
+                'Description of Files Created by the {code_name} Code',
+                'We can use these files created by the {code_name} code:\n\n{created_files_description}',
+                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: {
+                    'created_files_description': self.codes_and_outputs[code_step].description_of_created_files,
+                    'code_name': self.codes_and_outputs[code_step].name},
+            ),
+
             'results_summary': NameDescriptionStageGenerator(
                 'Results Summary',
                 'Here is our Results Summary:\n\n{}',
