@@ -1,4 +1,5 @@
-# SUPPORTED_PACKAGES = ['numpy', 'pandas', 'scipy', 'matplotlib', 'seaborn', 'sklearn']
+from typing import Dict, Optional
+
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.mutable import Mutable, Flag
 from scientistgpt.utils.nice_list import NiceList
@@ -6,7 +7,11 @@ from scientistgpt.utils.nice_list import NiceList
 SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn'],
                               wrap_with='"', prefix='[', suffix=']')
 
-OPENAI_API_KEY = "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"
+# OpenAI API keys. model=None is the default key.
+OPENAI_API_KEYS = Dict[Optional[ModelEngine], str]({
+    None: "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",
+    ModelEngine.GPT4: "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",
+})
 
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 MAX_MODEL_ENGINE = ModelEngine.GPT4_32
