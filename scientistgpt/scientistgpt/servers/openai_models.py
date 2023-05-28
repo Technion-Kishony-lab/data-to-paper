@@ -19,6 +19,9 @@ class ModelEngine(IndexOrderedEnum):
     def __repr__(self):
         return self.value
 
+    def __hash__(self):
+        return hash(self.value)
+
 
 @dataclass(frozen=True)
 class OpenaiCallParameters:
