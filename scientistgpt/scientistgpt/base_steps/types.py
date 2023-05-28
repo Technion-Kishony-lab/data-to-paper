@@ -66,7 +66,7 @@ class NameDescriptionStage(NamedTuple):
 class NameDescriptionStageGenerator(NamedTuple):
     name: str
     description: str
-    stage: Stage
+    stage: Union[Stage, Callable]
     func: Callable
 
 
@@ -133,6 +133,8 @@ class Products:
         """
         (name, description, stage, func), args = self._get_name_stage_description_generator_and_args(field)
         variables = func(*args)
+        if not isinstance(stage, Stage):
+            stage = stage(*args)
         if not isinstance(variables, (tuple, dict)):
             variables = (variables, )
         return NameDescriptionStage(name, description, stage), variables

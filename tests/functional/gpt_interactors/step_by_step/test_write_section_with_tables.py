@@ -35,7 +35,7 @@ def products():
                                     r"fibonacci sequence. It is the fastest known.\\end{abstract}",
                         'results': r"\\section{Results}\nThe fastest algorithm known uses recursion in python. "
                                    r"The 20 first term was first calculated in the paper by \\cite{Fibonacci}."},
-        data_analysis_code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt'),
+        codes_and_outputs={'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt')},
     )
 
 

@@ -111,10 +111,14 @@ def products():
                                             \\caption{The means and 95\\% confidence intervals for each temperature.}
                                             \\end{table}
                                             """},
-        data_analysis_code_and_output=CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt',
-                                                    explanation=EXPLANATION),
-        data_exploration_code_and_output=CodeAndOutput(code=EXPLORATION_CODE, output=EXPLORATION_OUTPUT, output_file='',
-                                                       explanation=EXPLORATION_EXPLANATION),)
+        codes_and_outputs={'data_analysis':
+                              CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt',
+                                            explanation=EXPLANATION),
+                          'data_exploration':
+                              CodeAndOutput(code=EXPLORATION_CODE, output=EXPLORATION_OUTPUT,
+                                            output_file='',
+                                            explanation=EXPLORATION_EXPLANATION)},
+    )
 
 
 def test_paper_appendix_creator(tmpdir, products):

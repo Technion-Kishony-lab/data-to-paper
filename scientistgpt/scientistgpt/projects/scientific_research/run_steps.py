@@ -64,8 +64,9 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Data exploration
         if self.should_do_data_exploration:
             self.advance_stage_and_set_active_conversation(ScientificStage.EXPLORATION, ScientificAgent.DataExplorer)
-            products.data_exploration_code_and_output = DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
-            self.send_product_to_client('data_exploration_code_and_output')
+            products.codes_and_outputs['data_exploration'] = \
+                DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
+            self.send_product_to_client('codes_and_outputs:data_exploration')
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStage.GOAL, ScientificAgent.Director)
@@ -82,9 +83,9 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
                 ScientificStage.PREPROCESSING, ScientificAgent.DataPreprocessor)
-            products.data_preprocessing_code_and_output = \
+            products.codes_and_outputs['data_preprocessing'] = \
                 DataPreprocessingCodeProductsGPT.from_(self).get_analysis_code()
-            self.send_product_to_client('data_preprocessing_code_and_output')
+            self.send_product_to_client('code_and_output:data_preprocessing')
 
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
@@ -94,8 +95,9 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStage.CODE, ScientificAgent.Debugger)
-        products.data_analysis_code_and_output = DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
-        self.send_product_to_client('data_analysis_code_and_output')
+        products.codes_and_outputs['data_analysis'] = \
+            DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
+        self.send_product_to_client('code_and_output:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStage.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)

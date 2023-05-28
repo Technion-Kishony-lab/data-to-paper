@@ -8,6 +8,13 @@ from scientistgpt.base_steps.types import DataFileDescriptions, Products, NameDe
 from scientistgpt.servers.crossref import CrossrefCitation
 
 
+CODE_STEPS_TO_STAGES: Dict[str, ScientificStage] = {
+    'data_exploration': ScientificStage.EXPLORATION,
+    'data_preprocessing': ScientificStage.PREPROCESSING,
+    'data_analysis': ScientificStage.CODE,
+}
+
+
 @dataclass
 class ScientificProducts(Products):
     """
@@ -15,11 +22,9 @@ class ScientificProducts(Products):
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
-    data_exploration_code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
-    data_preprocessing_code_and_output: CodeAndOutput = field(default_factory=CodeAndOutput)
+    codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
-    data_analysis_code_and_output: CodeAndOutput = None
     tables: List[str] = None
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
@@ -113,27 +118,6 @@ class ScientificProducts(Products):
                 lambda: self.data_file_descriptions,
             ),
 
-            'data_exploration_code': NameDescriptionStageGenerator(
-                'Data Exploration Code',
-                'Here is our Data Exploration code:\n```python\n{}\n```\n',
-                ScientificStage.EXPLORATION,
-                lambda: self.data_exploration_code_and_output.code,
-            ),
-
-            'data_exploration_output': NameDescriptionStageGenerator(
-                'Output of Data Exploration',
-                'Here is the output of our Data Exploration code:\n```\n{}\n```\n',
-                ScientificStage.EXPLORATION,
-                lambda: self.data_exploration_code_and_output.output,
-            ),
-
-            'data_exploration_code_and_output': NameDescriptionStageGenerator(
-                'Data Exploration',
-                '{}\n\n{}',
-                ScientificStage.EXPLORATION,
-                lambda: (self['data_exploration_code'].description, self['data_exploration_output'].description),
-            ),
-
             'research_goal': NameDescriptionStageGenerator(
                 'Research Goal',
                 'Here is our Research Goal\n\n{}',
@@ -148,46 +132,27 @@ class ScientificProducts(Products):
                 lambda: self.analysis_plan,
             ),
 
-            'data_analysis_code': NameDescriptionStageGenerator(
-                'Data Analysis Code',
-                'Here is our Data Analysis Code:\n```python\n{}\n```\n',
-                ScientificStage.CODE,
-                lambda: self.data_analysis_code_and_output.code,
+            'code:{}': NameDescriptionStageGenerator(
+                '{code_name} Code',
+                'Here is our {code_name} Code:\n```python\n{code}\n```\n',
+                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: {'code': self.codes_and_outputs[code_step].code,
+                                   'code_name': self.codes_and_outputs[code_step].name},
             ),
 
-            'data_analysis_output': NameDescriptionStageGenerator(
-                'Output of the Data Analysis Code',
-                'Here is the output of our Data Analysis code:\n```\n{}\n```\n',
-                ScientificStage.CODE,
-                lambda: self.data_analysis_code_and_output.output,
+            'output:{}': NameDescriptionStageGenerator(
+                'Output of the {code_name} Code',
+                'Here is the output of our {code_name} code:\n```\n{output}\n```\n',
+                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: {'output': self.codes_and_outputs[code_step].output,
+                                   'code_name': self.codes_and_outputs[code_step].name},
             ),
 
-            'data_analysis_code_and_output': NameDescriptionStageGenerator(
+            'code_and_output:{}': NameDescriptionStageGenerator(
                 'Data Analysis Code and Output',
                 '{}\n\n{}',
-                ScientificStage.CODE,
-                lambda: (self["data_analysis_code"].description, self["data_analysis_output"].description)
-            ),
-
-            'data_preprocessing_code': NameDescriptionStageGenerator(
-                'Data Preprocessing Code',
-                'Here is our Data Preprocessing Code:\n```python\n{}\n```\n',
-                ScientificStage.PREPROCESSING,
-                lambda: self.data_preprocessing_code_and_output.code,
-            ),
-
-            'data_preprocessing_output': NameDescriptionStageGenerator(
-                'Output of the Data Preprocessing Code',
-                'Here is the output of our Data Preprocessing code:\n```\n{}\n```\n',
-                ScientificStage.PREPROCESSING,
-                lambda: self.data_preprocessing_code_and_output.output,
-            ),
-
-            'data_preprocessing_code_and_output': NameDescriptionStageGenerator(
-                'Data Preprocessing Code and Output',
-                '{}\n\n{}',
-                ScientificStage.PREPROCESSING,
-                lambda: (self["data_preprocessing_code"].description, self["data_preprocessing_output"].description)
+                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: (self["code:" + code_step].description, self["output:" + code_step].description)
             ),
 
             'results_summary': NameDescriptionStageGenerator(
