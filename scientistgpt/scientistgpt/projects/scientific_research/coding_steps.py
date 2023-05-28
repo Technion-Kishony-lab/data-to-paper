@@ -39,7 +39,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     conversation_name: str = 'data_exploration_code'
     code_name: str = 'Data Exploration'
-    background_product_fields = ['data_file_descriptions']
+    background_product_fields = ('data_file_descriptions', )
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
     allowed_created_files: Iterable[str] = ('*.csv',)
@@ -82,7 +82,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     conversation_name: str = 'data_preprocessing_code'
     code_name: str = 'Data Preprocessing'
-    background_product_fields = ['data_file_descriptions', 'codes_and_outputs:data_exploration']
+    background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = 'data_preprocessing.txt'
     allowed_created_files: Iterable[str] = ('*.csv',)
@@ -129,8 +129,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.Debugger
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
-    background_product_fields = ['data_file_descriptions',
-                                 'analysis_plan', 'data_exploration_output', 'data_preprocessing_code', 'research_goal']
+    background_product_fields = ('data_file_descriptions', 'analysis_plan', 'outputs:data_exploration',
+                                 'codes:data_preprocessing', 'research_goal')
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'
     allowed_created_files: Iterable[str] = ()
