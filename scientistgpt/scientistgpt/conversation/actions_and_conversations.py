@@ -21,7 +21,7 @@ from scientistgpt.base_cast import Agent
 @dataclass(frozen=True)
 class Action:
     """
-    Base class for actions performed on a Conversation, Stage, or Cast.
+    Base class for actions performed on a Conversation, Stages, or Cast.
     """
 
     def _pretty_attrs(self) -> str:

@@ -9,7 +9,7 @@ from scientistgpt.env import COALESCE_WEB_CONVERSATIONS
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
 from scientistgpt.conversation.conversation_actions import CreateConversation
-from scientistgpt.conversation.stage import Stage, AdvanceStage, SetActiveConversation, SetProduct
+from scientistgpt.conversation.stage import Stages, AdvanceStage, SetActiveConversation, SetProduct, Stage
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.base_cast import Agent
@@ -138,10 +138,10 @@ class BaseStepsRunner(BaseProductsHandler):
         try:
             run()
         except FailedCreatingProductException:
-            self.advance_stage(Stage.FAILURE)
+            self.advance_stage(Stages.FAILURE)
             print('----- FAILURE ------')
             print(f'Failed creating product during stage: {self.current_stage}')
         except Exception:
             raise
         else:
-            self.advance_stage(Stage.FINISHED)
+            self.advance_stage(Stages.FINISHED)
