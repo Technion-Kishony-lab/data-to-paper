@@ -150,10 +150,22 @@ class ScientificProducts(Products):
             ),
 
             'codes_and_outputs:{}': NameDescriptionStageGenerator(
-                'Data Analysis Code and Output',
-                '{}\n\n{}',
+                '{code_name} Code and Output',
+                '{code_description}\n\n{output_description}',
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
-                lambda code_step: (self["codes:" + code_step].description, self["outputs:" + code_step].description)
+                lambda code_step: {
+                    'code_name': self.codes_and_outputs[code_step].name,
+                    'code_description': self["codes:" + code_step].description,
+                    'output_description': self["outputs:" + code_step].description},
+            ),
+
+            'created_files:{}': NameDescriptionStageGenerator(
+                'Files Created by the {code_name} Code',
+                'Here are the files created by the {code_name} code:\n\n{created_files}',
+                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: {
+                    'created_files': self.codes_and_outputs[code_step].created_files,
+                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
             'results_summary': NameDescriptionStageGenerator(
