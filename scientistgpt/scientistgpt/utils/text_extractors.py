@@ -85,13 +85,6 @@ def extract_all_external_brackets(text: str, open_bracket: str):
     return [text[start:end]] + extract_all_external_brackets(text[end:], open_bracket)
 
 
-def extract_first_lines(text: str, num_lines: int = 1):
-    """
-    Extract the first num_lines lines from the text.
-    """
-    return '\n'.join(text.splitlines()[:num_lines])
-
-
 def _extract_to_nearest(text: str, max_length: int, char: str = '\n'):
     """
     Extract the text from the beginning of the text to the nearest char before end.

@@ -88,8 +88,9 @@ REGULAR_FORMATTER = (colored_text, text_to_html)
 BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
 
 TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
-    None: REGULAR_FORMATTER,
+    False: REGULAR_FORMATTER,
     '': BLOCK_FORMATTER,
+    True: BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
     'python': (python_to_highlighted_text, python_to_highlighted_html),
     'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
@@ -109,7 +110,7 @@ def format_text_with_code_blocks(text: str, text_color: str = '',
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
-        label, section, _, __ = formatted_section.to_tuple()
+        label, section, _, = formatted_section.to_tuple()
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
         if label not in NEEDS_NO_WRAPPING:
             section = wrap_string(section, width=width)
