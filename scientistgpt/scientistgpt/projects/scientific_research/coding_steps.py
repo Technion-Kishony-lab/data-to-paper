@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Iterable, Tuple
 
-from scientistgpt.base_steps import BaseCodeProductsGPT
+from scientistgpt.base_steps import OfferRevisionCodeProductsGPT
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.utils import dedent_triple_quote_str
@@ -10,7 +10,7 @@ from scientistgpt.utils.nice_list import NiceList
 
 
 @dataclass
-class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
+class BaseScientificCodeProductsGPT(OfferRevisionCodeProductsGPT):
 
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
 

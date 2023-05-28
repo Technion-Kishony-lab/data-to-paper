@@ -70,6 +70,14 @@ class DataframeOperations(List[DataframeOperation]):
     def get_saved_ids(self) -> Set[int]:
         return {operation.id for operation in self if isinstance(operation, SaveDataframeOperation)}
 
+    def get_saved_ids_filenames(self) -> Set[Tuple[int, str]]:
+        return {(operation.id, operation.filename) for operation in self
+                if isinstance(operation, SaveDataframeOperation)}
+
+    def get_read_filename(self, id_: int) -> Optional[str]:
+        return next((operation.filename for operation in self
+                     if isinstance(operation, CreationDataframeOperation) and operation.id == id_), None)
+
     def get_read_changed_but_unsaved_ids(self):
         return self.get_read_ids() & self.get_changed_ids() - self.get_saved_ids()
 
@@ -84,6 +92,10 @@ class DataframeOperations(List[DataframeOperation]):
     def get_save_columns(self, id_: int) -> Optional[List[str]]:
         return next((operation.columns for operation in self
                      if isinstance(operation, SaveDataframeOperation) and operation.id == id_), None)
+
+    def get_changed_columns(self, id_: int) -> List[str]:
+        return [operation.series_name for operation in self
+                if isinstance(operation, ChangeSeriesDataframeOperation) and operation.id == id_]
 
 
 @dataclass

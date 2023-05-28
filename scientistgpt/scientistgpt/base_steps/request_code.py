@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Dict
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -13,6 +13,7 @@ from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseBackgroundProductsGPT
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import BaseMultiChoiceProductsGPT
+from .request_python_value import PythonDictWithDefinedKeysProductsReviewGPT
 
 
 @dataclass
@@ -60,27 +61,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         ```
         """)  # set to None to not present code
 
-    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
-        Please explain what your code does. 
-        Also explain what does the code writes into the "{actual_output_filename}" file.
-        """)  # set to None to skip asking for explanation
-
-    offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
-        ```
-        {}
-        ```
-
-        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else
-        that may indicate that code improvements are needed), then choose one of the following options:
-
-        1. The results seem reasonable. Let's proceed.
-
-        2. Something is wrong. I need to go back and change/improve the code.
-
-        {choice_instructions}
-        """)  # set to None to skip option for revision
-
     @property
     def data_filenames(self) -> NiceList[str]:
         """
@@ -123,9 +103,9 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             code_and_output = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException()
-            gpt_choice = self._ask_chatgpt_whether_further_code_revisions_are_needed(code_and_output)
-            if gpt_choice == '1':
-                code_and_output.explanation = self._ask_for_code_explanation()
+            if not self._are_further_code_revisions_needed(code_and_output):
+                code_and_output.explanation = self._ask_for_code_explanation(code_and_output)
+                code_and_output.description_of_created_files = self._ask_for_created_files_descriptions(code_and_output)
                 code_and_output.name = self.code_name
                 return code_and_output
             self.revision_round += 1
@@ -177,7 +157,41 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             return code_and_output
         return None
 
-    def _ask_for_code_explanation(self) -> Optional[str]:
+    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
+        return False
+
+    def _ask_for_code_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
+        return None
+
+    def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[Dict[str, str]]:
+        return None
+
+
+@dataclass
+class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
+
+    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
+        Please explain what your code does. 
+        Also explain what does the code writes into the "{actual_output_filename}" file.
+        """)  # set to None to skip asking for explanation
+
+    offer_revision_prompt: str = dedent_triple_quote_str("""
+        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
+        ```
+        {}
+        ```
+
+        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else
+        that may indicate that code improvements are needed), then choose one of the following options:
+
+        1. The results seem reasonable. Let's proceed.
+
+        2. Something is wrong. I need to go back and change/improve the code.
+
+        {choice_instructions}
+        """)  # set to None to skip option for revision
+
+    def _ask_for_code_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
         if self.requesting_code_explanation_prompt is None:
             return None
         self.apply_append_user_message(
@@ -185,9 +199,9 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         )
         return self.apply_get_and_append_assistant_message().content
 
-    def _ask_chatgpt_whether_further_code_revisions_are_needed(self, code_and_output: CodeAndOutput) -> Optional[str]:
+    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
         if self.offer_revision_prompt is None:
-            return '1'
+            return False
 
         return BaseMultiChoiceProductsGPT(
             conversation_name=self.conversation_name,
@@ -197,4 +211,81 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             actions_and_conversations=self.actions_and_conversations,
             multi_choice_question=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
             possible_choices=('1', '2'),
-        ).get_chosen_option()
+        ).get_chosen_option() == '2'
+
+
+@dataclass
+class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
+    requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
+        Explain the content of each of the columns of "{dataframe_file_name}".
+        
+        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the
+        strings that explain the content of each column.
+        """)
+
+    requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
+        Explain the content of all the new or modified columns of "{dataframe_file_name}".
+
+        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the
+        strings that explain the content of each column.
+        """)
+
+    def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[Dict[str, str]]:
+        dataframe_operations = code_and_output.dataframe_operations
+        filenames_to_descriptions = {}
+        for saved_df_id, saved_df_filename in dataframe_operations.get_saved_ids_filenames():
+            read_filename = dataframe_operations.get_read_filename(saved_df_id)
+            saved_columns = dataframe_operations.get_save_columns(saved_df_id)
+            creation_columns = dataframe_operations.get_creation_columns(saved_df_id)
+            changed_columns = dataframe_operations.get_changed_columns(saved_df_id)
+            added_columns = list(set(saved_columns) - set(creation_columns))
+            if read_filename is None:
+                # this saved dataframe was created by the code, not read from a file
+                columns = saved_columns
+                request_prompt = self.requesting_explanation_for_a_new_dataframe
+            else:
+                # this saved dataframe was read from a file
+                columns = list(set(added_columns) | set(changed_columns))
+                request_prompt = self.requesting_explanation_for_a_modified_dataframe
+
+            columns_to_explanations = PythonDictWithDefinedKeysProductsReviewGPT.from_(
+                self,
+                requested_keys=columns,
+                user_initiation_prompt=Replacer(self, request_prompt,
+                                                kwargs={'dataframe_file_name': saved_df_filename, 'columns': columns})
+            ).run_dialog_and_get_python_value()
+
+            if read_filename is None:
+                description = f'This csv file was created by the {self.code_name} code.\n' \
+                              f'The columns are:\n' \
+                              f'{columns_to_explanations}'
+            else:
+                new_columns_to_explanations = \
+                    {column: explanation for column, explanation in columns_to_explanations.items()
+                     if column in added_columns}
+                modified_columns_to_explanations = \
+                    {column: explanation for column, explanation in columns_to_explanations.items()
+                        if column not in added_columns}
+
+                if len(new_columns_to_explanations) > 0:
+                    new_columns_str = f'\nNew columns:\n' \
+                                      f'{columns_to_explanations}\n'
+                else:
+                    new_columns_str = ''
+
+                if len(modified_columns_to_explanations) > 0:
+                    modified_columns_str = f'\nModified columns:\n' \
+                                           f'{columns_to_explanations}\n'
+                else:
+                    modified_columns_str = ''
+
+                description = f'This csv file was created by the {self.code_name} code ' \
+                              f'from the file "{read_filename}".\n' \
+                              f'In addition to the original columns {set(creation_columns) - set(columns)}, ' \
+                              f'it also has:\n' \
+                              f'{new_columns_str}' \
+                              f'{modified_columns_str}'
+
+            filenames_to_descriptions[saved_df_filename] = description
+
+        return filenames_to_descriptions

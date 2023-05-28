@@ -42,7 +42,7 @@ from .request_latex import BaseLatexProductsReviewGPT
 from .request_python_value import BasePythonValueProductsReviewGPT
 
 # Requesting code (with automatic debugging feedback):
-from .request_code import BaseCodeProductsGPT
+from .request_code import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT
 
 
 # --- CONVERTING PRODUCTS TO FILES ---
