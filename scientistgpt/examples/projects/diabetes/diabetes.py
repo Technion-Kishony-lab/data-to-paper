@@ -12,6 +12,6 @@ RUN_PARAMETERS = dict(
 
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
-              output_folder='2023-05-26 Nice classifiers results',
+              output_folder='out505',
               should_mock_servers=True,
               save_on_repo=True)
