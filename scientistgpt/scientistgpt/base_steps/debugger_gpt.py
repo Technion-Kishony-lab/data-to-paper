@@ -2,7 +2,7 @@ import os
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Iterable
+from typing import Optional, List, Iterable, Set
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
@@ -120,12 +120,12 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
-    def _respond_to_unsaved_dataframes(self, created_files: List[str]):
+    def _respond_to_unsaved_dataframes(self, read_but_unsaved_dataframe_files: Set[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            I see that your code modifies some of the dataframes. \
-            I would like the code to save the modified dataframes.  
-            Please rewrite the complete code again adding commands to save all modified dataframe as new files \
+            I see that your code modifies some of the dataframes {read_but_unsaved_dataframe_files}. \
+            I would like the code to save any such modified dataframe.  
+            Please rewrite the complete code again adding `to_csv` to save all modified dataframe as new files \
             in the same directory as the code.
             """),
             comment=f'{self.iteration_str}: Code completed, but not all modified dataframes were saved.')
@@ -265,6 +265,7 @@ class DebuggerGPT(BaseProductsGPT):
         code_runner = self._get_code_runner(response)
         try:
             code_and_output = code_runner.run_code()
+            dataframe_operations = code_and_output.dataframe_operations
         except IncompleteBlockFailedExtractingCode:
             failed_extracting_code = True
             self._respond_to_incomplete_code()
@@ -320,10 +321,11 @@ class DebuggerGPT(BaseProductsGPT):
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
             elif self.enforce_saving_altered_dataframes \
-                    and len(code_and_output.get_created_files_beside_output_file()) < \
-                    len(code_and_output.dataframe_operations.get_changed_dataframes()):
+                    and dataframe_operations.get_read_changed_but_unsaved_ids():
                 # The code ran successfully, but not all changed dataframes were saved to files.
-                self._respond_to_unsaved_dataframes(list(code_and_output.get_created_files_beside_output_file()))
+                read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
+                    dataframe_operations.get_read_changed_but_unsaved_ids())
+                self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
             else:
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
