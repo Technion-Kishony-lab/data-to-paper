@@ -133,7 +133,7 @@ class ScientificProducts(Products):
                 lambda: self.analysis_plan,
             ),
 
-            'code:{}': NameDescriptionStageGenerator(
+            'codes:{}': NameDescriptionStageGenerator(
                 '{code_name} Code',
                 'Here is our {code_name} Code:\n```python\n{code}\n```\n',
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
@@ -141,7 +141,7 @@ class ScientificProducts(Products):
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
-            'output:{}': NameDescriptionStageGenerator(
+            'outputs:{}': NameDescriptionStageGenerator(
                 'Output of the {code_name} Code',
                 'Here is the output of our {code_name} code:\n```\n{output}\n```\n',
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
@@ -149,11 +149,11 @@ class ScientificProducts(Products):
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
-            'code_and_output:{}': NameDescriptionStageGenerator(
+            'codes_and_outputs:{}': NameDescriptionStageGenerator(
                 'Data Analysis Code and Output',
                 '{}\n\n{}',
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
-                lambda code_step: (self["code:" + code_step].description, self["output:" + code_step].description)
+                lambda code_step: (self["codes:" + code_step].description, self["outputs:" + code_step].description)
             ),
 
             'results_summary': NameDescriptionStageGenerator(

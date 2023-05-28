@@ -85,7 +85,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
             products.codes_and_outputs['data_preprocessing'] = \
                 DataPreprocessingCodeProductsGPT.from_(self).get_analysis_code()
-            self.send_product_to_client('code_and_output:data_preprocessing')
+            self.send_product_to_client('codes_and_outputs:data_preprocessing')
 
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
@@ -97,7 +97,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
         products.codes_and_outputs['data_analysis'] = \
             DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
-        self.send_product_to_client('code_and_output:data_analysis')
+        self.send_product_to_client('codes_and_outputs:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)
