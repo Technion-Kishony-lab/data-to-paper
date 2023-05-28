@@ -5,7 +5,7 @@ import openai
 
 from typing import List, Union
 
-from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEY
+from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_API_KEYS
 
 from .base_server import ServerCaller, NoMoreResponsesToMockError
 from .openai_models import ModelEngine
@@ -14,8 +14,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from scientistgpt.conversation.message import Message
 
-# Set up the OpenAI API client
-openai.api_key = OPENAI_API_KEY
 
 MAX_NUM_OPENAI_ATTEMPTS = 5
 
@@ -31,6 +29,7 @@ class OpenaiSeverCaller(ServerCaller):
         """
         Connect with openai to get response to conversation.
         """
+        openai.api_key = OPENAI_API_KEYS.get(model_engine, OPENAI_API_KEYS[None])
         model_engine = model_engine or DEFAULT_MODEL_ENGINE
         response = openai.ChatCompletion.create(
             model=min(MAX_MODEL_ENGINE, model_engine).value,
