@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union, Tuple, Dict, Callable, NamedTuple
 
-from scientistgpt.conversation.stage import Stages, Stage
+from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
 from scientistgpt.utils.text_formatting import format_with_args_or_kwargs, ArgsOrKwargs
 
