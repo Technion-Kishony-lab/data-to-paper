@@ -43,6 +43,9 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
         """
         Validate that the response is given in the correct format. if not raise TypeError.
         """
+        if self.value_type == Dict[str, Any]:
+            if isinstance(response_value, dict) and all(isinstance(k, str) for k in response_value):
+                return
         if self.value_type == Dict[str, str]:
             if isinstance(response_value, dict) \
                     and all(isinstance(k, str) and isinstance(v, str) for k, v in response_value.items()):
