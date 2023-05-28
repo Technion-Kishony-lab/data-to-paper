@@ -75,11 +75,3 @@ def test_plan_reviewer(plan_reviewer):
     # depending on openai response, these conditions may not be necessarily be met:
     assert 'male' in plan
     assert 'female' in plan
-
-
-# TODO: this code run test is far from perfect. Need to mock the code runner.
-
-# @OPENAI_SERVER_CALLER.record_or_replay()
-# def test_code_reviewer(code_reviewer):
-#     data_analysis_code_and_output = code_reviewer.get_analysis_code()
-#     print(data_analysis_code_and_output)

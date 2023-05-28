@@ -1,14 +1,14 @@
-from scientistgpt.conversation.stage import Stage
+from scientistgpt.conversation.stage import Stages, Stage
 
 
-class ScientificStage(Stage):
-    DATA = "data"
-    EXPLORATION = "exploration"
-    GOAL = "goal"
-    PREPROCESSING = "preprocessing"
-    PLAN = "plan"
-    CODE = "code"
-    INTERPRETATION = "interpretation"
-    WRITING = "writing"
-    CITATIONS = "citations"
-    TABLES = "tables"
+class ScientificStages(Stages):
+    DATA = Stage("data")
+    EXPLORATION = Stage("exploration")
+    GOAL = Stage("goal")
+    PREPROCESSING = Stage("preprocessing")
+    PLAN = Stage("plan")
+    CODE = Stage("code")
+    INTERPRETATION = Stage("interpretation")
+    WRITING = Stage("writing")
+    CITATIONS = Stage("citations")
+    TABLES = Stage("tables")
