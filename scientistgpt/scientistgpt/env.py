@@ -8,7 +8,7 @@ SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy', 'sklearn', 'xgboost',
                               wrap_with='"', prefix='[', suffix=']')
 
 # OpenAI API keys. model=None is the default key.
-OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = Dict[Optional[ModelEngine], str]({
+OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = dict[Optional[ModelEngine], str]({
     None:
         ("org-gvr0szNH28eeeuMCEG9JrwcR",
          "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"),
