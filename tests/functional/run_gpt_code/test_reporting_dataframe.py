@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from scientistgpt.run_gpt_code.overrides.override_dataframe import hook_dataframe, ReportingDataFrame, \
-    collect_changed_data_frames, DataFrameSeriesChange
+    collect_changed_data_frames, DataFrameSeriesChange, SeriesOperationType
 
 
 @pytest.fixture()
@@ -45,11 +45,12 @@ def test_dataframe_context_allows_changing():
 
 
 def test_dataframe_context_collects_changed_dataframes():
-    with collect_changed_data_frames() as changed_data_frames:
+    with collect_changed_data_frames() as dataframe_operations:
         df = pd.DataFrame({'a': [1, 2, 3]})
         df['b'] = [4, 5, 6]
-    assert len(changed_data_frames) == 1
-    assert changed_data_frames[0]['b'].tolist() == [4, 5, 6]
+    assert len(dataframe_operations) == 2
+    print(dataframe_operations)
+    assert dataframe_operations[1].series_name == 'b'
 
 
 def test_dataframe_read_csv_creates_reporting_dataframe(tmpdir_with_csv_file):
@@ -58,15 +59,17 @@ def test_dataframe_read_csv_creates_reporting_dataframe(tmpdir_with_csv_file):
     assert type(df) is ReportingDataFrame
 
 
-def test_dataframe_read_csv_is_not_collected_if_did_not_changed(tmpdir_with_csv_file):
-    with collect_changed_data_frames() as changed_data_frames:
+def test_dataframe_creation_is_collected_upon_read_csv(tmpdir_with_csv_file):
+    with collect_changed_data_frames() as dataframe_operations:
         pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
-    assert len(changed_data_frames) == 0
+    assert len(dataframe_operations) == 1
+    assert dataframe_operations[0].created_by == 'read_csv'
+    assert dataframe_operations[0].filename == 'test.csv'
 
 
 def test_dataframe_read_csv_is_collected_if_changed(tmpdir_with_csv_file):
     with collect_changed_data_frames() as changed_data_frames:
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
         df['new'] = [4, 5]
-    assert len(changed_data_frames) == 1
-    assert changed_data_frames[0]['new'].tolist() == [4, 5]
+    assert len(changed_data_frames) == 2
+    assert changed_data_frames[1].operation_type == SeriesOperationType.ADD
