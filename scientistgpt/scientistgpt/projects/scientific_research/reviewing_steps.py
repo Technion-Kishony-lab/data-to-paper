@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
@@ -124,7 +124,7 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis')
     conversation_name: str = 'key_numerical_results_extractor'
-    value_type: type = Dict[str, str]
+    value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
     goal_verb: str = 'extract'
     assistant_agent: ScientificAgent = ScientificAgent.Performer

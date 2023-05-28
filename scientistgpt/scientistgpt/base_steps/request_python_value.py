@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewGPT
 
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict, Tuple, get_args, Iterable
 
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
@@ -27,6 +27,15 @@ def get_origin(t: type) -> type:
     return t
 
 
+def check_all_of_type(elements: Iterable, type_: type) -> bool:
+    """
+    Check if all elements in a list are of a certain type.
+    """
+    if type_ is Any:
+        return True
+    return all(isinstance(e, type_) for e in elements)
+
+
 @dataclass
 class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
     """
@@ -39,20 +48,27 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
     def parent_type(self) -> type:
         return get_origin(self.value_type)
 
+    @property
+    def child_types(self) -> Tuple[type, ...]:
+        return get_args(self.value_type)
+
     def validate_variable_type(self, response_value):
         """
         Validate that the response is given in the correct format. if not raise TypeError.
         """
-        if self.value_type == Dict[str, str]:
-            if isinstance(response_value, dict) \
-                    and all(isinstance(k, str) and isinstance(v, str) for k, v in response_value.items()):
-                return
-        elif self.value_type == List[str]:
-            if isinstance(response_value, list) and all(isinstance(k, str) for k in response_value):
-                return
-        else:
-            raise NotImplementedError(f'format_type: {self.value_type} is not implemented')
-        raise TypeError(f'object is not of type: {self.value_type}')
+        if not isinstance(response_value, self.parent_type):
+            raise TypeError(f'object is not of type: {self.parent_type}')
+        if isinstance(response_value, dict):
+            if not check_all_of_type(response_value.keys(), self.child_types[0]):
+                raise TypeError(f'The dict keys must be of type: {self.child_types[0]}')
+            if not check_all_of_type(response_value.values(), self.child_types[1]):
+                raise TypeError(f'The dict values must be of type: {self.child_types[1]}')
+            return
+        elif isinstance(response_value, (list, tuple, set)):
+            if not check_all_of_type(response_value, self.child_types[0]):
+                raise TypeError(f'The values must be of type: {self.child_types[0]}')
+            return
+        raise NotImplementedError(f'format_type: {self.value_type} is not implemented')
 
     def extract_python_value_from_response(self, response: str) -> (Optional[str], Any):
         """
@@ -76,11 +92,6 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
         except Exception as e:
             feedback_message = \
                 f'I tried to eval your response with Python `eval(response)`, but got:\n{e}'
-            return feedback_message, None
-        if not isinstance(response_value, self.parent_type):
-            feedback_message = \
-                f'Your response should be formatted as a {self.parent_type}, ' \
-                f'but I got a `{type(response_value).__name__}`.'
             return feedback_message, None
         try:
             self.validate_variable_type(response_value)
