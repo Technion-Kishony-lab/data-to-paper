@@ -18,8 +18,7 @@ class DataFileDescription:
         Return the first `num_lines` lines of the file.
         """
         with open(self.file_path) as f:
-            head = [next(f) for _ in range(num_lines)]
-            return ''.join(head)
+            return ''.join(f.readlines()[:num_lines])
 
     def pretty_repr(self, num_lines: int = 4):
         s = f'{self.file_path}\n{self.description}\n\n'
@@ -59,44 +58,17 @@ class DataFileDescriptions(List[DataFileDescription]):
         else:
             return self.get_file_description(data_file.originated_from)
 
-    def get_children(self, data_file: DataFileDescription):
+    def get_pretty_description_for_file(self, data_file: DataFileDescription, num_lines: int = 4):
         """
-        Return the children of the given data file.
+        Traverse up the tree up to the root, the description of the given data file is the descriptions of all the
+        parents concatenated together from the oldest ancestor and at the end also file header of the given file.
         """
-        return DataFileDescriptions([data_file_description for data_file_description in self
-                                     if data_file_description.originated_from == data_file.file_path],
-                                    data_folder=self.data_folder)
-
-    def get_all_raw_files(self):
-        """
-        Return all the raw files.
-        """
-        return DataFileDescriptions([data_file_description for data_file_description in self
-                                     if data_file_description.originated_from is None],
-                                    data_folder=self.data_folder)
-
-    def get_all_downstream(self, data_file: DataFileDescription):
-        """
-        Return all the downstream files of the given data file.
-        """
-        downstream = DataFileDescriptions([], data_folder=self.data_folder)
-        for child in self.get_children(data_file):
-            downstream.append(child)
-            downstream.extend(self.get_all_downstream(child))
-        return downstream
-
-    def get_pretty_description_for_file_and_children(self, data_file: DataFileDescription):
-        """
-        Return a pretty description for the given data file and all its children.
-        """
-        children = self.get_children(data_file)
-        if children:
-            s = f"{data_file.pretty_repr(0)}\n\n"
-            for child in children:
-                s += self.get_pretty_description_for_file_and_children(child)
-        else:
-            s = data_file.pretty_repr(4)
-        return s
+        descriptions = [data_file.pretty_repr(num_lines)]
+        data_file = self.get_parent(data_file)
+        while data_file is not None:
+            descriptions.append(data_file.pretty_repr(0))
+            data_file = self.get_parent(data_file)
+        return '\n\n'.join(reversed(descriptions))
 
     def pretty_repr(self, num_lines: int = 4):
         with run_in_directory(self.data_folder):
@@ -104,11 +76,10 @@ class DataFileDescriptions(List[DataFileDescription]):
                 s = 'No data files'
             elif len(self) == 1:
                 s = "1 data file:\n\n"
-                s += self[0].pretty_repr(num_lines)
+                s += self.get_pretty_description_for_file(self[0], num_lines)
             else:
                 s = f"{len(self)} data files:\n"
-                for parent in self.get_all_raw_files():
-                    s += self.get_pretty_description_for_file_and_children(parent)
+                s += '\n\n'.join([self.get_pretty_description_for_file(data_file, num_lines) for data_file in self])
             return s
 
     def get_data_filenames(self):

@@ -3,12 +3,10 @@ from typing import Iterable
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.base_steps import DataframeChangingCodeProductsGPT
+from scientistgpt.base_steps import DataframeChangingCodeProductsGPT, DataFileDescriptions, DataFileDescription
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
-from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from scientistgpt.utils.file_utils import run_in_directory
 from tests.functional.base_steps.utils import TestAgent
 
 
@@ -50,8 +48,9 @@ df2 = pd.DataFrame([["n", "e", "w"], ["r", "o", "w"]], columns=['a', 'b', 'c'])
 df2.to_csv('new_df.csv')
 """
 
-new_df_explanation = "This file is a new dataframe which has the following columns:\na b c"
+code_creating_csv_keywords_in_description = ('new_df.csv', 'a')
 
+new_df_explanation = "This file is a new dataframe which has the following columns:\na b c"
 
 code_reading_not_changing_existing_series = r"""import pandas as pd
 import copy
@@ -76,6 +75,8 @@ def test_request_code_with_adding_new_column(code_running_converser):
             record_more_if_needed=False):
         code_and_outputs = {"data_preprocessing": code_running_converser.get_analysis_code()}
         scientific_products = ScientificProducts()
+        scientific_products.data_file_descriptions = DataFileDescriptions(
+            [DataFileDescription(file_path='test.csv', description='test file')])
         scientific_products.codes_and_outputs = code_and_outputs
         for keyword in code_reading_csv_keywords_in_description:
             assert keyword in scientific_products['created_files_description:data_preprocessing'].description
@@ -89,5 +90,5 @@ def test_request_code_with_creating_new_df(code_running_converser):
         code_and_outputs = {"data_preprocessing": code_running_converser.get_analysis_code()}
         scientific_products = ScientificProducts()
         scientific_products.codes_and_outputs = code_and_outputs
-        for keyword in code_reading_csv_keywords_in_description:
+        for keyword in code_creating_csv_keywords_in_description:
             assert keyword in scientific_products['created_files_description:data_preprocessing'].description

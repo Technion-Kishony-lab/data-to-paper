@@ -8,7 +8,6 @@ from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.base_steps.types import DataFileDescriptions, Products, NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
-
 CODE_STEPS_TO_STAGES: Dict[str, Stage] = {
     'data_exploration': ScientificStages.EXPLORATION,
     'data_preprocessing': ScientificStages.PREPROCESSING,
@@ -195,8 +194,10 @@ class ScientificProducts(Products):
                 'We can use these files created by the {code_name} code:\n\n{created_files_description}',
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
                 lambda code_step: {
-                    'created_files_description': convert_description_of_created_files_to_string(
-                        self.codes_and_outputs[code_step].description_of_created_files),
+                    'created_files_description': DataFileDescriptions(
+                        self.data_file_descriptions + self.codes_and_outputs[code_step].description_of_created_files,
+                        data_folder=self.codes_and_outputs[code_step].description_of_created_files.data_folder)
+                    if self.codes_and_outputs[code_step].description_of_created_files is not None else None,
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -283,7 +284,7 @@ class ScientificProducts(Products):
                 'The Tables of the Paper',
                 'Here are the tables of the paper:\n\n{}',
                 ScientificStages.TABLES,
-                lambda: NiceList([f"Table {i+1}:\n\n {table}"
+                lambda: NiceList([f"Table {i + 1}:\n\n {table}"
                                   for i, table in enumerate(self.tables)],
                                  separator='\n\n'), ),
 
@@ -291,7 +292,7 @@ class ScientificProducts(Products):
                 'The Numeric Values of the Paper',
                 'Here are the numeric values of the paper:\n\n{}',
                 ScientificStages.INTERPRETATION,
-                lambda: NiceList([f"Numeric Value {i+1}, {numeric_value_name}:\n\n {numeric_value_content}"
+                lambda: NiceList([f"Numeric Value {i + 1}, {numeric_value_name}:\n\n {numeric_value_content}"
                                   for i, (numeric_value_name, numeric_value_content) in
                                   enumerate(self.numeric_values.items())], separator='\n\n'), ),
 
