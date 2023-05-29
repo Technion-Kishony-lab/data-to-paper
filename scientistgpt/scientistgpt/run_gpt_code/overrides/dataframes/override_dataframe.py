@@ -1,16 +1,16 @@
-import pandas as pd
-
 from functools import partial
+
+import pandas as pd
 
 from contextlib import contextmanager
 from dataclasses import dataclass
 
 from scientistgpt.utils.singleton import run_once
-
 from .dataframe_operations import DataframeOperation, \
     ChangeSeriesDataframeOperation, \
     AddSeriesDataframeOperation, RemoveSeriesDataframeOperation, CreationDataframeOperation, DataframeOperations, \
     SeriesDataframeOperation, SaveDataframeOperation
+from .overridde_core import override_core_ndframe
 
 
 @dataclass
@@ -59,23 +59,6 @@ class ReportingDataFrame(pd.DataFrame):
         super().__delitem__(key)
         self._notify_on_change(RemoveSeriesDataframeOperation(id=id(self), series_name=key))
 
-    def __str__(self):
-        # to avoid printing with [...] skipping columns
-        return self.to_string()
-
-    def to_csv(self, *args, **kwargs):
-        result = super().to_csv(*args, **kwargs)
-        file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
-        self._notify_on_change(SaveDataframeOperation(
-            id=id(self), file_path=file_path, columns=list(self.columns.values)))
-        return result
-
-
-pd.DataFrame = ReportingDataFrame
-
-
-# NDFrame.to_csv = ReportingDataFrame.to_csv
-
 
 DF_CREATING_FUNCTIONS = [
     'read_csv',
@@ -101,12 +84,16 @@ def hook_dataframe():
         setattr(pd, func_name, partial(hook_func, original_func=original_func))
 
 
+pd.DataFrame = ReportingDataFrame
+
+
 @contextmanager
 def collect_created_and_changed_data_frames(allow_changing_existing_series=False) -> DataframeOperations:
     """
     Context manager that collects all the data frames that are created and their changes during the context.
     """
     hook_dataframe()
+    override_core_ndframe()
     dataframe_operations = DataframeOperations()
 
     def on_change(df, series_operation: SeriesDataframeOperation):
