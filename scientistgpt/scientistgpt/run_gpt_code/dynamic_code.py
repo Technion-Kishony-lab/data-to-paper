@@ -12,7 +12,7 @@ from scientistgpt import chatgpt_created_scripts
 
 from scientistgpt.env import MAX_EXEC_TIME
 from scientistgpt.utils.file_utils import run_in_directory, UnAllowedFilesCreated
-from .overrides.override_dataframe import collect_created_and_changed_data_frames, DataframeOperations
+from scientistgpt.run_gpt_code.overrides.dataframes import collect_created_and_changed_data_frames, DataframeOperations
 
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context

@@ -1,100 +1,16 @@
 import pandas as pd
 
-from pathlib import Path
 from functools import partial
-from typing import List, Tuple, Optional, Set
 
 from contextlib import contextmanager
 from dataclasses import dataclass
 
 from scientistgpt.utils.singleton import run_once
 
-
-@dataclass(frozen=True)
-class DataframeOperation:
-    id: int
-
-
-@dataclass(frozen=True)
-class FileDataframeOperation(DataframeOperation):
-    file_path: Optional[str]
-    columns: Optional[List[str]]
-
-    @property
-    def filename(self):
-        if self.file_path is None:
-            return None
-        return Path(self.file_path).name
-
-
-@dataclass(frozen=True)
-class CreationDataframeOperation(FileDataframeOperation):
-    created_by: Optional[str]
-
-
-@dataclass(frozen=True)
-class SaveDataframeOperation(FileDataframeOperation):
-    pass
-
-
-@dataclass(frozen=True)
-class SeriesDataframeOperation(DataframeOperation):
-    series_name: str
-
-
-@dataclass(frozen=True)
-class AddSeriesDataframeOperation(SeriesDataframeOperation):
-    pass
-
-
-@dataclass(frozen=True)
-class RemoveSeriesDataframeOperation(SeriesDataframeOperation):
-    pass
-
-
-@dataclass(frozen=True)
-class ChangeSeriesDataframeOperation(SeriesDataframeOperation):
-    pass
-
-
-class DataframeOperations(List[DataframeOperation]):
-
-    def get_read_ids(self) -> Set[int]:
-        return {operation.id for operation in self
-                if isinstance(operation, CreationDataframeOperation) and operation.file_path is not None}
-
-    def get_changed_ids(self) -> Set[int]:
-        return {operation.id for operation in self if isinstance(operation, SeriesDataframeOperation)}
-
-    def get_saved_ids(self) -> Set[int]:
-        return {operation.id for operation in self if isinstance(operation, SaveDataframeOperation)}
-
-    def get_saved_ids_filenames(self) -> Set[Tuple[int, str]]:
-        return {(operation.id, operation.filename) for operation in self
-                if isinstance(operation, SaveDataframeOperation)}
-
-    def get_read_filename(self, id_: int) -> Optional[str]:
-        return next((operation.filename for operation in self
-                     if isinstance(operation, CreationDataframeOperation) and operation.id == id_), None)
-
-    def get_read_changed_but_unsaved_ids(self):
-        return self.get_read_ids() & self.get_changed_ids() - self.get_saved_ids()
-
-    def get_read_filenames_from_ids(self, ids: Set[int]) -> Set[Optional[str]]:
-        return {operation.filename for operation in self
-                if operation.id in ids and isinstance(operation, CreationDataframeOperation)}
-
-    def get_creation_columns(self, id_: int) -> Optional[List[str]]:
-        return next((operation.columns for operation in self
-                     if isinstance(operation, CreationDataframeOperation) and operation.id == id_), None)
-
-    def get_save_columns(self, id_: int) -> Optional[List[str]]:
-        return next((operation.columns for operation in self
-                     if isinstance(operation, SaveDataframeOperation) and operation.id == id_), None)
-
-    def get_changed_columns(self, id_: int) -> List[str]:
-        return [operation.series_name for operation in self
-                if isinstance(operation, ChangeSeriesDataframeOperation) and operation.id == id_]
+from .dataframe_operations import DataframeOperation, \
+    ChangeSeriesDataframeOperation, \
+    AddSeriesDataframeOperation, RemoveSeriesDataframeOperation, CreationDataframeOperation, DataframeOperations, \
+    SeriesDataframeOperation, SaveDataframeOperation
 
 
 @dataclass
@@ -111,7 +27,6 @@ class DataFrameSeriesChange(Exception):
 class ReportingDataFrame(pd.DataFrame):
     ALLOW_CHANGING_EXISTING_SERIES = True
     ON_CHANGE = None
-    ON_CREATION = None
 
     def __init__(self, *args, created_by: str = None, file_path: str = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -123,10 +38,6 @@ class ReportingDataFrame(pd.DataFrame):
 
     def __hash__(self):
         return hash(id(self))
-
-    @classmethod
-    def set_on_creation(cls, on_creation):
-        ReportingDataFrame.ON_CREATION = on_creation
 
     @staticmethod
     def set_on_change(on_change, allow_changing_existing_series=True):
@@ -163,6 +74,9 @@ class ReportingDataFrame(pd.DataFrame):
 pd.DataFrame = ReportingDataFrame
 
 
+# NDFrame.to_csv = ReportingDataFrame.to_csv
+
+
 DF_CREATING_FUNCTIONS = [
     'read_csv',
     'read_excel',
@@ -187,13 +101,6 @@ def hook_dataframe():
         setattr(pd, func_name, partial(hook_func, original_func=original_func))
 
 
-class DataFrameChanges:
-    """
-    Exception that is raised when a data frame is changed.
-    """
-    pass
-
-
 @contextmanager
 def collect_created_and_changed_data_frames(allow_changing_existing_series=False) -> DataframeOperations:
     """
@@ -201,9 +108,6 @@ def collect_created_and_changed_data_frames(allow_changing_existing_series=False
     """
     hook_dataframe()
     dataframe_operations = DataframeOperations()
-
-    def on_creation(df, creation_operation: CreationDataframeOperation):
-        dataframe_operations.append(creation_operation)
 
     def on_change(df, series_operation: SeriesDataframeOperation):
         dataframe_operations.append(series_operation)
@@ -213,11 +117,7 @@ def collect_created_and_changed_data_frames(allow_changing_existing_series=False
 
     ReportingDataFrame.set_on_change(on_change, allow_changing_existing_series)
 
-    original_on_creation = ReportingDataFrame.ON_CREATION
-    ReportingDataFrame.set_on_creation(on_creation)
-
     try:
         yield dataframe_operations
     finally:
         ReportingDataFrame.set_on_change(original_on_change, original_allow_changing_existing_series)
-        ReportingDataFrame.set_on_creation(original_on_creation)
