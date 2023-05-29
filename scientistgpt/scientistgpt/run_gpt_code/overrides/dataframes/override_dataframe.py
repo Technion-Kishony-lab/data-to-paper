@@ -59,7 +59,7 @@ def collect_created_and_changed_data_frames(allow_changing_existing_series=True)
     dataframe_operations = DataframeOperations()
 
     def on_change(df, series_operation: DataframeOperation):
-        if isinstance(series_operation, SeriesDataframeOperation) \
+        if isinstance(series_operation, ChangeSeriesDataframeOperation) \
                 and not allow_changing_existing_series \
                 and df.file_path is not None:
             raise DataFrameSeriesChange(changed_series=series_operation.series_name)

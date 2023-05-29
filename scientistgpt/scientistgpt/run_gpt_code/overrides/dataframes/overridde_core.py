@@ -53,6 +53,10 @@ def to_csv(self, *args, **kwargs):
     return result
 
 
+def is_overriden(self):
+    return True
+
+
 FUNC_NAMES_TO_FUNCS = {
     '__init__': __init__,
     '__setitem__': __setitem__,
@@ -69,3 +73,5 @@ def override_core_ndframe():
     """
     for func_name, func in FUNC_NAMES_TO_FUNCS.items():
         setattr(DataFrame, func_name, func)
+    DataFrame.is_overriden = is_overriden
+

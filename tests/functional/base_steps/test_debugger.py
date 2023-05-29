@@ -17,11 +17,13 @@ class TestDebuggerGPT(DebuggerGPT):
     assistant_agent: TestAgent = TestAgent.REVIEWER
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     output_filename: str = 'test_output.txt'
+    data_files: tuple = ('test.csv',)
+    enforce_saving_altered_dataframes: bool = True
 
 
 @fixture()
-def debugger(tmpdir):
-    return TestDebuggerGPT(data_folder=tmpdir)
+def debugger(tmpdir_with_csv_file):
+    return TestDebuggerGPT(data_folder=tmpdir_with_csv_file)
 
 
 code_creating_file_correctly = r"""```python
@@ -29,6 +31,15 @@ with open('test_output.txt', 'w') as f:
     f.write('The answer is 42')
 ```
 """
+
+code_altering_dataframe = r"""```python
+import pandas as pd
+df1 = pd.read_csv('test.csv')
+df1['new_column'] = df1['a'] + df1['b']
+df1.to_csv('test_modified.csv')
+with open('test_output.txt', 'w') as f:
+    f.write('The answer is 42')
+```"""
 
 
 def test_debugger_run_and_get_outputs(debugger):
@@ -41,6 +52,7 @@ def test_debugger_run_and_get_outputs(debugger):
     (code_creating_file_correctly, '```python', '```latex', ["latex"]),
     (code_creating_file_correctly, 'f.write', 'f.write(', ['SyntaxError']),
     (code_creating_file_correctly, 'test_output', 'wrong_file', ['test_output']),
+    (code_altering_dataframe, "df1.to_csv('test_modified.csv')", '', 'test.csv'),
 ])
 def test_request_code_with_error(correct_code, replaced_value, replace_with, error_includes, debugger):
     incorrect_code = correct_code.replace(replaced_value, replace_with)

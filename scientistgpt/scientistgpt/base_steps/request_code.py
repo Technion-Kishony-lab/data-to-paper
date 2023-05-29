@@ -251,9 +251,10 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
             columns_to_explanations = PythonDictWithDefinedKeysProductsReviewGPT.from_(
                 self,
                 max_reviewing_rounds=0,
-                requested_keys=columns,
+                requested_keys=set(columns),
                 user_initiation_prompt=Replacer(self, request_prompt,
-                                                kwargs={'dataframe_file_name': saved_df_filename, 'columns': columns})
+                                                kwargs={'dataframe_file_name': saved_df_filename, 'columns': columns}),
+                value_type=Dict[str, str],
             ).run_dialog_and_get_python_value()
 
             if read_filename is None:

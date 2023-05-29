@@ -16,6 +16,18 @@ CODE_STEPS_TO_STAGES: Dict[str, Stage] = {
 }
 
 
+def convert_description_of_created_files_to_string(description_of_created_files: Dict[str, str]) -> Optional[str]:
+    """
+    Convert the description of created files to a string.
+    """
+    if not description_of_created_files:
+        return None
+    return '\n'.join(
+        f'File "{file_name}":\n\n{file_description}'
+        for file_name, file_description in description_of_created_files.items()
+    )
+
+
 @dataclass
 class ScientificProducts(Products):
     """
@@ -173,7 +185,8 @@ class ScientificProducts(Products):
                 'We can use these files created by the {code_name} code:\n\n{created_files_description}',
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
                 lambda code_step: {
-                    'created_files_description': self.codes_and_outputs[code_step].description_of_created_files,
+                    'created_files_description': convert_description_of_created_files_to_string(
+                        self.codes_and_outputs[code_step].description_of_created_files),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
