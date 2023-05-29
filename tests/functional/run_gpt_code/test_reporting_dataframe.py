@@ -3,6 +3,7 @@ import pytest
 
 from scientistgpt.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe, ReportingDataFrame, \
     collect_created_and_changed_data_frames, DataFrameSeriesChange, AddSeriesDataframeOperation
+from scientistgpt.utils.file_utils import run_in_directory
 
 
 def test_dataframe_allows_changing_when_not_in_context():
@@ -98,3 +99,18 @@ def test_dataframe_column_names(tmpdir_with_csv_file):
     id_ = dataframe_operations[0].id
     assert dataframe_operations.get_creation_columns(id_) == ['a', 'b', 'c']
     assert dataframe_operations.get_save_columns(id_) == ['a', 'b', 'c', 'new']
+
+
+def test_even_non_reporting_df_reports_on_save(tmpdir):
+    with collect_created_and_changed_data_frames() as dataframe_operations:
+        df = pd.concat([pd.Series([1, 2, 3]), pd.Series([4, 5, 6])])
+        # set the column names:
+        df = df.to_frame()
+        df.columns = ['A']
+        assert not isinstance(df, ReportingDataFrame)
+        with run_in_directory(tmpdir):
+            df.to_csv('test.csv')
+
+    assert len(dataframe_operations) == 1
+    assert dataframe_operations[0].filename == 'test.csv'
+    assert dataframe_operations[0].columns == ['A']
