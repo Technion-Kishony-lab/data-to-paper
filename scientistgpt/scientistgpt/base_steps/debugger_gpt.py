@@ -8,7 +8,7 @@ from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.run_gpt_code.overrides.override_dataframe import DataFrameSeriesChange
+from scientistgpt.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
 from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule

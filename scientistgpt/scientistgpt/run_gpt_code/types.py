@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Dict
 
-from scientistgpt.run_gpt_code.overrides.override_dataframe import DataframeOperations
+from scientistgpt.run_gpt_code.overrides.dataframes import DataframeOperations
 
 
 @dataclass
