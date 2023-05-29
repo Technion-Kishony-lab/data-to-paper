@@ -8,9 +8,10 @@ from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.replacer import Replacer
+from . import DataFileDescription, DataFileDescriptions
 
 from .debugger_gpt import DebuggerGPT
-from .base_products_conversers import BaseBackgroundProductsGPT
+from .base_products_conversers import BaseBackgroundProductsGPT, BaseProductsReviewGPT
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import BaseMultiChoiceProductsGPT
 from .request_python_value import PythonDictWithDefinedKeysProductsReviewGPT
@@ -163,7 +164,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     def _ask_for_code_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
         return None
 
-    def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[Dict[str, str]]:
+    def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[DataFileDescriptions]:
         return None
 
 
@@ -217,10 +218,8 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
 @dataclass
 class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
     requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
-        Explain the content of each of the columns of "{dataframe_file_name}".
-
-        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the
-        strings that explain the content of each column.
+        Explain the content of the file "{dataframe_file_name}", and how the different columns are derived from the \
+        original data.
         """)
 
     requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
@@ -230,9 +229,9 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
         strings that explain the content of each column.
         """)
 
-    def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[Dict[str, str]]:
+    def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[DataFileDescriptions]:
         dataframe_operations = code_and_output.dataframe_operations
-        filenames_to_descriptions = {}
+        data_file_descriptions = DataFileDescriptions(data_folder=self.data_folder)
         for saved_df_id, saved_df_filename in dataframe_operations.get_saved_ids_filenames():
             read_filename = dataframe_operations.get_read_filename(saved_df_id)
             saved_columns = dataframe_operations.get_save_columns(saved_df_id)
@@ -242,26 +241,29 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
             if read_filename is None:
                 # this saved dataframe was created by the code, not read from a file
                 columns = saved_columns
-                request_prompt = self.requesting_explanation_for_a_new_dataframe
+                response = BaseProductsReviewGPT.from_(
+                    self,
+                    max_reviewing_rounds=0,
+                    user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
+                                                    kwargs={'dataframe_file_name': saved_df_filename,
+                                                            'columns': columns}),
+                ).initialize_and_run_dialog()
+                description = f'This csv file was created by the {self.code_name} code.\n' \
+                              f'{response}\n'
+                data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
+                                                            originated_from=None)
             else:
                 # this saved dataframe was read from a file
                 columns = list(set(added_columns) | set(changed_columns))
-                request_prompt = self.requesting_explanation_for_a_modified_dataframe
+                columns_to_explanations = PythonDictWithDefinedKeysProductsReviewGPT.from_(
+                    self,
+                    max_reviewing_rounds=0,
+                    requested_keys=set(columns),
+                    user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_modified_dataframe,
+                                                    kwargs={'dataframe_file_name': saved_df_filename, 'columns': columns}),
+                    value_type=Dict[str, str],
+                ).run_dialog_and_get_python_value()
 
-            columns_to_explanations = PythonDictWithDefinedKeysProductsReviewGPT.from_(
-                self,
-                max_reviewing_rounds=0,
-                requested_keys=set(columns),
-                user_initiation_prompt=Replacer(self, request_prompt,
-                                                kwargs={'dataframe_file_name': saved_df_filename, 'columns': columns}),
-                value_type=Dict[str, str],
-            ).run_dialog_and_get_python_value()
-
-            if read_filename is None:
-                description = f'This csv file was created by the {self.code_name} code.\n' \
-                              f'The columns are:\n' \
-                              f'{columns_to_explanations}'
-            else:
                 new_columns_to_explanations = \
                     {column: explanation for column, explanation in columns_to_explanations.items()
                      if column in added_columns}
@@ -269,25 +271,25 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                     {column: explanation for column, explanation in columns_to_explanations.items()
                         if column not in added_columns}
 
-                if len(new_columns_to_explanations) > 0:
-                    new_columns_str = f'\nNew columns:\n' \
-                                      f'{columns_to_explanations}\n'
-                else:
-                    new_columns_str = ''
-
                 if len(modified_columns_to_explanations) > 0:
-                    modified_columns_str = f'\nModified columns:\n' \
-                                           f'{columns_to_explanations}\n'
+                    modified_columns_str = f'\nWe modified these columns:\n' \
+                                           f'{modified_columns_to_explanations}\n'
                 else:
                     modified_columns_str = ''
 
-                description = f'This csv file was created by the {self.code_name} code ' \
+                if len(new_columns_to_explanations) > 0:
+                    new_columns_str = f'\nWe added these columns:\n' \
+                                      f'{new_columns_to_explanations}\n'
+                else:
+                    new_columns_str = ''
+
+                description = f'This csv file was created by our {self.code_name} code ' \
                               f'from the file "{read_filename}".\n' \
-                              f'In addition to the original columns {set(creation_columns) - set(columns)}, ' \
-                              f'it also has:\n' \
-                              f'{new_columns_str}' \
-                              f'{modified_columns_str}'
+                              f'{modified_columns_str}' \
+                              f'{new_columns_str}'
+                data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
+                                                            originated_from=read_filename)
 
-            filenames_to_descriptions[saved_df_filename] = description
+            data_file_descriptions.append(data_file_description)
 
-        return filenames_to_descriptions
+        return data_file_descriptions
