@@ -256,7 +256,8 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'codes:data_analysis', 'title_and_abstract')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'codes:data_analysis', 'title_and_abstract',
+                                 'most_updated_paper_sections:results', 'most_updated_paper_sections:discussion')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\section{} command, and any math or symbols that needs tex escapes.
         """)
@@ -310,6 +311,8 @@ class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
         Based on the material provided above ({actual_background_product_names}), please write \
         the "{pretty_section_names}" of the paper, while explicitly \
         mentioning any key Numerical Values that are scientifically meaningful.
+        Don't refer to the Numerical Values, explicitly mention them as integral part of the text, as they are \
+        not going to be added as a part of the paper otherwise. 
         Refer to the Tables by their labels and explain their content, but do not add the tables themselves \
         (I will add the tables later manually).
         Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
