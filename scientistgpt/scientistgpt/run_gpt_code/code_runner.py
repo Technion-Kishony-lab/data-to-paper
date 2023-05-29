@@ -67,6 +67,8 @@ class CodeRunner:
             raise FailedLoadingOutput()
 
     def delete_output_file(self):
+        if self.output_file is None:
+            return
         try:
             os.remove(self.output_file)
         except FileNotFoundError:

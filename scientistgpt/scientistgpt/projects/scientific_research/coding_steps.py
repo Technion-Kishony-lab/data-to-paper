@@ -71,9 +71,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
     background_product_fields = ('data_file_descriptions', )
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
-    allowed_created_files: Iterable[str] = ('*.csv',)
+    allowed_created_files: Iterable[str] = ()
     allow_dataframes_to_change_existing_series = False
-    enforce_saving_altered_dataframes: bool = True
+    enforce_saving_altered_dataframes: bool = False
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
@@ -98,9 +98,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
-
-        IMPORTANT: If you create a new dataframe or modify or add any new variables to the original dataframe, 
-        you should save the modified/new dataframes in new files.
         """)
 
     requesting_code_explanation_prompt: str = None
@@ -117,7 +114,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
     background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                  'created_files_description:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
-    output_filename: str = 'data_preprocessing.txt'
+    output_filename: str = None
     allowed_created_files: Iterable[str] = ('*.csv',)
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
@@ -127,7 +124,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
         cleaned, normalized, balanced version of the data.
 
         Your code should create one or more new csv files containing the preprocessed data with a sensible file name.
-        Any text you wish to add should be saved to a text file named {actual_output_filename}.
 
         Depending on the specifics of the dataset, you might want to preform the following steps:
 
@@ -143,7 +139,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
 
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
-        Do not send any presumed output examples.
 
         IMPORTANT: If you create a new dataframe or modify or add any new variables to the original dataframe, 
         you should save the modified/new dataframes in new files.
