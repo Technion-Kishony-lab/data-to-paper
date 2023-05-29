@@ -46,6 +46,16 @@ class ScientificProducts(Products):
     ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
+    def all_file_descriptions(self) -> DataFileDescriptions:
+        """
+        Return the description of all files.
+        """
+        return DataFileDescriptions(
+            self.data_file_descriptions + [co.description_of_created_files for co in self.codes_and_outputs.values()
+                                           if co.description_of_created_files is not None],
+            data_folder=self.data_file_descriptions.data_folder)
+
+    @property
     def citations(self) -> NiceList[CrossrefCitation]:
         """
         Return the citations of the paper.

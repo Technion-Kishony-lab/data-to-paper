@@ -11,6 +11,7 @@ from scientistgpt.utils.text_formatting import format_with_args_or_kwargs, ArgsO
 class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name
     description: str  # a user provided description of the file
+    originated_from: Optional[str] = None  # None for raw file
 
     def get_file_header(self, num_lines: int = 4):
         """
@@ -40,6 +41,63 @@ class DataFileDescriptions(List[DataFileDescription]):
     def __str__(self):
         return self.pretty_repr()
 
+    def get_file_description(self, file_path: str) -> DataFileDescription:
+        """
+        Return the data file description for the given file path.
+        """
+        for data_file_description in self:
+            if data_file_description.file_path == file_path:
+                return data_file_description
+        raise ValueError(f"Could not find file path {file_path} in data file descriptions.")
+
+    def get_parent(self, data_file: DataFileDescription):
+        """
+        Return the parent of the given data file.
+        """
+        if data_file.originated_from is None:
+            return None
+        else:
+            return self.get_file_description(data_file.originated_from)
+
+    def get_children(self, data_file: DataFileDescription):
+        """
+        Return the children of the given data file.
+        """
+        return DataFileDescriptions([data_file_description for data_file_description in self
+                                     if data_file_description.originated_from == data_file.file_path],
+                                    data_folder=self.data_folder)
+
+    def get_all_raw_files(self):
+        """
+        Return all the raw files.
+        """
+        return DataFileDescriptions([data_file_description for data_file_description in self
+                                     if data_file_description.originated_from is None],
+                                    data_folder=self.data_folder)
+
+    def get_all_downstream(self, data_file: DataFileDescription):
+        """
+        Return all the downstream files of the given data file.
+        """
+        downstream = DataFileDescriptions([], data_folder=self.data_folder)
+        for child in self.get_children(data_file):
+            downstream.append(child)
+            downstream.extend(self.get_all_downstream(child))
+        return downstream
+
+    def get_pretty_description_for_file_and_children(self, data_file: DataFileDescription):
+        """
+        Return a pretty description for the given data file and all its children.
+        """
+        children = self.get_children(data_file)
+        if children:
+            s = f"{data_file.pretty_repr(0)}\n\n"
+            for child in children:
+                s += self.get_pretty_description_for_file_and_children(child)
+        else:
+            s = data_file.pretty_repr(4)
+        return s
+
     def pretty_repr(self, num_lines: int = 4):
         with run_in_directory(self.data_folder):
             if len(self) == 0:
@@ -49,8 +107,8 @@ class DataFileDescriptions(List[DataFileDescription]):
                 s += self[0].pretty_repr(num_lines)
             else:
                 s = f"{len(self)} data files:\n"
-                for file_number, data_file_description in enumerate(self):
-                    s += f"\n({file_number + 1}) " + data_file_description.pretty_repr(num_lines)
+                for parent in self.get_all_raw_files():
+                    s += self.get_pretty_description_for_file_and_children(parent)
             return s
 
     def get_data_filenames(self):
