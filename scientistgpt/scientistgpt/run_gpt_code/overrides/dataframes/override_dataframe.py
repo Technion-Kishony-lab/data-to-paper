@@ -10,7 +10,7 @@ from .dataframe_operations import DataframeOperation, \
     ChangeSeriesDataframeOperation, \
     AddSeriesDataframeOperation, RemoveSeriesDataframeOperation, CreationDataframeOperation, DataframeOperations, \
     SeriesDataframeOperation, SaveDataframeOperation
-from .overridde_core import override_core_ndframe
+from .overridde_core import override_core_ndframe, ON_CHANGE
 
 
 @dataclass
@@ -24,42 +24,6 @@ class DataFrameSeriesChange(Exception):
         return f'Changed series: {self.changed_series}'
 
 
-class ReportingDataFrame(pd.DataFrame):
-    ALLOW_CHANGING_EXISTING_SERIES = True
-    ON_CHANGE = None
-
-    def __init__(self, *args, created_by: str = None, file_path: str = None, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.created_by = created_by
-        self.file_path = file_path
-        self._notify_on_change(CreationDataframeOperation(
-            id=id(self), created_by=created_by, file_path=file_path, columns=list(self.columns.values)))
-
-    def __hash__(self):
-        return hash(id(self))
-
-    @staticmethod
-    def set_on_change(on_change, allow_changing_existing_series=True):
-        ReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES = allow_changing_existing_series
-        ReportingDataFrame.ON_CHANGE = on_change
-
-    def _notify_on_change(self, operation: DataframeOperation):
-        if ReportingDataFrame.ON_CHANGE is not None:
-            ReportingDataFrame.ON_CHANGE(self, operation)
-
-    def __setitem__(self, key, value):
-        operation_type = ChangeSeriesDataframeOperation if key in self else AddSeriesDataframeOperation
-        if not self.ALLOW_CHANGING_EXISTING_SERIES and operation_type is ChangeSeriesDataframeOperation:
-            raise DataFrameSeriesChange(changed_series=key)
-        super().__setitem__(key, value)
-        self._notify_on_change(operation_type(id=id(self), series_name=key))
-
-    def __delitem__(self, key):
-        super().__delitem__(key)
-        self._notify_on_change(RemoveSeriesDataframeOperation(id=id(self), series_name=key))
-
-
 DF_CREATING_FUNCTIONS = [
     'read_csv',
     'read_excel',
@@ -68,14 +32,15 @@ DF_CREATING_FUNCTIONS = [
 
 
 def hook_func(*args, original_func=None, **kwargs):
-    df = original_func(*args, **kwargs)
+    with ON_CHANGE.temporary_set(None):
+        df = original_func(*args, **kwargs)
     file_path = args[0] if len(args) > 0 else kwargs.get('filepath_or_buffer')
-    reporting_df = ReportingDataFrame(df, created_by=original_func.__name__, file_path=file_path)
+    reporting_df = pd.DataFrame(df, created_by=original_func.__name__, file_path=file_path)
     return reporting_df
 
 
 @run_once
-def hook_dataframe():
+def hook_dataframe_creating_funcs():
     """
     Hook all the dataframe creating functions so that they return a ReportingDataFrame instance.
     """
@@ -84,27 +49,25 @@ def hook_dataframe():
         setattr(pd, func_name, partial(hook_func, original_func=original_func))
 
 
-pd.DataFrame = ReportingDataFrame
-
-
 @contextmanager
-def collect_created_and_changed_data_frames(allow_changing_existing_series=False) -> DataframeOperations:
+def collect_created_and_changed_data_frames(allow_changing_existing_series=True) -> DataframeOperations:
     """
     Context manager that collects all the data frames that are created and their changes during the context.
     """
-    hook_dataframe()
+    hook_dataframe_creating_funcs()
     override_core_ndframe()
     dataframe_operations = DataframeOperations()
 
-    def on_change(df, series_operation: SeriesDataframeOperation):
+    def on_change(df, series_operation: DataframeOperation):
+        if isinstance(series_operation, SeriesDataframeOperation) \
+                and not allow_changing_existing_series \
+                and df.file_path is not None:
+            raise DataFrameSeriesChange(changed_series=series_operation.series_name)
         dataframe_operations.append(series_operation)
 
-    original_on_change = ReportingDataFrame.ON_CHANGE
-    original_allow_changing_existing_series = ReportingDataFrame.ALLOW_CHANGING_EXISTING_SERIES
-
-    ReportingDataFrame.set_on_change(on_change, allow_changing_existing_series)
-
-    try:
+    with ON_CHANGE.temporary_set(on_change):
         yield dataframe_operations
-    finally:
-        ReportingDataFrame.set_on_change(original_on_change, original_allow_changing_existing_series)
+
+    #
+    # if not self.ALLOW_CHANGING_EXISTING_SERIES and operation_type is ChangeSeriesDataframeOperation:
+    #     raise DataFrameSeriesChange(changed_series=key)

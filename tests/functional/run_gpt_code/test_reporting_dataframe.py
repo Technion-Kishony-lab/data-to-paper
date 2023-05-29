@@ -1,39 +1,36 @@
 import pandas as pd
 import pytest
 
-from scientistgpt.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe, ReportingDataFrame, \
+from scientistgpt.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe_creating_funcs, \
     collect_created_and_changed_data_frames, DataFrameSeriesChange, AddSeriesDataframeOperation
 from scientistgpt.utils.file_utils import run_in_directory
 
 
 def test_dataframe_allows_changing_when_not_in_context():
-    hook_dataframe()
+    hook_dataframe_creating_funcs()
 
     df = pd.DataFrame({'a': [1, 2, 3]})
-    assert type(df) is ReportingDataFrame
     df['a'] = [4, 5, 6]
     assert df['a'].tolist() == [4, 5, 6]
 
 
 def test_dataframe_allows_adding_when_not_in_context():
-    hook_dataframe()
+    hook_dataframe_creating_funcs()
     df2 = pd.DataFrame({'a': [1, 2, 3]})
     df2['b'] = [4, 5, 6]
     assert 'b' in df2
 
 
-def test_dataframe_context_does_not_allow_changing():
+def test_dataframe_context_does_not_allow_changing(tmpdir_with_csv_file):
     with collect_created_and_changed_data_frames(allow_changing_existing_series=False):
-        df = pd.DataFrame({'a': [1, 2, 3]})
-        assert type(df) is ReportingDataFrame
+        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
         with pytest.raises(DataFrameSeriesChange):
-            df['a'] = [4, 5, 6]
+            df['a'] = [4, 5]
 
 
 def test_dataframe_context_allows_changing():
     with collect_created_and_changed_data_frames(allow_changing_existing_series=True):
         df = pd.DataFrame({'a': [1, 2, 3]})
-        assert type(df) is ReportingDataFrame
         df['a'] = [4, 5, 6]
         assert df['a'].tolist() == [4, 5, 6]
 
@@ -50,7 +47,6 @@ def test_dataframe_context_collects_changed_dataframes():
 def test_dataframe_read_csv_creates_reporting_dataframe(tmpdir_with_csv_file):
     with collect_created_and_changed_data_frames():
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
-    assert type(df) is ReportingDataFrame
 
 
 def test_dataframe_creation_is_collected_upon_read_csv(tmpdir_with_csv_file):
@@ -75,8 +71,8 @@ def test_dataframe_reports_save_csv(tmpdir_with_csv_file):
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
         df['new'] = [4, 5]
         df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
-    assert len(changed_data_frames) == 3
-    assert changed_data_frames[2].filename == 'test_modified.csv'
+    assert len(changed_data_frames) == 4
+    assert changed_data_frames[3].filename == 'test_modified.csv'
 
 
 def test_get_changed_and_unsaved_dataframes(tmpdir_with_csv_file):
@@ -95,8 +91,8 @@ def test_dataframe_column_names(tmpdir_with_csv_file):
         df['new'] = [4, 5]
         df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
     assert dataframe_operations[0].columns == ['a', 'b', 'c']
-    assert dataframe_operations[2].columns == ['a', 'b', 'c', 'new']
-    id_ = dataframe_operations[0].id
+    assert dataframe_operations[1].series_name == 'new'
+    id_ = dataframe_operations[1].id
     assert dataframe_operations.get_creation_columns(id_) == ['a', 'b', 'c']
     assert dataframe_operations.get_save_columns(id_) == ['a', 'b', 'c', 'new']
 
@@ -107,10 +103,9 @@ def test_even_non_reporting_df_reports_on_save(tmpdir):
         # set the column names:
         df = df.to_frame()
         df.columns = ['A']
-        assert not isinstance(df, ReportingDataFrame)
         with run_in_directory(tmpdir):
             df.to_csv('test.csv')
 
-    assert len(dataframe_operations) == 1
-    assert dataframe_operations[0].filename == 'test.csv'
-    assert dataframe_operations[0].columns == ['A']
+    assert len(dataframe_operations) == 3
+    assert dataframe_operations[2].filename == 'test.csv'
+    assert dataframe_operations[2].columns == ['A']
