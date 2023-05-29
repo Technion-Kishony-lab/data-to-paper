@@ -127,11 +127,6 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.paper_sections['title'], products.paper_sections['abstract'] = \
             TitleAbstractReviewGPT.from_(self, section_names=title_and_abstract_names).get_sections()
 
-        for section_name in paper_section_names:
-            if section_name not in title_and_abstract_names + ['results', 'methods']:
-                products.paper_sections[section_name] = \
-                    PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
-
         products.paper_sections['methods'] = \
             MethodPaperSectionReviewGPT.from_(self, section_names=['methods']).get_section()
 
@@ -143,6 +138,11 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.paper_sections['results'] = \
                 PaperSectionReviewGPT.from_(self, section_names=['results']).get_section()
         self.send_product_to_client('paper_sections')
+
+        for section_name in paper_section_names:
+            if section_name not in title_and_abstract_names + ['results', 'methods']:
+                products.paper_sections[section_name] = \
+                    PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
 
         # Add citations to relevant paper sections
         if self.should_add_citations:
