@@ -314,10 +314,10 @@ class DebuggerGPT(BaseProductsGPT):
         else:
             # The code ran without raising exceptions
             output = code_and_output.output
-            if len(output.strip()) == 0:
+            if output is not None and len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()
-            elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE.val:
+            elif output is not None and len(output) > MAX_SENSIBLE_OUTPUT_SIZE.val:
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
             elif self.enforce_saving_altered_dataframes \

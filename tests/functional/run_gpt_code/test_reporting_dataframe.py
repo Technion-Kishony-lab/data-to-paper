@@ -5,13 +5,6 @@ from scientistgpt.run_gpt_code.overrides.override_dataframe import hook_datafram
     collect_created_and_changed_data_frames, DataFrameSeriesChange, AddSeriesDataframeOperation
 
 
-@pytest.fixture()
-def tmpdir_with_csv_file(tmpdir):
-    csv_file = tmpdir.join('test.csv')
-    csv_file.write('a,b,c\n1,2,3\n4,5,6')
-    return tmpdir
-
-
 def test_dataframe_allows_changing_when_not_in_context():
     hook_dataframe()
 
