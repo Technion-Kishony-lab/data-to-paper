@@ -27,7 +27,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -66,7 +66,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
-    background_product_fields = ('data_file_descriptions', 'codes_and_outputs:data_exploration', 'research_goal')
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes_and_outputs:data_exploration', 'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -84,7 +84,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 class TablesReviewGPT(BaseLatexProductsReviewGPT):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
-    background_product_fields = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
+    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
@@ -124,7 +124,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
+    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -161,7 +161,7 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'tables_and_numeric_values')
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'tables_and_numeric_values')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
@@ -250,7 +250,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
-    background_product_fields = ('data_file_descriptions', 'research_goal',
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal',
                                  'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
@@ -261,7 +261,7 @@ class TitleAbstractReviewGPT(BaseWriterReviewGPT):
 @dataclass
 class PaperSectionReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'codes:data_analysis', 'title_and_abstract',
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'codes:data_analysis', 'title_and_abstract',
                                  'most_updated_paper_sections:results', 'most_updated_paper_sections:discussion')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\section{} command, and any math or symbols that needs tex escapes.
@@ -276,7 +276,7 @@ class PaperSectionReviewGPT(BaseWriterReviewGPT):
 
 @dataclass
 class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
                                  'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
@@ -310,7 +310,7 @@ class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
 class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'refer to tables in'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('title_and_abstract', 'tables_and_numeric_values')
+    background_product_fields: Tuple[str] = ('title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), please write \

@@ -48,7 +48,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    background_product_fields = ()
+    background_product_fields: Tuple[str] = ()
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
     goal_verb: str = None

@@ -107,7 +107,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
     # see self.actual_background_product_fields
-    background_product_fields = ('research_goal', 'results_summary', 'title_and_abstract')
+    background_product_fields: Tuple[str] = ('research_goal', 'results_summary', 'title_and_abstract')
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
