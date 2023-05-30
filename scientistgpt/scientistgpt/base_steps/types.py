@@ -4,6 +4,7 @@ from typing import Optional, List, Union, Tuple, Dict, Callable, NamedTuple
 
 from scientistgpt.conversation.stage import Stage
 from scientistgpt.utils.file_utils import run_in_directory
+from scientistgpt.utils.mutable import Mutable
 from scientistgpt.utils.text_formatting import format_with_args_or_kwargs, ArgsOrKwargs
 
 
@@ -18,13 +19,15 @@ class DataFileDescription:
         Return the first `num_lines` lines of the file.
         """
         with open(self.file_path) as f:
-            return ''.join(f.readlines()[:num_lines])
+            # Note: DO NOT do ''.join(f.readlines()[:num_lines]) because that will read the whole file
+            head = [next(f) for _ in range(num_lines)]
+            return ''.join(head)
 
     def pretty_repr(self, num_lines: int = 4):
         s = f'"{self.file_path}"\n{self.description}\n\n'
         if num_lines > 0:
             s += f'Here are the first few lines of the file:\n' \
-                 f'```\n{self.get_file_header(num_lines)}\n```'
+                 f'```\n{self.get_file_header(num_lines)}\n```\n'
         return s
 
 
@@ -49,26 +52,32 @@ class DataFileDescriptions(List[DataFileDescription]):
                 return data_file_description
         raise ValueError(f"Could not find file path {file_path} in data file descriptions.")
 
-    def get_parent(self, data_file: DataFileDescription):
+    def get_children(self, data_file: DataFileDescription):
         """
-        Return the parent of the given data file.
+        Return the children of the given data file.
         """
-        if data_file.originated_from is None:
-            return None
-        else:
-            return self.get_file_description(data_file.originated_from)
+        return DataFileDescriptions([data_file_description for data_file_description in self
+                                     if data_file_description.originated_from == data_file.file_path],
+                                    data_folder=self.data_folder)
 
-    def get_pretty_description_for_file(self, data_file: DataFileDescription, num_lines: int = 4):
+    def get_all_raw_files(self):
         """
-        Traverse up the tree up to the root, the description of the given data file is the descriptions of all the
-        parents concatenated together from the oldest ancestor and at the end also file header of the given file.
+        Return all the raw files.
         """
-        descriptions = [data_file.pretty_repr(num_lines)]
-        data_file = self.get_parent(data_file)
-        while data_file is not None:
-            descriptions.append(data_file.pretty_repr(0))
-            data_file = self.get_parent(data_file)
-        return '\n\n'.join(reversed(descriptions))
+        return DataFileDescriptions([data_file_description for data_file_description in self
+                                     if data_file_description.originated_from is None],
+                                    data_folder=self.data_folder)
+
+    def get_pretty_description_for_file_and_children(self, data_file: DataFileDescription, index: Mutable = None):
+        """
+        Return a pretty description for the given data file and all its children.
+        """
+        children = self.get_children(data_file)
+        index.val += 1
+        s = f"File #{index.val}: {data_file.pretty_repr(0 if children else 4)}\n"
+        for child in children:
+            s += self.get_pretty_description_for_file_and_children(child, index)
+        return s
 
     def pretty_repr(self, num_lines: int = 4):
         with run_in_directory(self.data_folder):
@@ -76,10 +85,12 @@ class DataFileDescriptions(List[DataFileDescription]):
                 s = 'No data files'
             elif len(self) == 1:
                 s = "1 data file:\n\n"
-                s += self.get_pretty_description_for_file(self[0], num_lines)
+                s += self[0].pretty_repr(num_lines)
             else:
                 s = f"{len(self)} data files:\n"
-                s += '\n\n'.join([self.get_pretty_description_for_file(data_file, num_lines) for data_file in self])
+                index = Mutable(0)
+                for parent in self.get_all_raw_files():
+                    s += self.get_pretty_description_for_file_and_children(parent, index)
             return s
 
     def get_data_filenames(self):
