@@ -16,7 +16,7 @@ from scientistgpt.base_cast import Agent
 
 from .base_products_conversers import BaseProductsHandler
 from .exceptions import FailedCreatingProductException
-from .types import DataFileDescriptions
+from scientistgpt.base_products import DataFileDescriptions
 
 
 @dataclass

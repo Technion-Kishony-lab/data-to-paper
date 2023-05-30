@@ -8,7 +8,7 @@ from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.replacer import Replacer
-from . import DataFileDescription, DataFileDescriptions
+from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseBackgroundProductsGPT, BaseProductsReviewGPT
