@@ -12,7 +12,7 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, PaperSectionWithTablesReviewGPT, \
+    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, \
     TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT, \
     MethodPaperSectionReviewGPT
 
@@ -34,7 +34,6 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_add_citations: bool = True
     should_add_tables: bool = True
     should_interpret_results: bool = False
-    should_rewrite_results_section_with_tables: bool = False
 
     number_of_tables_to_add: int = 2
 
@@ -151,14 +150,6 @@ class ScientificStepsRunner(BaseStepsRunner):
                 products.cited_paper_sections_and_citations[section_name] = \
                     AddCitationReviewGPT.from_(self, section_name=section_name).rewrite_section_with_citations()
             self.send_product_to_client('cited_paper_sections_and_citations')
-
-        # Add tables to results section
-        if self.should_add_tables and self.should_rewrite_results_section_with_tables:
-            self.advance_stage_and_set_active_conversation(ScientificStages.TABLES, ScientificAgent.TableExpert)
-            for section_name in SECTIONS_TO_ADD_TABLES_TO:
-                products.ready_to_be_tabled_paper_sections[section_name] = \
-                    PaperSectionWithTablesReviewGPT.from_(self, section_names=[section_name]).get_section()
-            self.send_product_to_client('tabled_paper_sections')
 
         paper_producer.assemble_compile_paper()
 

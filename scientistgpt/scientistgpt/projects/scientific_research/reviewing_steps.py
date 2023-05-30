@@ -161,7 +161,7 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'codes_and_outputs:data_analysis')
+    background_product_fields = ('data_file_descriptions', 'research_goal', 'tables_and_numeric_values')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'
@@ -194,6 +194,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
     reviewer: str = 'scientific reviewer'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Writer
+    section_specific_instructions: str = ''
 
     def __post_init__(self):
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
@@ -213,6 +214,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         Based on the material provided above ({actual_background_product_names}), \
         please {goal_verb} only the {pretty_section_names} of a scientific paper.
         Do not write any other parts!
+        {section_specific_instructions}
         {latex_instructions}
         """)
 
@@ -226,7 +228,7 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
         of improvements and feedback.
         We will write each section of the research paper separately. 
         When you feel that the paper section is well-written and accurate, you should explicitly say:
-         "{termination_phrase}".
+        "{termination_phrase}".
         If you feel that my initial writing is already good enough, it is perfectly fine \
         to respond immediately with the above phrase ("{termination_phrase}"), \
         without requesting any improvement cycles.
@@ -248,7 +250,8 @@ class BaseWriterReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class TitleAbstractReviewGPT(BaseWriterReviewGPT):
     max_reviewing_rounds: int = 2
-    background_product_fields = ('data_file_descriptions', 'research_goal', 'analysis_plan', 'results_summary')
+    background_product_fields = ('data_file_descriptions', 'research_goal',
+                                 'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
@@ -307,7 +310,7 @@ class MethodPaperSectionReviewGPT(PaperSectionReviewGPT):
 class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
     goal_verb: str = 'refer to tables in'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('title_and_abstract', 'numerical_values', 'tables_and_numeric_values')
+    background_product_fields = ('title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), please write \
@@ -331,27 +334,7 @@ class PaperSectionReferringTablesReviewGPT(PaperSectionReviewGPT):
         """)
 
 
-@dataclass
-class PaperSectionWithTablesReviewGPT(PaperSectionReviewGPT):
-    goal_verb: str = 'add tables to'
-    user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields = ('results_summary', 'codes_and_outputs:data_analysis', 'title_and_abstract')
-    max_reviewing_rounds: int = 1
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        In scientific papers, we typically add one or two tables summarizing the main findings.
+paper_section_writing_data = {
+    'title_and_abstract': dict(
 
-        Based on the material provided above ({actual_background_product_names}), please rewrite \
-        the "{pretty_section_names}" while adding relevant Tables".
-
-        The tables should only include information that is explicitly extracted from the results data.
-        Add the tables centered in booktabs, multirow format with caption and label. 
-        In addition, change the text to refer to the tables (use their labels if necessary),
-        so that the tables are incorporated as integral part of the {pretty_section_names} section. 
-        Do not add figures, only add tables.
-        Write the section with tables in tex format including \\section{} command, and any math or symbols that \
-        needs tex escapes.
-        """)
-
-    @property
-    def actual_background_product_fields(self) -> Tuple[str, ...]:
-        return super().actual_background_product_fields + ('most_updated_paper_sections:' + self.section_name, )
+    )
