@@ -121,8 +121,11 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         """
         Add background information to the conversation.
         """
-        self._add_fake_pre_conversation_exchange()
         previous_product_items = self.actual_background_product_fields
+        if not previous_product_items:
+            return
+        assert len(self.conversation) == 1, "Background information must be added before the conversation starts."
+        self._add_fake_pre_conversation_exchange()
         for i, product_field in enumerate(previous_product_items or []):
             is_last = i == len(previous_product_items) - 1
             self._add_product_description(product_field)
