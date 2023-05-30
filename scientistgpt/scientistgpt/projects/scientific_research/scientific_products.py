@@ -5,7 +5,7 @@ from scientistgpt.conversation.stage import Stage
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.nice_list import NiceList
-from scientistgpt.base_steps.types import DataFileDescriptions, Products, NameDescriptionStageGenerator
+from scientistgpt.base_products import DataFileDescriptions, Products, NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
 CODE_STEPS_TO_STAGES: Dict[str, Stage] = {

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Dict
 
-from scientistgpt.base_steps import DataFileDescriptions
+from scientistgpt.base_products import DataFileDescriptions
 from scientistgpt.run_gpt_code.overrides.dataframes import DataframeOperations
 
 

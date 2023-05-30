@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple
 
-from .types import Products
+from scientistgpt.base_products import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier

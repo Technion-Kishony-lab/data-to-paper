@@ -5,10 +5,8 @@ Base classes to use for building each step in a multi-step process towards a goa
 # --- PRODUCTS ---
 
 # Products:
-from .types import Products
 
 # Basic Products types:
-from .types import DataFileDescription, DataFileDescriptions
 
 # --- RUNNING MULTI-STEP PROCESS ---
 
