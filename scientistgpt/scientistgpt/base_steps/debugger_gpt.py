@@ -189,7 +189,7 @@ class DebuggerGPT(BaseProductsGPT):
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it tried to write to the file `{}` which is not allowed.
+            Your code writes to the file "{}" which is not allowed.
             Please rewrite the complete code again, making sure it only writes to "{}". 
             """).format(file, self.output_filename),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
@@ -197,7 +197,7 @@ class DebuggerGPT(BaseProductsGPT):
     def _respond_to_un_allowed_files_created(self, files: List[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it created the following files: `{}` which is not allowed.
+            I ran the code, but it created the following files {} which is not allowed.
             Please rewrite the complete code again, making sure it only creates "{}". 
             """).format(files, self.output_filename),
             comment=f'{self.iteration_str}: Code created forbidden files {files}.')
@@ -206,7 +206,7 @@ class DebuggerGPT(BaseProductsGPT):
         if file == self.output_filename:
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
-                I ran the code, but it tried to read from the output file `{}`.
+                I ran the code, but it tried to read from the output file "{}".
                 The code should create and write to this output file, but should not read from it.
                 Please rewrite the complete code again, making sure it does not read from the output file.
                 Note that the input files from which we can read the data are: {}. 
@@ -216,7 +216,7 @@ class DebuggerGPT(BaseProductsGPT):
         else:
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
-                I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
+                Your code reads from the file "{}" which is not part of the dataset.
                 Please rewrite the complete code again, noting that we only have {}. 
                 """).format(file, self.data_files),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
@@ -224,7 +224,7 @@ class DebuggerGPT(BaseProductsGPT):
     def _respond_to_dataframe_series_change(self, series: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            Your code changes the series `{series}` of your dataframe.
+            Your code changes the series "{series}" of your dataframe.
             Instead of changing an existing dataframe series, please create a new series, and give it a \
             new sensible name.
             Please rewrite the complete code again, making sure you create new series instead of changing existing ones. 
@@ -234,16 +234,16 @@ class DebuggerGPT(BaseProductsGPT):
     def _respond_to_empty_output(self):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, it created the output file {}, but the file is just empty! 
+            I ran the code, it created the output file "{}", but the file is just empty! 
             Please rewrite the complete code again to correct this error. 
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but output file is empty.')
 
     def _respond_to_large_output(self, output: str):
-        print('ChatGPT code created the following too-long output:\n{output}')
+        print(f'ChatGPT code created the following too-long output:\n{output}')
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, it created the output file {}, but the file is too long!
+            I ran the code, it created the output file "{}", but the file is too long!
 
             Here is the beginning of the output:
             ```

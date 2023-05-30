@@ -21,7 +21,7 @@ class DataFileDescription:
             return ''.join(f.readlines()[:num_lines])
 
     def pretty_repr(self, num_lines: int = 4):
-        s = f'{self.file_path}\n{self.description}\n\n'
+        s = f'"{self.file_path}"\n{self.description}\n\n'
         if num_lines > 0:
             s += f'Here are the first few lines of the file:\n' \
                  f'```\n{self.get_file_header(num_lines)}\n```'
