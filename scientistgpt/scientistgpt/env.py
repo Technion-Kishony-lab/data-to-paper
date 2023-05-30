@@ -4,8 +4,7 @@ from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.mutable import Mutable, Flag
 from scientistgpt.utils.nice_list import NiceList
 
-SUPPORTED_PACKAGES = NiceList(['numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn'],
-                              wrap_with='"', prefix='[', suffix=']')
+SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn')
 
 # OpenAI API keys. model=None is the default key.
 OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = dict[Optional[ModelEngine], str]({

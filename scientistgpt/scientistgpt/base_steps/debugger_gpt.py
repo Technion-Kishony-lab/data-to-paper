@@ -7,18 +7,20 @@ from typing import Optional, List, Iterable, Set
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
 from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BaseProductsGPT
-from ..run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
 
 
 @dataclass

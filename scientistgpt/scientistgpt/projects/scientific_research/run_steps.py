@@ -79,6 +79,12 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.research_goal = GoalReviewGPT.from_(self).initialize_and_run_dialog()
         self.send_product_to_client('research_goal')
 
+        # Analysis plan
+        if self.should_prepare_data_analysis_plan:
+            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+            products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
+            self.send_product_to_client('analysis_plan')
+
         # Data Preprocessing
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
@@ -86,12 +92,6 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.codes_and_outputs['data_preprocessing'] = \
                 DataPreprocessingCodeProductsGPT.from_(self).get_code_and_output()
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
-
-        # Analysis plan
-        if self.should_prepare_data_analysis_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
-            self.send_product_to_client('analysis_plan')
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
@@ -114,8 +114,8 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).run_dialog_and_get_python_value()
         self.send_product_to_client('tables_and_numeric_values')
 
+        # Results interpretation
         if self.should_interpret_results:
-            # Results interpretation
             self.advance_stage_and_set_active_conversation(
                 ScientificStages.INTERPRETATION, ScientificAgent.InterpretationReviewer)
             products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()

@@ -1,13 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any
 
+from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT, \
     BasePythonValueProductsReviewGPT
 
 from .cast import ScientificAgent
-from ...servers.openai_models import ModelEngine
+from .scientific_products import ScientificProducts
 
 
 @dataclass
@@ -81,6 +82,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 @dataclass
 class TablesReviewGPT(BaseLatexProductsReviewGPT):
+    products: ScientificProducts = None
     max_reviewing_rounds: int = 1
     background_product_fields = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
     conversation_name: str = 'tables'
@@ -92,12 +94,12 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
     table_number: int = 1
     total_number_of_tables: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} a {goal_noun} that summarize the key results we got in the code analysis output.
-        The table should only include information that is explicitly extracted from the results data.
+        Please {goal_verb} a {goal_noun} that summarize the key results provided in the output files above.
+        The table should only include information that is explicitly extracted from these outputs.
         {do_not_repeat_information_from_previous_tables} 
+        Write the table in latex format.
         The table should be centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
-        Do not write code! write the table in latex format.
         This is table number {table_number} out of {total_number_of_tables} you need to produce, plan the tables \
         so that each table will show unique information.
         """)
@@ -113,7 +115,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
     def do_not_repeat_information_from_previous_tables(self) -> str:
         if self.products.tables:
             return dedent_triple_quote_str("""
-                Notice that the table should add new information that is not already in the tables provided above.
+                Notice that the table should only add new information that is not already in the tables provided above.
                 """)
         else:
             return ''
@@ -122,7 +124,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis')
+    background_product_fields = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -130,26 +132,26 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun} that capture the essence of the results we got in the output.
-        The {goal_noun} you choose should be those that cannot be presented in tables but are that we might \
-        want to include in a scientific paper.
-        These {goal_noun} should only include information that is explicitly extracted from the output of our \
-        analysis code.
+        Please {goal_verb} {goal_noun} that capture the most important results we got in the output.
+        The {goal_noun} you choose should be those that are not presented in the latex paper tables above but 
+        might still be needed for a scientific paper.
+        These {goal_noun} should only include information that is explicitly extracted from the output files provided \
+        above.
         The {goal_noun} that you choose should be returned as a Python Dict[str, Any], where the keys are the names 
-        of the numerical results, and the values are the numeric values themselves.
+        of the result, and the values are the numeric values themselves.
         For example, if the analysis results provide summary of a some statistical tests, or statistical models, \
         you might include: 
         {
-            'accuracy of logistic regression for the XXX model': 0.835,
+            'Accuracy of logistic regression for the XXX model': 0.835,
             'AUC ROC of logistic regression for the XXX model': 0.77,
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on these above {goal_noun}, with specific attention to whether they \
-        contain only information that is explicitly extracted from the results data. Compare the numbers in the \
-        provided Python dict values to the numbers in the results data and explicitly mention \
+        Please provide feedback on the above {goal_noun}, with specific attention to whether they \
+        contain only information that is explicitly extracted from the provided output data. Compare the numbers 
+        in the provided Python dict values with the numbers in the result output data and explicitly mention \
         any discrepancies that need to get fixed.
 
         If you are satisfied, respond with "{termination_phrase}".
