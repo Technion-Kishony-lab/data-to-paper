@@ -282,19 +282,19 @@ class ScientificProducts(Products):
 
             'tables': NameDescriptionStageGenerator(
                 'The Tables of the Paper',
-                'Here are the tables of the paper:\n\n{}',
+                'Here are the tables we have for the paper:\n\n{}',
                 ScientificStages.TABLES,
-                lambda: NiceList([f"Table {i + 1}:\n\n {table}"
-                                  for i, table in enumerate(self.tables)],
-                                 separator='\n\n'), ),
+                lambda: None if not self.tables else
+                NiceList([f"Table {i + 1}:\n\n {table}" for i, table in enumerate(self.tables)], separator='\n\n'), ),
 
             'numeric_values': NameDescriptionStageGenerator(
                 'The Numeric Values of the Paper',
-                'Here are the numeric values of the paper:\n\n{}',
+                'Here are some key numeric values we can use to write the results of the paper:\n\n{}',
                 ScientificStages.INTERPRETATION,
-                lambda: NiceList([f"Numeric Value {i + 1}, {numeric_value_name}:\n\n {numeric_value_content}"
-                                  for i, (numeric_value_name, numeric_value_content) in
-                                  enumerate(self.numeric_values.items())], separator='\n\n'), ),
+                lambda: None if not self.numeric_values else
+                NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"
+                          for i, (numeric_value_name, numeric_value_content) in enumerate(self.numeric_values.items())],
+                         separator='\n\n'), ),
 
             'tables_and_numeric_values': NameDescriptionStageGenerator(
                 'The Tables and Numeric Values of the Paper',
