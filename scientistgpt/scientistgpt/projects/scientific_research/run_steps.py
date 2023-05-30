@@ -65,7 +65,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_do_data_exploration:
             self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
             products.codes_and_outputs['data_exploration'] = \
-                DataExplorationCodeProductsGPT.from_(self).get_analysis_code()
+                DataExplorationCodeProductsGPT.from_(self).get_code_and_output()
             self.send_product_to_client('codes_and_outputs:data_exploration')
 
         # Goal
@@ -84,7 +84,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.advance_stage_and_set_active_conversation(
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
             products.codes_and_outputs['data_preprocessing'] = \
-                DataPreprocessingCodeProductsGPT.from_(self).get_analysis_code()
+                DataPreprocessingCodeProductsGPT.from_(self).get_code_and_output()
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
 
         # Analysis plan
@@ -96,7 +96,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
         products.codes_and_outputs['data_analysis'] = \
-            DataAnalysisCodeProductsGPT.from_(self).get_analysis_code()
+            DataAnalysisCodeProductsGPT.from_(self).get_code_and_output()
         self.send_product_to_client('codes_and_outputs:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,

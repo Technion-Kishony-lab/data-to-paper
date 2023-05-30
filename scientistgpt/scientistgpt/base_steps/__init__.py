@@ -33,7 +33,7 @@ from .base_products_conversers import BaseBackgroundProductsGPT
 from .base_products_conversers import BaseProductsReviewGPT
 
 # Requesting quote-enclosed text (with optional gpt-review):
-from .request_quoted_test import BaseProductsQuotedReviewGPT
+from .request_quoted_text import BaseProductsQuotedReviewGPT
 
 # Requesting LaTeX formatted text (with optional gpt-review):
 from .request_latex import BaseLatexProductsReviewGPT
