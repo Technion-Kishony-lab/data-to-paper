@@ -12,9 +12,9 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, PaperSectionReviewGPT, TitleAbstractReviewGPT, \
-    TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT, PaperSectionReferringTablesReviewGPT, \
-    MethodPaperSectionReviewGPT
+    ResultsInterpretationReviewGPT, TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT
+from .writing_steps import SectionWriterReviewGPT, TitleAbstractSectionWriterReviewGPT, MethodsSectionWriterReviewGPT, \
+    ReferringTablesSectionWriterReviewGPT
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -37,6 +37,22 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
+    def get_sections_to_writing_class(self):
+        return {
+            ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
+            ('introduction', ): SectionWriterReviewGPT,
+            ('methods', ): MethodsSectionWriterReviewGPT,
+            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewGPT,
+            ('discussion', ): SectionWriterReviewGPT,
+            ('conclusion', ): SectionWriterReviewGPT,
+        }
+
+    def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
+        flattened_paper_sections_to_write = []
+        for sections in sections_to_writing_class:
+            flattened_paper_sections_to_write.extend(sections)
+        assert set(flattened_paper_sections_to_write) == set(template_sections)
+
     def _run_all_steps(self) -> ScientificProducts:
 
         products = self.products  # Start with empty products
@@ -48,6 +64,8 @@ class ScientificStepsRunner(BaseStepsRunner):
             output_filename='paper.pdf',
         )
         paper_section_names = paper_producer.get_paper_section_names()
+        sections_to_writing_class = self.get_sections_to_writing_class()
+        self.assert_paper_sections_to_write_matches_template(paper_section_names, sections_to_writing_class)
 
         # Data file descriptions:
         director_converser = DirectorProductGPT.from_(self,
@@ -122,26 +140,11 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
-        title_and_abstract_names = ['title', 'abstract']
-        products.paper_sections['title'], products.paper_sections['abstract'] = \
-            TitleAbstractReviewGPT.from_(self, section_names=title_and_abstract_names).get_sections()
-
-        products.paper_sections['methods'] = \
-            MethodPaperSectionReviewGPT.from_(self, section_names=['methods']).get_section()
-
-        if self.should_add_tables:
-            products.paper_sections['results'] = \
-                PaperSectionReferringTablesReviewGPT.from_(self, section_names=['results']).get_section()
-            products.ready_to_be_tabled_paper_sections['results'] = products.paper_sections['results']
-        else:
-            products.paper_sections['results'] = \
-                PaperSectionReviewGPT.from_(self, section_names=['results']).get_section()
+        for section_names, writing_class in sections_to_writing_class.items():
+            sections = writing_class.from_(self, section_names=section_names).get_sections()
+            for section_name, section in zip(section_names, sections):
+                products.paper_sections[section_name] = section
         self.send_product_to_client('paper_sections')
-
-        for section_name in paper_section_names:
-            if section_name not in title_and_abstract_names + ['results', 'methods']:
-                products.paper_sections[section_name] = \
-                    PaperSectionReviewGPT.from_(self, section_names=[section_name]).get_section()
 
         # Add citations to relevant paper sections
         if self.should_add_citations:
