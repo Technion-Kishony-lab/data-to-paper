@@ -16,11 +16,15 @@ class DataFileDescription:
 
     def get_file_header(self, num_lines: int = 4):
         """
-        Return the first `num_lines` lines of the file.
+        Return the first `num_lines` lines of the file (if they exist).
         """
         with open(self.file_path) as f:
-            # Note: DO NOT do ''.join(f.readlines()[:num_lines]) because that will read the whole file
-            head = [next(f) for _ in range(num_lines)]
+            head = []
+            for _ in range(num_lines):
+                try:
+                    head.append(next(f))
+                except StopIteration:
+                    break
             return ''.join(head)
 
     def pretty_repr(self, num_lines: int = 4):
