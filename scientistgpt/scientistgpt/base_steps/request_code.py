@@ -95,7 +95,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     def _request_code_tag(self):
         return f'code_revision_{self.revision_round}'
 
-    def get_analysis_code(self) -> Optional[CodeAndOutput]:
+    def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         self._pre_populate_background()
         code_and_output = CodeAndOutput()
