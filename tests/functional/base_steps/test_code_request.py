@@ -44,11 +44,11 @@ df1.to_csv('test_modified.csv')
 code_reading_csv_keywords_in_description = ('test_modified.csv', 'test.csv', 'new_column')
 
 code_creating_csv = r"""import pandas as pd
-df2 = pd.DataFrame([["n", "e", "w"], ["r", "o", "w"]], columns=['a', 'b', 'c'])
+df2 = pd.DataFrame([["n", "e", "w"], ["r", "o", "w"]], columns=['col1', 'col2', 'col3'])
 df2.to_csv('new_df.csv')
 """
 
-code_creating_csv_keywords_in_description = ('new_df.csv', 'a')
+code_creating_csv_keywords_in_description = ('new_df.csv', 'col1', 'col2', 'col3')
 
 new_df_explanation = "This file is a new dataframe which has the following columns:\na b c"
 
