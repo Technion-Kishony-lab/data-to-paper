@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterable, Dict
+from typing import Optional, Iterable, Dict, Tuple
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -22,6 +22,8 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
+
+    supported_packages: Tuple[str] = SUPPORTED_PACKAGES
 
     allowed_created_files: Iterable[str] = None
     # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
@@ -79,10 +81,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         Need to be overridden by subclasses, to include the folder of the data files from Products
         """
         return None
-
-    @property
-    def supported_packages(self) -> NiceList[str]:
-        return SUPPORTED_PACKAGES
 
     @property
     def actual_output_filename(self):
