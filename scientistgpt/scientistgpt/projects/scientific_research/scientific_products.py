@@ -45,6 +45,13 @@ class ScientificProducts(Products):
     # ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
+    def all_tables(self) -> List[str]:
+        """
+        Return the tables from all sections.
+        """
+        return [table for tables in self.tables.values() for table in tables]
+
+    @property
     def all_file_descriptions(self) -> DataFileDescriptions:
         """
         Return the description of all files.
@@ -78,42 +85,40 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: self.add_tables_to_paper_section(section_name, section_content)
-                for section_name, section_content in self.paper_sections.items() if section_name in self.tables}
+        return {section_name: self.add_tables_to_paper_section(self.paper_sections[section_name], section_tables)
+                for section_name, section_tables in self.tables.items()}
 
-    def add_tables_to_paper_section(self, section_name: str, section_content: str) -> str:
+    @staticmethod
+    def add_tables_to_paper_section(section_content: str, section_tables: List[str]) -> str:
         """
         Insert the tables into the ready_to_be_tabled_paper_sections.
         """
-        updated_section = section_content
-        if self.tables[section_name] is not None:
-            for table in self.tables[section_name]:
-                table_label_start = table.find('label{') + len('label{')  # find the start of the label
+        for table in section_tables:
+            table_label_start = table.find('label{') + len('label{')  # find the start of the label
+            if table_label_start == -1:
+                table_label = None
+            else:
                 table_label_end = table.find('}', table_label_start)  # find the end of the label
                 table_label = table[table_label_start:table_label_end]  # extract the label
-                # find the sentence that contains the table reference
-                table_reference_sentence = None
-                for sentence in updated_section.split('. '):
-                    if table_label in sentence:
-                        table_reference_sentence = sentence
-                        break
-                if table_reference_sentence is None:
-                    # add the table at the end of the section
-                    updated_section += table
-                else:
-                    # add the table after the table reference sentence
-                    updated_section = updated_section.replace(table_reference_sentence,
-                                                              table_reference_sentence + table)
-        return updated_section
+            # find the parag that contains the table reference
+            for sentence in section_content.split('\n\n'):
+                if table_label is not None and table_label in sentence:
+                    # add the table after the table reference parag.
+                    section_content = section_content.replace(sentence, sentence + table)
+                    break
+            else:
+                # add the table at the end of the section
+                section_content += table
+        return section_content
 
     @property
     def most_updated_paper_sections(self) -> Dict[str, str]:
         section_names_to_content = {}
         for section_name, section in self.paper_sections.items():
-            if section_name in self.cited_paper_sections:
-                section = self.cited_paper_sections[section_name]
             if section_name in self.tables:
                 section = self.tabled_paper_sections[section_name]
+            elif section_name in self.cited_paper_sections:
+                section = self.cited_paper_sections[section_name]
             section_names_to_content[section_name] = section
         return section_names_to_content
 
@@ -294,8 +299,9 @@ class ScientificProducts(Products):
                 'The Tables of the Paper',
                 'Here are the tables we have for the paper:\n\n{}',
                 ScientificStages.TABLES,
-                lambda: None if not self.tables else
-                NiceList([f"Table {i + 1}:\n\n {table}" for i, table in enumerate(self.tables)], separator='\n\n'), ),
+                lambda section_name: None if not self.all_tables else
+                NiceList([f"Table {i + 1}:\n\n {table}" for i, table in enumerate(self.all_tables)],
+                         separator='\n\n'), ),
 
             'numeric_values': NameDescriptionStageGenerator(
                 'The Numeric Values of the Paper',
