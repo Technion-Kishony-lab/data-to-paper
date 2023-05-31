@@ -67,7 +67,7 @@ def run_code_using_module_reload(
         allowed_read_files: Iterable[str] = None,
         allowed_write_files: Iterable[str] = None,
         allow_dataframes_to_change_existing_series: bool = True,
-        run_in_folder: Union[Path, str] = None) -> Tuple[Set[str], DataframeOperations]:
+        run_in_folder: Union[Path, str] = None) -> Tuple[List[str], DataframeOperations]:
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -115,4 +115,4 @@ def run_code_using_module_reload(
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()
-    return created_files, dataframe_operations
+    return sorted(created_files), dataframe_operations

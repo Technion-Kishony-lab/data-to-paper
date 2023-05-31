@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Tuple
 
 from _pytest.fixtures import fixture
 
@@ -17,7 +17,7 @@ class TestDataframeChangingCodeProductsGPT(DataframeChangingCodeProductsGPT):
     user_agent: TestAgent = TestAgent.PERFORMER
     assistant_agent: TestAgent = TestAgent.REVIEWER
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
-    allowed_created_files: Iterable[str] = ('*.csv',)
+    allowed_created_files: Tuple[str] = ('*.csv',)
     output_filename: str = None
     code_name: str = 'Testing'
     temp_dir: str = None

@@ -71,7 +71,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
     background_product_fields: Tuple[str] = ('all_file_descriptions', )
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
-    allowed_created_files: Iterable[str] = ()
+    allowed_created_files: Tuple[str] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False
     supported_packages: Tuple[str] = ('pandas', 'numpy', 'scipy')
@@ -116,7 +116,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
                                              'outputs:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = None
-    allowed_created_files: Iterable[str] = ('*.csv',)
+    allowed_created_files: Tuple[str] = ('*.csv',)
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
 
@@ -164,7 +164,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
          'codes_and_outputs:data_preprocessing', 'research_goal')
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'
-    allowed_created_files: Iterable[str] = ()
+    allowed_created_files: Tuple[str] = ()
     allow_dataframes_to_change_existing_series = True
     enforce_saving_altered_dataframes: bool = False
 

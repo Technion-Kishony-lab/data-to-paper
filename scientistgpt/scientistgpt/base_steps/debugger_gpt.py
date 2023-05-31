@@ -2,7 +2,7 @@ import os
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Iterable, Set
+from typing import Optional, List, Set, Tuple
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
@@ -40,7 +40,7 @@ class DebuggerGPT(BaseProductsGPT):
     * output file not created
     """
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT35_TURBO)
-    allowed_created_files: Iterable[str] = None
+    allowed_created_files: Tuple[str] = None
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
 
