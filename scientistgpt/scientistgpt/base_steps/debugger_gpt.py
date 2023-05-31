@@ -262,20 +262,27 @@ class DebuggerGPT(BaseProductsGPT):
         If the code fails, notify chatgpt and return None.
         """
         response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
-        failed_extracting_code = False
         code_and_output = None
         code_runner = self._get_code_runner(response)
         try:
             code_and_output = code_runner.run_code()
             dataframe_operations = code_and_output.dataframe_operations
         except IncompleteBlockFailedExtractingCode:
-            failed_extracting_code = True
             self._respond_to_incomplete_code()
         except FailedExtractingCode as e:
-            failed_extracting_code = True
             self._respond_to_missing_or_multiple_code(e)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
+            # We first clean up, re-reposting the code as if it was the immediate response
+            self.conversation_manager.delete_messages(
+                message_designation=RangeMessageDesignation.from_(
+                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -1),  # keeps the last 2 messages
+                comment="Deleting previous debug iterations.")
+            self.apply_append_surrogate_message(
+                'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
+                    code_runner.extract_code()),
+                web_conversation_name=None,
+                comment='We are re-posting the code as if it was the immediate response.')
             self.previous_code = code_runner.extract_code()
             try:
                 raise e.exception
@@ -333,13 +340,6 @@ class DebuggerGPT(BaseProductsGPT):
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
                 self.comment("GPT code completed successfully.")
                 return code_and_output
-
-        # if code was extracted ok, we clean up a bit, deleting the previous debug iterations
-        if not failed_extracting_code:
-            self.conversation_manager.delete_messages(
-                message_designation=RangeMessageDesignation.from_(
-                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -3),  # keeps the last 2 messages
-                comment="Deleting previous debug iterations.")
 
         # if the code ran, but output was incorrect, we delete any created output files:
         if code_and_output is not None:
