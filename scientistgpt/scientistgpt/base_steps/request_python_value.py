@@ -124,9 +124,6 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
         Get the python value from the response.
         """
         response = super().initialize_and_run_dialog()
-        # DISCUSS
-        if isinstance(response, NoResponse):
-            raise FailedCreatingProductException()
         feedback, value = self.extract_python_value_from_response(response)
         return value
 

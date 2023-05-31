@@ -57,6 +57,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     sentence: str = None
     citations: List[CrossrefCitation] = field(default_factory=list)
     chosen_citation_ids: Set[str] = field(default_factory=set)
+    raise_on_exceeding_max_attempts_per_round: bool = False
 
     @property
     def citation_ids(self) -> List[str]:
@@ -107,6 +108,8 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
     # see self.actual_background_product_fields
+
+    raise_on_exceeding_max_attempts_per_round: bool = False
     background_product_fields: Tuple[str] = ('research_goal', 'results_summary', 'title_and_abstract')
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Performer

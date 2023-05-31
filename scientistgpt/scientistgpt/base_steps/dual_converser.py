@@ -146,7 +146,9 @@ class DialogDualConverserGPT(DualConverserGPT):
         "No need for additional feedback. Thanks much - I think I have it now!"
     fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
+
     max_attempts_per_round: int = 4
+    raise_on_exceeding_max_attempts_per_round: bool = True
 
     def __post_init__(self):
         super().__post_init__()
@@ -201,6 +203,10 @@ class DialogDualConverserGPT(DualConverserGPT):
         while True:
             self_response, cycle_status = self.run_one_cycle()
             if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+                if isinstance(last_self_response, NoResponse):
+                    if self.raise_on_exceeding_max_attempts_per_round:
+                        raise FailedCreatingProductException()
+                    return None
                 return last_self_response
             if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
                 return self_response
@@ -342,6 +348,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
+        # TODO: ROY
         self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
