@@ -123,7 +123,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.tables = []
             for i in range(self.number_of_tables_to_add):
                 table = TablesReviewGPT.from_(
-                    self, section_names=['table'], table_number=i + 1,
+                    self, section_names=['table'], table_number=i + 1, conversation_name=f'table_{i + 1}',
                     total_number_of_tables=self.number_of_tables_to_add).get_section()
                 products.tables.append(table)
 

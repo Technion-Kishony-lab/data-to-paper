@@ -51,7 +51,7 @@ class ScientificProducts(Products):
         """
         return DataFileDescriptions(
             [description for description in self.data_file_descriptions] +
-            [desc_of_file for co  in self.codes_and_outputs.values() if co.description_of_created_files is not None for
+            [desc_of_file for co in self.codes_and_outputs.values() if co.description_of_created_files is not None for
              desc_of_file in co.description_of_created_files],
             data_folder=self.data_file_descriptions.data_folder)
 
