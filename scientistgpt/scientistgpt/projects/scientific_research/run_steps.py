@@ -120,12 +120,12 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                        ScientificAgent.InterpretationReviewer)
         # Tables
         if self.should_add_tables:
-            products.tables = []
+            products.tables['results'] = []
             for i in range(self.number_of_tables_to_add):
                 table = TablesReviewGPT.from_(
                     self, section_names=['table'], table_number=i + 1, conversation_name=f'table_{i + 1}',
                     total_number_of_tables=self.number_of_tables_to_add).get_section()
-                products.tables.append(table)
+                products.tables['results'].append(table)
 
         # Numerical results
         products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).run_dialog_and_get_python_value()
