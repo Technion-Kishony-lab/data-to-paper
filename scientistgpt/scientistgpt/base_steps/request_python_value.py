@@ -4,6 +4,8 @@ from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewG
 
 from typing import Optional, Any, Dict, Tuple, get_args, Iterable, Set
 
+from scientistgpt.base_steps.dual_converser import NoResponse
+from scientistgpt.base_steps.exceptions import FailedCreatingProductException
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
 
@@ -122,6 +124,8 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
         Get the python value from the response.
         """
         response = super().initialize_and_run_dialog()
+        if isinstance(response, NoResponse):
+            raise FailedCreatingProductException()
         feedback, value = self.extract_python_value_from_response(response)
         return value
 

@@ -8,7 +8,7 @@ from typing import Set, Optional
 from scientistgpt.servers.crossref import CrossrefCitation
 from scientistgpt.utils.file_utils import run_in_temp_directory
 
-from .exceptions import LatexCompilationError
+from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -128,6 +128,14 @@ def clean_latex(latex_content):
     latex_content = preamble + replace_special_chars(latex_content)
     return latex_content
 
+def test_usage_of_unwanted_commands(latex_content: str):
+    unwanted_commands = [r'\cite', r'\verb']
+    unwanted_commands_used = []
+    for unwanted_command in unwanted_commands:
+        if unwanted_command in latex_content:
+            unwanted_commands_used.append(unwanted_command)
+    if len(unwanted_commands_used) > 0:
+        raise UnwantedCommandsUsedInLatex(unwanted_commands_used)
 
 def test_latex_compilation(latex_content: str):
     with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
