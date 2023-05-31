@@ -86,8 +86,6 @@ class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewGPT):
     max_reviewing_rounds: int = 2
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal',
-                                             'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
@@ -100,18 +98,14 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
                                              'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({actual_background_product_names}), please write \
-        the "{pretty_section_names}" of the paper.
+    section_specific_instructions: str = dedent_triple_quote_str("""
         Make sure that you are only referring to analysis steps that are explicitly performed by the \
         data preprocessing code and data analysis code (see Python blocks above).
 
         Focus on the methods that were used to achieve the research goal.
-
-        {latex_instructions}
         """)
 
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
 
         Specifically, pay attention to:
@@ -122,7 +116,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
 
         Make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
-        If you are satisfied, respond with "{termination_phrase}".
+        If you you do not see any flaws and do not have any more suggestions, respond with "{termination_phrase}".
         """)
 
 
@@ -132,23 +126,25 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields: Tuple[str] = ('title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({actual_background_product_names}), please write \
-        the "{pretty_section_names}" of the paper, while explicitly \
-        mentioning any key Numerical Values that are scientifically meaningful.
-        Don't refer to the Numerical Values, explicitly mention them as integral part of the text, as they are \
-        not going to be added as a part of the paper otherwise. 
+    section_specific_instructions: str = dedent_triple_quote_str("""\n
         Refer to the Tables by their labels and explain their content, but do not add the tables themselves \
         (I will add the tables later manually).
+        
+        You can also extract and use any of the key Numerical Values provided above that you think are \
+        scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
+        added as a part of the paper, so you should explicitly mention any important values as an integral part of \
+        the text.
+        
         Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
         {latex_instructions}
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
         contain only information that is explicitly extracted from the Tables and Numerical Values provided above. \
-        Compare the numbers in the {goal_noun} to the numbers in the Tables and Numerical Values and explicitly \
-        mention any discrepancies that need to get fixed.
+        Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
+        mention any discrepancies that need to be fixed.
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
         Tables and Numerical Values.
-        If you are satisfied, respond with "{termination_phrase}".
+        If you do not see any discrepancies and do not have other suggestions for improvements, \
+        respond with "{termination_phrase}".
         """)
