@@ -14,7 +14,7 @@ from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT
 from .writing_steps import SectionWriterReviewGPT, TitleAbstractSectionWriterReviewGPT, MethodsSectionWriterReviewGPT, \
-    ReferringTablesSectionWriterReviewGPT
+    ReferringTablesSectionWriterReviewGPT, DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -41,10 +41,10 @@ class ScientificStepsRunner(BaseStepsRunner):
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): SectionWriterReviewGPT,
-            ('methods', ): MethodsSectionWriterReviewGPT,
             ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewGPT,
-            ('discussion', ): SectionWriterReviewGPT,
-            ('conclusion', ): SectionWriterReviewGPT,
+            ('methods', ): MethodsSectionWriterReviewGPT,
+            ('discussion', ): DiscussionSectionWriterReviewGPT,
+            ('conclusion', ): ConclusionSectionWriterReviewGPT,
         }
 
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
