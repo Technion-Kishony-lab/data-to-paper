@@ -37,6 +37,8 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal.
+        The research goal should be interesting and novel, it should contain a research question that can create new \
+        insights on the studied topic and add to the scientific knowledge in the field.
         Make sure you suggest a research goal that can be studied using only the provided dataset, without requiring \
         any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
@@ -123,11 +125,13 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis')
+    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
+                                             'tables')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
     goal_verb: str = 'extract'
+    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -146,6 +150,10 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
+        
+        Do not list the numerical values before providing them in a Python Dict format as shown above.
+        Do not include too many values in the outputs, be judicious when choosing values, \
+        in scientific paper its customary to mention up to 7 important values.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether they \
