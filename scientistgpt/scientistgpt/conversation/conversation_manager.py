@@ -205,10 +205,10 @@ class ConversationManager:
                 return message
 
             # we failed to get a response. We start by bumping the model, if possible:
-            model = openai_call_parameters.model or DEFAULT_MODEL_ENGINE
+            model = openai_call_parameters.model_engine or DEFAULT_MODEL_ENGINE
             if model <= MAX_MODEL_ENGINE:
                 print_red(f'############# Bumping model #############')
-                openai_call_parameters.model = MAX_MODEL_ENGINE
+                openai_call_parameters.model_engine = MAX_MODEL_ENGINE
                 continue
 
             # We have no option but to remove messages from the top:
