@@ -23,7 +23,7 @@ class ModelEngine(IndexOrderedEnum):
         return hash(self.value)
 
 
-@dataclass(frozen=True)
+@dataclass
 class OpenaiCallParameters:
     """
     Parameters for calling OpenAI API.

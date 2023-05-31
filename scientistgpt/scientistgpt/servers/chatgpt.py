@@ -62,7 +62,11 @@ def try_get_chatgpt_response(messages: List[Message],
         try:
             return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         except openai.error.InvalidRequestError as e:
-            return e
+            # TODO: add here any other exception that can be addressed by changing the number of tokens
+            #     or the bump up the model engine
+            if 'maximum context length' in str(e):
+                return e
+            print(f'OPENAI error:\n{type(e)}\n{e}')
         except NoMoreResponsesToMockError:
             raise
         except Exception as e:

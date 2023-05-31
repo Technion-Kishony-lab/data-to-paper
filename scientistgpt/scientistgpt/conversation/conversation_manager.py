@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Iterable, Union, List
 
+from scientistgpt.env import DEFAULT_MODEL_ENGINE, MAX_MODEL_ENGINE
+from scientistgpt.utils.highlighted_text import print_red
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.chatgpt import try_get_chatgpt_response
 from scientistgpt.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
@@ -174,7 +176,8 @@ class ConversationManager:
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None,
-                                         **kwargs) -> Message:
+                                         **kwargs  # for both create_message and openai params
+                                         ) -> Message:
         """
         Get and append a response from openai to a specified conversation.
 
@@ -186,17 +189,33 @@ class ConversationManager:
         indices_and_messages = self.conversation.get_chosen_indices_and_messages(hidden_messages)
         actual_hidden_messages = hidden_messages.copy()
 
-        # we try to get a response. if we fail we gradually remove messages from the top,
-        # starting at message 1 (message 0 is the system message).
+        # extract all OPENAI_CALL_PARAMETERS_NAMES from kwargs:
+        openai_call_parameters = \
+            OpenaiCallParameters(**{k: kwargs.pop(k) for k in OPENAI_CALL_PARAMETERS_NAMES if k in kwargs})
+
+        # we try to get a response. if we fail we bump the model, and then gradually remove messages from the top,
+        # starting at message 1 (we don't remove message 0, which is the system message).
         while True:
             message = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
                                                                 previous_code=previous_code,
-                                                                hidden_messages=actual_hidden_messages, **kwargs)
+                                                                hidden_messages=actual_hidden_messages,
+                                                                openai_call_parameters=openai_call_parameters,
+                                                                **kwargs)
             if isinstance(message, Message):
                 return message
+
+            # we failed to get a response. We start by bumping the model, if possible:
+            model = openai_call_parameters.model or DEFAULT_MODEL_ENGINE
+            if model <= MAX_MODEL_ENGINE:
+                print_red(f'############# Bumping model #############')
+                openai_call_parameters.model = MAX_MODEL_ENGINE
+                continue
+
+            # We have no option but to remove messages from the top:
             if len(indices_and_messages) <= 1:
                 # we tried removing all messages and failed.
                 raise RuntimeError('Failed accessing openai despite removing all messages from context.')
+            print_red(f'############# Removing message from context #############')
             index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
 
@@ -219,7 +238,8 @@ class ConversationManager:
     def _try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
                                              is_code: bool = False, previous_code: Optional[str] = None,
                                              hidden_messages: GeneralMessageDesignation = None,
-                                             **kwargs  # for both create_message and openai params
+                                             openai_call_parameters: Optional[OpenaiCallParameters] = None,
+                                             **kwargs
                                              ) -> Union[Message, Exception]:
         """
         Try to get and append a response from openai to a specified conversation.
@@ -229,10 +249,7 @@ class ConversationManager:
         If getting a response is successful then append to the conversation, record action and return response string.
         If failed due to openai exception. Record a failed action and return the exception.
         """
-
-        # extract all OPENAI_CALL_PARAMETERS_NAMES from kwargs:
-        openai_call_parameters = \
-            OpenaiCallParameters(**{k: kwargs.pop(k) for k in OPENAI_CALL_PARAMETERS_NAMES if k in kwargs})
+        openai_call_parameters = openai_call_parameters or OpenaiCallParameters()
         messages = self.conversation.get_chosen_messages(hidden_messages)
         content = try_get_chatgpt_response(messages, **openai_call_parameters.to_dict())
         if isinstance(content, Exception):
