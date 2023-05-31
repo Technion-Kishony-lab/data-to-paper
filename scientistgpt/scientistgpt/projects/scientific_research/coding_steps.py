@@ -16,7 +16,7 @@ class BaseScientificCodeProductsGPT(BaseBackgroundProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
 
     products: ScientificProducts = None
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'analysis_plan')
+    background_product_fields: Tuple[str] = ('all_file_descriptions', 'research_goal', 'analysis_plan')
     conversation_name: str = 'code_debugging'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     fake_performer_request_for_help: str = \
@@ -68,7 +68,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     conversation_name: str = 'data_exploration_code'
     code_name: str = 'Data Exploration'
-    background_product_fields: Tuple[str] = ('data_file_descriptions', )
+    background_product_fields: Tuple[str] = ('all_file_descriptions', )
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
     allowed_created_files: Iterable[str] = ()
@@ -112,7 +112,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     conversation_name: str = 'data_preprocessing_code'
     code_name: str = 'Data Preprocessing'
-    background_product_fields: Tuple[str] = ('research_goal', 'data_file_descriptions', 'codes_and_outputs:data_exploration')
+    background_product_fields: Tuple[str] = ('research_goal', 'all_file_descriptions', 'codes_and_outputs:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = None
     allowed_created_files: Iterable[str] = ('*.csv',)
@@ -158,7 +158,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
     background_product_fields: Tuple[str] = \
-        ('data_file_descriptions', 'analysis_plan', 'codes_and_outputs:data_exploration',
+        ('all_file_descriptions', 'analysis_plan', 'codes_and_outputs:data_exploration',
          'codes_and_outputs:data_preprocessing', 'research_goal')
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'
