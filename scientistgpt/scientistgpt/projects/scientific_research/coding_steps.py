@@ -123,7 +123,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
         cleaned, normalized, same-unit, balanced version of the data, ready for use in a machine learning model.
 
-        Your code should create one or more new csv files containing the preprocessed data saved sensible file names.
+        Your code should create one or more new csv files containing the preprocessed data, saved with \
+        sensible file names.
 
         Depending on the specifics of the dataset, you might want to preform the following steps:
 
