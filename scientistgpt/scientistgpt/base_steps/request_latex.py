@@ -5,8 +5,9 @@ from scientistgpt.latex import FailedToExtractLatexContent, extract_latex_sectio
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
-from scientistgpt.latex.exceptions import LatexCompilationError
-from scientistgpt.latex.latex_to_pdf import test_latex_compilation, remove_figure_envs_from_latex, replace_special_chars
+from scientistgpt.latex.exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
+from scientistgpt.latex.latex_to_pdf import test_latex_compilation, remove_figure_envs_from_latex, \
+    replace_special_chars, test_usage_of_unwanted_commands
 
 from .base_products_conversers import BaseProductsReviewGPT
 
@@ -52,8 +53,9 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
                 extracted_section = remove_figure_envs_from_latex(extracted_section)
                 extracted_section = replace_special_chars(extracted_section)
                 test_latex_compilation(extracted_section)
+                test_usage_of_unwanted_commands(extracted_section)
                 self.section_contents.append(extracted_section)
-        except (FailedToExtractLatexContent, LatexCompilationError) as e:
+        except (FailedToExtractLatexContent, LatexCompilationError, UnwantedCommandsUsedInLatex) as e:
             error_message = dedent_triple_quote_str("""
                 {}
 

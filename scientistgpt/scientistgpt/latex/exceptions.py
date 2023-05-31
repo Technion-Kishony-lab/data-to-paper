@@ -61,3 +61,13 @@ class LatexCompilationError(ScientistGPTException, ValueError):
                f'```\n' \
                f'{self._extract_error_message()}' \
                f'```\n'
+
+@dataclass
+class UnwantedCommandsUsedInLatex(ScientistGPTException, ValueError):
+    """
+    Raised when the latex content contains unwanted commands.
+    """
+    unwanted_commands: list
+
+    def __str__(self):
+        return f'Unwanted commands used in latex:\n{self.unwanted_commands}\n\n'
