@@ -17,7 +17,7 @@ OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = dict[Optional[ModelEngine], str]({
 })
 
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
-MAX_MODEL_ENGINE = ModelEngine.GPT4_32
+MAX_MODEL_ENGINE = ModelEngine.GPT4
 
 # Text width for conversation output:
 TEXT_WIDTH = 150
