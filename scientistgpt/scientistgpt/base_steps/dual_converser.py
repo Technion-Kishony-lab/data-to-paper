@@ -201,8 +201,6 @@ class DialogDualConverserGPT(DualConverserGPT):
         while True:
             self_response, cycle_status = self.run_one_cycle()
             if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
-                if isinstance(last_self_response, NoResponse):
-                    raise FailedCreatingProductException()
                 return last_self_response
             if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
                 return self_response

@@ -37,7 +37,7 @@ class ScientificProducts(Products):
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
-    tables: List[str] = None
+    tables: Dict[str, List[str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
@@ -78,16 +78,16 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: self.add_tables_to_paper_section(section_content)
+        return {section_name: self.add_tables_to_paper_section(section_name, section_content)
                 for section_name, section_content in self.paper_sections.items() if section_name in self.tables}
 
-    def add_tables_to_paper_section(self, section_content: str) -> str:
+    def add_tables_to_paper_section(self, section_name: str, section_content: str) -> str:
         """
         Insert the tables into the ready_to_be_tabled_paper_sections.
         """
         updated_section = section_content
-        if self.tables is not None:
-            for table in self.tables:
+        if self.tables[section_name] is not None:
+            for table in self.tables[section_name]:
                 table_label_start = table.find('label{') + len('label{')  # find the start of the label
                 table_label_end = table.find('}', table_label_start)  # find the end of the label
                 table_label = table[table_label_start:table_label_end]  # extract the label
