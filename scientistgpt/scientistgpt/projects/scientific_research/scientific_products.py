@@ -136,10 +136,17 @@ class ScientificProducts(Products):
             **super()._get_generators(),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
-                'Dataset',
-                'DESCRIPTION OF DATASET\n\nWe have the following {}',
+                'Raw Dataset',
+                'DESCRIPTION OF THE RAW DATASET\n\nWe have the following {}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
+            ),
+
+            'all_file_descriptions': NameDescriptionStageGenerator(
+                'Dataset',
+                'DESCRIPTION OF THE DATASET:\n\n{}',
+                ScientificStages.DATA,
+                lambda: self.all_file_descriptions,
             ),
 
             'research_goal': NameDescriptionStageGenerator(
