@@ -8,6 +8,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 
 from .converser_gpt import ConverserGPT
+from .exceptions import FailedCreatingProductException
 
 
 @dataclass
@@ -105,6 +106,10 @@ class CycleStatus(Enum):
     MAX_ROUNDS_EXCEEDED = 'max_rounds_exceeded'
 
 
+class NoResponse:
+    pass
+
+
 @dataclass
 class DialogDualConverserGPT(DualConverserGPT):
     """
@@ -192,10 +197,12 @@ class DialogDualConverserGPT(DualConverserGPT):
         If we don't get a valid (by _check_self_response)self chatgpt response after max_attempts_per_round,
         return None.
         """
-        last_self_response = None
+        last_self_response = NoResponse()
         while True:
             self_response, cycle_status = self.run_one_cycle()
             if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+                if isinstance(last_self_response, NoResponse):
+                    raise FailedCreatingProductException()
                 return last_self_response
             if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
                 return self_response
