@@ -112,7 +112,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     conversation_name: str = 'data_preprocessing_code'
     code_name: str = 'Data Preprocessing'
-    background_product_fields: Tuple[str] = ('research_goal', 'all_file_descriptions', 'codes_and_outputs:data_exploration')
+    background_product_fields: Tuple[str] = ('research_goal', 'all_file_descriptions',
+                                             'outputs:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = None
     allowed_created_files: Iterable[str] = ('*.csv',)
