@@ -42,7 +42,7 @@ class ScientificProducts(Products):
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
-    ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
+    # ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -79,7 +79,7 @@ class ScientificProducts(Products):
         Return the actual tabled paper sections.
         """
         return {section_name: self.add_tables_to_paper_section(section_content)
-                for section_name, section_content in self.ready_to_be_tabled_paper_sections.items()}
+                for section_name, section_content in self.paper_sections.items() if section_name in self.tables}
 
     def add_tables_to_paper_section(self, section_content: str) -> str:
         """
@@ -112,7 +112,7 @@ class ScientificProducts(Products):
         for section_name, section in self.paper_sections.items():
             if section_name in self.cited_paper_sections:
                 section = self.cited_paper_sections[section_name]
-            if section_name in self.ready_to_be_tabled_paper_sections:
+            if section_name in self.tables:
                 section = self.tabled_paper_sections[section_name]
             section_names_to_content[section_name] = section
         return section_names_to_content
