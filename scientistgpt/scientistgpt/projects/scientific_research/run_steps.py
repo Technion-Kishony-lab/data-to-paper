@@ -151,7 +151,9 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.advance_stage_and_set_active_conversation(ScientificStages.CITATIONS, ScientificAgent.CitationExpert)
             for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
                 products.cited_paper_sections_and_citations[section_name] = \
-                    AddCitationReviewGPT.from_(self, section_name=section_name).rewrite_section_with_citations()
+                    AddCitationReviewGPT.from_(self, section_name=section_name,
+                                               conversation_name=f'add_citations_to_{section_name}')\
+                        .rewrite_section_with_citations()
             self.send_product_to_client('cited_paper_sections_and_citations')
 
         paper_producer.assemble_compile_paper()
