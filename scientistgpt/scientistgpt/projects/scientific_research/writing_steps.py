@@ -148,3 +148,25 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
         If you do not see any discrepancies and do not have other suggestions for improvements, \
         respond with "{termination_phrase}".
         """)
+
+@dataclass
+class DiscussionSectionWriterReviewGPT(SectionWriterReviewGPT):
+    background_product_fields: Tuple[str] = ('research_goal', 'title_and_abstract',
+                                             'most_updated_paper_sections:methods',
+                                             'most_updated_paper_sections:results')
+    max_reviewing_rounds: int = 1
+    section_specific_instructions: str = dedent_triple_quote_str("""
+        Mention the main results and their implications, limitations of the study, and future directions.
+        Explain the novelty of the results and how they are different from previous studies in the field.
+        """)
+
+
+@dataclass
+class ConclusionSectionWriterReviewGPT(SectionWriterReviewGPT):
+    background_product_fields: Tuple[str] = ('research_goal', 'title_and_abstract',
+                                             'most_updated_paper_sections:results',
+                                             'most_updated_paper_sections:discussion')
+    max_reviewing_rounds: int = 1
+    section_specific_instructions: str = dedent_triple_quote_str("""
+        Summarize the main results and their implications, limitations of the study, and future directions.
+        """)
