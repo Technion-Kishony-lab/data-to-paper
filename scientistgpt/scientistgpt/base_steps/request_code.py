@@ -230,8 +230,11 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
     requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
         Explain the content of all the new or modified columns of "{dataframe_file_name}".
 
-        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the
+        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the \
         strings that explain the content of each column.
+        
+        All information you think is important should be encoded in this dictionary. 
+        Do not send additional free text beside the text in the dictionary.  
         """)
 
     def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[DataFileDescriptions]:

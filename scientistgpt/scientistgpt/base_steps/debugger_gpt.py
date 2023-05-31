@@ -127,7 +127,7 @@ class DebuggerGPT(BaseProductsGPT):
             content=dedent_triple_quote_str(f"""
             I see that your code modifies some of the dataframes {read_but_unsaved_dataframe_files}. \
             I would like the code to save any such modified dataframe.  
-            Please rewrite the complete code again adding `to_csv` to save all modified dataframe as new files \
+            Please rewrite the complete code again adding `to_csv` to save any modified dataframe in a new file \
             in the same directory as the code.
             """),
             comment=f'{self.iteration_str}: Code completed, but not all modified dataframes were saved.')
