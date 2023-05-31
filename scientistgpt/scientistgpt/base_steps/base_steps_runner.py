@@ -106,7 +106,8 @@ class BaseStepsRunner(BaseProductsHandler):
         if os.path.exists(self.output_directory):
             # delete all the files except the mock_openai file:
             for file in glob.glob(str(self.output_directory / '*')):
-                if file != str(self.output_directory / self.OPENAI_RESPONSES_FILENAME):
+                if file != str(self.output_directory / self.OPENAI_RESPONSES_FILENAME) \
+                        and file != str(self.output_directory / self.CROSSREF_RESPONSES_FILENAME):
                     os.remove(file)
         else:
             os.makedirs(self.output_directory)
