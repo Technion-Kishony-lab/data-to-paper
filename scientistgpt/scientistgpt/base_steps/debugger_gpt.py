@@ -166,12 +166,21 @@ class DebuggerGPT(BaseProductsGPT):
 
     def _respond_to_forbidden_functions(self, func: str):
         if func == 'print':
-            self.apply_append_user_message(
-                content=dedent_triple_quote_str("""
-                Please do not use the `print` function. 
-                Anything you want to print must be written to the output file ("{}"). 
-                """).format(self.output_filename),
-                comment=f'{self.iteration_str}: Code uses `print`.')
+            if self.output_filename is None:
+                self.apply_append_user_message(
+                    content=dedent_triple_quote_str("""
+                    Please do not use the `print` function.
+                    Your code should only make changes to the dataframes should have no other output.
+                    """)
+                )
+            else:
+                self.apply_append_user_message(
+                    content=dedent_triple_quote_str("""
+                    Please do not use the `print` function. 
+                    Anything you want to print must be written to the output file ("{}"). 
+                    """).format(self.output_filename),
+                    comment=f'{self.iteration_str}: Code uses `print`.'
+                )
             return
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
