@@ -2,6 +2,7 @@ import openai
 from _pytest.fixtures import fixture
 
 from scientistgpt import Role, Message
+from scientistgpt.servers.chatgpt import OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS
 
 
 @fixture()
@@ -19,4 +20,4 @@ def conversation(conversations):
 
 @fixture()
 def openai_exception():
-    return openai.error.InvalidRequestError(param='prompt', message='The prompt must be a string.')
+    return openai.error.InvalidRequestError(param='prompt', message=OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS)

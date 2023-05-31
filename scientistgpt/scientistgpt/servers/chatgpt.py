@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 MAX_NUM_OPENAI_ATTEMPTS = 5
 
+OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
+# a sub-string that indicates that an openai exception was raised due to the message content being too long
 
 class OpenaiSeverCaller(ServerCaller):
     """
@@ -64,7 +66,7 @@ def try_get_chatgpt_response(messages: List[Message],
         except openai.error.InvalidRequestError as e:
             # TODO: add here any other exception that can be addressed by changing the number of tokens
             #     or the bump up the model engine
-            if 'maximum context length' in str(e):
+            if OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS in str(e):
                 return e
             print(f'OPENAI error:\n{type(e)}\n{e}')
         except NoMoreResponsesToMockError:
