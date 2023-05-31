@@ -170,7 +170,7 @@ class DebuggerGPT(BaseProductsGPT):
                 self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
                     Please do not use the `print` function.
-                    Your code should only make changes to the dataframes should have no other output.
+                    Your code should only save any new or modified dataframes; should have no other output.
                     """)
                 )
             else:
@@ -197,20 +197,42 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(module),
             comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
 
+    @property
+    def only_write_to_description(self):
+        if self.output_filename is None:
+            if self.allowed_created_files == ('*.csv', ):
+                return "Your code should only save new or modified dataframes to csv files; " \
+                       "it should have no other output."
+            elif self.allowed_created_files:
+                return f"Your code should only write to these files: {self.allowed_created_files}."
+            else:
+                return "Your code should not write to any file."
+        else:
+            if self.allowed_created_files == ('*.csv', ):
+                return f"Your code should save new or modified dataframes to csv files, " \
+                       f"and save other results to the output file {self.output_filename}."
+            elif self.allowed_created_files:
+                return f"Your code should only write to files: {self.allowed_created_files}, " \
+                       f"and to the output file {self.output_filename}."
+            else:
+                return f"Your code should not write to any file, except the output file {self.output_filename}."
+
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             Your code writes to the file "{}" which is not allowed.
-            Please rewrite the complete code again, making sure it only writes to "{}". 
-            """).format(file, self.output_filename),
+            {only_write_to_description}
+            Please rewrite the complete code again so that it does not create un-allowed files.
+            """).format(file, self.only_write_to_description),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_un_allowed_files_created(self, files: List[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it created the following files {} which is not allowed.
-            Please rewrite the complete code again, making sure it only creates "{}". 
-            """).format(files, self.output_filename),
+            Your code creates the following files {} which is not allowed.
+            {only_write_to_description}
+            Please rewrite the complete code again so that it does not create un-allowed files.
+            """).format(files, self.only_write_to_description),
             comment=f'{self.iteration_str}: Code created forbidden files {files}.')
 
     def _respond_to_forbidden_read(self, file: str):
