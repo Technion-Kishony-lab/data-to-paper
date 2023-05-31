@@ -50,8 +50,9 @@ class ScientificProducts(Products):
         Return the description of all files.
         """
         return DataFileDescriptions(
-            self.data_file_descriptions + [co.description_of_created_files for co in self.codes_and_outputs.values()
-                                           if co.description_of_created_files is not None],
+            [description for description in self.data_file_descriptions] +
+            [desc_of_file for co  in self.codes_and_outputs.values() if co.description_of_created_files is not None for
+             desc_of_file in co.description_of_created_files],
             data_folder=self.data_file_descriptions.data_folder)
 
     @property
