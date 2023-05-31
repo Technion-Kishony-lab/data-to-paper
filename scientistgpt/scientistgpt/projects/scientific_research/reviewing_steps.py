@@ -151,9 +151,8 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
         
-        Do not list the numerical values before providing them in a Python Dict format as shown above.
-        Do not include too many values in the outputs, be judicious when choosing values, \
-        in scientific paper its customary to mention up to 7 important values.
+        Do not send any free text. All descriptions should be included in the key strings of the Python Dict.
+        Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether they \
