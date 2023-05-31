@@ -121,7 +121,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
-        cleaned, normalized, same-unit, balanced version of the data.
+        cleaned, normalized, same-unit, balanced version of the data, ready for use in a machine learning model.
 
         Your code should create one or more new csv files containing the preprocessed data saved sensible file names.
 
