@@ -30,10 +30,18 @@ def __init__(self, *args, created_by: str = None, file_path: str = None, **kwarg
 
 
 def __setitem__(self, key, value):
-    operation_type = ChangeSeriesDataframeOperation if key in self else AddSeriesDataframeOperation
+    if hasattr(self, 'columns'):
+        original_columns = self.columns
+    else:
+        original_columns = None
     original_setitem(self, key, value)
-    _notify_on_change(self, operation_type(id=id(self), series_name=key))
-
+    if original_columns is not None:
+        if isinstance(key, (list, tuple)):
+            is_changing_existing_columns = any(k in original_columns for k in key)
+        else:
+            is_changing_existing_columns = key in original_columns
+        operation_type = ChangeSeriesDataframeOperation if is_changing_existing_columns else AddSeriesDataframeOperation
+        _notify_on_change(self, operation_type(id=id(self), series_name=key))
 
 def __delitem__(self, key):
     original_delitem(self, key)
