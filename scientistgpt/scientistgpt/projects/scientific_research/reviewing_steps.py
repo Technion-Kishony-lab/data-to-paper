@@ -123,7 +123,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
+    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
