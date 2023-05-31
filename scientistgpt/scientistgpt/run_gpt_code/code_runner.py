@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Tuple
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 from scientistgpt.run_gpt_code.code_utils import extract_code_from_text
@@ -24,7 +24,7 @@ class CodeRunner:
 
     response: str
     allowed_read_files: Iterable[str] = ()
-    allowed_created_files: Iterable[str] = ()
+    allowed_created_files: Tuple[str] = ()
     allow_dataframes_to_change_existing_series: bool = True
     output_file: Optional[str] = None
     script_file_path: Optional[Path] = None

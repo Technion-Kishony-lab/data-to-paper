@@ -25,7 +25,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
 
     supported_packages: Tuple[str] = SUPPORTED_PACKAGES
 
-    allowed_created_files: Iterable[str] = None
+    allowed_created_files: Tuple[str] = None
     # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
 
     allow_dataframes_to_change_existing_series: bool = True
@@ -240,7 +240,11 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
     def _ask_for_created_files_descriptions(self, code_and_output: CodeAndOutput) -> Optional[DataFileDescriptions]:
         dataframe_operations = code_and_output.dataframe_operations
         data_file_descriptions = DataFileDescriptions(data_folder=self.data_folder)
-        for saved_df_id, saved_df_filename in dataframe_operations.get_saved_ids_filenames():
+        saved_ids_filenames = dataframe_operations.get_saved_ids_filenames()
+        # sort the saved ids by their filename, so that the order of the questions will be consistent between runs:
+        saved_ids_filenames = sorted(saved_ids_filenames, key=lambda saved_id_filename: saved_id_filename[1])
+
+        for saved_df_id, saved_df_filename in saved_ids_filenames:
             read_filename = dataframe_operations.get_read_filename(saved_df_id)
             saved_columns = dataframe_operations.get_save_columns(saved_df_id)
             creation_columns = dataframe_operations.get_creation_columns(saved_df_id)
