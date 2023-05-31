@@ -1,5 +1,6 @@
 import builtins
 import json
+import openai
 
 
 def save_to_json(data: list, filename):
@@ -29,6 +30,8 @@ def load_from_json(filename):
             # if exception in builtins:
             if hasattr(builtins, exception_type):
                 exception = getattr(builtins, exception_type)(*args)
+            elif hasattr(openai.error, exception_type):
+                exception = getattr(openai.error, exception_type)(*args)
             else:
                 exception = Exception(*args)
             data.append(exception)
