@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import regex
 
-from typing import Set, Optional
+from typing import Set, Optional, List
 
 from scientistgpt.servers.crossref import CrossrefCitation
 from scientistgpt.utils.file_utils import run_in_temp_directory
@@ -128,16 +128,15 @@ def clean_latex(latex_content):
     latex_content = preamble + replace_special_chars(latex_content)
     return latex_content
 
-def test_usage_of_unwanted_commands(latex_content: str):
-    unwanted_commands = [r'\cite', r'\verb']
-    unwanted_commands_used = []
-    for unwanted_command in unwanted_commands:
-        if unwanted_command in latex_content:
-            unwanted_commands_used.append(unwanted_command)
-    if len(unwanted_commands_used) > 0:
+
+def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List[str] = None):
+    unwanted_commands = unwanted_commands if unwanted_commands is not None else [r'\cite', r'\verb']
+    unwanted_commands_used = [c for c in unwanted_commands if c in latex_content]
+    if unwanted_commands_used:
         raise UnwantedCommandsUsedInLatex(unwanted_commands_used)
 
-def test_latex_compilation(latex_content: str):
+
+def check_latex_compilation(latex_content: str):
     with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
     save_latex_and_compile_to_pdf(latex_document, 'test')

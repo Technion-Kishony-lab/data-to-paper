@@ -156,8 +156,9 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewGPT):
                                              'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
-        Mention the main results and their implications, limitations of the study, and future directions.
-        Explain the novelty of the results and how they are different from previous studies in the field.
+        Recap the main results as appearing in the results (see results section above). 
+        Where possible, subtly note any novelty in the methodology or findings.
+        Discuss the limitations of the study.
         """)
 
 
@@ -168,5 +169,5 @@ class ConclusionSectionWriterReviewGPT(SectionWriterReviewGPT):
                                              'most_updated_paper_sections:discussion')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
-        Summarize the main results and their implications, limitations of the study, and future directions.
+        Summarize the main results and their implications, impact, and future directions.
         """)
