@@ -31,7 +31,10 @@ def load_from_json(filename):
             if hasattr(builtins, exception_type):
                 exception = getattr(builtins, exception_type)(*args)
             elif hasattr(openai.error, exception_type):
-                exception = getattr(openai.error, exception_type)(*args)
+                if exception_type == 'InvalidRequestError':
+                    exception = getattr(openai.error, exception_type)(*args, param=None)
+                else:
+                    exception = getattr(openai.error, exception_type)(*args)
             else:
                 exception = Exception(*args)
             data.append(exception)
