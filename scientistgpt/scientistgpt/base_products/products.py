@@ -119,13 +119,17 @@ class Products:
 
     def is_product_available(self, field: str) -> bool:
         """
-        Return whether the given product is available.
+        Return whether the given product field is available.
+        A product field is available if all of its variables are not None and all of the sub-products it
+        depends on are available (not None).
+        Trying to access an unavailable attributes is also interpreted as False, namely the sub-product
+        is not available.
         """
         try:
             self._raise_on_none = True
             _, variables = self._get_name_description_stage_generators_and_variables(field)
             variables = _convert_args_or_kwargs_to_args(variables)
-            return variables[0] is not None
+            return all(variable is not None for variable in variables)
         except (KeyError, AttributeError, ValueError):
             return False
         finally:

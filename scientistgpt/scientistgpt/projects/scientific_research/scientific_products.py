@@ -133,6 +133,8 @@ class ScientificProducts(Products):
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
+            **super()._get_generators(),
+
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Dataset',
                 'DESCRIPTION OF DATASET\n\nWe have the following {}',
