@@ -58,11 +58,18 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
         """)
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
-        Here is the code to perform the analysis. It saves results to the file "{actual_output_filename}".
+        Here is the code to perform the analysis.
+        {code_save_result_to_file_explanation}
         ```python
         {}
         ```
         """)  # set to None to not present code
+
+    @property
+    def code_save_result_to_file_explanation(self) -> str:
+        if self.output_filename is None:
+            return ''
+        return 'It saves results to the file "{actual_output_filename}".'
 
     @property
     def data_filenames(self) -> NiceList[str]:

@@ -299,9 +299,9 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         of improvements and feedback.
 
         When you feel that the goal has been achieved, respond explicitly with: 
-        "{termination_phrase}" (termination-phase)
+        "{termination_phrase}" (approving-phrase)
         If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged \
-        to respond with the termination-phrase immediately, without requesting any improvement cycles.
+        to respond with the approving-phrase immediately, without requesting any improvement cycles.
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""

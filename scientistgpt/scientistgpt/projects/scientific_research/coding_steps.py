@@ -90,7 +90,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
         * Counts of missing values
         * Any other data exploration analysis you deem relevant
 
-        The output file should be self-contained: any results you choose to save to this file \
+        The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
 
         If needed, you can use the following packages which are already installed:
@@ -123,7 +123,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
         cleaned, normalized, same-unit, balanced version of the data.
 
-        Your code should create one or more new csv files containing the preprocessed data with a sensible file name.
+        Your code should create one or more new csv files containing the preprocessed data saved sensible file names.
 
         Depending on the specifics of the dataset, you might want to preform the following steps:
 
@@ -139,9 +139,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
 
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
-
-        IMPORTANT: If you create a new dataframe or add any new variables to the original dataframes, 
-        you should save the modified/new dataframes in new files.
         """)
 
     requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
@@ -184,7 +181,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
         All results we may need for a scientific paper should be saved to this text file,
         including analysis findings, summary statistics, statistical tests, etc.
         
-        The output file should be self-contained: any results you choose to save to this file \
+        The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header explanation as well as indication of units (if any).
 
         Do not write to any other files.
