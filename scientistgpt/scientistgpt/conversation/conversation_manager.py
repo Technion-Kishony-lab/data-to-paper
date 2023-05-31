@@ -195,6 +195,7 @@ class ConversationManager:
 
         # we try to get a response. if we fail we bump the model, and then gradually remove messages from the top,
         # starting at message 1 (we don't remove message 0, which is the system message).
+        model = openai_call_parameters.model_engine or DEFAULT_MODEL_ENGINE
         while True:
             message = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
                                                                 previous_code=previous_code,
@@ -205,10 +206,10 @@ class ConversationManager:
                 return message
 
             # we failed to get a response. We start by bumping the model, if possible:
-            model = openai_call_parameters.model_engine or DEFAULT_MODEL_ENGINE
-            if model <= MAX_MODEL_ENGINE:
+            if model < MAX_MODEL_ENGINE:
                 print_red(f'############# Bumping model #############')
-                openai_call_parameters.model_engine = MAX_MODEL_ENGINE
+                model = MAX_MODEL_ENGINE
+                openai_call_parameters.model_engine = model
                 continue
 
             # We have no option but to remove messages from the top:
