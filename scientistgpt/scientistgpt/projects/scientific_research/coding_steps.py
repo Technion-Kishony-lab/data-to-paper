@@ -172,7 +172,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
     code_requesting_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
 
-        As input, you can use the listed data files.
+        As input, you can use any of the data files I've listed above.
 
         Don't provide a sketch or pseudocode; write a complete runnable code.
 
@@ -180,7 +180,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
         {supported_packages}
 
         The output of your code should be a text file named "{actual_output_filename}".
-        All results we may need for a scientific paper should be saved to this text file,
+        All results we may need for a scientific paper should be saved to this text file, \
         including analysis findings, summary statistics, statistical tests, etc.
         
         The output file should be self-contained; any results you choose to save to this file \
