@@ -77,17 +77,19 @@ class Actions(List[Action]):
     def apply_action(self, action: Action, should_print: bool = True, is_color: bool = True,
                      should_append: bool = True):
         from scientistgpt.base_cast import update_cast_and_messenger_on_action
-        if should_append:
-            self.append(action)
         if should_print:
             from .conversation_actions import AppendMessage
             if self.abbreviate_repeated_printed_content \
                     and isinstance(action, AppendMessage) \
                     and action.message.content in self.get_all_message_contents():
-                print(action.pretty_repr(is_color=is_color, abbreviate_content=True))
+                s = action.pretty_repr(is_color=is_color, abbreviate_content=True)
             else:
-                print(action.pretty_repr(is_color=is_color))
-            print()
+                s = action.pretty_repr(is_color=is_color)
+            if s:
+                print(s)
+                print()
+        if should_append:
+            self.append(action)
         action.apply()
 
         # update the messenger system:
