@@ -29,6 +29,7 @@ class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.Writer
     section_specific_instructions: str = ''
+    section_review_specific_instructions: str = ''
 
     system_prompt: str = dedent_triple_quote_str("""
         You are a data-scientist with experience writing accurate scientific research papers.
@@ -73,9 +74,15 @@ class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
     """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        Make sure that the section is grounded in the information provided above and is consistent with it.
+        Either reply with a bullet-point list of feedback points, or, if you feel that the section is already \
+        good enough, respond with "{termination_phrase}" only. 
+        
+        Do not summarize the content of the section in your feedback, only provide feedback in bullet points.
+        
+        {section_review_specific_instructions}
+        
+        In addition, make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
-        If you are satisfied, respond with "{termination_phrase}".
         """)
 
     def __post_init__(self):
@@ -119,18 +126,12 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
         Focus on the methods that were used to achieve the research goal.
         """)
 
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
-        Please provide constructive feedback on the above {pretty_section_names} for my paper.
-
+    section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Specifically, pay attention to:
         * Over-specific description of tools, like specifying exact software or package versions used in the analysis.
         * Description of analysis steps that were not performed by the analysis Python codes \
         (provided above), like certain data cleaning processes.
         * References to variables and data files that were not used in the analysis.
-
-        Make sure that the section is grounded in the information provided above and is consistent with it.
-        If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
-        If you you do not see any flaws and do not have any more suggestions, respond with "{termination_phrase}".
         """)
 
 
@@ -152,15 +153,16 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
 
         Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
         """)
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
-        contain only information that is explicitly extracted from the Tables and Numerical Values provided above. \
+    section_review_specific_instructions: str = dedent_triple_quote_str("""
+        Specifically, pay attention to:
+        whether the {goal_noun} contains only information that is explicitly extracted from the \
+        Tables and Numerical Values provided above. \
+        
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
+        
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
         Tables and Numerical Values.
-        If you do not see any discrepancies and do not have other suggestions for improvements, \
-        respond with "{termination_phrase}".
         """)
 
 
