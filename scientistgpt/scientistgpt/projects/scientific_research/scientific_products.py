@@ -299,7 +299,7 @@ class ScientificProducts(Products):
                 'The Tables of the Paper',
                 'Here are the tables we have for the paper:\n\n{}',
                 ScientificStages.TABLES,
-                lambda section_name: None if not self.all_tables else
+                lambda: None if not self.all_tables else
                 NiceList([f"Table {i + 1}:\n\n {table}" for i, table in enumerate(self.all_tables)],
                          separator='\n\n'), ),
 

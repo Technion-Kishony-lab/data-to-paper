@@ -95,7 +95,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
     table_number: int = 1
     total_number_of_tables: int = 1
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} a {goal_noun} that summarize the key results provided in the output files above.
+        Please {goal_verb} a {goal_noun} that summarizes the key results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
         {do_not_repeat_information_from_previous_tables} 
         Write the table in latex format.
@@ -114,7 +114,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 
     @property
     def do_not_repeat_information_from_previous_tables(self) -> str:
-        if self.products.tables:
+        if self.products.is_product_available('tables'):
             return dedent_triple_quote_str("""
                 Notice that the table should only add new information that is not already in the tables provided above.
                 """)
