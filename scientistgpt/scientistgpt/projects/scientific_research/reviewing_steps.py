@@ -71,13 +71,16 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
                                              'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
+    goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun}. 
         Do not include any data visualization steps.
         Explicitly specify all relevant analysis results and values that should be calculated.
+        If there are any specific statistical tests that should be performed, specify how they should be performed.
+        
+        Do not specify data exploration steps, as they are already performed.
         {quote_request}
         """)
-    goal_verb: str = 'write'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
 
