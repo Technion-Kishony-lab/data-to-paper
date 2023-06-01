@@ -89,6 +89,8 @@ class ServerCaller:
                 raise NoMoreResponsesToMockError()
             response = self._get_server_response_without_raising(*args, **kwargs)
             self.new_records.append(response)
+            if self.should_save:
+                self.save_records(self.file_path)
             return response
 
     def __enter__(self):
