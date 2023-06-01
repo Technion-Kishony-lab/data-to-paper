@@ -5,6 +5,8 @@ import openai
 
 from typing import List, Union
 
+import tiktoken
+
 from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 
 from .base_server import ServerCaller, NoMoreResponsesToMockError
@@ -48,6 +50,17 @@ class OpenaiSeverCaller(ServerCaller):
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
 
 
+def count_number_of_tokens_in_message(messages: List[Message], model_engine: ModelEngine) -> int:
+    """
+    Count number of tokens in message using tiktoken.
+    """
+    model = model_engine.value or DEFAULT_MODEL_ENGINE
+    encoding = tiktoken.encoding_for_model(model)
+    num_tokens = len(encoding.encode(''.join([message.to_chatgpt_dict() for message in messages])))
+
+    return num_tokens
+
+
 def try_get_chatgpt_response(messages: List[Message],
                              model_engine: ModelEngine = None,
                              **kwargs) -> Union[str, Exception]:
@@ -61,6 +74,8 @@ def try_get_chatgpt_response(messages: List[Message],
     If failed due to openai exception, return None.
     """
     for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
+        # TODO: add a check that the number of tokens is not too large before sending to openai, if it is then
+        #     we can bump up the model engine before sending
         try:
             return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         except openai.error.InvalidRequestError as e:
