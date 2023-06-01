@@ -72,14 +72,24 @@ class Actions(List[Action]):
     a list of actions applied to conversations by order in which actions were applied.
     """
 
+    abbreviate_repeated_printed_content: bool = True
+
     def apply_action(self, action: Action, should_print: bool = True, is_color: bool = True,
                      should_append: bool = True):
         from scientistgpt.base_cast import update_cast_and_messenger_on_action
+        if should_print:
+            from .conversation_actions import AppendMessage
+            if self.abbreviate_repeated_printed_content \
+                    and isinstance(action, AppendMessage) \
+                    and action.message.content in self.get_all_message_contents():
+                s = action.pretty_repr(is_color=is_color, abbreviate_content=True)
+            else:
+                s = action.pretty_repr(is_color=is_color)
+            if s:
+                print(s)
+                print()
         if should_append:
             self.append(action)
-        if should_print:
-            print(action.pretty_repr(is_color=is_color))
-            print()
         action.apply()
 
         # update the messenger system:
@@ -109,6 +119,13 @@ class Actions(List[Action]):
         from .conversation_actions import ChangeMessagesConversationAction
         return [action for action in self if
                 isinstance(action, ChangeMessagesConversationAction) and action.conversation_name == conversation_name]
+
+    def get_all_message_contents(self) -> List[str]:
+        """
+        Return a list of all message contents.
+        """
+        from .conversation_actions import AppendMessage
+        return [action.message.content for action in self if isinstance(action, AppendMessage)]
 
 
 @dataclass(frozen=True)

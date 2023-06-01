@@ -76,6 +76,9 @@ class SetTypingAgent(ConversationAction):
     def _pretty_attrs(self) -> str:
         return f'{self.agent}'
 
+    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
+        return ''
+
 
 @dataclass(frozen=True)
 class ChangeConversationParticipants(ConversationAction):
@@ -169,7 +172,8 @@ class AppendMessage(ChangeMessagesConversationAction):
         """
         return self.conversation_name is not None and not self.message.ignore
 
-    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
+    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True,
+                    abbreviate_content: bool = False) -> str:
         # Note 1: the conversation len assumes this method is called right before the message is appended.
         # Note 2: we are only adding the text from the super method we have comments or are rewinding. Otherwise, we
         #         the message we print has the other information (conversation name and role).
@@ -180,7 +184,7 @@ class AppendMessage(ChangeMessagesConversationAction):
             s += super().pretty_repr(is_color=is_color, with_conversation_name=False) + '\n'
         s += self.message.pretty_repr(number=self._get_message_index() + 1,
                                       conversation_name=self.conversation_name,
-                                      is_color=is_color)
+                                      is_color=is_color, abbreviate_content=abbreviate_content)
         return s
 
     def _pretty_attrs(self) -> str:
