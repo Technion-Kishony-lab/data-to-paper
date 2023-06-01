@@ -12,6 +12,7 @@ from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingCode
 from scientistgpt.servers.openai_models import OpenaiCallParameters
 from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
+from scientistgpt.utils.highlighted_text import colored_text
 from scientistgpt.utils.text_formatting import wrap_text_with_triple_quotes
 from scientistgpt.utils.formatted_sections import FormattedSections
 from scientistgpt.utils.text_extractors import get_dot_dot_dot_text
@@ -73,7 +74,8 @@ class Message:
         return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()
                 else self.role.value, 'content': self.content}
 
-    def pretty_repr(self, number: Optional[int] = None, conversation_name: str = '', is_color: bool = True) -> str:
+    def pretty_repr(self, number: Optional[int] = None, conversation_name: str = '', is_color: bool = True,
+                    abbreviate_content: bool = False) -> str:
         """
         Returns a pretty repr of the message with color and heading.
 
@@ -91,10 +93,8 @@ class Message:
         num_text = f'[{number}] ' if number else ''
         style = ROLE_TO_STYLE[role]
         sep = style.separator
-        if is_color:
-            text_color, reset_color = style.color, colorama.Style.RESET_ALL
-        else:
-            text_color = reset_color = ''
+        text_color = style.color if is_color else ''
+
         role_text = role.name + ('' if self.openai_call_parameters is None else f'({self.openai_call_parameters})')
         if role == Role.SYSTEM:
             role_model_agent_conversation_tag = f'{role_text} casting {agent_text} for {conversation_name} '
@@ -102,11 +102,16 @@ class Message:
             role_model_agent_conversation_tag = f'{role_text}{agent_text} -> {conversation_name}{tag_text} '
 
         if role == Role.COMMENTER:
-            return text_color + num_text + role_model_agent_conversation_tag + ': ' + content + reset_color
+            return colored_text(num_text + role_model_agent_conversation_tag + ': ' + content, text_color)
+
+        if abbreviate_content:
+            start = TEXT_WIDTH * 7 // 10
+            content = get_dot_dot_dot_text(content, start=start, end= start - TEXT_WIDTH)
+            return colored_text(num_text + role_model_agent_conversation_tag + ': \n' + content, text_color)
 
         # header:
-        s = text_color + num_text + sep * (9 - len(num_text)) + ' ' + role_model_agent_conversation_tag \
-            + sep * (TEXT_WIDTH - len(role_model_agent_conversation_tag) - 9 - 1) + '\n'
+        s = colored_text(num_text + sep * (9 - len(num_text)) + ' ' + role_model_agent_conversation_tag
+                         + sep * (TEXT_WIDTH - len(role_model_agent_conversation_tag) - 9 - 1) + '\n', text_color)
 
         # content:
         s += self.pretty_content(text_color, width=TEXT_WIDTH)
@@ -114,7 +119,7 @@ class Message:
             s += '\n'
 
         # footer:
-        s += text_color + sep * TEXT_WIDTH + reset_color
+        s += colored_text(sep * TEXT_WIDTH, text_color)
         return s
 
     def get_content_after_hiding_incomplete_code(self) -> (str, bool):
@@ -176,9 +181,9 @@ class Message:
         content, _ = self._get_triple_quote_formatted_content(with_header)
         return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html)
 
-    def get_short_description(self):
-        s = f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): {get_dot_dot_dot_text(self.content, 35, -20)}'
-        return s.replace('\n', ' ').replace('```', '')
+    def get_short_description(self, left: int = 35, right: int = -20) -> str:
+        return f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): ' \
+               f'{get_dot_dot_dot_text(self.content, left, right)}'
 
     def convert_to_text(self):
         return f'{self.role.value}<{self.tag}>\n{self.content}'
