@@ -73,14 +73,15 @@ class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
         Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
     """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide constructive feedback on the above {pretty_section_names} for my paper.
-        Either reply with a bullet-point list of feedback points, or, if you feel that the section is already \
-        good enough, respond with "{termination_phrase}" only. 
+        Please provide bullet-point list of constructive feedback points on the above {pretty_section_names} \
+        for my paper.
+        Either reply with a bullet-point list of actionable feedback points, or, if you feel that the section is \
+        already good enough, respond with solely the following "{termination_phrase}" (termination phrase) without any \
+        other feedback or comments.
         
-        Do not summarize the content of the section in your feedback, only provide feedback in bullet points.
+        Do not provide positive feedback, only provide actionable instructions in bullet points.
         
         {section_review_specific_instructions}
-        
         In addition, make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         """)

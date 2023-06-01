@@ -30,7 +30,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     research_goal: Optional[str] = None
 
     should_do_data_exploration: bool = True
-    should_do_data_preprocessing: bool = True
+    should_do_data_preprocessing: bool = False
     should_prepare_data_analysis_plan: bool = False
     should_add_citations: bool = True
     should_add_tables: bool = True
