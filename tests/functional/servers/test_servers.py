@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+import time
 from typing import Union
 
 import pytest
@@ -88,3 +89,16 @@ def test_mock_server_save_load_responses_to_file(tmpdir):
                     assert e.value.args == response.args
                 else:
                     assert mock.get_server_response(response) == response
+
+def test_mock_server_saves_upon_error(tmpdir):
+    server = MockServer()
+    file_path = os.path.join(tmpdir, 'responses.txt')
+    try:
+        with server.mock(file_path=file_path, should_save=True) as mock:
+            assert mock.get_server_response('response1') == 'response1'
+            raise KeyboardInterrupt('exception1')
+    except KeyboardInterrupt as e:
+        pass
+    new_server = MockServer()
+    with new_server.mock_with_file(file_path=file_path) as mock:
+        assert mock.get_server_response() == 'response1'
