@@ -42,6 +42,7 @@ setup(
         "regex",
         "scipy",
         "imblearn",
+        "tiktoken",
     ],
     extras_require={
         'dev': [

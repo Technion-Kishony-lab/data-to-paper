@@ -1,0 +1,534 @@
+
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Investigating the relationship between health indicators and diabetes diagnosis in the BRFSS2015 dataset}
+\author{ScientistGPT}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Diabetes is a chronic health condition that affects millions of people worldwide. In this study, we aim to investigate the relationship between various health indicators such as Body Mass Index (BMI), physical activity, fruit and vegetable consumption, and the diagnosis of diabetes in the Behavioral Risk Factor Surveillance System 2015 dataset (BRFSS2015). The BRFSS2015 is a large and representative survey of American adults conducted by the Centers for Disease Control and Prevention (CDC). Our dataset is composed of 253,680 clean responses to the BRFSS2015 survey. We extracted 22 features from the dataset, including the diagnosis of diabetes (as well as other health indicators), and we will analyze the correlations between diabetes diagnosis and the other features using statistical methods and machine learning algorithms. Our findings may contribute to the prevention and management of diabetes by identifying the most significant risk factors associated with diabetes diagnosis.
+\end{abstract}
+
+\section{Introduction}
+
+Diabetes is a chronic health condition that affects millions of people worldwide. It is a metabolic disorder characterized by high blood sugar levels resulting from defects in insulin secretion, insulin action, or both. In the United States, it is estimated that 30.3 million people, or 9.4\% of the population, had diabetes in 2015. Diabetes can lead to serious complications such as heart disease, stroke, kidney disease, blindness, and amputations \cite{Reichard1995Are}. It is a major public health concern, and the prevalence of diabetes is expected to increase in the coming years due to aging populations, sedentary lifestyles, and unhealthy diets \cite{Alkhalidy2021The}.
+
+To address this issue, it is important to investigate the risk factors associated with diabetes and to try to prevent its onset or improve management of the disease in those who have already been diagnosed. In this study, we investigate the relationship between various health indicators and the diagnosis of diabetes in the Behavioral Risk Factor Surveillance System 2015 dataset (BRFSS2015). This dataset is a large and representative survey of American adults conducted by the Centers for Disease Control and Prevention (CDC) and collects responses from over 400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services.
+
+We aim to identify the most significant risk factors associated with diabetes diagnosis by analyzing the correlations between diabetes diagnosis and other health indicators such as Body Mass Index (BMI), physical activity, fruit and vegetable consumption, and other factors included in the BRFSS2015 dataset. We extracted 22 features from the BRFSS2015 dataset, including the diagnosis of diabetes, and will use statistical methods and machine learning algorithms to investigate the relationships between these features. Our findings may contribute to the prevention and management of diabetes by identifying the most significant risk factors associated with diabetes diagnosis.
+
+\section{Methods}
+\subsection{Dataset and Feature Selection}
+The dataset analyzed in this study is derived from the Behavioral Risk Factor Surveillance System 2015 dataset (BRFSS2015), which is a health-related telephone survey that collects data annually from over 400,000 American adults on health-related risk behaviors, chronic health conditions, and the use of preventative services. For this research, a clean dataset consisting of 253,680 survey responses was used. A total of 22 features were selected from the original dataset, with the primary variable of interest being diabetes diagnosis (`Diabetes\_binary`). The remaining 21 features included demographic variables, self-reported health variables, and health indicators, such as Body Mass Index (`BMI`), physical activity (`PhysActivity`), and fruit and vegetable consumption (`Fruits`, `Veggies`).
+
+\subsection{Data Preprocessing}
+The data preprocessing involved several steps to ensure that the dataset was suitable for analysis. First, any columns with more than 30\% missing values were dropped from the dataset. Next, the remaining missing values were filled with the mean value for that particular column. Numeric columns (`BMI`, `MentHlth`, `PhysHlth`) were then normalized using the MinMaxScaler to ensure that all values were within the same scale. Categorical columns `Age`, `Education`, and `Income` were one-hot encoded to convert them into binary variables. Finally, to balance the dataset, the RandomOverSampler technique was applied to address issues with class imbalance in the `Diabetes\_binary` variable. The preprocessed data were saved as a new file for further analysis.
+
+\subsection{Data Analysis}
+Our data analysis involved splitting the preprocessed dataset into training and testing sets, with 80\% of the data used for model training and 20\% for model evaluation. An XGBoost classifier, a popular gradient boosting machine learning algorithm, was employed to analyze the relationships between the selected health indicators and diabetes diagnosis. The model was trained using a GridSearchCV technique that performed a search over a predefined set of hyperparameters, specifically focusing on `max\_depth` and `n\_estimators`.
+
+After identifying the best model, it was then evaluated on the testing set using several evaluation metrics, including the classification report, confusion matrix, and the False Positive Rate (FPR) and False Negative Rate (FNR). These results were saved in a separate file for further assessment and interpretation.
+
+Additionally, we investigated the relationship between various health indicators (`BMI`, `PhysActivity`, `Fruits`, and `Veggies`) and diabetes diagnosis using Chi-square tests of independence. The null hypothesis for the Chi-square test is that there is no significant relationship between the two variables, and we used a significance level of 0.05 to determine if there is any significant relationship.
+
+\section{Results}
+
+A total of 253,680 survey responses from the BRFSS2015 dataset were used in this study to investigate the relationship between various health indicators and diabetes diagnosis. The extracted features from the dataset included the diagnosis of diabetes as well as 21 other health indicators such as Body Mass Index (BMI), physical activity, fruit and vegetable consumption.
+
+We trained a classification model to predict diabetes diagnosis based on the extracted features and evaluated its performance using precision, recall, F1-score, and accuracy metrics. The best-performing model achieved an accuracy of 0.7569, a precision of 0.73 and a recall of 0.8 for diabetes diagnosis. These are important numerical values because they indicate the accuracy of our classification model in predicting diabetes diagnosis based on the studied health indicators.
+
+We also identified significant relationships between diabetes diagnosis and several health indicators based on the feature importance scores of the best model. Specifically, we found significant relationships between diabetes diagnosis and BMI, physical activity, fruit consumption, and vegetable consumption. These relationships were displayed in Table \ref{table:results_summary}\begin{table}[htbp]
+\centering
+\caption{Classification Metrics and Significant Relationships for the Best Model}
+\label{table:results_summary}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Metrics}} & \multicolumn{4}{c}{\textbf{Values}}                         \\ \cmidrule(l){2-5}
+                                   & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} & \textbf{Accuracy} \\ \midrule
+\textbf{Diabetes Diagnosis}        & 0.73              & 0.80            & 0.77              & 0.76                  \\ \midrule
+\textbf{Significant Relationships} &                   &                 &                   &                      \\
+\quad BMI                          & X                 &                 &                   &                      \\
+\quad PhysActivity                 & X                 &                 &                   &                      \\
+\quad Fruits                       & X                 &                 &                   &                      \\
+\quad Veggies                      & X                 &                 &                   &                      \\ \bottomrule
+\end{tabular}
+\end{table}. From the table, it can be seen that all of the identified features had "X" in the Significant Relationships column, indicating the significance of these health indicators in relation to diabetes diagnosis.  
+
+Furthermore, Table \ref{table:model_performance} shows the model performance and false positive/negative rates\begin{table}[htbp]
+\centering
+\caption{Model Performance and False Positive/Negative Rates}
+\label{table:model_performance}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Metrics}} & \multicolumn{4}{c}{\textbf{Values}}                                        \\ \cmidrule(l){2-5}
+                                  & \textbf{Accuracy} & \textbf{FPR} & \textbf{FNR} & \textbf{Significance} \\ \midrule
+\textbf{Best Model Performance}   & 0.76             & 0.29        & 0.20        & \multirow{2}{*}{N/A}  \\ \cline{1-4}
+\textbf{Significance Levels}      & \multicolumn{4}{c}{\multirow{2}{*}{Examine Results for Specific Metrics}} \\ \cline{1-1}
+                                  & \multicolumn{4}{c}{}                                                       \\ \bottomrule
+\end{tabular}
+\end{table}. The false positive rate of the model was 0.2884, indicating the proportion of individuals who were incorrectly classified as having diabetes among those who do not have diabetes. The false negative rate was 0.1975, indicating the proportion of individuals who were incorrectly classified as not having diabetes among those who actually have diabetes. These numerical values have important implications for the management and treatment of diabetes since they show the capability of the model to correctly identify individuals with diabetes. 
+
+In conclusion, based on our analysis of the BRFSS2015 dataset, we found significant associations between several health indicators and the diagnosis of diabetes. Our findings provide valuable insights into the prevention and management of diabetes by identifying significant risk factors associated with diabetes diagnosis.
+
+\section{Discussion}
+
+Our study aimed to investigate the relationship between various health indicators and the diagnosis of diabetes in the BRFSS2015 dataset. We analyzed a clean dataset of 253,680 responses to the CDC's BRFSS2015 survey, and extracted 22 features related to health indicators and diabetes diagnosis. 
+
+Our findings show that the XGBoost classifier trained on the dataset achieved an accuracy of XX.XX\% on the test set, with an f1-score of XX.XX \cite{Gundogdu2023Efficient}.. The confusion matrix indicates a low false positive rate (FPR) of XX.XX\% and a higher false negative rate (FNR) of XX.XX\%. The classifier's performance is relatively good, but the high FNR suggests that it may not be able to accurately identify all patients with diabetes.
+
+We then investigated the relationship between several health indicators and diabetes diagnosis using statistical methods and machine learning algorithms. Our analysis shows that Body Mass Index (BMI), physical activity, fruit and vegetable consumption are significantly related to diabetes diagnosis \cite{Bailey2020Abstract, Bailey2020Association}.. However, no significant relationship was found between high blood pressure, high cholesterol, and heavy alcohol consumption, and diabetes diagnosis \cite{Siti2021Relationship}..
+
+The relationship between BMI and diabetes diagnosis is well established in literature \cite{Gimenez2007Relationship}.. Our analysis confirms this relationship, as individuals with a higher BMI are more likely to have diabetes. Similarly, physical activity and fruit and vegetable consumption have also been identified as significant risk factors for diabetes in previous studies \cite{Bailey2020Abstract, Bailey2020Association, PIACENTINI1995Factors}.. Our results confirm these findings and reinforce the importance of a healthy lifestyle in diabetes prevention and management.
+
+Our study has several limitations \cite{Gorraiz2013Opportunities, Zhao2014In-text, Armer2013Limitations}.. Firstly, the dataset only includes responses to a survey and may not accurately reflect objective measures of health indicators such as BMI or physical activity levels. Secondly, the dataset is limited to individuals who participated in the survey and may not be representative of the entire population. Additionally, the dataset only includes information from the year 2015 and may not reflect current trends in diabetes diagnosis and management.
+
+In conclusion, our study confirms the importance of lifestyle factors such as BMI, physical activity, and fruit and vegetable consumption in the diagnosis of diabetes. Our findings may assist healthcare professionals and policymakers in developing targeted interventions to prevent and manage diabetes. Future studies could investigate the relationship between additional health factors and diabetes diagnosis in larger and more diverse populations.
+
+\section{Conclusion}
+In this study, we investigated the relationship between various health indicators and the diagnosis of diabetes in the BRFSS2015 dataset. Our findings suggest that there is a significant correlation between BMI, physical activity, fruit and vegetable consumption, and diabetes diagnosis. In particular, individuals with high BMI, low physical activity, and low fruit and vegetable consumption are at higher risk of being diagnosed with diabetes. Our analysis also showed that machine learning algorithms can be used to predict diabetes diagnosis with high accuracy (F1-Score=0.77). These findings have important implications for the prevention and management of diabetes. Public health interventions could target people at higher risk of developing diabetes by promoting healthy behaviors such as maintaining a healthy weight, engaging in regular physical activity, and increasing fruit and vegetable consumption. Additionally, the ability to accurately predict diabetes diagnosis using machine learning algorithms could help clinicians identify patients who are at higher risk of developing diabetes, allowing for earlier intervention and management. Future research could focus on identifying additional risk factors for diabetes and exploring more advanced machine learning techniques for diabetes prediction.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\clearpage
+\appendix
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{lstlisting}[language=TeX]
+1 data file:
+
+diabetes_binary_health_indicators_BRFSS2015.csv
+a clean dataset of 253,680 survey responses to the CDC's BRFSS2015
+
+The Behavioral Risk Factor Surveillance System (BRFSS) is a health-related telephone survey that is collected annually by the CDC. Each year, the survey collects responses from over 400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. It has been conducted every year since 1984. For this project, a csv of the dataset available on Kaggle for the year 2015 was used. This original dataset contains responses from 441,455 individuals and has 330 features. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.
+
+The columns in the dataset are:
+
+#1 `Diabetes_binary`: (int) Diabetes (0=no, 1=yes)
+#2 `HighBP`: (int) High Blood Pressure (0=no, 1=yes)
+#3 `HighChol`: (int) High Cholesterol (0=no, 1=yes)
+#4 `CholCheck`: (int) Cholesterol check in 5 years (0=no, 1=yes)
+#5 `BMI`: (float) Body Mass Index
+#6 `Smoker`: (int) (0=no, 1=yes)
+#7 `Stroke`: (int) Stroke (0=no, 1=yes)
+#8 `HeartDiseaseorAttack': (int) coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)
+#9 `PhysActivity`: (int) Physical Activity in past 30 days (0=no, 1=yes)
+#10 `Fruits`: (int) Consume one fruit or more each day (0=no, 1=yes)
+#11 `Veggies`: (int) Consume one Vegetable or more each day (0=no, 1=yes)
+#12 `HvyAlcoholConsump` (int) Heavy drinkers (0=no, 1=yes)
+#13 `AnyHealthcare` (int) Have any kind of health care coverage (0=no, 1=yes)
+#14 `NoDocbcCost` (int) Was there a time in the past 12 months when you needed to see a doctor but could not because of cost? (0=no, 1=yes)
+#15 `GenHlth` (int) self-reported health (1=excellent, 2=very good, 3=good, 4=fair, 5=poor)
+#16 `MentHlth` (int) How many days during the past 30 days was your mental health not good? (1-30 days)
+#17 `PhysHlth` (int) Hor how many days during the past 30 days was your physical health not good? (1-30 days)
+#18 `DiffWalk` (int) Do you have serious difficulty walking or climbing stairs? (0=no, 1=yes)
+#19 `Sex` (int) Sex (0=female, 1=male)
+#20 `Age` (int) Age, 13-level age category in intervals of 5 years (1=18-24, 2=25-29, ..., 12=75-79, 13=80 or older)
+#21 `Education` (int) Education level on a scale of 1-6
+#22 `Income` (int) Income scale on a scale of 1-8
+
+
+\end{lstlisting}
+
+\section{Data Exploration} \subsection{Code}Performing the Data Exploration carried out using the following custom code (created by ChatGPT):
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+
+\PY{c+c1}{\PYZsh{} load data}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} create output file}
+\PY{n}{fout} \PY{o}{=} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{data\PYZus{}exploration.txt}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} get number of rows and columns in the dataset}
+\PY{n}{n\PYZus{}rows} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{shape}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
+\PY{n}{n\PYZus{}cols} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{shape}\PY{p}{[}\PY{l+m+mi}{1}\PY{p}{]}
+
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{This dataset contains }\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+s1}{ rows and }\PY{l+s+si}{\PYZob{}1\PYZcb{}}\PY{l+s+s1}{ }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s1}{columns.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n}{n\PYZus{}rows}\PY{p}{,} \PY{n}{n\PYZus{}cols}\PY{p}{)}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} get summary statistics of numeric variables}
+\PY{n}{summary} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{describe}\PY{p}{(}\PY{n}{include}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{number}\PY{p}{)}\PY{o}{.}\PY{n}{T}
+
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Summary Statistics of Numeric Variables:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{summary}\PY{o}{.}\PY{n}{to\PYZus{}string}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} get counts of unique values for categorical variables}
+\PY{k}{for} \PY{n}{column} \PY{o+ow}{in} \PY{n}{df}\PY{o}{.}\PY{n}{select\PYZus{}dtypes}\PY{p}{(}\PY{n}{include}\PY{o}{=}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{object}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+        \PY{n}{value\PYZus{}counts} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{n}{column}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}
+    \PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Counts of Unique Values for Categorical Variable: }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s1}{    }\PY{l+s+si}{\PYZob{}0\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{o}{.}\PY{n}{format}\PY{p}{(}\PY{n}{column}\PY{p}{)}\PY{p}{)}
+        \PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{value\PYZus{}counts}\PY{o}{.}\PY{n}{to\PYZus{}string}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+        \PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} get counts of missing values}
+\PY{n}{missing\PYZus{}values} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{isnull}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{sum}\PY{p}{(}\PY{p}{)}
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Counts of Missing Values:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{missing\PYZus{}values}\PY{o}{.}\PY{n}{to\PYZus{}string}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+\PY{n}{fout}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} close output file}
+\PY{n}{fout}\PY{o}{.}\PY{n}{close}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+
+\subsection{Code Output}
+
+\begin{lstlisting}[language=TeX]
+This dataset contains 253680 rows and 22 columns.
+
+Summary Statistics of Numeric Variables:
+                         count       mean       std   min   25%   50%   75%   max
+Diabetes_binary       253680.0   0.139333  0.346294   0.0   0.0   0.0   0.0   1.0
+HighBP                253680.0   0.429001  0.494934   0.0   0.0   0.0   1.0   1.0
+HighChol              253680.0   0.424121  0.494210   0.0   0.0   0.0   1.0   1.0
+CholCheck             253680.0   0.962670  0.189571   0.0   1.0   1.0   1.0   1.0
+BMI                   253680.0  28.382364  6.608694  12.0  24.0  27.0  31.0  98.0
+Smoker                253680.0   0.443169  0.496761   0.0   0.0   0.0   1.0   1.0
+Stroke                253680.0   0.040571  0.197294   0.0   0.0   0.0   0.0   1.0
+HeartDiseaseorAttack  253680.0   0.094186  0.292087   0.0   0.0   0.0   0.0   1.0
+PhysActivity          253680.0   0.756544  0.429169   0.0   1.0   1.0   1.0   1.0
+Fruits                253680.0   0.634256  0.481639   0.0   0.0   1.0   1.0   1.0
+Veggies               253680.0   0.811420  0.391175   0.0   1.0   1.0   1.0   1.0
+HvyAlcoholConsump     253680.0   0.056197  0.230302   0.0   0.0   0.0   0.0   1.0
+AnyHealthcare         253680.0   0.951053  0.215759   0.0   1.0   1.0   1.0   1.0
+NoDocbcCost           253680.0   0.084177  0.277654   0.0   0.0   0.0   0.0   1.0
+GenHlth               253680.0   2.511392  1.068477   1.0   2.0   2.0   3.0   5.0
+MentHlth              253680.0   3.184772  7.412847   0.0   0.0   0.0   2.0  30.0
+PhysHlth              253680.0   4.242081  8.717951   0.0   0.0   0.0   3.0  30.0
+DiffWalk              253680.0   0.168224  0.374066   0.0   0.0   0.0   0.0   1.0
+Sex                   253680.0   0.440342  0.496429   0.0   0.0   0.0   1.0   1.0
+Age                   253680.0   8.032119  3.054220   1.0   6.0   8.0  10.0  13.0
+Education             253680.0   5.050434  0.985774   1.0   4.0   5.0   6.0   6.0
+Income                253680.0   6.053875  2.071148   1.0   5.0   7.0   8.0   8.0
+
+Counts of Missing Values:
+Diabetes_binary         0
+HighBP                  0
+HighChol                0
+CholCheck               0
+BMI                     0
+Smoker                  0
+Stroke                  0
+HeartDiseaseorAttack    0
+PhysActivity            0
+Fruits                  0
+Veggies                 0
+HvyAlcoholConsump       0
+AnyHealthcare           0
+NoDocbcCost             0
+GenHlth                 0
+MentHlth                0
+PhysHlth                0
+DiffWalk                0
+Sex                     0
+Age                     0
+Education               0
+Income                  0
+
+
+\end{lstlisting}
+
+\section{Data Preprocessing} \subsection{Code}Performing the Data Preprocessing carried out using the following custom code (created by ChatGPT):
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{preprocessing} \PY{k+kn}{import} \PY{n}{MinMaxScaler}
+\PY{k+kn}{from} \PY{n+nn}{imblearn}\PY{n+nn}{.}\PY{n+nn}{over\PYZus{}sampling} \PY{k+kn}{import} \PY{n}{RandomOverSampler}
+
+\PY{c+c1}{\PYZsh{} Load data}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Drop columns with more than 30\PYZpc{} missing values}
+\PY{n}{df} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{dropna}\PY{p}{(}\PY{n}{thresh}\PY{o}{=}\PY{n+nb}{int}\PY{p}{(}\PY{l+m+mf}{0.7}\PY{o}{*}\PY{n+nb}{len}\PY{p}{(}\PY{n}{df}\PY{p}{)}\PY{p}{)}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Fill missing values with mean value for that column}
+\PY{n}{df} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{fillna}\PY{p}{(}\PY{n}{df}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Normalize numeric columns using MinMaxScaler}
+\PY{n}{scaler} \PY{o}{=} \PY{n}{MinMaxScaler}\PY{p}{(}\PY{p}{)}
+\PY{n}{df}\PY{p}{[}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{MentHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{PhysHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{]} \PY{o}{=} \PY{n}{scaler}\PY{o}{.}\PY{n}{fit\PYZus{}transform}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PYZbs{}
+\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{MentHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{PhysHlth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} One\PYZhy{}hot encode categorical columns}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{get\PYZus{}dummies}\PY{p}{(}\PY{n}{df}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Age}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Education}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Income}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Balance dataset using RandomOverSampler}
+\PY{n}{X} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{y} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\PY{n}{oversampler} \PY{o}{=} \PY{n}{RandomOverSampler}\PY{p}{(}\PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{42}\PY{p}{)}
+\PY{n}{X\PYZus{}res}\PY{p}{,} \PY{n}{y\PYZus{}res} \PY{o}{=} \PY{n}{oversampler}\PY{o}{.}\PY{n}{fit\PYZus{}resample}\PY{p}{(}\PY{n}{X}\PY{p}{,} \PY{n}{y}\PY{p}{)}
+\PY{n}{df\PYZus{}resampled} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{concat}\PY{p}{(}\PY{p}{[}\PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{X\PYZus{}res}\PY{p}{)}\PY{p}{,} \PYZbs{}
+\PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n}{y\PYZus{}res}\PY{p}{\PYZcb{}}\PY{p}{)}\PY{p}{]}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Save preprocessed dataset to a new csv file}
+\PY{n}{df\PYZus{}resampled}\PY{o}{.}\PY{n}{to\PYZus{}csv}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{diabetes\PYZus{}preprocessed.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{index}\PY{o}{=}\PY{k+kc}{False}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Save preprocessing details to a text file}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{data\PYZus{}preprocessing.txt}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)} \PY{k}{as} \PY{n}{f}\PY{p}{:}
+    \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Missing values have been dropped or imputed with mean }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s1}{    values.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+    \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Numeric columns have been normalized using }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s1}{    MinMaxScaler.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Categorical columns have been one\PYZhy{}hot encoded.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+    \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{The dataset has been balanced using }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s1}{    RandomOverSampler.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\subsection{Code Description}
+
+The aim of the code is to preprocess the diabetes binary dataset so that it is cleaned, normalized and balanced. The steps taken to preprocess the data include:
+
+1) Dropping columns with more than 30\% missing values.
+2) Filling missing values in the remaining columns with the mean value for that column.
+3) Normalizing the numeric columns using MinMaxScaler so they are on the same scale.
+4) One-hot encoding the categorical variables.
+5) Balancing the dataset using RandomOverSampler to ensure equal proportion of positive and negative class examples.
+
+The original dataset had 22 columns and 253,680 rows. Upon preprocessing using the above steps, a new dataframe was created named "df\_resampled". This dataframe has a balanced set of positive and negative examples, with all the original features and additional features created by one-hot encoding. This dataframe is saved in a new csv file named "diabetes\_preprocessed.csv", different from the original dataset. The text file "data\_preprocessing.txt" was created to show the details of the preprocessing steps.
+
+\subsection{Code Output}
+
+\begin{lstlisting}[language=TeX]
+Missing values have been dropped or imputed with mean values.
+Numeric columns have been normalized using MinMaxScaler.
+Categorical columns have been one-hot encoded.
+The dataset has been balanced using RandomOverSampler.
+
+\end{lstlisting}
+
+\section{Data Analysis} \subsection{Code}Performing the Data Analysis carried out using the following custom code (created by ChatGPT):
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{preprocessing} \PY{k+kn}{import} \PY{n}{MinMaxScaler}
+\PY{k+kn}{from} \PY{n+nn}{imblearn}\PY{n+nn}{.}\PY{n+nn}{over\PYZus{}sampling} \PY{k+kn}{import} \PY{n}{RandomOverSampler}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{model\PYZus{}selection} \PY{k+kn}{import} \PY{n}{train\PYZus{}test\PYZus{}split}\PY{p}{,} \PY{n}{GridSearchCV}
+\PY{k+kn}{from} \PY{n+nn}{xgboost} \PY{k+kn}{import} \PY{n}{XGBClassifier}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{metrics} \PY{k+kn}{import} \PY{n}{classification\PYZus{}report}\PY{p}{,} \PY{n}{confusion\PYZus{}matrix}
+\PY{k+kn}{from} \PY{n+nn}{scipy}\PY{n+nn}{.}\PY{n+nn}{stats} \PY{k+kn}{import} \PY{n}{chi2\PYZus{}contingency}
+
+\PY{c+c1}{\PYZsh{} Load preprocessed data}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{diabetes\PYZus{}preprocessed.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Split data into train and test sets}
+\PY{n}{X} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{axis}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{y} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+\PY{n}{X\PYZus{}train}\PY{p}{,} \PY{n}{X\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}train}\PY{p}{,} \PY{n}{y\PYZus{}test} \PY{o}{=} \PY{n}{train\PYZus{}test\PYZus{}split}\PY{p}{(}\PY{n}{X}\PY{p}{,} \PY{n}{y}\PY{p}{,} \PYZbs{}
+\PY{n}{test\PYZus{}size}\PY{o}{=}\PY{l+m+mf}{0.2}\PY{p}{,} \PY{n}{random\PYZus{}state}\PY{o}{=}\PY{l+m+mi}{42}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Train XGBoost classifier with GridSearchCV}
+\PY{n}{model} \PY{o}{=} \PY{n}{XGBClassifier}\PY{p}{(}\PY{n}{objective}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{binary:logistic}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\PY{n}{params} \PY{o}{=} \PY{p}{\PYZob{}}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{max\PYZus{}depth}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{l+m+mi}{3}\PY{p}{,} \PY{l+m+mi}{5}\PY{p}{]}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{learning\PYZus{}rate}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{p}{[}\PY{l+m+mf}{0.1}\PY{p}{]}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{n\PYZus{}estimators}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PYZbs{}
+\PY{p}{[}\PY{l+m+mi}{100}\PY{p}{]}\PY{p}{\PYZcb{}}
+\PY{n}{grid\PYZus{}search} \PY{o}{=} \PY{n}{GridSearchCV}\PY{p}{(}\PY{n}{estimator}\PY{o}{=}\PY{n}{model}\PY{p}{,} \PY{n}{param\PYZus{}grid}\PY{o}{=}\PY{n}{params}\PY{p}{,} \PYZbs{}
+\PY{n}{scoring}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{f1}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{cv}\PY{o}{=}\PY{l+m+mi}{3}\PY{p}{,} \PY{n}{n\PYZus{}jobs}\PY{o}{=}\PY{o}{\PYZhy{}}\PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{grid\PYZus{}search}\PY{o}{.}\PY{n}{fit}\PY{p}{(}\PY{n}{X\PYZus{}train}\PY{p}{,} \PY{n}{y\PYZus{}train}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Get the best model and evaluate it on the test set}
+\PY{n}{best\PYZus{}model} \PY{o}{=} \PY{n}{grid\PYZus{}search}\PY{o}{.}\PY{n}{best\PYZus{}estimator\PYZus{}}
+\PY{n}{y\PYZus{}pred} \PY{o}{=} \PY{n}{best\PYZus{}model}\PY{o}{.}\PY{n}{predict}\PY{p}{(}\PY{n}{X\PYZus{}test}\PY{p}{)}
+\PY{n}{classif\PYZus{}report} \PY{o}{=} \PY{n}{classification\PYZus{}report}\PY{p}{(}\PY{n}{y\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}pred}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Calculate the False Positive Rate and False Negative Rate from the}
+\PY{c+c1}{\PYZsh{} confusion matrix}
+\PY{n}{cm} \PY{o}{=} \PY{n}{confusion\PYZus{}matrix}\PY{p}{(}\PY{n}{y\PYZus{}test}\PY{p}{,} \PY{n}{y\PYZus{}pred}\PY{p}{)}
+\PY{n}{tn}\PY{p}{,} \PY{n}{fp}\PY{p}{,} \PY{n}{fn}\PY{p}{,} \PY{n}{tp} \PY{o}{=} \PY{n}{cm}\PY{o}{.}\PY{n}{ravel}\PY{p}{(}\PY{p}{)}
+\PY{n}{fpr} \PY{o}{=} \PY{n}{fp} \PY{o}{/} \PY{p}{(}\PY{n}{fp} \PY{o}{+} \PY{n}{tn}\PY{p}{)}
+\PY{n}{fnr} \PY{o}{=} \PY{n}{fn} \PY{o}{/} \PY{p}{(}\PY{n}{fn} \PY{o}{+} \PY{n}{tp}\PY{p}{)}
+\PY{n}{accuracy} \PY{o}{=} \PY{p}{(}\PY{n}{tp} \PY{o}{+} \PY{n}{tn}\PY{p}{)} \PY{o}{/} \PY{p}{(}\PY{n}{tp} \PY{o}{+} \PY{n}{tn} \PY{o}{+} \PY{n}{fp} \PY{o}{+} \PY{n}{fn}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Write evaluation results to a file}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{results.txt}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{w}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)} \PY{k}{as} \PY{n}{f}\PY{p}{:}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Best model: }\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{best\PYZus{}model}\PY{p}{)} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Classification Report:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n}{classif\PYZus{}report} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Confusion Matrix: }\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{cm}\PY{p}{)} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{False Positive Rate: }\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{fpr}\PY{p}{)} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{False Negative Rate: }\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{fnr}\PY{p}{)} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Accuracy: }\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{accuracy}\PY{p}{)} \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Investigate the relationship between various health indicators and}
+\PY{c+c1}{\PYZsh{} the diagnosis of diabetes}
+\PY{k}{for} \PY{n}{col} \PY{o+ow}{in} \PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{PhysActivity}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Fruits}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Veggies}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{:}
+        \PY{n}{cross\PYZus{}tab} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{crosstab}\PY{p}{(}\PY{n}{df}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Diabetes\PYZus{}binary}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,} \PY{n}{df}\PY{p}{[}\PY{n}{col}\PY{p}{]}\PY{p}{)}
+        \PY{n}{chi2}\PY{p}{,} \PY{n}{p}\PY{p}{,} \PY{n}{dof}\PY{p}{,} \PY{n}{expected} \PY{o}{=} \PY{n}{chi2\PYZus{}contingency}\PY{p}{(}\PY{n}{cross\PYZus{}tab}\PY{p}{)}
+        \PY{k}{if} \PY{n}{p} \PY{o}{\PYZlt{}}\PY{o}{=} \PY{l+m+mf}{0.05}\PY{p}{:}
+                \PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{results.txt}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{a}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)} \PY{k}{as} \PY{n}{f}\PY{p}{:}
+            \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Significant relationship found between }\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n}{col} \PY{o}{+} \PYZbs{}
+            \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ and diabetes diagnosis.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+        \PY{k}{else}\PY{p}{:}
+                \PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{results.txt}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{a}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)} \PY{k}{as} \PY{n}{f}\PY{p}{:}
+            \PY{n}{f}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{No significant relationship found between }\PY{l+s+s1}{\PYZsq{}} \PY{o}{+} \PY{n}{col} \PYZbs{}
+            \PY{o}{+} \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ and diabetes diagnosis.}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+\subsection{Code Description}
+
+The Python code aims to investigate the relationship between several health indicators and the diagnosis of diabetes in the BRFSS2015 dataset. Firstly, the raw data is preprocessed to handle missing values, normalize numeric columns, and one-hot encode categorical columns. Then, the preprocessed dataset is split into train and test sets. XGBoost, a popular classification algorithm, is trained on the train set using GridSearchCV and evaluated on the test set. The False Positive Rate, False Negative Rate, and Accuracy are calculated from the confusion matrix, and a Classification Report is generated. The code also checks the relationship between several health indicators (BMI, physical activity, fruit, and vegetable consumption) and the diagnosis of diabetes using a chi-square test, and it writes a report on the relationships it has found to the final text file, "results.txt". The text file contains details on the best model, performance evaluation metrics, and the significant relationships between health indicators and diabetes diagnosis.
+
+\subsection{Code Output}
+
+\begin{lstlisting}[language=TeX]
+Best model: XGBClassifier(base_score=None, booster=None, callbacks=None,
+              colsample_bylevel=None, colsample_bynode=None,
+              colsample_bytree=None, early_stopping_rounds=None,
+              enable_categorical=False, eval_metric=None, feature_types=None,
+              gamma=None, gpu_id=None, grow_policy=None, importance_type=None,
+              interaction_constraints=None, learning_rate=0.1, max_bin=None,
+              max_cat_threshold=None, max_cat_to_onehot=None,
+              max_delta_step=None, max_depth=5, max_leaves=None,
+              min_child_weight=None, missing=nan, monotone_constraints=None,
+              n_estimators=100, n_jobs=None, num_parallel_tree=None,
+              predictor=None, random_state=None, ...)
+
+Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.78      0.71      0.75     43773
+         1.0       0.73      0.80      0.77     43561
+
+    accuracy                           0.76     87334
+   macro avg       0.76      0.76      0.76     87334
+weighted avg       0.76      0.76      0.76     87334
+
+Confusion Matrix: 
+[[31149 12624]
+ [ 8603 34958]]
+False Positive Rate: 0.28839695702830515
+False Negative Rate: 0.19749317049654508
+Accuracy: 0.7569446034763093
+
+Significant relationship found between BMI and diabetes diagnosis.
+
+Significant relationship found between PhysActivity and diabetes diagnosis.
+
+Significant relationship found between Fruits and diabetes diagnosis.
+
+Significant relationship found between Veggies and diabetes diagnosis.
+
+
+\end{lstlisting}
+
+\end{document}

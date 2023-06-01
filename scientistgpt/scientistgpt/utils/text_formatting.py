@@ -118,7 +118,7 @@ def forgiving_format(string, *args, **kwargs):
         else:
             key = match[1:-1]
             if key in kwargs:
-                replace_with = kwargs[key]
+                replace_with = str(kwargs[key])
             else:
                 replace_with = match
         return replace_with

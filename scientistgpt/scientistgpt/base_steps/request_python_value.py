@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewGPT
 
-from typing import Optional, Any, Dict, Tuple, get_args, Iterable
+from typing import Optional, Any, Dict, Tuple, get_args, Iterable, Set
 
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
@@ -116,3 +116,35 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
             return feedback_message
 
         return self._check_response_value(response_value)
+
+    def run_dialog_and_get_python_value(self):
+        """
+        Get the python value from the response.
+        """
+        response = super().initialize_and_run_dialog()
+        feedback, value = self.extract_python_value_from_response(response)
+        return value
+
+
+@dataclass
+class PythonDictWithDefinedKeysProductsReviewGPT(BasePythonValueProductsReviewGPT):
+    """
+    A base class for agents requesting chatgpt to write a python dict, with specified keys.
+    """
+    requested_keys: Set[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
+
+    def _check_response_value(self, response_value: Any) -> Optional[str]:
+        """
+        Check that the response value is valid.
+        Return a feedback message if it is not valid, otherwise return None.
+        """
+        check_response_value = super()._check_response_value(response_value)
+        if check_response_value is not None:
+            return check_response_value
+        if self.requested_keys is None:
+            return None
+        keys_in_response = set(response_value.keys())
+        if keys_in_response != self.requested_keys:
+            return f'Your response should contain the keys: {self.requested_keys}'
+
+        return None

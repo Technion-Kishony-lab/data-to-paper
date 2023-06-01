@@ -81,6 +81,6 @@ def test_request_latex_with_error(correct_latex, section, replaced_value, replac
                                    record_more_if_needed=False):
         latex_requester = TestBaseLatexProductsReviewGPT(section_names=[section])
         assert latex_requester.get_section() == correct_latex
-        error_message = latex_requester.conversation[4]
+        error_message = latex_requester.conversation[3]
         for error_include in error_includes:
             assert error_include in error_message.content

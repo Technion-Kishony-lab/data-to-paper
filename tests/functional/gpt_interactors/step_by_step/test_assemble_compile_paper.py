@@ -36,23 +36,20 @@ def products():
                                                              'This is the intro with citation'
                                                              '\\cite{' + introduction_citation_id + '}',
                                                              introduction_citation)},
-        ready_to_be_tabled_paper_sections={'results': """
-                                            \\section{Results}
-                                            This is the results with table:
-                                            \\begin{table}
-                                            \\centering
-                                            \\begin{tabular}{ *{3}{c} }
-                                            \\toprule
-                                            Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
-                                            \\midrule
-                                            130 & 38.75 & (28.54, 48.96) \\\\
-                                            140 & 21.31 & (9.94, 32.69)  \\\\
-                                            150 & 15.36 & (3.61, 27.11)  \\\\
-                                            \\bottomrule
-                                            \\end{tabular}
-                                            \\caption{The means and 95\\% confidence intervals for each temperature.}
-                                            \\end{table}
-                                            """},
+        tables={'results': ["""\\begin{table}
+                                \\centering
+                                \\begin{tabular}{ *{3}{c} }
+                                \\toprule
+                                Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
+                                \\midrule
+                                130 & 38.75 & (28.54, 48.96) \\\\
+                                140 & 21.31 & (9.94, 32.69)  \\\\
+                                150 & 15.36 & (3.61, 27.11)  \\\\
+                                \\bottomrule
+                                \\end{tabular}
+                                \\caption{The means and 95\\% confidence intervals for each temperature.}
+                                \\end{table}
+                            """]},
     )
 
 

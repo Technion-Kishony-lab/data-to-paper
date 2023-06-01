@@ -53,7 +53,7 @@ def run_in_temp_directory():
 
 
 @contextmanager
-def run_in_directory(folder: Union[Path, str] = None, allowed_create_files: Set[str] = None):
+def run_in_directory(folder: Union[Path, str] = None, allowed_create_files: Set[str] = None) -> Set[str]:
     """
     Run code in a specific folder.
     allowed_create_files is a set of file names that are allowed to be created in the folder.
