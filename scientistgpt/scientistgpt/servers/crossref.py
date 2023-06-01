@@ -74,12 +74,13 @@ class CrossrefCitation(dict):
     """
 
     def __key(self):
-        # TODO: create a tuple of the items, make sure there are no lists within the tuple, otherwise it won't be
-        #  hashable the way to deal with that is converting everything inside the list to tuples
-        return tuple((k, tuple(v) if isinstance(v, list) else v) for k, v in self.items())
+        return self.get_bibtex_id()
 
     def __hash__(self):
         return hash(self.__key())
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
 
     @property
     def bibtex_type(self):
