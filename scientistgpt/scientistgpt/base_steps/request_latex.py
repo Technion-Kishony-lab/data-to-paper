@@ -10,6 +10,7 @@ from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figu
     replace_special_chars, check_usage_of_unwanted_commands
 
 from .base_products_conversers import BaseProductsReviewGPT
+from ..utils.text_formatting import wrap_text_with_triple_quotes
 
 
 @dataclass
@@ -39,6 +40,12 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
         """
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ')
+
+    def _alter_self_response(self, response: str) -> str:
+        """
+        Alter the response to make it easier to parse.
+        """
+        return super()._alter_self_response(wrap_text_with_triple_quotes(response, 'latex'))
 
     def _check_self_response(self, response: str) -> Optional[str]:
         """
