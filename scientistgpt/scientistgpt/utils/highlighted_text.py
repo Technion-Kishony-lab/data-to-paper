@@ -52,7 +52,7 @@ def text_to_html(text: str, textblock: bool = False) -> str:
 
 
 def colored_text(text: str, color: str, is_color: bool = True) -> str:
-    return color + text + colorama.Style.RESET_ALL if is_color else text
+    return color + text + colorama.Style.RESET_ALL if is_color and color != '' else text
 
 
 def light_text(text: str, color: str, is_color: bool = True) -> str:

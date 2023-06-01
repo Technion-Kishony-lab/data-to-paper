@@ -125,6 +125,7 @@ def get_dot_dot_dot_text(text: str, start: int, end: int):
     to the end of the text.
     """
     fill = ' ... '
+    text = text.replace('\n', ' ').replace('```', '').strip()
     if start - end + len(fill) > len(text):
         return text
     return extract_to_nearest_space(text, start) + fill + extract_to_nearest_space(text, end)
