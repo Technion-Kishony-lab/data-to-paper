@@ -42,8 +42,8 @@ class ScientificStepsRunner(BaseStepsRunner):
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): IntroductionSectionWriterReviewGPT,
-            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewGPT,
             ('methods', ): MethodsSectionWriterReviewGPT,
+            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewGPT,
             ('discussion', ): DiscussionSectionWriterReviewGPT,
             ('conclusion', ): ConclusionSectionWriterReviewGPT,
         }
