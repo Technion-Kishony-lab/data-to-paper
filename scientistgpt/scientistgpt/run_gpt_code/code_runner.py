@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, List, Iterable
+from typing import Optional, Iterable, Tuple
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 from scientistgpt.run_gpt_code.code_utils import extract_code_from_text
@@ -24,7 +24,7 @@ class CodeRunner:
 
     response: str
     allowed_read_files: Iterable[str] = ()
-    allowed_created_files: Iterable[str] = ()
+    allowed_created_files: Tuple[str] = ()
     allow_dataframes_to_change_existing_series: bool = True
     output_file: Optional[str] = None
     script_file_path: Optional[Path] = None
@@ -67,18 +67,20 @@ class CodeRunner:
             raise FailedLoadingOutput()
 
     def delete_output_file(self):
+        if self.output_file is None:
+            return
         try:
             os.remove(self.output_file)
         except FileNotFoundError:
             pass
 
-    def run_code_and_get_code_output_and_changed_dataframes(self) -> Tuple[CodeAndOutput, List]:
+    def run_code(self) -> CodeAndOutput:
         """
         Run code from GPT response, and return the output and the code.
         """
         code = self.extract_and_modify_code()
         self.delete_output_file()
-        created_files, changes_dataframe = run_code_using_module_reload(
+        created_files, dataframe_operations = run_code_using_module_reload(
             code=code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
@@ -92,11 +94,4 @@ class CodeRunner:
             output=self.read_output_file(),
             output_file=self.output_file,
             created_files=created_files,
-        ), changes_dataframe
-
-    def run_code(self) -> CodeAndOutput:
-        """
-        Run code from GPT response, and return the output.
-        """
-        code_and_output, _ = self.run_code_and_get_code_output_and_changed_dataframes()
-        return code_and_output
+            dataframe_operations=dataframe_operations)

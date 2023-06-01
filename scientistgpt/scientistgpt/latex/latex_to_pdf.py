@@ -3,12 +3,12 @@ import shutil
 import subprocess
 import regex
 
-from typing import Set, Optional
+from typing import Set, Optional, List
 
 from scientistgpt.servers.crossref import CrossrefCitation
 from scientistgpt.utils.file_utils import run_in_temp_directory
 
-from .exceptions import LatexCompilationError
+from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -129,7 +129,14 @@ def clean_latex(latex_content):
     return latex_content
 
 
-def test_latex_compilation(latex_content: str):
+def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List[str] = None):
+    unwanted_commands = unwanted_commands if unwanted_commands is not None else [r'\cite', r'\verb']
+    unwanted_commands_used = [c for c in unwanted_commands if c in latex_content]
+    if unwanted_commands_used:
+        raise UnwantedCommandsUsedInLatex(unwanted_commands_used)
+
+
+def check_latex_compilation(latex_content: str):
     with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
     save_latex_and_compile_to_pdf(latex_document, 'test')

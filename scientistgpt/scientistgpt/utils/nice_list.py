@@ -80,3 +80,21 @@ class NiceList(list):
 
     def __repr__(self):
         return str(self)
+
+
+class NiceDict(dict):
+    """
+    A dict that is printed with a new line for each key.
+    For example:
+    {'key1': value1, 'key2': value2}
+    is printed as:
+    {
+    'key1': value1,
+    'key2': value2,
+    }
+    """
+    def __str__(self):
+        return '{\n' + '\n'.join([f'    {key}: {value},' for key, value in self.items()]) + '\n}'
+
+    def __repr__(self):
+        return str(self)

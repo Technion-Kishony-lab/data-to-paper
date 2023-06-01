@@ -5,10 +5,8 @@ Base classes to use for building each step in a multi-step process towards a goa
 # --- PRODUCTS ---
 
 # Products:
-from .types import Products
 
 # Basic Products types:
-from .types import DataFileDescription, DataFileDescriptions
 
 # --- RUNNING MULTI-STEP PROCESS ---
 
@@ -33,7 +31,7 @@ from .base_products_conversers import BaseBackgroundProductsGPT
 from .base_products_conversers import BaseProductsReviewGPT
 
 # Requesting quote-enclosed text (with optional gpt-review):
-from .request_quoted_test import BaseProductsQuotedReviewGPT
+from .request_quoted_text import BaseProductsQuotedReviewGPT
 
 # Requesting LaTeX formatted text (with optional gpt-review):
 from .request_latex import BaseLatexProductsReviewGPT
@@ -42,7 +40,7 @@ from .request_latex import BaseLatexProductsReviewGPT
 from .request_python_value import BasePythonValueProductsReviewGPT
 
 # Requesting code (with automatic debugging feedback):
-from .request_code import BaseCodeProductsGPT
+from .request_code import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT
 
 
 # --- CONVERTING PRODUCTS TO FILES ---

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.base_steps.types import DataFileDescription, DataFileDescriptions
+from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 from scientistgpt.projects.scientific_research.get_template import get_paper_template_path
 from scientistgpt.projects.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
@@ -87,30 +87,27 @@ def products():
                         'abstract': '\\begin{abstract}content of abstract\\end{abstract}',
                         'introduction': '\\section{Introduction}{content of introduction}',
                         'methods': '\\section{Methods}{content of method}',
-                        'results': '\\section{Results}{content of results}',
+                        'results': '\\section{Results}This is the results with table:',
                         'discussion': '\\section{Discussion}{content of discussion}',
-                        'conclusion': '\\section{Conclusion}{content of conclusion}', },
+                        'conclusion': '\\section{Conclusion}{content of conclusion}'},
         cited_paper_sections_and_citations={'introduction': ('\\section{Introduction}'
                                                              'This is the intro with citation'
                                                              '\\cite{' + INTRODUCTION_CITATION_ID + '}',
                                                              INTRODUCTION_CITATION)},
-        ready_to_be_tabled_paper_sections={'results': """
-                                            \\section{Results}
-                                            This is the results with table:
-                                            \\begin{table}
-                                            \\centering
-                                            \\begin{tabular}{ *{3}{c} }
-                                            \\toprule
-                                            Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
-                                            \\midrule
-                                            130 & 38.75 & (28.54, 48.96) \\\\
-                                            140 & 21.31 & (9.94, 32.69)  \\\\
-                                            150 & 15.36 & (3.61, 27.11)  \\\\
-                                            \\bottomrule
-                                            \\end{tabular}
-                                            \\caption{The means and 95\\% confidence intervals for each temperature.}
-                                            \\end{table}
-                                            """},
+        tables={'results': ["""\\begin{table}
+                                \\centering
+                                \\begin{tabular}{ *{3}{c} }
+                                \\toprule
+                                Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
+                                \\midrule
+                                130 & 38.75 & (28.54, 48.96) \\\\
+                                140 & 21.31 & (9.94, 32.69)  \\\\
+                                150 & 15.36 & (3.61, 27.11)  \\\\
+                                \\bottomrule
+                                \\end{tabular}
+                                \\caption{The means and 95\\% confidence intervals for each temperature.}
+                                \\end{table}
+                            """]},
         codes_and_outputs={
             'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt', explanation=EXPLANATION),
             'data_exploration': CodeAndOutput(code=EXPLORATION_CODE, output=EXPLORATION_OUTPUT,

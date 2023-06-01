@@ -1,9 +1,7 @@
 from _pytest.fixtures import fixture
 
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 
-from scientistgpt.projects.scientific_research.reviewing_steps import PaperSectionWithTablesReviewGPT
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 
 SECTIONS_TO_ADD_TABLES_TO = ['results']
@@ -37,14 +35,3 @@ def products():
                                    r"The 20 first term was first calculated in the paper by \\cite{Fibonacci}."},
         codes_and_outputs={'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt')},
     )
-
-
-@OPENAI_SERVER_CALLER.record_or_replay()
-def test_table_gpt(products, actions_and_conversations):
-    for section_name in SECTIONS_TO_ADD_TABLES_TO:
-        products.ready_to_be_tabled_paper_sections[section_name] = \
-            PaperSectionWithTablesReviewGPT(actions_and_conversations=actions_and_conversations,
-                                            products=products, section_names=[section_name]).get_section()
-
-    # check that we get the output with additional tables
-    assert "\\begin{table}" in products.tabled_paper_sections['results']

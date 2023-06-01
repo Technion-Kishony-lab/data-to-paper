@@ -1,4 +1,5 @@
 import builtins
+import os
 import traceback
 from contextlib import contextmanager
 from typing import Tuple, Any, Iterable
@@ -9,6 +10,10 @@ from scientistgpt.utils.file_utils import is_name_matches_list_of_wildcard_names
 
 
 IMPORTING_PACKAGES = []
+if os.name == 'nt':
+    SYSTEM_FOLDERS = [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)']
+else:
+    SYSTEM_FOLDERS = ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
 
 
 @contextmanager
@@ -30,8 +35,9 @@ def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_fi
         if is_opening_for_writing and allowed_write_files is not None \
                 and not is_name_matches_list_of_wildcard_names(file_name, allowed_write_files):
             raise CodeWriteForbiddenFile(file=file_name)
-        if not is_opening_for_writing and allowed_read_files is not None and file_name not in allowed_read_files \
-                and len(IMPORTING_PACKAGES) == 0:  # allow read files when importing packages
+        if not is_opening_for_writing and not file_in_system_folder(file_name) and \
+                (allowed_read_files is not None and file_name not in allowed_read_files
+                 and len(IMPORTING_PACKAGES) == 0):  # allow read files when importing packages
             raise CodeReadForbiddenFile(file=file_name)
         return original_open(*args, **kwargs)
 
@@ -40,6 +46,11 @@ def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_fi
         yield
     finally:
         builtins.open = original_open
+
+
+def file_in_system_folder(file_name):
+    abs_path_to_file = os.path.abspath(file_name)
+    return bool(sum([os.path.commonpath([folder] + [abs_path_to_file]) in SYSTEM_FOLDERS for folder in SYSTEM_FOLDERS]))
 
 
 @contextmanager

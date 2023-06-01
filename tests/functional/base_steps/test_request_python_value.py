@@ -64,5 +64,5 @@ def test_request_python_value_with_error(
             record_more_if_needed=False):
         latex_requester = TestBasePythonValueProductsReviewGPT(value_type=value_type)
         assert latex_requester.get_python_value() == eval(correct_python_value)
-        error_message = latex_requester.conversation[4]
+        error_message = latex_requester.conversation[3]
         assert error_should_include in error_message.content

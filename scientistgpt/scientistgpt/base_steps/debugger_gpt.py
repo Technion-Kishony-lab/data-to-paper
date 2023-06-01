@@ -2,23 +2,25 @@ import os
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Iterable
+from typing import Optional, List, Set, Tuple
 
 from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+
 from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.run_gpt_code.overrides.override_dataframe import DataFrameSeriesChange
+from scientistgpt.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from scientistgpt.run_gpt_code.code_runner import CodeRunner
+from scientistgpt.run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
 from scientistgpt.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+
 from scientistgpt.base_cast import Agent
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BaseProductsGPT
-from ..run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
 
 
 @dataclass
@@ -38,7 +40,7 @@ class DebuggerGPT(BaseProductsGPT):
     * output file not created
     """
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT35_TURBO)
-    allowed_created_files: Iterable[str] = None
+    allowed_created_files: Tuple[str] = None
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
 
@@ -120,12 +122,12 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
-    def _respond_to_unsaved_dataframes(self, created_files: List[str]):
+    def _respond_to_unsaved_dataframes(self, read_but_unsaved_dataframe_files: Set[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            I see that your code modifies some of the dataframes. \
-            I would like the code to save the modified dataframes.  
-            Please rewrite the complete code again adding commands to save all modified dataframe as new files \
+            I see that your code modifies some of the dataframes {read_but_unsaved_dataframe_files}. \
+            I would like the code to save any such modified dataframe.  
+            Please rewrite the complete code again adding `to_csv` to save any modified dataframe in a new file \
             in the same directory as the code.
             """),
             comment=f'{self.iteration_str}: Code completed, but not all modified dataframes were saved.')
@@ -164,12 +166,21 @@ class DebuggerGPT(BaseProductsGPT):
 
     def _respond_to_forbidden_functions(self, func: str):
         if func == 'print':
-            self.apply_append_user_message(
-                content=dedent_triple_quote_str("""
-                Please do not use the `print` function. 
-                Anything you want to print must be written to the output file ("{}"). 
-                """).format(self.output_filename),
-                comment=f'{self.iteration_str}: Code uses `print`.')
+            if self.output_filename is None:
+                self.apply_append_user_message(
+                    content=dedent_triple_quote_str("""
+                    Please do not use the `print` function.
+                    Your code should only save any new or modified dataframes; should have no other output.
+                    """)
+                )
+            else:
+                self.apply_append_user_message(
+                    content=dedent_triple_quote_str("""
+                    Please do not use the `print` function. 
+                    Anything you want to print must be written to the output file ("{}"). 
+                    """).format(self.output_filename),
+                    comment=f'{self.iteration_str}: Code uses `print`.'
+                )
             return
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
@@ -186,27 +197,49 @@ class DebuggerGPT(BaseProductsGPT):
             """).format(module),
             comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
 
+    @property
+    def only_write_to_description(self):
+        if self.output_filename is None:
+            if self.allowed_created_files == ('*.csv', ):
+                return "Your code should only save new or modified dataframes to csv files; " \
+                       "it should have no other output."
+            elif self.allowed_created_files:
+                return f"Your code should only write to these files: {self.allowed_created_files}."
+            else:
+                return "Your code should not write to any file."
+        else:
+            if self.allowed_created_files == ('*.csv', ):
+                return f"Your code should save new or modified dataframes to csv files, " \
+                       f"and save other results to the output file {self.output_filename}."
+            elif self.allowed_created_files:
+                return f"Your code should only write to files: {self.allowed_created_files}, " \
+                       f"and to the output file {self.output_filename}."
+            else:
+                return f"Your code should not write to any file, except the output file {self.output_filename}."
+
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it tried to write to the file `{}` which is not allowed.
-            Please rewrite the complete code again, making sure it only writes to "{}". 
-            """).format(file, self.output_filename),
+            Your code writes to the file "{}" which is not allowed.
+            {only_write_to_description}
+            Please rewrite the complete code again so that it does not create un-allowed files.
+            """).format(file, self.only_write_to_description),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_un_allowed_files_created(self, files: List[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, but it created the following files: `{}` which is not allowed.
-            Please rewrite the complete code again, making sure it only creates "{}". 
-            """).format(files, self.output_filename),
+            Your code creates the following files {} which is not allowed.
+            {only_write_to_description}
+            Please rewrite the complete code again so that it does not create un-allowed files.
+            """).format(files, self.only_write_to_description),
             comment=f'{self.iteration_str}: Code created forbidden files {files}.')
 
     def _respond_to_forbidden_read(self, file: str):
         if file == self.output_filename:
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
-                I ran the code, but it tried to read from the output file `{}`.
+                I ran the code, but it tried to read from the output file "{}".
                 The code should create and write to this output file, but should not read from it.
                 Please rewrite the complete code again, making sure it does not read from the output file.
                 Note that the input files from which we can read the data are: {}. 
@@ -216,7 +249,7 @@ class DebuggerGPT(BaseProductsGPT):
         else:
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
-                I ran the code, but it tried to read from the file `{}` which is not part of the dataset.
+                Your code reads from the file "{}" which is not part of the dataset.
                 Please rewrite the complete code again, noting that we only have {}. 
                 """).format(file, self.data_files),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
@@ -224,7 +257,7 @@ class DebuggerGPT(BaseProductsGPT):
     def _respond_to_dataframe_series_change(self, series: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str(f"""
-            Your code changes the series `{series}` of your dataframe.
+            Your code changes the series "{series}" of your dataframe.
             Instead of changing an existing dataframe series, please create a new series, and give it a \
             new sensible name.
             Please rewrite the complete code again, making sure you create new series instead of changing existing ones. 
@@ -234,16 +267,16 @@ class DebuggerGPT(BaseProductsGPT):
     def _respond_to_empty_output(self):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, it created the output file {}, but the file is just empty! 
+            I ran the code, it created the output file "{}", but the file is just empty! 
             Please rewrite the complete code again to correct this error. 
             """).format(self.output_filename),
             comment=f'{self.iteration_str}: Code completed, but output file is empty.')
 
     def _respond_to_large_output(self, output: str):
-        print('ChatGPT code created the following too-long output:\n{output}')
+        print(f'ChatGPT code created the following too-long output:\n{output}')
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
-            I ran the code, it created the output file {}, but the file is too long!
+            I ran the code, it created the output file "{}", but the file is too long!
 
             Here is the beginning of the output:
             ```
@@ -260,19 +293,27 @@ class DebuggerGPT(BaseProductsGPT):
         If the code fails, notify chatgpt and return None.
         """
         response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
-        failed_extracting_code = False
         code_and_output = None
         code_runner = self._get_code_runner(response)
         try:
-            code_and_output, changed_data_frames = code_runner.run_code_and_get_code_output_and_changed_dataframes()
+            code_and_output = code_runner.run_code()
+            dataframe_operations = code_and_output.dataframe_operations
         except IncompleteBlockFailedExtractingCode:
-            failed_extracting_code = True
             self._respond_to_incomplete_code()
         except FailedExtractingCode as e:
-            failed_extracting_code = True
             self._respond_to_missing_or_multiple_code(e)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
+            # We first clean up, re-reposting the code as if it was the immediate response
+            self.conversation_manager.delete_messages(
+                message_designation=RangeMessageDesignation.from_(
+                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -1),  # keeps the last 2 messages
+                comment="Deleting previous debug iterations.")
+            self.apply_append_surrogate_message(
+                'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
+                    code_runner.extract_code()),
+                web_conversation_name=None,
+                comment='We are re-posting the code as if it was the immediate response.')
             self.previous_code = code_runner.extract_code()
             try:
                 raise e.exception
@@ -313,28 +354,23 @@ class DebuggerGPT(BaseProductsGPT):
         else:
             # The code ran without raising exceptions
             output = code_and_output.output
-            if len(output.strip()) == 0:
+            if output is not None and len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()
-            elif len(output) > MAX_SENSIBLE_OUTPUT_SIZE.val:
+            elif output is not None and len(output) > MAX_SENSIBLE_OUTPUT_SIZE.val:
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
             elif self.enforce_saving_altered_dataframes \
-                    and len(code_and_output.get_created_files_beside_output_file()) < len(set(changed_data_frames)):
+                    and dataframe_operations.get_read_changed_but_unsaved_ids():
                 # The code ran successfully, but not all changed dataframes were saved to files.
-                self._respond_to_unsaved_dataframes(list(code_and_output.get_created_files_beside_output_file()))
+                read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
+                    dataframe_operations.get_read_changed_but_unsaved_ids())
+                self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
             else:
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
                 self.comment("GPT code completed successfully.")
                 return code_and_output
-
-        # if code was extracted ok, we clean up a bit, deleting the previous debug iterations
-        if not failed_extracting_code:
-            self.conversation_manager.delete_messages(
-                message_designation=RangeMessageDesignation.from_(
-                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -3),  # keeps the last 2 messages
-                comment="Deleting previous debug iterations.")
 
         # if the code ran, but output was incorrect, we delete any created output files:
         if code_and_output is not None:

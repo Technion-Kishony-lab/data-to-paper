@@ -8,6 +8,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 
 from .converser_gpt import ConverserGPT
+from .exceptions import FailedCreatingProductException
 
 
 @dataclass
@@ -105,6 +106,10 @@ class CycleStatus(Enum):
     MAX_ROUNDS_EXCEEDED = 'max_rounds_exceeded'
 
 
+class NoResponse:
+    pass
+
+
 @dataclass
 class DialogDualConverserGPT(DualConverserGPT):
     """
@@ -141,7 +146,9 @@ class DialogDualConverserGPT(DualConverserGPT):
         "No need for additional feedback. Thanks much - I think I have it now!"
     fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
+
     max_attempts_per_round: int = 4
+    raise_on_exceeding_max_attempts_per_round: bool = True
 
     def __post_init__(self):
         super().__post_init__()
@@ -192,10 +199,14 @@ class DialogDualConverserGPT(DualConverserGPT):
         If we don't get a valid (by _check_self_response)self chatgpt response after max_attempts_per_round,
         return None.
         """
-        last_self_response = None
+        last_self_response = NoResponse()
         while True:
             self_response, cycle_status = self.run_one_cycle()
             if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+                if isinstance(last_self_response, NoResponse):
+                    if self.raise_on_exceeding_max_attempts_per_round:
+                        raise FailedCreatingProductException()
+                    return None
                 return last_self_response
             if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
                 return self_response
@@ -299,9 +310,9 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         of improvements and feedback.
 
         When you feel that the goal has been achieved, respond explicitly with: 
-        "{termination_phrase}" (termination-phase)
+        "{termination_phrase}" (approving-phrase)
         If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged \
-        to respond with the termination-phrase immediately, without requesting any improvement cycles.
+        to respond with the approving-phrase immediately, without requesting any improvement cycles.
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
@@ -310,8 +321,6 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = None
-
-    post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
 
     @property
     def are_we_reviewing_at_all(self) -> bool:
@@ -337,7 +346,6 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
         """
         self._pre_populate_background()
-        self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     def initialize_dialog(self):

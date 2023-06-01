@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 from typing import List, Optional
 
-from scientistgpt.base_steps import DataFileDescriptions, DataFileDescription
+from scientistgpt.base_products import DataFileDescriptions, DataFileDescription
 from scientistgpt.projects.scientific_research.run_steps import ScientificStepsRunner
 from .local_paths import LOCAL_FOLDER_ROOT
 
