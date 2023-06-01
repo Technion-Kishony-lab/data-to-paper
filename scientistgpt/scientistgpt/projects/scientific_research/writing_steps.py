@@ -93,6 +93,20 @@ class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 
 @dataclass
+class IntroductionSectionWriterReviewGPT(SectionWriterReviewGPT):
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'title_and_abstract',
+                                             'most_updated_paper_sections:methods',
+                                             'most_updated_paper_sections:results')
+    max_reviewing_rounds: int = 1
+    section_specific_instructions: str = dedent_triple_quote_str("""
+        The introduction should introduce the topic of the paper.
+        It should then give a general overview and some background on the topic of the paper.
+        It should then explain the research goal of the paper and what is the main contribution of the paper.
+        The introduction should be interesting and pique your reader’s interest.
+        """)
+
+
+@dataclass
 class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
     background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
                                              'codes:data_analysis', 'title_and_abstract')
@@ -148,6 +162,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
         If you do not see any discrepancies and do not have other suggestions for improvements, \
         respond with "{termination_phrase}".
         """)
+
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewGPT):

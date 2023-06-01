@@ -67,7 +67,8 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes_and_outputs:data_exploration', 'research_goal')
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+                                             'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -85,7 +86,8 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 class TablesReviewGPT(BaseLatexProductsReviewGPT):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis', 'tables')
+    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
+                                             'tables')
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
