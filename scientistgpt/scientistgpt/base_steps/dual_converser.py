@@ -184,13 +184,23 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         return response
 
+    def _is_reviewer_response_terminating(self, reviewer_response: str, termination_phrase: str) -> bool:
+        """
+        Check if the response from the reviewer terminates the conversation.
+        """
+        return termination_phrase.lower() in reviewer_response.lower() \
+            and len(reviewer_response) - len(termination_phrase) < 10
+
     def is_completed(self) -> bool:
         """
         The dialog is completed when the other agent terminates the conversation, by responding with the
         termination phrase.
         """
-        return len(self.other_conversation) > 1 and \
-            format_value(self, self.termination_phrase).lower() in self.other_conversation.get_last_response().lower()
+        if len(self.other_conversation) <= 1:
+            return False
+        reviewer_response = self.other_conversation.get_last_response()
+        termination_phrase = format_value(self, self.termination_phrase)
+        return self._is_reviewer_response_terminating(reviewer_response, termination_phrase)
 
     def run_dialog(self) -> Optional[str]:
         """
