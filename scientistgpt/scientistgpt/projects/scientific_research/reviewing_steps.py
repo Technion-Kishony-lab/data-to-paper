@@ -99,11 +99,13 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun} that summarizes the key results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
+        The table should have a caption suitable for inclusion as part of a scientific paper.    
         {do_not_repeat_information_from_previous_tables} 
-        Write the table in latex format.
-        The table should be centered, in booktabs, multirow format with caption and label.
+
+        Write the table in latex format, centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
-        This is table number {table_number} out of {total_number_of_tables} you need to produce, plan the tables \
+        
+        Note: this is table number {table_number} out of {total_number_of_tables} you need to produce, plan the tables \
         so that each table will show unique information.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
@@ -116,10 +118,12 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 
     @property
     def do_not_repeat_information_from_previous_tables(self) -> str:
-        if self.products.is_product_available('tables'):
+        number_of_tables = len(self.products.all_tables)
+        if number_of_tables > 0:
             return dedent_triple_quote_str("""
-                Notice that the table should only add new information that is not already in the tables provided above.
-                """)
+                Notice that the table should only add new information that is not included already \
+                in the {} provided above.
+                """).format('table' if number_of_tables == 1 else 'tables')
         else:
             return ''
 
@@ -142,8 +146,8 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         might still be needed for a scientific paper.
         These {goal_noun} should only include information that is explicitly extracted from the output files provided \
         above.
-        The {goal_noun} that you choose should be returned as a Python Dict[str, Any], where the keys are the names 
-        of the result, and the values are the numeric values themselves.
+        The {goal_noun} that you choose should be returned as a Python Dict[str, Any], where the keys are the names \
+        tou choose for the result, and the values are the numeric results themselves.
         For example, if the analysis results provide summary of a some statistical tests, or statistical models, \
         you might include: 
         {
@@ -153,7 +157,7 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
         
-        Do not send any free text. All descriptions should be included in the key strings of the Python Dict.
+        Do not send any free text. All descriptions should be included in the keys of the Python Dict.
         Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""

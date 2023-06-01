@@ -6,7 +6,7 @@ from scientistgpt.conversation.message_designation import RangeMessageDesignatio
 from scientistgpt.env import SUPPORTED_PACKAGES
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.nice_list import NiceList, NiceDict
 from scientistgpt.utils.replacer import Replacer
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 
@@ -287,13 +287,13 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
 
                 if len(modified_columns_to_explanations) > 0:
                     modified_columns_str = f'\nWe modified these columns:\n' \
-                                           f'{modified_columns_to_explanations}\n'
+                                           f'{NiceDict(modified_columns_to_explanations)}\n'
                 else:
                     modified_columns_str = ''
 
                 if len(new_columns_to_explanations) > 0:
                     new_columns_str = f'\nWe added these columns:\n' \
-                                      f'{new_columns_to_explanations}\n'
+                                      f'{NiceDict(new_columns_to_explanations)}\n'
                 else:
                     new_columns_str = ''
 
