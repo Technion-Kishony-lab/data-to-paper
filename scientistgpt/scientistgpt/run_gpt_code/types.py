@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Set, List
+from typing import Optional, List
 
 from scientistgpt.base_products import DataFileDescriptions
 from scientistgpt.run_gpt_code.overrides.dataframes import DataframeOperations

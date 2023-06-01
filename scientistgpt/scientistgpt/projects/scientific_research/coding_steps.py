@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, List
+from typing import Optional, Tuple
 
-from scientistgpt.base_steps import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT, \
+from scientistgpt.base_steps import OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT, \
     BaseBackgroundProductsGPT
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
@@ -182,7 +182,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
         The output of your code should be a text file named "{actual_output_filename}".
         All results we may need for a scientific paper should be saved to this text file, \
         including analysis findings, summary statistics, statistical tests, etc.
-        
+
         The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header explanation as well as indication of units (if any).
 

@@ -22,6 +22,7 @@ MAX_NUM_OPENAI_ATTEMPTS = 5
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
 
+
 class OpenaiSeverCaller(ServerCaller):
     """
     Class to call OpenAI API.

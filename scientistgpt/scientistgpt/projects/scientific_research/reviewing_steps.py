@@ -104,7 +104,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
 
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
-        
+
         Note: this is table number {table_number} out of {total_number_of_tables} you need to produce, plan the tables \
         so that each table will show unique information.
         """)
@@ -156,7 +156,7 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
-        
+
         Do not send any free text. All descriptions should be included in the keys of the Python Dict.
         Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.
         """)

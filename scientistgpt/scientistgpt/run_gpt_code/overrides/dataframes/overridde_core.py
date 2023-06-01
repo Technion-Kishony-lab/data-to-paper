@@ -1,9 +1,7 @@
-import pandas as pd
 from pandas.core.frame import DataFrame
 
 from scientistgpt.utils.mutable import Mutable
 from scientistgpt.utils.singleton import run_once
-from pandas.core.generic import NDFrame
 from .dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, DataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
@@ -42,6 +40,7 @@ def __setitem__(self, key, value):
             is_changing_existing_columns = key in original_columns
         operation_type = ChangeSeriesDataframeOperation if is_changing_existing_columns else AddSeriesDataframeOperation
         _notify_on_change(self, operation_type(id=id(self), series_name=key))
+
 
 def __delitem__(self, key):
     original_delitem(self, key)
@@ -82,4 +81,3 @@ def override_core_ndframe():
     for func_name, func in FUNC_NAMES_TO_FUNCS.items():
         setattr(DataFrame, func_name, func)
     DataFrame.is_overriden = is_overriden
-
