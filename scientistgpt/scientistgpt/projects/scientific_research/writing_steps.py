@@ -136,12 +136,13 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
-    goal_verb: str = 'refer to tables in'
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields: Tuple[str] = ('title_and_abstract', 'tables_and_numeric_values')
+    background_product_fields: Tuple[str] = ('most_updated_paper_sections:{methods}',
+                                             'title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        Refer to the Tables by their labels and explain their content, but do not add the tables themselves \
+        As you write the results, \
+        refer to the Tables by their labels and explain their content, but do not add the tables themselves \
         (I will add the tables later manually).
 
         You can also extract and use any of the key Numerical Values provided above that you think are \
@@ -150,7 +151,6 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
         the text.
 
         Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
-        {latex_instructions}
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether the {goal_noun} \
