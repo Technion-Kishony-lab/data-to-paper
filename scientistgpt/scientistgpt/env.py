@@ -2,7 +2,6 @@ from typing import Optional
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.mutable import Mutable, Flag
-from scientistgpt.utils.nice_list import NiceList
 
 SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn')
 

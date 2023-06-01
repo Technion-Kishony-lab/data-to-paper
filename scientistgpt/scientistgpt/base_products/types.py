@@ -97,5 +97,3 @@ class DataFileDescriptions(List[DataFileDescription]):
 
     def get_data_filenames(self):
         return [data_file_description.file_path for data_file_description in self]
-
-

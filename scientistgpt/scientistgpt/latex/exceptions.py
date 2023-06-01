@@ -62,6 +62,7 @@ class LatexCompilationError(ScientistGPTException, ValueError):
                f'{self._extract_error_message()}' \
                f'```\n'
 
+
 @dataclass
 class UnwantedCommandsUsedInLatex(ScientistGPTException, ValueError):
     """

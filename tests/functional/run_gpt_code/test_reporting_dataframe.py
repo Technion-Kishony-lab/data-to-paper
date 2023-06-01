@@ -45,8 +45,9 @@ def test_dataframe_context_collects_changed_dataframes():
 
 
 def test_dataframe_read_csv_creates_reporting_dataframe(tmpdir_with_csv_file):
-    with collect_created_and_changed_data_frames():
-        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+    with collect_created_and_changed_data_frames() as dataframe_operations:
+        pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+    assert len(dataframe_operations) == 1
 
 
 def test_dataframe_creation_is_collected_upon_read_csv(tmpdir_with_csv_file):

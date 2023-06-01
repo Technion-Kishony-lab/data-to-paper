@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Iterable, Dict, Tuple
+from typing import Optional, Dict, Tuple
 
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import SUPPORTED_PACKAGES
@@ -232,7 +232,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
 
         Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the \
         strings that explain the content of each column.
-        
+
         All information you think is important should be encoded in this dictionary. 
         Do not send additional free text beside the text in the dictionary.  
         """)
@@ -273,8 +273,10 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                     self,
                     max_reviewing_rounds=0,
                     requested_keys=set(columns),
-                    user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_modified_dataframe,
-                                                    kwargs={'dataframe_file_name': saved_df_filename, 'columns': columns}),
+                    user_initiation_prompt=Replacer(self,
+                                                    self.requesting_explanation_for_a_modified_dataframe,
+                                                    kwargs={
+                                                        'dataframe_file_name': saved_df_filename, 'columns': columns}),
                     value_type=Dict[str, str],
                 ).run_dialog_and_get_python_value()
 

@@ -6,7 +6,7 @@ import os
 import importlib
 import traceback
 import warnings
-from typing import Optional, List, Type, Tuple, Any, Union, Set, Iterable
+from typing import Optional, List, Type, Tuple, Any, Union, Iterable
 
 from scientistgpt import chatgpt_created_scripts
 

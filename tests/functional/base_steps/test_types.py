@@ -48,7 +48,8 @@ def data_file_descriptions():
 
 def test_data_file_descriptions_repr(data_file_descriptions):
     description = str(data_file_descriptions)
-    correct_order = ['fileA.txt', 'fileA_modified.txt', 'fileA_modified_modified.txt', 'fileB.txt', 'fileB_modified.txt', 'fileC.txt']
+    correct_order = ['fileA.txt', 'fileA_modified.txt', 'fileA_modified_modified.txt', 'fileB.txt',
+                     'fileB_modified.txt', 'fileC.txt']
     previous_index = -1
     for should_be in correct_order:
         assert should_be in description

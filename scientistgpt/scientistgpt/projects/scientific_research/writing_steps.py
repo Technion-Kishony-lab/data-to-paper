@@ -143,12 +143,12 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Refer to the Tables by their labels and explain their content, but do not add the tables themselves \
         (I will add the tables later manually).
-        
+
         You can also extract and use any of the key Numerical Values provided above that you think are \
         scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
         added as a part of the paper, so you should explicitly mention any important values as an integral part of \
         the text.
-        
+
         Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
         {latex_instructions}
         """)

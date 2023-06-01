@@ -47,9 +47,11 @@ def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_fi
     finally:
         builtins.open = original_open
 
+
 def file_in_system_folder(file_name):
     abs_path_to_file = os.path.abspath(file_name)
     return bool(sum([os.path.commonpath([folder] + [abs_path_to_file]) in SYSTEM_FOLDERS for folder in SYSTEM_FOLDERS]))
+
 
 @contextmanager
 def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str]] = None):
