@@ -76,6 +76,9 @@ class SetTypingAgent(ConversationAction):
     def _pretty_attrs(self) -> str:
         return f'{self.agent}'
 
+    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
+        return ''
+
 
 @dataclass(frozen=True)
 class ChangeConversationParticipants(ConversationAction):
