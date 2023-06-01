@@ -245,6 +245,8 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
         saved_ids_filenames = sorted(saved_ids_filenames, key=lambda saved_id_filename: saved_id_filename[1])
 
         for saved_df_id, saved_df_filename in saved_ids_filenames:
+            self.comment(f'Asking for description of dataframe {saved_df_filename}.', web_conversation_name=None,
+                         tag='asking_for_file_description')  # same tag to reset here for each file
             read_filename = dataframe_operations.get_read_filename(saved_df_id)
             saved_columns = dataframe_operations.get_save_columns(saved_df_id)
             creation_columns = dataframe_operations.get_creation_columns(saved_df_id)

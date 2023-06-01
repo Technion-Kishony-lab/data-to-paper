@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from scientistgpt.base_products import Products
 from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
@@ -48,7 +48,12 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    background_product_fields: Tuple[str] = ()
+    background_product_fields: Tuple[str] = None
+    # tuple of product fields to provide background information about.
+    # If empty tuple, do not provide background information.
+    # if None, this instance was called into an already running conversation by another converser
+    # and should not add any new background information.
+
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
     goal_verb: str = None
@@ -64,9 +69,12 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         ```
         Please carefully review these intermediate products and then proceed according to my guidelines below. 
         """)
+    post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
 
     @property
-    def actual_background_product_fields(self) -> Tuple[str, ...]:
+    def actual_background_product_fields(self) -> Optional[Tuple[str, ...]]:
+        if self.background_product_fields is None:
+            return None
         return self._get_available_background_product_fields(self.background_product_fields)
 
     def _get_available_background_product_fields(self, product_fields: Tuple[str, ...]) -> Tuple[str, ...]:
@@ -122,7 +130,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         Add background information to the conversation.
         """
         previous_product_items = self.actual_background_product_fields
-        if not previous_product_items:
+        if previous_product_items is None:
             return
         assert len(self.conversation) == 1, "Background information must be added before the conversation starts."
         self._add_fake_pre_conversation_exchange()
@@ -130,6 +138,8 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
             is_last = i == len(previous_product_items) - 1
             self._add_product_description(product_field)
             self._add_acknowledgement(product_field, is_last=is_last)
+        if self.post_background_comment:
+            self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
 
 
 @dataclass
