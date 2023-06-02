@@ -74,10 +74,18 @@ class ConverserGPT(Copier):
     def conversation(self):
         return self.conversation_manager.conversation
 
+    def _pre_populate_background(self):
+        """
+        Add background messages to the conversation.
+        Only called if we are starting a new conversation.
+        """
+        pass
+
     def initialize_conversation_if_needed(self):
         self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
+            self._pre_populate_background()
 
     def comment(self, comment: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None, as_action: bool = True,
                 should_format: bool = True, **kwargs):

@@ -64,6 +64,13 @@ class DualConverserGPT(ConverserGPT):
     def other_conversation(self):
         return self.other_conversation_manager.conversation
 
+    def _pre_populate_other_background(self):
+        """
+        Add background messages to the other conversation.
+        Only called if we are starting a new conversation.
+        """
+        pass
+
     def initialize_other_conversation_if_needed(self):
         self.other_conversation_manager.initialize_conversation_if_needed()
         if len(self.other_conversation) == 0:
@@ -71,6 +78,7 @@ class DualConverserGPT(ConverserGPT):
             # add the message also to the web conversation:
             self.apply_append_system_message(self.other_system_prompt, conversation_name=None, ignore=True,
                                              reverse_roles_for_web=True)
+            self._pre_populate_other_background()
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
                                                         comment: Optional[StrOrTextFormat] = None,
@@ -353,20 +361,12 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """
         Add background messages to the two conversations to set them ready for the cycle.
         """
-        pass
-
-    def _pre_populate_conversations(self):
-        """
-        After system messages, we can add additional messages to the two conversation to set them ready for the cycle.
-        """
-        self._pre_populate_background()
         self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     def initialize_dialog(self):
         self.initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
-        self._pre_populate_conversations()
 
     def initialize_and_run_dialog(self) -> CycleStatus:
         self.initialize_dialog()
@@ -406,3 +406,4 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             except ValueError:
                 pass
         raise SelfResponseError()
+
