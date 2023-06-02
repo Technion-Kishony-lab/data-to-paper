@@ -106,6 +106,5 @@ def convert_general_message_designation_to_int_list(designations: GeneralMessage
         elif not isinstance(designation, MessageDesignation):
             designation = SingleMessageDesignation(designation)
         indices |= set(designation.get_message_nums(conversation))
-    indices = list(indices)
-    indices.sort()
+    indices = sorted(list(indices))
     return indices

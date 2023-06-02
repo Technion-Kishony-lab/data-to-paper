@@ -5,12 +5,12 @@ from scientistgpt.latex import FailedToExtractLatexContent, extract_latex_sectio
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.text_formatting import wrap_text_with_triple_quotes
 from scientistgpt.latex.exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
 from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands
 
 from .base_products_conversers import BaseProductsReviewGPT
-from ..utils.text_formatting import wrap_text_with_triple_quotes
 
 
 @dataclass

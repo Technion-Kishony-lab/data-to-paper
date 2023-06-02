@@ -8,6 +8,7 @@ from scientistgpt.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.text_formatting import wrap_python_code
+from scientistgpt.utils.types import ListBasedSet
 
 
 @dataclass
@@ -20,7 +21,7 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         Start by choosing section with tables, then cited sections, then without both of those.
         If there are references we also collect them to a set.
         """
-        references = set()
+        references = ListBasedSet()
         sections = {}
         for section_name in self.get_paper_section_names():
             sections[section_name] = self.products.most_updated_paper_sections[section_name]
