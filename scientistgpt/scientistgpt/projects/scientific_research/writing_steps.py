@@ -78,9 +78,9 @@ class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
         Either reply with a bullet-point list of actionable feedback points, or, if you feel that the section is \
         already good enough, respond with solely the following "{termination_phrase}" (termination phrase) without any \
         other feedback or comments.
-        
+
         Do not provide positive feedback, only provide actionable instructions in bullet points.
-        
+
         {section_review_specific_instructions}
         In addition, make sure that the section is grounded in the information provided above and is consistent with it.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
@@ -158,10 +158,10 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
         Specifically, pay attention to:
         whether the {goal_noun} contains only information that is explicitly extracted from the \
         Tables and Numerical Values provided above. \
-        
+
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
-        
+
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
         Tables and Numerical Values.
         """)
