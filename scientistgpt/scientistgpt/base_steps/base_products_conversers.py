@@ -135,6 +135,7 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         """
         previous_product_items = self.actual_background_product_fields
         if previous_product_items is not None:
+            assert len(self.conversation) == 1
             self._add_fake_pre_conversation_exchange()
             for i, product_field in enumerate(previous_product_items or []):
                 is_last = i == len(previous_product_items) - 1
@@ -165,11 +166,12 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
     def _pre_populate_other_background(self):
         previous_product_items = self.actual_background_product_fields
         if previous_product_items is not None:
+            assert len(self.other_conversation) == 1
             for i, product_field in enumerate(previous_product_items or []):
                 is_last = i == len(previous_product_items) - 1
                 self._add_other_product_description(product_field)
                 self._add_other_acknowledgement(product_field, is_last=is_last)
-        return super()._pre_populate_background()
+        return super()._pre_populate_other_background()
 
     def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
