@@ -77,7 +77,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
         Do not include any data visualization steps.
         Explicitly specify all relevant analysis results and values that should be calculated.
         If there are any specific statistical tests that should be performed, specify how they should be performed.
-        
+
         Do not specify data exploration steps, as they are already performed.
         {quote_request}
         """)

@@ -10,14 +10,12 @@ from scientistgpt.utils.nice_list import NiceList, NiceDict
 from scientistgpt.utils.replacer import Replacer
 from scientistgpt.utils.types import ListBasedSet
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
-from . import BaseProductsQuotedReviewGPT
 
 from .debugger_gpt import DebuggerGPT
 from .base_products_conversers import BaseBackgroundProductsGPT, BaseProductsReviewGPT
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import BaseMultiChoiceProductsGPT
 from .request_python_value import PythonDictWithDefinedKeysProductsReviewGPT
-from ..servers.openai_models import ModelEngine
 
 
 @dataclass
