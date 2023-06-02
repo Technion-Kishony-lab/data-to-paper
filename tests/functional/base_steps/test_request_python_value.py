@@ -20,16 +20,12 @@ class TestBasePythonValueProductsReviewGPT(BasePythonValueProductsReviewGPT):
 
 
 correct_dict_str_any_value = r"""{'a': '1', 'b': {'2' : '2'}, 'c': [3, 3, 3]}"""
-non_correct_dict_str_any_value = r"""{'a': '1', 'b': {'2' : '2'}, 'c': [3, 3, 3]"""
-error_message_include_dict_str_any_value = "Your response should be formatted as a Python dict, flanked by `{` and `}`"
 
 correct_dict_str_str_value = r"""{'a': '1', 'b': '2', 'c': '3'}"""
-non_correct_dict_str_str_value = r"""{'a': '1', 'b': '2', 'c': 3}"""
 error_message_include_dict_str_str_value = "Your response should be formatted as"
 
 correct_list_str_value = r"""['a', 'b', 'c']"""
 non_correct_list_str_value = r"""['a', 'b', 5]"""
-error_message_include_list_str_value = "Your response should be formatted as"
 
 
 @pytest.mark.parametrize('correct_python_value, value_type', [
@@ -45,11 +41,9 @@ def test_request_python_value(correct_python_value, value_type):
 
 
 @pytest.mark.parametrize('non_correct_python_value, correct_python_value, value_type, error_should_include', [
-    (non_correct_dict_str_any_value, correct_dict_str_any_value, Dict[str, Any],
-     error_message_include_dict_str_any_value),
-    (non_correct_dict_str_str_value, correct_dict_str_str_value, Dict[str, str],
-     error_message_include_dict_str_str_value),
-    (non_correct_list_str_value, correct_list_str_value, List[str], error_message_include_list_str_value),
+    (correct_dict_str_any_value.replace('}', ''), correct_dict_str_any_value, Dict[str, Any], "flanked by `{` and `}`"),
+    (correct_dict_str_str_value.replace("'3'", '3'), correct_dict_str_str_value, Dict[str, str], "The dict values must be of type: <class 'str'>"),
+    (non_correct_list_str_value, correct_list_str_value, List[str], "The values must be of type: <class 'str'>"),
 ])
 def test_request_python_value_with_error(
         non_correct_python_value, correct_python_value, value_type, error_should_include):
