@@ -85,7 +85,7 @@ class ConverserGPT(Copier):
         self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
-            self._pre_populate_background()
+        self._pre_populate_background()
 
     def comment(self, comment: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None, as_action: bool = True,
                 should_format: bool = True, **kwargs):

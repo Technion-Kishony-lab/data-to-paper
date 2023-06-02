@@ -78,7 +78,7 @@ class DualConverserGPT(ConverserGPT):
             # add the message also to the web conversation:
             self.apply_append_system_message(self.other_system_prompt, conversation_name=None, ignore=True,
                                              reverse_roles_for_web=True)
-            self._pre_populate_other_background()
+        self._pre_populate_other_background()
 
     def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
                                                         comment: Optional[StrOrTextFormat] = None,
@@ -247,7 +247,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         If the there are errors that require self to revise the response, raise an SelfResponseError describing
         the problem.
         """
-        raise NotImplementedError
+        self.returned_value = response
 
     def run_one_cycle(self) -> CycleStatus:
         """
