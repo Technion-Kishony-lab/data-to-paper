@@ -97,12 +97,14 @@ class ConverserGPT(Copier):
                                                is_code: bool = False, previous_code: Optional[str] = None,
                                                model_engine: Optional[ModelEngine] = None,
                                                hidden_messages: GeneralMessageDesignation = None,
+                                               expected_tokens_in_response: int = None,
                                                **kwargs) -> Message:
         return self.conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
             is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
+            expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages, **kwargs)
 
     def apply_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,

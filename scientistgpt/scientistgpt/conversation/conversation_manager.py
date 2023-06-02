@@ -176,6 +176,7 @@ class ConversationManager:
     def get_and_append_assistant_message(self, tag: Optional[str] = None, comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None,
+                                         expected_tokens_in_response: int = None,
                                          **kwargs  # for both create_message and openai params
                                          ) -> Message:
         """
@@ -200,6 +201,7 @@ class ConversationManager:
             message = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
                                                                 previous_code=previous_code,
                                                                 hidden_messages=actual_hidden_messages,
+                                                                expected_tokens_in_response=expected_tokens_in_response,
                                                                 openai_call_parameters=openai_call_parameters,
                                                                 **kwargs)
             if isinstance(message, Message):
@@ -240,6 +242,7 @@ class ConversationManager:
                                              is_code: bool = False, previous_code: Optional[str] = None,
                                              hidden_messages: GeneralMessageDesignation = None,
                                              openai_call_parameters: Optional[OpenaiCallParameters] = None,
+                                             expected_tokens_in_response: int = None,
                                              **kwargs
                                              ) -> Union[Message, Exception]:
         """
@@ -252,7 +255,9 @@ class ConversationManager:
         """
         openai_call_parameters = openai_call_parameters or OpenaiCallParameters()
         messages = self.conversation.get_chosen_messages(hidden_messages)
-        content = try_get_chatgpt_response(messages, **openai_call_parameters.to_dict())
+        content = try_get_chatgpt_response(messages,
+                                           expected_tokens_in_response=expected_tokens_in_response,
+                                           **openai_call_parameters.to_dict())
         if isinstance(content, Exception):
             self._create_and_apply_action(
                 FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
