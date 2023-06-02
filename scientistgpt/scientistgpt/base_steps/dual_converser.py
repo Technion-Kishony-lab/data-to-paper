@@ -211,8 +211,7 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         Check if the response from the reviewer terminates the conversation.
         """
-        return termination_phrase.lower() in reviewer_response.lower() \
-            and len(reviewer_response) - len(termination_phrase) < 10
+        return termination_phrase.lower() in reviewer_response.lower()
 
     def is_completed(self) -> bool:
         """
@@ -232,10 +231,10 @@ class DialogDualConverserGPT(DualConverserGPT):
         """
         while True:
             cycle_status = self.run_one_cycle()
-            if cycle_status is not CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+            if cycle_status is not CycleStatus.NOT_APPROVED_BY_OTHER:
                 return cycle_status
 
-    def _check_and_extracted_value_from_self_response(self, response: str):
+    def _check_and_extract_value_from_self_response(self, response: str):
         """
         Check the response from self.
         Extract any needed information into returned_value.
@@ -247,7 +246,7 @@ class DialogDualConverserGPT(DualConverserGPT):
     def run_one_cycle(self) -> CycleStatus:
         """
         Run one cycle of the dialog. Makes updates to returned_value by calling
-        _check_and_extracted_value_from_self_response().
+        _check_and_extract_value_from_self_response().
         """
         self_message = None
         for _ in range(self.max_attempts_per_round):
@@ -259,7 +258,7 @@ class DialogDualConverserGPT(DualConverserGPT):
                 self_message = self.apply_get_and_append_assistant_message(web_conversation_name=None)
                 self_response = self_message.content
             try:
-                self._check_and_extracted_value_from_self_response(self_response)
+                self._check_and_extract_value_from_self_response(self_response)
                 break
             except SelfResponseError as e:
                 if not is_preexisting_self_response:
@@ -399,11 +398,12 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         {quote_request}
         """)
 
-    def _check_and_extracted_value_from_self_response(self, response: str):
+    def _check_and_extract_value_from_self_response(self, response: str):
         for flanking_tags in self.flanking_tag_list:
             try:
                 self.returned_value = extract_text_between_tags(response, *flanking_tags)
+                break
             except ValueError:
                 pass
-        raise SelfResponseError()
-
+        else:
+            raise SelfResponseError(self.quote_request)

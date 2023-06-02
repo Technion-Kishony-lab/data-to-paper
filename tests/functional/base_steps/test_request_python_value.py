@@ -18,11 +18,6 @@ class TestBasePythonValueProductsReviewGPT(BasePythonValueProductsReviewGPT):
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     max_reviewing_rounds: int = 0
 
-    def get_python_value(self):
-        response = super().initialize_and_run_dialog()
-        feedback, python_value = self.extract_python_value_from_response(response)
-        return python_value
-
 
 correct_dict_str_any_value = r"""{'a': '1', 'b': {'2' : '2'}, 'c': [3, 3, 3]}"""
 non_correct_dict_str_any_value = r"""{'a': '1', 'b': {'2' : '2'}, 'c': [3, 3, 3]"""
@@ -45,7 +40,7 @@ error_message_include_list_str_value = "Your response should be formatted as"
 def test_request_python_value(correct_python_value, value_type):
     with OPENAI_SERVER_CALLER.mock([f'Here is the correct python value:\n{correct_python_value}\nShould be all good.'],
                                    record_more_if_needed=False):
-        assert TestBasePythonValueProductsReviewGPT(value_type=value_type).get_python_value() == \
+        assert TestBasePythonValueProductsReviewGPT(value_type=value_type).get_value() == \
                eval(correct_python_value)
 
 
@@ -63,6 +58,6 @@ def test_request_python_value_with_error(
              f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
             record_more_if_needed=False):
         latex_requester = TestBasePythonValueProductsReviewGPT(value_type=value_type)
-        assert latex_requester.get_python_value() == eval(correct_python_value)
+        assert latex_requester.get_value() == eval(correct_python_value)
         error_message = latex_requester.conversation[3]
         assert error_should_include in error_message.content

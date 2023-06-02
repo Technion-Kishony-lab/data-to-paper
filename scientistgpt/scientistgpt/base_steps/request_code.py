@@ -287,7 +287,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                                                     kwargs={
                                                         'dataframe_file_name': saved_df_filename, 'columns': columns}),
                     value_type=Dict[str, str],
-                ).run_dialog_and_get_python_value()
+                ).get_value()
 
                 new_columns_to_explanations = \
                     {column: explanation for column, explanation in columns_to_explanations.items()

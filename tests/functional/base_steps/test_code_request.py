@@ -74,11 +74,11 @@ def test_request_code_with_adding_new_column(code_running_converser):
             [f'Python value:\n```python\n{code_reading_csv}\n```\nShould be all good.',
              new_column_dict_explanation],
             record_more_if_needed=False):
-        code_and_outputs = {"data_preprocessing": code_running_converser.get_code_and_output()}
+        codee_and_outputs = {"data_preprocessing": code_running_converser.get_code_and_output()}
         scientific_products = ScientificProducts()
         scientific_products.data_file_descriptions = DataFileDescriptions(
             [DataFileDescription(file_path='test.csv', description='test file')])
-        scientific_products.codes_and_outputs = code_and_outputs
+        scientific_products.codes_and_outputs = codee_and_outputs
         for keyword in code_reading_csv_keywords_in_description:
             assert keyword in scientific_products.get_description('created_files_description:data_preprocessing')
 
