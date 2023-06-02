@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Set, Tuple, Optional
+from typing import List, Set, Tuple, Optional, Iterable
+
+from scientistgpt.utils.types import ListBasedSet
 
 
 @dataclass(frozen=True)
@@ -52,19 +54,19 @@ class ChangeSeriesDataframeOperation(SeriesDataframeOperation):
 
 class DataframeOperations(List[DataframeOperation]):
 
-    def get_read_ids(self) -> Set[int]:
-        return {operation.id for operation in self
-                if isinstance(operation, CreationDataframeOperation) and operation.file_path is not None}
+    def get_read_ids(self) -> ListBasedSet[int]:
+        return ListBasedSet(operation.id for operation in self
+                            if isinstance(operation, CreationDataframeOperation) and operation.file_path is not None)
 
-    def get_changed_ids(self) -> Set[int]:
-        return {operation.id for operation in self if isinstance(operation, SeriesDataframeOperation)}
+    def get_changed_ids(self) -> ListBasedSet[int]:
+        return ListBasedSet(operation.id for operation in self if isinstance(operation, SeriesDataframeOperation))
 
-    def get_saved_ids(self) -> Set[int]:
-        return {operation.id for operation in self if isinstance(operation, SaveDataframeOperation)}
+    def get_saved_ids(self) -> ListBasedSet[int]:
+        return ListBasedSet(operation.id for operation in self if isinstance(operation, SaveDataframeOperation))
 
-    def get_saved_ids_filenames(self) -> Set[Tuple[int, str]]:
-        return {(operation.id, operation.filename) for operation in self
-                if isinstance(operation, SaveDataframeOperation)}
+    def get_saved_ids_filenames(self) -> ListBasedSet[Tuple[int, str]]:
+        return ListBasedSet((operation.id, operation.filename) for operation in self
+                            if isinstance(operation, SaveDataframeOperation))
 
     def get_read_filename(self, id_: int) -> Optional[str]:
         return next((operation.filename for operation in self
@@ -73,9 +75,9 @@ class DataframeOperations(List[DataframeOperation]):
     def get_read_changed_but_unsaved_ids(self):
         return self.get_read_ids() & self.get_changed_ids() - self.get_saved_ids()
 
-    def get_read_filenames_from_ids(self, ids: Set[int]) -> Set[Optional[str]]:
-        return {operation.filename for operation in self
-                if operation.id in ids and isinstance(operation, CreationDataframeOperation)}
+    def get_read_filenames_from_ids(self, ids: Iterable[int]) -> ListBasedSet[Optional[str]]:
+        return ListBasedSet(operation.filename for operation in self
+                            if operation.id in ids and isinstance(operation, CreationDataframeOperation))
 
     def get_creation_columns(self, id_: int) -> Optional[List[str]]:
         return next((operation.columns for operation in self

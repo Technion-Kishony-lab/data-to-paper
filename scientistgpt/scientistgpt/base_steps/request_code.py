@@ -8,6 +8,7 @@ from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList, NiceDict
 from scientistgpt.utils.replacer import Replacer
+from scientistgpt.utils.types import ListBasedSet
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 
 from .debugger_gpt import DebuggerGPT
@@ -248,10 +249,10 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
             self.comment(f'Asking for description of dataframe {saved_df_filename}.', web_conversation_name=None,
                          tag='asking_for_file_description')  # same tag to reset here for each file
             read_filename = dataframe_operations.get_read_filename(saved_df_id)
-            saved_columns = dataframe_operations.get_save_columns(saved_df_id)
-            creation_columns = dataframe_operations.get_creation_columns(saved_df_id)
-            changed_columns = dataframe_operations.get_changed_columns(saved_df_id)
-            added_columns = list(set(saved_columns) - set(creation_columns))
+            saved_columns = ListBasedSet(dataframe_operations.get_save_columns(saved_df_id))
+            creation_columns = ListBasedSet(dataframe_operations.get_creation_columns(saved_df_id))
+            changed_columns = ListBasedSet(dataframe_operations.get_changed_columns(saved_df_id))
+            added_columns = saved_columns - creation_columns
             if read_filename is None:
                 # this saved dataframe was created by the code, not read from a file
                 columns = saved_columns
@@ -268,11 +269,11 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                                                             originated_from=None)
             else:
                 # this saved dataframe was read from a file
-                columns = list(set(added_columns) | set(changed_columns))
+                columns = added_columns | changed_columns
                 columns_to_explanations = PythonDictWithDefinedKeysProductsReviewGPT.from_(
                     self,
                     max_reviewing_rounds=0,
-                    requested_keys=set(columns),
+                    requested_keys=columns,
                     user_initiation_prompt=Replacer(self,
                                                     self.requesting_explanation_for_a_modified_dataframe,
                                                     kwargs={
