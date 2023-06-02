@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 
 from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation, Message
 from scientistgpt.utils.text_extractors import extract_text_between_tags
@@ -9,6 +9,28 @@ from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 
 from .converser_gpt import ConverserGPT
 from .exceptions import FailedCreatingProductException
+
+
+class CycleStatus(Enum):
+    FAILED_CHECK_SELF_RESPONSE = 'failed_check_self_response'
+    NOT_APPROVED_BY_OTHER = 'not_approved_by_other'
+    APPROVED_BY_OTHER = 'approved_by_other'
+    MAX_ROUNDS_EXCEEDED = 'max_rounds_exceeded'
+
+
+class NoResponse:
+    pass
+
+
+@dataclass
+class SelfResponseError(Exception):
+    """
+    Exception raised when the response to a request for a latex section is not acceptable.
+    """
+    error_message: StrOrTextFormat = None
+
+    def __str__(self):
+        return self.error_message
 
 
 @dataclass
@@ -101,17 +123,6 @@ class DualConverserGPT(ConverserGPT):
             ignore=ignore, is_background=is_background, **kwargs)
 
 
-class CycleStatus(Enum):
-    FAILED_CHECK_SELF_RESPONSE = 'failed_check_self_response'
-    NOT_APPROVED_BY_OTHER = 'not_approved_by_other'
-    APPROVED_BY_OTHER = 'approved_by_other'
-    MAX_ROUNDS_EXCEEDED = 'max_rounds_exceeded'
-
-
-class NoResponse:
-    pass
-
-
 @dataclass
 class DialogDualConverserGPT(DualConverserGPT):
     """
@@ -150,7 +161,9 @@ class DialogDualConverserGPT(DualConverserGPT):
     max_reviewing_rounds: int = 3
 
     max_attempts_per_round: int = 4
-    raise_on_exceeding_max_attempts_per_round: bool = True
+
+    # Output:
+    returned_value: Any = field(default_factory=NoResponse)
 
     def __post_init__(self):
         super().__post_init__()
@@ -204,42 +217,30 @@ class DialogDualConverserGPT(DualConverserGPT):
         termination_phrase = format_value(self, self.termination_phrase)
         return self._is_reviewer_response_terminating(reviewer_response, termination_phrase)
 
-    def run_dialog(self) -> Optional[str]:
+    def run_dialog(self) -> CycleStatus:
         """
         Run the dialog until it is completed.
-        Returns the last chatgpt response from self.
-        If we don't get a valid (by _check_self_response)self chatgpt response after max_attempts_per_round,
-        return None.
+        Returns the reason for termination.
         """
-        last_self_response = NoResponse()
         while True:
-            self_response, cycle_status = self.run_one_cycle()
-            if cycle_status is CycleStatus.FAILED_CHECK_SELF_RESPONSE:
-                if isinstance(last_self_response, NoResponse):
-                    if self.raise_on_exceeding_max_attempts_per_round:
-                        raise FailedCreatingProductException()
-                    return None
-                return last_self_response
-            if cycle_status is CycleStatus.MAX_ROUNDS_EXCEEDED:
-                return self_response
-            if cycle_status is CycleStatus.APPROVED_BY_OTHER:
-                return self_response
-            # cycle_status is CycleStatus.NOT_APPROVED_BY_OTHER
-            last_self_response = self_response
+            cycle_status = self.run_one_cycle()
+            if cycle_status is not CycleStatus.FAILED_CHECK_SELF_RESPONSE:
+                return cycle_status
 
-    def _check_self_response(self, response: str) -> Optional[str]:
+    def _check_and_extracted_value_from_self_response(self, response: str):
         """
-        Check the response from self. If the response is not allowed, return a message to chatgpt describing
+        Check the response from self.
+        Extract any needed information into returned_value.
+        If the there are errors that require self to revise the response, raise an SelfResponseError describing
         the problem and requesting a new response.
-        Otherwise, return None.
         """
         return None
 
-    def run_one_cycle(self) -> Tuple[str, CycleStatus]:
+    def run_one_cycle(self) -> CycleStatus:
         """
-        Run one cycle of the dialog. Return str of response if completed, or None if not completed
+        Run one cycle of the dialog. Makes updates to returned_value by calling
+        _check_and_extracted_value_from_self_response().
         """
-        self_response = None
         self_message = None
         for _ in range(self.max_attempts_per_round):
             # to allow starting either before or after the first self response:
@@ -249,17 +250,18 @@ class DialogDualConverserGPT(DualConverserGPT):
             else:
                 self_message = self.apply_get_and_append_assistant_message(web_conversation_name=None)
                 self_response = self_message.content
-            problem_in_response = self._check_self_response(self_response)
-            if problem_in_response is None:
+            try:
+                self._check_and_extracted_value_from_self_response(self_response)
                 break
-            if not is_preexisting_self_response:
-                self.apply_append_surrogate_message(content=self_response, conversation_name=None,
-                                                    context=self_message.context)
-            self.apply_append_user_message(problem_in_response + '\n' +
-                                           self.sentence_to_add_to_error_message_upon_failed_check_self_response,
-                                           tag='error')
+            except SelfResponseError as e:
+                if not is_preexisting_self_response:
+                    self.apply_append_surrogate_message(content=self_response, conversation_name=None,
+                                                        context=self_message.context)
+                self.apply_append_user_message(format_value(self, e.error_message) + '\n' +
+                                               self.sentence_to_add_to_error_message_upon_failed_check_self_response,
+                                               tag='error')
         else:
-            return self_response, CycleStatus.FAILED_CHECK_SELF_RESPONSE
+            return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if self.round_num >= self.max_reviewing_rounds:
@@ -268,7 +270,7 @@ class DialogDualConverserGPT(DualConverserGPT):
                                                     context=self_message.context)
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
-            return self_response, CycleStatus.MAX_ROUNDS_EXCEEDED
+            return CycleStatus.MAX_ROUNDS_EXCEEDED
 
         altered_self_response = self._alter_self_response(self_response)
         if not is_preexisting_self_response:
@@ -283,10 +285,10 @@ class DialogDualConverserGPT(DualConverserGPT):
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
-            return self_response, CycleStatus.APPROVED_BY_OTHER
+            return CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
-        return self_response, CycleStatus.NOT_APPROVED_BY_OTHER
+        return CycleStatus.NOT_APPROVED_BY_OTHER
 
 
 @dataclass
@@ -366,9 +368,18 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             self.initialize_other_conversation_if_needed()
         self._pre_populate_conversations()
 
-    def initialize_and_run_dialog(self) -> str:
+    def initialize_and_run_dialog(self) -> CycleStatus:
         self.initialize_dialog()
         return self.run_dialog()
+
+    def get_value_and_termination_reason(self) -> Tuple[Any, CycleStatus]:
+        termination_reason = self.initialize_and_run_dialog()
+        if isinstance(self.returned_value, NoResponse):
+            raise FailedCreatingProductException()
+        return self.returned_value, termination_reason
+
+    def get_value(self):
+        return self.get_value_and_termination_reason()[0]
 
 
 @dataclass
@@ -388,21 +399,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         {quote_request}
         """)
 
-    def _extract_goal_from_response(self, response: str) -> str:
+    def _check_and_extracted_value_from_self_response(self, response: str):
         for flanking_tags in self.flanking_tag_list:
             try:
-                return extract_text_between_tags(response, *flanking_tags)
+                self.returned_value = extract_text_between_tags(response, *flanking_tags)
             except ValueError:
                 pass
-        raise ValueError(f'Could not find the {self.goal_noun} in the response.')
-
-    def _check_self_response(self, response: str) -> Optional[str]:
-        try:
-            self._extract_goal_from_response(response)
-        except ValueError:
-            return self.quote_request
-        return None
-
-    def initialize_and_run_dialog(self):
-        response = super().initialize_and_run_dialog()
-        return self._extract_goal_from_response(response)
+        raise SelfResponseError()
