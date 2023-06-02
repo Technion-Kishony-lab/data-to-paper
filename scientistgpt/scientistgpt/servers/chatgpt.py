@@ -81,7 +81,7 @@ def count_number_of_tokens_in_message(messages: List[Message], model_engine: Mod
     """
     model = model_engine.value or DEFAULT_MODEL_ENGINE
     encoding = tiktoken.encoding_for_model(model)
-    num_tokens = len(encoding.encode(''.join([message.to_chatgpt_dict()['content'] for message in messages])))
+    num_tokens = len(encoding.encode('\n'.join([message.content for message in messages])))
 
     return num_tokens
 
