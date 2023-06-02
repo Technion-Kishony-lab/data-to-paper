@@ -7,6 +7,7 @@ from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values
 
 
 @dataclass
@@ -181,3 +182,31 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
     def _add_other_product_description(self, product_field: str):
         product_description, tag = self.get_product_description_and_tag(product_field)
         self.apply_to_other_append_user_message(product_description, tag=tag, is_background=True)
+
+
+class BaseCheckExtractionProductsReviewGPT(BaseProductsReviewGPT):
+    product_fields_from_which_response_is_extracted: Tuple[str] = None
+
+    def _get_text_from_which_response_should_be_extracted(self) -> str:
+        return '\n'.join(self.products.get_description(product_field)
+                         for product_field in self.product_fields_from_which_response_is_extracted)
+
+    @property
+    def names_of_products_from_which_to_extract(self) -> List[str]:
+        return NiceList(self.products.get_name(product_field)
+                        for product_field in self.product_fields_from_which_response_is_extracted)
+
+    def _check_extracted_text(self, text: str):
+        if text not in self._get_text_from_which_response_should_be_extracted():
+            self._raise_self_response_error(
+                f'"{text}" is not an explicit extraction from the provided '
+                f'{self.names_of_products_from_which_to_extract}.')
+
+    def _check_extracted_numbers(self, text: str):
+        non_matching = find_non_matching_numeric_values(
+            source=self._get_text_from_which_response_should_be_extracted(),
+            target=text)
+        if non_matching:
+            self._raise_self_response_error(
+                f'Some of the specified values {non_matching} are explicitly extracted from the provided '
+                f'{self.names_of_products_from_which_to_extract}.')
