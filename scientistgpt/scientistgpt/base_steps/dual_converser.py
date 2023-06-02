@@ -245,9 +245,9 @@ class DialogDualConverserGPT(DualConverserGPT):
         Check the response from self.
         Extract any needed information into returned_value.
         If the there are errors that require self to revise the response, raise an SelfResponseError describing
-        the problem and requesting a new response.
+        the problem.
         """
-        return None
+        raise NotImplementedError
 
     def run_one_cycle(self) -> CycleStatus:
         """
