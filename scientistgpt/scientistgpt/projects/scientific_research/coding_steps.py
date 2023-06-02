@@ -160,7 +160,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
     background_product_fields: Tuple[str] = \
-        ('all_file_descriptions', 'analysis_plan', 'codes_and_outputs:data_exploration',
+        ('all_file_descriptions', 'analysis_plan', 'outputs:data_exploration',
          'codes_and_outputs:data_preprocessing', 'research_goal')
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'

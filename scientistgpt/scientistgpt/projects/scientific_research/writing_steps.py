@@ -98,6 +98,13 @@ class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewGPT):
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
         """)
+    section_specific_instructions: str = dedent_triple_quote_str("""
+        The title should be short and meaningful. It should focus on the main result of the paper and not on the \
+        methods or the data.
+        The abstract should be a *short* and concise summary of the paper. 
+        It should include short background on the research question, the main result and contribution of the paper, \
+        brief explanation about the methods and very short intro to the data used.
+        """)
 
 
 @dataclass
