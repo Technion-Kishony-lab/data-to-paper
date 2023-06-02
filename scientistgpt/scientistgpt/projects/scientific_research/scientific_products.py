@@ -191,8 +191,8 @@ class ScientificProducts(Products):
                 lambda code_step: CODE_STEPS_TO_STAGES[code_step],
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
-                    'code_description': self["codes:" + code_step].description,
-                    'output_description': self["outputs:" + code_step].description},
+                    'code_description': self.get_description("codes:" + code_step),
+                    'output_description': self.get_description("outputs:" + code_step)},
             ),
 
             'created_files:{}': NameDescriptionStageGenerator(
@@ -316,8 +316,8 @@ class ScientificProducts(Products):
                 'The Tables and Numeric Values of the Paper',
                 '{tables}\n\n{numeric_values}',
                 ScientificStages.INTERPRETATION,
-                lambda: {'tables': self['tables'].description,
-                         'numeric_values': self['numeric_values'].description,
+                lambda: {'tables': self.get_description('tables'),
+                         'numeric_values': self.get_description('numeric_values'),
                          },
             ),
         }
