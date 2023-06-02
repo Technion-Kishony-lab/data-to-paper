@@ -4,6 +4,13 @@ from typing import List
 from scientistgpt.utils.types import IndexOrderedEnum
 
 
+MODEL_ENGINE_TO_MAX_TOKENS = {
+    "gpt-3.5-turbo": 4096,
+    "gpt-4": 8192,
+    "gpt-4-32k": 32768,
+}
+
+
 class ModelEngine(IndexOrderedEnum):
     """
     Enum for the different model engines available in openai.
@@ -21,6 +28,10 @@ class ModelEngine(IndexOrderedEnum):
 
     def __hash__(self):
         return hash(self.value)
+
+    @property
+    def max_tokens(self):
+        return MODEL_ENGINE_TO_MAX_TOKENS[self.value]
 
 
 @dataclass
