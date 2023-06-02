@@ -3,6 +3,7 @@ from typing import Dict, Set, Tuple, Optional, List, Any
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.types import ListBasedSet
 
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
 from scientistgpt.base_steps.request_python_value import BasePythonValueProductsReviewGPT
@@ -77,7 +78,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
         """
         Validate that the response is in the correct format and all ids are existing ones.
         """
-        not_in_citations = set()
+        not_in_citations = ListBasedSet()
         for citation_id in chosen_citation_ids:
             if citation_id in self.citation_ids:
                 self.chosen_citation_ids.add(citation_id)
@@ -218,7 +219,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
                 f'{sentences_not_in_section}.\n'
         return None
 
-    def rewrite_section_with_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
+    def rewrite_section_with_citations(self) -> Tuple[str, ListBasedSet[CrossrefCitation]]:
         """
         Rewrite the section with the citations.
         """
@@ -229,12 +230,12 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
 
         sentences_to_citations = self._find_citations_for_sentences()
         updated_section = self.section
-        all_citations: Set[CrossrefCitation] = set()
+        all_citations: ListBasedSet[CrossrefCitation] = ListBasedSet()
         for sentence, sentence_citations in sentences_to_citations.items():
             self.conversation_manager.reset_back_to_tag('after_background')
             if not sentence_citations:
                 rewritten_sentence = sentence
-                chosen_citations = set()
+                chosen_citations = ListBasedSet()
             else:
                 rewritten_sentence, chosen_citations = \
                     RewriteSentenceWithCitations.from_(

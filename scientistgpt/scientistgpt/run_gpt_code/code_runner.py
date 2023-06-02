@@ -5,10 +5,10 @@ from typing import Optional, Iterable, Tuple
 
 from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload
 from scientistgpt.run_gpt_code.code_utils import extract_code_from_text
+from scientistgpt.utils.types import ListBasedSet
 
 from .types import CodeAndOutput
 from .exceptions import FailedLoadingOutput
-
 
 LINES_ADDED_BY_MODIFYING_CODE = 0
 
@@ -86,7 +86,7 @@ class CodeRunner:
             allowed_read_files=self.allowed_read_files,
             allowed_write_files=None if self.allowed_created_files is None  # allow all files to be created
             else (self.allowed_created_files if self.output_file is None
-                  else set(self.allowed_created_files) | {self.output_file}),
+                  else ListBasedSet(self.allowed_created_files) | {self.output_file}),
             allow_dataframes_to_change_existing_series=False,
             run_in_folder=self.data_folder)
         return CodeAndOutput(
