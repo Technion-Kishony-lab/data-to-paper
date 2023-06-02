@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Dict, Tuple, Type
 
 from scientistgpt.base_steps.base_steps_runner import BaseStepsRunner
 from scientistgpt.base_steps.request_products_from_user import DirectorProductGPT
@@ -38,7 +38,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
-    def get_sections_to_writing_class(self):
+    def get_sections_to_writing_class(self) -> Dict[Tuple[str, ...], Type[SectionWriterReviewGPT]]:
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): IntroductionSectionWriterReviewGPT,
