@@ -48,7 +48,8 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
         You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
         """)
 
-    sentence_to_add_to_error_message_upon_failed_check_self_response = dedent_triple_quote_str("""
+    response_to_self_error = dedent_triple_quote_str("""
+        {}
         Please try again making sure you return the chosen citations with the correct format, like this:
         ``` 
         ["AuthorX2022Title", "AuthorY2009Title"]
@@ -144,7 +145,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         Return only a dict of "sentence: query" pairs, without any other text.
     """)
 
-    sentence_to_add_to_error_message_upon_failed_check_self_response: str = dedent_triple_quote_str("""
+    response_to_self_error: str = dedent_triple_quote_str("""
         Please try again making sure you return the results with the correct format, like this:
         ``` 
         {"sentence extracted from the section": "query of the key sentence", 

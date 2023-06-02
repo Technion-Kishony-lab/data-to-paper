@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Any
 from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation, Message
 from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import StrOrTextFormat, format_value
+from scientistgpt.utils.replacer import StrOrTextFormat, format_value, Replacer
 
 from .converser_gpt import ConverserGPT
 from .exceptions import FailedCreatingProductException
@@ -162,7 +162,9 @@ class DialogDualConverserGPT(DualConverserGPT):
 
     append_termination_response_to_self: bool = True
 
-    sentence_to_add_to_error_message_upon_failed_check_self_response: str = ""
+    response_to_self_error: str = "{}"
+    # {} is the error message. sub-classes can add additional text you want to send to self upon error in its response.
+
     fake_performer_message_to_add_after_max_rounds: str = \
         "No need for additional feedback. Thanks much - I think I have it now!"
     fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
@@ -270,8 +272,7 @@ class DialogDualConverserGPT(DualConverserGPT):
                 if not is_preexisting_self_response:
                     self.apply_append_surrogate_message(content=self_response, conversation_name=None,
                                                         context=self_message.context)
-                self.apply_append_user_message(format_value(self, e.error_message) + '\n' +
-                                               self.sentence_to_add_to_error_message_upon_failed_check_self_response,
+                self.apply_append_user_message(Replacer(self, self.response_to_self_error, args=(e.error_message, )),
                                                tag='error')
         else:
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE

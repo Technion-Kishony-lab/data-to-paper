@@ -12,7 +12,6 @@ from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figu
     replace_special_chars, check_usage_of_unwanted_commands
 
 from .base_products_conversers import BaseProductsReviewGPT
-from .dual_converser import SelfResponseError
 
 
 @dataclass
@@ -25,6 +24,12 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
     should_remove_citations_from_section = True
 
     section_names: List[str] = field(default_factory=list)
+
+    response_to_self_error: str = dedent_triple_quote_str("""
+        {}
+
+        Please {goal_verb} the {goal_noun} part again with the correct latex formatting.
+        """)
 
     @property
     def section_name(self) -> Optional[str]:
@@ -39,13 +44,6 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
         """
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ')
-
-    def _raise_self_response_error(self, error_message: str):
-        super()._raise_self_response_error(dedent_triple_quote_str("""
-            {}
-
-            Please rewrite the {} part again with the correct latex formatting.
-            """).format(error_message, self.goal_noun))
 
     def _alter_self_response(self, response: str) -> str:
         return super()._alter_self_response(wrap_text_with_triple_quotes(response, 'latex'))
