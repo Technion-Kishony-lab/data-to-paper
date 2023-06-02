@@ -113,6 +113,8 @@ class CrossrefCitation(dict):
         bibtex_id += self['title'].split(" ")[0] if self.get("title") else ""
         # remove special characters from end of the id like .,;: etc.
         bibtex_id = bibtex_id.rstrip(".,;:!?")
+        # remove special characters from the id like -, _, etc.
+        bibtex_id = bibtex_id.replace("-", "").replace("_", "").replace("–", "")
         return bibtex_id
 
     def __str__(self):
