@@ -80,7 +80,7 @@ def test_request_code_with_adding_new_column(code_running_converser):
             [DataFileDescription(file_path='test.csv', description='test file')])
         scientific_products.codes_and_outputs = code_and_outputs
         for keyword in code_reading_csv_keywords_in_description:
-            assert keyword in scientific_products['created_files_description:data_preprocessing'].description
+            assert keyword in scientific_products.get_description('created_files_description:data_preprocessing')
 
 
 def test_request_code_with_creating_new_df(code_running_converser):
@@ -92,4 +92,4 @@ def test_request_code_with_creating_new_df(code_running_converser):
         scientific_products = ScientificProducts()
         scientific_products.codes_and_outputs = code_and_outputs
         for keyword in code_creating_csv_keywords_in_description:
-            assert keyword in scientific_products['created_files_description:data_preprocessing'].description
+            assert keyword in scientific_products.get_description('created_files_description:data_preprocessing')
