@@ -59,21 +59,17 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     sentence: str = None
     citations: List[CrossrefCitation] = field(default_factory=list)
     chosen_citation_ids: Set[str] = field(default_factory=set)
-    raise_on_exceeding_max_attempts_per_round: bool = False
 
     @property
     def citation_ids(self) -> List[str]:
         return [citation.get_bibtex_id() for citation in self.citations]
 
-    def _check_response_value(self, response_value: Any) -> Optional[str]:
-        ids_not_in_options = \
-            self._add_citations_in_options_and_return_citations_not_in_options(response_value)
-
+    def _check_response_value(self, response_value: Any) -> Any:
+        ids_not_in_options = self._add_citations_in_options_and_return_citations_not_in_options(response_value)
         if len(ids_not_in_options) > 0:
-            return \
-                f'You returned citations that are not included in the provided citation options. ' \
-                f'Specifically, you returned {ids_not_in_options}, while the allowed options are: {self.citation_ids}.'
-        return None
+            self._raise_self_response_error(
+                f'You returned {ids_not_in_options}, which is not part of the allowed options: {self.citation_ids}.')
+        return None  # we don't need the response value itself
 
     def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
         """
@@ -96,7 +92,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
         return self.sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(self.chosen_citation_ids) + '}.'
 
     def get_rewritten_sentence_and_chosen_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
-        self.initialize_and_run_dialog()
+        self.get_value()
         return (self.get_rewritten_sentence(),
                 {citation for citation in self.citations if citation.get_bibtex_id() in self.chosen_citation_ids})
 
@@ -111,7 +107,6 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     # in the actual call to add_background, we will be adding to the background also the specific section
     # see self.actual_background_product_fields
 
-    raise_on_exceeding_max_attempts_per_round: bool = False
     background_product_fields: Tuple[str] = ('research_goal', 'results_summary', 'title_and_abstract')
     conversation_name: str = 'add_citations_{section_name}'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -167,26 +162,26 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     def section(self):
         return self.products.paper_sections[self.section_name]
 
-    def _add_sentences_in_section_and_return_sentences_not_in_section(self, sentences_queries: Dict[str, str]
+    def _add_sentences_in_section_and_return_sentences_not_in_section(self, sentences_to_queries: Dict[str, str]
                                                                       ) -> List[str]:
         """
         For each sentence in sentences_to_queries, check if it is in the section. If it is, add it to
         self.sentences_to_queries. Return the sentences that are not in the section.
         """
         sentences_not_in_section = []
-        for sentence, query in sentences_queries.items():
+        for sentence, query in sentences_to_queries.items():
             if sentence in self.section:
                 self.sentences_to_queries[sentence] = query
             else:
                 sentences_not_in_section.append(sentence)
         return sentences_not_in_section
 
-    def _find_citations_for_sentences(self) -> Dict[str, List[CrossrefCitation]]:
+    def _find_citations_for_sentences(self, sentences_to_queries: Dict[str, str]) -> Dict[str, List[CrossrefCitation]]:
         """
         Find citations for the sentences in sentences_to_queries using their search queries.
         """
         sentences_to_citations = {}
-        for sentence_number, (sentence, query) in enumerate(self.sentences_to_queries.items()):
+        for sentence_number, (sentence, query) in enumerate(sentences_to_queries.items()):
             for number_of_tries in range(self.max_number_of_api_calls):
                 try:
                     sentences_to_citations[sentence] = CROSSREF_SERVER_CALLER.get_server_response(query)
@@ -205,31 +200,32 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     def actual_background_product_fields(self) -> Tuple[str, ...]:
         return super().actual_background_product_fields + ('paper_sections:' + self.section_name, )
 
-    def _check_response_value(self, response_value: Any) -> Optional[str]:
+    def _check_response_value(self, response_value: Any) -> Any:
         """
-        Check that the response value is valid.
-        Return a feedback message if it is not valid, otherwise return None.
+        Check that the response dict contains only sentences that are in the section.
+        Collect the sentences that are in the section.
+        raise an error if there are sentences that are not in the section.
         """
         sentences_not_in_section = self._add_sentences_in_section_and_return_sentences_not_in_section(response_value)
         if sentences_not_in_section:
             if len(sentences_not_in_section) == len(response_value):
-                return \
-                    f'The sentences that you returned are not precise extraction from the section.'
-            return \
-                f'The following sentences that you returned are not precise extraction from the section:\n' \
-                f'{sentences_not_in_section}.\n'
-        return None
+                self._raise_self_response_error(
+                    f'The sentences that you returned are not precise extraction from the section.')
+            self._raise_self_response_error(
+                f'The following sentences that you returned are not precise extraction from the section:\n'
+                f'{sentences_not_in_section}.\n')
+        return None  # this will get into the response_value, which we are not using.
 
     def rewrite_section_with_citations(self) -> Tuple[str, ListBasedSet[CrossrefCitation]]:
         """
         Rewrite the section with the citations.
         """
-        self.initialize_and_run_dialog()
+        self.get_value()
         # this runs the dialog and updates self.sentences_to_queries
         # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
         # we might have accumulated some sentences through the process.
 
-        sentences_to_citations = self._find_citations_for_sentences()
+        sentences_to_citations = self._find_citations_for_sentences(self.sentences_to_queries)
         updated_section = self.section
         all_citations: ListBasedSet[CrossrefCitation] = ListBasedSet()
         for sentence, sentence_citations in sentences_to_citations.items():
