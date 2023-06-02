@@ -106,7 +106,7 @@ class Message:
 
         if abbreviate_content:
             start = TEXT_WIDTH * 7 // 10
-            content = get_dot_dot_dot_text(content, start=start, end= start - TEXT_WIDTH)
+            content = get_dot_dot_dot_text(content, start=start, end=start - TEXT_WIDTH)
             return colored_text(num_text + role_model_agent_conversation_tag + ': \n' + content, text_color)
 
         # header:

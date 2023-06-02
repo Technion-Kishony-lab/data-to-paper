@@ -1,4 +1,5 @@
 [
     "```Investigation of gender distribution in birth records dataset```",
-    "The research goal is interesting and can be achieved using only the provided data in the \"BIRTH_RECORDS.csv\". Therefore, I hereby approve the research goal."
+    "The research goal is interesting and can be achieved using only the provided data in the \"BIRTH_RECORDS.csv\". Therefore, I hereby approve the research goal.",
+    "```To what extent does gender influence the frequency of birth registration in the provided \"BIRTH_RECORDS.csv\" dataset?```"
 ]

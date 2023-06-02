@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Set, Tuple, Optional, Iterable
+from typing import List, Tuple, Optional, Iterable
 
 from scientistgpt.utils.types import ListBasedSet
 
