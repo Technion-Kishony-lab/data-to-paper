@@ -41,9 +41,12 @@ def test_request_python_value(correct_python_value, value_type):
 
 
 @pytest.mark.parametrize('non_correct_python_value, correct_python_value, value_type, error_should_include', [
-    (correct_dict_str_any_value.replace('}', ''), correct_dict_str_any_value, Dict[str, Any], "flanked by `{` and `}`"),
-    (correct_dict_str_str_value.replace("'3'", '3'), correct_dict_str_str_value, Dict[str, str], "The dict values must be of type: <class 'str'>"),
-    (non_correct_list_str_value, correct_list_str_value, List[str], "The values must be of type: <class 'str'>"),
+    (correct_dict_str_any_value.replace('}', ''), correct_dict_str_any_value, Dict[str, Any],
+     "flanked by `{` and `}`"),
+    (correct_dict_str_str_value.replace("'3'", '3'), correct_dict_str_str_value, Dict[str, str],
+     "The dict values must be of type: <class 'str'>"),
+    (non_correct_list_str_value, correct_list_str_value, List[str],
+     "The values must be of type: <class 'str'>"),
 ])
 def test_request_python_value_with_error(
         non_correct_python_value, correct_python_value, value_type, error_should_include):
