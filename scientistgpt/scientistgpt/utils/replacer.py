@@ -3,6 +3,7 @@ from typing import Tuple, Union, Any, Optional
 
 from scientistgpt.utils.text_extractors import extract_all_external_brackets
 from scientistgpt.utils.text_formatting import forgiving_format
+from scientistgpt.utils.types import ListBasedSet
 
 
 @dataclass
@@ -39,7 +40,7 @@ class Replacer:
 
     def format_text(self) -> str:
         text = self.text
-        brackets = set(extract_all_external_brackets(self.text, '{'))
+        brackets = ListBasedSet(extract_all_external_brackets(self.text, '{'))
         additional_kwargs = {}
         for bracket in brackets:
             bracketed_text = bracket[1:-1]

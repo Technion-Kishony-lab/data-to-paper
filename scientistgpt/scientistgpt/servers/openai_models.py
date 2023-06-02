@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from scientistgpt.utils.ordered_enum import IndexOrderedEnum
+from scientistgpt.utils.types import IndexOrderedEnum
 
 
 class ModelEngine(IndexOrderedEnum):
