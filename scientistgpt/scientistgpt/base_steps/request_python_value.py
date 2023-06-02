@@ -4,6 +4,7 @@ from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewG
 
 from typing import Optional, Any, Dict, Tuple, get_args, Iterable, Set
 
+from scientistgpt.base_steps.dual_converser import SelfResponseError
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
 
@@ -70,60 +71,43 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
             return
         raise NotImplementedError(f'format_type: {self.value_type} is not implemented')
 
-    def extract_python_value_from_response(self, response: str) -> (Optional[str], Any):
+    def extract_python_value_from_response(self, response: str) -> Any:
         """
         Extracts a python value from chatgpt response.
-
-        Returns a tuple of (feedback_message, value).
-        If feedback_message is None, then the value was successfully extracted.
-        Otherwise, the value is None and feedback_message is a string explaining
-        why the value could not be extracted.
+        Returns the extracted value.
+        If there is an error extracting the value, raise SelfResponseError is raised.
         """
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
             response = extract_text_between_tags(response, *tags, leave_tags=True)
         except ValueError:
-            feedback_message = \
-                f'Your response should be formatted as a Python {self.parent_type.__name__}, ' \
-                f'flanked by `{tags[0]}` and `{tags[1]}`.'
-            return feedback_message, None
+            raise SelfResponseError(
+                f'Your response should be formatted as a Python {self.parent_type.__name__}, '
+                f'flanked by `{tags[0]}` and `{tags[1]}`.')
         try:
             response_value = eval(response)
         except Exception as e:
-            feedback_message = \
-                f'I tried to eval your response with Python `eval(response)`, but got:\n{e}'
-            return feedback_message, None
+            raise SelfResponseError(
+                f'I tried to eval your response with Python `eval(response)`, but got:\n{e}')
         try:
             self.validate_variable_type(response_value)
         except TypeError:
-            feedback_message = \
-                f'Your response should be formatted as {self.value_type}.'
-            return feedback_message, None
+            raise SelfResponseError(
+                f'Your response should be formatted as {self.value_type}.')
+        return response_value
 
-        return None, response_value
-
-    def _check_response_value(self, response_value: Any) -> Optional[str]:
+    def _check_response_value(self, response_value: Any) -> Any:
         """
         Check that the response value is valid.
-        Return a feedback message if it is not valid, otherwise return None.
+        Return the value if it is valid, otherwise raise SelfResponseError if it is not valid.
+        The returned value can also be modified.
         """
-        pass
+        return response_value
 
-    def _check_self_response(self, response: str) -> Optional[str]:
-        feedback_message, response_value = self.extract_python_value_from_response(response)
-        if feedback_message is not None:
-            # If the response is not a valid python value, return the feedback message.
-            return feedback_message
-
-        return self._check_response_value(response_value)
-
-    def run_dialog_and_get_python_value(self):
-        """
-        Get the python value from the response.
-        """
-        response = super().initialize_and_run_dialog()
-        feedback, value = self.extract_python_value_from_response(response)
-        return value
+    def _check_and_extract_value_from_self_response(self, response: str):
+        response_value = self.extract_python_value_from_response(response)
+        response_value = self._check_response_value(response_value)
+        self.returned_value = response_value
 
 
 @dataclass
