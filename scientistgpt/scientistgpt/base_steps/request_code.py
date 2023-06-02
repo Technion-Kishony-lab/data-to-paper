@@ -201,10 +201,19 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
     def _ask_for_code_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
         if self.requesting_code_explanation_prompt is None:
             return None
+        # response = BaseProductsQuotedReviewGPT.from_(
+        #     self,
+        #     max_reviewing_rounds=0,
+        #     user_initiation_prompt=self.requesting_code_explanation_prompt,
+        # ).initialize_and_run_dialog()
+        #
         self.apply_append_user_message(
             content=self.requesting_code_explanation_prompt,
         )
-        return self.apply_get_and_append_assistant_message().content
+        # TODO: this is a temporary hack.
+        return self.apply_get_and_append_assistant_message(expected_tokens_in_response=600,
+                                                           hidden_messages=RangeMessageDesignation.from_(1, -5),
+                                                           ).content
 
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
         if self.offer_revision_prompt is None:
