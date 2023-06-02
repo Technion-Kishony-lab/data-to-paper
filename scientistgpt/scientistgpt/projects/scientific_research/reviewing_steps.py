@@ -8,7 +8,6 @@ from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProduc
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
-from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values
 
 
 @dataclass

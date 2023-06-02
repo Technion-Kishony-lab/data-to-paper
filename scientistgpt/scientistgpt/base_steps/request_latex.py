@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Union, List, Tuple
+from typing import Optional, List
 
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
@@ -89,7 +89,7 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
         """
         section_contents = []
         for section_name in self.section_names:
-            section_contents.append( self._get_latex_section_from_response(response, section_name))
+            section_contents.append(self._get_latex_section_from_response(response, section_name))
         self.returned_value = section_contents
 
     def get_sections(self) -> List[str]:

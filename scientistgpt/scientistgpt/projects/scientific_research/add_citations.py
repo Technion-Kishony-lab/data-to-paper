@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Set, Tuple, Optional, List, Any
+from typing import Dict, Set, Tuple, List, Any
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
