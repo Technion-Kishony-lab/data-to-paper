@@ -52,61 +52,58 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
     def child_types(self) -> Tuple[type, ...]:
         return get_args(self.value_type)
 
-    def validate_variable_type(self, response_value):
-        """
-        Validate that the response is given in the correct format. if not raise TypeError.
-        """
-        if not isinstance(response_value, self.parent_type):
-            raise TypeError(f'object is not of type: {self.parent_type}')
-        if isinstance(response_value, dict):
-            if not check_all_of_type(response_value.keys(), self.child_types[0]):
-                raise TypeError(f'The dict keys must be of type: {self.child_types[0]}')
-            if not check_all_of_type(response_value.values(), self.child_types[1]):
-                raise TypeError(f'The dict values must be of type: {self.child_types[1]}')
-            return
-        elif isinstance(response_value, (list, tuple, set)):
-            if not check_all_of_type(response_value, self.child_types[0]):
-                raise TypeError(f'The values must be of type: {self.child_types[0]}')
-            return
-        raise NotImplementedError(f'format_type: {self.value_type} is not implemented')
+    def _check_and_extract_value_from_self_response(self, response: str):
+        response_value_str = self._extract_str_of_python_value_from_response(response)
+        response_value = self._evaluate_python_value_from_str(response_value_str)
+        response_value = self._validate_value_type(response_value)
+        response_value = self._check_response_value(response_value)
+        self.returned_value = response_value
 
-    def extract_python_value_from_response(self, response: str) -> Any:
+    def _extract_str_of_python_value_from_response(self, response: str) -> str:
         """
-        Extracts a python value from chatgpt response.
-        Returns the extracted value.
-        If there is an error extracting the value, raise SelfResponseError is raised.
+        Extracts the string of the python value from chatgpt response.
+        If there is an error extracting the value, _raise_self_response_error is called.
         """
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
-            response = extract_text_between_tags(response, *tags, leave_tags=True)
+            return extract_text_between_tags(response, *tags, leave_tags=True)
         except ValueError:
             self._raise_self_response_error(
                 f'Your response should be formatted as a Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.')
+
+    def _evaluate_python_value_from_str(self, response: str) -> Any:
         try:
-            response_value = eval(response)
+            return eval(response)
         except Exception as e:
             self._raise_self_response_error(
                 f'I tried to eval your response with Python `eval(response)`, but got:\n{e}')
-        try:
-            self.validate_variable_type(response_value)
-        except TypeError:
-            self._raise_self_response_error(
-                f'Your response should be formatted as {self.value_type}.')
-        return response_value
+
+    def _validate_value_type(self, response_value: Any) -> Any:
+        """
+        Validate that the response is given in the correct format. if not raise TypeError.
+        """
+        if not isinstance(response_value, self.parent_type):
+            self._raise_self_response_error(f'object is not of type: {self.parent_type}')
+        if isinstance(response_value, dict):
+            if not check_all_of_type(response_value.keys(), self.child_types[0]):
+                self._raise_self_response_error(f'The dict keys must be of type: {self.child_types[0]}')
+            if not check_all_of_type(response_value.values(), self.child_types[1]):
+                self._raise_self_response_error(f'The dict values must be of type: {self.child_types[1]}')
+            return response_value
+        elif isinstance(response_value, (list, tuple, set)):
+            if not check_all_of_type(response_value, self.child_types[0]):
+                self._raise_self_response_error(f'The values must be of type: {self.child_types[0]}')
+            return response_value
+        raise NotImplementedError(f'format_type: {self.value_type} is not implemented')
 
     def _check_response_value(self, response_value: Any) -> Any:
         """
         Check that the response value is valid.
-        Return the value if it is valid, otherwise raise SelfResponseError if it is not valid.
+        Return the value if it is valid, otherwise call self._raise_self_response_error.
         The returned value can also be modified.
         """
         return response_value
-
-    def _check_and_extract_value_from_self_response(self, response: str):
-        response_value = self.extract_python_value_from_response(response)
-        response_value = self._check_response_value(response_value)
-        self.returned_value = response_value
 
 
 @dataclass
@@ -116,18 +113,15 @@ class PythonDictWithDefinedKeysProductsReviewGPT(BasePythonValueProductsReviewGP
     """
     requested_keys: Set[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
 
-    def _check_response_value(self, response_value: Any) -> Optional[str]:
+    def _check_response_value(self, response_value: Any) -> Any:
         """
         Check that the response value is valid.
-        Return a feedback message if it is not valid, otherwise return None.
+        raise a feedback message if it is not valid.
         """
         check_response_value = super()._check_response_value(response_value)
-        if check_response_value is not None:
-            return check_response_value
-        if self.requested_keys is None:
-            return None
-        keys_in_response = set(response_value.keys())
-        if keys_in_response != self.requested_keys:
-            return f'Your response should contain the keys: {self.requested_keys}'
+        if self.requested_keys is not None:
+            keys_in_response = set(response_value.keys())
+            if keys_in_response != self.requested_keys:
+                self._raise_self_response_error(f'Your response should contain the keys: {self.requested_keys}')
 
-        return None
+        return check_response_value

@@ -50,9 +50,8 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = self._extract_latex_section_from_response(response, section_name)
-
         section = self._refine_extracted_section(section)
-        self._check_section(section)
+        section = self._check_section(section)
         return section
 
     def _extract_latex_section_from_response(self, response: str, section_name: str) -> str:
@@ -71,7 +70,7 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
         extracted_section = replace_special_chars(extracted_section)
         return extracted_section
 
-    def _check_section(self, extracted_section: str):
+    def _check_section(self, extracted_section: str) -> str:
         try:
             check_latex_compilation(extracted_section)
         except LatexCompilationError as e:
@@ -80,6 +79,7 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
             check_usage_of_unwanted_commands(extracted_section)
         except UnwantedCommandsUsedInLatex as e:
             self._raise_self_response_error(str(e))
+        return extracted_section
 
     def _check_and_extract_value_from_self_response(self, response: str):
         """
