@@ -4,7 +4,6 @@ from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewG
 
 from typing import Optional, Any, Dict, Tuple, get_args, Iterable, Set
 
-from scientistgpt.base_steps.dual_converser import SelfResponseError
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
 
@@ -81,18 +80,18 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
         try:
             response = extract_text_between_tags(response, *tags, leave_tags=True)
         except ValueError:
-            raise SelfResponseError(
+            self._raise_self_response_error(
                 f'Your response should be formatted as a Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.')
         try:
             response_value = eval(response)
         except Exception as e:
-            raise SelfResponseError(
+            self._raise_self_response_error(
                 f'I tried to eval your response with Python `eval(response)`, but got:\n{e}')
         try:
             self.validate_variable_type(response_value)
         except TypeError:
-            raise SelfResponseError(
+            self._raise_self_response_error(
                 f'Your response should be formatted as {self.value_type}.')
         return response_value
 

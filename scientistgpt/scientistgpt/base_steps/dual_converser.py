@@ -234,6 +234,12 @@ class DialogDualConverserGPT(DualConverserGPT):
             if cycle_status is not CycleStatus.NOT_APPROVED_BY_OTHER:
                 return cycle_status
 
+    def _raise_self_response_error(self, error_message: str):
+        """
+        Raise a SelfResponseError with the given error message.
+        """
+        raise SelfResponseError(error_message)
+
     def _check_and_extract_value_from_self_response(self, response: str):
         """
         Check the response from self.
@@ -406,4 +412,4 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             except ValueError:
                 pass
         else:
-            raise SelfResponseError(self.quote_request)
+            self._raise_self_response_error(self.quote_request)
