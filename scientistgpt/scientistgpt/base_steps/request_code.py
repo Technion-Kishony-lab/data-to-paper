@@ -103,7 +103,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
 
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
-        self._pre_populate_background()
         code_and_output = CodeAndOutput()
         while self.revision_round < self.max_code_revisions:
             self._ask_for_code()
