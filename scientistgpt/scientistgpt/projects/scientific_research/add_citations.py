@@ -30,7 +30,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
     fake_performer_request_for_help: str = None
     fake_reviewer_agree_to_help: str = None
     fake_performer_message_to_add_after_max_rounds: str = None
-    max_attempts_per_round: int = 2
+    max_valid_response_iterations: int = 2
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
 
@@ -92,7 +92,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
         return self.sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(self.chosen_citation_ids) + '}.'
 
     def get_rewritten_sentence_and_chosen_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
-        self.get_value()
+        self.run_dialog_and_get_valid_result()
         return (self.get_rewritten_sentence(),
                 {citation for citation in self.citations if citation.get_bibtex_id() in self.chosen_citation_ids})
 
@@ -112,7 +112,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
     max_reviewing_rounds: int = 0  # 0 no review
-    max_attempts_per_round: int = 2
+    max_valid_response_iterations: int = 2
     goal_verb: str = 'add citations to'
     goal_noun: str = '{section_name} section of the paper'
 
@@ -220,7 +220,7 @@ class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
         """
         Rewrite the section with the citations.
         """
-        self.get_value()
+        self.run_dialog_and_get_valid_result()
         # this runs the dialog and updates self.sentences_to_queries
         # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
         # we might have accumulated some sentences through the process.

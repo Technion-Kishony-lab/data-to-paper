@@ -270,7 +270,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                     user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
                                                             'columns': columns}),
-                ).get_value()
+                ).run_dialog_and_get_valid_result()
                 description = f'This csv file was created by the {self.code_name} code.\n' \
                               f'{response}\n'
                 data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
@@ -287,7 +287,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                                                     kwargs={
                                                         'dataframe_file_name': saved_df_filename, 'columns': columns}),
                     value_type=Dict[str, str],
-                ).get_value()
+                ).run_dialog_and_get_valid_result()
 
                 new_columns_to_explanations = \
                     {column: explanation for column, explanation in columns_to_explanations.items()
