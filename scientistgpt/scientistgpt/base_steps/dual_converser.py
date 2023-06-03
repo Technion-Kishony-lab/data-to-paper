@@ -174,12 +174,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         self.apply_append_user_message(altered_other_response)
         return self.apply_get_and_append_assistant_message()
 
-    def _alter_self_response(self, response: str) -> str:
-        """
-        Alter the response from self before sending it to other.
-        """
-        return response
-
     def _alter_other_response(self, response: str) -> str:
         """
         Alter the response from other before sending it to self.
@@ -218,30 +212,18 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         Run one cycle of the dialog. Makes updates to returned_result by calling
         _check_and_extract_value_from_self_response().
         """
-        self_response = self._iterate_until_valid_response()
+        is_last_round = self.round_num >= self.max_reviewing_rounds
+        self_response = self._iterate_until_valid_response(alter_web_response=not is_last_round)
         if self_response is None:
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        is_preexisting_self_response = isinstance(self_response, str)
-        if is_preexisting_self_response:
-            self_message = None
-        else:
-            self_message = self_response
-            self_response = self_message.content
-
-        if self.round_num >= self.max_reviewing_rounds:
-            if not is_preexisting_self_response:
-                self.apply_append_surrogate_message(content=self_response, conversation_name=None,
-                                                    context=self_message.context)
+        if is_last_round:
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return CycleStatus.MAX_ROUNDS_EXCEEDED
 
         altered_self_response = self._alter_self_response(self_response)
-        if not is_preexisting_self_response:
-            self.apply_append_surrogate_message(content=altered_self_response, conversation_name=None,
-                                                context=self_message.context)
         other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
         other_response = other_message.content
         altered_other_response = self._alter_other_response(other_response)
@@ -337,7 +319,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         {quote_request}
         """)
 
-    def _check_and_extract_value_from_self_response(self, response: str):
+    def _check_and_extract_result_from_self_response(self, response: str):
         for flanking_tags in self.flanking_tag_list:
             try:
                 self.returned_result = extract_text_between_tags(response, *flanking_tags)

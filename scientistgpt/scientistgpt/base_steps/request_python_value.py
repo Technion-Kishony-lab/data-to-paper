@@ -52,7 +52,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def child_types(self) -> Tuple[type, ...]:
         return get_args(self.value_type)
 
-    def _check_and_extract_value_from_self_response(self, response: str):
+    def _check_and_extract_result_from_self_response(self, response: str):
         response_value_str = self._extract_str_of_python_value_from_response(response)
         response_value = self._evaluate_python_value_from_str(response_value_str)
         response_value = self._validate_value_type(response_value)

@@ -83,7 +83,8 @@ class Conversation(List[Message]):
         will skip over any COMMENTER messages.
         """
         last_non_commenter_message = self.get_last_non_commenter_message()
-        assert last_non_commenter_message.role.is_assistant_or_surrogate()
+        if not last_non_commenter_message.role.is_assistant_or_surrogate():
+            raise ValueError('Last message is not an assistant response.')
         return last_non_commenter_message.content
 
     def get_last_non_commenter_message(self) -> Message:
