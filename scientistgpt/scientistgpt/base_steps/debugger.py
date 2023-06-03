@@ -152,7 +152,7 @@ class DebuggerConverser(ProductsConverser):
             comment=f'{self.iteration_str}: GPT code is incomplete.')
 
         # delete the last two messages (incomplete code and this just-posted user response):
-        self.conversation_manager.delete_messages((-2, -1))
+        self.apply_delete_messages((-2, -1))
         self.model_engine = ModelEngine.GPT4
 
     def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
@@ -307,7 +307,7 @@ class DebuggerConverser(ProductsConverser):
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
             # We first clean up, re-reposting the code as if it was the immediate response
-            self.conversation_manager.delete_messages(
+            self.apply_delete_messages(
                 message_designation=RangeMessageDesignation.from_(
                     SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -1),  # keeps the last 2 messages
                 comment="Deleting previous debug iterations.")

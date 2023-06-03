@@ -143,6 +143,9 @@ class Converser(Copier):
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
+    def apply_delete_messages(self, message_designation: GeneralMessageDesignation, comment: Optional[str] = None):
+        return self.conversation_manager.delete_messages(message_designation, comment=comment)
+
     def set(self, **kwargs):
         """
         Set attributes of the class.

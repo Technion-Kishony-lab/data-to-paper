@@ -150,7 +150,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
             if self.present_code_as_fresh:
                 # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
-                self.conversation_manager.delete_messages(
+                self.apply_delete_messages(
                     message_designation=RangeMessageDesignation.from_(start=start_tag, end=-1),
                     comment='Deleting all debugging correspondence.')
                 assert self.conversation[-1].tag == self._request_code_tag
