@@ -7,7 +7,50 @@ from typing import Any, Optional, Union
 from scientistgpt import Message, Role
 from scientistgpt.base_steps.converser import Converser
 from scientistgpt.base_steps.exceptions import FailedCreatingProductException
+from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from scientistgpt.env import MAX_MODEL_ENGINE
+from scientistgpt.utils.highlighted_text import print_red
 from scientistgpt.utils.replacer import Replacer, StrOrTextFormat
+
+
+class Rewind(Enum):
+    """
+    An enum for the different ways to rewind the conversation upon invalid response.
+
+    For example:
+
+    (1) user initiation prompt
+
+    (2) here is the code
+    (3) you have an error
+
+    (4) Here is the revised code
+    (5) you have an error in the revised code
+
+    (6) Here is the revised-revised code
+    (7) you have an error in the revised-revised code
+
+    REGENERATE: delete (6)-(7)
+    RESTART: delete (2)-(7)
+    REPOST_AS_FRESH: delete (2)-(5) and change (6) to look fresh
+    ACCUMULATE: do nothing
+    AS_FIRST_CORRECTION: delete (4)-(5)
+    """
+
+    REGENERATE = 'regenerate'
+    # regenerate the last response
+
+    RESTART = 'restart'
+    # deleted all iterations and get a fresh response
+
+    REPOST_AS_FRESH = 'repost_as_fresh'
+    # delete all previous iterations and modify and post the current response as if it was first iteration
+
+    ACCUMULATE = 'accumulate'
+    # just normally add the current response and the feedback
+
+    AS_FIRST_CORRECTION = 'as_first_correction'
+    # delete any previous erroneous responses, making the current response the first correction
 
 
 @dataclass
@@ -16,6 +59,8 @@ class SelfResponseError(Exception):
     Exception raised when the response to a request for a latex section is not acceptable.
     """
     error_message: StrOrTextFormat = None
+    rewind: Rewind = None
+    bump_model: bool = False
 
     def __str__(self):
         return self.error_message
@@ -45,7 +90,12 @@ class ResultConverser(Converser):
     max_valid_response_iterations: int = 4
 
     response_to_self_error: str = "{}"
-    # {} is the error message. sub-classes can add additional text you want to send to self upon error in its response.
+    # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
+
+    repost_valid_response_as_fresh: bool = False
+    # If True, when we finally receive a valid response, we rewind and repost it as a fresh response.
+
+    _conversation_len_before_fist_response: int = None
 
     # Output:
     returned_result: Any = field(default_factory=NoResponse)
@@ -60,12 +110,14 @@ class ResultConverser(Converser):
         """
         if self.user_initiation_prompt:
             self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
+        self._conversation_len_before_fist_response = len(self.conversation)
 
-    def _raise_self_response_error(self, error_message: str):
+    def _raise_self_response_error(self, error_message: str, rewind: Rewind = Rewind.ACCUMULATE,
+                                   bump_model: bool = False):
         """
-        Raise a SelfResponseError with the given error message.
+        Raise a SelfResponseError with the given error message and instructions for how to rewind the conversation.
         """
-        raise SelfResponseError(error_message)
+        raise SelfResponseError(error_message, rewind=rewind, bump_model=bump_model)
 
     def _check_and_extract_result_from_self_response(self, response: str):
         """
@@ -88,6 +140,14 @@ class ResultConverser(Converser):
         Convert the response to a response that looks as if it was the first response.
         """
         return response
+
+    def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1):
+        """
+        Rewind the conversation to the first response + offset.
+        offset=0 means that we delete all messages including the first response.
+        """
+        self.apply_delete_messages(
+            RangeMessageDesignation.from_(self._conversation_len_before_fist_response + offset, last))
 
     def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Optional[str]:
         """
@@ -121,12 +181,32 @@ class ResultConverser(Converser):
                     content=(self_response if response_error or not alter_web_response
                              else self._alter_self_response(self_response)),
                     conversation_name=None, context=self_message.context)
+
+            if response_error and response_error.rewind == Rewind.REPOST_AS_FRESH \
+                    or not response_error and self.repost_valid_response_as_fresh:
+                self._rewind_conversation_to_first_response()
+                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response))
+
             if not response_error:
                 return self_response
 
-            # The response is not valid.
+            # The response is not valid
+            if response_error.bump_model and self.model_engine < MAX_MODEL_ENGINE:
+                self.apply_append_user_message(
+                    f"You seem totally drunk. Let's Bump you to {MAX_MODEL_ENGINE} and try again...",
+                    conversation_name=None)  # web only
+                print_red(f"You seem totally drunk. Let's Bump you to {MAX_MODEL_ENGINE} and try again...")
+                self.model_engine = MAX_MODEL_ENGINE
             self.apply_append_user_message(
                 Replacer(self, self.response_to_self_error, args=(response_error.error_message,)), tag='error')
+            if response_error.rewind == Rewind.RESTART:
+                self._rewind_conversation_to_first_response()
+            elif response_error.rewind == Rewind.ACCUMULATE:
+                pass
+            elif response_error.rewind == Rewind.REGENERATE:
+                self.apply_delete_messages(RangeMessageDesignation.from_(-2, -1))
+            elif response_error.rewind == Rewind.AS_FIRST_CORRECTION:
+                self._rewind_conversation_to_first_response(offset=2, last=-3)
         else:
             return None
 
