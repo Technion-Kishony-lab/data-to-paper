@@ -10,7 +10,7 @@ from scientistgpt.base_steps.exceptions import FailedCreatingProductException
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import MAX_MODEL_ENGINE
 from scientistgpt.utils.highlighted_text import print_red
-from scientistgpt.utils.replacer import Replacer, StrOrTextFormat
+from scientistgpt.utils.replacer import Replacer, StrOrTextFormat, format_value
 
 
 class Rewind(Enum):
@@ -96,6 +96,7 @@ class ResultConverser(Converser):
     # If True, when we finally receive a valid response, we rewind and repost it as a fresh response.
 
     _conversation_len_before_fist_response: int = None
+    _self_response_iteration_count: int = 0
 
     # Output:
     returned_result: Any = field(default_factory=NoResponse)
@@ -117,7 +118,7 @@ class ResultConverser(Converser):
         """
         Raise a SelfResponseError with the given error message and instructions for how to rewind the conversation.
         """
-        raise SelfResponseError(error_message, rewind=rewind, bump_model=bump_model)
+        raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model)
 
     def _check_and_extract_result_from_self_response(self, response: str):
         """
@@ -157,7 +158,8 @@ class ResultConverser(Converser):
         If we fail to get a valid response after max_valid_response_iterations, return None.
         """
         self_message = None
-        for _ in range(self.max_valid_response_iterations):
+        while self._self_response_iteration_count < self.max_valid_response_iterations:
+            self._self_response_iteration_count += 1
             # to allow starting either before or after the first self response:
             is_preexisting_self_response = True
             try:
@@ -198,7 +200,7 @@ class ResultConverser(Converser):
                 print_red(f"You seem totally drunk. Let's Bump you to {MAX_MODEL_ENGINE} and try again...")
                 self.model_engine = MAX_MODEL_ENGINE
             self.apply_append_user_message(
-                Replacer(self, self.response_to_self_error, args=(response_error.error_message,)), tag='error')
+                Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
             if response_error.rewind == Rewind.RESTART:
                 self._rewind_conversation_to_first_response()
             elif response_error.rewind == Rewind.ACCUMULATE:
@@ -211,6 +213,7 @@ class ResultConverser(Converser):
             return None
 
     def run_and_get_valid_result(self):
+        self.initialize_conversation_if_needed()
         self._iterate_until_valid_response()
         return self.get_valid_result()
 
