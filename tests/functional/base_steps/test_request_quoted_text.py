@@ -36,7 +36,7 @@ def test_request_quoted_text_with_error(incorrect_quotes):
     check_wrong_and_right_responses(
         responses=[f'Here is some wrongly enclosed test:\n{incorrect_quotes[0]}{enclosed_text}{incorrect_quotes[1]}\nCheck it out.',
                    f'Now it is good:\n```{enclosed_text}```\n'],
-        requester=TestBaseProductsQuotedReviewGPT(),
+        requester=TestBaseProductsQuotedReviewGPT(repost_valid_response_as_fresh=False),
         correct_value=enclosed_text,
         error_texts=("enclosed within triple-backticks", ))
 
@@ -53,3 +53,15 @@ def test_request_quoted_text_bumps_model():
     # assert context as sent to the server:
     models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
     assert models_used == [ModelEngine.GPT35_TURBO, ModelEngine.GPT35_TURBO, MAX_MODEL_ENGINE]
+
+
+def test_request_quoted_text_repost_correct_response_as_fresh():
+    requester = TestBaseProductsQuotedReviewGPT()
+    with OPENAI_SERVER_CALLER.mock([
+            f'I am tell a long long story which is not really needed and only then send:\n"""{enclosed_text}"""\n'],
+            record_more_if_needed=False):
+        assert requester.run_dialog_and_get_valid_result() == enclosed_text
+    assert len(requester.conversation) == 3
+
+    # Response is reposted as fresh:
+    assert 'Here is the' in requester.conversation[-1].content

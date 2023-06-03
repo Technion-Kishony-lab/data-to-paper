@@ -319,6 +319,11 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         {quote_request}
         """)
 
+    repost_valid_response_as_fresh: bool = True
+
+    def _get_fresh_looking_response(self, response) -> str:
+        return 'Here is the {goal_noun}:\n\n```' + self.returned_result + '\n```\n\n'
+
     def _check_and_extract_result_from_self_response(self, response: str):
         for flanking_tags in self.flanking_tag_list:
             try:
