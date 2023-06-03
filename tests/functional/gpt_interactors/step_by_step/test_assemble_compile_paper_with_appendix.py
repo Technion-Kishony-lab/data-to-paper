@@ -13,8 +13,8 @@ from scientistgpt.servers.crossref import CrossrefCitation
 
 @dataclass(frozen=True)
 class TestDataFileDescription(DataFileDescription):
-    file_path: str  # relative to the data directory.  should normally just be the file name
-    description: str  # a user provided description of the file
+    file_path: str = None  # relative to the data directory.  should normally just be the file name
+    description: str = None  # a user provided description of the file
 
     def get_file_header(self, num_lines: int = 4):
         """

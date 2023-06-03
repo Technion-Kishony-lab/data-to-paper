@@ -77,7 +77,7 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
             return eval(response)
         except Exception as e:
             self._raise_self_response_error(
-                f'I tried to eval your response with Python `eval(response)`, but got:\n{e}')
+                f'I tried to eval your response with Python `eval()`, but got:\n{e}')
 
     def _validate_value_type(self, response_value: Any) -> Any:
         """
