@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Set
 
 import pytest
 
 from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
@@ -46,6 +47,8 @@ def test_request_python_value(correct_python_value, value_type):
      "The dict values must be of type: <class 'str'>"),
     (correct_dict_str_str_value.replace("'a'", "3"), correct_dict_str_str_value, Dict[str, str],
      "The dict keys must be of type: <class 'str'>"),
+    (correct_dict_str_str_value, "{'a', 'b'}", Set[str],
+     "object is not of type:"),
     (correct_list_str_value.replace("'c'", "5"), correct_list_str_value, List[str],
      "The values must be of type: <class 'str'>"),
     (correct_list_str_value.replace("'c'", "'c"), correct_list_str_value, List[str],
@@ -56,7 +59,8 @@ def test_request_python_value_with_error(
     check_wrong_and_right_responses(
         responses=[f'Here is some wrong python value:\n{non_correct_python_value}\nCheck it out.',
                    f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
-        requester=TestPythonValueReviewBackgroundProductsConverser(value_type=value_type),
+        requester=TestPythonValueReviewBackgroundProductsConverser(value_type=value_type,
+                                                                   repost_valid_response_as_fresh=False),
         correct_value=eval(correct_python_value),
         error_texts=error_should_include)
 
@@ -71,6 +75,19 @@ def test_request_python_defined_keys_dict_with_error(
         [f'Here is some wrong python value:\n{non_correct_python_value}\nCheck it out.',
          f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
         requester=TestPythonDictWithDefinedKeysProductsReviewGPT(value_type=value_type,
-                                                                 requested_keys=ListBasedSet(['a', 'b', 'c'])),
+                                                                 requested_keys=ListBasedSet(['a', 'b', 'c']),
+                                                                 repost_valid_response_as_fresh=False),
         correct_value=eval(correct_python_value),
         error_texts=error_should_include)
+
+
+def test_request_python_ends_with_reposting_fresh_response():
+    requester = TestPythonValueReviewBackgroundProductsConverser(value_type=List[str])
+    with OPENAI_SERVER_CALLER.mock([
+            f'Here is the list:\n{correct_list_str_value}\n'],
+            record_more_if_needed=False):
+        assert requester.run_dialog_and_get_valid_result() == eval(correct_list_str_value)
+    assert len(requester.conversation) == 3
+
+    # Response is reposted as fresh:
+    assert requester.conversation[-1].content == correct_list_str_value
