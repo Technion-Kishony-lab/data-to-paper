@@ -4,7 +4,7 @@ from typing import Tuple, Dict, Any
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT, \
-    BasePythonValueProductsReviewGPT
+    BasePythonValueProductsReviewGPT, BaseCheckExtractionProductsReviewGPT
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -86,11 +86,12 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class TablesReviewGPT(BaseLatexProductsReviewGPT):
+class TablesReviewGPT(BaseLatexProductsReviewGPT, BaseCheckExtractionProductsReviewGPT):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                              'tables')
+    product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
@@ -130,12 +131,17 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT):
         else:
             return ''
 
+    def _check_section(self, section: str) -> str:
+        self._check_extracted_numbers(section)
+        return section
+
 
 @dataclass
-class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
+class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT, BaseCheckExtractionProductsReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                              'tables')
+    product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -171,6 +177,11 @@ class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT):
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
+
+    def _extract_str_of_python_value_from_response(self, response: str) -> str:
+        extracted_str = super()._extract_str_of_python_value_from_response(response)
+        self._check_extracted_numbers(extracted_str)
+        return extracted_str
 
 
 @dataclass

@@ -103,7 +103,6 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
 
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
-        self._pre_populate_background()
         code_and_output = CodeAndOutput()
         while self.revision_round < self.max_code_revisions:
             self._ask_for_code()
@@ -271,7 +270,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                     user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
                                                             'columns': columns}),
-                ).initialize_and_run_dialog()
+                ).get_value()
                 description = f'This csv file was created by the {self.code_name} code.\n' \
                               f'{response}\n'
                 data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
@@ -288,7 +287,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                                                     kwargs={
                                                         'dataframe_file_name': saved_df_filename, 'columns': columns}),
                     value_type=Dict[str, str],
-                ).run_dialog_and_get_python_value()
+                ).get_value()
 
                 new_columns_to_explanations = \
                     {column: explanation for column, explanation in columns_to_explanations.items()

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Dict, Tuple, Type
 
 from scientistgpt.base_steps.base_steps_runner import BaseStepsRunner
 from scientistgpt.base_steps.request_products_from_user import DirectorProductGPT
@@ -38,7 +38,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
-    def get_sections_to_writing_class(self):
+    def get_sections_to_writing_class(self) -> Dict[Tuple[str, ...], Type[SectionWriterReviewGPT]]:
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): IntroductionSectionWriterReviewGPT,
@@ -129,7 +129,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                 products.tables['results'].append(table)
 
         # Numerical results
-        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).run_dialog_and_get_python_value()
+        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).get_value()
         self.send_product_to_client('tables_and_numeric_values')
 
         # Results interpretation
@@ -153,7 +153,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
                 products.cited_paper_sections_and_citations[section_name] = \
                     AddCitationReviewGPT.from_(self, section_name=section_name,
-                                               conversation_name=f'add_citations_to_{section_name}')\
+                                               conversation_name=f'add_citations_to_{section_name}') \
                         .rewrite_section_with_citations()
             self.send_product_to_client('cited_paper_sections_and_citations')
 

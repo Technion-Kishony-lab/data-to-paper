@@ -7,6 +7,7 @@ from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values
 
 
 @dataclass
@@ -100,19 +101,23 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         return NiceList([name for name in self.actual_background_product_names],
                         wrap_with='', separator='\n', empty_str='NO BACKGROUND PRODUCTS')
 
-    def _add_acknowledgement(self, product_field: str, is_last: bool = False):
+    def _get_acknowledgement_and_tag(self, product_field: str) -> Tuple[str, str]:
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
-        self.apply_append_surrogate_message(
-            content=thank_you_message, tag=f'background_thanks_{product_field}', is_background=True,
-            reverse_roles_for_web=True)
-        return thank_you_message
+        tag = f'background_thanks_{product_field}'
+        return thank_you_message, tag
+
+    def get_product_description_and_tag(self, product_field: str) -> Tuple[str, str]:
+        product_description = self.products.get_description(product_field)
+        tag = f'background_{product_field}'
+        return product_description, tag
+
+    def _add_acknowledgement(self, product_field: str, is_last: bool = False):
+        acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
+        self.apply_append_surrogate_message(acknowledgement, tag=tag, is_background=True, reverse_roles_for_web=True)
 
     def _add_product_description(self, product_field: str):
-        product_description = self.products.get_description(product_field)
-        self.apply_append_user_message(
-            content=product_description, tag=f'background_{product_field}', is_background=True,
-            reverse_roles_for_web=True)
-        return product_description
+        product_description, tag = self.get_product_description_and_tag(product_field)
+        self.apply_append_user_message(product_description, tag=tag, is_background=True, reverse_roles_for_web=True)
 
     def _add_fake_pre_conversation_exchange(self):
         """
@@ -130,16 +135,16 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
         Add background information to the conversation.
         """
         previous_product_items = self.actual_background_product_fields
-        if previous_product_items is None:
-            return
-        assert len(self.conversation) == 1, "Background information must be added before the conversation starts."
-        self._add_fake_pre_conversation_exchange()
-        for i, product_field in enumerate(previous_product_items or []):
-            is_last = i == len(previous_product_items) - 1
-            self._add_product_description(product_field)
-            self._add_acknowledgement(product_field, is_last=is_last)
-        if self.post_background_comment:
-            self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
+        if previous_product_items is not None:
+            assert len(self.conversation) == 1
+            self._add_fake_pre_conversation_exchange()
+            for i, product_field in enumerate(previous_product_items or []):
+                is_last = i == len(previous_product_items) - 1
+                self._add_product_description(product_field)
+                self._add_acknowledgement(product_field, is_last=is_last)
+            if self.post_background_comment:
+                self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
+        return super()._pre_populate_background()
 
 
 @dataclass
@@ -159,17 +164,49 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
         BaseBackgroundProductsGPT.__post_init__(self)
         ReviewDialogDualConverserGPT.__post_init__(self)
 
-    def _add_acknowledgement(self, product_field: str, is_last: bool = False):
-        thank_you_message = super()._add_acknowledgement(product_field, is_last=is_last)
-        if self.are_we_reviewing_at_all:
-            thank_you_message += self.user_initiation_prompt if is_last else ''
-            self.apply_to_other_append_surrogate_message(
-                content=thank_you_message, tag=f'background_thanks_{product_field}', is_background=True)
-        return thank_you_message
+    def _pre_populate_other_background(self):
+        previous_product_items = self.actual_background_product_fields
+        if previous_product_items is not None:
+            assert len(self.other_conversation) == 1
+            for i, product_field in enumerate(previous_product_items or []):
+                is_last = i == len(previous_product_items) - 1
+                self._add_other_product_description(product_field)
+                self._add_other_acknowledgement(product_field, is_last=is_last)
+        return super()._pre_populate_other_background()
 
-    def _add_product_description(self, product_field: str):
-        product_description = super()._add_product_description(product_field)
-        if self.are_we_reviewing_at_all:
-            self.apply_to_other_append_user_message(
-                content=product_description, tag=f'background_{product_field}', is_background=True)
-        return product_description
+    def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
+        acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
+        acknowledgement += self.user_initiation_prompt if is_last else ''
+        self.apply_to_other_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
+
+    def _add_other_product_description(self, product_field: str):
+        product_description, tag = self.get_product_description_and_tag(product_field)
+        self.apply_to_other_append_user_message(product_description, tag=tag, is_background=True)
+
+
+class BaseCheckExtractionProductsReviewGPT(BaseProductsReviewGPT):
+    product_fields_from_which_response_is_extracted: Tuple[str] = None
+
+    def _get_text_from_which_response_should_be_extracted(self) -> str:
+        return '\n'.join(self.products.get_description(product_field)
+                         for product_field in self.product_fields_from_which_response_is_extracted)
+
+    @property
+    def names_of_products_from_which_to_extract(self) -> List[str]:
+        return NiceList(self.products.get_name(product_field)
+                        for product_field in self.product_fields_from_which_response_is_extracted)
+
+    def _check_extracted_text(self, text: str):
+        if text not in self._get_text_from_which_response_should_be_extracted():
+            self._raise_self_response_error(
+                f'"{text}" is not an explicit extraction from the provided '
+                f'{self.names_of_products_from_which_to_extract}.')
+
+    def _check_extracted_numbers(self, text: str):
+        non_matching = find_non_matching_numeric_values(
+            source=self._get_text_from_which_response_should_be_extracted(),
+            target=text)
+        if non_matching:
+            self._raise_self_response_error(
+                f'Some of the specified values {non_matching} are explicitly extracted from the provided '
+                f'{self.names_of_products_from_which_to_extract}.')
