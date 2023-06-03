@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 
-from .base_products_conversers import BaseProductsReviewGPT
+from .base_products_conversers import ReviewBackgroundProductsConverser
 from .dual_converser import QuotedReviewDialogDualConverserGPT
 
 
 @dataclass
-class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseProductsReviewGPT):
+class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, ReviewBackgroundProductsConverser):
     """
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
@@ -15,5 +15,5 @@ class BaseProductsQuotedReviewGPT(QuotedReviewDialogDualConverserGPT, BaseProduc
     """
 
     def __post_init__(self):
-        BaseProductsReviewGPT.__post_init__(self)
+        ReviewBackgroundProductsConverser.__post_init__(self)
         QuotedReviewDialogDualConverserGPT.__post_init__(self)

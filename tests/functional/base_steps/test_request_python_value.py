@@ -3,19 +3,19 @@ from typing import Dict, Any, List
 
 import pytest
 
-from scientistgpt.base_steps import BasePythonValueProductsReviewGPT, PythonDictWithDefinedKeysProductsReviewGPT
+from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from scientistgpt.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
 
 @dataclass
-class TestBasePythonValueProductsReviewGPT(TestProductsReviewGPT, BasePythonValueProductsReviewGPT):
+class TestPythonValueReviewBackgroundProductsConverser(TestProductsReviewGPT, PythonValueReviewBackgroundProductsConverser):
     pass
 
 
 @dataclass
-class TestPythonDictWithDefinedKeysProductsReviewGPT(TestProductsReviewGPT, PythonDictWithDefinedKeysProductsReviewGPT):
+class TestPythonDictWithDefinedKeysProductsReviewGPT(TestProductsReviewGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     pass
 
 
@@ -35,7 +35,7 @@ correct_list_str_value = r"""['a', 'b', 'c']"""
 def test_request_python_value(correct_python_value, value_type):
     check_wrong_and_right_responses(
         responses=[f'Here is the correct python value:\n{correct_python_value}\nShould be all good.'],
-        requester=TestBasePythonValueProductsReviewGPT(value_type=value_type),
+        requester=TestPythonValueReviewBackgroundProductsConverser(value_type=value_type),
         correct_value=eval(correct_python_value))
 
 
@@ -56,7 +56,7 @@ def test_request_python_value_with_error(
     check_wrong_and_right_responses(
         responses=[f'Here is some wrong python value:\n{non_correct_python_value}\nCheck it out.',
                    f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
-        requester=TestBasePythonValueProductsReviewGPT(value_type=value_type),
+        requester=TestPythonValueReviewBackgroundProductsConverser(value_type=value_type),
         correct_value=eval(correct_python_value),
         error_texts=error_should_include)
 

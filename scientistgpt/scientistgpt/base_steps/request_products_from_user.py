@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Any
 
-from .base_products_conversers import BaseBackgroundProductsGPT
+from .base_products_conversers import BackgroundProductsConverser
 
 
 @dataclass
-class DirectorProductGPT(BaseBackgroundProductsGPT):
+class DirectorProductGPT(BackgroundProductsConverser):
     """
     Create a fake (pre-meditated) conversation, where a performer asks the Director (the application user) for a
     specific product.

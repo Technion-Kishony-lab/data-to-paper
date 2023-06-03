@@ -11,11 +11,11 @@ from scientistgpt.latex.exceptions import LatexCompilationError, UnwantedCommand
 from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands
 
-from .base_products_conversers import BaseProductsReviewGPT
+from .base_products_conversers import ReviewBackgroundProductsConverser
 
 
 @dataclass
-class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
+class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write one or more latex sections.
     Option for removing citations from the section.

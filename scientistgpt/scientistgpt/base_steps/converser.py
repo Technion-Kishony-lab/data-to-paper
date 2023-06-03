@@ -32,7 +32,7 @@ class NoResponse:
 
 
 @dataclass
-class ConverserGPT(Copier):
+class Converser(Copier):
     """
     A base class for agents interacting with chatgpt.
     """

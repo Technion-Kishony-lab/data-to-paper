@@ -7,7 +7,7 @@ from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value, Replacer
 
-from .converser_gpt import ConverserGPT, SelfResponseError, NoResponse
+from .converser import Converser, SelfResponseError, NoResponse
 from .exceptions import FailedCreatingProductException
 
 
@@ -19,11 +19,11 @@ class CycleStatus(Enum):
 
 
 @dataclass
-class DualConverserGPT(ConverserGPT):
+class DualConverserGPT(Converser):
     """
     A base class for agents running two chatgpts.
     """
-    COPY_ATTRIBUTES = ConverserGPT.COPY_ATTRIBUTES | {'other_conversation_name', 'other_web_conversation_name'}
+    COPY_ATTRIBUTES = Converser.COPY_ATTRIBUTES | {'other_conversation_name', 'other_web_conversation_name'}
 
     other_system_prompt: str = 'You are a helpful scientist.'
 

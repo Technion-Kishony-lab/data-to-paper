@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from scientistgpt.base_steps import BaseLatexProductsReviewGPT
+from scientistgpt.base_steps import LatexReviewBackgroundProductsConverser
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 
@@ -10,7 +10,7 @@ from .utils import TestAgent
 
 
 @dataclass
-class TestBaseLatexProductsReviewGPT(BaseLatexProductsReviewGPT):
+class TestLatexReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser):
     conversation_name: str = 'test'
     user_agent: TestAgent = TestAgent.PERFORMER
     assistant_agent: TestAgent = TestAgent.REVIEWER
@@ -48,7 +48,7 @@ correct_abstract = r'\begin{abstract}The ultimate abstract\end{abstract}'
 def test_request_latex_with_correct_answer(correct_latex, section):
     with OPENAI_SERVER_CALLER.mock([f'Here is the correct latex:\n{correct_latex}\nShould be all good.'],
                                    record_more_if_needed=False):
-        assert TestBaseLatexProductsReviewGPT(section_names=[section]).get_section() == correct_latex
+        assert TestLatexReviewBackgroundProductsConverser(section_names=[section]).get_section() == correct_latex
 
 
 @pytest.mark.parametrize('correct_latex, section, replaced_value, replace_with, corrected', [
@@ -60,7 +60,7 @@ def test_request_latex_autocorrect(correct_latex, section, replaced_value, repla
     with OPENAI_SERVER_CALLER.mock([f'Here is some wrong latex:\n{incorrect_latex}\nYou should correct it yourself.',
                                     ],
                                    record_more_if_needed=False):
-        latex_requester = TestBaseLatexProductsReviewGPT(section_names=[section])
+        latex_requester = TestLatexReviewBackgroundProductsConverser(section_names=[section])
         assert latex_requester.get_section() == corrected_latex
 
 
@@ -79,7 +79,7 @@ def test_request_latex_with_error(correct_latex, section, replaced_value, replac
                                     f'Here is the correct latex:\n{correct_latex}\nShould be fine now.'
                                     ],
                                    record_more_if_needed=False):
-        latex_requester = TestBaseLatexProductsReviewGPT(section_names=[section])
+        latex_requester = TestLatexReviewBackgroundProductsConverser(section_names=[section])
         assert latex_requester.get_section() == correct_latex
         error_message = latex_requester.conversation[3]
         for error_include in error_includes:

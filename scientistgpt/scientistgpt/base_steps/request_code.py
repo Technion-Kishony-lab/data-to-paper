@@ -11,15 +11,15 @@ from scientistgpt.utils.replacer import Replacer
 from scientistgpt.utils.types import ListBasedSet
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 
-from .debugger_gpt import DebuggerGPT
-from .base_products_conversers import BaseBackgroundProductsGPT, BaseProductsReviewGPT
+from .debugger import DebuggerConverser
+from .base_products_conversers import BackgroundProductsConverser, ReviewBackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
-from .request_multi_choice import BaseMultiChoiceProductsGPT
-from .request_python_value import PythonDictWithDefinedKeysProductsReviewGPT
+from .request_multi_choice import MultiChoiceBackgroundProductsConverser
+from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
 
 @dataclass
-class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
+class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_code_revisions: int = 3
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
@@ -131,7 +131,7 @@ class BaseCodeProductsGPT(BaseBackgroundProductsGPT):
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_and_output = DebuggerGPT.from_(
+            code_and_output = DebuggerConverser.from_(
                 self,
                 output_filename=self.actual_output_filename,
                 data_files=self.data_filenames,
@@ -218,7 +218,7 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
         if self.offer_revision_prompt is None:
             return False
 
-        return BaseMultiChoiceProductsGPT(
+        return MultiChoiceBackgroundProductsConverser(
             conversation_name=self.conversation_name,
             web_conversation_name=self.web_conversation_name,
             user_agent=self.user_agent,
@@ -264,7 +264,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
             if read_filename is None:
                 # this saved dataframe was created by the code, not read from a file
                 columns = saved_columns
-                response = BaseProductsReviewGPT.from_(
+                response = ReviewBackgroundProductsConverser.from_(
                     self,
                     max_reviewing_rounds=0,
                     user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
@@ -278,7 +278,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
             else:
                 # this saved dataframe was read from a file
                 columns = added_columns | changed_columns
-                columns_to_explanations = PythonDictWithDefinedKeysProductsReviewGPT.from_(
+                columns_to_explanations = PythonDictWithDefinedKeysReviewBackgroundProductsConverser.from_(
                     self,
                     max_reviewing_rounds=0,
                     requested_keys=columns,

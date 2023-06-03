@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from .base_products_conversers import BaseProductsHandler
+from .base_products_conversers import ProductsHandler
 
 
 @dataclass
-class BaseFileProducer(BaseProductsHandler):
-    COPY_ATTRIBUTES = BaseProductsHandler.COPY_ATTRIBUTES | {'output_filename'}
+class BaseFileProducer(ProductsHandler):
+    COPY_ATTRIBUTES = ProductsHandler.COPY_ATTRIBUTES | {'output_filename'}
 
     output_filename: str = None
 

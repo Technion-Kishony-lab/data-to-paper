@@ -14,13 +14,13 @@ from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.base_cast import Agent
 
-from .base_products_conversers import BaseProductsHandler
+from .base_products_conversers import ProductsHandler
 from .exceptions import FailedCreatingProductException
 from scientistgpt.base_products import DataFileDescriptions
 
 
 @dataclass
-class BaseStepsRunner(BaseProductsHandler):
+class BaseStepsRunner(ProductsHandler):
     """
     A base class for running a series of steps whose Products gradually accumulate towards a high level goal.
     """

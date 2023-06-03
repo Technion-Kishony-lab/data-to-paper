@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewGPT
+from scientistgpt.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
 from typing import Any, Dict, Tuple, get_args, Iterable, Set
 
@@ -37,7 +37,7 @@ def check_all_of_type(elements: Iterable, type_: type) -> bool:
 
 
 @dataclass
-class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
+class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write a python value (like a list of str, or dict).
     Option for reviewing the sections (set max_reviewing_rounds > 0).
@@ -107,7 +107,7 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
 
 
 @dataclass
-class PythonDictWithDefinedKeysProductsReviewGPT(BasePythonValueProductsReviewGPT):
+class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """
