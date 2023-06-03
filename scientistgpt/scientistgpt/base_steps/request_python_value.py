@@ -43,6 +43,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
     value_type: type = None  # Only supports Dict[str, str] and List[str] for now.
+    repost_valid_response_as_fresh: bool = True
 
     @property
     def parent_type(self) -> type:
@@ -51,6 +52,13 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     @property
     def child_types(self) -> Tuple[type, ...]:
         return get_args(self.value_type)
+
+    def _get_fresh_looking_response(self, response) -> str:
+        """
+        Return a response that contains just the python value.
+        """
+        response = self.returned_result
+        return super()._get_fresh_looking_response(str(response))
 
     def _check_and_extract_result_from_self_response(self, response: str):
         response_value_str = self._extract_str_of_python_value_from_response(response)
