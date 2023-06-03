@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import pytest
 from _pytest.fixtures import fixture
 
-from scientistgpt.base_steps.debugger_gpt import DebuggerGPT
+from scientistgpt.base_steps.debugger import DebuggerConverser
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 
@@ -11,7 +11,7 @@ from .utils import TestAgent
 
 
 @dataclass
-class TestDebuggerGPT(DebuggerGPT):
+class TestDebuggerGPT(DebuggerConverser):
     conversation_name: str = 'test'
     user_agent: TestAgent = TestAgent.PERFORMER
     assistant_agent: TestAgent = TestAgent.REVIEWER

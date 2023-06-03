@@ -3,8 +3,8 @@ from typing import Tuple, Dict, Any
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, BaseLatexProductsReviewGPT, \
-    BasePythonValueProductsReviewGPT, BaseCheckExtractionProductsReviewGPT
+from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
+    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -86,7 +86,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class TablesReviewGPT(BaseLatexProductsReviewGPT, BaseCheckExtractionProductsReviewGPT):
+class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
@@ -137,7 +137,7 @@ class TablesReviewGPT(BaseLatexProductsReviewGPT, BaseCheckExtractionProductsRev
 
 
 @dataclass
-class KeyNumericalResultsExtractorReviewGPT(BasePythonValueProductsReviewGPT, BaseCheckExtractionProductsReviewGPT):
+class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                              'tables')

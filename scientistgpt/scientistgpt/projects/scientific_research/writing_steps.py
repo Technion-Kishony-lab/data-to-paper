@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Tuple
 
-from scientistgpt.base_steps import BaseLatexProductsReviewGPT
+from scientistgpt.base_steps import LatexReviewBackgroundProductsConverser
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -9,7 +9,7 @@ from scientistgpt.utils.nice_list import nicely_join
 
 
 @dataclass
-class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
+class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser):
     """
     Base class for the writer of a paper section in latex format.
     """
@@ -92,7 +92,7 @@ class SectionWriterReviewGPT(BaseLatexProductsReviewGPT):
 
 
 @dataclass
-class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewGPT):
+class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 2
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
@@ -108,7 +108,7 @@ class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 
 @dataclass
-class IntroductionSectionWriterReviewGPT(SectionWriterReviewGPT):
+class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'title_and_abstract',
                                              'most_updated_paper_sections:methods',
                                              'most_updated_paper_sections:results')
@@ -122,7 +122,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 
 @dataclass
-class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
+class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
                                              'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
@@ -144,7 +144,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 
 @dataclass
-class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
+class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields: Tuple[str] = ('most_updated_paper_sections:{methods}',
                                              'title_and_abstract', 'tables_and_numeric_values')
@@ -175,7 +175,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 
 @dataclass
-class DiscussionSectionWriterReviewGPT(SectionWriterReviewGPT):
+class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str] = ('research_goal', 'title_and_abstract',
                                              'most_updated_paper_sections:methods',
                                              'most_updated_paper_sections:results')
@@ -188,7 +188,7 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewGPT):
 
 
 @dataclass
-class ConclusionSectionWriterReviewGPT(SectionWriterReviewGPT):
+class ConclusionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str] = ('research_goal', 'title_and_abstract',
                                              'most_updated_paper_sections:results',
                                              'most_updated_paper_sections:discussion')

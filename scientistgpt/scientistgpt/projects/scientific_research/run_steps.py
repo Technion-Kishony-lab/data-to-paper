@@ -12,8 +12,8 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT
-from .writing_steps import SectionWriterReviewGPT, TitleAbstractSectionWriterReviewGPT, MethodsSectionWriterReviewGPT, \
+    ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT
+from .writing_steps import SectionWriterReviewBackgroundProductsConverser, TitleAbstractSectionWriterReviewGPT, MethodsSectionWriterReviewGPT, \
     ReferringTablesSectionWriterReviewGPT, DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT, \
     IntroductionSectionWriterReviewGPT
 
@@ -38,12 +38,12 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
-    def get_sections_to_writing_class(self) -> Dict[Tuple[str, ...], Type[SectionWriterReviewGPT]]:
+    def get_sections_to_writing_class(self) -> Dict[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]:
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): IntroductionSectionWriterReviewGPT,
             ('methods', ): MethodsSectionWriterReviewGPT,
-            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewGPT,
+            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewBackgroundProductsConverser,
             ('discussion', ): DiscussionSectionWriterReviewGPT,
             ('conclusion', ): ConclusionSectionWriterReviewGPT,
         }
@@ -123,7 +123,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_add_tables:
             products.tables['results'] = []
             for i in range(self.number_of_tables_to_add):
-                table = TablesReviewGPT.from_(
+                table = TablesReviewBackgroundProductsConverser.from_(
                     self, section_names=['table'], table_number=i + 1, conversation_name=f'table_{i + 1}',
                     total_number_of_tables=self.number_of_tables_to_add).get_section()
                 products.tables['results'].append(table)

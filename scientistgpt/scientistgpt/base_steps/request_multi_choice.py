@@ -3,12 +3,12 @@ from typing import Tuple, Optional
 
 from scientistgpt.utils import dedent_triple_quote_str
 
-from .base_products_conversers import BaseBackgroundProductsGPT
+from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 
 
 @dataclass
-class BaseMultiChoiceProductsGPT(BaseBackgroundProductsGPT):
+class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
     """
     A base class for asking ChatGPT to choose between multiple options.
     """

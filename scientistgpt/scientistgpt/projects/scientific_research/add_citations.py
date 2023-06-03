@@ -6,14 +6,14 @@ from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.types import ListBasedSet
 
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
-from scientistgpt.base_steps.request_python_value import BasePythonValueProductsReviewGPT
+from scientistgpt.base_steps.request_python_value import PythonValueReviewBackgroundProductsConverser
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
 
 
 @dataclass
-class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
+class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser):
     """
     Given a sentence and a list of citations, choose the ones that match the sentence and
     rewrite the sentence with the citations.
@@ -98,7 +98,7 @@ class RewriteSentenceWithCitations(BasePythonValueProductsReviewGPT):
 
 
 @dataclass
-class AddCitationReviewGPT(BasePythonValueProductsReviewGPT):
+class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     """
     Given a section of a paper, add citations to the factual sentences in the section.
     """
