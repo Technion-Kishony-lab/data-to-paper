@@ -323,8 +323,11 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         for flanking_tags in self.flanking_tag_list:
             try:
                 self.returned_result = extract_text_between_tags(response, *flanking_tags)
-                break
+                return
             except ValueError:
                 pass
-        else:
-            self._raise_self_response_error(self.quote_request)
+        for flanking_tags in self.flanking_tag_list:
+            if response.count(flanking_tags[0]) == 1:
+                # if there is only one tag, we assume that chatgpt got stuck. We bump it up:
+                self._raise_self_response_error(self.quote_request, bump_model=True)
+        self._raise_self_response_error(self.quote_request)

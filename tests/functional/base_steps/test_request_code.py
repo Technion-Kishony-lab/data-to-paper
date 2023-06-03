@@ -8,15 +8,11 @@ from scientistgpt.base_products import DataFileDescriptions, DataFileDescription
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from tests.functional.base_steps.utils import TestAgent
+from tests.functional.base_steps.utils import TestAgent, TestProductsReviewGPT
 
 
 @dataclass
-class TestDataframeChangingCodeProductsGPT(DataframeChangingCodeProductsGPT):
-    conversation_name: str = 'test'
-    user_agent: TestAgent = TestAgent.PERFORMER
-    assistant_agent: TestAgent = TestAgent.REVIEWER
-    actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
+class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, DataframeChangingCodeProductsGPT):
     allowed_created_files: Tuple[str] = ('*.csv',)
     output_filename: str = None
     code_name: str = 'Testing'

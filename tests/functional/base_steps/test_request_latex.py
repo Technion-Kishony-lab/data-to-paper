@@ -99,3 +99,10 @@ def test_request_latex_alter_response_for_reviewer():
 
     # Response is reposted as fresh:
     assert requester.conversation[-1].content == correct_abstract
+
+
+def test_request_latex_section_names():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['abstract'])
+    assert requester.section_names == ['abstract']
+    assert requester.section_name == 'abstract'
+    assert requester.pretty_section_names == ['Abstract']
