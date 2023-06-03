@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Optional
+from typing import Optional, Any
 
 from scientistgpt import Message
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
@@ -23,13 +23,14 @@ class Converser(Copier):
     """
     COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
                        'user_agent'}
+    CHATGPT_PARAMETERS = {}  # default parameters to pass to chatgpt. e.g. {'temperature': 0.0, 'max_tokens': 30}
     actions_and_conversations: ActionsAndConversations = None
 
     model_engine: ModelEngine = field(default_factory=lambda: DEFAULT_MODEL_ENGINE)
-    """
-    The openai model engine to use. If None, use the default model engine.
-    A call to apply_get_and_append_assistant_message can override this value.
-    """
+    # The openai model engine to use. If None, use the default model engine.
+    # A call to apply_get_and_append_assistant_message can override this value.
+
+    chatgpt_parameters: dict[str, Any] = None
 
     system_prompt: str = 'You are a helpful scientist.'
 
@@ -44,6 +45,9 @@ class Converser(Copier):
     driver: str = ''
 
     def __post_init__(self):
+        if self.chatgpt_parameters is None:
+            self.chatgpt_parameters = self.CHATGPT_PARAMETERS
+
         if self.web_conversation_name is True:
             # we determine an automatic conversation name based on the agent that the main agent is talking to:
             if COALESCE_WEB_CONVERSATIONS:
@@ -106,7 +110,8 @@ class Converser(Copier):
             is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             expected_tokens_in_response=expected_tokens_in_response,
-            hidden_messages=hidden_messages, **kwargs)
+            hidden_messages=hidden_messages,
+            **{**self.chatgpt_parameters, **kwargs})
 
     def apply_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
                                   comment: Optional[StrOrTextFormat] = None,
