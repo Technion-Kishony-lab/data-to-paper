@@ -18,3 +18,12 @@ def test_extract_numeric_values(text, numbers):
 def test_find_non_matching_numeric_values(source, non_matching):
     target = 'p-value 1.02, variance 10.00'
     assert find_non_matching_numeric_values(source, target) == non_matching
+
+
+@pytest.mark.parametrize('source, non_matching', [
+    ('accuracy of 0.900154, AUC of 0.7524921', []),
+    ('accuracy of 0.9002, AUC of 0.7525', []),
+])
+def test_find_non_matching_numeric_values_with_percentage(source, non_matching):
+    target = 'accuracy of 90.02%, AUC of 75.25%'
+    assert find_non_matching_numeric_values(source, target) == non_matching
