@@ -30,6 +30,9 @@ from .base_products_conversers import BaseBackgroundProductsGPT
 # Requesting un-structured text as part of a gpt-gpt review process:
 from .base_products_conversers import BaseProductsReviewGPT
 
+# Addon to check if response correctly extracts from provided products:
+from .base_products_conversers import BaseCheckExtractionProductsReviewGPT
+
 # Requesting quote-enclosed text (with optional gpt-review):
 from .request_quoted_text import BaseProductsQuotedReviewGPT
 
