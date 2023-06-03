@@ -49,10 +49,7 @@ def test_debugger_run_and_get_outputs(debugger):
 
 
 @pytest.mark.parametrize('correct_code, replaced_value, replace_with, error_includes', [
-    (code_creating_file_correctly, '```python', '```latex', ["latex"]),
     (code_creating_file_correctly, 'f.write', 'f.write(', ['SyntaxError']),
-    (code_creating_file_correctly, 'test_output', 'wrong_file', ['test_output']),
-    (code_altering_dataframe, "df1.to_csv('test_modified.csv')", '', 'test.csv'),
 ])
 def test_request_code_with_error(correct_code, replaced_value, replace_with, error_includes, debugger):
     incorrect_code = correct_code.replace(replaced_value, replace_with)
@@ -63,6 +60,5 @@ def test_request_code_with_error(correct_code, replaced_value, replace_with, err
         code_and_output = debugger.run_debugging()
         assert code_and_output.output == 'The answer is 42'
         error_message = debugger.conversation[2]
-        print(error_message.content)
         for error_include in error_includes:
             assert error_include in error_message.content

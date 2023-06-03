@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 from scientistgpt.base_products import Products
-from .dual_converser import Converser, ReviewDialogDualConverserGPT
+from .result_converser import ResultConverser
+from .dual_converser import ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
@@ -35,12 +36,12 @@ class ProductsHandler(Copier):
 
 
 @dataclass
-class ProductsConverser(ProductsHandler, Converser):
-    COPY_ATTRIBUTES = ProductsHandler.COPY_ATTRIBUTES | Converser.COPY_ATTRIBUTES
+class ProductsConverser(ProductsHandler, ResultConverser):
+    COPY_ATTRIBUTES = ProductsHandler.COPY_ATTRIBUTES | ResultConverser.COPY_ATTRIBUTES
 
     def __post_init__(self):
         ProductsHandler.__post_init__(self)
-        Converser.__post_init__(self)
+        ResultConverser.__post_init__(self)
 
 
 @dataclass

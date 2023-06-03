@@ -83,14 +83,14 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
 
     def _check_and_extract_value_from_self_response(self, response: str):
         """
-        Check the response and extract latex sections from it into returned_value.
+        Check the response and extract latex sections from it into returned_result.
         If the there are errors that require self to revise the response, raise an SelfResponseError describing
         the problem.
         """
         section_contents = []
         for section_name in self.section_names:
             section_contents.append(self._get_latex_section_from_response(response, section_name))
-        self.returned_value = section_contents
+        self.returned_result = section_contents
 
     def get_sections(self) -> List[str]:
         return self.run_dialog_and_get_valid_result()

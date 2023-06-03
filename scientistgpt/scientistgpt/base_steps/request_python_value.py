@@ -57,7 +57,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         response_value = self._evaluate_python_value_from_str(response_value_str)
         response_value = self._validate_value_type(response_value)
         response_value = self._check_response_value(response_value)
-        self.returned_value = response_value
+        self.returned_result = response_value
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
         """
