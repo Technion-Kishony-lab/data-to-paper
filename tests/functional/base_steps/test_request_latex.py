@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import pytest
 
 from scientistgpt.base_steps import LatexReviewBackgroundProductsConverser
+from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
@@ -53,7 +54,7 @@ def test_request_latex_autocorrect(correct_latex, section, replaced_value, repla
     incorrect_latex = correct_latex.replace(replaced_value, replace_with)
     corrected_latex = incorrect_latex.replace(replace_with, corrected)
     check_wrong_and_right_responses(
-        [f'Here is some wrong latex:\n{incorrect_latex}\nYou should correct it yourself.',],
+        [f'Here is some wrong latex:\n{incorrect_latex}\nYou should correct it yourself.'],
         requester=TestLatexReviewBackgroundProductsConverser(section_names=[section]),
         correct_value=[corrected_latex])
 
@@ -75,6 +76,26 @@ def test_request_latex_with_error(correct_latex, section, replaced_value, replac
     check_wrong_and_right_responses(
         [f'Here is some wrong latex:\n{incorrect_latex}\nLet me know if it is ok.',
          f'Here is the correct latex:\n{correct_latex}\nShould be fine now.'],
-        requester=TestLatexReviewBackgroundProductsConverser(section_names=[section]),
+        requester=TestLatexReviewBackgroundProductsConverser(section_names=[section],
+                                                             repost_valid_response_as_fresh=False),
         correct_value=[correct_latex],
         error_texts=error_includes)
+
+
+def test_request_latex_alter_response_for_reviewer():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['abstract'],
+                                                           max_reviewing_rounds=1)
+    with OPENAI_SERVER_CALLER.mock([
+            f'Here is the abstract:\n{correct_abstract.replace("ultimate", "super ultimate")}\n',
+            'I suggest making it short',
+            f'Here is the corrected shorter abstract:\n{correct_abstract}\n'],
+            record_more_if_needed=False):
+        assert requester.run_dialog_and_get_valid_result() == [correct_abstract]
+    assert len(requester.conversation) == 3
+
+    # Response is sent to reviewer with latex triple backticks:
+    message_to_reviewer = requester.other_conversation[-2].content
+    assert 'Here is the abstract:\n```latex' in message_to_reviewer
+
+    # Response is reposted as fresh:
+    assert requester.conversation[-1].content == correct_abstract

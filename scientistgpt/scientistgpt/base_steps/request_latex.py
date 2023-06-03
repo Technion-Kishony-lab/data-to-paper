@@ -30,6 +30,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
 
         Please {goal_verb} the {goal_noun} part again with the correct latex formatting.
         """)
+    repost_valid_response_as_fresh: bool = True
 
     @property
     def section_name(self) -> Optional[str]:
@@ -46,7 +47,17 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
                         separator=', ', last_separator=' and ')
 
     def _alter_self_response(self, response: str) -> str:
-        return super()._alter_self_response(wrap_text_with_triple_quotes(response, 'latex'))
+        for section_name in self.section_names:
+            latex = self._extract_latex_section_from_response(response, section_name)
+            response = response.replace(latex, wrap_text_with_triple_quotes(latex, 'latex'))
+        return super()._alter_self_response(response)
+
+    def _get_fresh_looking_response(self, response) -> str:
+        """
+        Return a response that looks fresh.
+        """
+        response = '\n\n'.join(self.returned_result)
+        return super()._get_fresh_looking_response(response)
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = self._extract_latex_section_from_response(response, section_name)
