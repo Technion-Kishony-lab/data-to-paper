@@ -91,9 +91,3 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         for section_name in self.section_names:
             section_contents.append(self._get_latex_section_from_response(response, section_name))
         self.returned_result = section_contents
-
-    def get_sections(self) -> List[str]:
-        return self.run_dialog_and_get_valid_result()
-
-    def get_section(self):
-        return self.get_sections()[0]
