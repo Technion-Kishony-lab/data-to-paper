@@ -42,6 +42,9 @@ from .request_latex import BaseLatexProductsReviewGPT
 # Requesting Python values (with optional gpt-review):
 from .request_python_value import BasePythonValueProductsReviewGPT
 
+# Requesting Python values with defined keys (with optional gpt-review):
+from .request_python_value import PythonDictWithDefinedKeysProductsReviewGPT
+
 # Requesting code (with automatic debugging feedback):
 from .request_code import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT
 
