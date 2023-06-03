@@ -41,13 +41,13 @@ from .request_latex import LatexReviewBackgroundProductsConverser
 
 # Requesting Python values (with optional gpt-review):
 from .request_python_value import PythonValueReviewBackgroundProductsConverser
-
-# Requesting Python values with defined keys (with optional gpt-review):
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
 # Requesting code (with automatic debugging feedback):
 from .request_code import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT
 
+# Requesting answer to multiple choice question
+from .request_multi_choice import MultiChoiceBackgroundProductsConverser
 
 # --- CONVERTING PRODUCTS TO FILES ---
 
