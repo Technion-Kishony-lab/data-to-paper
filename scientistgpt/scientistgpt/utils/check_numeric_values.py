@@ -1,4 +1,5 @@
 import re
+import math
 from typing import List
 
 
@@ -32,8 +33,18 @@ def find_non_matching_numeric_values(source: str, target: str) -> List[str]:
         num_digits = len(str_target_number.replace('.', ''))
         target_number = round_to_n_digits(float(str_target_number), num_digits)
         # check that there exists a number in the source that matches after rounding to the same number of digits:
-        is_match = any(round_to_n_digits(float(str_source_number), num_digits) == target_number
-                       for str_source_number in str_source_numbers)
+        if target_number <= 1:
+            is_match = any(math.isclose(round_to_n_digits(float(source_number), num_digits),
+                                        round_to_n_digits(float(target_number), num_digits), rel_tol=1e-5) or
+                           math.isclose(round_to_n_digits(float(source_number), num_digits),
+                                        round_to_n_digits(float(target_number*100), num_digits), rel_tol=1e-5)
+                           for source_number in str_source_numbers)
+        else:
+            is_match = any(math.isclose(round_to_n_digits(float(source_number), num_digits),
+                                        round_to_n_digits(float(target_number), num_digits), rel_tol=1e-5) or
+                           math.isclose(round_to_n_digits(float(source_number), num_digits),
+                                        round_to_n_digits(float(target_number)/100, num_digits), rel_tol=1e-5)
+                           for source_number in str_source_numbers)
         if not is_match:
             non_matching_str_numbers.append(str_target_number)
     return non_matching_str_numbers
