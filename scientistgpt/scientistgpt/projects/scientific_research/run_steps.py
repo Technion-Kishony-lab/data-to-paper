@@ -125,7 +125,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             for i in range(self.number_of_tables_to_add):
                 table = TablesReviewBackgroundProductsConverser.from_(
                     self, section_names=['table'], table_number=i + 1, conversation_name=f'table_{i + 1}',
-                    total_number_of_tables=self.number_of_tables_to_add).get_section()
+                    total_number_of_tables=self.number_of_tables_to_add).run_dialog_and_get_valid_result()[0]
                 products.tables['results'].append(table)
 
         # Numerical results
@@ -142,7 +142,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_to_writing_class.items():
-            sections = writing_class.from_(self, section_names=section_names).get_sections()
+            sections = writing_class.from_(self, section_names=section_names).run_dialog_and_get_valid_result()
             for section_name, section in zip(section_names, sections):
                 products.paper_sections[section_name] = section
         self.send_product_to_client('paper_sections')
