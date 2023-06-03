@@ -139,6 +139,7 @@ class ResultConverser(Converser):
     def _get_fresh_looking_response(self, response) -> str:
         """
         Convert the response to a response that looks as if it was the first response.
+        This is called after _check_and_extract_result_from_self_response, so the method can use `returned_result`.
         """
         return response
 
