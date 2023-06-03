@@ -81,7 +81,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
             self._raise_self_response_error(str(e))
         return extracted_section
 
-    def _check_and_extract_value_from_self_response(self, response: str):
+    def _check_and_extract_result_from_self_response(self, response: str):
         """
         Check the response and extract latex sections from it into returned_result.
         If the there are errors that require self to revise the response, raise an SelfResponseError describing

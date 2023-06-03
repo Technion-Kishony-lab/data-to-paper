@@ -67,7 +67,7 @@ class ResultConverser(Converser):
         """
         raise SelfResponseError(error_message)
 
-    def _check_and_extract_value_from_self_response(self, response: str):
+    def _check_and_extract_result_from_self_response(self, response: str):
         """
         Check the response from self.
         Extract any needed information into returned_result.
@@ -76,7 +76,20 @@ class ResultConverser(Converser):
         """
         self.returned_result = response
 
-    def _iterate_until_valid_response(self) -> Optional[Union[str, Message]]:
+    def _alter_self_response(self, response: str) -> str:
+        """
+        Alter the response from self when posted to web.
+        This method also used to alter the response to send to other in dual_conversation.
+        """
+        return response
+
+    def _get_fresh_looking_response(self, response) -> str:
+        """
+        Convert the response to a response that looks as if it was the first response.
+        """
+        return response
+
+    def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Optional[str]:
         """
         Iterate until we get a valid response from self.
         If we started with a pre-existing self response which was valid, we return it.
@@ -86,24 +99,34 @@ class ResultConverser(Converser):
         self_message = None
         for _ in range(self.max_valid_response_iterations):
             # to allow starting either before or after the first self response:
-            is_preexisting_self_response = self.conversation.get_last_non_commenter_message().role is not Role.USER
-            if is_preexisting_self_response:
+            is_preexisting_self_response = True
+            try:
                 self_response = self.conversation.get_last_response()
-            else:
+                # We are starting after the first self response
+            except ValueError:
+                # We are starting before the first self response
+                is_preexisting_self_response = False
                 self_message = self.apply_get_and_append_assistant_message(web_conversation_name=None)
                 self_response = self_message.content
+
+            # check if the response is valid:
+            response_error = None
             try:
-                self._check_and_extract_value_from_self_response(self_response)
-                if is_preexisting_self_response:
-                    return self_response
-                else:
-                    return self_message
+                self._check_and_extract_result_from_self_response(self_response)
             except SelfResponseError as e:
-                if not is_preexisting_self_response:
-                    self.apply_append_surrogate_message(content=self_response, conversation_name=None,
-                                                        context=self_message.context)
-                self.apply_append_user_message(Replacer(self, self.response_to_self_error, args=(e.error_message,)),
-                                               tag='error')
+                response_error = e
+
+            if not is_preexisting_self_response:
+                self.apply_append_surrogate_message(
+                    content=(self_response if response_error or not alter_web_response
+                             else self._alter_self_response(self_response)),
+                    conversation_name=None, context=self_message.context)
+            if not response_error:
+                return self_response
+
+            # The response is not valid.
+            self.apply_append_user_message(
+                Replacer(self, self.response_to_self_error, args=(response_error.error_message,)), tag='error')
         else:
             return None
 
