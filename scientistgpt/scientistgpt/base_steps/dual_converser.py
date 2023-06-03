@@ -7,8 +7,8 @@ from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value, Replacer
 
-from .converser import Converser, SelfResponseError, NoResponse
-from .exceptions import FailedCreatingProductException
+from .converser import Converser
+from .result_converser import ResultConverser
 
 
 class CycleStatus(Enum):
@@ -117,7 +117,7 @@ class DualConverserGPT(Converser):
 
 
 @dataclass
-class DialogDualConverserGPT(DualConverserGPT):
+class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     """
     A base class for agents running a dialog between two chatgpts (self and other), where the roles of the two
     agents are reversed. The ASSISTANT response from one conversation is used as the USER response in the other
@@ -215,7 +215,7 @@ class DialogDualConverserGPT(DualConverserGPT):
 
     def run_one_cycle(self) -> CycleStatus:
         """
-        Run one cycle of the dialog. Makes updates to returned_value by calling
+        Run one cycle of the dialog. Makes updates to returned_result by calling
         _check_and_extract_value_from_self_response().
         """
         self_response = self._iterate_until_valid_response()
@@ -269,20 +269,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     # *** Properties that should be set according to the task we want to perform ***
 
     # roles:
-    performer: str = 'scientist'
     reviewer: str = 'scientific reviewer'
-
-    # goal_noun: the desired output of the conversation (expressed as a singular noun).
-    goal_noun: str = 'one-paragraph summary on the solar system'
-
-    # goal_verb: a verb applied to achieve the goal, like 'write', 'draw', 'build', 'code', etc.
-    goal_verb: str = 'write'
-
-    # *** Properties that are more generic (adjust only if needed) ***
-
-    system_prompt: str = "You are a {performer} who needs to {goal_verb} a {goal_noun}."
-
-    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}."
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
@@ -314,12 +301,6 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             return response + '\n' + self.sentence_to_add_at_the_end_of_performer_response
         else:
             return response
-
-    def _pre_populate_background(self):
-        """
-        Add background messages to the two conversations to set them ready for the cycle.
-        """
-        self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
 
     def initialize_dialog(self):
         self.initialize_conversation_if_needed()
@@ -359,7 +340,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     def _check_and_extract_value_from_self_response(self, response: str):
         for flanking_tags in self.flanking_tag_list:
             try:
-                self.returned_value = extract_text_between_tags(response, *flanking_tags)
+                self.returned_result = extract_text_between_tags(response, *flanking_tags)
                 break
             except ValueError:
                 pass

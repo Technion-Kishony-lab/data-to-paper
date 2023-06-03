@@ -44,6 +44,8 @@ class DebuggerConverser(ProductsConverser):
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
 
+    user_initiation_prompt: str = None
+
     assistant_agent: Agent = None
     user_agent: Agent = None
 
