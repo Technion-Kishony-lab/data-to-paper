@@ -93,7 +93,7 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
         self.returned_value = section_contents
 
     def get_sections(self) -> List[str]:
-        return self.get_value()
+        return self.run_dialog_and_get_valid_result()
 
     def get_section(self):
         return self.get_sections()[0]

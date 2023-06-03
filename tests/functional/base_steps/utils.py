@@ -35,7 +35,7 @@ class TestProductsReviewGPT:
 def check_wrong_and_right_responses(responses, requester, correct_value,
                                     error_texts=(), error_message_number=3):
     with OPENAI_SERVER_CALLER.mock(responses, record_more_if_needed=False):
-        assert requester.get_value() == correct_value
+        assert requester.run_dialog_and_get_valid_result() == correct_value
 
     if not isinstance(error_texts, tuple):
         error_texts = (error_texts,)

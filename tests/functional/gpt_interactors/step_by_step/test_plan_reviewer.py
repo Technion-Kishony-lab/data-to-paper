@@ -62,7 +62,7 @@ def code_reviewer(data_file_descriptions, actions_and_conversations):
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_goal_reviewer(goal_reviewer):
-    research_goal = goal_reviewer.get_value()
+    research_goal = goal_reviewer.run_dialog_and_get_valid_result()
 
     # depending on openai response, these conditions may not be necessarily be met:
     assert 'gender' in research_goal
@@ -70,7 +70,7 @@ def test_goal_reviewer(goal_reviewer):
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_plan_reviewer(plan_reviewer):
-    plan = plan_reviewer.get_value()
+    plan = plan_reviewer.run_dialog_and_get_valid_result()
 
     # depending on openai response, these conditions may not be necessarily be met:
     assert 'male' in plan
