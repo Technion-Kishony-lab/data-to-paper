@@ -14,7 +14,6 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
     """
 
     CHATGPT_PARAMETERS = {'temperature': 0.0, 'max_tokens': 30}
-    max_regenerating_multi_choice_response: int = 4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please choose one of the following options:

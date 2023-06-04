@@ -23,6 +23,7 @@ class Action:
     """
     Base class for actions performed on a Conversation, Stages, or Cast.
     """
+    should_print: bool = True
 
     def _pretty_attrs(self) -> str:
         return ''
@@ -74,14 +75,14 @@ class Actions(List[Action]):
 
     abbreviate_repeated_printed_content: bool = True
 
-    def apply_action(self, action: Action, should_print: bool = True, is_color: bool = True,
+    def apply_action(self, action: Action, is_color: bool = True,
                      should_append: bool = True):
         from scientistgpt.base_cast import update_cast_and_messenger_on_action
-        if should_print:
+        if action.should_print:
             from .conversation_actions import AppendMessage
             if self.abbreviate_repeated_printed_content \
                     and isinstance(action, AppendMessage) \
-                    and action.message.content in self.get_all_message_contents():
+                    and action.message.content in self.get_all_message_contents(only_printed=True):
                 s = action.pretty_repr(is_color=is_color, abbreviate_content=True)
             else:
                 s = action.pretty_repr(is_color=is_color)
@@ -120,12 +121,13 @@ class Actions(List[Action]):
         return [action for action in self if
                 isinstance(action, ChangeMessagesConversationAction) and action.conversation_name == conversation_name]
 
-    def get_all_message_contents(self) -> List[str]:
+    def get_all_message_contents(self, only_printed: bool = False) -> List[str]:
         """
         Return a list of all message contents.
         """
         from .conversation_actions import AppendMessage
-        return [action.message.content for action in self if isinstance(action, AppendMessage)]
+        return [action.message.content for action in self
+                if isinstance(action, AppendMessage) and (not only_printed or action.should_print)]
 
 
 @dataclass(frozen=True)

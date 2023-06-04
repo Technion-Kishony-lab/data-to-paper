@@ -69,13 +69,14 @@ class ConversationManager:
         """
         Apply an action to a conversation and append to the actions list.
         """
-        self.actions.apply_action(action, should_print=self.should_print, is_color=True)
+        self.actions.apply_action(action, is_color=True)
 
     def _create_and_apply_action(self, action_type: type, **kwargs):
         """
         Create and apply an action to a conversation and append to the actions list.
         """
         self._apply_action(action_type(
+            should_print=self.should_print,
             conversations=self.conversations,
             web_conversation_name=kwargs.pop('web_conversation_name', self.web_conversation_name),
             conversation_name=kwargs.pop('conversation_name', self.conversation_name),
