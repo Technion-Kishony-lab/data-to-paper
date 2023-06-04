@@ -115,7 +115,6 @@ class ResultConverser(Converser):
         """
         if self.user_initiation_prompt:
             self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
-        self._conversation_len_before_fist_response = len(self.conversation)
 
     def _raise_self_response_error(self, error_message: str, rewind: Rewind = Rewind.ACCUMULATE,
                                    bump_model: bool = False):
@@ -162,6 +161,7 @@ class ResultConverser(Converser):
         Otherwise, we return the valid message that we got after iterating.
         If we fail to get a valid response after max_valid_response_iterations, return None.
         """
+        self._conversation_len_before_first_response = len(self.conversation)
         self_message = None
         while self._self_response_iteration_count < self.max_valid_response_iterations:
             self._self_response_iteration_count += 1
