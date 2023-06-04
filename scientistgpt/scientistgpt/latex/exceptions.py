@@ -29,7 +29,7 @@ class LatexCompilationError(ScientistGPTException, ValueError):
         """
         lines = self.pdflatex_output.splitlines()
         first_line_of_error_message = next((i for i, line in enumerate(lines) if line.startswith('! ')), None)
-        return '\n'.join(lines[first_line_of_error_message:first_line_of_error_message + 3])
+        return '\n'.join(lines[first_line_of_error_message:first_line_of_error_message + 4])
 
     def get_latex_exception_line_number(self) -> Optional[int]:
         """
