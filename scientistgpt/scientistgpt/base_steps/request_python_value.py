@@ -2,8 +2,9 @@ from dataclasses import dataclass
 
 from scientistgpt.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Tuple, get_args, Iterable, Set
+from typing import Any, Dict, Tuple, get_args, Iterable, Set, Optional
 
+from scientistgpt.base_steps.result_converser import Rewind
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
 
@@ -43,7 +44,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
     value_type: type = None  # Only supports Dict[str, str] and List[str] for now.
-    repost_valid_response_as_fresh: bool = True
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     @property
     def parent_type(self) -> type:

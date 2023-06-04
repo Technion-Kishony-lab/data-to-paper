@@ -24,7 +24,7 @@ correct_answer = "I choose option 2"
 def test_request_multi_choice_incorrect_then_correct(correct_response, incorrect_response, expected_value, error_keywords):
     check_wrong_and_right_responses(
         [incorrect_response, correct_response],
-        requester=TestMultiChoiceBackgroundProductsConverser(repost_valid_response_as_fresh=False),
+        requester=TestMultiChoiceBackgroundProductsConverser(rewind_after_getting_a_valid_response=None),
         correct_value=expected_value,
         error_message_number=3,
         error_texts=error_keywords)

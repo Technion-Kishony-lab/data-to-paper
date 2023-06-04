@@ -12,6 +12,7 @@ from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figu
     replace_special_chars, check_usage_of_unwanted_commands
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
+from .result_converser import Rewind
 
 
 @dataclass
@@ -30,7 +31,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
 
         Please {goal_verb} the {goal_noun} part again with the correct latex formatting.
         """)
-    repost_valid_response_as_fresh: bool = True
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     @property
     def section_name(self) -> Optional[str]:
