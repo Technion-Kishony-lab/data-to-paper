@@ -13,9 +13,10 @@ from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT
-from .writing_steps import SectionWriterReviewBackgroundProductsConverser, TitleAbstractSectionWriterReviewGPT, MethodsSectionWriterReviewGPT, \
-    ReferringTablesSectionWriterReviewGPT, DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT, \
-    IntroductionSectionWriterReviewGPT
+from .writing_steps import SectionWriterReviewBackgroundProductsConverser, TitleAbstractSectionWriterReviewGPT, \
+    MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
+    DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT
+
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -38,12 +39,14 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
-    def get_sections_to_writing_class(self) -> Dict[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]:
+    def get_sections_to_writing_class(self
+                                      ) -> Dict[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]:
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): IntroductionSectionWriterReviewGPT,
             ('methods', ): MethodsSectionWriterReviewGPT,
-            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewBackgroundProductsConverser,
+            ('results', ): (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
+                            else SectionWriterReviewBackgroundProductsConverser),
             ('discussion', ): DiscussionSectionWriterReviewGPT,
             ('conclusion', ): ConclusionSectionWriterReviewGPT,
         }

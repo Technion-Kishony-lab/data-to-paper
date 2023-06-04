@@ -86,7 +86,8 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser):
+class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
+                                              CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
@@ -137,7 +138,8 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 
 
 @dataclass
-class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser):
+class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser,
+                                            CheckExtractionReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                              'tables')

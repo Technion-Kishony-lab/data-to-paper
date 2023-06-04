@@ -1,13 +1,11 @@
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT
 from dataclasses import dataclass
-from typing import Dict, Any, List, Set
 
 import pytest
 
 from scientistgpt.env import MAX_MODEL_ENGINE
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.servers.openai_models import ModelEngine
-from scientistgpt.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
@@ -34,8 +32,9 @@ def test_request_quoted_text(quotes):
 ])
 def test_request_quoted_text_with_error(incorrect_quotes):
     check_wrong_and_right_responses(
-        responses=[f'Here is some wrongly enclosed test:\n{incorrect_quotes[0]}{enclosed_text}{incorrect_quotes[1]}\nCheck it out.',
-                   f'Now it is good:\n```{enclosed_text}```\n'],
+        responses=
+        [f'Here is some wrongly enclosed test:\n{incorrect_quotes[0]}{enclosed_text}{incorrect_quotes[1]}\nCheck it.',
+         f'Now it is good:\n```{enclosed_text}```\n'],
         requester=TestBaseProductsQuotedReviewGPT(
             rewind_after_getting_a_valid_response=None,
             rewind_after_end_of_review=None,
@@ -48,10 +47,10 @@ def test_request_quoted_text_bumps_model():
     with OPENAI_SERVER_CALLER.mock(
             ['I am not sending any enclosed text',
              'I am starting to write, but fails: \n```\nthe secret recipe is\n',
-             'Now, as a bumped-up model, I can finish this though: \n```\nthe secret recipe is to add ton of chocolate\n```'],
+             'Now, as a bumped-up model, I can finish this though: \n```\nthe secret recipe is to add chocolate\n```'],
             record_more_if_needed=False):
         requester = TestBaseProductsQuotedReviewGPT(model_engine=ModelEngine.GPT35_TURBO)
-        assert requester.run_dialog_and_get_valid_result() == '\nthe secret recipe is to add ton of chocolate\n'
+        assert requester.run_dialog_and_get_valid_result() == '\nthe secret recipe is to add chocolate\n'
 
     # assert context as sent to the server:
     models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]

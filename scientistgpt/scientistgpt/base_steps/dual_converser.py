@@ -1,11 +1,11 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple, Any, Union
+from typing import Optional, Tuple, Any
 
-from scientistgpt.conversation import Role, ConversationManager, GeneralMessageDesignation, Message
+from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation, Message
 from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import StrOrTextFormat, format_value, Replacer
+from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 
 from .converser import Converser
 from .result_converser import ResultConverser, Rewind

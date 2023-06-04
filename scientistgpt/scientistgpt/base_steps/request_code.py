@@ -13,7 +13,7 @@ from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 from . import BaseProductsQuotedReviewGPT
 
 from .debugger import DebuggerConverser
-from .base_products_conversers import BackgroundProductsConverser, ReviewBackgroundProductsConverser
+from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import MultiChoiceBackgroundProductsConverser
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
