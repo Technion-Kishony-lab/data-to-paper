@@ -21,9 +21,17 @@ def test_find_non_matching_numeric_values(source, non_matching):
 
 
 @pytest.mark.parametrize('source, non_matching', [
-    ('accuracy of 0.900154, AUC of 0.7524921', []),
-    ('accuracy of 0.9002, AUC of 0.7525', []),
+    ('rows: 234091, cols: 9', []),
+])
+def test_find_non_matching_numeric_values_for_numbers_with_comma(source, non_matching):
+    target = 'We had 234,091 rows and 9 columns'
+    assert find_non_matching_numeric_values(source, target) == non_matching
+
+
+@pytest.mark.parametrize('source, non_matching', [
+    ('accuracy of 0.900154, FDR 0.0021, AUC of 0.7524921', []),
+    ('accuracy of 0.9002, FDR 0.0021, AUC of 0.7525', []),
 ])
 def test_find_non_matching_numeric_values_with_percentage(source, non_matching):
-    target = 'accuracy of 90.02%, AUC of 75.25%'
+    target = 'accuracy of 90.02%, AUC of 75.25% and FDR 0.2%'
     assert find_non_matching_numeric_values(source, target) == non_matching
