@@ -10,6 +10,7 @@ from scientistgpt.utils.nice_list import NiceList, NiceDict
 from scientistgpt.utils.replacer import Replacer
 from scientistgpt.utils.types import ListBasedSet
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
+from . import BaseProductsQuotedReviewGPT
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser, ReviewBackgroundProductsConverser
@@ -200,30 +201,18 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
     def _ask_for_code_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
         if self.requesting_code_explanation_prompt is None:
             return None
-        # response = BaseProductsQuotedReviewGPT.from_(
-        #     self,
-        #     max_reviewing_rounds=0,
-        #     user_initiation_prompt=self.requesting_code_explanation_prompt,
-        # ).initialize_and_run_dialog()
-        #
-        self.apply_append_user_message(
-            content=self.requesting_code_explanation_prompt,
-        )
-        # TODO: this is a temporary hack.
-        return self.apply_get_and_append_assistant_message(expected_tokens_in_response=600,
-                                                           hidden_messages=RangeMessageDesignation.from_(1, -5),
-                                                           ).content
+        return BaseProductsQuotedReviewGPT.from_(
+            self,
+            max_reviewing_rounds=0,
+            user_initiation_prompt=self.requesting_code_explanation_prompt,
+        ).run_dialog_and_get_valid_result()
 
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
         if self.offer_revision_prompt is None:
             return False
 
-        return MultiChoiceBackgroundProductsConverser(
-            conversation_name=self.conversation_name,
-            web_conversation_name=self.web_conversation_name,
-            user_agent=self.user_agent,
-            assistant_agent=self.assistant_agent,
-            actions_and_conversations=self.actions_and_conversations,
+        return MultiChoiceBackgroundProductsConverser.from_(
+            self,
             multi_choice_question=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
             possible_choices=('1', '2'),
         ).get_chosen_option() == '2'
