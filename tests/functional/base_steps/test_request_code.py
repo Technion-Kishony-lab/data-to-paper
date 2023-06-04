@@ -47,7 +47,7 @@ df2.to_csv('new_df.csv')
 
 code_creating_csv_keywords_in_description = ('new_df.csv', 'col1', 'col2', 'col3')
 
-new_df_explanation = "This file is a new dataframe which has the following columns:\na b c"
+new_df_explanation = "\nThis file is a new dataframe which has the following columns:\na b c\n"
 
 code_reading_not_changing_existing_series = r"""import pandas as pd
 import copy
@@ -82,7 +82,7 @@ def test_request_code_with_adding_new_column(code_running_converser):
 def test_request_code_with_creating_new_df(code_running_converser):
     with OPENAI_SERVER_CALLER.mock(
             [f'Python value:\n```python\n{code_creating_csv}\n```\nShould be all good.',
-             new_df_explanation],
+             f'Here is the explanation ```{new_df_explanation}```'],
             record_more_if_needed=False):
         code_and_outputs = {"data_preprocessing": code_running_converser.get_code_and_output()}
         scientific_products = ScientificProducts()
