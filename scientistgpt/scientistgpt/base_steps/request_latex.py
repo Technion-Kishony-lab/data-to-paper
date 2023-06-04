@@ -13,6 +13,7 @@ from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figu
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind
+from ..latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment
 
 
 @dataclass
@@ -73,7 +74,12 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:
-            self._raise_self_response_error(str(e))
+            tags_list = get_list_of_tag_pairs_for_section_or_fragment(section_name)
+            tags = tags_list[0]
+            self._raise_self_response_error(
+                str(e),
+                bump_model=len(tags_list) == 1 and tags[0] in response and tags[1] not in response
+            )
 
     def _refine_extracted_section(self, extracted_section: str) -> str:
         if self.should_remove_citations_from_section:
