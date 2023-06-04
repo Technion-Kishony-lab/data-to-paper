@@ -5,6 +5,9 @@ from scientistgpt.utils.check_numeric_values import extract_numeric_values, find
 
 @pytest.mark.parametrize('text, numbers', [
     ('The p-value was 1.02 and the variance was 10.00', ['1.02', '10.00']),
+    ('The number of patients was 200,000', ['200,000']),
+    ('There were three numbers 10, 3 and 9', ['10', '3', '9']),
+    ('Some results can be negative, like -100.2', ['-100.2']),
 ])
 def test_extract_numeric_values(text, numbers):
     assert extract_numeric_values(text) == numbers
