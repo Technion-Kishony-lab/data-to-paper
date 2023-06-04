@@ -35,6 +35,7 @@ class Rewind(Enum):
     REPOST_AS_FRESH: delete (2)-(5) and change (6) to look fresh
     ACCUMULATE: do nothing
     AS_FIRST_CORRECTION: delete (4)-(5)
+    DELETE_ALL: delete (1)-(7)
     """
 
     REGENERATE = 'regenerate'
@@ -51,6 +52,9 @@ class Rewind(Enum):
 
     AS_FIRST_CORRECTION = 'as_first_correction'
     # delete any previous erroneous responses, making the current response the first correction
+
+    DELETE_ALL = 'delete_all'
+    # delete all previous responses including the original user initiation prompt
 
 
 @dataclass
@@ -191,6 +195,8 @@ class ResultConverser(Converser):
                 self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response))
 
             if not response_error:
+                if self.rewind_after_getting_a_valid_response == Rewind.DELETE_ALL:
+                    self._rewind_conversation_to_first_response(-1)  # delete including the user initiation prompt
                 return self_response
 
             # The response is not valid
