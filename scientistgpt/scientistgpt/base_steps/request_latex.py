@@ -11,11 +11,13 @@ from scientistgpt.latex.exceptions import LatexCompilationError, UnwantedCommand
 from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands
 
-from .base_products_conversers import BaseProductsReviewGPT
+from .base_products_conversers import ReviewBackgroundProductsConverser
+from .result_converser import Rewind
+from ..latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment
 
 
 @dataclass
-class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
+class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write one or more latex sections.
     Option for removing citations from the section.
@@ -30,6 +32,7 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
 
         Please {goal_verb} the {goal_noun} part again with the correct latex formatting.
         """)
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     @property
     def section_name(self) -> Optional[str]:
@@ -46,7 +49,17 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
                         separator=', ', last_separator=' and ')
 
     def _alter_self_response(self, response: str) -> str:
-        return super()._alter_self_response(wrap_text_with_triple_quotes(response, 'latex'))
+        for section_name in self.section_names:
+            latex = self._extract_latex_section_from_response(response, section_name)
+            response = response.replace(latex, wrap_text_with_triple_quotes(latex, 'latex'))
+        return super()._alter_self_response(response)
+
+    def _get_fresh_looking_response(self, response) -> str:
+        """
+        Return a response that looks fresh.
+        """
+        response = '\n\n'.join(self.returned_result)
+        return super()._get_fresh_looking_response(response)
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = self._extract_latex_section_from_response(response, section_name)
@@ -61,7 +74,12 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:
-            self._raise_self_response_error(str(e))
+            tags_list = get_list_of_tag_pairs_for_section_or_fragment(section_name)
+            tags = tags_list[0]
+            self._raise_self_response_error(
+                str(e),
+                bump_model=len(tags_list) == 1 and tags[0] in response and tags[1] not in response
+            )
 
     def _refine_extracted_section(self, extracted_section: str) -> str:
         if self.should_remove_citations_from_section:
@@ -81,19 +99,13 @@ class BaseLatexProductsReviewGPT(BaseProductsReviewGPT):
             self._raise_self_response_error(str(e))
         return extracted_section
 
-    def _check_and_extract_value_from_self_response(self, response: str):
+    def _check_and_extract_result_from_self_response(self, response: str):
         """
-        Check the response and extract latex sections from it into returned_value.
+        Check the response and extract latex sections from it into returned_result.
         If the there are errors that require self to revise the response, raise an SelfResponseError describing
         the problem.
         """
         section_contents = []
         for section_name in self.section_names:
             section_contents.append(self._get_latex_section_from_response(response, section_name))
-        self.returned_value = section_contents
-
-    def get_sections(self) -> List[str]:
-        return self.get_value()
-
-    def get_section(self):
-        return self.get_sections()[0]
+        self.returned_result = section_contents

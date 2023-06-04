@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 from scientistgpt.base_products import Products
-from .dual_converser import ConverserGPT, ReviewDialogDualConverserGPT
+from .result_converser import ResultConverser
+from .dual_converser import ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
@@ -11,7 +12,7 @@ from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_va
 
 
 @dataclass
-class BaseProductsHandler(Copier):
+class ProductsHandler(Copier):
     """
     Base class for steps that deal with Products and may also create output files.
     """
@@ -35,16 +36,16 @@ class BaseProductsHandler(Copier):
 
 
 @dataclass
-class BaseProductsGPT(BaseProductsHandler, ConverserGPT):
-    COPY_ATTRIBUTES = BaseProductsHandler.COPY_ATTRIBUTES | ConverserGPT.COPY_ATTRIBUTES
+class ProductsConverser(ProductsHandler, ResultConverser):
+    COPY_ATTRIBUTES = ProductsHandler.COPY_ATTRIBUTES | ResultConverser.COPY_ATTRIBUTES
 
     def __post_init__(self):
-        BaseProductsHandler.__post_init__(self)
-        ConverserGPT.__post_init__(self)
+        ProductsHandler.__post_init__(self)
+        ResultConverser.__post_init__(self)
 
 
 @dataclass
-class BaseBackgroundProductsGPT(BaseProductsGPT):
+class BackgroundProductsConverser(ProductsConverser):
     """
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
@@ -148,12 +149,12 @@ class BaseBackgroundProductsGPT(BaseProductsGPT):
 
 
 @dataclass
-class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverserGPT):
+class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialogDualConverserGPT):
     """
     Base class for conversers that specify prior products and then set a goal for the new product
     to be suggested and reviewed.
     """
-    COPY_ATTRIBUTES = BaseBackgroundProductsGPT.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
+    COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "I hereby approve the {goal_noun}"
@@ -161,7 +162,7 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
     def __post_init__(self):
-        BaseBackgroundProductsGPT.__post_init__(self)
+        BackgroundProductsConverser.__post_init__(self)
         ReviewDialogDualConverserGPT.__post_init__(self)
 
     def _pre_populate_other_background(self):
@@ -184,7 +185,7 @@ class BaseProductsReviewGPT(BaseBackgroundProductsGPT, ReviewDialogDualConverser
         self.apply_to_other_append_user_message(product_description, tag=tag, is_background=True)
 
 
-class BaseCheckExtractionProductsReviewGPT(BaseProductsReviewGPT):
+class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     product_fields_from_which_response_is_extracted: Tuple[str] = None
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:

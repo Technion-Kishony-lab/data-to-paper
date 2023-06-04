@@ -12,10 +12,11 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, TablesReviewGPT, KeyNumericalResultsExtractorReviewGPT
-from .writing_steps import SectionWriterReviewGPT, TitleAbstractSectionWriterReviewGPT, MethodsSectionWriterReviewGPT, \
-    ReferringTablesSectionWriterReviewGPT, DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT, \
-    IntroductionSectionWriterReviewGPT
+    ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT
+from .writing_steps import SectionWriterReviewBackgroundProductsConverser, TitleAbstractSectionWriterReviewGPT, \
+    MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
+    DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT
+
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
@@ -38,12 +39,14 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
-    def get_sections_to_writing_class(self) -> Dict[Tuple[str, ...], Type[SectionWriterReviewGPT]]:
+    def get_sections_to_writing_class(self
+                                      ) -> Dict[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]:
         return {
             ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
             ('introduction', ): IntroductionSectionWriterReviewGPT,
             ('methods', ): MethodsSectionWriterReviewGPT,
-            ('results', ): ReferringTablesSectionWriterReviewGPT if self.should_add_tables else SectionWriterReviewGPT,
+            ('results', ): (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
+                            else SectionWriterReviewBackgroundProductsConverser),
             ('discussion', ): DiscussionSectionWriterReviewGPT,
             ('conclusion', ): ConclusionSectionWriterReviewGPT,
         }
@@ -123,13 +126,13 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_add_tables:
             products.tables['results'] = []
             for i in range(self.number_of_tables_to_add):
-                table = TablesReviewGPT.from_(
+                table = TablesReviewBackgroundProductsConverser.from_(
                     self, section_names=['table'], table_number=i + 1, conversation_name=f'table_{i + 1}',
-                    total_number_of_tables=self.number_of_tables_to_add).get_section()
+                    total_number_of_tables=self.number_of_tables_to_add).run_dialog_and_get_valid_result()[0]
                 products.tables['results'].append(table)
 
         # Numerical results
-        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).get_value()
+        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).run_dialog_and_get_valid_result()
         self.send_product_to_client('tables_and_numeric_values')
 
         # Results interpretation
@@ -142,7 +145,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_to_writing_class.items():
-            sections = writing_class.from_(self, section_names=section_names).get_sections()
+            sections = writing_class.from_(self, section_names=section_names).run_dialog_and_get_valid_result()
             for section_name, section in zip(section_names, sections):
                 products.paper_sections[section_name] = section
         self.send_product_to_client('paper_sections')

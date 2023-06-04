@@ -25,26 +25,29 @@ from .request_products_from_user import DirectorProductGPT
 # --- REQUESTS PRODUCTS FROM CHATGPT ---
 
 # Requesting un-structured text:
-from .base_products_conversers import BaseBackgroundProductsGPT
+from .base_products_conversers import BackgroundProductsConverser
 
 # Requesting un-structured text as part of a gpt-gpt review process:
-from .base_products_conversers import BaseProductsReviewGPT
+from .base_products_conversers import ReviewBackgroundProductsConverser
 
 # Addon to check if response correctly extracts from provided products:
-from .base_products_conversers import BaseCheckExtractionProductsReviewGPT
+from .base_products_conversers import CheckExtractionReviewBackgroundProductsConverser
 
 # Requesting quote-enclosed text (with optional gpt-review):
 from .request_quoted_text import BaseProductsQuotedReviewGPT
 
 # Requesting LaTeX formatted text (with optional gpt-review):
-from .request_latex import BaseLatexProductsReviewGPT
+from .request_latex import LatexReviewBackgroundProductsConverser
 
 # Requesting Python values (with optional gpt-review):
-from .request_python_value import BasePythonValueProductsReviewGPT
+from .request_python_value import PythonValueReviewBackgroundProductsConverser
+from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
 # Requesting code (with automatic debugging feedback):
 from .request_code import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT
 
+# Requesting answer to multiple choice question
+from .request_multi_choice import MultiChoiceBackgroundProductsConverser
 
 # --- CONVERTING PRODUCTS TO FILES ---
 

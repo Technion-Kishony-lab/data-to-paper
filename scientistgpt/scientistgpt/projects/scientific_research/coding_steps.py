@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 from scientistgpt.base_steps import OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT, \
-    BaseBackgroundProductsGPT
+    BackgroundProductsConverser
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.utils import dedent_triple_quote_str
@@ -11,7 +11,7 @@ from scientistgpt.utils.nice_list import NiceList
 
 
 @dataclass
-class BaseScientificCodeProductsGPT(BaseBackgroundProductsGPT):
+class BaseScientificCodeProductsGPT(BackgroundProductsConverser):
 
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
 
