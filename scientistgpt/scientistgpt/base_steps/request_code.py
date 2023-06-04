@@ -214,9 +214,9 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
 
         return MultiChoiceBackgroundProductsConverser.from_(
             self,
-            multi_choice_question=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
+            user_initiation_prompt=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
             possible_choices=('1', '2'),
-        ).get_chosen_option() == '2'
+        ).run_and_get_valid_result() == '2'
 
 
 @dataclass

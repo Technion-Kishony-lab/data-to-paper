@@ -97,13 +97,13 @@ class ScientificStepsRunner(BaseStepsRunner):
         if products.research_goal is None:
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
-            products.research_goal = GoalReviewGPT.from_(self).get_value()
+            products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         self.send_product_to_client('research_goal')
 
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
             self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.analysis_plan = PlanReviewGPT.from_(self).get_value()
+            products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             self.send_product_to_client('analysis_plan')
 
         # Data Preprocessing
