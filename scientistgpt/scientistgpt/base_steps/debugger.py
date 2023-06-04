@@ -20,16 +20,16 @@ from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 
-from .base_products_conversers import BaseProductsGPT
+from .base_products_conversers import ProductsConverser
 
 
 @dataclass
-class DebuggerGPT(BaseProductsGPT):
+class DebuggerConverser(ProductsConverser):
     """
     Interact with chatgpt to debug a code that needs to create an output file.
 
-    Starting with a conversation which ends with a code-request from the user, DebuggerGPT interacts with chatgpt to
-    enhance the code until it runs properly and creates a desired output file.
+    Starting with a conversation which ends with a code-request from the user, DebuggerConverser interacts
+    with chatgpt to enhance the code until it runs properly and creates a desired output file.
 
     Interactions with chatgpt include adequate reporting of:
     * missing packages
@@ -43,6 +43,8 @@ class DebuggerGPT(BaseProductsGPT):
     allowed_created_files: Tuple[str] = None
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
+
+    user_initiation_prompt: str = None
 
     assistant_agent: Agent = None
     user_agent: Agent = None
@@ -150,7 +152,7 @@ class DebuggerGPT(BaseProductsGPT):
             comment=f'{self.iteration_str}: GPT code is incomplete.')
 
         # delete the last two messages (incomplete code and this just-posted user response):
-        self.conversation_manager.delete_messages((-2, -1))
+        self.apply_delete_messages((-2, -1))
         self.model_engine = ModelEngine.GPT4
 
     def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
@@ -305,7 +307,7 @@ class DebuggerGPT(BaseProductsGPT):
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
             # We first clean up, re-reposting the code as if it was the immediate response
-            self.conversation_manager.delete_messages(
+            self.apply_delete_messages(
                 message_designation=RangeMessageDesignation.from_(
                     SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -1),  # keeps the last 2 messages
                 comment="Deleting previous debug iterations.")

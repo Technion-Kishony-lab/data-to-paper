@@ -62,7 +62,7 @@ class ListBasedSet(collections.abc.Set, Generic[T]):
 
     def __str__(self):
         # make it look like a set:
-        return '{' + ', '.join(str(e) for e in self) + '}'
+        return '{' + ', '.join(repr(e) for e in self) + '}'
 
     def add(self, value):
         if value not in self.elements:

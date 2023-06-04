@@ -28,3 +28,5 @@ gpt_code_attempt*
 scientistgpt/examples/diabetes/local_paths.py
 
 scientistgpt/examples/local_paths.py
+
+tests/integration/citations/.pytest_cache/v/cache/

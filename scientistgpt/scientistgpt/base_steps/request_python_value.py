@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
-from scientistgpt.base_steps.base_products_conversers import BaseProductsReviewGPT
+from scientistgpt.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Tuple, get_args, Iterable, Set
+from typing import Any, Dict, Tuple, get_args, Iterable, Set, Optional
 
+from scientistgpt.base_steps.result_converser import Rewind
 from scientistgpt.utils import extract_text_between_tags
 from scientistgpt.utils.tag_pairs import TagPairs
 
@@ -37,12 +38,13 @@ def check_all_of_type(elements: Iterable, type_: type) -> bool:
 
 
 @dataclass
-class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
+class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write a python value (like a list of str, or dict).
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
     value_type: type = None  # Only supports Dict[str, str] and List[str] for now.
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     @property
     def parent_type(self) -> type:
@@ -52,12 +54,19 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
     def child_types(self) -> Tuple[type, ...]:
         return get_args(self.value_type)
 
-    def _check_and_extract_value_from_self_response(self, response: str):
+    def _get_fresh_looking_response(self, response) -> str:
+        """
+        Return a response that contains just the python value.
+        """
+        response = self.returned_result
+        return super()._get_fresh_looking_response(str(response))
+
+    def _check_and_extract_result_from_self_response(self, response: str):
         response_value_str = self._extract_str_of_python_value_from_response(response)
         response_value = self._evaluate_python_value_from_str(response_value_str)
         response_value = self._validate_value_type(response_value)
         response_value = self._check_response_value(response_value)
-        self.returned_value = response_value
+        self.returned_result = response_value
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
         """
@@ -70,14 +79,15 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
         except ValueError:
             self._raise_self_response_error(
                 f'Your response should be formatted as a Python {self.parent_type.__name__}, '
-                f'flanked by `{tags[0]}` and `{tags[1]}`.')
+                f'flanked by `{tags[0]}` and `{tags[1]}`.',
+                bump_model=tags[0] in response and tags[1] not in response)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         try:
             return eval(response)
         except Exception as e:
             self._raise_self_response_error(
-                f'I tried to eval your response with Python `eval(response)`, but got:\n{e}')
+                f'I tried to eval your response with Python `eval()`, but got:\n{e}')
 
     def _validate_value_type(self, response_value: Any) -> Any:
         """
@@ -107,7 +117,7 @@ class BasePythonValueProductsReviewGPT(BaseProductsReviewGPT):
 
 
 @dataclass
-class PythonDictWithDefinedKeysProductsReviewGPT(BasePythonValueProductsReviewGPT):
+class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """

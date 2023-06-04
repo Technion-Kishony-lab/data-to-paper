@@ -22,6 +22,7 @@ class ServerCaller:
     def __init__(self):
         self.old_records = []
         self.new_records = []
+        self.args_kwargs_response_history = []
         self.index_in_old_records = 0
         self.is_playing_or_recording = False
         self.record_more_if_needed = False
@@ -83,7 +84,6 @@ class ServerCaller:
         if self.index_in_old_records < len(self.old_records):
             response = self.old_records[self.index_in_old_records]
             self.index_in_old_records += 1
-            return response
         else:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()
@@ -91,7 +91,8 @@ class ServerCaller:
             self.new_records.append(response)
             if self.should_save:
                 self.save_records(self.file_path)
-            return response
+        self.args_kwargs_response_history.append((args, kwargs, response))  # for debugging and testing
+        return response
 
     def __enter__(self):
         self.new_records = []
@@ -113,6 +114,7 @@ class ServerCaller:
         Returns a context manager to mock the server responses (specified as old_records).
         """
         self.old_records = old_records or []
+        self.args_kwargs_response_history = []
         self.record_more_if_needed = record_more_if_needed
         self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
         self.should_save = should_save
