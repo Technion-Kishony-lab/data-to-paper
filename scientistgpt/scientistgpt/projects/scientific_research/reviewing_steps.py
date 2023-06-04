@@ -133,6 +133,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
             return ''
 
     def _check_section(self, section: str) -> str:
+        section = super()._check_section(section)
         self._check_extracted_numbers(section)
         return section
 
