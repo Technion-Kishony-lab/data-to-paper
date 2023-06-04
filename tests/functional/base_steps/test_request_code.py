@@ -12,7 +12,7 @@ from tests.functional.base_steps.utils import TestProductsReviewGPT
 
 @dataclass
 class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, DataframeChangingCodeProductsGPT):
-    allowed_created_files: Tuple[str] = ('*.csv',)
+    allowed_created_files: Tuple[str, ...] = ('*.csv',)
     output_filename: str = None
     code_name: str = 'Testing'
     temp_dir: str = None
