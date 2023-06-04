@@ -30,7 +30,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     research_goal: Optional[str] = None
 
     should_do_data_exploration: bool = True
-    should_do_data_preprocessing: bool = False
+    should_do_data_preprocessing: bool = True
     should_prepare_data_analysis_plan: bool = False
     should_add_citations: bool = True
     should_add_tables: bool = True
@@ -94,13 +94,13 @@ class ScientificStepsRunner(BaseStepsRunner):
         if products.research_goal is None:
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
-            products.research_goal = GoalReviewGPT.from_(self).initialize_and_run_dialog()
+            products.research_goal = GoalReviewGPT.from_(self).get_value()
         self.send_product_to_client('research_goal')
 
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
             self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.analysis_plan = PlanReviewGPT.from_(self).initialize_and_run_dialog()
+            products.analysis_plan = PlanReviewGPT.from_(self).get_value()
             self.send_product_to_client('analysis_plan')
 
         # Data Preprocessing
@@ -136,7 +136,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_interpret_results:
             self.advance_stage_and_set_active_conversation(
                 ScientificStages.INTERPRETATION, ScientificAgent.InterpretationReviewer)
-            products.results_summary = ResultsInterpretationReviewGPT.from_(self).initialize_and_run_dialog()
+            products.results_summary = ResultsInterpretationReviewGPT.from_(self).get_value()
             self.send_product_to_client('results_summary')
 
         # Paper sections
