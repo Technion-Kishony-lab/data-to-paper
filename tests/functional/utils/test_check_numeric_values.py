@@ -5,7 +5,7 @@ from scientistgpt.utils.check_numeric_values import extract_numeric_values, find
 
 @pytest.mark.parametrize('text, numbers', [
     ('The p-value was 1.02 and the variance was 10.00', ['1.02', '10.00']),
-    ('The number of patients was 200,000', ['200,000']),
+    ('Number can be writen with a comma 200,000 or not 100123', ['200,000', '100123']),
     ('There were three numbers 10, 3 and 9', ['10', '3', '9']),
     ('Some results can be negative, like -100.2', ['-100.2']),
 ])
