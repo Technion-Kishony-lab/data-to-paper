@@ -17,6 +17,7 @@ from .base_products_conversers import BackgroundProductsConverser, ReviewBackgro
 from .exceptions import FailedCreatingProductException
 from .request_multi_choice import MultiChoiceBackgroundProductsConverser
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from .result_converser import Rewind
 
 
 @dataclass
@@ -243,8 +244,6 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
         saved_ids_filenames = sorted(saved_ids_filenames, key=lambda saved_id_filename: saved_id_filename[1])
 
         for saved_df_id, saved_df_filename in saved_ids_filenames:
-            self.comment(f'Asking for description of dataframe {saved_df_filename}.', web_conversation_name=None,
-                         tag='asking_for_file_description')  # same tag to reset here for each file
             read_filename = dataframe_operations.get_read_filename(saved_df_id)
             saved_columns = ListBasedSet(dataframe_operations.get_save_columns(saved_df_id))
             creation_columns = ListBasedSet(dataframe_operations.get_creation_columns(saved_df_id))
@@ -253,9 +252,10 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
             if read_filename is None:
                 # this saved dataframe was created by the code, not read from a file
                 columns = saved_columns
-                response = ReviewBackgroundProductsConverser.from_(
+                response = BaseProductsQuotedReviewGPT.from_(
                     self,
                     max_reviewing_rounds=0,
+                    rewind_after_end_of_review=Rewind.DELETE_ALL,
                     user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
                                                             'columns': columns}),
@@ -270,6 +270,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                 columns_to_explanations = PythonDictWithDefinedKeysReviewBackgroundProductsConverser.from_(
                     self,
                     max_reviewing_rounds=0,
+                    rewind_after_end_of_review=Rewind.DELETE_ALL,
                     requested_keys=columns,
                     user_initiation_prompt=Replacer(self,
                                                     self.requesting_explanation_for_a_modified_dataframe,
