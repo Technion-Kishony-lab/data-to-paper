@@ -338,7 +338,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     def _get_fresh_looking_response(self, response) -> str:
-        return 'Here is the {goal_noun}:\n\n```' + self.returned_result + '\n```\n\n'
+        if isinstance(self.returned_result, str):
+            return 'Here is the {goal_noun}:\n\n```' + self.returned_result + '```\n\n'
+        else:
+            return super()._get_fresh_looking_response(response)
 
     def _check_and_extract_result_from_self_response(self, response: str):
         for flanking_tags in self.flanking_tag_list:
