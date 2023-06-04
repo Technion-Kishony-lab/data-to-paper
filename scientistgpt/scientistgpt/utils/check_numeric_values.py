@@ -100,8 +100,8 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
 
     non_matching_str_numbers = []
     for str_target_number in str_target_numbers:
-        if '.' not in str_target_number and ',' not in str_target_number and '-' not in str_target_number \
-                and int(str_target_number) < ignore_int_below:
+        if '.' not in str_target_number and ',' not in str_target_number \
+                and abs(int(str_target_number)) < ignore_int_below:
             continue
 
         num_digits = get_number_of_significant_figures(str_target_number, remove_trailing_zeros)
