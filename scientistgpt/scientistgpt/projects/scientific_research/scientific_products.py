@@ -83,7 +83,8 @@ class ScientificProducts(Products):
             [description for description in self.data_file_descriptions] +
             [desc_of_file for co in self.codes_and_outputs.values() if co.description_of_created_files is not None for
              desc_of_file in co.description_of_created_files],
-            data_folder=self.data_file_descriptions.data_folder)
+            data_folder=self.data_file_descriptions.data_folder,
+            general_description=self.data_file_descriptions.general_description)
 
     @property
     def citations(self) -> NiceList[CrossrefCitation]:
@@ -163,6 +164,13 @@ class ScientificProducts(Products):
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
             **super()._get_generators(),
+
+            'general_dataset_description': NameDescriptionStageGenerator(
+                'Dataset Description',
+                'DESCRIPTION OF THE DATASET\n\n{}',
+                ScientificStages.DATA,
+                lambda: self.data_file_descriptions.general_description,
+            ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Raw Dataset',

@@ -18,6 +18,10 @@ def read_file_description(project: str, filename: str):
         return f.read()
 
 
+def read_general_file_description(project: str):
+    return read_file_description(project, 'general_description.txt')
+
+
 def get_file_description(project: str, data_filename: str):
     return DataFileDescription(
         file_path=data_filename,
@@ -27,7 +31,8 @@ def get_file_description(project: str, data_filename: str):
 
 def get_file_descriptions(project: str, data_filenames: List[str], data_folder: Path):
     return DataFileDescriptions([get_file_description(project, data_filename) for data_filename in data_filenames],
-                                data_folder=data_folder)
+                                data_folder=data_folder,
+                                general_description=read_general_file_description(project))
 
 
 def copy_datafiles_to_data_folder(project: str, data_filenames: List[str], data_folder: Path):
