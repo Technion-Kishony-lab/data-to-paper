@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
-from scientistgpt import Message, Role
 from scientistgpt.base_steps.converser import Converser
 from scientistgpt.base_steps.exceptions import FailedCreatingProductException
 from scientistgpt.conversation.message_designation import RangeMessageDesignation

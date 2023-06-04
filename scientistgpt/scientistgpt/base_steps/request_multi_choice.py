@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Optional, Any
+from typing import Tuple, Optional
 
 from scientistgpt.utils import dedent_triple_quote_str
 
@@ -20,7 +20,7 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
         Please choose one of the following options:
         1. Looks good.
         2. Something is wrong.
-        
+
         {choice_instructions}
         """)
 

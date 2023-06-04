@@ -21,7 +21,8 @@ correct_answer = "I choose option 2"
     (correct_answer, correct_answer.replace('2', '3'), '2', ('just a single character', '1', '2')),
     (correct_answer, correct_answer.replace('2', '1 and 2'), '2', ('just a single character', '1', '2')),
 ])
-def test_request_multi_choice_incorrect_then_correct(correct_response, incorrect_response, expected_value, error_keywords):
+def test_request_multi_choice_incorrect_then_correct(correct_response, incorrect_response,
+                                                     expected_value, error_keywords):
     check_wrong_and_right_responses(
         [incorrect_response, correct_response],
         requester=TestMultiChoiceBackgroundProductsConverser(rewind_after_getting_a_valid_response=None),

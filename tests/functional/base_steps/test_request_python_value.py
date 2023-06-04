@@ -3,7 +3,8 @@ from typing import Dict, Any, List, Set
 
 import pytest
 
-from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, \
+    PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from scientistgpt.utils.types import ListBasedSet
 
@@ -11,12 +12,14 @@ from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
 
 @dataclass
-class TestPythonValueReviewBackgroundProductsConverser(TestProductsReviewGPT, PythonValueReviewBackgroundProductsConverser):
+class TestPythonValueReviewBackgroundProductsConverser(TestProductsReviewGPT,
+                                                       PythonValueReviewBackgroundProductsConverser):
     pass
 
 
 @dataclass
-class TestPythonDictWithDefinedKeysProductsReviewGPT(TestProductsReviewGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+class TestPythonDictWithDefinedKeysProductsReviewGPT(TestProductsReviewGPT,
+                                                     PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     pass
 
 

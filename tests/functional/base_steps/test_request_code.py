@@ -1,14 +1,13 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple
 
 from _pytest.fixtures import fixture
 
 from scientistgpt.base_steps import DataframeChangingCodeProductsGPT
 from scientistgpt.base_products import DataFileDescriptions, DataFileDescription
-from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from tests.functional.base_steps.utils import TestAgent, TestProductsReviewGPT
+from tests.functional.base_steps.utils import TestProductsReviewGPT
 
 
 @dataclass

@@ -28,8 +28,8 @@ class DebuggerConverser(ProductsConverser):
     """
     Interact with chatgpt to debug a code that needs to create an output file.
 
-    Starting with a conversation which ends with a code-request from the user, DebuggerConverser interacts with chatgpt to
-    enhance the code until it runs properly and creates a desired output file.
+    Starting with a conversation which ends with a code-request from the user, DebuggerConverser interacts
+    with chatgpt to enhance the code until it runs properly and creates a desired output file.
 
     Interactions with chatgpt include adequate reporting of:
     * missing packages
