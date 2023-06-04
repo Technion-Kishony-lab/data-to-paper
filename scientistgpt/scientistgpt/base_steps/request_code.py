@@ -26,9 +26,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
 
-    supported_packages: Tuple[str] = SUPPORTED_PACKAGES
+    supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
-    allowed_created_files: Tuple[str] = None
+    allowed_created_files: Tuple[str, ...] = None
     # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
 
     allow_dataframes_to_change_existing_series: bool = True

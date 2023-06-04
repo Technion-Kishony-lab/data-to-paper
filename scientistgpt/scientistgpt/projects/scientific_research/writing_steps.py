@@ -13,7 +13,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     """
     Base class for the writer of a paper section in latex format.
     """
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                              'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
                                              'title_and_abstract')
 
@@ -109,7 +109,7 @@ class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsC
 
 @dataclass
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'title_and_abstract',
                                              'most_updated_paper_sections:methods',
                                              'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
@@ -123,7 +123,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 
 @dataclass
 class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
                                              'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
@@ -146,7 +146,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields: Tuple[str] = ('most_updated_paper_sections:{methods}',
+    background_product_fields: Tuple[str, ...] = ('most_updated_paper_sections:{methods}',
                                              'title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
@@ -176,7 +176,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str] = ('research_goal', 'title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('research_goal', 'title_and_abstract',
                                              'most_updated_paper_sections:methods',
                                              'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
@@ -189,7 +189,7 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
 
 @dataclass
 class ConclusionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str] = ('research_goal', 'title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('research_goal', 'title_and_abstract',
                                              'most_updated_paper_sections:results',
                                              'most_updated_paper_sections:discussion')
     max_reviewing_rounds: int = 1

@@ -16,7 +16,7 @@ class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
 
     products: ScientificProducts = None
-    background_product_fields: Tuple[str] = ('all_file_descriptions', 'research_goal', 'analysis_plan')
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal', 'analysis_plan')
     conversation_name: str = 'code_debugging'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     fake_performer_request_for_help: str = \
@@ -69,13 +69,13 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     conversation_name: str = 'data_exploration_code'
     code_name: str = 'Data Exploration'
-    background_product_fields: Tuple[str] = ('all_file_descriptions', )
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     gpt_script_filename: str = 'data_exploration_code'
     output_filename: str = 'data_exploration.txt'
-    allowed_created_files: Tuple[str] = ()
+    allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False
-    supported_packages: Tuple[str] = ('pandas', 'numpy', 'scipy')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
     code_requesting_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
@@ -113,11 +113,11 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     conversation_name: str = 'data_preprocessing_code'
     code_name: str = 'Data Preprocessing'
-    background_product_fields: Tuple[str] = ('research_goal', 'all_file_descriptions',
+    background_product_fields: Tuple[str, ...] = ('research_goal', 'all_file_descriptions',
                                              'outputs:data_exploration')
     gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = None
-    allowed_created_files: Tuple[str] = ('*.csv',)
+    allowed_created_files: Tuple[str, ...] = ('*.csv',)
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
 
@@ -160,12 +160,12 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
     user_agent: ScientificAgent = ScientificAgent.Debugger
     conversation_name: str = 'data_analysis_code'
     code_name: str = 'Data Analysis'
-    background_product_fields: Tuple[str] = \
+    background_product_fields: Tuple[str, ...] = \
         ('all_file_descriptions', 'analysis_plan', 'outputs:data_exploration',
          'codes_and_outputs:data_preprocessing', 'research_goal')
     gpt_script_filename: str = 'data_analysis_code'
     output_filename: str = 'results.txt'
-    allowed_created_files: Tuple[str] = ()
+    allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = True
     enforce_saving_altered_dataframes: bool = False
 
