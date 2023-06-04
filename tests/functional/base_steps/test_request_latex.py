@@ -77,7 +77,8 @@ def test_request_latex_with_error(correct_latex, section, replaced_value, replac
         [f'Here is some wrong latex:\n{incorrect_latex}\nLet me know if it is ok.',
          f'Here is the correct latex:\n{correct_latex}\nShould be fine now.'],
         requester=TestLatexReviewBackgroundProductsConverser(section_names=[section],
-                                                             repost_valid_response_as_fresh=False),
+                                                             rewind_after_end_of_review=None,
+                                                             rewind_after_getting_a_valid_response=None),
         correct_value=[correct_latex],
         error_texts=error_includes)
 

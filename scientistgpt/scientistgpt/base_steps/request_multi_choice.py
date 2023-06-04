@@ -30,7 +30,7 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
 
     possible_choices: Tuple[str, ...] = ('1', '2')
 
-    repost_valid_response_as_fresh: bool = True
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     def _get_chosen_choice_from_response(self, response: str) -> str:
         choices_in_response = [choice for choice in self.possible_choices if choice in response]

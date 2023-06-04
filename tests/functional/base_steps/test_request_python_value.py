@@ -60,7 +60,8 @@ def test_request_python_value_with_error(
         responses=[f'Here is some wrong python value:\n{non_correct_python_value}\nCheck it out.',
                    f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
         requester=TestPythonValueReviewBackgroundProductsConverser(value_type=value_type,
-                                                                   repost_valid_response_as_fresh=False),
+                                                                   rewind_after_end_of_review=None,
+                                                                   rewind_after_getting_a_valid_response=None),
         correct_value=eval(correct_python_value),
         error_texts=error_should_include)
 
@@ -76,7 +77,8 @@ def test_request_python_defined_keys_dict_with_error(
          f'Here is the correct python value:\n{correct_python_value}\nShould be fine now.'],
         requester=TestPythonDictWithDefinedKeysProductsReviewGPT(value_type=value_type,
                                                                  requested_keys=ListBasedSet(['a', 'b', 'c']),
-                                                                 repost_valid_response_as_fresh=False),
+                                                                 rewind_after_end_of_review=None,
+                                                                 rewind_after_getting_a_valid_response=None),
         correct_value=eval(correct_python_value),
         error_texts=error_should_include)
 

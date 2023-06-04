@@ -36,7 +36,10 @@ def test_request_quoted_text_with_error(incorrect_quotes):
     check_wrong_and_right_responses(
         responses=[f'Here is some wrongly enclosed test:\n{incorrect_quotes[0]}{enclosed_text}{incorrect_quotes[1]}\nCheck it out.',
                    f'Now it is good:\n```{enclosed_text}```\n'],
-        requester=TestBaseProductsQuotedReviewGPT(repost_valid_response_as_fresh=False),
+        requester=TestBaseProductsQuotedReviewGPT(
+            rewind_after_getting_a_valid_response=None,
+            rewind_after_end_of_review=None,
+        ),
         correct_value=enclosed_text,
         error_texts=("enclosed within triple-backticks", ))
 
