@@ -96,10 +96,13 @@ class ResultConverser(Converser):
     response_to_self_error: str = "{}"
     # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
 
-    repost_valid_response_as_fresh: bool = False
-    # If True, when we finally receive a valid response, we rewind and repost it as a fresh response.
+    rewind_after_getting_a_valid_response: Optional[Rewind] = None
+    # Can be:
+    # DELETE_ALL: leave the conversation as if the exchange never happened
+    # REPOST_AS_FRESH: rewind back to right after the user initiation prompt and post the last response as fresh
+    # ACCUMULATE (all `None`): do not do anything. the exchange is left as is.
 
-    _conversation_len_before_fist_response: int = None
+    _conversation_len_before_first_response: int = None
     _self_response_iteration_count: int = 0
 
     # Output:
@@ -146,13 +149,15 @@ class ResultConverser(Converser):
         """
         return response
 
-    def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1):
+    def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """
         Rewind the conversation to the first response + offset.
         offset=0 means that we delete all messages including the first response.
         """
+        if start is None:
+            start = self._conversation_len_before_first_response
         self.apply_delete_messages(
-            RangeMessageDesignation.from_(self._conversation_len_before_fist_response + offset, last))
+            RangeMessageDesignation.from_(start + offset, last))
 
     def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Optional[str]:
         """
@@ -190,7 +195,7 @@ class ResultConverser(Converser):
                     conversation_name=None, context=self_message.context)
 
             if response_error and response_error.rewind == Rewind.REPOST_AS_FRESH \
-                    or not response_error and self.repost_valid_response_as_fresh:
+                    or not response_error and self.rewind_after_getting_a_valid_response == Rewind.REPOST_AS_FRESH:
                 self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response))
 
