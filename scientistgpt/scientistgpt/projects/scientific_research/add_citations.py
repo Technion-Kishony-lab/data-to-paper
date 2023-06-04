@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Set, Tuple, List, Any
+from typing import Dict, Set, Tuple, List, Any, Optional
 
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
@@ -10,6 +10,7 @@ from scientistgpt.base_steps.request_python_value import PythonValueReviewBackgr
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
+from ...base_steps.result_converser import Rewind
 
 
 @dataclass
@@ -19,6 +20,10 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
     rewrite the sentence with the citations.
     This class is called on already initialized conversation.
     """
+
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
+    rewind_after_end_of_review: Optional[Rewind] = Rewind.DELETE_ALL
+
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
 
@@ -69,7 +74,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
                 f'You returned {ids_not_in_options}, which is not part of the allowed options: {self.citation_ids}.')
-        return self.chosen_citation_ids
+        return None  # this will get into the response_value, which we are not using.
 
     def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
         """
@@ -92,7 +97,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         return self.sentence.rstrip('.') + ' ' + '\\cite{' + ', '.join(self.chosen_citation_ids) + '}.'
 
     def get_rewritten_sentence_and_chosen_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
-        self.run_dialog_and_get_valid_result()
+        self.initialize_and_run_dialog()
         return (self.get_rewritten_sentence(),
                 {citation for citation in self.citations if citation.get_bibtex_id() in self.chosen_citation_ids})
 
@@ -102,6 +107,10 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     """
     Given a section of a paper, add citations to the factual sentences in the section.
     """
+
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
+    rewind_after_end_of_review: Optional[Rewind] = Rewind.DELETE_ALL
+
     value_type: type = Dict[str, str]
     products: ScientificProducts = None
     # in the actual call to add_background, we will be adding to the background also the specific section
@@ -215,13 +224,13 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
             self._raise_self_response_error(
                 f'The following sentences that you returned are not precise extraction from the section:\n'
                 f'{sentences_not_in_section}.\n')
-        return self.sentences_to_queries
+        return None  # this will get into the response_value, which we are not using.
 
     def rewrite_section_with_citations(self) -> Tuple[str, ListBasedSet[CrossrefCitation]]:
         """
         Rewrite the section with the citations.
         """
-        self.run_dialog_and_get_valid_result()
+        self.initialize_and_run_dialog()
         # this runs the dialog and updates self.sentences_to_queries
         # we don't check if initialize_and_run_dialog() returns None, because even if it failed,
         # we might have accumulated some sentences through the process.
