@@ -225,7 +225,7 @@ class DebuggerConverser(ProductsConverser):
             Your code writes to the file "{}" which is not allowed.
             {only_write_to_description}
             Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(file, self.only_write_to_description),
+            """).format(file, only_write_to_description=self.only_write_to_description),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_un_allowed_files_created(self, files: List[str]):
