@@ -42,6 +42,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     goal_noun: str = 'code'
     goal_verb: str = 'write'
+    user_initiation_prompt: str = None
 
     output_filename: str = 'results.txt'
     # The name of the file that gpt code is instructed to save the results to.
@@ -205,6 +206,7 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
         return BaseProductsQuotedReviewGPT.from_(
             self,
             max_reviewing_rounds=0,
+            goal_noun='code explanation',
             user_initiation_prompt=self.requesting_code_explanation_prompt,
         ).run_dialog_and_get_valid_result()
 
@@ -224,6 +226,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
     requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
         Explain the content of the file "{dataframe_file_name}", and how the different columns are derived from the \
         original data.
+        {quote_request}
         """)
 
     requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
@@ -256,6 +259,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                     self,
                     max_reviewing_rounds=0,
                     rewind_after_end_of_review=Rewind.DELETE_ALL,
+                    goal_noun='the content of the dataframe',
                     user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
                                                             'columns': columns}),
@@ -272,6 +276,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                     max_reviewing_rounds=0,
                     rewind_after_end_of_review=Rewind.DELETE_ALL,
                     requested_keys=columns,
+                    goal_noun='dictionary that explains the columns of the dataframe',
                     user_initiation_prompt=Replacer(self,
                                                     self.requesting_explanation_for_a_modified_dataframe,
                                                     kwargs={

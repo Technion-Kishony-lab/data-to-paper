@@ -24,7 +24,7 @@ class ConversationAction(Action):
     Base class for actions performed on a chatgpt conversation.
     """
 
-    conversations: Conversations
+    conversations: Conversations = None
 
     conversation_name: Optional[str] = None
     "The name of the conversation to perform the action on."
