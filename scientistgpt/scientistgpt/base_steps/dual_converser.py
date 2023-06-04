@@ -71,9 +71,9 @@ class DualConverserGPT(Converser):
                                                         model_engine: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
-                                                        should_format: bool = True, **kwargs) -> Message:
+                                                        **kwargs) -> Message:
         return self.other_conversation_manager.get_and_append_assistant_message(
-            tag=format_value(self, tag, should_format),
+            tag=tag,
             comment=comment,
             is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
