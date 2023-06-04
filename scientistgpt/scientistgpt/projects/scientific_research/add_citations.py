@@ -69,7 +69,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
                 f'You returned {ids_not_in_options}, which is not part of the allowed options: {self.citation_ids}.')
-        return None  # we don't need the response value itself
+        return self.chosen_citation_ids
 
     def _add_citations_in_options_and_return_citations_not_in_options(self, chosen_citation_ids: List[str]) -> Set[str]:
         """
@@ -117,11 +117,12 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     goal_noun: str = '{section_name} section of the paper'
 
     # override the default system prompt:
-    system_prompt: str = dedent_triple_quote_str(r"""
+    system_prompt: str = dedent_triple_quote_str("""
         You are a scientific citation expert. 
-        You are given a section of a paper, and you need to follow the following steps:
-        1. Choose factual sentences that need to be cited.
-        2. Provided with a list of possible citations, choose the most appropriate ones for each of the sentences. 
+        You are given a section of a paper, you'll need to find all the factual \
+        sentences in the section and write a search query for these sentences CrossRef API in a structured dict format.
+        After that you'll need to choose the most appropriate citations to add to the sentences in the section from \
+        a list of the possible citations returned from CrossRef for the given query.
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
@@ -214,7 +215,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
             self._raise_self_response_error(
                 f'The following sentences that you returned are not precise extraction from the section:\n'
                 f'{sentences_not_in_section}.\n')
-        return None  # this will get into the response_value, which we are not using.
+        return self.sentences_to_queries
 
     def rewrite_section_with_citations(self) -> Tuple[str, ListBasedSet[CrossrefCitation]]:
         """
