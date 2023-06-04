@@ -208,5 +208,5 @@ class BaseCheckExtractionProductsReviewGPT(BaseProductsReviewGPT):
             target=text)
         if non_matching:
             self._raise_self_response_error(
-                f'Some of the specified values {non_matching} are explicitly extracted from the provided '
+                f'Some of the specified values {non_matching} are not explicitly extracted from the provided '
                 f'{self.names_of_products_from_which_to_extract}.')
