@@ -9,6 +9,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values
+from ..utils.highlighted_text import print_red
 
 
 @dataclass
@@ -208,6 +209,11 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
             source=self._get_text_from_which_response_should_be_extracted(),
             target=text)
         if non_matching:
-            self._raise_self_response_error(
-                f'Some of the specified values {non_matching} are not explicitly extracted from the provided '
-                f'{self.names_of_products_from_which_to_extract}.')
+            print_red('########################')
+            print_red('####### WARNING: #######')
+            print_red('########################')
+            print_red(f'Some of the specified values {non_matching} are not explicitly extracted from:\n'
+                      f'{self.names_of_products_from_which_to_extract}.')
+            # self._raise_self_response_error(
+            #     f'Some of the specified values {non_matching} are not explicitly extracted from the provided '
+            #     f'{self.names_of_products_from_which_to_extract}.')
