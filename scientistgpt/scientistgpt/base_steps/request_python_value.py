@@ -79,7 +79,8 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         except ValueError:
             self._raise_self_response_error(
                 f'Your response should be formatted as a Python {self.parent_type.__name__}, '
-                f'flanked by `{tags[0]}` and `{tags[1]}`.')
+                f'flanked by `{tags[0]}` and `{tags[1]}`.',
+                bump_model=tags[0] in response and tags[1] not in response)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         try:
