@@ -152,11 +152,12 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above table, with specific attention to whether the table \
+        Please provide actionable feedback on the above table, with specific attention to whether the table \
         contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
         to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
         Do not suggest changes to the table that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
+        NOTICE: If you give any type of feedback, you cannot reply with "{termination_phrase}".
         """)
 
     @property
