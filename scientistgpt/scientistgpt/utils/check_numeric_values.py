@@ -34,6 +34,18 @@ def round_to_n_digits(str_number: str, n_digits: int) -> float:
     return float(f'{float(f"{number:.{n_digits}g}"):g}')
 
 
+def is_after_smaller_than_sign(str_number: str, target: str) -> Optional[bool]:
+    """
+    Check if the given string number extracted from the target str appear after a '<' sign.
+    """
+    str_number_positions = [m.start() for m in re.finditer(str_number, target)]
+    for str_number_position in str_number_positions:
+        if str_number_position > 0 and target[str_number_position - 1] == '<' or \
+                str_number_position > 1 and target[str_number_position - 2] == '<':
+            return True
+    return False
+
+
 def is_percentage(str_number: str, target: str, search_distance: int = 30) -> Optional[bool]:
     """
     Check if the given string number extracted from the target str is a percentage.
@@ -105,6 +117,7 @@ def add_one_to_last_digit(num_str):
 def find_non_matching_numeric_values(source: str, target: str, ignore_int_below: int = 0,
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
+                                     ignore_after_smaller_than_sign: bool = True,
                                      allow_truncating: bool = True) -> List[str]:
     """
     Check that all the numerical values mentioned in the target are also mentioned in the source.
@@ -125,6 +138,8 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
         if ignore_one_with_zeros and is_one_with_zeros(str_target_number):
             continue
 
+        # check if the string number appears after a '<' sign:
+        if ignore_after_smaller_than_sign and is_after_smaller_than_sign(str_target_number, target):
             continue
 
         num_digits = get_number_of_significant_figures(str_target_number, remove_trailing_zeros)
