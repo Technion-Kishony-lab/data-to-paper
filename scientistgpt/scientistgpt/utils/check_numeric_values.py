@@ -10,6 +10,12 @@ def extract_numeric_values(text: str) -> List[str]:
     return re.findall(r"[-+]?\b\d+(?:,\d+)*(?:\.\d+)?\b", text)
 
 
+def is_one_with_zeros(str_number: str) -> bool:
+    """
+    Check if the given string number is 1 with zeros before or after.
+    Like 0.001, 0.1, 1, 10, 100, etc.
+    """
+    return str_number.replace(',', '').replace('.', '').lstrip('0').rstrip('0') == '1'
 
 
 def is_int_below_max(str_number: str, max_int: int) -> bool:
@@ -98,6 +104,7 @@ def add_one_to_last_digit(num_str):
 
 def find_non_matching_numeric_values(source: str, target: str, ignore_int_below: int = 0,
                                      remove_trailing_zeros: bool = False,
+                                     ignore_one_with_zeros: bool = True,
                                      allow_truncating: bool = True) -> List[str]:
     """
     Check that all the numerical values mentioned in the target are also mentioned in the source.
@@ -112,6 +119,10 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     for str_target_number in str_target_numbers:
 
         if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
+            continue
+
+        # we do not check numbers like 1, 0.1, 0.01, etc., or 1, 10, 100, etc.:
+        if ignore_one_with_zeros and is_one_with_zeros(str_target_number):
             continue
 
             continue
