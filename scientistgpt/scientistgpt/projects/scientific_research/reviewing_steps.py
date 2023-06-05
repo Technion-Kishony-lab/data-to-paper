@@ -86,33 +86,40 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
+class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
+    products: ScientificProducts = None
+    max_reviewing_rounds: int = 0
+    background_product_fields: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',
+                                             'tables_and_tables_names')
+
+
+@dataclass
 class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
                                               CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
-                                             'tables')
-    product_fields_from_which_response_is_extracted: Tuple[str, ...] = ('outputs:data_exploration', 'outputs:data_analysis',)
+    background_product_fields: Tuple[str, ...] = ('outputs:data_exploration', 'outputs:data_analysis',
+                                             'tables_and_tables_names')
+    table_name: str = None
+    product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    table_number: int = 1
-    total_number_of_tables: int = 1
+    termination_phrase: str = 'I hereby approve the table'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} a {goal_noun} that summarizes the key results provided in the output files above.
+        Please build the table "{table_name}". 
+        You should build the table using the results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
         The table should have a caption suitable for inclusion as part of a scientific paper.    
-        {do_not_repeat_information_from_previous_tables} 
-
+        {do_not_repeat_information_from_previous_tables}
+        
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
-
-        Note: this is table number {table_number} out of {total_number_of_tables} you need to produce, plan the tables \
-        so that each table will show unique information.
         """)
+
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above table, with specific attention to whether the table \
         contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
@@ -122,13 +129,24 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         """)
 
     @property
+    def num_of_existing_tables(self) -> int:
+        return len(self.products.all_tables)
+
+    @property
+    def table_number(self) -> int:
+        return self.num_of_existing_tables + 1
+
+    @property
+    def total_number_of_tables(self) -> int:
+        return len(self.products.tables_names)
+
+    @property
     def do_not_repeat_information_from_previous_tables(self) -> str:
-        number_of_tables = len(self.products.all_tables)
-        if number_of_tables > 0:
+        if self.num_of_existing_tables > 0:
             return dedent_triple_quote_str("""
                 Notice that the table should only add new information that is not included already \
-                in the {} provided above.
-                """).format('table' if number_of_tables == 1 else 'tables')
+                in the {} we already build (see above).
+                """).format('table' if self.num_of_existing_tables == 1 else 'tables')
         else:
             return ''
 

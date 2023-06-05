@@ -38,8 +38,6 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_add_tables: bool = True
     should_interpret_results: bool = False
 
-    number_of_tables_to_add: int = 2
-
     def get_sections_to_writing_class(
             self) -> List[Tuple[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]]:
         return [
@@ -121,13 +119,18 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)
+
+        # Tables names
+        if self.should_add_tables:
+            products.tables_names = TablesNamesReviewGPT.from_(self).run_dialog_and_get_valid_result()
+
         # Tables
         if self.should_add_tables:
             products.tables['results'] = []
-            for i in range(self.number_of_tables_to_add):
+            for table_name in products.tables_names:
                 table = TablesReviewBackgroundProductsConverser.from_(
-                    self, section_names=['table'], table_number=i + 1, conversation_name=f'table_{i + 1}',
-                    total_number_of_tables=self.number_of_tables_to_add).run_dialog_and_get_valid_result()[0]
+                    self, section_names=['table'], table_name=table_name, conversation_name=f'table_{i + 1}',
+                    total_number_of_tables=len(products.tables_names)).run_dialog_and_get_valid_result()[0]
                 products.tables['results'].append(table)
 
         # Numerical results
