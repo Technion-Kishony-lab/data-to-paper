@@ -30,20 +30,21 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     user_agent: ScientificAgent = ScientificAgent.Writer
     section_specific_instructions: str = ''
     section_review_specific_instructions: str = ''
+    journal_name: str = 'Nature Communications'
 
     system_prompt: str = dedent_triple_quote_str("""
         You are a data-scientist with experience writing accurate scientific research papers.
 
-        You should:
-        1. Write every section of the paper in scientific language, in `.tex` format.
-        2. Write the paper section by section.
-        3. Write the paper in a way that is fully consistent with the scientific products we have.
+        You will write a scientific article for the journal {journal_name}, following the instructions below:
+        1. Write the article section by section: Abstract, Introduction, Results, Discussion, and Methods.
+        2. Write every section of the article in scientific language, in `.tex` format.
+        3. Write the article in a way that is fully consistent with the scientific products we have.
         4. Write the text without adding any citations (we will only add citations in a later stage).
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), \
-        please {goal_verb} only the {pretty_section_names} of a scientific paper.
+        please {goal_verb} only the {pretty_section_names} of a {journal_name} article.
         Do not write any other parts!
         {section_specific_instructions}
         {latex_instructions}
@@ -92,7 +93,9 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
 
 
 @dataclass
-class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+    background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
+                                             'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     max_reviewing_rounds: int = 2
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
@@ -108,8 +111,22 @@ class TitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsC
 
 
 @dataclass
+class SecondTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+    max_reviewing_rounds: int = 0
+    background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
+                                             'most_updated_paper_sections:results', 'title_and_abstract')
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Bases on the material provided above ({actual_background_product_names}), please help me improve the \
+        title and abstract for a research paper.
+        We are writing for {journal_name}. 
+        The title should be short and focus on the main result of the paper and not on the methods or the data.
+        {latex_instructions}
+        """)
+
+
+@dataclass
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
                                              'most_updated_paper_sections:methods',
                                              'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
@@ -176,14 +193,16 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str, ...] = ('research_goal', 'title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('title_and_abstract',
                                              'most_updated_paper_sections:methods',
                                              'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
-        Recap the main results as appearing in the results (see results section above). 
+        Recap the main results as appearing in the Results section (see above). 
         Where possible, subtly note any novelty in the methodology or findings.
         Discuss the limitations of the study.
+        End with a concluding paragraph summarizing the main results and their implications, impact, \
+        and future directions.
         """)
 
 
