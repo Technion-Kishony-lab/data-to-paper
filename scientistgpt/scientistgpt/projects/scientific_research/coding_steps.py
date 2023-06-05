@@ -1,31 +1,53 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Type
 
-from scientistgpt.base_steps import OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT, \
-    BaseCodeProductsGPT
+from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
+from scientistgpt.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
+    BaseProductsQuotedReviewGPT, BackgroundProductsConverser
+from scientistgpt.base_steps.base_products_conversers import ProductsConverser
+from scientistgpt.base_steps.result_converser import Rewind
+from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
-from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
+from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts, get_code_name, \
+    get_code_agent
+from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.nice_list import NiceList, NiceDict
+from scientistgpt.utils.replacer import Replacer
+from scientistgpt.utils.types import ListBasedSet
 
 
 @dataclass
-class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
-
-    allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files
-
+class BaseScientificCodeProductsHandler:
+    code_step: str = ''  # "data_analysis", "data_exploration", "data_processing"
     products: ScientificProducts = None
-    background_product_fields: Tuple[str] = ('all_file_descriptions', 'research_goal', 'analysis_plan')
-    conversation_name: str = 'code_debugging'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
-    fake_performer_request_for_help: str = \
-        "Hi {user_skin_name}, could you please help me write {code_name} code for my project?"
-    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
-        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain what does the code writes into the "{actual_output_filename}" file.
-        """)
+    user_agent: ScientificAgent = None
+
+    actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
+    code_name: str = None
+    conversation_name: str = None
+
+    def __post_init__(self):
+        if self.conversation_name is None:
+            self.conversation_name = f'{self.code_step}_code'
+        if self.code_name is None:
+            self.code_name = get_code_name(self.code_step)
+        if self.user_agent is None:
+            self.user_agent = get_code_agent(self.code_step)
+
+
+@dataclass
+class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeProductsGPT):
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files, () for no data files
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal', 'analysis_plan')
+    gpt_script_filename: str = None
+
+    def __post_init__(self):
+        if self.gpt_script_filename is None:
+            self.gpt_script_filename = f'{self.code_step}_code'
+        super().__post_init__()
 
     @property
     def files_created_in_prior_stages(self) -> NiceList[str]:
@@ -64,20 +86,21 @@ class BaseScientificCodeProductsGPT(BaseCodeProductsGPT):
 
 
 @dataclass
-class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCodeProductsGPT):
-    goal_noun = 'data exploration'
+class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
+
+    code_step: str = 'data_exploration'
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
-    conversation_name: str = 'data_exploration_code'
-    code_name: str = 'Data Exploration'
-    background_product_fields: Tuple[str] = ('all_file_descriptions', )
-    gpt_script_filename: str = 'data_exploration_code'
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
+
     output_filename: str = 'data_exploration.txt'
-    allowed_created_files: Tuple[str] = ()
+    allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False
-    supported_packages: Tuple[str] = ('pandas', 'numpy', 'scipy')
 
-    code_requesting_prompt: str = dedent_triple_quote_str("""
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
         first sense of the data. 
 
@@ -102,26 +125,21 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisio
         Do not send any presumed output examples.
         """)
 
-    requesting_code_explanation_prompt: str = None
-
 
 @dataclass
-class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeChangingCodeProductsGPT):
+class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
+    code_step: str = 'data_preprocessing'
+    background_product_fields: Tuple[str, ...] = ('research_goal', 'all_file_descriptions', 'outputs:data_exploration')
+    user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
 
-    user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
-    conversation_name: str = 'data_preprocessing_code'
-    code_name: str = 'Data Preprocessing'
-    background_product_fields: Tuple[str] = ('research_goal', 'all_file_descriptions',
-                                             'outputs:data_exploration')
-    gpt_script_filename: str = 'data_preprocessing_code'
     output_filename: str = None
-    allowed_created_files: Tuple[str] = ('*.csv',)
+    allowed_created_files: Tuple[str, ...] = ('*.csv',)
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
 
-    code_requesting_prompt: str = dedent_triple_quote_str("""
+    user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
         cleaned, normalized, same-unit, balanced version of the data, ready for use in a machine learning model.
 
@@ -144,33 +162,23 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT, DataframeC
         Do not create any graphics, figures or any plots.
         """)
 
-    requesting_code_explanation_prompt: str = dedent_triple_quote_str("""
-        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. Also explain the new dataframes you created and in what way are they different from \
-        the original dataframes.
-        """)
-
 
 @dataclass
-class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCodeProductsGPT):
+class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
-    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
-
-    user_agent: ScientificAgent = ScientificAgent.Debugger
-    conversation_name: str = 'data_analysis_code'
-    code_name: str = 'Data Analysis'
-    background_product_fields: Tuple[str] = \
+    code_step: str = 'data_analysis'
+    background_product_fields: Tuple[str, ...] = \
         ('all_file_descriptions', 'analysis_plan', 'outputs:data_exploration',
          'codes_and_outputs:data_preprocessing', 'research_goal')
-    gpt_script_filename: str = 'data_analysis_code'
+    user_agent: ScientificAgent = ScientificAgent.Debugger
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
+
     output_filename: str = 'results.txt'
-    allowed_created_files: Tuple[str] = ()
+    allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = True
     enforce_saving_altered_dataframes: bool = False
 
-    allow_creating_files: bool = False
-    code_requesting_prompt: str = dedent_triple_quote_str("""
+    user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
 
         As input, you can use any of the data files I've listed above.
@@ -191,3 +199,211 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT, OfferRevisionCo
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
         """)
+
+
+@dataclass
+class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
+    background_product_fields: Tuple[str, ...] = None
+    goal_noun: str = '{code_name} code'
+    goal_verb: str = 'write'
+    max_reviewing_rounds = 0
+
+    def __post_init__(self):
+        if self.background_product_fields is None:
+            self.background_product_fields = ('all_file_descriptions', f'codes_and_outputs:{self.code_step}',)
+        super().__post_init__()
+
+    @property
+    def code_and_output(self):
+        return self.products.codes_and_outputs[self.code_step]
+
+    @property
+    def output_filename(self):
+        return self.code_and_output.output_file
+
+
+@dataclass
+class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, BaseProductsQuotedReviewGPT):
+    goal_noun: str = 'explanation of the {code_name} code'
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions',)
+    max_reviewing_rounds: int = 0
+    rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
+    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+
+    def __post_init__(self):
+        self.background_product_fields = self.background_product_fields + ('codes:' + self.code_step,)
+        BaseScientificPostCodeProductsHandler.__post_init__(self)
+        BaseProductsQuotedReviewGPT.__post_init__(self)
+
+    user_initiation_prompt: str = "{requesting_code_explanation}\n" \
+                                  "{actual_requesting_output_explanation}" \
+                                  "{quote_request}"
+    requesting_code_explanation: str = dedent_triple_quote_str("""
+        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. 
+        """)
+
+    requesting_output_explanation: str = dedent_triple_quote_str("""
+        Also explain what does the code writes into the "{output_filename}" file.    
+        """)
+
+    @property
+    def actual_requesting_output_explanation(self):
+        return self.requesting_output_explanation if self.code_and_output.output_file else ''
+
+
+@dataclass
+class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundProductsConverser):
+    goal_noun: str = 'explanation of the files created by the {code_name} code'
+
+    def __post_init__(self):
+        self.background_product_fields = self.background_product_fields + ('codes:' + self.code_step,)
+        BaseScientificPostCodeProductsHandler.__post_init__(self)
+        BackgroundProductsConverser.__post_init__(self)
+
+    user_initiation_prompt: str = None
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal')
+    requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
+        Explain the content of the file "{dataframe_file_name}", and how the different columns are derived from the \
+        original data.
+        {quote_request}
+        """)
+
+    requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
+        Explain the content of all the new or modified columns of "{dataframe_file_name}".
+
+        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the \
+        strings that explain the content of each column.
+
+        All information you think is important should be encoded in this dictionary. 
+        Do not send additional free text beside the text in the dictionary.  
+        """)
+
+    def ask_for_created_files_descriptions(self) -> Optional[DataFileDescriptions]:
+        self.initialize_conversation_if_needed()
+        dataframe_operations = self.code_and_output.dataframe_operations
+        data_file_descriptions = DataFileDescriptions(data_folder=self.products.data_file_descriptions.data_folder)
+        saved_ids_filenames = dataframe_operations.get_saved_ids_filenames()
+        # sort the saved ids by their filename, so that the order of the questions will be consistent between runs:
+        saved_ids_filenames = sorted(saved_ids_filenames, key=lambda saved_id_filename: saved_id_filename[1])
+
+        for saved_df_id, saved_df_filename in saved_ids_filenames:
+            read_filename = dataframe_operations.get_read_filename(saved_df_id)
+            saved_columns = ListBasedSet(dataframe_operations.get_save_columns(saved_df_id))
+            creation_columns = ListBasedSet(dataframe_operations.get_creation_columns(saved_df_id))
+            changed_columns = ListBasedSet(dataframe_operations.get_changed_columns(saved_df_id))
+            added_columns = saved_columns - creation_columns
+            if read_filename is None:
+                # this saved dataframe was created by the code, not read from a file
+                columns = saved_columns
+                response = BaseProductsQuotedReviewGPT.from_(
+                    self,
+                    is_new_conversation=False,
+                    max_reviewing_rounds=0,
+                    rewind_after_end_of_review=Rewind.DELETE_ALL,
+                    rewind_after_getting_a_valid_response=Rewind.ACCUMULATE,
+                    goal_noun='the content of the dataframe',
+                    user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
+                                                    kwargs={'dataframe_file_name': saved_df_filename,
+                                                            'columns': columns}),
+                ).run_dialog_and_get_valid_result()
+                description = f'This csv file was created by the {self.code_name} code.\n' \
+                              f'{response}\n'
+                data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
+                                                            originated_from=None)
+            else:
+                # this saved dataframe was read from a file
+                columns = added_columns | changed_columns
+                columns_to_explanations = PythonDictWithDefinedKeysReviewBackgroundProductsConverser.from_(
+                    self,
+                    is_new_conversation=False,
+                    max_reviewing_rounds=0,
+                    rewind_after_end_of_review=Rewind.DELETE_ALL,
+                    rewind_after_getting_a_valid_response=Rewind.ACCUMULATE,
+                    requested_keys=columns,
+                    goal_noun='dictionary that explains the columns of the dataframe',
+                    user_initiation_prompt=Replacer(self,
+                                                    self.requesting_explanation_for_a_modified_dataframe,
+                                                    kwargs={
+                                                        'dataframe_file_name': saved_df_filename, 'columns': columns}),
+                    value_type=Dict[str, str],
+                ).run_dialog_and_get_valid_result()
+
+                new_columns_to_explanations = \
+                    {column: explanation for column, explanation in columns_to_explanations.items()
+                     if column in added_columns}
+                modified_columns_to_explanations = \
+                    {column: explanation for column, explanation in columns_to_explanations.items()
+                        if column not in added_columns}
+
+                if len(modified_columns_to_explanations) > 0:
+                    modified_columns_str = f'\nWe modified these columns:\n' \
+                                           f'{NiceDict(modified_columns_to_explanations)}\n'
+                else:
+                    modified_columns_str = ''
+
+                if len(new_columns_to_explanations) > 0:
+                    new_columns_str = f'\nWe added these columns:\n' \
+                                      f'{NiceDict(new_columns_to_explanations)}\n'
+                else:
+                    new_columns_str = ''
+
+                description = f'This csv file was created by our {self.code_name} code ' \
+                              f'from the file "{read_filename}".\n' \
+                              f'{modified_columns_str}' \
+                              f'{new_columns_str}'
+                data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
+                                                            originated_from=read_filename)
+
+            data_file_descriptions.append(data_file_description)
+
+        return data_file_descriptions
+
+
+CODE_STEP_TO_CLASS = {
+    'data_exploration': DataExplorationCodeProductsGPT,
+    'data_preprocessing': DataPreprocessingCodeProductsGPT,
+    'data_analysis': DataAnalysisCodeProductsGPT,
+}
+
+
+class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
+    EXPLAIN_CODE_CLASS = RequestCodeExplanation
+    EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
+
+    @property
+    def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
+        cls = CODE_STEP_TO_CLASS[self.code_step]
+        assert cls.code_step == self.code_step
+        return cls
+
+    def get_code_and_output(self) -> CodeAndOutput:
+        return self.code_writing_class.from_(self).get_code_and_output()
+
+    def _get_description_of_created_files(self) -> Optional[DataFileDescriptions]:
+        return self.EXPLAIN_CREATED_FILES_CLASS(
+            is_new_conversation=None,
+            code_step=self.code_step,
+            products=self.products,
+            actions_and_conversations=self.actions_and_conversations,
+        ).ask_for_created_files_descriptions()
+
+    def _get_code_explanation(self) -> str:
+        return self.EXPLAIN_CODE_CLASS(
+            is_new_conversation=None,
+            code_step=self.code_step,
+            products=self.products,
+            actions_and_conversations=self.actions_and_conversations,
+        ).run_dialog_and_get_valid_result()
+
+    def get_code_and_output_and_descriptions(
+            self, with_file_descriptions: bool = True, with_code_explanation: bool = True) -> CodeAndOutput:
+        code_and_output = self.get_code_and_output()
+        self.products.codes_and_outputs[self.code_step] = code_and_output
+        if with_file_descriptions:
+            code_and_output.description_of_created_files = \
+                self._get_description_of_created_files()
+        if with_code_explanation:
+            code_and_output.code_explanation = self._get_code_explanation()
+        return code_and_output

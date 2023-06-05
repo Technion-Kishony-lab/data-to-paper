@@ -6,7 +6,8 @@ from scientistgpt.base_steps.request_products_from_user import DirectorProductGP
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProductsGPT, DataPreprocessingCodeProductsGPT
+from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProductsGPT, DataPreprocessingCodeProductsGPT, \
+    RequestCodeProducts
 from .get_template import get_paper_template_path
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -85,8 +86,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Data exploration
         if self.should_do_data_exploration:
             self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
-            products.codes_and_outputs['data_exploration'] = \
-                DataExplorationCodeProductsGPT.from_(self).get_code_and_output()
+            RequestCodeProducts.from_(self, code_step='data_exploration').get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs:data_exploration')
 
         # Goal
@@ -110,14 +110,12 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
-            products.codes_and_outputs['data_preprocessing'] = \
-                DataPreprocessingCodeProductsGPT.from_(self).get_code_and_output()
+            RequestCodeProducts.from_(self, code_step='data_preprocessing').get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
-        products.codes_and_outputs['data_analysis'] = \
-            DataAnalysisCodeProductsGPT.from_(self).get_code_and_output()
+        RequestCodeProducts.from_(self, code_step='data_analysis').get_code_and_output_and_descriptions()
         self.send_product_to_client('codes_and_outputs:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,

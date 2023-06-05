@@ -44,7 +44,7 @@ from .request_python_value import PythonValueReviewBackgroundProductsConverser
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
 # Requesting code (with automatic debugging feedback):
-from .request_code import BaseCodeProductsGPT, OfferRevisionCodeProductsGPT, DataframeChangingCodeProductsGPT
+from .request_code import BaseCodeProductsGPT
 
 # Requesting answer to multiple choice question
 from .request_multi_choice import MultiChoiceBackgroundProductsConverser
