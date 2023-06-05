@@ -97,7 +97,7 @@ class Message:
 
         role_text = role.name + ('' if self.openai_call_parameters is None else f'({self.openai_call_parameters})')
         if role == Role.SYSTEM:
-            role_model_agent_conversation_tag = f'{role_text} casting {agent_text} for {conversation_name} '
+            role_model_agent_conversation_tag = f'{role_text} casting {agent_text} -> {conversation_name} '
         else:
             role_model_agent_conversation_tag = f'{role_text}{agent_text} -> {conversation_name}{tag_text} '
 

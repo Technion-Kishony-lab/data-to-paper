@@ -38,6 +38,10 @@ class Converser(Copier):
     user_agent: Agent = None
 
     conversation_name: str = 'default'
+    is_new_conversation: Optional[bool] = True
+    # if True, we assert that no conversation with the same name exists.
+    # if False, we assert that a conversation with the same name exists.
+    # if None, we make sure the conversation it is new by changing the name, if needed.
 
     web_conversation_name: Optional[str] = True
     # None - do not post to web conversation, True - use default name, str - use given name
@@ -45,6 +49,16 @@ class Converser(Copier):
     driver: str = ''
 
     def __post_init__(self):
+        conversation_exists = self.conversation_name in self.actions_and_conversations.conversations
+        if self.is_new_conversation is False:
+            assert conversation_exists, f'Conversation {self.conversation_name} does not exist.'
+        elif self.is_new_conversation is True:
+            assert not conversation_exists, f'Conversation {self.conversation_name} already exists.'
+        else:
+            if conversation_exists:
+                self.conversation_name = self.actions_and_conversations.conversations.get_new_conversation_name(
+                    self.conversation_name)
+
         if self.chatgpt_parameters is None:
             self.chatgpt_parameters = self.CHATGPT_PARAMETERS
 

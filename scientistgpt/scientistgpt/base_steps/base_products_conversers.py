@@ -51,7 +51,7 @@ class BackgroundProductsConverser(ProductsConverser):
     Base class for conversers that deal with Products.
     Allows for the addition of background information about prior products to the conversation.
     """
-    background_product_fields: Tuple[str] = None
+    background_product_fields: Tuple[str, ...] = None
     # tuple of product fields to provide background information about.
     # If empty tuple, do not provide background information.
     # if None, this instance was called into an already running conversation by another converser
@@ -187,7 +187,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
 
 class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
-    product_fields_from_which_response_is_extracted: Tuple[str] = None
+    product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)

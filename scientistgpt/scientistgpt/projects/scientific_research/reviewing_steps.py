@@ -26,7 +26,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal'
@@ -67,7 +67,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1  # no review cycles
     fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                              'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
@@ -90,9 +90,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
                                               CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
+    background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                              'tables')
-    product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
+    product_fields_from_which_response_is_extracted: Tuple[str, ...] = ('outputs:data_exploration', 'outputs:data_analysis',)
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
@@ -142,9 +142,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser,
                                             CheckExtractionReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
+    background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                              'tables')
-    product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
+    product_fields_from_which_response_is_extracted: Tuple[str, ...] = ('outputs:data_exploration', 'outputs:data_analysis',)
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -190,7 +190,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal', 'tables_and_numeric_values')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'tables_and_numeric_values')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'

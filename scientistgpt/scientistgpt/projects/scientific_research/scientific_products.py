@@ -2,17 +2,40 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Tuple, Set, List
 
 from scientistgpt.conversation.stage import Stage
+from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.base_products import DataFileDescriptions, Products, NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
-CODE_STEPS_TO_STAGES: Dict[str, Stage] = {
-    'data_exploration': ScientificStages.EXPLORATION,
-    'data_preprocessing': ScientificStages.PREPROCESSING,
-    'data_analysis': ScientificStages.CODE,
+
+CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
+    'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
+    'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
+    'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
 }
+
+
+def get_code_stage(code_step: str) -> Stage:
+    """
+    Return the stage of the code step.
+    """
+    return CODE_STEPS_TO_STAGES_NAMES_AGENTS[code_step][0]
+
+
+def get_code_name(code_step: str) -> str:
+    """
+    Return the name of the code step.
+    """
+    return CODE_STEPS_TO_STAGES_NAMES_AGENTS[code_step][1]
+
+
+def get_code_agent(code_step: str) -> ScientificAgent:
+    """
+    Return the agent of the code step.
+    """
+    return CODE_STEPS_TO_STAGES_NAMES_AGENTS[code_step][2]
 
 
 def convert_description_of_created_files_to_string(description_of_created_files: Dict[str, str]) -> Optional[str]:
@@ -172,7 +195,7 @@ class ScientificProducts(Products):
             'codes:{}': NameDescriptionStageGenerator(
                 '{code_name} Code',
                 'Here is our {code_name} Code:\n```python\n{code}\n```\n',
-                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: get_code_stage(code_step),
                 lambda code_step: {'code': self.codes_and_outputs[code_step].code,
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -180,7 +203,7 @@ class ScientificProducts(Products):
             'outputs:{}': NameDescriptionStageGenerator(
                 'Output of the {code_name} Code',
                 'Here is the output of our {code_name} code:\n```\n{output}\n```\n',
-                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: get_code_stage(code_step),
                 lambda code_step: {'output': self.codes_and_outputs[code_step].output,
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -188,7 +211,7 @@ class ScientificProducts(Products):
             'codes_and_outputs:{}': NameDescriptionStageGenerator(
                 '{code_name} Code and Output',
                 '{code_description}\n\n{output_description}',
-                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
                     'code_description': self.get_description("codes:" + code_step),
@@ -198,7 +221,7 @@ class ScientificProducts(Products):
             'created_files:{}': NameDescriptionStageGenerator(
                 'Files Created by the {code_name} Code',
                 'Here are the files created by the {code_name} code:\n\n{created_files}',
-                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'created_files': self.codes_and_outputs[code_step].created_files,
                     'code_name': self.codes_and_outputs[code_step].name},
@@ -207,7 +230,7 @@ class ScientificProducts(Products):
             'created_files_description:{}': NameDescriptionStageGenerator(
                 'Description of Files Created by the {code_name} Code',
                 'We can use these files created by the {code_name} code:\n\n{created_files_description}',
-                lambda code_step: CODE_STEPS_TO_STAGES[code_step],
+                lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'created_files_description': DataFileDescriptions(
                         self.data_file_descriptions + self.codes_and_outputs[code_step].description_of_created_files,
