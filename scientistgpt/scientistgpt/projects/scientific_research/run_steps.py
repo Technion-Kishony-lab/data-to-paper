@@ -6,8 +6,7 @@ from scientistgpt.base_steps.request_products_from_user import DirectorProductGP
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import DataExplorationCodeProductsGPT, DataAnalysisCodeProductsGPT, DataPreprocessingCodeProductsGPT, \
-    RequestCodeProducts
+from .coding_steps import RequestCodeProducts
 from .get_template import get_paper_template_path
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
