@@ -131,7 +131,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             for table_num, table_name in products.tables_names.items():
                 table = TablesReviewBackgroundProductsConverser.from_(
                     self, section_names=['table'], table_name=table_name, conversation_name=table_num,
-                    total_number_of_tables=len(products.tables_names)).run_dialog_and_get_valid_result()[0]
+                    ).run_dialog_and_get_valid_result()[0]
                 products.tables['results'].append(table)
 
         # Numerical results
