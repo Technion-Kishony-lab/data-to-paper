@@ -89,7 +89,7 @@ def run_code_using_module_reload(
             warnings.filterwarnings("ignore", category=warning)
         for warning in warnings_to_raise:
             warnings.filterwarnings("error", category=warning)
-
+        completed_successfully = False
         try:
             with timeout_context(timeout_sec), \
                     prevent_calling(forbidden_modules_and_functions), \
@@ -111,7 +111,14 @@ def run_code_using_module_reload(
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
             raise FailedRunningCode(exception=e, tb=tb, code=code)
+        else:
+            completed_successfully = True
         finally:
+            if not completed_successfully:
+                with run_in_directory(run_in_folder):
+                    # remove all the files that were created
+                    for file in created_files:
+                        os.remove(file)
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()
