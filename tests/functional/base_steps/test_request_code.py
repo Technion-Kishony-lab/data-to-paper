@@ -6,7 +6,7 @@ from _pytest.fixtures import fixture
 from scientistgpt.base_products import DataFileDescriptions, DataFileDescription
 from scientistgpt.base_steps import BaseCodeProductsGPT
 from scientistgpt.projects.scientific_research.coding_steps import ExplainCreatedDataframe, \
-    RequestScientificCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
+    RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
 from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
@@ -51,7 +51,7 @@ class TestRequestCodeExplanation(RequestCodeExplanation):
 
 
 @dataclass
-class TestRequestScientificCodeProducts(TestProductsReviewGPT, RequestScientificCodeProducts):
+class TestRequestCodeProducts(TestProductsReviewGPT, RequestCodeProducts):
     conversation_name: str = None
     EXPLAIN_CODE_CLASS = TestRequestCodeExplanation
     EXPLAIN_CREATED_FILES_CLASS = TestExplainCreatedDataframe
@@ -71,7 +71,7 @@ def code_running_converser(tmpdir_with_csv_file):
 
 @fixture()
 def code_request_converser(tmpdir_with_csv_file, scientific_products):
-    return TestRequestScientificCodeProducts(
+    return TestRequestCodeProducts(
         products=scientific_products,
         temp_dir=tmpdir_with_csv_file)
 
@@ -124,8 +124,7 @@ def test_code_request_with_description_of_added_df_columns(code_request_converse
             [f'Here is the code:\n```python\n{code_reading_csv}\n```\nShould be all good.',
              new_column_dict_explanation],
             record_more_if_needed=False):
-        code_request_converser.get_code_and_output_and_add_file_descriptions_and_code_explanation(
-            with_code_explanation=False)
+        code_request_converser.get_code_and_output_and_descriptions(with_code_explanation=False)
     for keyword in code_reading_csv_keywords_in_description:
         assert keyword in scientific_products.get_description('created_files_description:data_analysis')
 
@@ -135,8 +134,7 @@ def test_code_request_with_description_of_new_df(code_request_converser, scienti
             [f'Here is the code:\n```python\n{code_creating_csv}\n```\nShould be all good.',
              f'Here is the description of the new file ```{new_df_explanation}```'],
             record_more_if_needed=False):
-        code_request_converser.get_code_and_output_and_add_file_descriptions_and_code_explanation(
-            with_code_explanation=False)
+        code_request_converser.get_code_and_output_and_descriptions(with_code_explanation=False)
     for keyword in code_creating_csv_keywords_in_description:
         assert keyword in scientific_products.get_description('created_files_description:data_analysis')
 
@@ -147,6 +145,6 @@ def test_code_request_with_description_of_new_df_and_code_description(code_reque
              f'Here is the description of the new file ```{new_df_explanation}```',
              f'Code explanation: ```{code_creating_csv_explanation}```',],
             record_more_if_needed=False):
-        code_request_converser.get_code_and_output_and_add_file_descriptions_and_code_explanation()
+        code_request_converser.get_code_and_output_and_descriptions()
     for keyword in code_creating_csv_keywords_in_description:
         assert keyword in scientific_products.get_description('created_files_description:data_analysis')

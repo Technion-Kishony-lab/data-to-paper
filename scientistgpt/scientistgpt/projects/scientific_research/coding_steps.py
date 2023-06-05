@@ -5,6 +5,7 @@ from typing import Optional, Tuple, Dict, Type
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 from scientistgpt.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BaseProductsQuotedReviewGPT, BackgroundProductsConverser
+from scientistgpt.base_steps.base_products_conversers import ProductsConverser
 from scientistgpt.base_steps.result_converser import Rewind
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
@@ -367,7 +368,7 @@ CODE_STEP_TO_CLASS = {
 }
 
 
-class RequestScientificCodeProducts(BaseScientificCodeProductsHandler):
+class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     EXPLAIN_CODE_CLASS = RequestCodeExplanation
     EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
 
@@ -396,7 +397,7 @@ class RequestScientificCodeProducts(BaseScientificCodeProductsHandler):
             actions_and_conversations=self.actions_and_conversations,
         ).run_dialog_and_get_valid_result()
 
-    def get_code_and_output_and_add_file_descriptions_and_code_explanation(
+    def get_code_and_output_and_descriptions(
             self, with_file_descriptions: bool = True, with_code_explanation: bool = True) -> CodeAndOutput:
         code_and_output = self.get_code_and_output()
         self.products.codes_and_outputs[self.code_step] = code_and_output
