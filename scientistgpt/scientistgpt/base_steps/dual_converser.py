@@ -37,6 +37,11 @@ class DualConverserGPT(Converser):
         super().__post_init__()
         if self.other_conversation_name is None:
             self.other_conversation_name = f'{self.conversation_name}_other'
+
+        # For now, we do not allow the other conversation to continue a pre-existing conversation.
+        assert self.other_conversation_name not in self.actions_and_conversations.conversations, \
+            f'Conversation {self.other_conversation_name} already exists.'
+
         self.other_conversation_manager = ConversationManager(
             actions_and_conversations=self.actions_and_conversations,
             conversation_name=self.other_conversation_name,
@@ -159,10 +164,15 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     # ACCUMULATE (default, also None): keep all responses
 
     def __post_init__(self):
-        super().__post_init__()
-        # reverse roles:
-        self.other_conversation_manager.assistant_agent = self.user_agent
-        self.other_conversation_manager.user_agent = self.assistant_agent
+        if self.max_reviewing_rounds == 0:
+            # we are not reviewing, so this is essentially a single conversation
+            ResultConverser.__post_init__(self)
+        else:
+            super().__post_init__()
+            # reverse roles:
+            self.other_conversation_manager.assistant_agent = self.user_agent
+            self.other_conversation_manager.user_agent = self.assistant_agent
+
         self.round_num = 0
 
     def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> Message:
