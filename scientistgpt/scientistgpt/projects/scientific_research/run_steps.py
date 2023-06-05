@@ -54,7 +54,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
         flattened_paper_sections_to_write = []
-        for sections in sections_to_writing_class:
+        for sections, _ in sections_to_writing_class:
             flattened_paper_sections_to_write.extend(sections)
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
