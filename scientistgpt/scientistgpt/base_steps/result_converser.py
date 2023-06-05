@@ -177,6 +177,8 @@ class ResultConverser(Converser):
             except ValueError:
                 # We are starting before the first self response
                 is_preexisting_self_response = False
+
+            if not is_preexisting_self_response:
                 self_message = self.apply_get_and_append_assistant_message(web_conversation_name=None)
                 self_response = self_message.content
 
