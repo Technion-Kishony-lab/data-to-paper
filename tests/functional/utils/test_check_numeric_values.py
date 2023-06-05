@@ -1,7 +1,7 @@
 import pytest
 
 from scientistgpt.utils.check_numeric_values import extract_numeric_values, find_non_matching_numeric_values, \
-    add_one_to_last_digit
+    add_one_to_last_digit, is_after_smaller_than_sign
 
 
 @pytest.mark.parametrize('text, numbers', [
@@ -38,3 +38,9 @@ def test_add_one_to_last_digit(x, y):
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target) == non_matching
+
+
+def test_is_smaller_than_sign():
+    assert is_after_smaller_than_sign('0.05', 'p-value <0.05') is True
+    assert is_after_smaller_than_sign('0.05', 'p-value < 0.05') is True
+    assert is_after_smaller_than_sign('0.05', 'p-value is 0.05') is False
