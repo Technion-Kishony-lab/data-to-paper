@@ -209,12 +209,11 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True):
-        non_matching = find_non_matching_numeric_values(
-            source=self._get_text_from_which_response_should_be_extracted(),
-            target=text,
-            ignore_int_below=ignore_int_below,
-            remove_trailing_zeros=remove_trailing_zeros,
-            allow_truncating=allow_truncating)
+        non_matching = find_non_matching_numeric_values(source=self._get_text_from_which_response_should_be_extracted(),
+                                                        target=text, ignore_int_below=ignore_int_below,
+                                                        remove_trailing_zeros=remove_trailing_zeros,
+                                                        ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
+                                                        allow_truncating=allow_truncating)
         if non_matching:
             if just_warn:
                 print_red('########################')
