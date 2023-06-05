@@ -136,6 +136,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerConverser.from_(
                 self,
+                is_new_conversation=False,
                 output_filename=self.actual_output_filename,
                 data_files=self.data_filenames,
                 data_folder=self.data_folder,
@@ -205,6 +206,7 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
             return None
         return BaseProductsQuotedReviewGPT.from_(
             self,
+            is_new_conversation=False,
             max_reviewing_rounds=0,
             goal_noun='code explanation',
             user_initiation_prompt=self.requesting_code_explanation_prompt,
@@ -216,6 +218,7 @@ class OfferRevisionCodeProductsGPT(BaseCodeProductsGPT):
 
         return MultiChoiceBackgroundProductsConverser.from_(
             self,
+            is_new_conversation=False,
             user_initiation_prompt=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
             possible_choices=('1', '2'),
         ).run_and_get_valid_result() == '2'
@@ -257,6 +260,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                 columns = saved_columns
                 response = BaseProductsQuotedReviewGPT.from_(
                     self,
+                    is_new_conversation=False,
                     max_reviewing_rounds=0,
                     rewind_after_end_of_review=Rewind.DELETE_ALL,
                     goal_noun='the content of the dataframe',
@@ -273,6 +277,7 @@ class DataframeChangingCodeProductsGPT(BaseCodeProductsGPT):
                 columns = added_columns | changed_columns
                 columns_to_explanations = PythonDictWithDefinedKeysReviewBackgroundProductsConverser.from_(
                     self,
+                    is_new_conversation=False,
                     max_reviewing_rounds=0,
                     rewind_after_end_of_review=Rewind.DELETE_ALL,
                     requested_keys=columns,

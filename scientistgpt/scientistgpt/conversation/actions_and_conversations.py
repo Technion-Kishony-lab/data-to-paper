@@ -66,6 +66,17 @@ class Conversations(Dict[str, Conversation]):
         self[conversation.conversation_name] = conversation
         return conversation
 
+    def get_new_conversation_name(self, prefix: str = 'conversation') -> str:
+        """
+        Return a new conversation name that is not already in use.
+        """
+        i = 0
+        while True:
+            conversation_name = f'{prefix}_{i}'
+            if conversation_name not in self:
+                return conversation_name
+            i += 1
+
 
 @dataclass(frozen=True)
 class Actions(List[Action]):
