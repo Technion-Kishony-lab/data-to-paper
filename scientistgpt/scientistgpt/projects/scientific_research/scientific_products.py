@@ -367,26 +367,24 @@ class ScientificProducts(Products):
                 'The Tables of the Paper',
                 '{}',
                 ScientificStages.TABLES,
-                lambda: {'tables': self.get_tables_names_and_content(),
+                lambda: {'tables': self.get_tables_names_and_content()}),
 
-                         'numeric_values': NameDescriptionStageGenerator(
-                             'The Numeric Values of the Paper',
-                             'Here are some key numeric values we can use to write the results of the paper:\n\n{}',
-                             ScientificStages.INTERPRETATION,
-                             lambda: None if not self.numeric_values else
-                             NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"
-                                       for i, (numeric_value_name, numeric_value_content) in
-                                       enumerate(self.numeric_values.items())],
-                                      separator='\n\n'),
-                         ),
+            'numeric_values': NameDescriptionStageGenerator(
+                'The Numeric Values of the Paper',
+                'Here are some key numeric values we can use to write the results of the paper:\n\n{}',
+                ScientificStages.INTERPRETATION,
+                lambda: None if not self.numeric_values else
+                NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"
+                          for i, (numeric_value_name, numeric_value_content) in
+                          enumerate(self.numeric_values.items())],
+                         separator='\n\n'),
+            ),
 
-                         'tables_and_numeric_values': NameDescriptionStageGenerator(
-                             'The Tables and Numeric Values of the Paper',
-                             '{tables}\n\n{numeric_values}',
-                             ScientificStages.INTERPRETATION,
-                             lambda: {'tables': self.get_description('tables'),
-                                      'numeric_values': self.get_description('numeric_values')},
-                         ),
-                         }
+            'tables_and_numeric_values': NameDescriptionStageGenerator(
+                'The Tables and Numeric Values of the Paper',
+                '{tables}\n\n{numeric_values}',
+                ScientificStages.INTERPRETATION,
+                lambda: {'tables': self.get_description('tables'),
+                         'numeric_values': self.get_description('numeric_values')},
             ),
         }
