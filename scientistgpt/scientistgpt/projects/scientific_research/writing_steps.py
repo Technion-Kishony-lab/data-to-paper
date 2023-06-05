@@ -97,6 +97,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     max_reviewing_rounds: int = 2
+    conversation_name: str = 'title_abstract_section_first'
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
@@ -113,6 +114,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
 @dataclass
 class SecondTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 0
+    conversation_name: str = 'title_abstract_section_second'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'most_updated_paper_sections:results', 'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
