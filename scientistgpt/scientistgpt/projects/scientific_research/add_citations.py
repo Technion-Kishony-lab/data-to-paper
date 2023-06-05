@@ -247,6 +247,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
                 rewritten_sentence, chosen_citations = \
                     RewriteSentenceWithCitations.from_(
                         self,
+                        is_new_conversation=False,
                         sentence=sentence,
                         citations=NiceList(sentence_citations, separator='\n\n', last_separator=None),
                     ).get_rewritten_sentence_and_chosen_citations()
