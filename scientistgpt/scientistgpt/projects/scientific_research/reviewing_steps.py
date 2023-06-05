@@ -98,7 +98,9 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} {goal_noun} that will describe the tables that will capture the most important results have.
-        Usually, a scientific paper will have 1-3 tables, each one containing unique results.
+        You can only give table names that can be produced from data that found within the data exploration \
+        and data analysis outputs (see above).
+        Usually, a scientific paper will have 1-3 tables, each one containing completely unique and different results.
         The {goal_noun} that you choose should be returned as a Python Dict[str, str], \
         where the names that you give can be used to accurately describe the tables that will be produced in a later \
         stage.
@@ -114,6 +116,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
         Do not send any free text. All tables names should have string keys in the form of 'Table n' \
         and the values should be the actual names as string so the answer should be in a structured form of Python Dict.
+        Do not suggest tables names that mention data and results that are not found in the provided outputs.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether they \
@@ -144,7 +147,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         Please build the table "{table_name}". 
         You should build the table using the results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
-        The table should have a caption suitable for inclusion as part of a scientific paper.    
+        The table should have a caption suitable for inclusion as part of a scientific paper.
+        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the relevant value, \
+        in scientific writing it is not common to write 0 as a p-value.
         {do_not_repeat_information_from_previous_tables}
         
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
@@ -155,6 +160,8 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         Please provide actionable feedback on the above table, with specific attention to whether the table \
         contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
         to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
+        Notice that each tables should contain unique information - it is not acceptable to have two tables \
+        that contain the same column or even partial overlap of results. 
         Do not suggest changes to the table that may require data not available in our dataset.
         If you are satisfied, respond with "{termination_phrase}".
         NOTICE: If you give any type of feedback, you cannot reply with "{termination_phrase}".
