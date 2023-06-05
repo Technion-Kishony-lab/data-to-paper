@@ -10,6 +10,16 @@ def extract_numeric_values(text: str) -> List[str]:
     return re.findall(r"[-+]?\b\d+(?:,\d+)*(?:\.\d+)?\b", text)
 
 
+
+
+def is_int_below_max(str_number: str, max_int: int) -> bool:
+    """
+    Check if the given string number is an int below the given max int.
+    """
+    return '.' not in str_number and ',' not in str_number \
+        and abs(int(str_number)) < max_int
+
+
 def round_to_n_digits(str_number: str, n_digits: int) -> float:
     """
     Round the given number to the given number of digits.
@@ -100,8 +110,10 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
 
     non_matching_str_numbers = []
     for str_target_number in str_target_numbers:
-        if '.' not in str_target_number and ',' not in str_target_number \
-                and abs(int(str_target_number)) < ignore_int_below:
+
+        if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
+            continue
+
             continue
 
         num_digits = get_number_of_significant_figures(str_target_number, remove_trailing_zeros)
