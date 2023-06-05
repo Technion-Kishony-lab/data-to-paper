@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, List
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -89,8 +89,39 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
-    background_product_fields: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',
-                                             'tables_and_tables_names')
+    background_product_fields: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis', 'research_goal')
+    conversation_name: str = 'table_names'
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'tables names to produce for the paper'
+    goal_verb: str = 'come up with'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.TableExpert
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun} that will describe the tables that will capture the most important results have.
+        Usually, a scientific paper will have 1-3 tables, each one containing unique results.
+        The {goal_noun} that you choose should be returned as a Python Dict[str, str], \
+        where the names that you give can be used to accurately describe the tables that will be produced in a later \
+        stage.
+        
+        For example, the resulted answer can look like this: 
+        {
+            'Table 1': 'Summary of the results of the linear regression model results',
+            'Table 2': 'Summary of the statistical analysis of the most important linear regression model coefficients',
+        }
+        Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
+        results we got in the output and in light of the overall goal of the project as mentioned above. You need to \
+        choose as many {goal_noun} as you think are needed to describe the most important results that we got.
+
+        Do not send any free text. All tables names should have string keys in the form of 'Table n' \
+        and the values should be the actual names as string so the answer should be in a structured form of Python Dict.
+        """)
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        Please provide feedback on the above {goal_noun}, with specific attention to whether they \
+        relevant to the research goal, if they can be created solely from information that is explicitly extracted \
+        from the provided output data.
+
+        If you are satisfied, respond with "{termination_phrase}".
+        """)
 
 
 @dataclass
