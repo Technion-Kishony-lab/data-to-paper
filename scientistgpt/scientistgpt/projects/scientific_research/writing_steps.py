@@ -175,6 +175,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
         added as a part of the paper, so you should explicitly mention any important values as an integral part of \
         the text.
+        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the relevant value, \
+        in scientific writing it is not common to write 0 as a p-value.
 
         Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
         """)
