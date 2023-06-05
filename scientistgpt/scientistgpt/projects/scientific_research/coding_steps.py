@@ -47,7 +47,8 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
     def __post_init__(self):
         if self.gpt_script_filename is None:
             self.gpt_script_filename = f'{self.code_step}_code'
-        super().__post_init__()
+        BaseScientificCodeProductsHandler.__post_init__(self)
+        BaseCodeProductsGPT.__post_init__(self)
 
     @property
     def files_created_in_prior_stages(self) -> NiceList[str]:
@@ -368,6 +369,7 @@ CODE_STEP_TO_CLASS = {
 }
 
 
+@dataclass
 class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     EXPLAIN_CODE_CLASS = RequestCodeExplanation
     EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
@@ -401,7 +403,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             self, with_file_descriptions: bool = True, with_code_explanation: bool = True) -> CodeAndOutput:
         code_and_output = self.get_code_and_output()
         self.products.codes_and_outputs[self.code_step] = code_and_output
-        if with_file_descriptions:
+        if with_file_descriptions and code_and_output.get_created_files_beside_output_file():
             code_and_output.description_of_created_files = \
                 self._get_description_of_created_files()
         if with_code_explanation:

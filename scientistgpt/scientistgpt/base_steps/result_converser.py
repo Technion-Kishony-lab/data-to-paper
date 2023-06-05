@@ -116,7 +116,7 @@ class ResultConverser(Converser):
         Add background messages to the two conversations to set them ready for the cycle.
         """
         if self.user_initiation_prompt:
-            self.apply_append_user_message(self.user_initiation_prompt, tag='user_initiation_prompt')
+            self.apply_append_user_message(self.user_initiation_prompt)
 
     def _raise_self_response_error(self, error_message: str, rewind: Rewind = Rewind.ACCUMULATE,
                                    bump_model: bool = False):
