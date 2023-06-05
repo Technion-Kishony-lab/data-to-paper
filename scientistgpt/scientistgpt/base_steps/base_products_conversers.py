@@ -205,7 +205,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                 f'{self.names_of_products_from_which_to_extract}.')
 
     def _check_extracted_numbers(self, text: str,
-                                 just_warn: bool = False,
+                                 just_warn: bool = True,
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True):
