@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple, Type
+from typing import Optional, Dict, Tuple, Type, List
 
 from scientistgpt.base_steps.base_steps_runner import BaseStepsRunner
 from scientistgpt.base_steps.request_products_from_user import DirectorProductGPT
@@ -13,7 +13,8 @@ from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT
-from .writing_steps import SectionWriterReviewBackgroundProductsConverser, TitleAbstractSectionWriterReviewGPT, \
+from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
+    FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT
 
@@ -39,17 +40,18 @@ class ScientificStepsRunner(BaseStepsRunner):
 
     number_of_tables_to_add: int = 2
 
-    def get_sections_to_writing_class(self
-                                      ) -> Dict[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]:
-        return {
-            ('title', 'abstract'): TitleAbstractSectionWriterReviewGPT,
-            ('introduction', ): IntroductionSectionWriterReviewGPT,
-            ('methods', ): MethodsSectionWriterReviewGPT,
-            ('results', ): (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
-                            else SectionWriterReviewBackgroundProductsConverser),
-            ('discussion', ): DiscussionSectionWriterReviewGPT,
-            ('conclusion', ): ConclusionSectionWriterReviewGPT,
-        }
+    def get_sections_to_writing_class(
+            self) -> List[Tuple[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]]:
+        return [
+            (('title', 'abstract'), FirstTitleAbstractSectionWriterReviewGPT),
+            (('results',), (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
+                            else SectionWriterReviewBackgroundProductsConverser)),
+            (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
+            (('methods',), MethodsSectionWriterReviewGPT),
+            (('introduction',), IntroductionSectionWriterReviewGPT),
+            (('discussion',), DiscussionSectionWriterReviewGPT),
+            #  (('conclusion',), ConclusionSectionWriterReviewGPT),
+        ]
 
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
         flattened_paper_sections_to_write = []
@@ -68,8 +70,8 @@ class ScientificStepsRunner(BaseStepsRunner):
             output_filename='paper.pdf',
         )
         paper_section_names = paper_producer.get_paper_section_names()
-        sections_to_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(paper_section_names, sections_to_writing_class)
+        sections_and_writing_class = self.get_sections_to_writing_class()
+        self.assert_paper_sections_to_write_matches_template(paper_section_names, sections_and_writing_class)
 
         # Data file descriptions:
         director_converser = DirectorProductGPT.from_(self,
@@ -141,7 +143,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
-        for section_names, writing_class in sections_to_writing_class.items():
+        for section_names, writing_class in sections_and_writing_class:
             sections = writing_class.from_(self, section_names=section_names).run_dialog_and_get_valid_result()
             for section_name, section in zip(section_names, sections):
                 products.paper_sections[section_name] = section
