@@ -12,7 +12,7 @@ from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figu
     replace_special_chars, check_usage_of_unwanted_commands
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
-from .result_converser import Rewind
+from .result_converser import Rewind, NoResponse
 from ..latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment
 
 
@@ -30,7 +30,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     response_to_self_error: str = dedent_triple_quote_str("""
         {}
 
-        Please {goal_verb} the {goal_noun} part again with the correct latex formatting.
+        Please {goal_verb} the {goal_noun} again with this error corrected.
         """)
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
@@ -58,13 +58,13 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         """
         Return a response that looks fresh.
         """
-        response = '\n\n'.join(self.returned_result)
-        return super()._get_fresh_looking_response(response)
+        if isinstance(self.returned_result, NoResponse):
+            return super()._get_fresh_looking_response(response)
+        return super()._get_fresh_looking_response('\n\n'.join(self.returned_result))
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = self._extract_latex_section_from_response(response, section_name)
         section = self._refine_extracted_section(section)
-        section = self._check_section(section)
         return section
 
     def _extract_latex_section_from_response(self, response: str, section_name: str) -> str:
@@ -88,7 +88,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         extracted_section = replace_special_chars(extracted_section)
         return extracted_section
 
-    def _check_section(self, extracted_section: str) -> str:
+    def _check_section(self, extracted_section: str):
         try:
             check_latex_compilation(extracted_section)
         except LatexCompilationError as e:
@@ -97,7 +97,6 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
             check_usage_of_unwanted_commands(extracted_section)
         except UnwantedCommandsUsedInLatex as e:
             self._raise_self_response_error(str(e))
-        return extracted_section
 
     def _check_and_extract_result_from_self_response(self, response: str):
         """
@@ -109,3 +108,6 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         for section_name in self.section_names:
             section_contents.append(self._get_latex_section_from_response(response, section_name))
         self.returned_result = section_contents
+
+        for section in section_contents:
+            self._check_section(section)
