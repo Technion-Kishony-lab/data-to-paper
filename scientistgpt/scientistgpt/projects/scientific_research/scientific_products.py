@@ -101,7 +101,7 @@ class ScientificProducts(Products):
         """
         Return the description of all files.
         """
-        desc = DataFileDescriptions(self.data_file_descriptions)
+        desc = DataFileDescriptions.from_other(self.data_file_descriptions)
         for code_and_output in self.codes_and_outputs.values():
             if code_and_output.description_of_created_files is not None:
                 desc += code_and_output.description_of_created_files
