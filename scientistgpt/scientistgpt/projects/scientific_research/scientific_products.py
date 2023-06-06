@@ -6,7 +6,8 @@ from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.nice_list import NiceList
-from scientistgpt.base_products import DataFileDescriptions, Products, NameDescriptionStageGenerator
+from scientistgpt.base_products import DataFileDescriptions, DataFileDescription, Products, \
+    NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
 
@@ -100,12 +101,27 @@ class ScientificProducts(Products):
         """
         Return the description of all files.
         """
+        desc = DataFileDescriptions(self.data_file_descriptions)
+        for code_and_output in self.codes_and_outputs.values():
+            if code_and_output.description_of_created_files is not None:
+                desc += code_and_output.description_of_created_files
+            else:
+                desc += [DataFileDescription(file_path=created_file)
+                         for created_file in code_and_output.get_created_files_beside_output_file()]
+        desc.data_folder = self.data_file_descriptions.data_folder
+        return desc
+
+    def get_file_headers(self, code_step: str):
+        """
+        Return the file headers of a given code_step.
+        """
+        code_and_output = self.codes_and_outputs[code_step]
+        created_files = code_and_output.get_created_files_beside_output_file()
+        if not created_files:
+            return None
         return DataFileDescriptions(
-            [description for description in self.data_file_descriptions] +
-            [desc_of_file for co in self.codes_and_outputs.values() if co.description_of_created_files is not None for
-             desc_of_file in co.description_of_created_files],
-            data_folder=self.data_file_descriptions.data_folder,
-            general_description=self.data_file_descriptions.general_description)
+            [DataFileDescription(file_path=created_file) for created_file in created_files],
+            data_folder=self.data_file_descriptions.data_folder)
 
     @property
     def citations(self) -> NiceList[CrossrefCitation]:
@@ -194,8 +210,8 @@ class ScientificProducts(Products):
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
-                'Raw Dataset',
-                'DESCRIPTION OF THE RAW DATASET\n\n{}',
+                'Original Dataset',
+                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
@@ -265,6 +281,15 @@ class ScientificProducts(Products):
                         self.data_file_descriptions + self.codes_and_outputs[code_step].description_of_created_files,
                         data_folder=self.codes_and_outputs[code_step].description_of_created_files.data_folder)
                     if self.codes_and_outputs[code_step].description_of_created_files is not None else None,
+                    'code_name': self.codes_and_outputs[code_step].name},
+            ),
+
+            'created_files_headers:{}': NameDescriptionStageGenerator(
+                'Headers of Files Created by the {code_name} Code',
+                'Here are the headers of the files created by the {code_name} code:\n\n{created_files_headers}',
+                lambda code_step: get_code_stage(code_step),
+                lambda code_step: {
+                    'created_files_headers': self.get_file_headers(code_step),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 

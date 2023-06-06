@@ -9,7 +9,7 @@ from scientistgpt.utils.mutable import Mutable
 @dataclass(frozen=True)
 class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name
-    description: str  # a user provided description of the file
+    description: Optional[str] = None  # a user provided description of the file
     originated_from: Optional[str] = None  # None for raw file
 
     def get_file_header(self, num_lines: int = 4):
@@ -26,7 +26,9 @@ class DataFileDescription:
             return ''.join(head)
 
     def pretty_repr(self, num_lines: int = 4):
-        s = f'"{self.file_path}"\n{self.description}\n\n'
+        s = f'"{self.file_path}"\n'
+        if self.description is not None:
+            s += f'{self.description}\n\n'
         if num_lines > 0:
             s += f'Here are the first few lines of the file:\n' \
                  f'```\n{self.get_file_header(num_lines)}\n```\n'
