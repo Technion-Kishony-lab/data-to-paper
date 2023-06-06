@@ -172,7 +172,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return None
 
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
-        if self.offer_revision_prompt is None:
+        if self.offer_revision_prompt is None or self.output_filename is None:
             return False
 
         return MultiChoiceBackgroundProductsConverser.from_(

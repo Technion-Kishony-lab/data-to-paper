@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Dict, Type
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 from scientistgpt.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BaseProductsQuotedReviewGPT, BackgroundProductsConverser
-from scientistgpt.base_steps.base_products_conversers import ProductsConverser
+from scientistgpt.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from scientistgpt.base_steps.result_converser import Rewind
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
@@ -13,6 +13,7 @@ from scientistgpt.projects.scientific_research.scientific_products import Scient
     get_code_agent
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.file_utils import run_in_directory
 from scientistgpt.utils.nice_list import NiceList, NiceDict
 from scientistgpt.utils.replacer import Replacer
 from scientistgpt.utils.types import ListBasedSet
@@ -224,7 +225,7 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
 
 
 @dataclass
-class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, BaseProductsQuotedReviewGPT):
+class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, ReviewBackgroundProductsConverser):
     goal_noun: str = 'explanation of the {code_name} code'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions',)
     max_reviewing_rounds: int = 0
@@ -234,13 +235,13 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, BaseProducts
     def __post_init__(self):
         self.background_product_fields = self.background_product_fields + ('codes:' + self.code_step,)
         BaseScientificPostCodeProductsHandler.__post_init__(self)
-        BaseProductsQuotedReviewGPT.__post_init__(self)
+        ReviewBackgroundProductsConverser.__post_init__(self)
 
     user_initiation_prompt: str = "{requesting_code_explanation}\n" \
-                                  "{actual_requesting_output_explanation}" \
-                                  "{quote_request}"
+                                  "{actual_requesting_output_explanation}"
+
     requesting_code_explanation: str = dedent_triple_quote_str("""
-        Please explain what your code does. Do not provide a line-by-line explanation, rather provide a \
+        Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
         paper. 
         """)
@@ -266,9 +267,12 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
     user_initiation_prompt: str = None
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal')
     requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
-        Explain the content of the file "{dataframe_file_name}", and how the different columns are derived from the \
-        original data.
-        {quote_request}
+        The code creates a new file named "{dataframe_file_name}", with the following columns: 
+        {columns}.
+        
+        Explain the content of the file, and how it was derived from the original data. 
+        Importantly: do NOT explain the content of columns that are already explained for the \
+        original dataset (see above DESCRIPTION OF THE DATASET).
         """)
 
     requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
@@ -283,8 +287,9 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
 
     def ask_for_created_files_descriptions(self) -> Optional[DataFileDescriptions]:
         self.initialize_conversation_if_needed()
+        data_folder = self.products.data_file_descriptions.data_folder
         dataframe_operations = self.code_and_output.dataframe_operations
-        data_file_descriptions = DataFileDescriptions(data_folder=self.products.data_file_descriptions.data_folder)
+        data_file_descriptions = DataFileDescriptions(data_folder=data_folder)
         saved_ids_filenames = dataframe_operations.get_saved_ids_filenames()
         # sort the saved ids by their filename, so that the order of the questions will be consistent between runs:
         saved_ids_filenames = sorted(saved_ids_filenames, key=lambda saved_id_filename: saved_id_filename[1])
@@ -298,7 +303,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
             if read_filename is None:
                 # this saved dataframe was created by the code, not read from a file
                 columns = saved_columns
-                response = BaseProductsQuotedReviewGPT.from_(
+                response = ReviewBackgroundProductsConverser.from_(
                     self,
                     is_new_conversation=False,
                     max_reviewing_rounds=0,
@@ -307,7 +312,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
                     goal_noun='the content of the dataframe',
                     user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
-                                                            'columns': columns}),
+                                                            'columns': list(columns)}),
                 ).run_dialog_and_get_valid_result()
                 description = f'This csv file was created by the {self.code_name} code.\n' \
                               f'{response}\n'
@@ -326,8 +331,8 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
                     goal_noun='dictionary that explains the columns of the dataframe',
                     user_initiation_prompt=Replacer(self,
                                                     self.requesting_explanation_for_a_modified_dataframe,
-                                                    kwargs={
-                                                        'dataframe_file_name': saved_df_filename, 'columns': columns}),
+                                                    kwargs={'dataframe_file_name': saved_df_filename,
+                                                            'columns': list(columns)}),
                     value_type=Dict[str, str],
                 ).run_dialog_and_get_valid_result()
 
@@ -403,9 +408,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             self, with_file_descriptions: bool = True, with_code_explanation: bool = True) -> CodeAndOutput:
         code_and_output = self.get_code_and_output()
         self.products.codes_and_outputs[self.code_step] = code_and_output
-        if with_file_descriptions and code_and_output.get_created_files_beside_output_file():
-            code_and_output.description_of_created_files = \
-                self._get_description_of_created_files()
         if with_code_explanation:
             code_and_output.code_explanation = self._get_code_explanation()
+        if with_file_descriptions and code_and_output.get_created_files_beside_output_file():
+            code_and_output.description_of_created_files = self._get_description_of_created_files()
         return code_and_output
