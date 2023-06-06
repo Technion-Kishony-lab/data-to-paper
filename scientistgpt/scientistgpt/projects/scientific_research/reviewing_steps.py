@@ -38,17 +38,18 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal and \
-        the clear hypotheses we should test in light of the goal.
+        well specified hypotheses we should test in light of the goal.
         The research goal should be interesting and novel, it should contain a research question that can create new \
         insights on the studied topic and add to the scientific knowledge in the field.
-        Make sure you suggest an hypotheses that can be studied using only the provided dataset, without requiring \
-        any additional data \
+        Make sure you suggest one or more hypotheses that can be studied using only the provided dataset, 
+        without requiring any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
         as in the description of our dataset, above).
 
         {quote_request}.
-        Notice to flank the entire goal and hypotheses, do not flank headers.
         """)
+    quote_request: str = 'Please return the goal and hypotheses enclosed within triple-backticks ' \
+                         '(make sure to flank the entire goal and hypotheses, not just their header).'
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
         Your job is to advise me, the {performer}, and provide a constructive bullet-point feedback in repeated cycles \
@@ -119,13 +120,14 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         The names should accurately describe the tables that will be produced in a later stage.
         Do not suggest tables names that mention data and results that are not found in the provided outputs.
         
-        Usually, a scientific paper has up to 3 tables, each containing completely unique and different results.
-        You need to choose names for up to a maximum of 3 tables you think are needed to cover the most important scientific results \
-        as presented to you above.
-        Don't suggest name of a table if you think its not completely necessary, relevant, represent unique goal and can \
-        be created using the data supplied above.
+        Typically, a scientific paper has up to 3 tables, each containing completely unique and different results.
+        You need to choose names for a maximum of 3 tables you think are needed to cover the most important \
+        scientific results as presented to you above.
+        Don't suggest name of tables which are not completely necessary, or technical or \
+        irrelevant to the research goal.
+        Also, do not suggest names of tables that may require additional data that is not found in the provided outputs.
         
-        Do not send any free text; Your response should be structured as a Python Dict.
+        Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
