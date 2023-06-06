@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 from scientistgpt.base_products import Products
-from .result_converser import ResultConverser
+from .result_converser import ResultConverser, Rewind
 from .dual_converser import ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
@@ -224,4 +224,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
             else:
                 self._raise_self_response_error(
                     f'Some of the specified values {non_matching} are not explicitly extracted from the provided '
-                    f'{self.names_of_products_from_which_to_extract}.')
+                    f'{self.names_of_products_from_which_to_extract}.\n\n'
+                    f'Important: Please retry while making sure to '
+                    f'ONLY INCLUDE VALUES EXTRACTED FROM THE OUTPUTS PROVIDED ABOVE\n',
+                    rewind=Rewind.REPOST_AS_FRESH,
+                )

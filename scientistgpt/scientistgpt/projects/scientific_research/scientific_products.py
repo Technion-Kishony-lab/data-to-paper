@@ -6,7 +6,8 @@ from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils.nice_list import NiceList
-from scientistgpt.base_products import DataFileDescriptions, Products, NameDescriptionStageGenerator
+from scientistgpt.base_products import DataFileDescriptions, DataFileDescription, Products, \
+    NameDescriptionStageGenerator
 from scientistgpt.servers.crossref import CrossrefCitation
 
 
@@ -60,12 +61,33 @@ class ScientificProducts(Products):
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
+    tables_names: Dict[str, str] = field(default_factory=dict)
     tables: Dict[str, List[str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
     cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
     # ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
+
+    @property
+    def pretty_tables_names(self) -> str:
+        """
+        Return the tables names in a pretty way.
+        """
+        return '\n'.join(f'{table_num}: {table_name}' for table_num, table_name in self.tables_names)
+
+    def get_tables_names_and_content(self) -> str:
+        """
+        Return the tables names and content.
+        """
+        s = 'We are creating a total of {} tables:\n\n'.format(len(self.tables_names))
+        tables = self.tables['results']
+        for i, (table_num, table_name) in enumerate(self.tables_names):
+            if i < len(tables):
+                s += f'{table_num}: {table_name}:\n{tables[i]}\n\n'
+            else:
+                s += f'{table_num}: {table_name}:\nNot created yet\n\n'
+        return s
 
     @property
     def all_tables(self) -> List[str]:
@@ -79,10 +101,26 @@ class ScientificProducts(Products):
         """
         Return the description of all files.
         """
+        desc = DataFileDescriptions(self.data_file_descriptions)
+        for code_and_output in self.codes_and_outputs.values():
+            if code_and_output.description_of_created_files is not None:
+                desc += code_and_output.description_of_created_files
+            else:
+                desc += [DataFileDescription(file_path=created_file)
+                         for created_file in code_and_output.get_created_files_beside_output_file()]
+        desc.data_folder = self.data_file_descriptions.data_folder
+        return desc
+
+    def get_file_headers(self, code_step: str):
+        """
+        Return the file headers of a given code_step.
+        """
+        code_and_output = self.codes_and_outputs[code_step]
+        created_files = code_and_output.get_created_files_beside_output_file()
+        if not created_files:
+            return None
         return DataFileDescriptions(
-            [description for description in self.data_file_descriptions] +
-            [desc_of_file for co in self.codes_and_outputs.values() if co.description_of_created_files is not None for
-             desc_of_file in co.description_of_created_files],
+            [DataFileDescription(file_path=created_file) for created_file in created_files],
             data_folder=self.data_file_descriptions.data_folder)
 
     @property
@@ -164,9 +202,16 @@ class ScientificProducts(Products):
         return {
             **super()._get_generators(),
 
+            'general_dataset_description': NameDescriptionStageGenerator(
+                'Dataset Description',
+                'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
+                ScientificStages.DATA,
+                lambda: self.data_file_descriptions.general_description,
+            ),
+
             'data_file_descriptions': NameDescriptionStageGenerator(
-                'Raw Dataset',
-                'DESCRIPTION OF THE RAW DATASET\n\nWe have the following {}',
+                'Original Dataset',
+                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
@@ -236,6 +281,15 @@ class ScientificProducts(Products):
                         self.data_file_descriptions + self.codes_and_outputs[code_step].description_of_created_files,
                         data_folder=self.codes_and_outputs[code_step].description_of_created_files.data_folder)
                     if self.codes_and_outputs[code_step].description_of_created_files is not None else None,
+                    'code_name': self.codes_and_outputs[code_step].name},
+            ),
+
+            'created_files_headers:{}': NameDescriptionStageGenerator(
+                'Headers of Files Created by the {code_name} Code',
+                'Here are the headers of the files created by the {code_name} code:\n\n{created_files_headers}',
+                lambda code_step: get_code_stage(code_step),
+                lambda code_step: {
+                    'created_files_headers': self.get_file_headers(code_step),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -318,13 +372,27 @@ class ScientificProducts(Products):
                                       },
             ),
 
+            'tables_names': NameDescriptionStageGenerator(
+                'The Names of the Tables of the Paper',
+                'Here are the names of the tables for the paper:\n\n{}',
+                ScientificStages.TABLES,
+                lambda: None if not self.tables_names else self.pretty_tables_names,
+            ),
+
             'tables': NameDescriptionStageGenerator(
                 'The Tables of the Paper',
                 'Here are the tables we have for the paper:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.all_tables else
                 NiceList([f"Table {i + 1}:\n\n {table}" for i, table in enumerate(self.all_tables)],
-                         separator='\n\n'), ),
+                         separator='\n\n'),
+            ),
+
+            'tables_and_tables_names': NameDescriptionStageGenerator(
+                'The Tables of the Paper',
+                '{}',
+                ScientificStages.TABLES,
+                lambda: {'tables': self.get_tables_names_and_content()}),
 
             'numeric_values': NameDescriptionStageGenerator(
                 'The Numeric Values of the Paper',
@@ -332,15 +400,16 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: None if not self.numeric_values else
                 NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"
-                          for i, (numeric_value_name, numeric_value_content) in enumerate(self.numeric_values.items())],
-                         separator='\n\n'), ),
+                          for i, (numeric_value_name, numeric_value_content) in
+                          enumerate(self.numeric_values.items())],
+                         separator='\n\n'),
+            ),
 
             'tables_and_numeric_values': NameDescriptionStageGenerator(
                 'The Tables and Numeric Values of the Paper',
                 '{tables}\n\n{numeric_values}',
                 ScientificStages.INTERPRETATION,
                 lambda: {'tables': self.get_description('tables'),
-                         'numeric_values': self.get_description('numeric_values'),
-                         },
+                         'numeric_values': self.get_description('numeric_values')},
             ),
         }

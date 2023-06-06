@@ -90,7 +90,7 @@ class ResultConverser(Converser):
 
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}."
 
-    max_valid_response_iterations: int = 4
+    max_valid_response_iterations: int = 7
 
     response_to_self_error: str = "{}"
     # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
