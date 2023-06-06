@@ -154,8 +154,12 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
 
             # check that there exists a number in the source that matches after rounding to the same number of digits:
             is_match_as_is = is_any_matching_value_up_to_n_digits(str_source_numbers, target_number, num_digits)
-            is_match_100 = is_any_matching_value_up_to_n_digits(str_source_numbers, target_number / 100, num_digits)
-            is_target_percentage = is_percentage(str_target_number, target)
+            is_match_100 = is_any_matching_value_up_to_n_digits(str_source_numbers, round(target_number / 100, 10),
+                                                                num_digits)
+
+            # for now, we assume that any number might be a percentage, setting to None:
+            is_target_percentage = None  # is_percentage(str_target_number, target)
+
             if is_target_percentage is None:  # maybe percentage
                 is_match = is_match_as_is or is_match_100
             elif is_target_percentage:  # percentage
