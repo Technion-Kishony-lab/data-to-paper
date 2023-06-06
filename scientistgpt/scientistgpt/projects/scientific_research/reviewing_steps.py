@@ -140,8 +140,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
                                               CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str, ...] = ('outputs:data_exploration', 'outputs:data_analysis',
-                                             'tables_and_tables_names')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes:data_preprocessing',
+                                                  'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
+                                                  'tables_and_tables_names')
     table_name: str = None
     product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
     conversation_name: str = 'tables'
