@@ -33,7 +33,7 @@ MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF = Mutable(20)  # Use 0 to always show code 
 HIDE_INCOMPLETE_CODE = Flag(True)
 
 # Max number of characters allowed in output txt file of gpt code:
-MAX_SENSIBLE_OUTPUT_SIZE = Mutable(6000)
+MAX_SENSIBLE_OUTPUT_SIZE = Mutable(10000)
 
 # Coalesce conversations with the same participants into one web-conversation:
 COALESCE_WEB_CONVERSATIONS = Flag(True)
