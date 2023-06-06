@@ -188,14 +188,14 @@ class ScientificProducts(Products):
 
             'general_dataset_description': NameDescriptionStageGenerator(
                 'Dataset Description',
-                'DESCRIPTION OF THE DATASET\n\n{}',
+                'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.general_description,
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Raw Dataset',
-                'DESCRIPTION OF THE RAW DATASET\n\nWe have the following {}',
+                'DESCRIPTION OF THE RAW DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
