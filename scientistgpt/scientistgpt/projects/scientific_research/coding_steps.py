@@ -146,7 +146,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
         cleaned, normalized, same-unit, balanced version of the data, ready for use in the following analysis
-        steps that will include statistical tests and potentially utilize machine learning models on the processed data.
+        steps that will include statistical tests and/or machine learning models on the processed data.
 
         Your code should create one or more new csv files containing the preprocessed data, saved with \
         sensible file names.
@@ -161,7 +161,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Any other data preprocessing you deem relevant
         
         You are not obliged to perform all of the above steps, choose the ones that suits the data and the hypothesis
-        you are testing. 
+        we are testing (see research goal above). 
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
@@ -188,8 +188,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     enforce_saving_altered_dataframes: bool = False
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to achieve the research goal specified above, by performing statistical testing \
-        of the provided hypotheses.
+        Write a complete Python code to achieve the research goal specified above, correctly performing 
+        statistical tests needed to test our specified hypotheses.
 
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
         

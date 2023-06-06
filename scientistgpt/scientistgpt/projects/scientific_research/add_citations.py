@@ -7,10 +7,10 @@ from scientistgpt.utils.types import ListBasedSet
 
 from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER, CrossrefCitation, ServerErrorCitationException
 from scientistgpt.base_steps.request_python_value import PythonValueReviewBackgroundProductsConverser
+from scientistgpt.base_steps.result_converser import Rewind
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
-from ...base_steps.result_converser import Rewind
 
 
 @dataclass
@@ -128,28 +128,23 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     # override the default system prompt:
     system_prompt: str = dedent_triple_quote_str("""
         You are a scientific citation expert. 
-        You are given a section of a paper, you'll need to find all the factual \
-        sentences in the section and write a short search query for these sentences CrossRef API in a \
-        structured dict format.
-        After that you'll need to choose the most appropriate citations to add to the sentences in the section from \
-        a list of the possible citations returned from CrossRef for the given query.
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Extract from the above section all the factual sentences that need to have a reference. 
-        For each of the chosen sentences, create a few words query for a citation search for this sentence.
-        You need to return a dict mapping each sentence to its respective reference search query.
-        Your response should be in the following format: 
+        Extract from the above section of a scientific paper all the factual sentences that need to have a reference. 
+        For each of the chosen sentences, create a short query for a citation search for this sentence.
+        Return a Python Dict[str, str] mapping each sentence to its respective reference search query, like this:
+
         {
          "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
         This is of course just an example. 
-        Identify *all* the sentences that you think we need to add citations to - a sentence that have to have \
-        a reference is a sentence that mention any factual claim within it.
+        Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
+        that can benefit from a reference.
         
-        Return only a dict of "sentence: query" pairs, without any other text.
+        Return only a dict of {"sentence": "query"} pairs, without any other text.
     """)
 
     response_to_self_error: str = dedent_triple_quote_str("""
