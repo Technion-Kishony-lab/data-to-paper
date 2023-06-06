@@ -26,11 +26,12 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
+    CHATGPT_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
-    goal_noun: str = 'research goal and hypothesis'
+    goal_noun: str = 'research goal and an hypothesis'
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
@@ -38,10 +39,10 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal and \
-        well specified hypotheses we should test in light of the goal.
-        The research goal should be interesting and novel, it should contain a research question that can create new \
-        insights on the studied topic and add to the scientific knowledge in the field.
-        Make sure you suggest one or more hypotheses that can be studied using only the provided dataset, 
+        a scientifically interesting hypotheses we can test using the provided data.
+        The research goal and hypothesis should be interesting and novel. Try to avoid trivial hypotheses. 
+
+        Yet, make sure your suggested hypothesis can be studied using only the provided dataset, 
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
         as in the description of our dataset, above).
@@ -225,7 +226,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} {goal_noun} that capture the most important results we got in the output.
-        The {goal_noun} you choose should be those that are not presented in the latex paper tables above but 
+        The {goal_noun} you choose should be those that are not presented in the latex paper tables above but \
         might still be needed for a scientific paper.
         These {goal_noun} should only include information that is explicitly extracted from the output files provided \
         above.
