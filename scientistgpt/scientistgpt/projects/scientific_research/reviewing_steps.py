@@ -92,36 +92,39 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis', 'research_goal')
     conversation_name: str = 'table_names'
     value_type: type = Dict[str, str]
-    goal_noun: str = 'tables names to produce for the paper'
+    goal_noun: str = 'names of tables for a research paper'
     goal_verb: str = 'come up with'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun} that will describe the tables that will capture the most important results have.
-        You can only give table names that can be produced from data that found within the data exploration \
+        Please list captions for Tables for a scientific paper that will capture the most important results we have.
+        You can only give names of tables that can be produced from data that found within the data exploration \
         and data analysis outputs (see above).
-        Usually, a scientific paper will have 1-3 tables, each one containing completely unique and different results.
-        The {goal_noun} that you choose should be returned as a Python Dict[str, str], \
-        where the names that you give can be used to accurately describe the tables that will be produced in a later \
-        stage.
         
-        For example, the resulted answer can look like this: 
+        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the actual names of the tables.
+        
+        For example, you might return the following:        
         {
             'Table 1': 'Summary of the results of the linear regression model results',
             'Table 2': 'Summary of the statistical analysis of the most important linear regression model coefficients',
         }
-        Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
-        results we got in the output and in light of the overall goal of the project as mentioned above. You need to \
-        choose as many {goal_noun} as you think are needed to describe the most important results that we got.
-
-        Do not send any free text. All tables names should have string keys in the form of 'Table n' \
-        and the values should be the actual names as string so the answer should be in a structured form of Python Dict.
+        
+        Obviously, this is just an example. You should choose the table names that are most relevant to the specific \
+        results we got in the output and in light of the overall goal of the project as mentioned above. 
+        The names should accurately describe the tables that will be produced in a later stage.
         Do not suggest tables names that mention data and results that are not found in the provided outputs.
+        
+        Usually, a scientific paper has 1-3 tables, each containing completely unique and different results.
+        You need to choose names for as many tables you think are needed to cover the most important results \
+        that we got.  
+        
+        Do not send any free text; Your response should be structured as a Python Dict.
         """)
+
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above {goal_noun}, with specific attention to whether they \
-        relevant to the research goal, if they can be created solely from information that is explicitly extracted \
-        from the provided output data.
+        Please provide feedback on the above table names, with specific attention to whether they are \
+        relevant to the research goal, and can be created solely from information that provided in our output data.
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
