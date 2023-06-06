@@ -110,7 +110,8 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
-            RequestCodeProducts.from_(self, code_step='data_preprocessing').get_code_and_output_and_descriptions()
+            RequestCodeProducts.from_(self, code_step='data_preprocessing') \
+                .get_code_and_output_and_descriptions(with_file_descriptions=False)
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
 
         # Analysis code and output

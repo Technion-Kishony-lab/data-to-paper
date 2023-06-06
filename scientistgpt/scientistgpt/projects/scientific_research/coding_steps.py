@@ -66,10 +66,10 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
         return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages)
 
     @property
-    def description_of_additional_data_files_if_any(self) -> str:
+    def list_additional_data_files_if_any(self) -> str:
         if len(self.files_created_in_prior_stages) == 0:
             return ''
-        return f'Or you can also use the processed files created above by the data exploration code:\n' \
+        return f'Or you can also use the processed files created above by the data processing code:\n' \
                f'```\n' \
                f'{self.files_created_in_prior_stages}' \
                f'```\n'
@@ -170,8 +170,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
-        ('all_file_descriptions', 'analysis_plan', 'outputs:data_exploration',
-         'codes_and_outputs:data_preprocessing', 'research_goal')
+        ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
+         'created_files_headers:data_preprocessing', 'research_goal')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
 
@@ -183,8 +183,10 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
 
-        As input, you can use any of the data files I've listed above.
-
+        As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
+        
+        {list_additional_data_files_if_any}
+        
         Don't provide a sketch or pseudocode; write a complete runnable code.
 
         As needed, you can use the following packages which are already installed:
