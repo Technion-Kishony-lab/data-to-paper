@@ -64,6 +64,8 @@ class SelfResponseError(Exception):
     error_message: StrOrTextFormat = None
     rewind: Rewind = None
     bump_model: bool = False
+    add_iterations: int = 0
+    # if positive, we will *reduce* the iteration count so that we have more iterations to correct the response
 
     def __str__(self):
         return self.error_message
@@ -90,7 +92,7 @@ class ResultConverser(Converser):
 
     user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}."
 
-    max_valid_response_iterations: int = 7
+    max_valid_response_iterations: int = 4
 
     response_to_self_error: str = "{}"
     # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
@@ -119,11 +121,13 @@ class ResultConverser(Converser):
             self.apply_append_user_message(self.user_initiation_prompt)
 
     def _raise_self_response_error(self, error_message: str, rewind: Rewind = Rewind.ACCUMULATE,
+                                   add_iterations: int = 0,
                                    bump_model: bool = False):
         """
         Raise a SelfResponseError with the given error message and instructions for how to rewind the conversation.
         """
-        raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model)
+        raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
+                                add_iterations=add_iterations)
 
     def _check_and_extract_result_from_self_response(self, response: str):
         """
@@ -206,6 +210,8 @@ class ResultConverser(Converser):
                 return self_response
 
             # The response is not valid
+            self._self_response_iteration_count -= response_error.add_iterations
+
             if response_error.bump_model and self.model_engine < MAX_MODEL_ENGINE:
                 self.apply_append_user_message(
                     f"You seem totally drunk. Let's Bump you to {MAX_MODEL_ENGINE} and try again...",

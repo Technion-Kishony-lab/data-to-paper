@@ -188,6 +188,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
 class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
+    number_of_non_matching_values: int = None
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)
@@ -195,8 +196,9 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
     @property
     def names_of_products_from_which_to_extract(self) -> List[str]:
-        return NiceList(self.products.get_name(product_field)
-                        for product_field in self.product_fields_from_which_response_is_extracted)
+        return NiceList((self.products.get_name(product_field)
+                        for product_field in self.product_fields_from_which_response_is_extracted),
+                        last_separator=' and ')
 
     def _check_extracted_text(self, text: str):
         if text not in self._get_text_from_which_response_should_be_extracted():
@@ -214,6 +216,13 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                                                         remove_trailing_zeros=remove_trailing_zeros,
                                                         ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
                                                         allow_truncating=allow_truncating)
+        number_of_non_matching_values = len(non_matching)
+        print_red(f'Total of non-matching values: {number_of_non_matching_values}')
+        is_converging = self.number_of_non_matching_values is not None and \
+            number_of_non_matching_values < self.number_of_non_matching_values
+        if self.number_of_non_matching_values is not None:
+            print_red(f'Compared to {self.number_of_non_matching_values} in the previous iteration '
+                      f'(is_converging: {is_converging})')
         if non_matching:
             if just_warn:
                 print_red('########################')
@@ -228,4 +237,5 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                     f'Important: Please retry while making sure to '
                     f'ONLY INCLUDE VALUES EXTRACTED FROM THE OUTPUTS PROVIDED ABOVE\n',
                     rewind=Rewind.REPOST_AS_FRESH,
+                    add_iterations=int(is_converging),
                 )
