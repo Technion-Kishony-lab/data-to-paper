@@ -1,3 +1,4 @@
+import pandas as pd
 from pandas.core.frame import DataFrame
 
 from scientistgpt.utils.mutable import Mutable
@@ -7,11 +8,24 @@ from .dataframe_operations import SaveDataframeOperation, CreationDataframeOpera
 
 ON_CHANGE = Mutable(None)
 
+
 original_init = DataFrame.__init__
 original_to_csv = DataFrame.to_csv
 original_str = DataFrame.__str__
 original_setitem = DataFrame.__setitem__
 original_delitem = DataFrame.__delitem__
+
+
+def format_float(value: float):
+    if value.is_integer():
+        return str(int(value))
+    else:
+        return f'{value:.4g}'
+
+
+ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
+TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
+STR_FLOAT_FORMAT = format_float
 
 
 def _notify_on_change(self, operation: DataframeOperation):
@@ -53,7 +67,10 @@ def __str__(self):
 
 
 def to_csv(self, *args, **kwargs):
+    current_float_format = pd.get_option('display.float_format')
+    pd.set_option(f'display.float_format', TO_CSV_FLOAT_FORMAT)
     result = original_to_csv(self, *args, **kwargs)
+    pd.set_option(f'display.float_format', current_float_format)
     file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
     _notify_on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
@@ -81,3 +98,6 @@ def override_core_ndframe():
     for func_name, func in FUNC_NAMES_TO_FUNCS.items():
         setattr(DataFrame, func_name, func)
     DataFrame.is_overriden = is_overriden
+
+    if STR_FLOAT_FORMAT:
+        pd.set_option(f'display.float_format', STR_FLOAT_FORMAT)
