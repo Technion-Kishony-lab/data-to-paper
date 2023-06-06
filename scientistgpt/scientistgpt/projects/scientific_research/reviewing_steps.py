@@ -3,6 +3,7 @@ from typing import Tuple, Dict, Any, List
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
+from scientistgpt.utils.nice_list import NiceDict
 from scientistgpt.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser
 
@@ -129,6 +130,9 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        return NiceDict(response_value)
 
 
 @dataclass
