@@ -198,10 +198,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         else:
             return ''
 
-    def _check_section(self, section: str) -> str:
-        section = super()._check_section(section)
+    def _check_section(self, section: str):
+        super()._check_section(section)
         self._check_extracted_numbers(section)
-        return section
 
 
 @dataclass

@@ -35,6 +35,7 @@ def test_add_one_to_last_digit(x, y):
     ('rows: 234091, cols: 9', 'We had 234,091 rows and 9 columns', []),
     ('accuracy of 0.900154, FDR 0.0021, AUC of 0.7524921', 'accuracy of 90.02%, AUC of 75.25% and FDR 0.2%', []),
     ('accuracy of 0.9002, FDR 0.0021, AUC of 0.7525', 'accuracy of 90.02%, AUC of 75.25% and FDR 0.2%', []),
+    ('1234 0.48453 5679', 'we have 48.45', []),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target) == non_matching
