@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
@@ -45,6 +47,10 @@ class DataFileDescriptions(List[DataFileDescription]):
         super().__init__(*args, **kwargs)
         self.data_folder = data_folder
         self.general_description = general_description
+
+    @classmethod
+    def from_other(cls, other: DataFileDescriptions):
+        return cls(other, data_folder=other.data_folder, general_description=other.general_description)
 
     def __str__(self):
         return self.pretty_repr()
