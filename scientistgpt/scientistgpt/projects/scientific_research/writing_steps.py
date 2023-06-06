@@ -121,7 +121,9 @@ class SecondTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundPro
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
         title and abstract for a research paper.
         We are writing for {journal_name}. 
-        The title should be short and focus on the main result of the paper and not on the methods or the data.
+        The title should be short, focus on the main result of the paper and not on the methods or the data, \
+        it also should not include colons.
+        It should also not mention technical details, such as names of variables or columns in the dataset.
         {latex_instructions}
         """)
 

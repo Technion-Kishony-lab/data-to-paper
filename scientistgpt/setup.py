@@ -35,6 +35,7 @@ setup(
         "numpy",
         "pandas",
         "scikit-learn",
+        "statsmodels",
         "xgboost",
         "colorama",
         "unidecode",

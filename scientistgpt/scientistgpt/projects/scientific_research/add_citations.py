@@ -129,14 +129,15 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
     system_prompt: str = dedent_triple_quote_str("""
         You are a scientific citation expert. 
         You are given a section of a paper, you'll need to find all the factual \
-        sentences in the section and write a search query for these sentences CrossRef API in a structured dict format.
+        sentences in the section and write a short search query for these sentences CrossRef API in a \
+        structured dict format.
         After that you'll need to choose the most appropriate citations to add to the sentences in the section from \
         a list of the possible citations returned from CrossRef for the given query.
     """)
 
     user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Extract from the above section as many relevant factual sentences as possible to which we need to add citations. 
-        For each of the chosen sentences, create a short query for a citation search for this sentence.
+        Extract from the above section all the factual sentences that need to have a reference. 
+        For each of the chosen sentences, create a few words query for a citation search for this sentence.
         You need to return a dict mapping each sentence to its respective reference search query.
         Your response should be in the following format: 
         {
@@ -145,8 +146,9 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
         This is of course just an example. 
-        Identify *all* the sentences that you think we need to add citations to.
-
+        Identify *all* the sentences that you think we need to add citations to - a sentence that have to have \
+        a reference is a sentence that mention any factual claim within it.
+        
         Return only a dict of "sentence: query" pairs, without any other text.
     """)
 

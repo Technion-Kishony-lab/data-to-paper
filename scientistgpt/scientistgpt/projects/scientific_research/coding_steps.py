@@ -135,6 +135,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     background_product_fields: Tuple[str, ...] = ('research_goal', 'all_file_descriptions', 'outputs:data_exploration')
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
+
 
     output_filename: str = None
     allowed_created_files: Tuple[str, ...] = ('*.csv',)
@@ -143,7 +145,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
-        cleaned, normalized, same-unit, balanced version of the data, ready for use in a machine learning model.
+        cleaned, normalized, same-unit, balanced version of the data, ready for use in the following analysis
+        steps that will include statistical tests and potentially utilize machine learning models on the processed data.
 
         Your code should create one or more new csv files containing the preprocessed data, saved with \
         sensible file names.
@@ -156,6 +159,9 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Encoding categorical variables into numeric values (e.g., using one-hot encoding)
         * Balancing the data by under-sampling, over-sampling, or more advanced techniques to deal with class imbalance
         * Any other data preprocessing you deem relevant
+        
+        You are not obliged to perform all of the above steps, choose the ones that suits the data and the hypothesis
+        you are testing. 
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
@@ -174,6 +180,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
          'created_files_headers:data_preprocessing', 'research_goal')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'xgboost')
 
     output_filename: str = 'results.txt'
     allowed_created_files: Tuple[str, ...] = ()
@@ -181,7 +188,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     enforce_saving_altered_dataframes: bool = False
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to achieve the research goal specified above.
+        Write a complete Python code to achieve the research goal specified above, by performing statistical testing \
+        of the provided hypotheses.
 
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
         
