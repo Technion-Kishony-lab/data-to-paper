@@ -89,7 +89,8 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
-    background_product_fields: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis', 'research_goal')
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes:data_preprocessing',
+                                             'codes:data_analysis', 'outputs:data_analysis', 'research_goal')
     conversation_name: str = 'table_names'
     value_type: type = Dict[str, str]
     goal_noun: str = 'names of tables for a research paper'
@@ -116,8 +117,8 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         Do not suggest tables names that mention data and results that are not found in the provided outputs.
         
         Usually, a scientific paper has 1-3 tables, each containing completely unique and different results.
-        You need to choose names for as many tables you think are needed to cover the most important results \
-        that we got.  
+        You need to choose names for tables you think are needed to cover the most important scientific results \
+        that we got.
         
         Do not send any free text; Your response should be structured as a Python Dict.
         """)
