@@ -257,6 +257,9 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         self._check_extracted_numbers(extracted_str)
         return extracted_str
 
+    def _check_response_value(self, response_value: Any) -> Any:
+        return NiceDict(response_value)
+
 
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
