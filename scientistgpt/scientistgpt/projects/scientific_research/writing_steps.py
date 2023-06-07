@@ -21,7 +21,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 1
-    goal_noun: str = '{pretty_section_names} section of the paper'
+    goal_noun: str = '{pretty_section_names} section'
     conversation_name: str = None
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
@@ -94,6 +94,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
 
 @dataclass
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+    goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     max_reviewing_rounds: int = 2
@@ -110,9 +111,20 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         brief explanation about the methods and very short intro to the data used.
         """)
 
+    _raised_colon_error = False
+
+    def _check_section(self, section: str, section_name: str):
+        if section_name == 'title':
+            if ':' in section and not self._raised_colon_error:
+                self._raised_colon_error = True
+                self._raise_self_response_error(
+                    'Title in {journal_name} typically do not have a colon. '
+                    'Can you think of a different title that clearly state a single message without using a colon?')
+        super()._check_section(section, section_name)
+
 
 @dataclass
-class SecondTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterReviewGPT):
     max_reviewing_rounds: int = 0
     conversation_name: str = 'title_abstract_section_second'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
@@ -200,8 +212,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
-                                             'most_updated_paper_sections:methods',
-                                             'most_updated_paper_sections:results')
+                                                  'most_updated_paper_sections:methods',
+                                                  'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
         Recap the main results as appearing in the Results section (see above). 
@@ -215,8 +227,8 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
 @dataclass
 class ConclusionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = ('research_goal', 'title_and_abstract',
-                                             'most_updated_paper_sections:results',
-                                             'most_updated_paper_sections:discussion')
+                                                  'most_updated_paper_sections:results',
+                                                  'most_updated_paper_sections:discussion')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
         Summarize the main results and their implications, impact, and future directions.

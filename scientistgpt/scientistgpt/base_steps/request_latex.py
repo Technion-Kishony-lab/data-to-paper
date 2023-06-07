@@ -88,7 +88,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         extracted_section = replace_special_chars(extracted_section)
         return extracted_section
 
-    def _check_section(self, extracted_section: str):
+    def _check_section(self, extracted_section: str, section_name: str):
         try:
             check_latex_compilation(extracted_section)
         except LatexCompilationError as e:
@@ -109,5 +109,5 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
             section_contents.append(self._get_latex_section_from_response(response, section_name))
         self.returned_result = section_contents
 
-        for section in section_contents:
-            self._check_section(section)
+        for section_name, section in zip(self.section_names, section_contents):
+            self._check_section(section, section_name)
