@@ -13,7 +13,7 @@ class CodeAndOutput:
     output_file: Optional[str] = None
     created_files: List[str] = None
     code_name: str = None
-    explanation: Optional[str] = None
+    code_explanation: Optional[str] = None
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 
