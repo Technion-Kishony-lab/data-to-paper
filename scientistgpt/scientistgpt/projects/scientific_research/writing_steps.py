@@ -182,9 +182,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
                                             CheckExtractionReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields: Tuple[str, ...] = \
-        ('most_updated_paper_sections:{methods}', 'title_and_abstract', 'tables_and_numeric_values')
+        ('title_and_abstract', 'tables_and_numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('most_updated_paper_sections:{methods}', 'title_and_abstract', 'tables_and_numeric_values')
+        ('title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         As you write the results, \
