@@ -178,7 +178,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
-         'created_files_headers:data_preprocessing', 'research_goal')
+         'created_files_headers:data_preprocessing', 'research_goal', 'hypotheses_testing_plan')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'xgboost')
@@ -192,13 +192,17 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Write a complete Python code to achieve the research goal specified above. 
         The code should:
         (1) Create a set of data analysis results that will be interesting to include in a scientific paper. 
-        (2) Perform appropriate statistical tests needed to directly test our specified hypotheses.
-
+        (2) Perform appropriate statistical tests needed to directly test our specified hypotheses as mentioned in the \
+        hypotheses plan given.
+        
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
         
         {list_additional_data_files_if_any}
         
         Don't provide a sketch or pseudocode; write a complete runnable code.
+        Don't repeat data preprocessing steps already performed in the previous steps, you are allowed to load the \
+        preprocessed data file and the raw data if you wish to perform other processing steps.
+
 
         As needed, you can use the following packages which are already installed:
         {supported_packages}
