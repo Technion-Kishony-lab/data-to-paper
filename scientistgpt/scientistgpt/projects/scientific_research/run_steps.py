@@ -13,7 +13,7 @@ from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
-    TablesNamesReviewGPT
+    TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -35,6 +35,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_do_data_exploration: bool = True
     should_do_data_preprocessing: bool = True
     should_prepare_data_analysis_plan: bool = False
+    should_prepare_hypotheses_testing_plan: bool = True
     should_add_citations: bool = True
     should_add_tables: bool = True
     should_interpret_results: bool = False
@@ -113,6 +114,13 @@ class ScientificStepsRunner(BaseStepsRunner):
             RequestCodeProducts.from_(self, code_step='data_preprocessing') \
                 .get_code_and_output_and_descriptions(with_file_descriptions=False)
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
+
+        # Hypotheses testing plan
+        if self.should_prepare_hypotheses_testing_plan:
+            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+            products.hypotheses_testing_plan = \
+                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            self.send_product_to_client('hypotheses_testing_plan')
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)

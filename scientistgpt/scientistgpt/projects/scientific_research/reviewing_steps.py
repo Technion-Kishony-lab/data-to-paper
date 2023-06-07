@@ -91,6 +91,30 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
+class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
+    max_reviewing_rounds: int = 1  # no review cycles
+    fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'outputs:data_exploration',
+                                                  'codes:data_preprocessing','research_goal')
+    conversation_name: str = 'hypotheses_testing_plan'
+    goal_noun: str = 'hypotheses testing plan'
+    goal_verb: str = 'write'
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please {goal_verb} {goal_noun}. 
+        Do not include any data exploration, preprocessing, loading or visualization steps. \
+        You should specifically refer for the hypotheses suggested.
+        For each of the hypotheses given (see above), specify the statistical test that should be performed to test it.
+        If there are several possible tests, specify the simplest one that can be implemented using Python code.
+        Don't give vague ideas or general directions, be specific and detail any important unique steps that should \
+        be performed in light of the data and hypotheses given.
+
+        {quote_request}
+        """)
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.PlanReviewer
+
+
+@dataclass
 class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
