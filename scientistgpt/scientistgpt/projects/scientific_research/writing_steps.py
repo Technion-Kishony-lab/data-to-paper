@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Tuple
 
-from scientistgpt.base_steps import LatexReviewBackgroundProductsConverser
+from scientistgpt.base_steps import LatexReviewBackgroundProductsConverser, \
+    CheckExtractionReviewBackgroundProductsConverser
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -14,8 +15,8 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     Base class for the writer of a paper section in latex format.
     """
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                             'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
-                                             'title_and_abstract')
+                                                  'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
+                                                  'title_and_abstract')
 
     fake_performer_request_for_help: str = \
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
@@ -44,7 +45,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), \
-        please {goal_verb} only the {pretty_section_names} of a {journal_name} article.
+        please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
         {section_specific_instructions}
         {latex_instructions}
@@ -111,7 +112,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         brief explanation about the methods and very short intro to the data used.
         """)
 
-    _raised_colon_error = False
+    _raised_colon_error = True  # False to raise ":" error once. True to not raise error at all.
 
     def _check_section(self, section: str, section_name: str):
         if section_name == 'title':
@@ -177,10 +178,13 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
 
 @dataclass
-class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser,
+                                            CheckExtractionReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    background_product_fields: Tuple[str, ...] = ('most_updated_paper_sections:{methods}',
-                                             'title_and_abstract', 'tables_and_numeric_values')
+    background_product_fields: Tuple[str, ...] = \
+        ('most_updated_paper_sections:{methods}', 'title_and_abstract', 'tables_and_numeric_values')
+    product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
+        ('most_updated_paper_sections:{methods}', 'title_and_abstract', 'tables_and_numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         As you write the results, \
@@ -207,6 +211,10 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
         Tables and Numerical Values.
         """)
+
+    def _check_section(self, section: str, section_name: str):
+        super()._check_section(section, section_name)
+        self._check_extracted_numbers(section)
 
 
 @dataclass

@@ -38,7 +38,7 @@ def test_add_one_to_last_digit(x, y):
     ('1234 0.48453 5679', 'we have 48.45', []),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
-    assert find_non_matching_numeric_values(source, target) == non_matching
+    assert find_non_matching_numeric_values(source, target)[0] == non_matching
 
 
 def test_is_smaller_than_sign():

@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 def extract_numeric_values(text: str) -> List[str]:
@@ -118,7 +118,7 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
                                      ignore_after_smaller_than_sign: bool = True,
-                                     allow_truncating: bool = True) -> List[str]:
+                                     allow_truncating: bool = True) -> Tuple[List[str], List[str]]:
     """
     Check that all the numerical values mentioned in the target are also mentioned in the source.
     For each numerical value in the target, we check that there exists a numeric values in the source
@@ -129,6 +129,7 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     str_source_numbers = extract_numeric_values(source)
 
     non_matching_str_numbers = []
+    matching_str_numbers = []
     for str_target_number in str_target_numbers:
 
         if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
@@ -167,8 +168,9 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             else:  # not percentage
                 is_match = is_match_as_is
             if is_match:
+                matching_str_numbers.append(str_target_number)
                 break
         else:
             non_matching_str_numbers.append(str_target_number)
 
-    return non_matching_str_numbers
+    return non_matching_str_numbers, matching_str_numbers

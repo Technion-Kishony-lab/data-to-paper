@@ -10,11 +10,14 @@ from typing import List, Union, Optional
 import tiktoken
 
 from scientistgpt.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
+from scientistgpt.utils.highlighted_text import print_red
 
 from .base_server import ServerCaller, NoMoreResponsesToMockError
 from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
+
+
 if TYPE_CHECKING:
     from scientistgpt.conversation.message import Message
 
@@ -122,5 +125,7 @@ def try_get_chatgpt_response(messages: List[Message],
             raise
         except Exception as e:
             print(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
-        time.sleep(1.0 * 2 ** attempt)
+        sleep_time = 1.0 * 2 ** attempt
+        print_red(f'Going to sleep for {sleep_time} seconds before trying again.')
+        time.sleep(sleep_time)
     raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')
