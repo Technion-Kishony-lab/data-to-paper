@@ -9,7 +9,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values
-from ..utils.highlighted_text import print_red
+from scientistgpt.utils.highlighted_text import print_red
 
 
 @dataclass
@@ -192,7 +192,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)
-                         for product_field in self.product_fields_from_which_response_is_extracted)
+                         for product_field in self.product_fields_from_which_response_is_extracted
+                         if self.products.is_product_available(product_field))
 
     @property
     def names_of_products_from_which_to_extract(self) -> List[str]:
@@ -200,28 +201,25 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                         for product_field in self.product_fields_from_which_response_is_extracted),
                         last_separator=' and ')
 
-    def _check_extracted_text(self, text: str):
-        if text not in self._get_text_from_which_response_should_be_extracted():
-            self._raise_self_response_error(
-                f'"{text}" is not an explicit extraction from the provided '
-                f'{self.names_of_products_from_which_to_extract}.')
-
     def _check_extracted_numbers(self, text: str,
                                  just_warn: bool = False,
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True):
-        non_matching = find_non_matching_numeric_values(source=self._get_text_from_which_response_should_be_extracted(),
-                                                        target=text, ignore_int_below=ignore_int_below,
-                                                        remove_trailing_zeros=remove_trailing_zeros,
-                                                        ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
-                                                        allow_truncating=allow_truncating)
+        non_matching, matching = \
+            find_non_matching_numeric_values(source=self._get_text_from_which_response_should_be_extracted(),
+                                             target=text, ignore_int_below=ignore_int_below,
+                                             remove_trailing_zeros=remove_trailing_zeros,
+                                             ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
+                                             allow_truncating=allow_truncating)
         number_of_non_matching_values = len(non_matching)
-        print_red(f'Total of non-matching values: {number_of_non_matching_values}')
+        number_of_matching_values = len(matching)
+        print_red(f'Checking {number_of_matching_values} numerical values. '
+                  f'Found {number_of_non_matching_values} non-matching.')
         is_converging = self.number_of_non_matching_values is not None and \
             number_of_non_matching_values < self.number_of_non_matching_values
         if self.number_of_non_matching_values is not None:
-            print_red(f'Compared to {self.number_of_non_matching_values} in the previous iteration '
+            print_red(f'Compared to {self.number_of_non_matching_values} non-matching in the previous iteration '
                       f'(is_converging: {is_converging})')
         if non_matching:
             if just_warn:
