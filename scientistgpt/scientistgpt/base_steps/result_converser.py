@@ -88,9 +88,9 @@ class ResultConverser(Converser):
 
     # *** Properties that are more generic (adjust only if needed) ***
 
-    system_prompt: str = "You are a {performer} who needs to {goal_verb} a {goal_noun}."
+    system_prompt: str = "You are a {performer} who needs to {goal_verb} {goal_noun}."
 
-    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}."
+    user_initiation_prompt: str = "Please {goal_verb} {goal_noun}."
 
     max_valid_response_iterations: int = 4
 

@@ -52,7 +52,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     quote_request: str = 'Please return the goal and hypotheses enclosed within triple-backticks ' \
                          '(make sure to flank the entire goal and hypotheses, not just their header).'
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
+        You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
         Your job is to advise me, the {performer}, and provide a constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
 
@@ -78,7 +78,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} a {goal_noun}. 
+        Please {goal_verb} {goal_noun}. 
         Do not include any data visualization steps.
         Explicitly specify all relevant analysis results and values that should be calculated.
         If there are any specific statistical tests that should be performed, specify how they should be performed.
@@ -277,6 +277,6 @@ class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
-    user_initiation_prompt: str = "Please {goal_verb} a {goal_noun}. " + \
+    user_initiation_prompt: str = "Please {goal_verb} {goal_noun}. " + \
                                   "Briefly mention the tools used to preform the analysis.\n\n" \
                                   "{quote_request}"

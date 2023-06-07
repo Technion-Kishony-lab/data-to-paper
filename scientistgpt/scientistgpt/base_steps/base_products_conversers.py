@@ -61,7 +61,7 @@ class BackgroundProductsConverser(ProductsConverser):
     goal_noun: str = None
     goal_verb: str = None
     fake_performer_request_for_help: str = \
-        "Hi {user_skin_name}, I need to {goal_verb} a {goal_noun}. Could you please guide me?"
+        "Hi {user_skin_name}, I need to {goal_verb} {goal_noun}. Could you please guide me?"
     fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
         Sure, I am happy to guide you {goal_verb} the {goal_noun} and can also provide feedback.
 
