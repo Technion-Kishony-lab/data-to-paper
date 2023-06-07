@@ -279,7 +279,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     reviewer: str = 'scientific reviewer'
 
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a {reviewer} for a {performer} who needs to {goal_verb} a {goal_noun}.
+        You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
         Your job is to advise me, the {performer}, and provide constructive bullet-point feedback in repeated cycles \
         of improvements and feedback.
 
