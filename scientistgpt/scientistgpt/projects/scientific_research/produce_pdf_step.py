@@ -51,9 +51,9 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
                        f"Performing the {section_name} carried out using the " \
                        "following custom code (created by ChatGPT):"
         code_section += '\n\n' + latex_code
-        if code_and_output.explanation:
+        if code_and_output.code_explanation:
             code_section += "\\subsection{Code Description}"
-            code_section += '\n\n' + code_and_output.explanation
+            code_section += '\n\n' + code_and_output.code_explanation
         if code_and_output.output:
             code_section += '\n\n' + "\\subsection{Code Output}"
             code_section += '\n\n' + self.wrap_with_lstlisting(code_and_output.output)
