@@ -67,3 +67,17 @@ def test_request_quoted_text_repost_correct_response_as_fresh():
 
     # Response is reposted as fresh:
     assert 'Here is the' in requester.conversation[-1].content
+
+
+def test_request_quoted_text_with_flanked_header():
+    requester = TestBaseProductsQuotedReviewGPT()
+    with OPENAI_SERVER_CALLER.mock([
+            f'```The Header of the Paragraph```\n"""{enclosed_text}"""\n',
+            f'sorry for the mistake here is the correctly flanked text:\n'
+            f'```The Header of the Paragraph\n{enclosed_text}\n```'],
+            record_more_if_needed=False):
+        assert requester.run_dialog_and_get_valid_result() == f'The Header of the Paragraph\n{enclosed_text}\n'
+    assert len(requester.conversation) == 3
+
+    # Response is reposted as fresh:
+    assert 'Here is the' in requester.conversation[-1].content
