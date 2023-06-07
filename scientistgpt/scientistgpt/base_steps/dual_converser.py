@@ -338,6 +338,9 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
     quote_request: str = '\n\nPlease return your answer enclosed within triple-backticks ' \
                          '(but send text, not code).'
+    flanked_header: str = '\n\nWe are extracting the {goal_noun} from your response by finding the first flanked ' \
+                            'triple-quote string. Make sure you are flanking the entire response and not just the ' \
+                          'headers'
     user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
@@ -354,10 +357,14 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
             return super()._get_fresh_looking_response(response)
 
     def _check_and_extract_result_from_self_response(self, response: str):
+        extracted_result = self._extract_quoted_result_from_other_response(response)
+        self._check_flanked_response_is_not_just_header(extracted_result)
+        self.returned_result = extracted_result
+
+    def _extract_quoted_result_from_other_response(self, response: str) -> str:
         for flanking_tags in self.flanking_tag_list:
             try:
-                self.returned_result = extract_text_between_tags(response, *flanking_tags)
-                return
+                return extract_text_between_tags(response, *flanking_tags)
             except ValueError:
                 pass
         for flanking_tags in self.flanking_tag_list:
@@ -365,3 +372,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
                 # if there is only one tag, we assume that chatgpt got stuck. We bump it up:
                 self._raise_self_response_error(self.quote_request, bump_model=True)
         self._raise_self_response_error(self.quote_request, rewind=Rewind.REPOST_AS_FRESH)
+
+    def _check_flanked_response_is_not_just_header(self, response: str):
+        if response.count('\n') < 2 and response.count(' ') < 5:
+            self._raise_self_response_error(self.flanked_header, rewind=Rewind.REPOST_AS_FRESH)
