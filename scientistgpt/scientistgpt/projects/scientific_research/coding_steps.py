@@ -194,11 +194,14 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         (1) Create a set of data analysis results that will be interesting to include in a scientific paper. 
         (2) Perform appropriate statistical tests needed to directly test our specified hypotheses as mentioned in the \
         hypotheses plan given.
-        
+
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
-        
+        Important: use the correct version of the data to perform each of the steps - for example for statistical \
+        tests you should not use resampled data, but rather the raw data, but for training predictive models you \
+        should use resampled data if exists.
+
         {list_additional_data_files_if_any}
-        
+
         Don't provide a sketch or pseudocode; write a complete runnable code.
         Don't repeat data preprocessing steps already performed in the previous steps, you are allowed to load the \
         preprocessed data file and the raw data if you wish to perform other processing steps.
