@@ -35,6 +35,9 @@ HIDE_INCOMPLETE_CODE = Flag(True)
 # Max number of characters allowed in output txt file of gpt code:
 MAX_SENSIBLE_OUTPUT_SIZE = Mutable(10000)
 
+# Max number of tokens allowed in code output:
+MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
+
 # Coalesce conversations with the same participants into one web-conversation:
 COALESCE_WEB_CONVERSATIONS = Flag(True)
 

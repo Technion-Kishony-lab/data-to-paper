@@ -18,7 +18,7 @@ class ModelEngine(IndexOrderedEnum):
     """
     GPT35_TURBO = "gpt-3.5-turbo"
     GPT4 = "gpt-4"
-    GPT4_32 = "gpt-4-32k"
+    # GPT4_32 = "gpt-4-32k"
 
     def __str__(self):
         return self.value

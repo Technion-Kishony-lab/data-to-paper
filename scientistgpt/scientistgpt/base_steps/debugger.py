@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Set, Tuple
 
-from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE
+from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 
@@ -21,6 +21,7 @@ from scientistgpt.utils.file_utils import UnAllowedFilesCreated, run_in_director
 from scientistgpt.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import ProductsConverser
+from ..servers.chatgpt import count_number_of_tokens_in_message
 
 
 @dataclass
@@ -359,7 +360,9 @@ class DebuggerConverser(ProductsConverser):
             if output is not None and len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()
-            elif output is not None and len(output) > MAX_SENSIBLE_OUTPUT_SIZE.val:
+            elif output is not None \
+                    and count_number_of_tokens_in_message(output, max(ModelEngine)) > \
+                    MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val:
                 # The code ran successfully, but the output file is too large.
                 self._respond_to_large_output(output)
             elif self.enforce_saving_altered_dataframes \

@@ -108,14 +108,17 @@ class OpenaiSeverCaller(ServerCaller):
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
 
 
-def count_number_of_tokens_in_message(messages: List[Message], model_engine: ModelEngine) -> int:
+def count_number_of_tokens_in_message(messages: Union[List[Message], str], model_engine: ModelEngine) -> int:
     """
     Count number of tokens in message using tiktoken.
     """
     model = model_engine or DEFAULT_MODEL_ENGINE
     model = model.value
     encoding = tiktoken.encoding_for_model(model)
-    num_tokens = len(encoding.encode('\n'.join([message.content for message in messages])))
+    if isinstance(messages, str):
+        num_tokens = len(encoding.encode(messages))
+    else:
+        num_tokens = len(encoding.encode('\n'.join([message.content for message in messages])))
 
     return num_tokens
 
