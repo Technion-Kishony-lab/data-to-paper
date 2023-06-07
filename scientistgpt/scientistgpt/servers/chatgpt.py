@@ -43,6 +43,11 @@ class TooManyTokensInMessageError(Exception):
                f'maximum number of tokens: {self.max_tokens}.'
 
 
+class UserAbort(Exception):
+    def __str__(self):
+        return 'user aborted.'
+
+
 def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine:
     """
     Return the actual model engine to use for the given model engine.
@@ -58,10 +63,24 @@ class OpenaiSeverCaller(ServerCaller):
     file_extension = '_openai.txt'
 
     @staticmethod
+    def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine, **kwargs):
+        if model_engine > DEFAULT_MODEL_ENGINE:
+            while True:
+                answer = input(f'CONFIRM USING {model_engine} (y/n): ').lower()
+                if answer == 'y':
+                    break
+                elif answer == 'n':
+                    raise UserAbort()
+        print_red('Calling OPENAI for real.')
+
+    @staticmethod
     def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
         """
         Connect with openai to get response to conversation.
         """
+
+        OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
+
         organization, api_key = OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[model_engine] \
             if model_engine in OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS \
             else OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[None]
@@ -104,24 +123,27 @@ def try_get_chatgpt_response(messages: List[Message],
     """
     if expected_tokens_in_response is None:
         expected_tokens_in_response = DEFAULT_EXPECTED_TOKENS_IN_RESPONSE
+    model_engine = _get_actual_model_engine(model_engine)
+    tokens = count_number_of_tokens_in_message(messages, model_engine)
+    if tokens + expected_tokens_in_response > model_engine.max_tokens:
+        return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine.max_tokens)
+    print_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
+              f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
+    if tokens + expected_tokens_in_response < DEFAULT_MODEL_ENGINE.max_tokens and model_engine > DEFAULT_MODEL_ENGINE:
+        print(f'WARNING: Consider using {DEFAULT_MODEL_ENGINE} (max {DEFAULT_MODEL_ENGINE.max_tokens} tokens).')
 
     for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
-        # TODO: add a check that the number of tokens is not too large before sending to openai, if it is then
-        #     we can bump up the model engine before sending
-
-        model_engine = _get_actual_model_engine(model_engine)
-        tokens = count_number_of_tokens_in_message(messages, model_engine)
-        if tokens + expected_tokens_in_response > model_engine.max_tokens:
-            return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine.max_tokens)
         try:
             return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         except openai.error.InvalidRequestError as e:
             # TODO: add here any other exception that can be addressed by changing the number of tokens
-            #     or the bump up the model engine
+            #     or bump up the model engine
             if OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS in str(e):
                 return e
             print(f'OPENAI error:\n{type(e)}\n{e}')
         except NoMoreResponsesToMockError:
+            raise
+        except UserAbort:
             raise
         except Exception as e:
             print(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
