@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 from scientistgpt.utils.types import IndexOrderedEnum
 
 
-MODEL_ENGINE_TO_MAX_TOKENS = {
-    "gpt-3.5-turbo": 4096,
-    "gpt-4": 8192,
-    "gpt-4-32k": 32768,
+MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
+    "gpt-3.5-turbo": (4096, 0.002, 0.002),
+    "gpt-4": (8192, 0.03, 0.06),
+    # "gpt-4-32k": 32768,
 }
 
 
@@ -31,7 +31,15 @@ class ModelEngine(IndexOrderedEnum):
 
     @property
     def max_tokens(self):
-        return MODEL_ENGINE_TO_MAX_TOKENS[self.value]
+        return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][0]
+
+    @property
+    def pricing(self) -> Tuple[float, float]:
+        """
+        Return the pricing for the model engine.
+        (in_dollar_per_token, out_dollar_per_token)
+        """
+        return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][1:]
 
 
 @dataclass
