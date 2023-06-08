@@ -75,7 +75,7 @@ class ScientificProducts(Products):
         """
         Return the tables names in a pretty way.
         """
-        return '\n'.join(f'{table_num}: {table_name}' for table_num, table_name in self.tables_names)
+        return '\n'.join(f'{table_num}: {table_name}' for table_num, table_name in self.tables_names.items())
 
     def get_tables_names_and_content(self) -> str:
         """
