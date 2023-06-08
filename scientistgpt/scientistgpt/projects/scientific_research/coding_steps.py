@@ -178,23 +178,27 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
-         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan')
+         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan', 'tables_names')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'xgboost')
 
     output_filename: str = 'results.txt'
     allowed_created_files: Tuple[str, ...] = ()
-    allow_dataframes_to_change_existing_series = True
+    allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above. 
         The code should:
-        (1) Create a set of data analysis results that will be interesting to include in a scientific paper. 
-        (2) Perform the appropriate statistical tests needed to directly test our specified hypotheses \
+        (1) Perform the appropriate statistical tests needed to directly test our specified hypotheses \
         (see above our Research Goal and our Hypothesis Testing Plan).
+        (2) Create a set of data analysis results that are needed to produce each of the specified tables. 
 
+        The output of your code should be a text file named "{actual_output_filename}".
+        All results we may need for these tables should be saved to this text file and not to different .csv files.
+        In addition, any other numerical results you deem relevant should be saved to this file as Python dict.
+        
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
         Important: use the correct version of the data to perform each of the steps - for example for statistical \
         tests you should not use resampled data, but rather the raw data, but for training predictive models you \
@@ -206,16 +210,12 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Don't repeat data preprocessing steps already performed in the previous steps, you are allowed to load the \
         preprocessed data file and the raw data if you wish to perform other processing steps.
 
-
         As needed, you can use the following packages which are already installed:
         {supported_packages}
 
-        The output of your code should be a text file named "{actual_output_filename}".
-        All results we may need for a scientific paper should be saved to this text file, \
-        including analysis findings, summary statistics, statistical tests, etc.
-
         The output file should be self-contained; any results you choose to save to this file \
-        should be accompanied with a short text header explanation as well as indication of units (if any).
+        should be accompanied with a short text header explanation - for example "Results for Table 1:" or \
+        "Key Numerical Values:", as well as indication of units (if any).
 
         Do not write to any other files.
         Do not create any graphics, figures or any plots.
