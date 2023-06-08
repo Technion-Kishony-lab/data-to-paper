@@ -63,7 +63,7 @@ class OpenaiSeverCaller(ServerCaller):
     file_extension = '_openai.txt'
 
     @staticmethod
-    def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine, **kwargs):
+    def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
         if model_engine > DEFAULT_MODEL_ENGINE:
             while True:
                 answer = input(f'CONFIRM USING {model_engine} (y/n): ').lower()
@@ -72,6 +72,15 @@ class OpenaiSeverCaller(ServerCaller):
                 elif answer == 'n':
                     raise UserAbort()
         print_red('Calling OPENAI for real.')
+
+    @staticmethod
+    def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
+        tokens_in = count_number_of_tokens_in_message(messages, model_engine)
+        tokens_out = count_number_of_tokens_in_message(content, model_engine)
+        pricing_in, pricing_out = model_engine.pricing
+        print_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
+                  f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.')
+        time.sleep(6)
 
     @staticmethod
     def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
@@ -91,7 +100,9 @@ class OpenaiSeverCaller(ServerCaller):
             messages=[message.to_chatgpt_dict() for message in messages],
             **kwargs,
         )
-        return response['choices'][0]['message']['content']
+        content = response['choices'][0]['message']['content']
+        OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
+        return content
 
 
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
