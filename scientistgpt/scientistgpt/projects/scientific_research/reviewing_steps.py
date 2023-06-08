@@ -170,17 +170,16 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         
         For example, you might return the following:        
         {
-            'Table 1': 'Summary of the results of the linear regression model results',
-            'Table 2': 'Summary of the statistical analysis of the most important linear regression model coefficients',
+            'Table 1': 'Summary of the results of hypothesis 1 testing (linear regression of x on y)',
+            'Table 2': 'Summary of the results of hypothesis 2 testing (Two Way ANOVA of x on y and z)',
         }
         
-        Obviously, this is just an example. You should choose the table names that are most relevant \
-        in light of the goal and hypothesis testing plan mentioned above. 
+        Obviously, this is just an example. You should choose the table names that suits the hypothesis we are testing \
+        and if there are other important results that should be presented in a table, you should add them too. 
         The names should accurately describe the tables that will be produced in a later stage.
         
         Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 3 tables you think are needed to cover the most important \
-        scientific results that should be presented in the scientific paper we are creating.
+        You need to choose names for a maximum of 3 tables according to the given instructions above.
         Don't suggest name of tables which are not completely necessary, or technical or \
         irrelevant to the research goal.
         
@@ -189,7 +188,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above table names, with specific attention to whether they are \
-        relevant to the research goal, and can be created solely from the dataset provided.
+        representing all the hypotheses we are testing, and can be created solely from the dataset provided.
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
