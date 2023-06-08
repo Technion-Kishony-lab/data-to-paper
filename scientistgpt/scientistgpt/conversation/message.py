@@ -10,7 +10,8 @@ from typing import NamedTuple, Optional, List
 from scientistgpt.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingCode
-from scientistgpt.servers.openai_models import OpenaiCallParameters
+from scientistgpt.servers.chatgpt import count_number_of_tokens_in_message
+from scientistgpt.servers.openai_models import OpenaiCallParameters, ModelEngine
 from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
 from scientistgpt.utils.highlighted_text import colored_text
 from scientistgpt.utils.text_formatting import wrap_text_with_triple_quotes
@@ -74,6 +75,11 @@ class Message:
         return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()
                 else self.role.value, 'content': self.content}
 
+    def get_chatgpt_model(self):
+        if self.openai_call_parameters is None:
+            return None
+        return self.openai_call_parameters.model_engine
+
     def pretty_repr(self, number: Optional[int] = None, conversation_name: str = '', is_color: bool = True,
                     abbreviate_content: bool = False) -> str:
         """
@@ -95,7 +101,7 @@ class Message:
         sep = style.separator
         text_color = style.color if is_color else ''
 
-        role_text = role.name + ('' if self.openai_call_parameters is None else f'({self.openai_call_parameters})')
+        role_text = role.name + (f'{self.openai_call_parameters}' if self.openai_call_parameters else '')
         if role == Role.SYSTEM:
             role_model_agent_conversation_tag = f'{role_text} casting {agent_text} -> {conversation_name} '
         else:
@@ -141,15 +147,14 @@ class Message:
             content = formatted_sections.to_text()
         return content, is_incomplete_code
 
-    @property
-    def number_of_tokens(self) -> int:
-        return word_count(self.content)
+    def get_number_of_tokens(self, model_engine: ModelEngine = None) -> int:
+        model_engine = model_engine or self.get_chatgpt_model()
+        return count_number_of_tokens_in_message([self], model_engine)
 
-    @property
-    def number_of_tokens_in_context(self) -> int:
+    def get_number_of_tokens_in_context(self) -> int:
         if self.context is None:
             return 0
-        return sum([m.number_of_tokens for m in self.context])
+        return count_number_of_tokens_in_message(self.context, self.get_chatgpt_model())
 
     def _get_triple_quote_formatted_content(self, with_header: bool = True) -> (str, bool):
         content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
@@ -163,12 +168,14 @@ class Message:
             index = len(self.context) if self.context else None
 
         if with_header and self.role != Role.COMMENTER and index is not None:
-            chatgpt_parameters = f'({self.openai_call_parameters})' if self.openai_call_parameters else ''
-            header = f'#{index} {chatgpt_parameters}\n'
+            chatgpt_parameters = f'{self.openai_call_parameters}' if self.openai_call_parameters else ''
+            header = ''
             if self.context:
-                header += f'\nCONTEXT TOTAL ({self.number_of_tokens_in_context} tokens):\n'
+                header += f'CONTEXT TOTAL ({self.get_number_of_tokens_in_context()} tokens):\n'
                 for i, message in enumerate(self.context):
-                    header += f'#{i:>2} {message.get_short_description()}\n'
+                    header += f'#{i:>2} {message.get_short_description(model=self.get_chatgpt_model())}\n'
+            header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 29 + \
+                      f'{chatgpt_parameters}'
             header = wrap_text_with_triple_quotes(header, 'header')
             content = header + '\n\n' + content
 
@@ -181,8 +188,8 @@ class Message:
         content, _ = self._get_triple_quote_formatted_content(with_header)
         return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html)
 
-    def get_short_description(self, left: int = 35, right: int = -20) -> str:
-        return f'{self.role.name:>9} ({self.number_of_tokens:>4} tokens): ' \
+    def get_short_description(self, left: int = 35, right: int = -20, model: ModelEngine = None) -> str:
+        return f'{self.role.name:>9} ({self.get_number_of_tokens(model):>4} tokens): ' \
                f'{get_dot_dot_dot_text(self.content, left, right)}'
 
     def convert_to_text(self):
