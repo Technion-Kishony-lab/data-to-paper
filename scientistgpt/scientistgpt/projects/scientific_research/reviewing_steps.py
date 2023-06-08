@@ -122,19 +122,19 @@ class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    max_reviewing_rounds: int = 0
+    max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes:data_preprocessing',
-                                             'codes:data_analysis', 'outputs:data_analysis', 'research_goal')
+                                             'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
+                                             'hypothesis_testing_plan')
     conversation_name: str = 'table_names'
     value_type: type = Dict[str, str]
     goal_noun: str = 'names of tables for a research paper'
-    goal_verb: str = 'come up with'
+    goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please list captions for Tables for a scientific paper that will capture the most important results we have.
-        You can only give names of tables that can be produced from data that found within the data exploration \
-        and data analysis outputs (see above).
+        Please list captions for Tables that we should prepare for a scientific paper for the research goal and \
+        hypothesis testing described above.
         
         The table names that you choose should be returned as a Python Dict[str, str], with the keys \
         in the form of 'Table n' and the values being the actual names of the tables.
@@ -145,24 +145,22 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
             'Table 2': 'Summary of the statistical analysis of the most important linear regression model coefficients',
         }
         
-        Obviously, this is just an example. You should choose the table names that are most relevant to the specific \
-        results we got in the output and in light of the overall goal of the project as mentioned above. 
+        Obviously, this is just an example. You should choose the table names that are most relevant \
+        in light of the goal and hypothesis testing plan mentioned above. 
         The names should accurately describe the tables that will be produced in a later stage.
-        Do not suggest tables names that mention data and results that are not found in the provided outputs.
         
-        Typically, a scientific paper has up to 3 tables, each containing completely unique and different results.
+        Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
         You need to choose names for a maximum of 3 tables you think are needed to cover the most important \
-        scientific results as presented to you above.
+        scientific results that should be presented in the scientific paper we are creating.
         Don't suggest name of tables which are not completely necessary, or technical or \
         irrelevant to the research goal.
-        Also, do not suggest names of tables that may require additional data that is not found in the provided outputs.
         
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above table names, with specific attention to whether they are \
-        relevant to the research goal, and can be created solely from information that provided in our output data.
+        relevant to the research goal, and can be created solely from the dataset provided.
 
         If you are satisfied, respond with "{termination_phrase}".
         """)
