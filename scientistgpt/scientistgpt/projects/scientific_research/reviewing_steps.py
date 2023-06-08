@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional, re
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -99,8 +99,10 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
-    max_reviewing_rounds: int = 1  # 0 for no review cycles
+class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverser):
+    value_type: type = Dict[str, str]
+    max_valid_response_iterations: int = 4
+    max_reviewing_rounds: int = 0  # 0 for no review cycles
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
@@ -110,8 +112,8 @@ class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
         We would like to test the specified hypotheses using the provided dataset.
         
         In light of the dataset description and the data exploration output provided above, \
-        consider each of the following generic \
-        statistical issues and determine if they are relevant for our case: 
+        for each of the following generic \
+        statistical issues determine if they are relevant for our case and whether they should be accounted for: 
         
         * multiple comparisons.
         * confounding variables (see available variables in the dataset that we can adjust for).
@@ -121,15 +123,29 @@ class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
         
         Then, for each hypothesis, suggest a *single* statistical test that should be performed to test the hypothesis \
         and specify how it should be used while accounting for issue above that you deem relevant.
-        
         If there are several possible ways to test a given hypothesis, specify only *one* test (the simplest one).
         
-        Do not include any data loading, data exploration or data visualization steps.
-
-        {quote_request}
+        Return your suggested statistical tests as a Python dictionary Dict[str, str], \
+        where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
+        
+        { 
+        'xxx is associated with yyy': 'linear regression with xxxx as the independent variable and \
+        yyy as the dependent variable while adjusting for z1, z2, z3',
+        'the variance of xxx is different than the variance of yyy': 'F-test for the equality of variances',
+        }
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        """
+        Strip "hypothesis x" from the keys of the response value.
+        """
+        new_response_value = {}
+        for k in response_value.keys():
+            k = re.sub(r'hypothesis \d+', '', k, flags=re.IGNORECASE)
+            new_response_value[k] = response_value[k]
+        return NiceDict(new_response_value)
 
 
 @dataclass
