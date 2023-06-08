@@ -182,7 +182,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
-    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     termination_phrase: str = 'I hereby approve the table'
@@ -249,7 +248,6 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
     goal_verb: str = 'extract'
-    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""

@@ -160,7 +160,6 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
                                              'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
-    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT4)
     section_specific_instructions: str = dedent_triple_quote_str("""
         Make sure that you are only referring to analysis steps that are explicitly performed by the \
         data preprocessing code and data analysis code (see Python blocks above).
