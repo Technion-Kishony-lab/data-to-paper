@@ -61,7 +61,7 @@ class ScientificProducts(Products):
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
     analysis_plan: Optional[str] = None
-    hypothesis_testing_plan: Optional[Dict[str,str]] = None
+    hypothesis_testing_plan: Optional[Dict[str, str]] = None
     tables_names: Dict[str, str] = field(default_factory=dict)
     tables: Dict[str, List[str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = field(default_factory=dict)
