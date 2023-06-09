@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from typing import Tuple
 
@@ -57,13 +58,13 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         Write in tex format including the \\section{} command, and any math or symbols that needs tex escapes.
         """)
 
-    termination_phrase: str = 'I hereby approve the paper section'
+    termination_phrase: str = 'I hereby approve the {goal_noun}.'
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
         Your job is to provide constructive bullet-point feedback.
         We will write each section of the research paper separately. 
-        If you feel that the paper section is well-written and accurate, you should explicitly say:
+        If you feel that the paper section does not need further improvements, you should reply only with:
         "{termination_phrase}".
     """)
 
@@ -72,18 +73,18 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         of the {pretty_section_names}.
         Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
     """)
+
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide bullet-point list of constructive feedback points on the above {pretty_section_names} \
-        for my paper.
-        Either reply with a bullet-point list of actionable feedback points, or, if you feel that the section is \
-        already good enough, respond with solely the following "{termination_phrase}" (termination phrase) without any \
-        other feedback or comments.
-
-        Do not provide positive feedback, only provide actionable instructions in bullet points.
-
-        {section_review_specific_instructions}
-        In addition, make sure that the section is grounded in the information provided above and is consistent with it.
+        Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \
+        for my paper. Do not provide positive feedback, only provide actionable instructions in bullet points. 
+        In particular, make sure that the section is correctly grounded in the information provided above.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
+        {section_review_specific_instructions}
+        
+        If you don't see any flaws, respond solely the following "{termination_phrase}".
+        
+        IMPORTANT: You should EITHER provide bullet-point feedback, OR respond solely with "{termination_phrase}"; 
+        you should not do both.
         """)
 
     def __post_init__(self):
@@ -110,8 +111,9 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         The title should be short and meaningful. It should focus on the main result of the paper and not on the \
         methods or the data.
         The abstract should provide a short and concise summary of the paper. 
-        It should include short background on the research question, the main result and contribution of the paper, \
-        very short intro to the data used abd a brief, non-technical, explanation about the analysis methods.
+        It should include short background on the research question and motivation, \
+        short intro to the dataset used and a non-technical explanation of the methodology.
+        It should then provide a short summary of the main results and their implications.
         Do not include numeric values like p-values or effect sizes in the abstract.
         """)
 
@@ -140,6 +142,9 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         
         {section_specific_instructions}
         
+        I especially want you to read the Results section above and make sure that the abstract clearly states \
+        the main results of the paper.
+        
         {latex_instructions}
         """)
 
@@ -147,8 +152,8 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
 @dataclass
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
-                                             'most_updated_paper_sections:methods',
-                                             'most_updated_paper_sections:results')
+                                                  'most_updated_paper_sections:methods',
+                                                  'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
         The introduction should introduce the topic of the paper.
