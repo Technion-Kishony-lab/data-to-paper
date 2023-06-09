@@ -10,13 +10,15 @@ from scientistgpt.utils.nice_list import nicely_join
 
 
 @dataclass
-class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser):
+class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
+                                                     CheckExtractionReviewBackgroundProductsConverser):
     """
     Base class for the writer of a paper section in latex format.
     """
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
                                                   'title_and_abstract')
+    product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
 
     fake_performer_request_for_help: str = \
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
@@ -59,14 +61,10 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
-        Your job is to provide constructive bullet-point feedback in repeated cycles \
-        of improvements and feedback.
+        Your job is to provide constructive bullet-point feedback.
         We will write each section of the research paper separately. 
-        When you feel that the paper section is well-written and accurate, you should explicitly say:
+        If you feel that the paper section is well-written and accurate, you should explicitly say:
         "{termination_phrase}".
-        If you feel that my initial writing is already good enough, it is perfectly fine \
-        to respond immediately with the above phrase ("{termination_phrase}"), \
-        without requesting any improvement cycles.
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
@@ -92,6 +90,10 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
 
+    def _check_section(self, section: str, section_name: str):
+        super()._check_section(section, section_name)
+        self._check_extracted_numbers(section)
+
 
 @dataclass
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
@@ -110,6 +112,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         The abstract should be a *short* and concise summary of the paper. 
         It should include short background on the research question, the main result and contribution of the paper, \
         brief explanation about the methods and very short intro to the data used.
+        Do not include numeric values like p-values or effect sizes in the abstract.
         """)
 
     _raised_colon_error = True  # False to raise ":" error once. True to not raise error at all.
@@ -177,13 +180,13 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
 
 @dataclass
-class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser,
-                                            CheckExtractionReviewBackgroundProductsConverser):
+class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'tables_and_numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
         ('title_and_abstract', 'tables_and_numeric_values')
+    only_warn_about_non_matching_values: bool = False
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         As you write the results, \
@@ -214,7 +217,6 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
         return self._check_extracted_numbers(section)
-
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):

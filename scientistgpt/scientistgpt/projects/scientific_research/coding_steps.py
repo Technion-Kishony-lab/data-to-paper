@@ -72,7 +72,9 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
         return f'Or you can also use the processed files created above by the data processing code:\n' \
                f'```\n' \
                f'{self.files_created_in_prior_stages}' \
-               f'```\n'
+               f'```\n' \
+               f'Important: use the correct version of the data to perform each of the steps. For example, ' \
+               f'for descriptive statistics use the original data, for model building use the processed data.\n'
 
     @property
     def raw_data_filenames(self) -> NiceList[str]:
@@ -193,31 +195,32 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         The code should:
         (1) Perform the appropriate statistical tests needed to directly test our specified hypotheses \
         (see above our Research Goal and our Hypothesis Testing Plan).
-        (2) Create a set of data analysis results that are needed to produce each of the specified tables. 
+        (2) Create and write a set of data analysis results that are needed to produce each of the specified tables.
+        For example: 
+        ## Results for Table 1:
+        ...
+        ## Results for Table 2:
+        ... etc
+        (3) Write a Python Dict[str, Any] reporting any other numerical results you deem relevant to a research paper.
+        For example:
+        {
+            'Total number of observations': aaa,
+            'Correlation between X and Y': bbb,
+            'Mean of Z': ccc,
+        }
 
         The output of your code should be a text file named "{actual_output_filename}".
-        All results we may need for these tables should be saved to this text file and not to different .csv files.
-        In addition, any other numerical results you deem relevant should be saved to this file as Python dict.
+        Both the results for the tables and the Pythin dictionary should be writen to this text file.
+        Do not write to any other files.
         
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
-        Important: use the correct version of the data to perform each of the steps - for example for statistical \
-        tests you should not use resampled data, but rather the raw data, but for training predictive models you \
-        should use resampled data if exists.
 
         {list_additional_data_files_if_any}
-
-        Don't provide a sketch or pseudocode; write a complete runnable code.
-        Don't repeat data preprocessing steps already performed in the previous steps, you are allowed to load the \
-        preprocessed data file and the raw data if you wish to perform other processing steps.
-
+        
         As needed, you can use the following packages which are already installed:
         {supported_packages}
 
-        The output file should be self-contained; any results you choose to save to this file \
-        should be accompanied with a short text header explanation - for example "Results for Table 1:" or \
-        "Key Numerical Values:", as well as indication of units (if any).
-
-        Do not write to any other files.
+        Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
         """)

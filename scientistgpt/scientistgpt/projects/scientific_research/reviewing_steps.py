@@ -1,5 +1,6 @@
+import re
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Optional, re
+from typing import Tuple, Dict, Any, Optional
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -170,17 +171,18 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         
         For example, you might return the following:        
         {
-            'Table 1': 'Summary of the results of hypothesis 1 testing (linear regression of x on y)',
-            'Table 2': 'Summary of the results of hypothesis 2 testing (Two Way ANOVA of x on y and z)',
+            'Table 1': 'Summary statistics of the dataset',
+            'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
+            'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
         
-        Obviously, this is just an example. You should choose the table names that suits the hypothesis we are testing \
-        and if there are other important results that should be presented in a table, you should add them too. 
-        The names should accurately describe the tables that will be produced in a later stage.
+        Obviously, this is just an example. You should choose table names that suit the dataset, the research goal \
+        and the hypotheses we are testing.
+        The names you choose should accurately describe the tables that will be produced in a later stage.
         
         Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
         You need to choose names for a maximum of 3 tables according to the given instructions above.
-        Don't suggest name of tables which are not completely necessary, or technical or \
+        Don't suggest name of tables which are not completely necessary, or that are technical or \
         irrelevant to the research goal.
         
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
@@ -201,12 +203,15 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
                                               CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    max_reviewing_rounds: int = 1
+    max_reviewing_rounds: int = 0
+    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes:data_preprocessing',
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
                                                   'tables_and_tables_names')
     table_name: str = None
-    product_fields_from_which_response_is_extracted: Tuple[str] = ('outputs:data_exploration', 'outputs:data_analysis',)
+    product_fields_from_which_response_is_extracted: Tuple[str] = \
+        ('data_file_descriptions', 'outputs:data_exploration', 'outputs:data_analysis',)
+    only_warn_about_non_matching_values: bool = True
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
@@ -218,8 +223,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         You should build the table using the results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
         The table should have a caption suitable for inclusion as part of a scientific paper.
-        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the relevant value, \
-        in scientific writing it is not common to write 0 as a p-value.
+        
+        If you include p-values, you can use the $<$ symbol to indicate smaller than a given value, \
+        (do not write p-value = 0).
         {do_not_repeat_information_from_previous_tables}
         
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
@@ -228,13 +234,15 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide actionable feedback on the above table, with specific attention to whether the table \
-        contains only information that is explicitly extracted from the results data. Compare the numbers in the table \
-        to the numbers in the results data and explicitly mention any discrepancies that need to get fixed.
-        Notice that each tables should contain unique information - it is not acceptable to have two tables \
-        that contain the same column or even partial overlap of results. 
+        correctly represent data from our analysis output.
+        
+        {do_not_repeat_information_from_previous_tables}
+
         Do not suggest changes to the table that may require data not available in our dataset.
-        If you are satisfied, respond with "{termination_phrase}".
-        NOTICE: If you give any type of feedback, you cannot reply with "{termination_phrase}".
+        Do not return the modified table itself, just write comments on how to improve it.
+        
+        If you don't see any issues, respond with "{termination_phrase}".
+        NOTICE: If you give any type of constructive feedback, do not include "{termination_phrase}" in your response.
         """)
 
     @property
@@ -254,7 +262,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         if self.num_of_existing_tables > 0:
             return dedent_triple_quote_str("""
                 Notice that the table should only add new information that is not included already \
-                in the {} we already build (see above).
+                in the {} we already built (see above).
                 """).format('table' if self.num_of_existing_tables == 1 else 'tables')
         else:
             return ''
@@ -267,7 +275,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 @dataclass
 class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser,
                                             CheckExtractionReviewBackgroundProductsConverser):
-    max_reviewing_rounds: int = 1
+    max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
                                                   'tables')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = (
@@ -289,12 +297,14 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         For example, if the analysis results provide summary of a some statistical tests, or statistical models, \
         you might include: 
         {
-            'Accuracy of logistic regression for the XXX model': 0.835,
-            'AUC ROC of logistic regression for the XXX model': 0.77,
+            'Total number of samples': xxx,
+            'Accuracy of logistic regression for the XXX model': yyy,
+            'AUC ROC of logistic regression for the XXX model': zzz,
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
-
+        
+        Return a maximum of 5 {goal_noun}.
         Do not send any free text. All descriptions should be included in the keys of the Python Dict.
         Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.
         """)
