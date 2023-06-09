@@ -109,9 +109,9 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
     section_specific_instructions: str = dedent_triple_quote_str("""
         The title should be short and meaningful. It should focus on the main result of the paper and not on the \
         methods or the data.
-        The abstract should be a *short* and concise summary of the paper. 
+        The abstract should provide a short and concise summary of the paper. 
         It should include short background on the research question, the main result and contribution of the paper, \
-        brief explanation about the methods and very short intro to the data used.
+        very short intro to the data used abd a brief, non-technical, explanation about the analysis methods.
         Do not include numeric values like p-values or effect sizes in the abstract.
         """)
 
@@ -137,9 +137,9 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
         title and abstract for a research paper.
         We are writing for {journal_name}. 
-        The title should be short, focus on the main result of the paper and not on the methods or the data, \
-        it also should not include colons.
-        It should also not mention technical details, such as names of variables or columns in the dataset.
+        
+        {section_specific_instructions}
+        
         {latex_instructions}
         """)
 
@@ -186,13 +186,22 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         ('title_and_abstract', 'tables_and_numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
         ('title_and_abstract', 'tables_and_numeric_values')
-    only_warn_about_non_matching_values: bool = False
+    only_warn_about_non_matching_values: bool = True
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         As you write the results, \
         refer to the Tables by their labels and explain their content, but do not add the tables themselves \
         (I will add the tables later manually).
 
+        You should typically have a separate paragraph describing for each Table. In each such paragraph, \
+        indicate the motivation/question for the analysis, the methodology, and only then describe the results.
+        
+        It is often nice to have a story-like flow between the paragraphs, so that the reader can follow the \
+        analysis process with emphasis on the reasoning/motivation behind each analysis step. 
+        For example, the first sentence of each paragraph can be a story-guiding sentences like: 
+        "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
+        ..."; "Finally, to further verify the effect of zzz, we tested whether ...". 
+                
         You can also extract and use any of the key Numerical Values provided above that you think are \
         scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
         added as a part of the paper, so you should explicitly mention any important values as an integral part of \
