@@ -7,7 +7,7 @@ def extract_numeric_values(text: str) -> List[str]:
     Extract all the numeric values from the given text.
     """
     # use regex to extract all the numeric values:
-    return re.findall(r"[-+]?\b\d+(?:,\d+)*(?:\.\d+)?\b", text)
+    return re.findall(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", text.replace('{,}', '').replace(',', ''))
 
 
 def is_one_with_zeros(str_number: str) -> bool:
