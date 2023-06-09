@@ -138,7 +138,10 @@ class Actions(List[Action]):
         """
         from .conversation_actions import AppendMessage
         return [action.message.content for action in self
-                if isinstance(action, AppendMessage) and (not only_printed or action.should_print)]
+                if isinstance(action, AppendMessage) and (not only_printed or
+                                                          (action.should_print and
+                                                           action.should_add_to_conversation()))
+                ]
 
 
 @dataclass(frozen=True)
