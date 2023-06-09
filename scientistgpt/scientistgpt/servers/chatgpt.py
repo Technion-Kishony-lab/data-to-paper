@@ -112,7 +112,8 @@ def count_number_of_tokens_in_message(messages: List[Message], model_engine: Mod
     """
     Count number of tokens in message using tiktoken.
     """
-    model = model_engine.value or DEFAULT_MODEL_ENGINE
+    model = model_engine or DEFAULT_MODEL_ENGINE
+    model = model.value
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode('\n'.join([message.content for message in messages])))
 
