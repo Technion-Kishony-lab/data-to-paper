@@ -6,7 +6,7 @@ from scientistgpt.utils.check_numeric_values import extract_numeric_values, find
 
 @pytest.mark.parametrize('text, numbers', [
     ('The p-value was 1.02 and the variance was 10.00', ['1.02', '10.00']),
-    ('Number can be writen with a comma 200,000 or not 100123', ['200,000', '100123']),
+    ('Number can be writen with a comma 200,000 or not 100123', ['200000', '100123']),
     ('There were three numbers 10, 3 and 9', ['10', '3', '9']),
     ('Some results can be negative, like -100.2', ['-100.2']),
 ])
@@ -36,6 +36,8 @@ def test_add_one_to_last_digit(x, y):
     ('accuracy of 0.900154, FDR 0.0021, AUC of 0.7524921', 'accuracy of 90.02%, AUC of 75.25% and FDR 0.2%', []),
     ('accuracy of 0.9002, FDR 0.0021, AUC of 0.7525', 'accuracy of 90.02%, AUC of 75.25% and FDR 0.2%', []),
     ('1234 0.48453 5679', 'we have 48.45', []),
+    ('1234', 'we have 1{,}234', []),
+    ('12e+03', 'we have 12,000, or 13000', ['13000']),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target)[0] == non_matching
