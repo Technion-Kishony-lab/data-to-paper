@@ -161,22 +161,59 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 @dataclass
 class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
-                                             'codes:data_analysis', 'title_and_abstract')
+                                                  'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 1
+    enforced_sub_headers: Tuple[str, ...] = ('Data Source', 'Data Preprocessing', 'Data Analysis')
+
+    @property
+    def enforced_subheader_prompt(self) -> str:
+        if self.enforced_sub_headers is None:
+            return ''
+        s = f'The Methods section should only have the following {len(self.enforced_sub_headers)} subsections:\n'
+        for sub_header in self.enforced_sub_headers:
+            s += f'* {sub_header}\n'
+        return s
+
     section_specific_instructions: str = dedent_triple_quote_str("""
         Make sure that you are only referring to analysis steps that are explicitly performed by the \
-        data preprocessing code and data analysis code (see Python blocks above).
+        data preprocessing code and data analysis code (see Python code blocks above).
 
         Focus on the methods that were used to achieve the research goal.
+        
+        {enforced_subheader_prompt}
         """)
 
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Specifically, pay attention to:
-        * Over-specific description of tools, like specifying exact software or package versions used in the analysis.
-        * Description of analysis steps that were not performed by the analysis Python codes \
+
+        - Description of analysis steps that were not explicitly performed by the analysis Python codes \
         (provided above), like certain data cleaning processes.
-        * References to variables and data files that were not used in the analysis.
+        - References to variables and data files that were not used in the analysis.
+        
+        {enforced_subheader_prompt}
         """)
+
+    def _check_and_extract_result_from_self_response(self, response: str):
+        # Warn on "version = ..." :
+        pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+\.\d+)'  # e.g. "version = 1.2.3" or "version 1.2.3"
+        if re.findall(pattern, response):
+            self._raise_self_response_error(
+                f'Do not mention specific version of software packages.')
+
+        # Check subsection headings:
+        pattern = r'\\subsection{([^}]*)}'
+        matches = re.findall(pattern, response)
+        if set(matches) != {'Data Source', 'Data Preprocessing', 'Data Analysis'}:
+            self._raise_self_response_error(
+                f'The Methods section should only have the following 3 subsections: '
+                f'Data Source, Data Preprocessing, Data Analysis. ')
+
+        # Add code availability statement:
+        response += '\n\n\\subsection{Code Availability}\n\n' \
+                    'Custom code used to perform the data preprocessing and analysis, ' \
+                    'as well as the raw code output outputs, are provided in Supplementary Methods.'
+
+        return super()._check_and_extract_result_from_self_response(response)
 
 
 @dataclass
