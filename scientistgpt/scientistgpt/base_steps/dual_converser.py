@@ -8,6 +8,7 @@ from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value
 
 from .converser import Converser
+from .exceptions import FailedCreatingProductException
 from .result_converser import ResultConverser, Rewind
 
 
@@ -120,6 +121,10 @@ class DualConverserGPT(Converser):
             previous_code=previous_code,
             ignore=ignore, is_background=is_background, **kwargs)
 
+    def apply_to_other_delete_messages(self, message_designation: GeneralMessageDesignation,
+                                       comment: Optional[str] = None):
+        return self.other_conversation_manager.delete_messages(message_designation, comment=comment)
+
 
 @dataclass
 class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
@@ -150,12 +155,17 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     termination_phrase: str = 'Job completed'
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
+    respond_to_ambiguous_reviewer_termination: str = dedent_triple_quote_str("""
+        Note: you should reply EITHER with constructive feedback, OR solely with "{termination_phrase}", but not both.
+        """)
+
     append_termination_response_to_self: bool = True
 
     fake_performer_message_to_add_after_max_rounds: str = \
         "No need for additional feedback. Thanks much - I think I have it now!"
     fake_performer_message_to_add_after_reviewer_approval: str = "Thanks much - this was very helpful!"
     max_reviewing_rounds: int = 3
+    max_reviewer_attempts: int = 4
 
     rewind_after_end_of_review: Optional[Rewind] = Rewind.REPOST_AS_FRESH
     # can be
@@ -181,7 +191,20 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         """
         self.round_num += 1
         self.apply_to_other_append_user_message(altered_self_response)
-        return self.apply_to_other_get_and_append_assistant_message()
+        message = self.apply_to_other_get_and_append_assistant_message()
+        if self.respond_to_ambiguous_reviewer_termination is not None:
+            termination_phrase = format_value(self, self.termination_phrase)
+            for attempt in range(self.max_reviewer_attempts):
+                is_termination = self._is_reviewer_response_terminating(message.content, termination_phrase)
+                if is_termination is not None:
+                    break
+                # The reviewer response is ambiguous
+                if attempt > 0:
+                    self.apply_to_other_delete_messages(-1)  # delete the last message, to regenerate it
+                else:
+                    self.apply_to_other_append_user_message(self.respond_to_ambiguous_reviewer_termination)
+                message = self.apply_to_other_get_and_append_assistant_message()
+        return message
 
     def get_response_from_self_in_response_to_response_from_other(self, altered_other_response: str) -> Message:
         """
@@ -196,11 +219,19 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         """
         return response
 
-    def _is_reviewer_response_terminating(self, reviewer_response: str, termination_phrase: str) -> bool:
+    def _is_reviewer_response_terminating(self, reviewer_response: str, termination_phrase: str) -> Optional[bool]:
         """
-        Check if the response from the reviewer terminates the conversation.
+        Check if the response from the reviewer indicates that the reviewer is satisfied.
+        True: the reviewer is satisfied and the dialog is completed.
+        False: the reviewer is not satisfied and the dialog continues.
+        None: the reviewer response is ambiguous.
         """
-        return termination_phrase.lower() in reviewer_response.lower()
+        is_phrase = termination_phrase.lower() in reviewer_response.lower()
+        if not is_phrase:
+            return False
+        if len(reviewer_response) < len(termination_phrase) + 10:
+            return True
+        return None
 
     def is_completed(self) -> bool:
         """
@@ -211,7 +242,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             return False
         reviewer_response = self.other_conversation.get_last_response()
         termination_phrase = format_value(self, self.termination_phrase)
-        return self._is_reviewer_response_terminating(reviewer_response, termination_phrase)
+        return self._is_reviewer_response_terminating(reviewer_response, termination_phrase) is not False
 
     def run_dialog(self) -> CycleStatus:
         """
