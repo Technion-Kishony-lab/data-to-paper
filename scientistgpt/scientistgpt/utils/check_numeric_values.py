@@ -174,3 +174,20 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             non_matching_str_numbers.append(str_target_number)
 
     return non_matching_str_numbers, matching_str_numbers
+
+
+"""
+Formulas
+to allow chatgpt to add numbers that are calculated from the context, we provide a formula pattern:
+"The difference between x and y was [12345 - 12300 = 45]"
+"""
+
+formula_pattern = r"\[(.*?)\s*=\s*\d+\]"
+
+
+def remove_equal_sign_and_result(string):
+    return re.sub(formula_pattern, r"[\1]", string)
+
+
+def get_all_formulas(string):
+    return re.findall(formula_pattern, string)
