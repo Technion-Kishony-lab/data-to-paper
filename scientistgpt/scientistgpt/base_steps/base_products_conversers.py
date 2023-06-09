@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -8,7 +9,8 @@ from .dual_converser import ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
-from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values
+from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values, remove_equal_sign_and_result, \
+    get_all_formulas
 from scientistgpt.utils.highlighted_text import print_red
 
 
@@ -190,6 +192,15 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     number_of_non_matching_values: int = None
 
+    ask_for_formula_prompt: str = dedent_triple_quote_str("""
+        If you would like to indicate a number which is not a direct extraction from the numbers provided above, \
+        but is rather mathematically derived from them, do not write it directly; provide instead the relevant \
+        formula enclosed within square brackets. 
+        For example, if you would like to specify the difference between two provided numbers 8.7 and 2.2, \
+        do not write "The difference is 6.5", but instead provide the formula:
+        "The difference is [8.7 - 2.2 = 6.5]". I will later replace the formula with the actual number.
+        """)
+
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)
                          for product_field in self.product_fields_from_which_response_is_extracted
@@ -206,15 +217,16 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True):
-        non_matching, matching = \
-            find_non_matching_numeric_values(source=self._get_text_from_which_response_should_be_extracted(),
-                                             target=text, ignore_int_below=ignore_int_below,
-                                             remove_trailing_zeros=remove_trailing_zeros,
-                                             ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
-                                             allow_truncating=allow_truncating)
-        number_of_non_matching_values = len(non_matching)
-        number_of_matching_values = len(matching)
-        print_red(f'Checking {number_of_matching_values} numerical values. '
+
+        non_matching, matching = find_non_matching_numeric_values(
+            source=self._get_text_from_which_response_should_be_extracted(),
+            target=remove_equal_sign_and_result(text),
+            ignore_int_below=ignore_int_below,
+            remove_trailing_zeros=remove_trailing_zeros,
+            ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
+            allow_truncating=allow_truncating)
+        number_of_non_matching_values, number_of_matching_values = len(non_matching), len(matching)
+        print_red(f'Checking {number_of_matching_values + number_of_non_matching_values} numerical values. '
                   f'Found {number_of_non_matching_values} non-matching.')
         is_converging = self.number_of_non_matching_values is not None and \
             number_of_non_matching_values < self.number_of_non_matching_values
@@ -232,8 +244,20 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                 self._raise_self_response_error(
                     f'Some of the specified values {non_matching} are not explicitly extracted from the provided '
                     f'{self.names_of_products_from_which_to_extract}.\n\n'
-                    f'Important: Please retry while making sure to '
-                    f'ONLY INCLUDE VALUES EXTRACTED FROM THE OUTPUTS PROVIDED ABOVE\n',
+                    f'Please retry while making sure to '
+                    f'only include values extracted from the outputs provided above.\n' + self.ask_for_formula_prompt,
                     rewind=Rewind.REPOST_AS_FRESH,
                     add_iterations=int(is_converging),
+                )
+
+        formulas = get_all_formulas(text)
+        for formula in formulas:
+            left_str, right_str = formula.split('=')
+            left_num, right_num = eval(left_str), eval(right_str)
+            if math.isclose(left_num, right_num):
+                text.replace(formula, right_str)
+            else:
+                self._raise_self_response_error(
+                    f'The formula {formula} is not correct.',
+                    rewind=Rewind.REPOST_AS_FRESH,
                 )
