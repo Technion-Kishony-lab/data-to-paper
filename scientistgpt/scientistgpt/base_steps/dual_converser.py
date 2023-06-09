@@ -156,7 +156,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
     respond_to_ambiguous_reviewer_termination: str = dedent_triple_quote_str("""
-        Note: you should EITHER reply with constructive feedback, OR solely with "{termination_phrase}".
+        Note: you should reply EITHER with constructive feedback, OR solely with "{termination_phrase}", but not both.
         """)
 
     append_termination_response_to_self: bool = True
