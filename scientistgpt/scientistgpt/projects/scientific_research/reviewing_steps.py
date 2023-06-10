@@ -161,6 +161,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
+    termination_phrase: str = 'I hereby approve the names of the tables'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please list captions for Tables that we should prepare for a scientific paper addressing the research goal and \
         hypothesis testing described above.
@@ -180,9 +181,14 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         The names you choose should accurately describe the tables that will be produced in a later stage.
         
         Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 3 tables according to the instructions above.
-        Don't suggest name of tables which are not completely necessary, or that are technical or \
-        irrelevant to the research goal.
+        You need to choose names for a maximum of 1-3 tables that will each present distinct non-overlapping \
+        information.
+        
+        Don't suggest name of tables that are:
+        * Not completely necessary.
+        * Represent technical information, rather than scientific results.
+        * Irrelevant to the research goal, or that cannot be created from the dataset provided.
+        * Overlapping with other tables in your list. 
         
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
