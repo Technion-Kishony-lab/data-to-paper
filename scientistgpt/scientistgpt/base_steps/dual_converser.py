@@ -12,6 +12,7 @@ from scientistgpt.env import TEXT_WIDTH
 from .converser import Converser
 from .exceptions import FailedCreatingProductException
 from .result_converser import ResultConverser, Rewind
+from ..utils.text_counting import is_bulleted_list
 
 
 class CycleStatus(Enum):
@@ -158,7 +159,9 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
     respond_to_ambiguous_reviewer_termination: str = dedent_triple_quote_str("""
-        Note: you should reply EITHER with constructive feedback, OR solely with "{termination_phrase}", but not both.
+        Your answer is confusing because you have both provided feedback and included the phrase "{termination_phrase}".  
+        Please correct your response so that you EITHER include constructive feedback, OR just say 
+        "{termination_phrase}" without any other text.
         """)
 
     append_termination_response_to_self: bool = True
@@ -231,7 +234,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         is_phrase = termination_phrase.lower() in reviewer_response.lower()
         if not is_phrase:
             return False
-        if len(reviewer_response) < len(termination_phrase) + 10:
+        if len(reviewer_response) and not is_bulleted_list(reviewer_response):
             return True
         return None
 
@@ -343,7 +346,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             return response
 
     def initialize_dialog(self):
-        print_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 24))
+        print_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
         print_magenta(self.conversation_name.center(TEXT_WIDTH))
         if self.are_we_reviewing_at_all:
             print_magenta(self.other_conversation_name.center(TEXT_WIDTH))
