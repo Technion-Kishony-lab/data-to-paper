@@ -228,7 +228,6 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         ('title_and_abstract', 'tables_and_numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
         ('title_and_abstract', 'tables_and_numeric_values')
-    only_warn_about_non_matching_values: bool = True
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         As you write the results, \
