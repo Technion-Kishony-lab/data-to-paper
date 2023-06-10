@@ -1,3 +1,5 @@
+import re
+
 FROM_OPEN_BRACKET_TO_CLOSE_BRACKET = {'[': ']', '{': '}', '(': ')'}
 
 
@@ -124,7 +126,9 @@ def get_dot_dot_dot_text(text: str, start: int, end: int):
     Get the text from the beginning of the text to the nearest space before start and from the nearest space after end
     to the end of the text.
     """
-    fill = ' ... '
+    fill = ' [...] '
+    start -= len(fill)
+    text = re.sub(' +', ' ', text)
     text = text.replace('\n', ' ').replace('```', '').strip()
     if start - end + len(fill) > len(text):
         return text
