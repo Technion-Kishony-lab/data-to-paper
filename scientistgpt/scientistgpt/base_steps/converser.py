@@ -6,13 +6,13 @@ from typing import Optional, Any
 
 from scientistgpt import Message
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
-from scientistgpt.env import COALESCE_WEB_CONVERSATIONS, DEFAULT_MODEL_ENGINE
+from scientistgpt.env import COALESCE_WEB_CONVERSATIONS, DEFAULT_MODEL_ENGINE, TEXT_WIDTH
 from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value
-from scientistgpt.utils.highlighted_text import print_red
+from scientistgpt.utils.highlighted_text import print_red, print_magenta
 from scientistgpt.base_cast import Agent
 
 
@@ -93,8 +93,12 @@ class Converser(Copier):
     def conversation(self):
         return self.conversation_manager.conversation
 
-    def initialize_conversation_if_needed(self):
-        self.conversation_manager.initialize_conversation_if_needed()
+    def initialize_conversation_if_needed(self, print_header: bool = True):
+        if self.conversation_manager.initialize_conversation_if_needed():
+            if print_header:
+                print_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
+                print_magenta(self.conversation_name.center(TEXT_WIDTH))
+                print_magenta('=' * TEXT_WIDTH)
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
