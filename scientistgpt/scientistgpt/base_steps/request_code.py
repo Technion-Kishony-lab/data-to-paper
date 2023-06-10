@@ -48,10 +48,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     # The base name of the python file in which the code written by gpt is saved.
 
     code_revision_requesting_prompt: str = dedent_triple_quote_str("""
-        Revise the code, or just change any key parameters within the code as needed.
+        Revise the code as needed to correct the above issues.
         The output of your new code should be a text file named "{actual_output_filename}".
-        Send me back the complete revised code.
-        Do not just point to what needs to be changed, send the full complete code.
+        Do not just point to what needs to be changed; send the full complete revised code.
         """)
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
