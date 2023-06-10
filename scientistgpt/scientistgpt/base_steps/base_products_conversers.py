@@ -12,6 +12,7 @@ from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values, remove_equal_sign_and_result, \
     get_all_formulas
 from scientistgpt.utils.highlighted_text import print_red
+from ..utils.types import ListBasedSet
 
 
 @dataclass
@@ -216,7 +217,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                                  just_warn: bool = False,
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
-                                 allow_truncating: bool = True):
+                                 allow_truncating: bool = True) -> str:
 
         non_matching, matching = find_non_matching_numeric_values(
             source=self._get_text_from_which_response_should_be_extracted(),
@@ -242,7 +243,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                           f'{self.names_of_products_from_which_to_extract}.')
             else:
                 self._raise_self_response_error(
-                    f'Some of the specified values {non_matching} are not explicitly extracted from the provided '
+                    f'Some of the specified values {ListBasedSet(non_matching)} '
+                    f'are not explicitly extracted from the provided '
                     f'{self.names_of_products_from_which_to_extract}.\n\n'
                     f'Please retry while making sure to '
                     f'only include values extracted from the outputs provided above.\n' + self.ask_for_formula_prompt,
@@ -253,11 +255,15 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         formulas = get_all_formulas(text)
         for formula in formulas:
             left_str, right_str = formula.split('=')
+            assert left_str.startswith('[') and right_str.endswith(']')
+            left_str, right_str = left_str[1:], right_str[:-1]
             left_num, right_num = eval(left_str), eval(right_str)
             if math.isclose(left_num, right_num):
-                text.replace(formula, right_str)
+                text = text.replace(formula, right_str.strip())
             else:
                 self._raise_self_response_error(
                     f'The formula {formula} is not correct.',
                     rewind=Rewind.REPOST_AS_FRESH,
                 )
+
+        return text
