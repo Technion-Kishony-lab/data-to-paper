@@ -203,21 +203,21 @@ class DebuggerConverser(ProductsConverser):
     def only_write_to_description(self):
         if self.output_filename is None:
             if self.allowed_created_files == ('*.csv', ):
-                return "Your code should only save new or modified dataframes to csv files; " \
-                       "it should have no other output."
+                return 'Your code should only save new or modified dataframes to csv files; ' \
+                       'it should have no other output.'
             elif self.allowed_created_files:
-                return f"Your code should only write to these files: {self.allowed_created_files}."
+                return f'Your code should only write to these files: {self.allowed_created_files}.'
             else:
-                return "Your code should not write to any file."
+                return 'Your code should not write to any file.'
         else:
             if self.allowed_created_files == ('*.csv', ):
-                return f"Your code should save new or modified dataframes to csv files, " \
-                       f"and save other results to the output file {self.output_filename}."
+                return f'Your code should save new or modified dataframes to csv files, ' \
+                       f'and save other results to the output file "{self.output_filename}".'
             elif self.allowed_created_files:
-                return f"Your code should only write to files: {self.allowed_created_files}, " \
-                       f"and to the output file {self.output_filename}."
+                return f'Your code should only write to files: {self.allowed_created_files}, ' \
+                       f'and to the output file "{self.output_filename}".'
             else:
-                return f"Your code should not write to any file, except the output file {self.output_filename}."
+                return f'Your code should only write to the output file "{self.output_filename}".'
 
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
