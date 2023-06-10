@@ -211,7 +211,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     table_name: str = None
     product_fields_from_which_response_is_extracted: Tuple[str] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'outputs:data_analysis',)
-    only_warn_about_non_matching_values: bool = True
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
