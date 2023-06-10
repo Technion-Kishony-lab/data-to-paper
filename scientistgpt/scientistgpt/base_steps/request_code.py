@@ -68,7 +68,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         {}
         ```
 
-        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else
+        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
         that may indicate that code improvements are needed), then choose one of the following options:
 
         1. The results seem reasonable. Let's proceed.

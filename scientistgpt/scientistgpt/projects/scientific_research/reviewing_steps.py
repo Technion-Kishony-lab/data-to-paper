@@ -43,13 +43,13 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         The goal and hypothesis should be interesting and novel. 
         Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
         
-        Do not suggest methodology. Just the goal and hypothesis. 
-        Make sure that your suggested hypothesis can be studied using only the provided dataset, 
+        Do not suggest methodology. Just the goal and an hypothesis. 
+        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
         without requiring any additional data \
-        (pay attention to using only data available based on the provided headers of the our data files \
-        as in the description of our dataset, above).
+        (pay attention to using only data available based on the provided headers of our data files \
+        as in the description of the original dataset, above).
 
-        {quote_request}.
+        {quote_request}
         """)
     quote_request: str = 'Please return the goal and hypothesis enclosed within triple-backticks ' \
                          '(make sure to flank the entire goal and hypotheses, not just their header).'
@@ -61,18 +61,16 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Please provide constructive bullet point feedback on the above {goal_noun}.
         
         Specifically: 
-        (1) Whether the hypothesis can be tested using only the provided dataset (without \
-        requiring additional data).
-        (2) Whether the hypothesis is interesting and novel.
-        (3) If the hypothesis is broad or convoluted, which of the questions it proposes is best to focus on \
-        for further research.
+        * If the hypothesis cannot be tested using only the provided dataset (without \
+        requiring additional data), suggest how to modify the hypothesis to better fit the dataset.
+        * If the hypothesis is not interesting and novel, suggest how to modify it to make it more interesting.
+        * If the hypothesis is broad or convoluted, suggest how best to focus it on a single well defined question.
         
         
         Do not provide positive feedback; if these conditions are all satisfied, just respond with: 
-        "{termination_phrase}" (approving-phrase).
-        If you feel that the initial goal and hypothesis fully satisfy the above conditions, \
-        you can respond with with approving-phrase \
-        immediately, without requesting any improvement cycles.
+        "{termination_phrase}".
+        If you feel that the initial goal and hypothesis satisfy the above conditions, \
+        respond solely with "{termination_phrase}".
     """)
 
     sentence_to_add_at_the_end_of_reviewer_response = 2
@@ -123,15 +121,16 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         * any other relevant statistical issues.
         
         Then, for each hypothesis, suggest a *single* statistical test that should be performed to test the hypothesis \
-        and specify how it should be used while accounting for issue above that you deem relevant.
-        If there are several possible ways to test a given hypothesis, specify only *one* test (the simplest one).
+        and specify how it should be used while accounting for any issues above that you deem relevant.
+        If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
+        (the simplest one).
         
         Return your suggested statistical tests as a Python dictionary Dict[str, str], \
         where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
         
         { 
-        'xxx is associated with yyy': 'linear regression with xxxx as the independent variable and \
-        yyy as the dependent variable while adjusting for z1, z2, z3',
+        'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
+        yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
         'the variance of xxx is different than the variance of yyy': 'F-test for the equality of variances',
         }
         """)
@@ -163,7 +162,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please list captions for Tables that we should prepare for a scientific paper for the research goal and \
+        Please list captions for Tables that we should prepare for a scientific paper addressing the research goal and \
         hypothesis testing described above.
         
         The table names that you choose should be returned as a Python Dict[str, str], with the keys \
@@ -181,7 +180,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         The names you choose should accurately describe the tables that will be produced in a later stage.
         
         Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 3 tables according to the given instructions above.
+        You need to choose names for a maximum of 3 tables according to the instructions above.
         Don't suggest name of tables which are not completely necessary, or that are technical or \
         irrelevant to the research goal.
         
