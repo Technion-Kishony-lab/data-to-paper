@@ -7,7 +7,7 @@ def extract_numeric_values(text: str) -> List[str]:
     Extract all the numeric values from the given text.
     """
     # use regex to extract all the numeric values:
-    return re.findall(r"[-+]?\b\d+(?:,\d+)*(?:\.\d+)?\b", text)
+    return re.findall(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", text.replace('{,}', '').replace(',', ''))
 
 
 def is_one_with_zeros(str_number: str) -> bool:
@@ -174,3 +174,18 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             non_matching_str_numbers.append(str_target_number)
 
     return non_matching_str_numbers, matching_str_numbers
+
+
+"""
+Formulas
+to allow chatgpt to add numbers that are calculated from the context, we provide a formula pattern:
+"The difference between x and y was [12345 - 12300 = 45]"
+"""
+
+
+def remove_equal_sign_and_result(string):
+    return re.sub(r'\[(.*?) = (.*?)\]', r"[\1]", string)
+
+
+def get_all_formulas(string):
+    return re.findall(r'\[[^\]]+?\]', string)
