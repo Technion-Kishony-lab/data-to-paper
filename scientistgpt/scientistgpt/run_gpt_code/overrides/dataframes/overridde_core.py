@@ -10,6 +10,7 @@ ON_CHANGE = Mutable(None)
 
 
 original_init = DataFrame.__init__
+original_to_string = DataFrame.to_string
 original_to_csv = DataFrame.to_csv
 original_str = DataFrame.__str__
 original_setitem = DataFrame.__setitem__
@@ -66,6 +67,14 @@ def __str__(self):
     return self.to_string()
 
 
+def to_string(self, *args, **kwargs):
+    current_float_format = pd.get_option('display.float_format')
+    pd.set_option(f'display.float_format', STR_FLOAT_FORMAT)
+    result = original_to_string(self, *args, **kwargs)
+    pd.set_option(f'display.float_format', current_float_format)
+    return result
+
+
 def to_csv(self, *args, **kwargs):
     current_float_format = pd.get_option('display.float_format')
     pd.set_option(f'display.float_format', TO_CSV_FLOAT_FORMAT)
@@ -86,6 +95,7 @@ FUNC_NAMES_TO_FUNCS = {
     '__setitem__': __setitem__,
     '__delitem__': __delitem__,
     '__str__': __str__,
+    'to_string': to_string,
     'to_csv': to_csv,
 }
 

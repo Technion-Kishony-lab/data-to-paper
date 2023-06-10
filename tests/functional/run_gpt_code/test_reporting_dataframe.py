@@ -113,12 +113,19 @@ def test_even_non_reporting_df_reports_on_save(tmpdir):
     assert dataframe_operations[2].columns == ['A']
 
 
-def test_df_float_precision(tmpdir):
+def test_df_float_precision_to_csv():
     with collect_created_and_changed_data_frames():
         df = pd.DataFrame({'a': [1.23456789]})
-        with run_in_directory(tmpdir):
-            df.to_csv('test.csv')
-            with open('test.csv') as f:
-                assert f.read().endswith('1.23456789\n')
+        assert df.to_csv().endswith('1.23456789\n')
 
-    assert str(df).endswith('1.235')
+
+def test_df_float_precision_str():
+    with collect_created_and_changed_data_frames():
+        df = pd.DataFrame({'a': [1.23456789]})
+        assert str(df).endswith('1.235')
+
+
+def test_df_float_precision_to_string():
+    with collect_created_and_changed_data_frames():
+        df = pd.DataFrame({'a': [1.23456789]})
+        assert df.to_string().endswith('1.235')
