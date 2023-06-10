@@ -212,9 +212,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         Tables and Numerical Values.
         """)
 
-    def _check_section(self, section: str, section_name: str):
-        super()._check_section(section, section_name)
-        self._check_extracted_numbers(section)
+    def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
+        section = super()._get_latex_section_from_response(response, section_name)
+        return self._check_extracted_numbers(section)
 
 
 @dataclass
