@@ -193,15 +193,21 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above. 
         The code should:
+        
         (1) Perform the appropriate statistical tests needed to directly test our specified hypotheses \
         (see above our Research Goal and our Hypothesis Testing Plan).
-        (2) Create and write a set of data analysis results that are needed to produce each of the specified tables.
+        
+        (2) Create and output the data analysis results that are needed to produce each of the tables specified above.
+        The data produced for each table should be distinct and non-overlapping.
         For example: 
         ## Results for Table 1:
         ...
         ## Results for Table 2:
-        ... etc
-        (3) Write a Python Dict[str, Any] reporting any other numerical results you deem relevant to a research paper.
+        ... 
+        etc
+        
+        (3) Create and output a Python Dict[str, Any] reporting any other numerical results you deem relevant \
+        to our research paper.
         For example:
         {
             'Total number of observations': aaa,
@@ -210,7 +216,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         }
 
         The output of your code should be a text file named "{actual_output_filename}".
-        Both the results for the tables and the Pythin dictionary should be writen to this text file.
+        Both the results for the tables and the Python dict should be writen to this text file.
         Do not write to any other files.
         
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
@@ -233,19 +239,20 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Please check if there is anything wrong or missing in these results (like unexpected NaN values, \
         or anything else that may indicate that code improvements are needed).
-        Also, check that we have all the data needed for the tables we want to create \
-        (see above "The Names of the Tables of the Paper").
+        Also, check that we have all the data needed for the tables we want to create AND that the data \
+        for each table is distinct and non-overlapping. (see above "The Names of the Tables of the Paper").
 
         Choose one of the following options:
 
-        1. The output looks right, has everything we need for the Tables, and I don't see anything that needs \
-        to be changed in the code. Let's proceed.
+        1. The output looks right, has everything we need for creating distinct Tables, \
+        and I therefore don't think we can further improve the code. Let's proceed.
 
         2. The output does not yet perfectly provides everything we need for the Tables. \
         We should revise the code to make it better.
 
         {choice_instructions}
         """)  # set to None to skip option for revision
+
 
 @dataclass
 class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
