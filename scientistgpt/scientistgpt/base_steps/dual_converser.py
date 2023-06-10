@@ -6,6 +6,8 @@ from scientistgpt.conversation import ConversationManager, GeneralMessageDesigna
 from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrTextFormat, format_value
+from scientistgpt.utils.highlighted_text import print_magenta
+from scientistgpt.env import TEXT_WIDTH
 
 from .converser import Converser
 from .exceptions import FailedCreatingProductException
@@ -341,7 +343,13 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             return response
 
     def initialize_dialog(self):
-        self.initialize_conversation_if_needed()
+        print_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 24))
+        print_magenta(self.conversation_name.center(TEXT_WIDTH))
+        if self.are_we_reviewing_at_all:
+            print_magenta(self.other_conversation_name.center(TEXT_WIDTH))
+        print_magenta('=' * TEXT_WIDTH)
+
+        self.initialize_conversation_if_needed(print_header=False)
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
 

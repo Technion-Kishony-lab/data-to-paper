@@ -109,8 +109,8 @@ class ResultConverser(Converser):
     # Output:
     returned_result: Any = field(default_factory=NoResponse)
 
-    def initialize_conversation_if_needed(self):
-        super().initialize_conversation_if_needed()
+    def initialize_conversation_if_needed(self, print_header: bool = True):
+        super().initialize_conversation_if_needed(print_header=print_header)
         self._pre_populate_background()
 
     def _pre_populate_background(self):
