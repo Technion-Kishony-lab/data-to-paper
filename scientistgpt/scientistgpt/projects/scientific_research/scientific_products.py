@@ -82,11 +82,13 @@ class ScientificProducts(Products):
         """
         s = 'We are creating a total of {} tables:\n\n'.format(len(self.tables_names))
         tables = self.tables['results']
-        for i, (table_num, table_name) in enumerate(self.tables_names):
+        for i, (table_num, table_name) in enumerate(self.tables_names.items()):
+            s += f'{table_num}: "{table_name}":\n'
             if i < len(tables):
-                s += f'{table_num}: {table_name}:\n{tables[i]}\n\n'
+                s += f'{tables[i]}'
             else:
-                s += f'{table_num}: {table_name}:\nNot created yet\n\n'
+                s += f'Not created yet.'
+            s += '\n\n'
         return s
 
     @property
@@ -390,7 +392,7 @@ class ScientificProducts(Products):
 
             'tables_and_tables_names': NameDescriptionStageGenerator(
                 'The Tables of the Paper',
-                '{}',
+                '{tables}',
                 ScientificStages.TABLES,
                 lambda: {'tables': self.get_tables_names_and_content()}),
 
