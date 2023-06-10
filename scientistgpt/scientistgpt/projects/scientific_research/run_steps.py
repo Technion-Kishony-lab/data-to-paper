@@ -107,6 +107,13 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             self.send_product_to_client('analysis_plan')
 
+        # Hypotheses testing plan
+        if self.should_prepare_hypothesis_testing_plan:
+            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+            products.hypothesis_testing_plan = \
+                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            self.send_product_to_client('hypothesis_testing_plan')
+
         # Data Preprocessing
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
@@ -114,13 +121,6 @@ class ScientificStepsRunner(BaseStepsRunner):
             RequestCodeProducts.from_(self, code_step='data_preprocessing') \
                 .get_code_and_output_and_descriptions(with_file_descriptions=False)
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
-
-        # Hypotheses testing plan
-        if self.should_prepare_hypothesis_testing_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.hypothesis_testing_plan = \
-                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            self.send_product_to_client('hypothesis_testing_plan')
 
         # Tables names
         if self.should_add_tables:

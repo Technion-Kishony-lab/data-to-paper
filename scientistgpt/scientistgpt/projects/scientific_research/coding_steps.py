@@ -222,6 +222,27 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
+    offer_revision_prompt: str = dedent_triple_quote_str("""
+        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
+        ```
+        {}
+        ```
+
+        Please check if there is anything wrong or missing in these results (like unexpected NaN values, \
+        or anything else that may indicate that code improvements are needed).
+        Also, check that we have all the data needed for the tables we want to create \
+        (see above "The Names of the Tables of the Paper").
+
+        Choose one of the following options:
+
+        1. The output looks right, has everything we need for the Tables, and I don't see anything that needs \
+        to be changed in the code. Let's proceed.
+
+        2. The output does not yet perfectly provides everything we need for the Tables. \
+        We should revise the code to make it better.
+
+        {choice_instructions}
+        """)  # set to None to skip option for revision
 
 @dataclass
 class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):

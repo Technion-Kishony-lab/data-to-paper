@@ -101,17 +101,30 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1  # 0 for no review cycles
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'outputs:data_exploration',
-                                                  'codes:data_preprocessing', 'research_goal')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+                                                  'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} an {goal_noun}. 
-        Do not include any data exploration, preprocessing, loading or visualization steps. \
-        You should specifically refer to the hypotheses listed above.
-        For each of the hypotheses, specify the statistical test that should be performed to test it.
-        If there are several possible tests, specify only one (the simplest one).
+        We would like to test the specified hypotheses using the provided dataset.
+        
+        In light of the dataset description and the data exploration output provided above, \
+        consider each of the following generic \
+        statistical issues and determine if they are relevant for our case: 
+        
+        * multiple comparisons.
+        * confounding variables (see available variables in the dataset that we can adjust for).
+        * dependencies between data points.
+        * missing data points.
+        * any other relevant statistical issues.
+        
+        Then, for each hypothesis, suggest a *single* statistical test that should be performed to test the hypothesis \
+        and specify how it should be used while accounting for issue above that you deem relevant.
+        
+        If there are several possible ways to test a given hypothesis, specify only *one* test (the simplest one).
+        
+        Do not include any data loading, data exploration or data visualization steps.
 
         {quote_request}
         """)
