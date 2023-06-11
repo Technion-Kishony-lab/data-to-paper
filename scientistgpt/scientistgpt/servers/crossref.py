@@ -115,7 +115,9 @@ class CrossrefCitation(dict):
         bibtex_id = bibtex_id.rstrip(".,;:!?")
         # remove special characters from the id like -, _, etc.
         bibtex_id = bibtex_id.replace("-", "").replace("_", "").replace("–", "").replace("’", "").replace("'", "")\
-            .replace("/", "")
+            .replace("/", "").replace(" ", "").replace("(", "").replace(")", "").replace("[", "").replace("]", "")\
+            .replace("{", "").replace("}", "").replace(":", "").replace(";", "").replace(",", "").replace(".", "")\
+            .replace("?", "").replace("!", "").replace("“", "").replace("”", "").replace('"', "").replace("–", "")
         return bibtex_id
 
     def __str__(self):
