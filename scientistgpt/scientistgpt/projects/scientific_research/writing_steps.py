@@ -229,14 +229,13 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
                 f'Data Source, Data Preprocessing, Data Analysis. ')
         return super()._check_and_extract_result_from_self_response(response)
 
-    def run_dialog_and_get_valid_result(self) -> str:
+    def run_dialog_and_get_valid_result(self) -> list:
         # Add code availability statement:
-        response = super().run_dialog_and_get_valid_result()[0]
-        return response + \
-            '\n\n' \
-            '\\subsection{Code Availability}\n\n' \
-            'Custom code used to perform the data preprocessing and analysis, ' \
-            'as well as the raw code output outputs, are provided in Supplementary Methods.'
+        response = [super().run_dialog_and_get_valid_result()[0] +
+                    '\\subsection{Code Availability}\n\n' \
+                    'Custom code used to perform the data preprocessing and analysis, ' \
+                    'as well as the raw code output outputs, are provided in Supplementary Methods.']
+        return response
 
 
 @dataclass
