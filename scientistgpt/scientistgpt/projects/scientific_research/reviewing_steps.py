@@ -226,12 +226,23 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         Please build the table "{table_name}". 
         You should build the table using the results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
-        The table should have a caption suitable for inclusion as part of a scientific paper.
         
-        If you include p-values, you can use the $<$ symbol to indicate smaller than a given value, \
-        (do not write p-value = 0).
+        Important: You do NOT need to include all the information from the outputs, just include the information that \
+        is relevant and suitable for inclusion in a table of a scientific paper.
+        
+        As appropriate, you should:
+        * Exclude and re-order rows/columns.
+        * Organize the table sensibly.  
+        * Re-name technical names to scientifically-suitable names.
+        * Rename technical values (like 0/1) to scientifically-suitable values (like "No"/"Yes").
+        * Use proper scientific notation for numbers and round numbers to a reasonable number of digits.
+        * Indicate standard errors using the $\\pm$ symbol, or parentheses.
+        * Add a caption suitable for inclusion as part of a scientific paper \
+        (you can use the table name provided above, or modify it as you see fit).
+        * If you indicate p-values, you can use the $<$ symbol to indicate smaller than a given value, \
+        (any p-value less than 10^-4 should be indicated as $<$10^{-4}).
+        
         {do_not_repeat_information_from_previous_tables}
-        
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
         """)

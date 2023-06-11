@@ -117,7 +117,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         Do not include numeric values like p-values or effect sizes in the abstract.
         """)
 
-    _raised_colon_error = True  # False to raise ":" error once. True to not raise error at all.
+    _raised_colon_error = False  # False to raise ":" error once. True to not raise error at all.
 
     def _check_section(self, section: str, section_name: str):
         if section_name == 'title':
