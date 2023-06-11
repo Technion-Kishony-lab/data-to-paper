@@ -21,6 +21,8 @@ CITATION_TEMPLATE = r"""
 TEMPLATE_END = r"""
 \end{document}"""
 
+SECTION_NUMBERING = False
+
 
 @dataclass
 class BaseLatexToPDF(BaseFileProducer):
@@ -65,6 +67,9 @@ class BaseLatexToPDF(BaseFileProducer):
         paper = self.get_modified_paper_template()
         paper = self.add_preamble(paper)
         for section_name, section_content in sections.items():
+            if r'\section' in section_content and not SECTION_NUMBERING:
+                section_content = section_content.replace(r'\section', r'\section*').replace(r'\subsection',
+                                                                                             r'\subsection*')
             paper = paper.replace(f'@@@{section_name}@@@', section_content)
         return paper
 
@@ -98,6 +103,7 @@ class BaseLatexToPDFWithAppendix(BaseLatexToPDF):
     Allows creating a pdf based on a tex template whose sections are populated from the Products. Also allows adding
     an appendix to the paper.
     """
+
     def get_modified_paper_template(self) -> str:
         return super().get_modified_paper_template().replace(TEMPLATE_END, APPENDIX_TEMPLATE + TEMPLATE_END)
 
