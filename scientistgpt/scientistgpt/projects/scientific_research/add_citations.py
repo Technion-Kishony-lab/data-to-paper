@@ -131,20 +131,24 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         You are a scientific citation expert. 
     """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str(r"""
-        Extract from the above section of a scientific paper all the factual sentences that need to have a reference. 
-        For each of the chosen sentences, create a short query (up to a maximum of 5 words) for a citation search 
-        for this sentence.
-        Return a Python Dict[str, str] mapping each sentence to its respective reference search query, like this:
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Extract from the above section of a scientific paper all the factual sentences to which we need to \
+        add citations.
+
+        Return a Python Dict[str, str] mapping each chosen sentence to a short literature search query \
+        (up to a maximum of 5 words), like this:
 
         {
          "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
-        This is of course just an example. 
+        
         Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
         that can benefit from a reference.
+        
+        However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \
+        describe the finding of the current paper.
         
         Return only a dict of {"sentence": "query"} pairs, without any other text.
     """)

@@ -173,10 +173,13 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
                                                   'most_updated_paper_sections:results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""
-        The introduction should introduce the topic of the paper.
-        It should then give a general overview and some background on the topic of the paper.
-        It should then explain the research goal of the paper and what is the main contribution of the paper.
-        The introduction should be interesting and pique your reader’s interest.
+        The introduction should be interesting and pique your reader’s interest. It should follow the following \
+        structure:
+        * introduce the topic of the paper and why it is important.
+        * explain what was already done and known on the topic, and what is then the research gap/question.
+        * state how the current paper addresses this gap/question.
+        * outline the methodological procedure and briefly state the main findings. But note that there is no need \
+        to describe limitations, implications, or impact in the introduction.
         """)
 
 
