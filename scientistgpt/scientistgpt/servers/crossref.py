@@ -55,6 +55,10 @@ BOOK_MAPPING = {
             }
 
 
+STRS_TO_REMOVE_FROM_BIBTEX_ID = ["-", "_", "–", "’", "'", "/", " ", "(", ")", "[", "]", "{", "}", ":", ";",
+                                 ",", ".", "?", "!", "“", "”", '"', "–"]
+
+
 @dataclass
 class ServerErrorCitationException(ScientistGPTException):
     """
@@ -111,13 +115,10 @@ class CrossrefCitation(dict):
         """
         bibtex_id = unidecode(self['first_author_family']) + (str(self.get("year")) if self.get("year") else "")
         bibtex_id += self['title'].split(" ")[0] if self.get("title") else ""
-        # remove special characters from end of the id like .,;: etc.
-        bibtex_id = bibtex_id.rstrip(".,;:!?")
+
         # remove special characters from the id like -, _, etc.
-        bibtex_id = bibtex_id.replace("-", "").replace("_", "").replace("–", "").replace("’", "").replace("'", "")\
-            .replace("/", "").replace(" ", "").replace("(", "").replace(")", "").replace("[", "").replace("]", "")\
-            .replace("{", "").replace("}", "").replace(":", "").replace(";", "").replace(",", "").replace(".", "")\
-            .replace("?", "").replace("!", "").replace("“", "").replace("”", "").replace('"', "").replace("–", "")
+        for char in STRS_TO_REMOVE_FROM_BIBTEX_ID:
+            bibtex_id = bibtex_id.replace(char, "")
         return bibtex_id
 
     def __str__(self):
