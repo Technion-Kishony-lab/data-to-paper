@@ -1,19 +1,22 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
 
+from scientistgpt.env import DEBUG
+
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.text_formatting import wrap_text_with_triple_quotes
+from scientistgpt.utils.file_utils import get_non_existing_file_name
 
 from scientistgpt.latex import FailedToExtractLatexContent, extract_latex_section_from_response
 from scientistgpt.latex.exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
 from scientistgpt.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands
+from scientistgpt.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind, NoResponse
-from ..latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment
 
 
 @dataclass
@@ -89,8 +92,14 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         return extracted_section
 
     def _check_section(self, extracted_section: str, section_name: str):
+        if DEBUG:
+            file_stem = f'{self.conversation_name}__{section_name}'
+            file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
+            file_stem, output_directory = file_path.stem, file_path.parent
+        else:
+            file_stem, output_directory = 'test', None
         try:
-            check_latex_compilation(extracted_section)
+            check_latex_compilation(extracted_section, file_stem, output_directory)
         except LatexCompilationError as e:
             self._raise_self_response_error(str(e))
         try:
