@@ -191,6 +191,8 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
 class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
+    only_warn_about_non_matching_values: bool = True
+
     number_of_non_matching_values: int = None
 
     ask_for_formula_prompt: str = dedent_triple_quote_str("""
@@ -214,7 +216,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                         last_separator=' and ')
 
     def _check_extracted_numbers(self, text: str,
-                                 just_warn: bool = False,
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True) -> str:
@@ -235,7 +236,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
             print_red(f'Compared to {self.number_of_non_matching_values} non-matching in the previous iteration '
                       f'(is_converging: {is_converging})')
         if non_matching:
-            if just_warn:
+            if self.only_warn_about_non_matching_values:
                 print_red('########################')
                 print_red('####### WARNING: #######')
                 print_red('########################')
