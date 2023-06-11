@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 from typing import List, Dict
 
@@ -37,14 +36,14 @@ class SemanticScholarPaperServerCaller(ServerCaller):
     file_extension = "_semanticscholar_paper.txt"
 
     @staticmethod
-    def _get_server_response(query, rows=4) -> List[dict]:
+    def _get_server_response(query, rows=100) -> List[dict]:
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
         params = {
             "query": query,
             "limit": rows,
-            "fields": "title,url,abstract,embedding,tldr",
+            "fields": "title,url,abstract,embedding,tldr,citationStyles",
         }
 
         response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
@@ -75,13 +74,6 @@ class SemanticScholarEmbeddingServerCaller(ServerCaller):
     """
 
     file_extension = "_semanticscholar_embedding.txt"
-    max_batch_size = 16
-
-    @staticmethod
-    def chunks(lst, chunk_size=max_batch_size):
-        """Splits a longer list to respect batch size"""
-        for i in range(0, len(lst), chunk_size):
-            yield lst[i: i + chunk_size]
 
     @staticmethod
     def _get_server_response(paper: Dict[str, str]) -> np.ndarray:
