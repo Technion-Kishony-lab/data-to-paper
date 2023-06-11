@@ -80,7 +80,7 @@ def is_any_matching_value_up_to_n_digits(source_str_numbers: List[str], target_n
     """
     return any(round_to_n_digits(source_number, n_digits) == target_number
                for source_number in source_str_numbers) \
-        or any(round_to_n_digits(source_number[:-2] + '6', n_digits) == target_number
+        or any(round_to_n_digits(source_number[:-1] + '6', n_digits) == target_number
                for source_number in source_str_numbers if source_number.endswith('5'))
 
 
