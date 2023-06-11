@@ -230,13 +230,16 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
             self._raise_self_response_error(
                 f'The Methods section should only have the following 3 subsections: '
                 f'Data Source, Data Preprocessing, Data Analysis. ')
-
-        # Add code availability statement:
-        response += '\n\n\\subsection{Code Availability}\n\n' \
-                    'Custom code used to perform the data preprocessing and analysis, ' \
-                    'as well as the raw code output outputs, are provided in Supplementary Methods.'
-
         return super()._check_and_extract_result_from_self_response(response)
+
+    def run_dialog_and_get_valid_result(self) -> str:
+        # Add code availability statement:
+        response = super().run_dialog_and_get_valid_result()
+        return response + \
+            '\n\n' \
+            '\\subsection{Code Availability}\n\n' \
+            'Custom code used to perform the data preprocessing and analysis, ' \
+            'as well as the raw code output outputs, are provided in Supplementary Methods.'
 
 
 @dataclass
