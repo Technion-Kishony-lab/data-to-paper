@@ -162,6 +162,12 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     non_matching_str_numbers = []
     matching_str_numbers = []
     for str_target_number in str_target_numbers:
+        str_target_number = str_target_number.lower()
+        if 'e' in str_target_number:
+            str_target_number, power = str_target_number.split('e')
+            power = int(power)
+        else:
+            power = 0
 
         if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
             continue
@@ -182,7 +188,7 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             else:
                 to_check = str_target_number
 
-            target_number = round_to_n_digits(to_check, num_digits)
+            target_number = round_to_n_digits(to_check, num_digits) * 10 ** power
 
             # check that there exists a number in the source that matches after rounding to the same number of digits:
             is_match_as_is = is_any_matching_value_up_to_n_digits(str_source_numbers, target_number, num_digits)
