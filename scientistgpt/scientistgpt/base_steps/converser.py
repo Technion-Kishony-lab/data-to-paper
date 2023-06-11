@@ -11,7 +11,7 @@ from scientistgpt.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils.copier import Copier
-from scientistgpt.utils.replacer import StrOrTextFormat, format_value
+from scientistgpt.utils.replacer import StrOrReplacer, format_value
 from scientistgpt.utils.highlighted_text import print_red, print_magenta
 from scientistgpt.base_cast import Agent
 
@@ -102,21 +102,22 @@ class Converser(Copier):
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
-    def comment(self, comment: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None, as_action: bool = True,
+    def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
                 should_format: bool = True, **kwargs):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
+        comment = format_value(self, comment, should_format)
         if as_action:
             self.conversation_manager.append_commenter_message(
-                content=format_value(self, comment, should_format),
+                content=comment,
                 tag=tag,
                 **kwargs)
         else:
             print_red(comment)
 
-    def apply_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
-                                               comment: Optional[StrOrTextFormat] = None,
+    def apply_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
+                                               comment: Optional[StrOrReplacer] = None,
                                                is_code: bool = False, previous_code: Optional[str] = None,
                                                model_engine: Optional[ModelEngine] = None,
                                                hidden_messages: GeneralMessageDesignation = None,
@@ -131,8 +132,8 @@ class Converser(Copier):
             hidden_messages=hidden_messages,
             **{**self.chatgpt_parameters, **kwargs})
 
-    def apply_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
-                                  comment: Optional[StrOrTextFormat] = None,
+    def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
+                                  comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   should_format: bool = True, **kwargs):
@@ -143,8 +144,8 @@ class Converser(Copier):
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
             previous_code=previous_code, is_background=is_background, **kwargs)
 
-    def apply_append_system_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
-                                    comment: Optional[StrOrTextFormat] = None,
+    def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
+                                    comment: Optional[StrOrReplacer] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
                                     should_format: bool = True, **kwargs):
         return self.conversation_manager.append_system_message(
@@ -154,8 +155,8 @@ class Converser(Copier):
             ignore=ignore,
             reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
-    def apply_append_surrogate_message(self, content: StrOrTextFormat,
-                                       tag: Optional[StrOrTextFormat] = None, comment: Optional[StrOrTextFormat] = None,
+    def apply_append_surrogate_message(self, content: StrOrReplacer,
+                                       tag: Optional[StrOrReplacer] = None, comment: Optional[StrOrReplacer] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
                                        should_format: bool = True, **kwargs):
