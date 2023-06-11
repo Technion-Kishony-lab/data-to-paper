@@ -81,6 +81,9 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         {section_review_specific_instructions}
         
+        Do not provide feedback on other sections or other parts of the paper, like tables or code, given to you, \
+        you should only provide feedback on the {pretty_section_names}.
+        
         If you don't see any flaws, respond solely the following "{termination_phrase}".
         
         IMPORTANT: You should EITHER provide bullet-point feedback, OR respond solely with "{termination_phrase}"; 
@@ -101,7 +104,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
-    max_reviewing_rounds: int = 2
+    max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
     latex_instructions: str = dedent_triple_quote_str("""
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
@@ -115,6 +118,15 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         short intro to the dataset used and a non-technical explanation of the methodology.
         It should then provide a short summary of the main results and their implications.
         Do not include numeric values like p-values or effect sizes in the abstract.
+        """)
+    section_review_specific_instructions: str = dedent_triple_quote_str("""
+        * The title should be short and meaningful, it should convey the main message in a concise way without \
+        mentioning the methods or the data or using ":,;" characters.
+        * The abstract should provide a short and concise summary of the paper.
+        * The abstract should not be technical, it should not contain technical explanations of the methods or \
+        the data. It should not contain specific information about the tables or figures in the paper - it can \
+        contain the conclusions that are evident from the tables and figures.
+        * The abstract should be interesting and engaging, it should motivate the reader to read the full paper.
         """)
 
     _raised_colon_error = False  # False to raise ":" error once. True to not raise error at all.
@@ -259,6 +271,10 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
+        
+        Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \
+        only suggest changes that are relevant to the Results section text that are supported by the given \
+        Tables and Numerical Values.
 
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
         Tables and Numerical Values.
