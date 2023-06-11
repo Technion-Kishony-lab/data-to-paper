@@ -9,7 +9,7 @@ from scientistgpt.base_steps.exceptions import FailedCreatingProductException
 from scientistgpt.conversation.message_designation import RangeMessageDesignation
 from scientistgpt.env import MAX_MODEL_ENGINE
 from scientistgpt.utils.highlighted_text import print_red
-from scientistgpt.utils.replacer import Replacer, StrOrTextFormat, format_value
+from scientistgpt.utils.replacer import Replacer, StrOrReplacer, format_value
 
 
 class Rewind(Enum):
@@ -61,7 +61,7 @@ class SelfResponseError(Exception):
     """
     Exception raised when the response to a request for a latex section is not acceptable.
     """
-    error_message: StrOrTextFormat = None
+    error_message: StrOrReplacer = None
     rewind: Rewind = None
     bump_model: bool = False
     add_iterations: int = 0

@@ -70,4 +70,4 @@ def format_value(obj: object, value: Any, should_format: bool = True) -> Union[s
         return value
 
 
-StrOrTextFormat = Union[str, Replacer]
+StrOrReplacer = Union[str, Replacer]
