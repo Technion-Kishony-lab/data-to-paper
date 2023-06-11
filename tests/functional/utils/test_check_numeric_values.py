@@ -39,6 +39,8 @@ def test_add_one_to_last_digit(x, y):
     ('1234', 'we have 1{,}234', []),
     ('12e+03', 'we have 12,000, or 13000', ['13000']),
     ('4.725', 'both 4.73 or 4.72 are correct', []),
+    ('4.72e05', '4.72 \\times 10^5,  0.472 \\times 10^6', []),
+    ('4.72e-05', '4.72 \\times 10^{-5}', []),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target)[0] == non_matching

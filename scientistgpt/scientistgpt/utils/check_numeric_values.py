@@ -10,6 +10,32 @@ def extract_numeric_values(text: str) -> List[str]:
     return re.findall(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", text.replace('{,}', '').replace(',', ''))
 
 
+def unify_representation_of_numeric_values(text: str) -> str:
+    """
+    Unify the representation of numeric values with scientific notation.
+    For example:
+    "4.32 \times 10^{-5}" -> 4.32e-5
+    "4.32 \times 10^5" -> 4.32e5
+    "23.7987 * 10^5" -> 23.7987e5
+    "23.7987*10^{-5}" -> 23.7987e-5
+    """
+
+    # This function is used to format the matched groups into scientific notation
+    def repl(m):
+        base = float(m.group(1))
+        exponent = int(m.group(2).replace('{', '').replace('}', ''))  # remove curly braces
+        return f'{base}e{exponent}'
+
+    # Create regex pattern for numbers in the specified format
+    pattern = r"(\d+\.\d+)\s*\\times\s*10\^(\{?\-?\d+\}?)"  # \times version
+    text = re.sub(pattern, repl, text)
+
+    pattern = r"(\d+\.\d+)\s*\*\s*10\^(\{?\-?\d+\}?)"  # * version
+    text = re.sub(pattern, repl, text)
+
+    return text
+
+
 def is_one_with_zeros(str_number: str) -> bool:
     """
     Check if the given string number is 1 with zeros before or after.
@@ -127,12 +153,21 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     that matches after rounding to the same number of digits.
     """
 
+    target = unify_representation_of_numeric_values(target)
+    source = unify_representation_of_numeric_values(source)
+
     str_target_numbers = extract_numeric_values(target)
     str_source_numbers = extract_numeric_values(source)
 
     non_matching_str_numbers = []
     matching_str_numbers = []
     for str_target_number in str_target_numbers:
+        str_target_number = str_target_number.lower()
+        if 'e' in str_target_number:
+            str_target_number, power = str_target_number.split('e')
+            power = int(power)
+        else:
+            power = 0
 
         if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
             continue
@@ -153,7 +188,7 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             else:
                 to_check = str_target_number
 
-            target_number = round_to_n_digits(to_check, num_digits)
+            target_number = round_to_n_digits(to_check, num_digits) * 10 ** power
 
             # check that there exists a number in the source that matches after rounding to the same number of digits:
             is_match_as_is = is_any_matching_value_up_to_n_digits(str_source_numbers, target_number, num_digits)
