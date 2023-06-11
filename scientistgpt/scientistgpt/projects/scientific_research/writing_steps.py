@@ -42,7 +42,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         You will write a scientific article for the journal {journal_name}, following the instructions below:
         1. Write the article section by section: Abstract, Introduction, Results, Discussion, and Methods.
         2. Write every section of the article in scientific language, in `.tex` format.
-        3. Write the article in a way that is fully consistent with the scientific products we have.
+        3. Write the article in a way that is fully consistent with the scientific results we have.
         4. Write the text without adding any citations (we will only add citations in a later stage).
         """)
 
@@ -68,7 +68,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         "{termination_phrase}".
     """)
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n
         Please correct your response according to my feedback and send back a complete rewrite \
         of the {pretty_section_names}.
         Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
@@ -76,15 +76,16 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \
-        for my paper. Do not provide positive feedback, only provide actionable instructions in bullet points. 
+        for my paper. Do not provide positive feedback, only provide actionable instructions for improvements in \
+        bullet points. 
         In particular, make sure that the section is correctly grounded in the information provided above.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         {section_review_specific_instructions}
         
-        Do not provide feedback on other sections or other parts of the paper, like tables or code, given to you, \
-        you should only provide feedback on the {pretty_section_names}.
+        You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
+        or other parts of the paper, like tables or Python code, provided above; .
         
-        If you don't see any flaws, respond solely the following "{termination_phrase}".
+        If you don't see any flaws, respond solely with "{termination_phrase}".
         
         IMPORTANT: You should EITHER provide bullet-point feedback, OR respond solely with "{termination_phrase}"; 
         you should not do both.
@@ -120,13 +121,18 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         Do not include numeric values like p-values or effect sizes in the abstract.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
-        * The title should be short and meaningful, it should convey the main message in a concise way without \
-        mentioning the methods or the data or using ":,;" characters.
-        * The abstract should provide a short and concise summary of the paper.
-        * The abstract should not be technical, it should not contain technical explanations of the methods or \
-        the data. It should not contain specific information about the tables or figures in the paper - it can \
-        contain the conclusions that are evident from the tables and figures.
-        * The abstract should be interesting and engaging, it should motivate the reader to read the full paper.
+    
+        The Title should: 
+        * be short and meaningful
+        * convey the main message, focusing on discovery not on methodology nor on the data source.
+        * not include punctuation marks, such as ":,;" characters.
+        
+        The Abstract should:
+        * provide a short and concise summary of the paper.
+        * not be technical, not contain technical explanations of the methods or the data. 
+        * not contain specific information about the tables or figures in the paper; rather focus on \
+        the conclusions evident from the tables and figures.
+        * be interesting and engaging, motivating the reader to read the full paper.
         """)
 
     _raised_colon_error = False  # False to raise ":" error once. True to not raise error at all.

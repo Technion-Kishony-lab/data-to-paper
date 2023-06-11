@@ -325,7 +325,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         to respond with the approving-phrase immediately, without requesting any improvement cycles.
     """)
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n
         Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
         """)
@@ -383,7 +383,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
     user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n
         Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
         {quote_request}
         """)
