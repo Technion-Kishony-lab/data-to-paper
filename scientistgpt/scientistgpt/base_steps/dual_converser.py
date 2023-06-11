@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Any
 from scientistgpt.conversation import ConversationManager, GeneralMessageDesignation, Message
 from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.replacer import StrOrTextFormat, format_value
+from scientistgpt.utils.replacer import StrOrReplacer, format_value
 from scientistgpt.utils.highlighted_text import print_magenta
 from scientistgpt.env import TEXT_WIDTH
 
@@ -73,8 +73,8 @@ class DualConverserGPT(Converser):
                                              reverse_roles_for_web=True)
         self._pre_populate_other_background()
 
-    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrTextFormat] = None,
-                                                        comment: Optional[StrOrTextFormat] = None,
+    def apply_to_other_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
+                                                        comment: Optional[StrOrReplacer] = None,
                                                         is_code: bool = False, previous_code: Optional[str] = None,
                                                         model_engine: Optional[str] = None,
                                                         hidden_messages: GeneralMessageDesignation = None,
@@ -88,8 +88,8 @@ class DualConverserGPT(Converser):
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages, **kwargs)
 
-    def apply_to_other_append_user_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
-                                           comment: Optional[StrOrTextFormat] = None,
+    def apply_to_other_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
+                                           comment: Optional[StrOrReplacer] = None,
                                            ignore: bool = False,
                                            previous_code: Optional[str] = None, is_background: bool = False,
                                            should_format: bool = True, **kwargs) -> Message:
@@ -100,8 +100,8 @@ class DualConverserGPT(Converser):
             previous_code=previous_code,
             ignore=ignore, is_background=is_background, **kwargs)
 
-    def apply_to_other_append_system_message(self, content: StrOrTextFormat, tag: Optional[StrOrTextFormat] = None,
-                                             comment: Optional[StrOrTextFormat] = None,
+    def apply_to_other_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
+                                             comment: Optional[StrOrReplacer] = None,
                                              should_format: bool = True, **kwargs) -> Message:
         return self.other_conversation_manager.append_system_message(
             content=format_value(self, content, should_format),
@@ -109,9 +109,9 @@ class DualConverserGPT(Converser):
             comment=comment,
             **kwargs)
 
-    def apply_to_other_append_surrogate_message(self, content: StrOrTextFormat,
-                                                tag: Optional[StrOrTextFormat] = None,
-                                                comment: Optional[StrOrTextFormat] = None,
+    def apply_to_other_append_surrogate_message(self, content: StrOrReplacer,
+                                                tag: Optional[StrOrReplacer] = None,
+                                                comment: Optional[StrOrReplacer] = None,
                                                 ignore: bool = False,
                                                 previous_code: Optional[str] = None,
                                                 is_background: bool = False,
