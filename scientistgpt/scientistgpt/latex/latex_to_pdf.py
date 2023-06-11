@@ -136,10 +136,10 @@ def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List
         raise UnwantedCommandsUsedInLatex(unwanted_commands_used)
 
 
-def check_latex_compilation(latex_content: str):
+def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None):
     with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
-    save_latex_and_compile_to_pdf(latex_document, 'test')
+    save_latex_and_compile_to_pdf(latex_document, file_stem, output_directory)
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
