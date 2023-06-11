@@ -118,22 +118,22 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         It should include short background on the research question and motivation, \
         short intro to the dataset used and a non-technical explanation of the methodology.
         It should then provide a short summary of the main results and their implications.
-        Do not include numeric values like p-values or effect sizes in the abstract.
-        """)
-    section_review_specific_instructions: str = dedent_triple_quote_str("""
-    
+        It should not include numeric values like p-values, or effect sizes.
+
         The Title should: 
-        * be short and meaningful
+        * be short and meaningful.
         * convey the main message, focusing on discovery not on methodology nor on the data source.
         * not include punctuation marks, such as ":,;" characters.
         
-        The Abstract should:
-        * provide a short and concise summary of the paper.
-        * not be technical, not contain technical explanations of the methods or the data. 
-        * not contain specific information about the tables or figures in the paper; rather focus on \
-        the conclusions evident from the tables and figures.
-        * be interesting and engaging, motivating the reader to read the full paper.
+        The Abstract should provide a concise, interesting to read, summary of the paper, including:
+        (a) short statement of the subject and its importance. 
+        (b) description of the research gap/question/motivation.
+        (c) short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
+        (d) summary of each of the main results. It should summarize each key result which is evident from the tables, \
+        but without referring to specific numeric values from the tables.
+        (e) statement of limitations and implications.
         """)
+    section_review_specific_instructions: str = "{section_specific_instructions}"
 
     _raised_colon_error = False  # False to raise ":" error once. True to not raise error at all.
 
@@ -155,8 +155,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
                                              'most_updated_paper_sections:results', 'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
-        title and abstract for a research paper.
-        We are writing for {journal_name}. 
+        title and abstract for a {journal_name} research paper. 
         
         {section_specific_instructions}
         
@@ -197,35 +196,21 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
             s += f'* {sub_header}\n'
         return s
 
-    section_specific_instructions: str = dedent_triple_quote_str("""
-        Make sure that you are only referring to analysis steps that are explicitly performed by the \
-        data preprocessing code and data analysis code (see Python code blocks above).
-
-        Focus on the methods that were used to achieve the research goal
+    section_specific_instructions: str = dedent_triple_quote_str("""\n
+        The Methods section should have 3 subsections:
         
-        * Do not mention steps that were performed in the exploration or preprocessing but their results were not \
-        utilized in the analysis.
-        * Do not mention missing methods or results that should have been used to achieve the research goal, rather \
-        focus on methods that were actually used to achieve the results we have (see above).
-        * Do not be over specific, when mentioning technical details, state the general idea in a language that is \
-        suitable for a scientific paper. 
-        * Do not mention specific versions of software packages.
+        * "Data Source": Describe the data sources, based on the data file descriptions provided above.
         
-
-        {enforced_subheader_prompt}
+        * "Data Preprocessing": Describe preprocessing of the data done by the Python code. Do not include \
+        preprocessing steps that were not performed by the code, or that were performed by the code \
+        but were not used as basis for the result output.
+        
+        * "Data Analysis": Describe the specific analysis steps performed by the Python code. \
+        Only specify steps that were done by the code; do not mention missing steps. \
+        Do not be over technical. Do not specify versions of software packages.
         """)
 
-    section_review_specific_instructions: str = dedent_triple_quote_str("""\n
-        Specifically, pay attention to:
-
-        * Description of analysis steps that were not explicitly performed by the analysis Python codes \
-        (provided above), like certain data cleaning processes.
-        * References to variables and data files that were not used in the analysis.
-        * Being too technical and over detailing obvious steps.
-        * Mentioning specific versions of software packages, as it is not relevant as part of the methods section.
-        
-        {enforced_subheader_prompt}
-        """)
+    section_review_specific_instructions: str = "{section_specific_instructions}"
 
     def _check_and_extract_result_from_self_response(self, response: str):
         # Warn on "version = ..." :
