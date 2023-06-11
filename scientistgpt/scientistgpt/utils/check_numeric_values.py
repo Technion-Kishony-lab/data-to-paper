@@ -79,7 +79,9 @@ def is_any_matching_value_up_to_n_digits(source_str_numbers: List[str], target_n
     Check if there exists a number in the source that matches after rounding to the given number of digits.
     """
     return any(round_to_n_digits(source_number, n_digits) == target_number
-               for source_number in source_str_numbers)
+               for source_number in source_str_numbers) \
+        or any(round_to_n_digits(source_number[:-2] + '6', n_digits) == target_number
+               for source_number in source_str_numbers if source_number.endswith('5'))
 
 
 def get_number_of_significant_figures(str_number: str, remove_trailing_zeros: bool = True) -> int:
