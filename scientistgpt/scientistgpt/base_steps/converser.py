@@ -107,9 +107,10 @@ class Converser(Copier):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
+        comment = format_value(self, comment, should_format)
         if as_action:
             self.conversation_manager.append_commenter_message(
-                content=format_value(self, comment, should_format),
+                content=comment,
                 tag=tag,
                 **kwargs)
         else:

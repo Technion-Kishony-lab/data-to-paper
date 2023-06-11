@@ -120,7 +120,7 @@ class ResultConverser(Converser):
         if self.user_initiation_prompt:
             self.apply_append_user_message(self.user_initiation_prompt)
 
-    def _raise_self_response_error(self, error_message: str, rewind: Rewind = Rewind.ACCUMULATE,
+    def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
                                    add_iterations: int = 0,
                                    bump_model: bool = False):
         """
