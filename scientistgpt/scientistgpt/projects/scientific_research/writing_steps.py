@@ -201,24 +201,36 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         Make sure that you are only referring to analysis steps that are explicitly performed by the \
         data preprocessing code and data analysis code (see Python code blocks above).
 
-        Focus on the methods that were used to achieve the research goal.
+        Focus on the methods that were used to achieve the research goal
         
+        * Do not mention steps that were performed in the exploration or preprocessing but their results were not \
+        utilized in the analysis.
+        * Do not mention missing methods or results that should have been used to achieve the research goal, rather \
+        focus on methods that were actually used to achieve the results we have (see above).
+        * Do not be over specific, when mentioning technical details, state the general idea in a language that is \
+        suitable for a scientific paper. 
+        * Do not mention specific versions of software packages.
+        
+
         {enforced_subheader_prompt}
         """)
 
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Specifically, pay attention to:
 
-        - Description of analysis steps that were not explicitly performed by the analysis Python codes \
+        * Description of analysis steps that were not explicitly performed by the analysis Python codes \
         (provided above), like certain data cleaning processes.
-        - References to variables and data files that were not used in the analysis.
+        * References to variables and data files that were not used in the analysis.
+        * Being too technical and over detailing obvious steps.
+        * Mentioning specific versions of software packages, as it is not relevant as part of the methods section.
         
         {enforced_subheader_prompt}
         """)
 
     def _check_and_extract_result_from_self_response(self, response: str):
         # Warn on "version = ..." :
-        pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+\.\d+)'  # e.g. "version = 1.2.3" or "version 1.2.3"
+        # e.g. "version = 1.2.3", "version 1.2.3", "Python 3.7", "Python 3.7.1"
+        pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+\.\d+)|Python\s+(\d+\.\d+)'
         if re.findall(pattern, response):
             self._raise_self_response_error(
                 f'Do not mention specific version of software packages.')
@@ -234,7 +246,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     def run_dialog_and_get_valid_result(self) -> str:
         # Add code availability statement:
-        response = super().run_dialog_and_get_valid_result()
+        response = super().run_dialog_and_get_valid_result()[0]
         return response + \
             '\n\n' \
             '\\subsection{Code Availability}\n\n' \
@@ -292,6 +304,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
         return self._check_extracted_numbers(section)
+
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
