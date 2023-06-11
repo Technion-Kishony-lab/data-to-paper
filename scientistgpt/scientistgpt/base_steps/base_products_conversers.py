@@ -12,6 +12,7 @@ from scientistgpt.utils.nice_list import NiceList
 from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values, remove_equal_sign_and_result, \
     get_all_formulas
 from scientistgpt.utils.highlighted_text import print_red
+from ..utils.replacer import format_value, Replacer
 from ..utils.types import ListBasedSet
 
 
@@ -193,16 +194,33 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     only_warn_about_non_matching_values: bool = False
 
-    number_of_non_matching_values: int = None
+    _number_of_non_matching_values: int = None
+
+    warning_about_non_matching_values: str = dedent_triple_quote_str("""
+        ########################
+        ####### WARNING: #######
+        ########################
+        Some of the specified values {} are not explicitly extracted from:
+        {names_of_products_from_which_to_extract}
+        """)
+
+    report_non_match_prompt: str = dedent_triple_quote_str("""
+        Some of the specified values {} are not explicitly extracted from the provided \
+        {names_of_products_from_which_to_extract}.
+        Please retry while making sure to only include values extracted from the outputs provided above.
+        {ask_for_formula_prompt}
+    """)
 
     ask_for_formula_prompt: str = dedent_triple_quote_str("""
         If you would like to indicate a number which is not a direct extraction from the numbers provided above, \
         but is rather mathematically derived from them, do not write it directly; provide instead the relevant \
-        formula enclosed within square brackets. 
-        For example, if you would like to specify the difference between two provided numbers 8.7 and 2.2, \
-        do not write "The difference is 6.5", but instead provide the formula:
-        "The difference is [8.7 - 2.2 = 6.5]". I will later replace the formula with the actual number.
-        """)
+        formula for the number, enclosed within square brackets. 
+        For example, if you would like to specify the difference between two provided numbers 87 and 22, \
+        do not write "The difference is 65", but instead provide the formula:
+        "The difference is [87 - 22 = 65]". 
+        This will help me understand how you got to the number and I will then later replace the formula with \
+        the actual number.
+        """)  # set to None or '' to disable formula-writing option
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)
@@ -219,52 +237,52 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True) -> str:
+        if self.product_fields_from_which_response_is_extracted is None:
+            return text
 
+        # Find the non-matching values:
         non_matching, matching = find_non_matching_numeric_values(
             source=self._get_text_from_which_response_should_be_extracted(),
-            target=remove_equal_sign_and_result(text),
+            target=remove_equal_sign_and_result(text) if self.ask_for_formula_prompt else text,
             ignore_int_below=ignore_int_below,
             remove_trailing_zeros=remove_trailing_zeros,
             ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
             allow_truncating=allow_truncating)
         number_of_non_matching_values, number_of_matching_values = len(non_matching), len(matching)
-        print_red(f'Checking {number_of_matching_values + number_of_non_matching_values} numerical values. '
-                  f'Found {number_of_non_matching_values} non-matching.')
-        is_converging = self.number_of_non_matching_values is not None and \
-            number_of_non_matching_values < self.number_of_non_matching_values
-        if self.number_of_non_matching_values is not None:
-            print_red(f'Compared to {self.number_of_non_matching_values} non-matching in the previous iteration '
-                      f'(is_converging: {is_converging})')
+        is_converging = self._number_of_non_matching_values is not None \
+            and number_of_non_matching_values < self._number_of_non_matching_values
+
+        # Print to the console the number of non-matching values:
+        self.comment(f'Checking {number_of_matching_values + number_of_non_matching_values} numerical values. '
+                     f'Found {number_of_non_matching_values} non-matching.', as_action=False)
+        if self._number_of_non_matching_values is not None:
+            self.comment(f'Compared to {self._number_of_non_matching_values} non-matching in the previous iteration '
+                         f'(is_converging: {is_converging})', as_action=False)
+
         if non_matching:
             if self.only_warn_about_non_matching_values:
-                print_red('########################')
-                print_red('####### WARNING: #######')
-                print_red('########################')
-                print_red(f'Some of the specified values {non_matching} are not explicitly extracted from:\n'
-                          f'{self.names_of_products_from_which_to_extract}.')
+                self.comment(Replacer(self.warning_about_non_matching_values, args=(non_matching,)), as_action=False)
             else:
                 self._raise_self_response_error(
-                    f'Some of the specified values {ListBasedSet(non_matching)} '
-                    f'are not explicitly extracted from the provided '
-                    f'{self.names_of_products_from_which_to_extract}.\n\n'
-                    f'Please retry while making sure to '
-                    f'only include values extracted from the outputs provided above.\n' + self.ask_for_formula_prompt,
+                    Replacer(self.report_non_match_prompt.format, args=(ListBasedSet(non_matching),)),
                     rewind=Rewind.REPOST_AS_FRESH,
                     add_iterations=int(is_converging),
                 )
 
-        formulas = get_all_formulas(text)
-        for formula in formulas:
-            left_str, right_str = formula.split('=')
-            assert left_str.startswith('[') and right_str.endswith(']')
-            left_str, right_str = left_str[1:], right_str[:-1]
-            left_num, right_num = eval(left_str), eval(right_str)
-            if math.isclose(left_num, right_num):
-                text = text.replace(formula, right_str.strip())
-            else:
-                self._raise_self_response_error(
-                    f'The formula {formula} is not correct.',
-                    rewind=Rewind.REPOST_AS_FRESH,
-                )
+        if self.ask_for_formula_prompt:
+            # Replace the formulas with the actual numbers, eg [87 - 22 = 65] -> 65:
+            formulas = get_all_formulas(text)
+            for formula in formulas:
+                left_str, right_str = formula.split('=')
+                assert left_str.startswith('[') and right_str.endswith(']')
+                left_str, right_str = left_str[1:], right_str[:-1]
+                left_num, right_num = eval(left_str), eval(right_str)
+                if math.isclose(left_num, right_num):
+                    text = text.replace(formula, right_str.strip())
+                else:
+                    self._raise_self_response_error(
+                        f'The formula {formula} is not correct.',
+                        rewind=Rewind.REPOST_AS_FRESH,
+                    )
 
         return text
