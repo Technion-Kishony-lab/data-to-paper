@@ -10,6 +10,32 @@ def extract_numeric_values(text: str) -> List[str]:
     return re.findall(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", text.replace('{,}', '').replace(',', ''))
 
 
+def unify_representation_of_numeric_values(text: str) -> str:
+    """
+    Unify the representation of numeric values with scientific notation.
+    For example:
+    "4.32 \times 10^{-5}" -> 4.32e-5
+    "4.32 \times 10^5" -> 4.32e5
+    "23.7987 * 10^5" -> 23.7987e5
+    "23.7987*10^{-5}" -> 23.7987e-5
+    """
+
+    # This function is used to format the matched groups into scientific notation
+    def repl(m):
+        base = float(m.group(1))
+        exponent = int(m.group(2).replace('{', '').replace('}', ''))  # remove curly braces
+        return f'{base}e{exponent}'
+
+    # Create regex pattern for numbers in the specified format
+    pattern = r"(\d+\.\d+)\s*\\times\s*10\^(\{?\-?\d+\}?)"  # \times version
+    text = re.sub(pattern, repl, text)
+
+    pattern = r"(\d+\.\d+)\s*\*\s*10\^(\{?\-?\d+\}?)"  # * version
+    text = re.sub(pattern, repl, text)
+
+    return text
+
+
 def is_one_with_zeros(str_number: str) -> bool:
     """
     Check if the given string number is 1 with zeros before or after.
@@ -126,6 +152,9 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     For each numerical value in the target, we check that there exists a numeric values in the source
     that matches after rounding to the same number of digits.
     """
+
+    target = unify_representation_of_numeric_values(target)
+    source = unify_representation_of_numeric_values(source)
 
     str_target_numbers = extract_numeric_values(target)
     str_source_numbers = extract_numeric_values(source)
