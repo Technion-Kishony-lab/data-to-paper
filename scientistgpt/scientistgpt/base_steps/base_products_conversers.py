@@ -205,8 +205,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         """)
 
     report_non_match_prompt: str = dedent_triple_quote_str("""
-        Some of the specified values {} are not explicitly extracted from the provided \
-        {names_of_products_from_which_to_extract}.
+        Some of the specified values {} are not explicitly extracted from the provided data \
+        (see above: {names_of_products_from_which_to_extract}).
         Please retry while making sure to only include values extracted from the outputs provided above.
         {ask_for_formula_prompt}
     """)
@@ -261,10 +261,10 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
         if non_matching:
             if self.only_warn_about_non_matching_values:
-                self.comment(Replacer(self.warning_about_non_matching_values, args=(non_matching,)), as_action=False)
+                self.comment(Replacer(self, self.warning_about_non_matching_values, args=(non_matching,)), as_action=False)
             else:
                 self._raise_self_response_error(
-                    Replacer(self.report_non_match_prompt.format, args=(ListBasedSet(non_matching),)),
+                    Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
                     rewind=Rewind.REPOST_AS_FRESH,
                     add_iterations=int(is_converging),
                 )
