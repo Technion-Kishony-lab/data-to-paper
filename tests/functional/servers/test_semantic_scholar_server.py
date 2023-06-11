@@ -1,11 +1,23 @@
 from _pytest.fixtures import fixture
-from scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
 @fixture
 def query():
     return "test query"
 
 
+@fixture()
+def paper():
+    return {"paper_id": "123", "title": "Hospital outbreak of Middle East respiratory syndrome",
+             "abstract": "Between April 1 and May 23, 2013, a total of 23 cases of MERS-CoV ...",}
+
+
 def test_semantic_scholar_get_papers(query):
     papers = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query)
     assert len(papers) > 0
+
+
+def test_semantic_scholar_get_paper_embedding(paper):
+    embedding = SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response(paper)
+    assert len(embedding) > 0
