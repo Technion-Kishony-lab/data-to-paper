@@ -188,4 +188,4 @@ def remove_equal_sign_and_result(string):
 
 
 def get_all_formulas(string):
-    return re.findall(r'\[[^\]]+?\]', string)
+    return re.findall(r"(\[[^\]=]+\=[^\]]+\])", string)
