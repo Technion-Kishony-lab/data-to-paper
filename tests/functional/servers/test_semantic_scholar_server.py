@@ -4,7 +4,7 @@ from scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 
 @fixture
 def query():
-    return "test query"
+    return "the distance between the earth and the moon"
 
 
 @fixture()
