@@ -191,7 +191,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
 class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
-    only_warn_about_non_matching_values: bool = True
+    only_warn_about_non_matching_values: bool = False
 
     number_of_non_matching_values: int = None
 
