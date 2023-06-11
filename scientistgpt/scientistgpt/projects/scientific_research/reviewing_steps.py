@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, List
+from typing import Tuple, Dict, Any
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -31,49 +31,57 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
-    goal_noun: str = 'research goal and an hypothesis'
+    goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
         'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} a {goal_noun}. Please do not include suggested methodology, just the research goal and \
-        a scientifically interesting hypotheses we can test using the provided data.
-        The research goal and hypothesis should be interesting and novel. Try to avoid trivial hypotheses. 
-
-        Yet, make sure your suggested hypothesis can be studied using only the provided dataset, 
+        Please suggest a research goal and an hypothesis. 
+        The goal and hypothesis should be interesting and novel. 
+        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
+        
+        Do not suggest methodology. Just the goal and hypothesis. 
+        Make sure that your suggested hypothesis can be studied using only the provided dataset, 
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of the our data files \
         as in the description of our dataset, above).
 
         {quote_request}.
         """)
-    quote_request: str = 'Please return the goal and hypotheses enclosed within triple-backticks ' \
+    quote_request: str = 'Please return the goal and hypothesis enclosed within triple-backticks ' \
                          '(make sure to flank the entire goal and hypotheses, not just their header).'
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
-        Your job is to advise me, the {performer}, and provide a constructive bullet-point feedback in repeated cycles \
-        of improvements and feedback.
-
-        Pay special attention to whether the research goal can be achieved using only the provided dataset (without \
-        requiring additional data).
-
-        When you feel that the provided research goal is interesting and can be achieved without requiring \
-        additional data except the provided dataset, respond explicitly with: 
-        "{termination_phrase}" (approving-phrase).
-        If you feel that the initial goal description that I send you is already interesting, well defined, \
-        and fits the provided data, you can respond with with approving-phrase \
-        immediately, without requesting any improvement cycles.
         """)
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
+        
+        Please provide constructive bullet point feedback on the above {goal_noun}.
+        
+        Specifically: 
+        (1) Whether the hypothesis can be tested using only the provided dataset (without \
+        requiring additional data).
+        (2) Whether the hypothesis is interesting and novel.
+        (3) If the hypothesis is broad or convoluted, which of the questions it proposes is best to focus on \
+        for further research.
+        
+        
+        Do not provide positive feedback; if these conditions are all satisfied, just respond with: 
+        "{termination_phrase}" (approving-phrase).
+        If you feel that the initial goal and hypothesis fully satisfy the above conditions, \
+        you can respond with with approving-phrase \
+        immediately, without requesting any improvement cycles.
+    """)
+
+    sentence_to_add_at_the_end_of_reviewer_response = 2
 
 
 @dataclass
 class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
-    max_reviewing_rounds: int = 1  # no review cycles
-    fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
+    max_reviewing_rounds: int = 1  # 0 for no review cycles
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
-                                             'research_goal')
+                                                  'research_goal')
     conversation_name: str = 'analysis_plan'
     goal_noun: str = 'short data analysis plan'
     goal_verb: str = 'write'
@@ -92,21 +100,18 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 @dataclass
 class HypothesesTestingPlanReviewGPT(ScientificProductsQuotedReviewGPT):
-    max_reviewing_rounds: int = 1  # no review cycles
-    fake_performer_message_to_add_after_max_rounds: str = 'No need for feedback. Thanks much!'
+    max_reviewing_rounds: int = 1  # 0 for no review cycles
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'outputs:data_exploration',
-                                                  'codes:data_preprocessing','research_goal')
-    conversation_name: str = 'hypotheses_testing_plan'
-    goal_noun: str = 'hypotheses testing plan'
+                                                  'codes:data_preprocessing', 'research_goal')
+    conversation_name: str = 'hypothesis_testing_plan'
+    goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun}. 
+        Please {goal_verb} an {goal_noun}. 
         Do not include any data exploration, preprocessing, loading or visualization steps. \
-        You should specifically refer for the hypotheses suggested.
-        For each of the hypotheses given (see above), specify the statistical test that should be performed to test it.
-        If there are several possible tests, specify the simplest one that can be implemented using Python code.
-        Don't give vague ideas or general directions, be specific and detail any important unique steps that should \
-        be performed in light of the data and hypotheses given.
+        You should specifically refer to the hypotheses listed above.
+        For each of the hypotheses, specify the statistical test that should be performed to test it.
+        If there are several possible tests, specify only one (the simplest one).
 
         {quote_request}
         """)
@@ -239,8 +244,9 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
                                             CheckExtractionReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
-                                             'tables')
-    product_fields_from_which_response_is_extracted: Tuple[str, ...] = ('outputs:data_exploration', 'outputs:data_analysis',)
+                                                  'tables')
+    product_fields_from_which_response_is_extracted: Tuple[str, ...] = (
+        'outputs:data_exploration', 'outputs:data_analysis')
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -288,7 +294,8 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'tables_and_numeric_values')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+                                                  'tables_and_numeric_values')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'

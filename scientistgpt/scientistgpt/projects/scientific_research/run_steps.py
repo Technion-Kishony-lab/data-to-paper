@@ -35,7 +35,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_do_data_exploration: bool = True
     should_do_data_preprocessing: bool = True
     should_prepare_data_analysis_plan: bool = False
-    should_prepare_hypotheses_testing_plan: bool = True
+    should_prepare_hypothesis_testing_plan: bool = True
     should_add_citations: bool = True
     should_add_tables: bool = True
     should_interpret_results: bool = False
@@ -116,11 +116,11 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.send_product_to_client('codes_and_outputs:data_preprocessing')
 
         # Hypotheses testing plan
-        if self.should_prepare_hypotheses_testing_plan:
+        if self.should_prepare_hypothesis_testing_plan:
             self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.hypotheses_testing_plan = \
+            products.hypothesis_testing_plan = \
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            self.send_product_to_client('hypotheses_testing_plan')
+            self.send_product_to_client('hypothesis_testing_plan')
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
