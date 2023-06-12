@@ -209,19 +209,17 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         preprocessing steps that were not performed by the code, or that were performed by the code \
         but were not used as basis for the result output.
         
-        * "Data Analysis": Describe the specific analysis steps performed by the Python code. \
-        Only specify steps that were done by the code; do not mention missing steps. \
-        Do not be over technical.
+        * "Data Analysis": Describe the specific analysis steps performed by the Python code to yield the results. \
+        Do not be over technical. \
+        Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
         
-        Notice especially for the following:
-        * Do not mention specific version of software packages, file names, column names or function names. \
-        Use scientifically terms and names to refer them if necessary. (e.g. "a linear regression model" instead \
-        of "sklearn.linear_model.LinearRegression")
-        * Do not mention any URLs or give any links or references.
-        * Do not mention steps that in retrospect were not necessary for the analysis or did not contributed to the \
-        results or conclusions.
-        * Do not enumerate the steps performed in a list. Instead, describe the steps in a narrative form.
-        
+        Do NOT include any of the following:
+        - missing steps not done by the code.
+        - Intermediate analysis steps that were performed but that were not used in further downstream steps.
+        - specific version of software packages, file names, column names.
+        - names of package functions (e.g., do not say "We used sklearn.linear_model.LinearRegression", say instead \
+        "We used a linear regression model") 
+        - URLs, links or references.
         """)
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
