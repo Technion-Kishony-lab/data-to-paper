@@ -83,7 +83,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         {section_review_specific_instructions}
         
         You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
-        or other parts of the paper, like tables or Python code, provided above; .
+        or other parts of the paper, like tables or Python code, provided above.
         
         If you don't see any flaws, respond solely with "{termination_phrase}".
         
@@ -98,6 +98,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     def _check_section(self, section: str, section_name: str):
         super()._check_section(section, section_name)
         self._check_extracted_numbers(section)
+        self._check_url_in_text(section)
 
 
 @dataclass
