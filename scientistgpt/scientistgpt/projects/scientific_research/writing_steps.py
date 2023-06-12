@@ -188,7 +188,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
                                                   'codes:data_analysis', 'title_and_abstract')
-    max_reviewing_rounds: int = 1
+    max_reviewing_rounds: int = 0
     enforced_sub_headers: Tuple[str, ...] = ('Data Source', 'Data Preprocessing', 'Data Analysis')
 
     @property
@@ -211,7 +211,17 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         
         * "Data Analysis": Describe the specific analysis steps performed by the Python code. \
         Only specify steps that were done by the code; do not mention missing steps. \
-        Do not be over technical. Do not specify versions of software packages.
+        Do not be over technical.
+        
+        Notice especially for the following:
+        * Do not mention specific version of software packages, file names, column names or function names. \
+        Use scientifically terms and names to refer them if necessary. (e.g. "a linear regression model" instead \
+        of "sklearn.linear_model.LinearRegression")
+        * Do not mention any URLs or give any links or references.
+        * Do not mention steps that in retrospect were not necessary for the analysis or did not contributed to the \
+        results or conclusions.
+        * Do not enumerate the steps performed in a list. Instead, describe the steps in a narrative form.
+        
         """)
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
@@ -219,7 +229,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     def _check_and_extract_result_from_self_response(self, response: str):
         # Warn on "version = ..." :
         # e.g. "version = 1.2.3", "version 1.2.3", "Python 3.7", "Python 3.7.1"
-        pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+\.\d+)|Python\s+(\d+\.\d+)'
+        pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+(\.\d+)?)|Python\s+(\d+\.\d+)'
         if re.findall(pattern, response):
             self._raise_self_response_error(
                 f'Do not mention specific version of software packages.')
