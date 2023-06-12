@@ -80,7 +80,7 @@ class BaseLatexToPDF(BaseFileProducer):
         if not SECTION_NUMBERING:
             section = section.replace(r'\section', r'\section*').replace(r'\subsection', r'\subsection*')
         if not TABLE_TILDE:
-            section = section.replace(r'Table\textasciitilde', r'Table ')
+            section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
         return section
 
     def get_paper_section_names(self):
