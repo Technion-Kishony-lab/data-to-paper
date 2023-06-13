@@ -69,6 +69,7 @@ def test_conversation_manager_bump_model_then_retry__with_fewer_messages(manager
     with OPENAI_SERVER_CALLER.mock([
         openai_exception,
         openai_exception,
+        openai_exception,
         'The answer is 4',
     ]):
         manager.append_user_message('Hi, I am a user.', comment='This message will be deleted when we regenerate')
@@ -77,7 +78,7 @@ def test_conversation_manager_bump_model_then_retry__with_fewer_messages(manager
         manager.get_and_append_assistant_message(tag='math answer')
 
     assert len(manager.conversation) == 5
-    assert len(actions) == 8  # 5 + create + failed + failed
+    assert len(actions) == 9  # 5 + create + failed + failed + failed
     assert manager.conversation[-1].content == 'The answer is 4'
     # message #1 was hidden after the first failed attempt:
     assert actions[-1].hidden_messages == [1]

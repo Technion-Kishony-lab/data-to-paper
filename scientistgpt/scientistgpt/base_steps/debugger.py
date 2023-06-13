@@ -144,8 +144,9 @@ class DebuggerConverser(ProductsConverser):
             comment=f'{self.iteration_str}: GPT code has timed out.')
 
     def _respond_to_incomplete_code(self):
-        if self.model_engine <= ModelEngine.GPT35_TURBO:
-            response = "Your sent incomplete code. Let's bump you up to GPT-4 and retry!"
+        if self.model_engine < max(ModelEngine):
+            response = f"Your sent incomplete code. Let's bump you up to " \
+                       f"{self.model_engine.get_next_model()} and retry!"
         else:
             response = "Your sent incomplete code. Please regenerate response."
         self.apply_append_user_message(
