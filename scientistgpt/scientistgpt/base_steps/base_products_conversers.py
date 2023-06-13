@@ -1,4 +1,5 @@
 import math
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -285,4 +286,15 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                         rewind=Rewind.REPOST_AS_FRESH,
                     )
 
+        return text
+
+    def _check_url_in_text(self, text: str) -> str:
+        """
+        Check that the text does not contain a URL. If it does raise an error.
+        """
+        if 'http' in text or 'www.' in text or 'mailto' in text:
+            self._raise_self_response_error(
+                'The text contains a URL which is not allowed.',
+                rewind=Rewind.REPOST_AS_FRESH,
+            )
         return text
