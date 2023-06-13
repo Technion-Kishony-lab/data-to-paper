@@ -209,7 +209,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
                                               CheckExtractionReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
-    keep_intermediate_files_in_debug: bool = True
     model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes:data_preprocessing',
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',

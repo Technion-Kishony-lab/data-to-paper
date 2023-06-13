@@ -25,7 +25,6 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 1
-    keep_intermediate_files_in_debug: bool = True
     goal_noun: str = '{pretty_section_names} section'
     conversation_name: str = None
     goal_verb: str = 'write'
