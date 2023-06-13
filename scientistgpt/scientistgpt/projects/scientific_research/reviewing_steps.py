@@ -1,6 +1,6 @@
 import re
-from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Optional
+from dataclasses import dataclass
+from typing import Tuple, Dict, Any
 
 from scientistgpt.servers.openai_models import ModelEngine
 from scientistgpt.utils import dedent_triple_quote_str
@@ -42,7 +42,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Please suggest a research goal and an hypothesis. 
         The goal and hypothesis should be interesting and novel. 
         Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
-        
+
         Do not suggest methodology. Just the goal and an hypothesis. 
         Make sure that your suggested hypothesis can be studied using only the provided dataset, \
         without requiring any additional data \
@@ -57,16 +57,16 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        
+
         Please provide constructive bullet point feedback on the above {goal_noun}.
-        
+
         Specifically: 
         * If the hypothesis cannot be tested using only the provided dataset (without \
         requiring additional data), suggest how to modify the hypothesis to better fit the dataset.
         * If the hypothesis is not interesting and novel, suggest how to modify it to make it more interesting.
         * If the hypothesis is broad or convoluted, suggest how best to focus it on a single well defined question.
-        
-        
+
+
         Do not provide positive feedback; if these conditions are all satisfied, just respond with: 
         "{termination_phrase}".
         If you feel that the initial goal and hypothesis satisfy the above conditions, \
@@ -109,25 +109,25 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
-        
+
         In light of the dataset description and the data exploration output provided above, \
         for each of the following generic \
         statistical issues determine if they are relevant for our case and whether they should be accounted for: 
-        
+
         * multiple comparisons.
         * confounding variables (see available variables in the dataset that we can adjust for).
         * dependencies between data points.
         * missing data points.
         * any other relevant statistical issues.
-        
+
         Then, for each hypothesis, suggest a *single* statistical test that should be performed to test the hypothesis \
         and specify how it should be used while accounting for any issues above that you deem relevant.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
-        
+
         Return your suggested statistical tests as a Python dictionary Dict[str, str], \
         where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
-        
+
         { 
         'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
         yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
@@ -165,31 +165,31 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please list captions for Tables that we should prepare for a scientific paper addressing the research goal and \
         hypothesis testing described above.
-        
+
         The table names that you choose should be returned as a Python Dict[str, str], with the keys \
         in the form of 'Table n' and the values being the actual names of the tables.
-        
+
         For example, you might return the following:        
         {
             'Table 1': 'Summary statistics of the dataset',
             'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
-        
+
         Obviously, this is just an example. You should choose table names that suit the dataset, the research goal \
         and the hypotheses we are testing.
         The names you choose should accurately describe the tables that will be produced in a later stage.
-        
+
         Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
         You need to choose names for a maximum of 1-3 tables that will each present distinct non-overlapping \
         information.
-        
+
         Don't suggest name of tables that are:
         * Not completely necessary.
         * Represent technical information, rather than scientific results.
         * Irrelevant to the research goal, or that cannot be created from the dataset provided.
         * Overlapping with other tables in your list. 
-        
+
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
@@ -226,10 +226,10 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         Please build the table "{table_name}". 
         You should build the table using the results provided in the output files above.
         The table should only include information that is explicitly extracted from these outputs.
-        
+
         Important: You do NOT need to include all the information from the outputs, just include the information that \
         is relevant and suitable for inclusion in a table of a scientific paper.
-        
+
         As appropriate, you should:
         * Exclude and re-order rows/columns.
         * Organize the table sensibly.  
@@ -241,7 +241,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         (you can use the table name provided above, or modify it as you see fit).
         * If you indicate p-values, you can use the $<$ symbol to indicate smaller than a given value, \
         (any p-value less than 10^-4 should be indicated as $<$10^{-4}).
-        
+
         {do_not_repeat_information_from_previous_tables}
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
         Make sure that the table is not too wide, so that it will fit within document text width.
@@ -250,12 +250,12 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide actionable feedback on the above table, with specific attention to whether the table \
         correctly represent data from our analysis output.
-        
+
         {do_not_repeat_information_from_previous_tables}
 
         Do not suggest changes to the table that may require data not available in our dataset.
         Do not return the modified table itself, just write comments on how to improve it.
-        
+
         If you don't see any issues, respond with "{termination_phrase}".
         NOTICE: If you give any type of constructive feedback, do not include "{termination_phrase}" in your response.
         """)
@@ -318,7 +318,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
         results we got in the output and in light of the overall goal of the project as mentioned above.
-        
+
         Return a maximum of 5 {goal_noun}.
         Do not send any free text. All descriptions should be included in the keys of the Python Dict.
         Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.

@@ -7,12 +7,11 @@ from scientistgpt.utils.text_extractors import extract_text_between_tags
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.replacer import StrOrReplacer, format_value
 from scientistgpt.utils.highlighted_text import print_magenta
+from scientistgpt.utils.text_counting import is_bulleted_list
 from scientistgpt.env import TEXT_WIDTH
 
 from .converser import Converser
-from .exceptions import FailedCreatingProductException
 from .result_converser import ResultConverser, Rewind
-from ..utils.text_counting import is_bulleted_list
 
 
 class CycleStatus(Enum):

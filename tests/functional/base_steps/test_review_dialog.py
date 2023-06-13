@@ -1,14 +1,11 @@
-from scientistgpt.base_steps import BaseProductsQuotedReviewGPT
 from dataclasses import dataclass
 
-import pytest
 
 from scientistgpt.base_steps.dual_converser import ReviewDialogDualConverserGPT
-from scientistgpt.env import MAX_MODEL_ENGINE
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from scientistgpt.servers.openai_models import ModelEngine
 
-from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
+from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+
+from .utils import TestProductsReviewGPT
 
 
 @dataclass

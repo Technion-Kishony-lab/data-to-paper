@@ -12,7 +12,7 @@ from scientistgpt.base_cast import Agent
 from scientistgpt.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingCode
 from scientistgpt.servers.chatgpt import count_number_of_tokens_in_message
 from scientistgpt.servers.openai_models import OpenaiCallParameters, ModelEngine
-from scientistgpt.utils import format_text_with_code_blocks, line_count, word_count
+from scientistgpt.utils import format_text_with_code_blocks, line_count
 from scientistgpt.utils.highlighted_text import colored_text
 from scientistgpt.utils.text_formatting import wrap_text_with_triple_quotes
 from scientistgpt.utils.formatted_sections import FormattedSections

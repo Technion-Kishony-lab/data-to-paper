@@ -1,11 +1,11 @@
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple
 
 from scientistgpt.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
-from scientistgpt.servers.openai_models import ModelEngine
+
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.nice_list import nicely_join
 
@@ -81,12 +81,12 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         In particular, make sure that the section is correctly grounded in the information provided above.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         {section_review_specific_instructions}
-        
+
         You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
         or other parts of the paper, like tables or Python code, provided above.
-        
+
         If you don't see any flaws, respond solely with "{termination_phrase}".
-        
+
         IMPORTANT: You should EITHER provide bullet-point feedback, OR respond solely with "{termination_phrase}"; 
         you should not do both.
         """)
@@ -125,7 +125,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         * be short and meaningful.
         * convey the main message, focusing on discovery not on methodology nor on the data source.
         * not include punctuation marks, such as ":,;" characters.
-        
+
         The Abstract should provide a concise, interesting to read, summary of the paper, including:
         (a) short statement of the subject and its importance. 
         (b) description of the research gap/question/motivation.
@@ -157,12 +157,12 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
         title and abstract for a {journal_name} research paper. 
-        
+
         {section_specific_instructions}
-        
+
         I especially want you to read the Results section above and make sure that the abstract clearly states \
         the main results of the paper.
-        
+
         {latex_instructions}
         """)
 
@@ -202,17 +202,17 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Methods section should have 3 subsections:
-        
+
         * "Data Source": Describe the data sources, based on the data file descriptions provided above.
-        
+
         * "Data Preprocessing": Describe preprocessing of the data done by the Python code. Do not include \
         preprocessing steps that were not performed by the code, or that were performed by the code \
         but were not used as basis for the result output.
-        
+
         * "Data Analysis": Describe the specific analysis steps performed by the Python code to yield the results. \
         Do not be over technical. \
         Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
-        
+
         Do NOT include any of the following:
         - missing steps not done by the code.
         - Intermediate analysis steps that were performed but that were not used in further downstream steps.
@@ -244,8 +244,8 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     def run_dialog_and_get_valid_result(self) -> list:
         # Add code availability statement:
         response = [super().run_dialog_and_get_valid_result()[0] +
-                    '\\subsection{Code Availability}\n\n' \
-                    'Custom code used to perform the data preprocessing and analysis, ' \
+                    '\\subsection{Code Availability}\n\n'
+                    'Custom code used to perform the data preprocessing and analysis, '
                     'as well as the raw code output outputs, are provided in Supplementary Methods.']
         return response
 
@@ -265,13 +265,13 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
         You should typically have a separate paragraph describing for each Table. In each such paragraph, \
         indicate the motivation/question for the analysis, the methodology, and only then describe the results.
-        
+
         It is often nice to have a story-like flow between the paragraphs, so that the reader can follow the \
         analysis process with emphasis on the reasoning/motivation behind each analysis step. 
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
         "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
         ..."; "Finally, to further verify the effect of zzz, we tested whether ...". 
-                
+
         You can also extract and use any of the key Numerical Values provided above that you think are \
         scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
         added as a part of the paper, so you should explicitly mention any important values as an integral part of \
@@ -288,7 +288,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
-        
+
         Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \
         only suggest changes that are relevant to the Results section text that are supported by the given \
         Tables and Numerical Values.

@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Dict, Type
 
 from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
 from scientistgpt.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
-    BaseProductsQuotedReviewGPT, BackgroundProductsConverser
+    BackgroundProductsConverser
 from scientistgpt.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from scientistgpt.base_steps.result_converser import Rewind
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
@@ -13,7 +13,6 @@ from scientistgpt.projects.scientific_research.scientific_products import Scient
     get_code_agent
 from scientistgpt.run_gpt_code.types import CodeAndOutput
 from scientistgpt.utils import dedent_triple_quote_str
-from scientistgpt.utils.file_utils import run_in_directory
 from scientistgpt.utils.nice_list import NiceList, NiceDict
 from scientistgpt.utils.replacer import Replacer
 from scientistgpt.utils.types import ListBasedSet
@@ -138,8 +137,6 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
-
-
     output_filename: str = None
     allowed_created_files: Tuple[str, ...] = ('*.csv',)
     allow_dataframes_to_change_existing_series = False
@@ -162,7 +159,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Encoding categorical variables into numeric values (e.g., using one-hot encoding)
         * Balancing the data by under-sampling, over-sampling, or more advanced techniques to deal with class imbalance
         * Any other data preprocessing you deem relevant
-        
+
         You are not obliged to perform all of the above steps, choose the ones that suits the data and the hypothesis
         we are testing (see research goal above). 
 
@@ -193,10 +190,10 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above. 
         The code should:
-        
+
         (1) Perform the appropriate statistical tests needed to directly test our specified hypotheses \
         (see above our Research Goal and our Hypothesis Testing Plan).
-        
+
         (2) Create and output the data analysis results that are needed to produce each of the tables specified above.
         The data produced for each table should be distinct and non-overlapping.
         For example: 
@@ -205,7 +202,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         ## Results for Table 2:
         ... 
         etc
-        
+
         (3) Create and output a Python Dict[str, Any] reporting any other numerical results you deem relevant \
         to our research paper.
         For example:
@@ -218,11 +215,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         The output of your code should be a text file named "{actual_output_filename}".
         Both the results for the tables and the Python dict should be writen to this text file.
         Do not write to any other files.
-        
+
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
 
         {list_additional_data_files_if_any}
-        
+
         As needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -320,7 +317,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
     requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
         The code creates a new file named "{dataframe_file_name}", with the following columns: 
         {columns}.
-        
+
         Explain the content of the file, and how it was derived from the original data. 
         Importantly: do NOT explain the content of columns that are already explained for the \
         original dataset (see above DESCRIPTION OF THE DATASET).

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple, Type, List
+from typing import Optional, Tuple, Type, List
 
 from scientistgpt.base_steps.base_steps_runner import BaseStepsRunner
 from scientistgpt.base_steps.request_products_from_user import DirectorProductGPT
@@ -17,7 +17,7 @@ from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
-    DiscussionSectionWriterReviewGPT, ConclusionSectionWriterReviewGPT
+    DiscussionSectionWriterReviewGPT
 
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
@@ -140,7 +140,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             for table_num, table_name in products.tables_names.items():
                 table = TablesReviewBackgroundProductsConverser.from_(
                     self, section_names=['table'], table_name=table_name, conversation_name=table_num,
-                    ).run_dialog_and_get_valid_result()[0]
+                ).run_dialog_and_get_valid_result()[0]
                 products.tables['results'].append(table)
 
         # Numerical results
