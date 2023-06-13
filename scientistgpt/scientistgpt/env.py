@@ -43,4 +43,7 @@ COALESCE_WEB_CONVERSATIONS = Flag(True)
 
 DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 
-DEBUG = Flag(True)
+
+# Debugging switches:
+SHOW_CHATGPT_CONTEXT = Flag(True)
+SAVE_INTERMEDIATE_LATEX = Flag(True)

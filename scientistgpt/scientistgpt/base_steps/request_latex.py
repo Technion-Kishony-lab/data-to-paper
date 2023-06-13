@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from scientistgpt.env import DEBUG
+from scientistgpt.env import SAVE_INTERMEDIATE_LATEX
 
 from scientistgpt.utils.citataion_utils import remove_citations_from_section
 from scientistgpt.utils import dedent_triple_quote_str
@@ -92,7 +92,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         return extracted_section
 
     def _check_section(self, extracted_section: str, section_name: str):
-        if DEBUG and self.keep_intermediate_files_in_debug:
+        if SAVE_INTERMEDIATE_LATEX:
             file_stem = f'{self.conversation_name}__{section_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
