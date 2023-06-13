@@ -13,6 +13,7 @@ from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
 PYTHON_VERSION_MINOR = sys.version_info[1]
 
+
 @dataclass
 class TestPythonValueReviewBackgroundProductsConverser(TestProductsReviewGPT,
                                                        PythonValueReviewBackgroundProductsConverser):

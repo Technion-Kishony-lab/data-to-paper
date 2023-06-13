@@ -1,4 +1,3 @@
-import pytest
 from _pytest.fixtures import fixture
 
 from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations, Conversations, Actions
