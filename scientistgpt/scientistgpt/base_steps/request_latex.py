@@ -92,7 +92,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         return extracted_section
 
     def _check_section(self, extracted_section: str, section_name: str):
-        if DEBUG:
+        if DEBUG and self.keep_intermediate_files_in_debug:
             file_stem = f'{self.conversation_name}__{section_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent

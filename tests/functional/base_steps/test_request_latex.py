@@ -10,6 +10,7 @@ from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
 @dataclass
 class TestLatexReviewBackgroundProductsConverser(TestProductsReviewGPT, LatexReviewBackgroundProductsConverser):
+    keep_intermediate_files_in_debug: bool = False
     max_reviewing_rounds: int = 0
 
 

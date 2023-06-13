@@ -26,6 +26,8 @@ class ProductsHandler(Copier):
 
     output_directory: Path = None  # if not None, save any output files to this directory
 
+    keep_intermediate_files_in_debug: bool = False  # if True, keeps intermediate files generated in debug mode
+
     def __post_init__(self):
         if self.output_directory:
             self.output_directory = Path(self.output_directory).absolute()
