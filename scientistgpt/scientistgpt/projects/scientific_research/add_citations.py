@@ -143,13 +143,13 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
-        
+
         Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
         that can benefit from a reference.
-        
+
         However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \
         describe the finding of the current paper.
-        
+
         Return only a dict of {"sentence": "query"} pairs, without any other text.
     """)
 

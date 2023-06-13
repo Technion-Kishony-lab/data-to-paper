@@ -109,7 +109,8 @@ def products():
                                 \\end{table}
                             """]},
         codes_and_outputs={
-            'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt', code_explanation=EXPLANATION),
+            'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt',
+                                           code_explanation=EXPLANATION),
             'data_exploration': CodeAndOutput(code=EXPLORATION_CODE, output=EXPLORATION_OUTPUT,
                                               output_file='', code_explanation=EXPLORATION_EXPLANATION)},
     )

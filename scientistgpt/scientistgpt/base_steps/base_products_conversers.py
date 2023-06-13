@@ -1,5 +1,4 @@
 import math
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -10,11 +9,10 @@ from .dual_converser import ReviewDialogDualConverserGPT
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.utils.copier import Copier
 from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.utils.replacer import Replacer
+from scientistgpt.utils.types import ListBasedSet
 from scientistgpt.utils.check_numeric_values import find_non_matching_numeric_values, remove_equal_sign_and_result, \
     get_all_formulas
-from scientistgpt.utils.highlighted_text import print_red
-from ..utils.replacer import format_value, Replacer
-from ..utils.types import ListBasedSet
 
 
 @dataclass
@@ -262,7 +260,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
         if non_matching:
             if self.only_warn_about_non_matching_values:
-                self.comment(Replacer(self, self.warning_about_non_matching_values, args=(non_matching,)), as_action=False)
+                self.comment(Replacer(self, self.warning_about_non_matching_values, args=(non_matching,)),
+                             as_action=False)
             else:
                 self._raise_self_response_error(
                     Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
