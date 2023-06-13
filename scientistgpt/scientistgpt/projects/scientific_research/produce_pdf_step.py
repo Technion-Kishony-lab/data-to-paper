@@ -48,8 +48,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         code = wrap_python_code(code_and_output.code)
         latex_code = highlight(code, PythonLexer(), self.latex_formatter)
         code_section = f"\\section{{{section_name}}} \\subsection{{Code}}" \
-                       f"Performing the {section_name} carried out using the " \
-                       "following custom code (created by ChatGPT):"
+                       f"The {section_name} was carried out using the following custom code:"
         code_section += '\n\n' + latex_code
         if code_and_output.code_explanation:
             code_section += "\\subsection{Code Description}"

@@ -229,7 +229,8 @@ class ResultConverser(Converser):
             elif response_error.rewind == Rewind.AS_FIRST_CORRECTION:
                 self._rewind_conversation_to_first_response(offset=2, last=-3)
         else:
-            raise FailedCreatingProductException()
+            if isinstance(self.returned_result, NoResponse):
+                raise FailedCreatingProductException()
 
     def run_and_get_valid_result(self):
         self.initialize_conversation_if_needed()
