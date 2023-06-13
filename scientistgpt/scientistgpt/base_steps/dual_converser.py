@@ -233,7 +233,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         is_phrase = termination_phrase.lower() in reviewer_response.lower()
         if not is_phrase:
             return False
-        if len(reviewer_response) and not is_bulleted_list(reviewer_response):
+        if len(reviewer_response) <= len(termination_phrase) + 2 and not is_bulleted_list(reviewer_response):
             return True
         return None
 
