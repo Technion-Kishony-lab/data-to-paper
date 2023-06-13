@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, Any, List, Set
 
 import pytest
+import sys
 
 from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
@@ -10,6 +11,7 @@ from scientistgpt.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
+PYTHON_VERSION_MINOR = sys.version_info[1]
 
 @dataclass
 class TestPythonValueReviewBackgroundProductsConverser(TestProductsReviewGPT,
@@ -55,7 +57,7 @@ def test_request_python_value(correct_python_value, value_type):
     (correct_list_str_value.replace("'c'", "5"), correct_list_str_value, List[str],
      "The values must be of type: <class 'str'>"),
     (correct_list_str_value.replace("'c'", "'c"), correct_list_str_value, List[str],
-     "EOL while scanning string literal"),
+     "EOL while scanning string literal" if PYTHON_VERSION_MINOR <= 9 else "unterminated string literal"),
 ])
 def test_request_python_value_with_error(
         non_correct_python_value, correct_python_value, value_type, error_should_include):
