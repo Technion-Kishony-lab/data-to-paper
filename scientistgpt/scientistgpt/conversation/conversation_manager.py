@@ -213,7 +213,7 @@ class ConversationManager:
             # we failed to get a response. We start by bumping the model, if possible:
             if model < MAX_MODEL_ENGINE:
                 print_red(f'############# Bumping model #############')
-                model = model.get_next_model()
+                model = model.get_next()
                 openai_call_parameters.model_engine = model
                 continue
 

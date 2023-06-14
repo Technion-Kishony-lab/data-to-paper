@@ -7,7 +7,17 @@ from typing import Generic, TypeVar, Iterable
 class IndexOrderedEnum(Enum):
 
     def _get_index(self):
+        """
+        Get the index of this enum value in the list of enum values.
+        """
         return self._member_names_.index(self.name)
+
+    def get_next(self):
+        """
+        Get the next enum value in the list.
+        If this is the last value, a ValueError is raised.
+        """
+        return list(self.__class__)[(self._get_index() + 1)]
 
     def __eq__(self, other):
         if isinstance(other, IndexOrderedEnum):

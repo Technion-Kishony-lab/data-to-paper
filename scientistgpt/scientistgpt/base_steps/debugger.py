@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Set, Tuple
 
-from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
+from scientistgpt.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, \
+    MAX_MODEL_ENGINE
 from scientistgpt.utils import dedent_triple_quote_str
 from scientistgpt.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 
@@ -144,9 +145,10 @@ class DebuggerConverser(ProductsConverser):
             comment=f'{self.iteration_str}: GPT code has timed out.')
 
     def _respond_to_incomplete_code(self):
-        if self.model_engine < max(ModelEngine):
+        if self.model_engine < MAX_MODEL_ENGINE:
+            self.model_engine = self.model_engine.get_next()
             response = f"Your sent incomplete code. Let's bump you up to " \
-                       f"{self.model_engine.get_next_model()} and retry!"
+                       f"{self.model_engine.get_next()} and retry!"
         else:
             response = "Your sent incomplete code. Please regenerate response."
         self.apply_append_user_message(
@@ -155,7 +157,6 @@ class DebuggerConverser(ProductsConverser):
 
         # delete the last two messages (incomplete code and this just-posted user response):
         self.apply_delete_messages((-2, -1))
-        self.model_engine = ModelEngine.GPT4
 
     def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
         """
