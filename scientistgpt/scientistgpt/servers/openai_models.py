@@ -31,13 +31,6 @@ class ModelEngine(IndexOrderedEnum):
     def __hash__(self):
         return hash(self.value)
 
-    def get_next_model(self):
-        if self == ModelEngine.GPT35_TURBO:
-            return ModelEngine.GPT35_TURBO_16
-        elif self == ModelEngine.GPT35_TURBO_16:
-            return ModelEngine.GPT4
-        return self
-
     @property
     def max_tokens(self):
         return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][0]
