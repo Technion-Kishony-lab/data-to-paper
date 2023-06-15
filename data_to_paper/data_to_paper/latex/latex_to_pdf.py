@@ -151,7 +151,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
 
         # Create the bib file:
         if should_compile_with_bib:
-            references_bibtex = [reference.create_bibtex() for reference in references]
+            references_bibtex = [reference.bibtex for reference in references]
             with open(BIB_FILENAME, 'w') as f:
                 f.write('\n\n'.join(references_bibtex))
 
