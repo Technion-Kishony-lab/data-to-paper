@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Mapping, Any, Iterable
+from typing import List, Mapping, Any
 
 import requests
 from unidecode import unidecode
@@ -7,7 +7,7 @@ from unidecode import unidecode
 from data_to_paper.exceptions import data_to_paperException
 
 from .base_server import ServerCaller
-
+from .types import Citation
 
 CROSSREF_URL = "https://api.crossref.org/works"
 
@@ -71,27 +71,18 @@ class ServerErrorCitationException(data_to_paperException):
         return f"Request failed with status code {self.status_code}, error: {self.text}"
 
 
-class CrossrefCitation(dict):
+class CrossrefCitation(Citation):
     """
     A single crossref citation. This the raw dict after transforming the json response.
     This dict is hashable.
     """
 
-    def __key(self):
-        return self.bibtex_id
-
-    def __hash__(self):
-        return hash(self.__key())
-
-    def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
-
     @property
-    def bibtex_type(self):
+    def bibtex_type(self) -> str:
         return get_type_from_crossref(self)
 
     @property
-    def bibtex(self):
+    def bibtex(self) -> str:
         # create a mapping for article and inproceedings
         bibtex_type = get_type_from_crossref(self)
         is_paper = bibtex_type in ['article', 'inproceedings']
@@ -122,22 +113,6 @@ class CrossrefCitation(dict):
         for char in STRS_TO_REMOVE_FROM_BIBTEX_ID:
             bibtex_id = bibtex_id.replace(char, "")
         return bibtex_id
-
-    def pretty_repr(self, fields: Iterable[str] = ('title', )) -> str:
-        """
-        Get a pretty representation of the citation.
-        """
-        s = f'id: "{self.bibtex_id}"
-        for field in fields:
-            if field in self:
-                s += f', {field}: "{self[field]}"'
-        return s
-
-    def __str__(self):
-        return self.pretty_repr()
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class CrossrefServerCaller(ServerCaller):
