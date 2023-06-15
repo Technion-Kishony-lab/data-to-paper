@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple, Set, List
+from typing import Optional, Dict, Tuple, Set, List, NamedTuple
 
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
@@ -51,6 +51,12 @@ def convert_description_of_created_files_to_string(description_of_created_files:
     )
 
 
+class LiteratureSearchParams(NamedTuple):
+    step: str
+    scope: str
+    query: str
+
+
 @dataclass
 class ScientificProducts(Products):
     """
@@ -60,6 +66,7 @@ class ScientificProducts(Products):
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
+    literature_search: Dict[LiteratureSearchParams, List[dict]] = field(default_factory=dict)
     analysis_plan: Optional[str] = None
     hypothesis_testing_plan: Optional[Dict[str, str]] = None
     tables_names: Dict[str, str] = field(default_factory=dict)
@@ -245,6 +252,13 @@ class ScientificProducts(Products):
                 'Here is our Hypothesis Testing Plan:\n\n{}',
                 ScientificStages.PLAN,
                 lambda: str(self.hypothesis_testing_plan),
+            ),
+
+            'literature_search:{}': NameDescriptionStageGenerator(
+                'Literature Search',
+                'We did a Literature Search and here are the results:\n\n{}',
+                ScientificStages.WRITING,
+                lambda step: self.literature_search[step],
             ),
 
             'codes:{}': NameDescriptionStageGenerator(
