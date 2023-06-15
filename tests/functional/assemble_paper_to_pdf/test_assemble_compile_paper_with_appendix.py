@@ -75,7 +75,7 @@ EXPLORATION_OUTPUT = "array([ 0.        ,  1.04719755,  2.0943951 ,  3.14159265]
 EXPLORATION_EXPLANATION = "This is the explanation of the code:" \
                             "The code is a calculating PI in 4 points"
 
-INTRODUCTION_CITATION_ID = next(iter(INTRODUCTION_CITATION)).get_bibtex_id()
+INTRODUCTION_CITATION_ID = next(iter(INTRODUCTION_CITATION)).bibtex_id
 DATA_FILE_DESCRIPTION = DataFileDescriptions([TestDataFileDescription('data_file_1', 'this is important data')])
 
 
