@@ -83,7 +83,7 @@ class SemanticScholarPaperServerCaller(ServerCaller):
         params = {
             "query": query,
             "limit": rows,
-            "fields": "title,url,abstract,embedding,tldr,journal,year,citationStyles",
+            "fields": "title,url,abstract,tldr,journal,year,citationStyles",  # can also add 'embedding'
         }
 
         response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
