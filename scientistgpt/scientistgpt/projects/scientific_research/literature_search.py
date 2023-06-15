@@ -63,4 +63,4 @@ class LiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProduct
             for query in queries:
                 literature_search[LiteratureSearchParams(step=self.step, scope=scope, query=query)] = \
                     SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query)
-        return literature_search
+        return NiceDict(literature_search)
