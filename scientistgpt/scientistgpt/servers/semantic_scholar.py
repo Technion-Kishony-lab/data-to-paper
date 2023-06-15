@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import numpy as np
 import requests
@@ -8,6 +8,8 @@ from scientistgpt.env import S2_API_KEY
 from scientistgpt.exceptions import ScientistGPTException
 from scientistgpt.servers.base_server import ServerCaller
 from scientistgpt.servers.crossref import ServerErrorCitationException
+from scientistgpt.servers.types import Citation
+from scientistgpt.utils.nice_list import NiceList
 
 HEADERS = {
     'x-api-key': S2_API_KEY
@@ -15,6 +17,44 @@ HEADERS = {
 
 PAPER_SEARCH_URL = 'https://api.semanticscholar.org/graph/v1/paper/search'
 EMBEDDING_URL = 'https://model-apis.semanticscholar.org/specter/v1/invoke'
+
+
+class SemanticCitation(Citation):
+
+    @property
+    def bibtex(self) -> str:
+        return self['citationStyles']['bibtex']
+
+    @property
+    def bibtex_id(self) -> str:
+        # extract the id from the bibtex
+        return self.bibtex.split('{')[1].split(',')[0]
+
+    @property
+    def title(self) -> Optional[str]:
+        return self.get('title', None)
+
+    @property
+    def abstract(self) -> Optional[str]:
+        return self.get('abstract', None)
+
+    @property
+    def journal(self) -> Optional[str]:
+        try:
+            return self['journal']['name']
+        except (KeyError, TypeError):
+            return None
+
+    @property
+    def year(self) -> Optional[str]:
+        return self.get('year', None)
+
+    @property
+    def tldr(self) -> Optional[str]:
+        tldr = self.get('tldr', None)
+        if tldr is None:
+            return None
+        return tldr['text']
 
 
 @dataclass
@@ -36,14 +76,14 @@ class SemanticScholarPaperServerCaller(ServerCaller):
     file_extension = "_semanticscholar_paper.txt"
 
     @staticmethod
-    def _get_server_response(query, rows=100) -> List[dict]:
+    def _get_server_response(query, rows=25) -> List[dict]:
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
         params = {
             "query": query,
             "limit": rows,
-            "fields": "title,url,abstract,embedding,tldr,citationStyles",
+            "fields": "title,url,abstract,embedding,tldr,journal,year,citationStyles",
         }
 
         response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
@@ -64,8 +104,7 @@ class SemanticScholarPaperServerCaller(ServerCaller):
         """
         Post process the response from the server.
         """
-
-        return response
+        return NiceList([SemanticCitation(paper) for paper in response], separator='\n', prefix='[\n', suffix='\n]')
 
 
 class SemanticScholarEmbeddingServerCaller(ServerCaller):
