@@ -59,10 +59,6 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
               save_on_repo: bool = True):
 
     copy_datafiles_to_data_folder(project, data_filenames, TEMP_FOLDER_TO_RUN_IN)
-    # clear temp folder and copy files to it:
-    shutil.rmtree(TEMP_FOLDER_TO_RUN_IN / '*', ignore_errors=True)
-    for filename in data_filenames:
-        shutil.copyfile(LOCAL_PATH / project / filename, TEMP_FOLDER_TO_RUN_IN / filename)
 
     ScientificStepsRunner(
         data_file_descriptions=get_file_descriptions(project, data_filenames, TEMP_FOLDER_TO_RUN_IN),
