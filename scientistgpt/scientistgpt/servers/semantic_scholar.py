@@ -92,10 +92,10 @@ class SemanticScholarPaperServerCaller(ServerCaller):
             raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
 
         data = response.json()
-        total = data["total"]
-        if total == 0:
-            raise ServerErrorNoMatchesFoundForQuery(query=query)
-        papers = data["data"]
+        try:
+            papers = data["data"]
+        except KeyError:
+            papers = []
 
         return papers
 
