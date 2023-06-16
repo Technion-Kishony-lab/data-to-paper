@@ -2,19 +2,12 @@ from dataclasses import dataclass
 
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Tuple, get_args, Iterable, Set, Optional, get_origin
+from typing import Any, Dict, Iterable, Optional, get_origin
 
-<<<<<<< main:data_to_paper/data_to_paper/base_steps/request_python_value.py
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.utils import extract_text_between_tags
 from data_to_paper.utils.tag_pairs import TagPairs
-=======
-from scientistgpt.base_steps.result_converser import Rewind
-from scientistgpt.utils import extract_text_between_tags
-from scientistgpt.utils.check_type import validate_value_type, WrongTypeException
-from scientistgpt.utils.tag_pairs import TagPairs
->>>>>>> generalize request python type:scientistgpt/scientistgpt/base_steps/request_python_value.py
-
+from scientistgpt.scientistgpt.utils.check_type import validate_value_type, WrongTypeException
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
