@@ -78,6 +78,14 @@ class ScientificProducts(Products):
     # ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
 
     @property
+    def pretty_hypothesis_testing_plan(self) -> str:
+        """
+        Return the hypothesis testing plan in a pretty way.
+        """
+        return '\n'.join(f'hypothesis: {hypothesis}:\nstatistical test: {test}\n'
+                         for hypothesis, test in self.hypothesis_testing_plan.items())
+
+    @property
     def pretty_tables_names(self) -> str:
         """
         Return the tables names in a pretty way.
@@ -251,7 +259,7 @@ class ScientificProducts(Products):
                 'Hypothesis Testing Plan',
                 'Here is our Hypothesis Testing Plan:\n\n{}',
                 ScientificStages.PLAN,
-                lambda: str(self.hypothesis_testing_plan),
+                lambda: str(self.pretty_hypothesis_testing_plan),
             ),
 
             'literature_search:{}': NameDescriptionStageGenerator(
