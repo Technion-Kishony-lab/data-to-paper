@@ -161,6 +161,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         Your answer is confusing because you have both provided feedback and included the phrase "{termination_phrase}".  
         Please correct your response so that you EITHER include constructive feedback, OR just say 
         "{termination_phrase}" without any other text.
+        Do not apologize for your mistake/confusion - just provide the answer as is.
         """)
 
     append_termination_response_to_self: bool = True

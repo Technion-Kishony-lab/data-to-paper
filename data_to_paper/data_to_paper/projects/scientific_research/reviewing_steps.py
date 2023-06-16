@@ -143,8 +143,8 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         """
         new_response_value = {}
         for k in response_value.keys():
-            k = re.sub(r'hypothesis \d+', '', k, flags=re.IGNORECASE)
-            new_response_value[k] = response_value[k]
+            new_k = re.sub(r'hypothesis \d+:', '', k, flags=re.IGNORECASE).strip()
+            new_response_value[new_k] = response_value[k]
         return NiceDict(new_response_value)
 
 
