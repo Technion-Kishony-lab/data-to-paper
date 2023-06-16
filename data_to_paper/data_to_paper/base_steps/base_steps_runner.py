@@ -13,6 +13,7 @@ from data_to_paper.conversation.stage import Stages, AdvanceStage, SetActiveConv
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.base_cast import Agent
+from scientistgpt.scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 
 from .base_products_conversers import ProductsHandler
 from .exceptions import FailedCreatingProductException
@@ -27,6 +28,7 @@ class BaseStepsRunner(ProductsHandler):
     ACTIONS_FILENAME = 'conversation_actions.pkl'
     OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
+    SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.txt'
 
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
 
@@ -128,10 +130,12 @@ class BaseStepsRunner(ProductsHandler):
         """
         self.create_empty_output_folder()
 
-        @OPENAI_SERVER_CALLER.record_or_replay(self.get_mock_responses_file(self.OPENAI_RESPONSES_FILENAME),
-                                               should_mock=self.should_mock)
-        @CROSSREF_SERVER_CALLER.record_or_replay(self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME),
-                                                 should_mock=self.should_mock)
+        @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
+            self.get_mock_responses_file(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME), should_mock=self.should_mock)
+        @OPENAI_SERVER_CALLER.record_or_replay(
+            self.get_mock_responses_file(self.OPENAI_RESPONSES_FILENAME), should_mock=self.should_mock)
+        @CROSSREF_SERVER_CALLER.record_or_replay(
+            self.get_mock_responses_file(self.CROSSREF_RESPONSES_FILENAME), should_mock=self.should_mock)
         def run():
             self.create_web_conversations()
             self._run_all_steps()
