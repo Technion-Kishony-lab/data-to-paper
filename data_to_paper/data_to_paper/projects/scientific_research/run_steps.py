@@ -8,12 +8,13 @@ from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts
 from .get_template import get_paper_template_path
+from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
-    TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT
+    TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -95,24 +96,41 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
-        if products.research_goal is None:
+        is_auto_goal = products.research_goal is None
+        if is_auto_goal:
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
             products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         self.send_product_to_client('research_goal')
 
-        # Analysis plan
-        if self.should_prepare_data_analysis_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            self.send_product_to_client('analysis_plan')
+        while is_auto_goal:
+            # Analysis plan
+            if self.should_prepare_data_analysis_plan:
+                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+                products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+                self.send_product_to_client('analysis_plan')
 
-        # Hypotheses testing plan
-        if self.should_prepare_hypothesis_testing_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.hypothesis_testing_plan = \
-                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            self.send_product_to_client('hypothesis_testing_plan')
+            # Hypotheses testing plan
+            if self.should_prepare_hypothesis_testing_plan:
+                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+                products.hypothesis_testing_plan = \
+                    HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+                self.send_product_to_client('hypothesis_testing_plan')
+
+            # Literature search
+            if self.should_add_citations:
+                # TODO: need a dedicated Stage for literature search
+                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.CitationExpert)
+                products.literature_search.update(
+                    GoalLiteratureSearchReviewGPT.from_(self, step='goal').get_literature_search())
+                # self.send_product_to_client('citations')
+
+            # Check if the goal is OK
+            if IsGoalOK.from_(self).run_and_get_valid_result() == '1':
+                break
+
+            # Goal is not OK, so we need to devise in context of the literature search:
+            products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:

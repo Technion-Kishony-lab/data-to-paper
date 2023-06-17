@@ -6,7 +6,8 @@ from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
-    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser
+    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
+    MultiChoiceBackgroundProductsConverser
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -73,7 +74,49 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         respond solely with "{termination_phrase}".
     """)
 
-    sentence_to_add_at_the_end_of_reviewer_response = 2
+
+@dataclass
+class IsGoalOK(MultiChoiceBackgroundProductsConverser):
+    goal_noun: str = 'research goal and hypothesis'
+    goal_verb: str = 'suggest'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.GoalReviewer
+    conversation_name: str = 'is_goal_ok'
+    is_new_conversation: bool = None  # this will create "research_goal_0", etc.
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'literature_search:goal')
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Given the Literature Search above, do you see any prior study that overlaps with our goal and hypothesis?
+        
+        Please choose:
+        
+        1. The goal and hypothesis are distinct enough from existing literature.
+        2. The goal and hypothesis seem to overlap with existing literature, and should be revised.
+
+        {choice_instructions}
+        """)
+
+
+@dataclass
+class ReGoalReviewGPT(GoalReviewGPT):
+    is_new_conversation: bool = None
+    max_reviewing_rounds: int = 0
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+                                                  'research_goal', 'literature_search:goal')
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the result of the literature search above, \
+        please revise, or completely re-write, the research goal and hypothesis that we have so that they \
+        and do not overlap existing literature.
+
+        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
+
+        Do not suggest methodology. Just the goal and a single hypothesis. 
+        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
+        without requiring any additional data \
+        (pay attention to using only data available based on the provided headers of our data files \
+        as in the description of the original dataset, above).
+
+        {quote_request}
+        """)
 
 
 @dataclass
@@ -105,6 +148,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
+    is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
