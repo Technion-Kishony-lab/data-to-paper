@@ -248,11 +248,14 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above table names, with specific attention to whether they are \
-        representing all the hypotheses we are testing, and can be created solely from the dataset provided.
-
-        If you are satisfied, respond with "{termination_phrase}".
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
+        Please check the above chosen table names, with specific attention to whether they \
+        represent all the hypotheses we are testing, and can be created solely from the dataset provided.
+        
+        If you find any issues, please provide bullet-point feedback.
+        Or, if you are satisfied, please respond with "{termination_phrase}".
+        
+        Note you must either approve the table names or provide feedback but not both.
         """)
 
     def _check_response_value(self, response_value: Any) -> Any:

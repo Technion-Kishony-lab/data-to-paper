@@ -157,12 +157,20 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     termination_phrase: str = 'Job completed'
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
-    respond_to_ambiguous_reviewer_termination: str = dedent_triple_quote_str("""
-        Your answer is confusing because you have both provided feedback and included the phrase "{termination_phrase}".  
-        Please correct your response so that you EITHER include constructive feedback, OR just say 
-        "{termination_phrase}" without any other text.
-        Do not apologize for your mistake/confusion - just provide the answer as is.
-        """)
+    respond_to_ambiguous_reviewer_termination: str = None
+
+    # TODO: Responding to ambiguous reviewer leads to the reviewer always apologizing and the conversation is not
+    #  sensible anymore.
+    #  This can only work if the reviewer is forced to return structured response, like triple quotes, or python
+    #  list of strings, containing the feedback. or empty of for no feedback.
+
+    # dedent_triple_quote_str("""
+    #     Your answer is confusing because you have both provided feedback and included the phrase \
+    #     "{termination_phrase}".
+    #     Please correct your response so that you EITHER include constructive feedback, OR just say \
+    #     "{termination_phrase}" without any other text.
+    #     Do not apologize for your mistake/confusion - just provide the answer as is.
+    #     """)
 
     append_termination_response_to_self: bool = True
 
@@ -234,7 +242,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         is_phrase = termination_phrase.lower() in reviewer_response.lower()
         if not is_phrase:
             return False
-        if len(reviewer_response) <= len(termination_phrase) + 2 and not is_bulleted_list(reviewer_response):
+        if not is_bulleted_list(reviewer_response):
             return True
         return None
 
