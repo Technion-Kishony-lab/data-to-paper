@@ -1,5 +1,5 @@
 
-# data-to-paper: Automatic data-science research
+# data-to-paper: Automating data-science research
 
 **data-to-paper** is a framework for systematically navigating the power of AI to performs a complete end-to-end 
 data-science research, starting from raw data and concluding with comprehensive, reproducible, and correct 
