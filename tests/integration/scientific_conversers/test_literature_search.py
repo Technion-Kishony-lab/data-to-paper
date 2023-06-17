@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-from scientistgpt.projects.scientific_research.literature_search import WritingLiteratureSearchReviewGPT
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from scientistgpt.servers.types import Citation
+from data_to_paper.projects.scientific_research.literature_search import WritingLiteratureSearchReviewGPT
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.servers.types import Citation
 from tests.functional.base_steps.utils import TestProductsReviewGPT
 
 

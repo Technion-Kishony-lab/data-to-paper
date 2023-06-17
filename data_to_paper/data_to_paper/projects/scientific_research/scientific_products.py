@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple, Set, List, NamedTuple
+from typing import Optional, Dict, Tuple, Set, List
 
-<<<<<<< main:data_to_paper/data_to_paper/projects/scientific_research/scientific_products.py
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
@@ -10,19 +9,8 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
-
-=======
-from scientistgpt.conversation.stage import Stage
-from scientistgpt.projects.scientific_research.cast import ScientificAgent
-from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
-from scientistgpt.run_gpt_code.types import CodeAndOutput
-from scientistgpt.servers.types import Citation
-from scientistgpt.utils.nice_list import NiceList
-from scientistgpt.base_products import DataFileDescriptions, DataFileDescription, Products, \
-    NameDescriptionStageGenerator
-from scientistgpt.servers.crossref import CrossrefCitation
-from scientistgpt.utils.types import ListBasedSet
->>>>>>> wip:scientistgpt/scientistgpt/projects/scientific_research/scientific_products.py
+from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.servers.types import Citation
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
