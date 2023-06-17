@@ -52,12 +52,15 @@ def is_int_below_max(str_number: str, max_int: int) -> bool:
         and abs(int(str_number)) < max_int
 
 
-def round_to_n_digits(str_number: str, n_digits: int) -> float:
+def round_to_n_digits(str_number: str, n_digits: int, remove_sign: bool = True) -> float:
     """
     Round the given number to the given number of digits.
     """
     number = float(str_number.replace(',', ''))
-    return float(f'{float(f"{number:.{n_digits}g}"):g}')
+    rounded = float(f'{float(f"{number:.{n_digits}g}"):g}')
+    if remove_sign:
+        return abs(rounded)
+    return rounded
 
 
 def truncate_to_n_digits(str_number: str, n_digits: int, remove_sign: bool = True) -> float:
