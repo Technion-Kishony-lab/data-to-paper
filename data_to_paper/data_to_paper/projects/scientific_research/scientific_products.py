@@ -235,6 +235,20 @@ class ScientificProducts(Products):
             section_names_to_content[section_name] = section
         return section_names_to_content
 
+    def get_title(self) -> str:
+        """
+        Return the title of the paper.
+        """
+        latex_title = self.most_updated_paper_sections['title']
+        return latex_title[latex_title.find('{') + 1:latex_title.find('}')]
+
+    def get_abstract(self) -> str:
+        """
+        Return the abstract of the paper.
+        """
+        latex_abstract = self.most_updated_paper_sections['abstract']
+        return latex_abstract[latex_abstract.find('{') + 1:latex_abstract.find('}')]
+
     def get_paper(self, product_field: str) -> str:
         """
         Compose the paper from the different paper sections.
