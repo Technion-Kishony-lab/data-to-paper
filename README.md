@@ -1,3 +1,6 @@
+<p align="center">
+<img src="https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/e0a4373d-027d-4154-9bb3-980baa7fd251" width="900" class="center">
+</p>
 
 # data-to-paper: a platform for automating data-science research
 
