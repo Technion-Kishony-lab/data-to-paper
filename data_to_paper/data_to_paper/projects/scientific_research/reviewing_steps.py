@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, List
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
@@ -8,6 +8,7 @@ from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     MultiChoiceBackgroundProductsConverser
+from data_to_paper.base_steps.result_converser import Rewind
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -76,7 +77,11 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class IsGoalOK(MultiChoiceBackgroundProductsConverser):
+class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
+    max_reviewing_rounds: int = 0
+    products: ScientificProducts = None
+    model_engine: ModelEngine = ModelEngine.GPT4
+    value_type: type = Dict[str, str]
     goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -84,10 +89,22 @@ class IsGoalOK(MultiChoiceBackgroundProductsConverser):
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'literature_search:goal')
+    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        From the literature search above, list the titles of the 3 papers most similar to our \
+        From the literature search above, find the 3 papers whose results are most similar/overlapping with our \
         research goal and hypothesis.
+        
+        Return your answer as a Python Dict[str, str] where the keys are ID and the values are the titles \
+        of these 3 papers.
+        
+        For example: 
+        {
+        "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
+        "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
+        "Doe2021TheLD", "Another title of a paper that may overlap with our goal or hypothesis",
+        }
+        
         """)
 
     request_decision: str = dedent_triple_quote_str("""
@@ -99,12 +116,26 @@ class IsGoalOK(MultiChoiceBackgroundProductsConverser):
         {choice_instructions}
         """)
 
+    def _get_fresh_looking_response(self, response) -> str:
+        return f'The following papers are most similar to our goal and hypothesis: \n\n' \
+               f'{super()._get_fresh_looking_response(response)}'
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        for bibtex_id in response_value:
+            citation = self.products.literature_search['goal'].get_citation(bibtex_id)
+            if citation is None:
+                self._raise_self_response_error(f'Invalid bibtex_id: "{bibtex_id}"')
+            # we don't check the title, even if it is wrong, we just replace with the correct one
+            response_value[bibtex_id] = citation.title
+        return NiceDict(response_value)
+
     def run_and_get_valid_result(self):
-        self.initialize_conversation_if_needed()
-        self.apply_get_and_append_assistant_message()
-        self.apply_append_user_message(self.request_decision)
-        self._iterate_until_valid_response()
-        return self.get_valid_result()
+        super().run_and_get_valid_result()
+        return MultiChoiceBackgroundProductsConverser.from_(
+            self,
+            user_initiation_prompt=self.request_decision,
+            is_new_conversation=False,
+        ).run_and_get_valid_result()
 
 
 @dataclass
