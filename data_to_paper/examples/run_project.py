@@ -1,4 +1,6 @@
 import shutil
+import zipfile
+
 from pathlib import Path
 from typing import List, Optional
 
@@ -43,7 +45,15 @@ def copy_datafiles_to_data_folder(data_filenames: List[str], input_path: Path, d
     shutil.rmtree(data_folder, ignore_errors=True)  # remove data folder and all its content
     data_folder.mkdir(parents=True, exist_ok=True)  # create clean data folder
     for filename in data_filenames:
-        shutil.copyfile(input_path / filename, data_folder / filename)
+        if (input_path / filename).exists():
+            # copy file to data folder
+            shutil.copyfile(input_path / filename, data_folder / filename)
+        elif (input_path / (filename + '.zip')).exists():
+            # unzip file to data folder
+            with zipfile.ZipFile(input_path / (filename + '.zip'), 'r') as zip_ref:
+                zip_ref.extractall(data_folder)
+        else:
+            raise FileNotFoundError(f"File {filename} or {filename}.zip not found in {input_path}")
 
 
 def get_output_path(project: str, output_folder: str, save_on_repo: bool = False) -> Path:
