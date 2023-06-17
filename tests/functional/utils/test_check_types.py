@@ -1,7 +1,7 @@
 import pytest
 
 from typing import List, Dict, Set
-from scientistgpt.utils.check_type import validate_value_type, WrongTypeException
+from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 
 
 @pytest.mark.parametrize('value, type_, expected', [

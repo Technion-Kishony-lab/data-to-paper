@@ -4,12 +4,12 @@ from typing import List, Dict, Optional
 import numpy as np
 import requests
 
-from scientistgpt.env import S2_API_KEY
-from scientistgpt.exceptions import ScientistGPTException
-from scientistgpt.servers.base_server import ServerCaller
-from scientistgpt.servers.crossref import ServerErrorCitationException
-from scientistgpt.servers.types import Citation
-from scientistgpt.utils.nice_list import NiceList
+from data_to_paper.env import S2_API_KEY
+from data_to_paper.exceptions import data_to_paperException
+from data_to_paper.servers.base_server import ServerCaller
+from data_to_paper.servers.crossref import ServerErrorCitationException
+from data_to_paper.servers.types import Citation
+from data_to_paper.utils.nice_list import NiceList
 
 HEADERS = {
     'x-api-key': S2_API_KEY
@@ -58,7 +58,7 @@ class SemanticCitation(Citation):
 
 
 @dataclass
-class ServerErrorNoMatchesFoundForQuery(ScientistGPTException):
+class ServerErrorNoMatchesFoundForQuery(data_to_paperException):
     """
     Error raised server wasn't able to find any matches for the query.
     """

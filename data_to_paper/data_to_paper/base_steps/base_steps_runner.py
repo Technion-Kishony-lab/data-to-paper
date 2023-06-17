@@ -13,7 +13,7 @@ from data_to_paper.conversation.stage import Stages, AdvanceStage, SetActiveConv
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.base_cast import Agent
-from scientistgpt.scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 
 from .base_products_conversers import ProductsHandler
 from .exceptions import FailedCreatingProductException

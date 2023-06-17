@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 from typing import Tuple, Dict, Set, Iterable, List
 
-from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, \
-    PythonDictWithDefinedKeysReviewBackgroundProductsConverser
-from scientistgpt.projects.scientific_research.cast import ScientificAgent
-from scientistgpt.projects.scientific_research.scientific_products import LiteratureSearch
-from scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from scientistgpt.utils import dedent_triple_quote_str, word_count
-from scientistgpt.utils.nice_list import NiceDict, NiceList
-from scientistgpt.utils.types import ListBasedSet
+from data_to_paper.base_steps import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from data_to_paper.projects.scientific_research.cast import ScientificAgent
+from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.utils import dedent_triple_quote_str, word_count
+from data_to_paper.utils.nice_list import NiceDict, NiceList
 
 
 @dataclass

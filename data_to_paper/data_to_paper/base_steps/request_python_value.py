@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, Optional, get_origin
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.utils import extract_text_between_tags
 from data_to_paper.utils.tag_pairs import TagPairs
-from scientistgpt.scientistgpt.utils.check_type import validate_value_type, WrongTypeException
+from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
