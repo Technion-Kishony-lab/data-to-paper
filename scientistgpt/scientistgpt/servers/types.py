@@ -62,7 +62,7 @@ class Citation(dict):
             value = getattr(self, field, None)
             if value is None:
                 continue
-            s += f'{name}: {value}\n'
+            s += f'{name}: "{value}"\n'
         s += '\n'
         return s
 

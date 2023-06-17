@@ -80,3 +80,10 @@ class ListBasedSet(collections.abc.Set, Generic[T]):
     def add(self, value):
         if value not in self.elements:
             self.elements.append(value)
+
+    def remove(self, value):
+        self.elements.remove(value)
+
+    def update(self, other):
+        for value in other:
+            self.add(value)

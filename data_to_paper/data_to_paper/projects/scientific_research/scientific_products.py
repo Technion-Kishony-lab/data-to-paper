@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Tuple, Set, List, NamedTuple
 
+<<<<<<< main:data_to_paper/data_to_paper/projects/scientific_research/scientific_products.py
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
@@ -10,6 +11,18 @@ from data_to_paper.base_products import DataFileDescriptions, DataFileDescriptio
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
 
+=======
+from scientistgpt.conversation.stage import Stage
+from scientistgpt.projects.scientific_research.cast import ScientificAgent
+from scientistgpt.projects.scientific_research.scientific_stage import ScientificStages
+from scientistgpt.run_gpt_code.types import CodeAndOutput
+from scientistgpt.servers.types import Citation
+from scientistgpt.utils.nice_list import NiceList
+from scientistgpt.base_products import DataFileDescriptions, DataFileDescription, Products, \
+    NameDescriptionStageGenerator
+from scientistgpt.servers.crossref import CrossrefCitation
+from scientistgpt.utils.types import ListBasedSet
+>>>>>>> wip:scientistgpt/scientistgpt/projects/scientific_research/scientific_products.py
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
@@ -51,10 +64,43 @@ def convert_description_of_created_files_to_string(description_of_created_files:
     )
 
 
-class LiteratureSearchParams(NamedTuple):
-    step: str
-    scope: str
-    query: str
+@dataclass
+class LiteratureSearch:
+    scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
+
+    def get_queries_for_scope(self, scope: Optional[str]) -> List[str]:
+        """
+        Return the queries in the given scope.
+        if scope=None, return all queries.
+        """
+        if scope is None:
+            return self.get_all_queries()
+        return list(self.scopes_to_queries_to_citations[scope].keys())
+
+    def get_all_queries(self) -> List[str]:
+        queries = []
+        for queries_to_citations in self.scopes_to_queries_to_citations.values():
+            queries.extend(list(queries_to_citations.keys()))
+        return queries
+
+    def get_citations_for_scope(self, scope: str) -> ListBasedSet[Citation]:
+        """
+        Return the citations in the given scope.
+        """
+        all_citations = ListBasedSet()
+        for citations in self.scopes_to_queries_to_citations[scope].values():
+            all_citations.update(citations)
+        return all_citations
+
+    def pretty_repr(self, with_scope_and_queries: bool = False) -> str:
+        s = ''
+        for scope in self.scopes_to_queries_to_citations:
+            if with_scope_and_queries:
+                s += f'Scope: {repr(scope)}\n'
+                s += f'Queries: {repr(self.get_queries_for_scope(scope))}\n\n'
+            for citation in self.get_citations_for_scope(scope):
+                s += f'{citation.pretty_repr()}\n'
+        return s
 
 
 @dataclass
@@ -66,7 +112,7 @@ class ScientificProducts(Products):
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
-    literature_search: Dict[LiteratureSearchParams, List[dict]] = field(default_factory=dict)
+    literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
     analysis_plan: Optional[str] = None
     hypothesis_testing_plan: Optional[Dict[str, str]] = None
     tables_names: Dict[str, str] = field(default_factory=dict)
@@ -82,7 +128,7 @@ class ScientificProducts(Products):
         """
         Return the hypothesis testing plan in a pretty way.
         """
-        return '\n'.join(f'hypothesis: {hypothesis}:\nstatistical test: {test}\n'
+        return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
                          for hypothesis, test in self.hypothesis_testing_plan.items())
 
     @property
@@ -266,7 +312,7 @@ class ScientificProducts(Products):
                 'Literature Search',
                 'We did a Literature Search and here are the results:\n\n{}',
                 ScientificStages.WRITING,
-                lambda step: self.literature_search[step],
+                lambda step: self.literature_search[step].pretty_repr(),
             ),
 
             'codes:{}': NameDescriptionStageGenerator(

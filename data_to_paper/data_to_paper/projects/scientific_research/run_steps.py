@@ -121,8 +121,8 @@ class ScientificStepsRunner(BaseStepsRunner):
             if self.should_add_citations:
                 # TODO: need a dedicated Stage for literature search
                 self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.CitationExpert)
-                products.literature_search.update(
-                    GoalLiteratureSearchReviewGPT.from_(self, step='goal').get_literature_search())
+                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
+                    self).get_literature_search()
                 # self.send_product_to_client('citations')
 
             # Check if the goal is OK
