@@ -91,3 +91,12 @@ class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
             "results": ["covid-19 vaccine efficacy waning"]
         }
         """)
+
+    def get_literature_search(self) -> LiteratureSearch:
+        literature_search = super().get_literature_search()
+        # literature_search.scopes_to_queries_to_citations['similarity'] = \
+        #     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
+        #         "paper_id": "",
+        #         "title": self.products.get_title(),
+        #         "abstract": self.products.get_abstract()})
+        return literature_search
