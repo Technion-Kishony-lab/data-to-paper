@@ -78,22 +78,33 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 @dataclass
 class IsGoalOK(MultiChoiceBackgroundProductsConverser):
     goal_noun: str = 'research goal and hypothesis'
-    goal_verb: str = 'suggest'
+    goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'literature_search:goal')
+
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Given the Literature Search above, do you see any prior study that overlaps with our goal and hypothesis?
+        From the literature search above, list the titles of the 3 papers most similar to our \
+        research goal and hypothesis.
+        """)
+
+    request_decision: str = dedent_triple_quote_str("""
+        Choose one of the following two options: 
         
-        Please choose:
-        
-        1. The goal and hypothesis are distinct enough from existing literature.
-        2. The goal and hypothesis seem to overlap with existing literature, and should be revised.
+        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing.
+        2. Our goal and hypothesis seem to completely overlap with existing literature, and should be revised.
 
         {choice_instructions}
         """)
+
+    def run_and_get_valid_result(self):
+        self.initialize_conversation_if_needed()
+        self.apply_get_and_append_assistant_message()
+        self.apply_append_user_message(self.request_decision)
+        self._iterate_until_valid_response()
+        return self.get_valid_result()
 
 
 @dataclass

@@ -4,15 +4,15 @@ from typing import Tuple, Dict, Set, Iterable, List
 from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from scientistgpt.projects.scientific_research.cast import ScientificAgent
-from scientistgpt.projects.scientific_research.scientific_products import LiteratureSearchParams
+from scientistgpt.projects.scientific_research.scientific_products import LiteratureSearch
 from scientistgpt.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from scientistgpt.utils import dedent_triple_quote_str, word_count
 from scientistgpt.utils.nice_list import NiceDict, NiceList
+from scientistgpt.utils.types import ListBasedSet
 
 
 @dataclass
 class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
-    step: str = 'goal'
     number_of_papers_per_query: int = 7
     max_reviewing_rounds: int = 0
     requested_keys: Iterable[str] = ('dataset', 'questions', )
@@ -52,19 +52,20 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                                      separator=',\n' + ' ' * 8)
                          for k, v in response_value.items()})
 
-    def get_literature_search(self):
+    def get_literature_search(self) -> LiteratureSearch:
         scopes_to_list_of_queries = self.run_dialog_and_get_valid_result()
-        literature_search = {}
+        literature_search = LiteratureSearch()
         for scope, queries in scopes_to_list_of_queries.items():
+            queries_to_citations = {}
             for query in queries:
-                literature_search[LiteratureSearchParams(step=self.step, scope=scope, query=query)] = \
+                queries_to_citations[query] = \
                     SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=self.number_of_papers_per_query)
-        return NiceDict(literature_search)
+            literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
+        return literature_search
 
 
 @dataclass
 class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
-    step: str = 'writing'
     requested_keys: Iterable[str] = ('background', 'dataset', 'methods', 'questions', 'results')
     background_product_fields: Tuple[str, ...] = ('research_goal', 'hypothesis_testing_plan', 'title_and_abstract')
     conversation_name: str = 'literature_search_writing'
