@@ -2,8 +2,8 @@ import os.path
 
 import openai
 
-from scientistgpt import Conversation, Message, Role
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER, try_get_chatgpt_response
+from data_to_paper import Conversation, Message, Role
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER, try_get_chatgpt_response
 
 
 def test_failed_gpt_response(conversation, openai_exception):

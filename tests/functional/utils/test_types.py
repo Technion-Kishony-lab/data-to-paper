@@ -1,4 +1,4 @@
-from scientistgpt.utils.types import ListBasedSet
+from data_to_paper.utils.types import ListBasedSet
 
 
 def test_list_based_set():

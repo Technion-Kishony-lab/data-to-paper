@@ -2,8 +2,8 @@ import colorama
 import pytest
 from _pytest.fixtures import fixture
 
-from scientistgpt import Role, Message
-from scientistgpt.utils.highlighted_text import python_to_highlighted_text
+from data_to_paper import Role, Message
+from data_to_paper.utils.highlighted_text import python_to_highlighted_text
 
 
 @fixture()

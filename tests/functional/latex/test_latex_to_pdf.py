@@ -3,10 +3,10 @@ import os
 import pytest
 from _pytest.fixtures import fixture
 
-from scientistgpt.latex import save_latex_and_compile_to_pdf
-from scientistgpt.latex.exceptions import LatexCompilationError
-from scientistgpt.latex.latex_to_pdf import clean_latex
-from scientistgpt.servers.crossref import CrossrefCitation
+from data_to_paper.latex import save_latex_and_compile_to_pdf
+from data_to_paper.latex.exceptions import LatexCompilationError
+from data_to_paper.latex.latex_to_pdf import clean_latex
+from data_to_paper.servers.crossref import CrossrefCitation
 
 
 @fixture()

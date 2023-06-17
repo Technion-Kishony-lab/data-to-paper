@@ -5,7 +5,7 @@ from typing import Union
 
 import pytest
 
-from scientistgpt.servers.base_server import ServerCaller, NoMoreResponsesToMockError
+from data_to_paper.servers.base_server import ServerCaller, NoMoreResponsesToMockError
 
 
 @dataclass

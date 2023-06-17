@@ -1,9 +1,9 @@
 import pytest
 import os
 
-from scientistgpt.run_gpt_code.code_runner import CodeRunner, FailedLoadingOutput
-from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
-from scientistgpt.run_gpt_code.code_utils import FailedExtractingCode
+from data_to_paper.run_gpt_code.code_runner import CodeRunner, FailedLoadingOutput
+from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
+from data_to_paper.run_gpt_code.code_utils import FailedExtractingCode
 
 
 OUTPUT_FILE = "output.txt"

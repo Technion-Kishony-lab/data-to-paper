@@ -1,4 +1,4 @@
-from scientistgpt.servers.crossref import CROSSREF_SERVER_CALLER
+from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 
 QUERY = 'covid-19 affected the world'
 

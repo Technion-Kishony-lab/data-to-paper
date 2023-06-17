@@ -10,14 +10,14 @@ __pycache__/
 *.so
 
 .DS_Store
-scientistgpt/examples/icd_analysis/local_paths.py
-scientistgpt/examples/covid_vaccine_analysis/local_paths.py
+data_to_paper/examples/icd_analysis/local_paths.py
+data_to_paper/examples/covid_vaccine_analysis/local_paths.py
 
-sciserv/sciserv.egg-info/
+data_to_paper_server/data_to_paper_server.egg-info/
 
-scientistgpt/scientistgpt.egg-info/
+data_to_paper/data_to_paper.egg-info/
 
-sciserv/sciserv/build/
+data_to_paper_server/data_to_paper_server/build/
 
 frontend/Documentation/dist/assets/libs/chance/chance.min.js
 
@@ -25,8 +25,8 @@ frontend/Documentation/dist/assets/libs/chance/chance.min.js
 
 # all files starting with gpt_code_attempt
 gpt_code_attempt*
-scientistgpt/examples/diabetes/local_paths.py
+data_to_paper/examples/diabetes/local_paths.py
 
-scientistgpt/examples/local_paths.py
+data_to_paper/examples/local_paths.py
 
 tests/integration/citations/.pytest_cache/v/cache/

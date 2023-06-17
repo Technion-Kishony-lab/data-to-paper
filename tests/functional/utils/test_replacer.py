@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
-from scientistgpt.utils.replacer import format_value, Replacer
+from data_to_paper.utils.replacer import format_value, Replacer
 
 
 @dataclass

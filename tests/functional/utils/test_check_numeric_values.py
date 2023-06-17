@@ -1,6 +1,6 @@
 import pytest
 
-from scientistgpt.utils.check_numeric_values import extract_numeric_values, find_non_matching_numeric_values, \
+from data_to_paper.utils.check_numeric_values import extract_numeric_values, find_non_matching_numeric_values, \
     add_one_to_last_digit, is_after_smaller_than_sign
 
 

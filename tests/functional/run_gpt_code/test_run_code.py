@@ -1,10 +1,10 @@
 import os
 import pytest
 
-from scientistgpt.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, FailedRunningCode
-from scientistgpt.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
+from data_to_paper.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, FailedRunningCode
+from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule
-from scientistgpt.utils import dedent_triple_quote_str
+from data_to_paper.utils import dedent_triple_quote_str
 
 
 def test_run_code_on_legit_code():

@@ -1,7 +1,7 @@
-from scientistgpt import Role
-from scientistgpt.conversation.conversation_actions import AppendMessage, Message, AppendChatgptResponse
-from scientistgpt.conversation.conversation_manager import ConversationManager
-from scientistgpt.conversation.replay import replay_actions
+from data_to_paper import Role
+from data_to_paper.conversation.conversation_actions import AppendMessage, Message, AppendChatgptResponse
+from data_to_paper.conversation.conversation_manager import ConversationManager
+from data_to_paper.conversation.replay import replay_actions
 
 
 def test_save_load_actions(tmpdir, actions, conversations):
