@@ -1,6 +1,6 @@
 import pytest
 
-from scientistgpt.utils.nice_list import NiceList
+from data_to_paper.utils.nice_list import NiceList
 
 
 @pytest.mark.parametrize('nice_list, expected_repr', [

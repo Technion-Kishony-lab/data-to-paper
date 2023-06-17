@@ -1,11 +1,11 @@
 from typing import Tuple
 
-from scientistgpt.base_steps import CheckExtractionReviewBackgroundProductsConverser
+from data_to_paper.base_steps import CheckExtractionReviewBackgroundProductsConverser
 from dataclasses import dataclass
 
-from scientistgpt.base_steps.result_converser import Rewind
+from data_to_paper.base_steps.result_converser import Rewind
 
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 
 
 from .utils import TestProductsReviewGPT

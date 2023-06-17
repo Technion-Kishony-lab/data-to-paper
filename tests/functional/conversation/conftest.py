@@ -1,8 +1,8 @@
 import openai
 from _pytest.fixtures import fixture
 
-from scientistgpt import Role, Message
-from scientistgpt.servers.chatgpt import OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS
+from data_to_paper import Role, Message
+from data_to_paper.servers.chatgpt import OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS
 
 
 @fixture()

@@ -1,12 +1,12 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt import Message, Role
-from scientistgpt.conversation.conversation_actions import AppendMessage, AppendChatgptResponse, \
+from data_to_paper import Message, Role
+from data_to_paper.conversation.conversation_actions import AppendMessage, AppendChatgptResponse, \
     FailedChatgptResponse, CopyMessagesBetweenConversations, CreateConversation, \
     NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastResponse
 
-from scientistgpt.conversation.conversation_manager import ConversationManager
-from scientistgpt.conversation.message_designation import RangeMessageDesignation
+from data_to_paper.conversation.conversation_manager import ConversationManager
+from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 
 @fixture()

@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt.base_products import DataFileDescription, DataFileDescriptions
+from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 
 
 class TestDataFileDescription(DataFileDescription):

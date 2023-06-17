@@ -1,10 +1,10 @@
 from unittest import mock
 from dataclasses import dataclass, field
 
-from scientistgpt.base_cast import Agent
-from scientistgpt.base_cast.types import Profile
-from scientistgpt.conversation.actions_and_conversations import ActionsAndConversations
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.base_cast import Agent
+from data_to_paper.base_cast.types import Profile
+from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 
 
 class TestAgent(Agent):

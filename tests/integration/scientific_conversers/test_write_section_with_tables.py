@@ -1,8 +1,8 @@
 from _pytest.fixtures import fixture
 
-from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 
-from scientistgpt.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput
 
 SECTIONS_TO_ADD_TABLES_TO = ['results']
 CODE = """

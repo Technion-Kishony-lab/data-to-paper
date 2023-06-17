@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
-from scientistgpt import Conversation
-from scientistgpt.base_cast import Agent
-from scientistgpt.base_cast.messenger import Messenger, create_messenger
-from scientistgpt.conversation.conversation_actions import CreateConversation
+from data_to_paper import Conversation
+from data_to_paper.base_cast import Agent
+from data_to_paper.base_cast.messenger import Messenger, create_messenger
+from data_to_paper.conversation.conversation_actions import CreateConversation
 
 
 class TestAgent(Agent):

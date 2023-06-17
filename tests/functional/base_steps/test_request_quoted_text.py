@@ -1,11 +1,11 @@
-from scientistgpt.base_steps import BaseProductsQuotedReviewGPT
+from data_to_paper.base_steps import BaseProductsQuotedReviewGPT
 from dataclasses import dataclass
 
 import pytest
 
-from scientistgpt.env import MAX_MODEL_ENGINE
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from scientistgpt.servers.openai_models import ModelEngine
+from data_to_paper.env import MAX_MODEL_ENGINE
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.openai_models import ModelEngine
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 

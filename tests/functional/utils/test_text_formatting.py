@@ -1,6 +1,6 @@
 import pytest
 
-from scientistgpt.utils.text_formatting import forgiving_format
+from data_to_paper.utils.text_formatting import forgiving_format
 
 
 @pytest.mark.parametrize('text, args, kwargs, expected', [

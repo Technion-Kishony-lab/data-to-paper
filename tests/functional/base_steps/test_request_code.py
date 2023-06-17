@@ -3,12 +3,12 @@ from typing import Tuple, Type
 
 from _pytest.fixtures import fixture
 
-from scientistgpt.base_products import DataFileDescriptions, DataFileDescription
-from scientistgpt.base_steps import BaseCodeProductsGPT
-from scientistgpt.projects.scientific_research.coding_steps import ExplainCreatedDataframe, \
+from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
+from data_to_paper.base_steps import BaseCodeProductsGPT
+from data_to_paper.projects.scientific_research.coding_steps import ExplainCreatedDataframe, \
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
-from scientistgpt.projects.scientific_research.scientific_products import ScientificProducts
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
 

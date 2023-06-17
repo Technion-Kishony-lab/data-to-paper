@@ -1,6 +1,6 @@
 import pytest
 
-from scientistgpt.utils.formatted_sections import FormattedSections
+from data_to_paper.utils.formatted_sections import FormattedSections
 
 
 @pytest.mark.parametrize('text, labels, is_complete', [

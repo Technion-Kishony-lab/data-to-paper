@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
 
-from scientistgpt.base_steps.dual_converser import ReviewDialogDualConverserGPT
+from data_to_paper.base_steps.dual_converser import ReviewDialogDualConverserGPT
 
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 
 from .utils import TestProductsReviewGPT
 

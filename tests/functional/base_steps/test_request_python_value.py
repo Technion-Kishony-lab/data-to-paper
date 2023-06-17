@@ -4,10 +4,10 @@ from typing import Dict, Any, List, Set
 import pytest
 import sys
 
-from scientistgpt.base_steps import PythonValueReviewBackgroundProductsConverser, \
+from data_to_paper.base_steps import PythonValueReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
-from scientistgpt.servers.chatgpt import OPENAI_SERVER_CALLER
-from scientistgpt.utils.types import ListBasedSet
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 

@@ -1,10 +1,10 @@
 import pandas as pd
 import pytest
 
-from scientistgpt.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
-from scientistgpt.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe_creating_funcs, \
+from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
+from data_to_paper.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe_creating_funcs, \
     collect_created_and_changed_data_frames, DataFrameSeriesChange
-from scientistgpt.utils.file_utils import run_in_directory
+from data_to_paper.utils.file_utils import run_in_directory
 
 
 def test_dataframe_allows_changing_when_not_in_context():
