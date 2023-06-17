@@ -112,27 +112,20 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
         """)
-    section_specific_instructions: str = dedent_triple_quote_str("""
-        The title should be short and meaningful. It should focus on the main result of the paper and not on the \
-        methods or the data.
-        The abstract should provide a short and concise summary of the paper. 
-        It should include short background on the research question and motivation, \
-        short intro to the dataset used and a non-technical explanation of the methodology.
-        It should then provide a short summary of the main results and their implications.
-        It should not include numeric values like p-values, or effect sizes.
-
+    section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Title should: 
         * be short and meaningful.
         * convey the main message, focusing on discovery not on methodology nor on the data source.
         * not include punctuation marks, such as ":,;" characters.
 
-        The Abstract should provide a concise, interesting to read, summary of the paper, including:
-        (a) short statement of the subject and its importance. 
-        (b) description of the research gap/question/motivation.
-        (c) short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
-        (d) summary of each of the main results. It should summarize each key result which is evident from the tables, \
+        The Abstract should provide a concise, interesting to read, single-paragraph summary of the paper, \
+        with the following structure:
+        * short statement of the subject and its importance. 
+        * description of the research gap/question/motivation.
+        * short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
+        * summary of each of the main results. It should summarize each key result which is evident from the tables, \
         but without referring to specific numeric values from the tables.
-        (e) statement of limitations and implications.
+        * statement of limitations and implications.
         """)
     section_review_specific_instructions: str = "{section_specific_instructions}"
 
