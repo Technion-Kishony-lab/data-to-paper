@@ -175,10 +175,16 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_and_writing_class:
-            sections = writing_class.from_(self, section_names=section_names).run_dialog_and_get_valid_result()
-            for section_name, section in zip(section_names, sections):
-                products.paper_sections[section_name] = section
-        self.send_product_to_client('paper_sections')
+            if isinstance(section_names, str):
+                # literature review section
+                step = section_names
+                products.literature_search[step] = writing_class.from_(self).get_literature_search()
+            else:
+                # writing section
+                sections_with_citations = writing_class.from_(self, section_names=section_names).write_sections_with_citations()
+                for section_name, section_and_citations in zip(section_names, sections_with_citations):
+                    products.cited_paper_sections_and_citations[section_name] = section_and_citations
+        self.send_product_to_client('cited_paper_sections_and_citations')
 
         # Add citations to relevant paper sections
         if self.should_add_citations:
