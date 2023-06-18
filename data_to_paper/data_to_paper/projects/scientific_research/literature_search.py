@@ -3,18 +3,20 @@ from typing import Tuple, Dict, Set, Iterable, List
 
 from data_to_paper.base_steps import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch, ScientificProducts
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 
 
 @dataclass
 class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    products: ScientificProducts = None
     number_of_papers_per_query: int = 7
     max_reviewing_rounds: int = 0
     requested_keys: Iterable[str] = ('dataset', 'questions', )
-    background_product_fields: Tuple[str, ...] = ('research_goal', 'hypothesis_testing_plan')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan')
     conversation_name: str = 'literature_search_goal'
     is_new_conversation: bool = None
     value_type: type = Dict[str, List[str]]
@@ -34,10 +36,11 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         and the values are lists of query string. Each individual query should be a string with up to 5-10 words. 
         
         For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis \
-        of the real-world UK National Core dataset, the queries could be:  
+        of the "United Kingdom National Core Data (UK-NCD)", the queries could be:  
         {
-            "dataset": ["covid-19 vaccine real-world data", "The UK National Core covid-19 dataset"]
-            "questions": ["covid-19 vaccine efficacy", "covid-19 vaccine efficacy over time", "covid-19 vaccine waning"]
+            "dataset": ["The UK-NCD dataset", "covid-19 vaccine efficacy dataset"]
+            "questions": ["covid-19 vaccine efficacy over time", "covid-19 vaccine waning", \
+            "ANY OTHER RELATED STUDY GOALS"]
         }
         """)
 
@@ -64,31 +67,32 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
 @dataclass
 class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
-    requested_keys: Iterable[str] = ('background', 'dataset', 'methods', 'questions', 'results')
-    background_product_fields: Tuple[str, ...] = ('research_goal', 'hypothesis_testing_plan', 'title_and_abstract')
+    number_of_papers_per_query: int = 5
+    requested_keys: Iterable[str] = ('background', 'dataset', 'methods', 'results')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan',
+                                                  'title_and_abstract')
     conversation_name: str = 'literature_search_writing'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please write literature-search queries that we can use to search for papers related to our study.
 
-        You would need to compose search queries to identify prior papers covering these 5 areas:
+        You would need to compose search queries to identify prior papers covering these 4 areas:
 
         "background": papers that provide background on the overall subject of our study
         "dataset": papers that use the same or similar datasets as in our study
         "methods": papers that use the same or similar methods as in our study
-        "questions": papers that ask questions similar to our study
-        "results": papers reporting results similar or related to our results
+        "results": papers asking similar questions to our results
 
         Return your answer as a `Dict[str, List[str]]`, where the keys are the 5 areas noted above, \
         and the values are lists of query string. Each individual query should be a string with up to 5-10 words. 
 
         For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis \
-        of the real-world UK National Core dataset, the queries could be:  
+        of the "United Kingdom National Core Data (UK-NCD)", the queries could be:  
         {
             "background": ["SARS-CoV2 spread", "covid-19 global impact", "covid-19 vaccine"]
-            "dataset": ["covid-19 vaccine real-world data", "The UK National Core covid-19 dataset"]
+            "dataset": ["The UK-NCD dataset", "covid-19 vaccine efficacy dataset"]
             "methods": ["covid-19 vaccine efficacy analysis", "kaplan-meier survival analysis"]
-            "questions": ["covid-19 vaccine efficacy", "covid-19 vaccine efficacy over time"]
-            "results": ["covid-19 vaccine efficacy waning"]
+            "results": ["covid-19 vaccine efficacy", "covid-19 vaccine efficacy over time", \
+            "covid-19 vaccine efficacy waning"]
         }
         """)
 
