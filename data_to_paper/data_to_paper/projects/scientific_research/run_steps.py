@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, Type, List
+from typing import Optional, Tuple, Type, List, Union
 
 from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
@@ -37,14 +37,16 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_do_data_preprocessing: bool = False
     should_prepare_data_analysis_plan: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
-    should_add_citations: bool = True
+    should_do_literal_search: bool = True
+    should_add_citations: bool = False
     should_add_tables: bool = True
     should_interpret_results: bool = False
 
     def get_sections_to_writing_class(
-            self) -> List[Tuple[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]]:
+            self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
         return [
             (('title', 'abstract'), FirstTitleAbstractSectionWriterReviewGPT),
+            ('writing', WritingLiteratureSearchReviewGPT),
             (('results',), (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
                             else SectionWriterReviewBackgroundProductsConverser)),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
@@ -57,7 +59,8 @@ class ScientificStepsRunner(BaseStepsRunner):
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
         flattened_paper_sections_to_write = []
         for sections, _ in sections_to_writing_class:
-            flattened_paper_sections_to_write.extend(sections)
+            if not isinstance(sections, str):
+                flattened_paper_sections_to_write.extend(sections)
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
     def _run_all_steps(self) -> ScientificProducts:
@@ -118,11 +121,10 @@ class ScientificStepsRunner(BaseStepsRunner):
                 self.send_product_to_client('hypothesis_testing_plan')
 
             # Literature search
-            if self.should_add_citations:
-                # TODO: need a dedicated Stage for literature search
+            if self.should_do_literal_search:
+                # TODO: need a dedicated client Stage for literature search
                 self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.CitationExpert)
-                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
-                    self).get_literature_search()
+                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(self).get_literature_search()
                 # self.send_product_to_client('citations')
 
             # Check if the goal is OK
