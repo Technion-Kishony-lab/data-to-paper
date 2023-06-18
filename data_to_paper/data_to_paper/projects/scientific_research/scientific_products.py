@@ -214,7 +214,9 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: self.add_tables_to_paper_section(self.cited_paper_sections[section_name], section_tables)
+        return {section_name: self.add_tables_to_paper_section(
+            self.cited_paper_sections[section_name] if section_name in self.cited_paper_sections else
+            self.paper_sections[section_name], section_tables)
                 for section_name, section_tables in self.tables.items()}
 
     @staticmethod
@@ -245,12 +247,12 @@ class ScientificProducts(Products):
         section_names_to_content = {}
         section_names = ListBasedSet(self.paper_sections.keys()) | ListBasedSet(self.cited_paper_sections.keys())
         for section_name in section_names:
-            if section_name in self.paper_sections:
-                section = self.paper_sections[section_name]
+            if section_name in self.cited_paper_sections:
+                section = self.cited_paper_sections[section_name]
             elif section_name in self.tabled_paper_sections:
                 section = self.tabled_paper_sections[section_name]
-            elif section_name in self.cited_paper_sections:
-                section = self.cited_paper_sections[section_name]
+            elif section_name in self.paper_sections:
+                section = self.paper_sections[section_name]
             else:
                 raise ValueError(f'Unknown section name: {section_name}')
             section_names_to_content[section_name] = section
