@@ -103,8 +103,11 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
             check_latex_compilation(extracted_section, file_stem, output_directory)
         except LatexCompilationError as e:
             self._raise_self_response_error(str(e))
+        self._check_usage_of_unwanted_commands(extracted_section)
+
+    def _check_usage_of_unwanted_commands(self, extracted_section: str, unwanted_commands: List[str] = None):
         try:
-            check_usage_of_unwanted_commands(extracted_section)
+            check_usage_of_unwanted_commands(extracted_section, unwanted_commands)
         except UnwantedCommandsUsedInLatex as e:
             self._raise_self_response_error(str(e))
 

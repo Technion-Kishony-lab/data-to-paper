@@ -16,10 +16,13 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     """
     Base class for the writer of a paper section in latex format.
     """
+    products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
+    allow_citations_from_step: str = None
+    should_remove_citations_from_section: bool = False
 
     fake_performer_request_for_help: str = \
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
@@ -95,10 +98,39 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
 
+    def _get_available_citations(self) -> List[Citation]:
+        if self.allow_citations_from_step is None:
+            return []
+        return self.products.literature_search[self.allow_citations_from_step].get_all_citations()
+
+    def _check_citation_ids(self, section: str):
+        available_citations = self._get_available_citations()
+        available_citations_ids = [citation.bibtex_id for citation in available_citations]
+        not_found_citation_ids = [citation_id for citation_id in find_citation_ids(section)
+                                  if citation_id not in available_citations_ids]
+        if not_found_citation_ids:
+            self._raise_self_response_error(f'These citation ids are not correct: {not_found_citation_ids}')
+
     def _check_section(self, section: str, section_name: str):
         super()._check_section(section, section_name)
+        self._check_citation_ids(section)
         self._check_extracted_numbers(section)
         self._check_url_in_text(section)
+
+    def _check_usage_of_unwanted_commands(self, extracted_section: str, unwanted_commands: List[str] = None):
+        if self.allow_citations_from_step is None:
+            return super()._check_usage_of_unwanted_commands(extracted_section, unwanted_commands)
+        return super()._check_usage_of_unwanted_commands(extracted_section, [r'\verb'])
+
+    def write_sections_with_citations(self) -> List[Tuple[str, Set[Citation]]]:
+        sections: List[str] = self.run_dialog_and_get_valid_result()
+        sections_and_citations = []
+        for section in sections:
+            sections_and_citations.append(
+                (section, ListBasedSet(citation for citation in self._get_available_citations()
+                                       if citation.bibtex_id in find_citation_ids(section)))
+            )
+        return sections_and_citations
 
 
 @dataclass
