@@ -13,7 +13,8 @@ from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_secti
 from data_to_paper.latex.exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
 from data_to_paper.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands
-from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment
+from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
+    SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind, NoResponse
@@ -113,6 +114,13 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         If the there are errors that require self to revise the response, raise an SelfResponseError describing
         the problem.
         """
+        num_sections = response.count('\\section')
+        if num_sections != len([section_name for section_name in self.section_names
+                                if section_name not in SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS]):
+            self._raise_self_response_error(
+                f'You must only write the {self.pretty_section_names} section.'
+            )
+
         section_contents = []
         for section_name in self.section_names:
             section_contents.append(self._get_latex_section_from_response(response, section_name))
