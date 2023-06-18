@@ -8,7 +8,7 @@ from typing import Set, Optional, List
 from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 
-from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
+from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex, TooWideTableOrText
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -159,10 +159,14 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         with open(latex_file_name, 'w') as f:
             f.write(latex_content)
         try:
-            subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True,
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            pdflatex_output = subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name],
+                                             check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
         except subprocess.CalledProcessError as e:
             raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
+
+        if r'Overfull \hbox' in pdflatex_output.stdout.decode('utf-8'):
+            raise TooWideTableOrText(latex_content=latex_content,
+                                     pdflatex_output=pdflatex_output.stdout.decode('utf-8'))
 
         if should_compile_with_bib:
             subprocess.run(['bibtex', file_stem], check=True)

@@ -10,7 +10,7 @@ from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.file_utils import get_non_existing_file_name
 
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
-from data_to_paper.latex.exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex
+from data_to_paper.latex.exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex, TooWideTableOrText
 from data_to_paper.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
@@ -102,6 +102,8 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         try:
             check_latex_compilation(extracted_section, file_stem, output_directory)
         except LatexCompilationError as e:
+            self._raise_self_response_error(str(e))
+        except TooWideTableOrText as e:
             self._raise_self_response_error(str(e))
         self._check_usage_of_unwanted_commands(extracted_section)
 
