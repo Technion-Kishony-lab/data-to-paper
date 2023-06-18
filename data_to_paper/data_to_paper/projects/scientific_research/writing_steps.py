@@ -71,9 +71,9 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         "{termination_phrase}".
     """)
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n
-        Please correct your response according to my feedback and send back a complete rewrite \
-        of the {pretty_section_names}.
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
+        Please correct your response according to any points in my feedback that you find relevant and applicable.
+        Send back a complete rewrite of the {pretty_section_names}.
         Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
     """)
 
