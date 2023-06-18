@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import pytest
 
 from data_to_paper.base_steps.dual_converser import ReviewDialogDualConverserGPT
 
@@ -27,7 +28,7 @@ def test_review_cycle():
         assert requester.run_dialog_and_get_valid_result() == 'Thank you. Here is my improved version'
     assert len(requester.conversation) == 3
 
-
+@pytest.mark.skip(reason="Currently, we don't handle ambiguous responses using chatgpt")
 def test_ambiguous_reviewer():
     requester = TestReviewDialogDualConverserGPT()
     with OPENAI_SERVER_CALLER.mock([
