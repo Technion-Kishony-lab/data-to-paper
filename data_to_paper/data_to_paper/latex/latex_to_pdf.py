@@ -19,8 +19,9 @@ CHARS = {
     '%': r'\%',
     '#': r'\#',
     '_': r'\_',
-    '~': r'\textasciitilde',
-    '^': r'\textasciicircum',
+    '$': r'\$',
+    '~': r'\textasciitilde{}',
+    '^': r'\textasciicircum{}',
 }
 
 MATH_PATTERN = r"""
