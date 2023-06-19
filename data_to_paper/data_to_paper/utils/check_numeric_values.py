@@ -60,6 +60,37 @@ def round_to_n_digits(str_number: str, n_digits: int) -> float:
     return float(f'{float(f"{number:.{n_digits}g}"):g}')
 
 
+def truncate_to_n_digits(str_number: str, n_digits: int, remove_sign: bool = True) -> float:
+    """
+    Truncate the given number to the given number of digits.
+    1.237 -> 1.23  (n_digits=3)
+    """
+    str_number = str_number.replace(',', '')
+    str_number, power = split_number_and_power(str_number)
+    digit_count = 0
+    is_leading_zero = True
+    is_after_point = False
+    for i in range(len(str_number)):
+        digit = str_number[i]
+        if digit == '-':
+            continue
+        if digit == '.':
+            is_after_point = True
+            continue
+        if is_leading_zero and digit != '0':
+            is_leading_zero = False
+        if not is_leading_zero:
+            digit_count += 1
+        if digit_count == n_digits:
+            break
+    if not is_after_point:
+        power = power + len(str_number) - i - 1
+    truncated = float(str_number[:i+1]) * 10 ** power
+    if remove_sign:
+        return abs(truncated)
+    return truncated
+
+
 def is_after_smaller_than_sign(str_number: str, target: str) -> Optional[bool]:
     """
     Check if the given string number extracted from the target str appear after a '<' sign.
@@ -142,6 +173,15 @@ def add_one_to_last_digit(num_str):
     return ''.join(num_list)
 
 
+def split_number_and_power(str_number: str) -> Tuple[str, int]:
+    if 'e' in str_number:
+        str_number, power = str_number.split('e')
+        power = int(power)
+    else:
+        power = 0
+    return str_number, power
+
+
 def find_non_matching_numeric_values(source: str, target: str, ignore_int_below: int = 0,
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
@@ -163,11 +203,8 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     matching_str_numbers = []
     for str_target_number in str_target_numbers:
         str_target_number = str_target_number.lower()
-        if 'e' in str_target_number:
-            str_target_number, power = str_target_number.split('e')
-            power = int(power)
-        else:
-            power = 0
+
+        str_target_number, power = split_number_and_power(str_target_number)
 
         if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
             continue
