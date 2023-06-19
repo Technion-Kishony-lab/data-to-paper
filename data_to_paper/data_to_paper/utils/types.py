@@ -74,6 +74,16 @@ class ListBasedSet(collections.abc.Set, Generic[T]):
         # make it look like a set:
         return '{' + ', '.join(repr(e) for e in self) + '}'
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.elements})'
+
     def add(self, value):
         if value not in self.elements:
             self.elements.append(value)
+
+    def remove(self, value):
+        self.elements.remove(value)
+
+    def update(self, other):
+        for value in other:
+            self.add(value)

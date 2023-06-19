@@ -157,11 +157,20 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     termination_phrase: str = 'Job completed'
     "A phrase used by the 'other' chatgpt to terminate the conversation."
 
-    respond_to_ambiguous_reviewer_termination: str = dedent_triple_quote_str("""
-        Your answer is confusing because you have both provided feedback and included the phrase "{termination_phrase}".  
-        Please correct your response so that you EITHER include constructive feedback, OR just say 
-        "{termination_phrase}" without any other text.
-        """)
+    respond_to_ambiguous_reviewer_termination: str = None
+
+    # TODO: Responding to ambiguous reviewer leads to the reviewer always apologizing and the conversation is not
+    #  sensible anymore.
+    #  This can only work if the reviewer is forced to return structured response, like triple quotes, or python
+    #  list of strings, containing the feedback. or empty of for no feedback.
+
+    # dedent_triple_quote_str("""
+    #     Your answer is confusing because you have both provided feedback and included the phrase \
+    #     "{termination_phrase}".
+    #     Please correct your response so that you EITHER include constructive feedback, OR just say \
+    #     "{termination_phrase}" without any other text.
+    #     Do not apologize for your mistake/confusion - just provide the answer as is.
+    #     """)
 
     append_termination_response_to_self: bool = True
 
@@ -233,7 +242,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         is_phrase = termination_phrase.lower() in reviewer_response.lower()
         if not is_phrase:
             return False
-        if len(reviewer_response) <= len(termination_phrase) + 2 and not is_bulleted_list(reviewer_response):
+        if not is_bulleted_list(reviewer_response):
             return True
         return None
 
@@ -324,8 +333,9 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         to respond with the approving-phrase immediately, without requesting any improvement cycles.
     """)
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n
-        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
+        Please correct your response according to any points you find relevant and applicable in my feedback.
+        Send back a complete rewrite of the {goal_noun}.
         Make sure to send the full corrected {goal_noun}, not just the parts that were revised.
         """)
 
@@ -382,8 +392,9 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
     user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
 
-    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n
-        Please correct your response according to my feedback and send back a complete rewrite of the {goal_noun}.
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
+        Please correct your response according to any points you find relevant and applicable in my feedback.
+        Send back a complete rewrite of the {goal_noun}.
         {quote_request}
         """)
 

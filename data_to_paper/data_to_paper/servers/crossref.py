@@ -7,7 +7,7 @@ from unidecode import unidecode
 from data_to_paper.exceptions import data_to_paperException
 
 from .base_server import ServerCaller
-
+from .types import Citation
 
 CROSSREF_URL = "https://api.crossref.org/works"
 
@@ -71,26 +71,18 @@ class ServerErrorCitationException(data_to_paperException):
         return f"Request failed with status code {self.status_code}, error: {self.text}"
 
 
-class CrossrefCitation(dict):
+class CrossrefCitation(Citation):
     """
     A single crossref citation. This the raw dict after transforming the json response.
     This dict is hashable.
     """
 
-    def __key(self):
-        return self.get_bibtex_id()
-
-    def __hash__(self):
-        return hash(self.__key())
-
-    def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
-
     @property
-    def bibtex_type(self):
+    def bibtex_type(self) -> str:
         return get_type_from_crossref(self)
 
-    def create_bibtex(self):
+    @property
+    def bibtex(self) -> str:
         # create a mapping for article and inproceedings
         bibtex_type = get_type_from_crossref(self)
         is_paper = bibtex_type in ['article', 'inproceedings']
@@ -107,9 +99,10 @@ class CrossrefCitation(dict):
                         value = unidecode(value).replace(r' &', r' \&').replace(r'_', r'\_')
                 bibtex_key = field_mapping[key]
                 fields.append(f"{bibtex_key} = {{{value}}}")
-        return BIBTEX_TEMPLATE.format(type=self.bibtex_type, id=self.get_bibtex_id(), fields=',\n'.join(fields))
+        return BIBTEX_TEMPLATE.format(type=self.bibtex_type, id=self.bibtex_id, fields=',\n'.join(fields))
 
-    def get_bibtex_id(self) -> str:
+    @property
+    def bibtex_id(self) -> str:
         """
         Get the bibtex id for this citation.
         """
@@ -120,12 +113,6 @@ class CrossrefCitation(dict):
         for char in STRS_TO_REMOVE_FROM_BIBTEX_ID:
             bibtex_id = bibtex_id.replace(char, "")
         return bibtex_id
-
-    def __str__(self):
-        return f'id: "{self.get_bibtex_id()}", title: "{self["title"]}"'
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class CrossrefServerCaller(ServerCaller):

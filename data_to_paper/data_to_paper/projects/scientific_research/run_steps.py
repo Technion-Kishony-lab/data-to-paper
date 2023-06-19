@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, Type, List
+from typing import Optional, Tuple, Type, List, Union
 
 from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
@@ -8,12 +8,13 @@ from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts
 from .get_template import get_paper_template_path
+from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
-    TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT
+    TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -36,14 +37,16 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_do_data_preprocessing: bool = False
     should_prepare_data_analysis_plan: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
-    should_add_citations: bool = True
+    should_do_literal_search: bool = True
+    should_add_citations: bool = False
     should_add_tables: bool = True
     should_interpret_results: bool = False
 
     def get_sections_to_writing_class(
-            self) -> List[Tuple[Tuple[str, ...], Type[SectionWriterReviewBackgroundProductsConverser]]]:
+            self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
         return [
             (('title', 'abstract'), FirstTitleAbstractSectionWriterReviewGPT),
+            ('writing', WritingLiteratureSearchReviewGPT),
             (('results',), (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
                             else SectionWriterReviewBackgroundProductsConverser)),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
@@ -56,7 +59,8 @@ class ScientificStepsRunner(BaseStepsRunner):
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
         flattened_paper_sections_to_write = []
         for sections, _ in sections_to_writing_class:
-            flattened_paper_sections_to_write.extend(sections)
+            if not isinstance(sections, str):
+                flattened_paper_sections_to_write.extend(sections)
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
     def _run_all_steps(self) -> ScientificProducts:
@@ -95,24 +99,40 @@ class ScientificStepsRunner(BaseStepsRunner):
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
-        if products.research_goal is None:
+        is_auto_goal = products.research_goal is None
+        if is_auto_goal:
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
             products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         self.send_product_to_client('research_goal')
 
-        # Analysis plan
-        if self.should_prepare_data_analysis_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            self.send_product_to_client('analysis_plan')
+        while is_auto_goal:
+            # Analysis plan
+            if self.should_prepare_data_analysis_plan:
+                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+                products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+                self.send_product_to_client('analysis_plan')
 
-        # Hypotheses testing plan
-        if self.should_prepare_hypothesis_testing_plan:
-            self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-            products.hypothesis_testing_plan = \
-                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            self.send_product_to_client('hypothesis_testing_plan')
+            # Hypotheses testing plan
+            if self.should_prepare_hypothesis_testing_plan:
+                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+                products.hypothesis_testing_plan = \
+                    HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+                self.send_product_to_client('hypothesis_testing_plan')
+
+            # Literature search
+            if self.should_do_literal_search:
+                # TODO: need a dedicated client Stage for literature search
+                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.CitationExpert)
+                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(self).get_literature_search()
+                # self.send_product_to_client('citations')
+
+            # Check if the goal is OK
+            if IsGoalOK.from_(self).run_and_get_valid_result() == '1':
+                break
+
+            # Goal is not OK, so we need to devise in context of the literature search:
+            products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:
@@ -157,10 +177,17 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_and_writing_class:
-            sections = writing_class.from_(self, section_names=section_names).run_dialog_and_get_valid_result()
-            for section_name, section in zip(section_names, sections):
-                products.paper_sections[section_name] = section
-        self.send_product_to_client('paper_sections')
+            if isinstance(section_names, str):
+                # literature review section
+                step = section_names
+                products.literature_search[step] = writing_class.from_(self).get_literature_search()
+            else:
+                # writing section
+                sections_with_citations = \
+                    writing_class.from_(self, section_names=section_names).write_sections_with_citations()
+                for section_name, section_and_citations in zip(section_names, sections_with_citations):
+                    products.cited_paper_sections_and_citations[section_name] = section_and_citations
+        self.send_product_to_client('cited_paper_sections_and_citations')
 
         # Add citations to relevant paper sections
         if self.should_add_citations:

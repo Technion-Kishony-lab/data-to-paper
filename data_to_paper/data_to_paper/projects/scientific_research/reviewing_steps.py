@@ -6,7 +6,9 @@ from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
-    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser
+    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
+    MultiChoiceBackgroundProductsConverser
+from data_to_paper.base_steps.result_converser import Rewind
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -73,7 +75,90 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         respond solely with "{termination_phrase}".
     """)
 
-    sentence_to_add_at_the_end_of_reviewer_response = 2
+
+@dataclass
+class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
+    max_reviewing_rounds: int = 0
+    products: ScientificProducts = None
+    model_engine: ModelEngine = ModelEngine.GPT4
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'research goal and hypothesis'
+    goal_verb: str = 'check'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.GoalReviewer
+    conversation_name: str = 'is_goal_ok'
+    is_new_conversation: bool = None  # this will create "research_goal_0", etc.
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'literature_search:goal')
+    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        From the literature search above, find the 3 papers whose results are most similar/overlapping with our \
+        research goal and hypothesis.
+
+        Return your answer as a Python Dict[str, str] where the keys are ID and the values are the titles \
+        of these 3 papers.
+
+        For example: 
+        {
+        "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
+        "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
+        "Doe2021TheLD", "Another title of a paper that may overlap with our goal or hypothesis",
+        }
+
+        """)
+
+    request_decision: str = dedent_triple_quote_str("""
+        Choose one of the following two options:
+
+        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing.
+        2. Our goal and hypothesis seem to completely overlap with existing literature, and should be revised.
+
+        {choice_instructions}
+        """)
+
+    def _get_fresh_looking_response(self, response) -> str:
+        return f'The following papers are most similar to our goal and hypothesis: \n\n' \
+               f'{super()._get_fresh_looking_response(response)}'
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        for bibtex_id in response_value:
+            citation = self.products.literature_search['goal'].get_citation(bibtex_id)
+            if citation is None:
+                self._raise_self_response_error(f'Invalid bibtex_id: "{bibtex_id}"')
+            # we don't check the title, even if it is wrong, we just replace with the correct one
+            response_value[bibtex_id] = citation.title
+        return NiceDict(response_value)
+
+    def run_and_get_valid_result(self):
+        super().run_and_get_valid_result()
+        return MultiChoiceBackgroundProductsConverser.from_(
+            self,
+            user_initiation_prompt=self.request_decision,
+            is_new_conversation=False,
+        ).run_and_get_valid_result()
+
+
+@dataclass
+class ReGoalReviewGPT(GoalReviewGPT):
+    is_new_conversation: bool = None
+    max_reviewing_rounds: int = 0
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+                                                  'research_goal', 'literature_search:goal')
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the result of the literature search above, \
+        please revise, or completely re-write, the research goal and hypothesis that we have so that they \
+        and do not overlap existing literature.
+
+        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
+
+        Do not suggest methodology. Just the goal and a single hypothesis. 
+        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
+        without requiring any additional data \
+        (pay attention to using only data available based on the provided headers of our data files \
+        as in the description of the original dataset, above).
+
+        {quote_request}
+        """)
 
 
 @dataclass
@@ -105,6 +190,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
+    is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -143,8 +229,8 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         """
         new_response_value = {}
         for k in response_value.keys():
-            k = re.sub(r'hypothesis \d+', '', k, flags=re.IGNORECASE)
-            new_response_value[k] = response_value[k]
+            new_k = re.sub(r'hypothesis \d+:', '', k, flags=re.IGNORECASE).strip()
+            new_response_value[new_k] = response_value[k]
         return NiceDict(new_response_value)
 
 
@@ -193,11 +279,14 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above table names, with specific attention to whether they are \
-        representing all the hypotheses we are testing, and can be created solely from the dataset provided.
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
+        Please check the above chosen table names, with specific attention to whether they \
+        represent all the hypotheses we are testing, and can be created solely from the dataset provided.
 
-        If you are satisfied, respond with "{termination_phrase}".
+        If you find any issues, please provide bullet-point feedback.
+        Or, if you are satisfied, please respond with "{termination_phrase}".
+
+        Note you must either approve the table names or provide feedback but not both.
         """)
 
     def _check_response_value(self, response_value: Any) -> Any:

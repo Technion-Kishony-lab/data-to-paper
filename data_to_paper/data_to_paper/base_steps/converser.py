@@ -41,7 +41,7 @@ class Converser(Copier):
     is_new_conversation: Optional[bool] = True
     # if True, we assert that no conversation with the same name exists.
     # if False, we assert that a conversation with the same name exists.
-    # if None, we make sure the conversation it is new by changing the name, if needed.
+    # if None, we make sure the conversation is new by changing the name, if needed.
 
     web_conversation_name: Optional[str] = True
     # None - do not post to web conversation, True - use default name, str - use given name

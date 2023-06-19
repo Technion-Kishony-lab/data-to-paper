@@ -67,7 +67,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
 
     @property
     def citation_ids(self) -> List[str]:
-        return [citation.get_bibtex_id() for citation in self.citations]
+        return [citation.bibtex_id for citation in self.citations]
 
     def _check_response_value(self, response_value: Any) -> Any:
         self.returned_result = None  # we declare the result as "valid" even if we can't find any citations.
@@ -100,7 +100,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
     def get_rewritten_sentence_and_chosen_citations(self) -> Tuple[str, Set[CrossrefCitation]]:
         self.initialize_and_run_dialog()
         return (self.get_rewritten_sentence(),
-                {citation for citation in self.citations if citation.get_bibtex_id() in self.chosen_citation_ids})
+                {citation for citation in self.citations if citation.bibtex_id in self.chosen_citation_ids})
 
 
 @dataclass
