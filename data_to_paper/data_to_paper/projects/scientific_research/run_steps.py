@@ -32,6 +32,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     cast = ScientificAgent
     products: ScientificProducts = field(default_factory=ScientificProducts)
     research_goal: Optional[str] = None
+    max_goal_refinement_iterations: int = 3
 
     should_do_data_exploration: bool = True
     should_do_data_preprocessing: bool = False
@@ -106,7 +107,8 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         self.send_product_to_client('research_goal')
 
-        while is_auto_goal:
+        goal_refinement_iteration = 0
+        while True:
             # Analysis plan
             if self.should_prepare_data_analysis_plan:
                 self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
@@ -128,10 +130,12 @@ class ScientificStepsRunner(BaseStepsRunner):
                 # self.send_product_to_client('citations')
 
             # Check if the goal is OK
-            if IsGoalOK.from_(self).run_and_get_valid_result() == '1':
+            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations or \
+                    IsGoalOK.from_(self).run_and_get_valid_result() == '1':
                 break
 
-            # Goal is not OK, so we need to devise in context of the literature search:
+            # Goal is not OK, so we need to devise the goal according to the literature search:
+            goal_refinement_iteration += 1
             products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
 
         # Data Preprocessing
