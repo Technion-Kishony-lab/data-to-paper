@@ -21,14 +21,8 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         Start by choosing section with tables, then cited sections, then without both of those.
         If there are references we also collect them to a set.
         """
-        references = ListBasedSet()
-        sections = {}
-        for section_name in self.get_paper_section_names():
-            sections[section_name] = self.products.most_updated_paper_sections[section_name]
-            if section_name in self.products.cited_paper_sections_and_citations:
-                references |= self.products.cited_paper_sections_and_citations[section_name][1]  # 1 is the references
-
-        return sections, references
+        return {section_name: self.products.paper_sections_without_citations[section_name]
+                for section_name in self.get_paper_section_names()}, self.products.citations
 
 
 @dataclass

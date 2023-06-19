@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple, Set, List
+from typing import Optional, Dict, Tuple, Set, List, Union
 
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
 from data_to_paper.run_gpt_code.types import CodeAndOutput
@@ -9,7 +10,7 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
-from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.types import Citation
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
@@ -123,9 +124,8 @@ class ScientificProducts(Products):
     tables: Dict[str, List[str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
-    paper_sections: Dict[str, str] = field(default_factory=dict)
-    cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[Citation]]] = field(default_factory=dict)
-    # ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
+    paper_sections_and_optional_citations: MemoryDict[str, Union[str, Tuple[str, Set[Citation]]]] = \
+        field(default_factory=MemoryDict)
 
     @property
     def pretty_hypothesis_testing_plan(self) -> str:
@@ -192,100 +192,52 @@ class ScientificProducts(Products):
             data_folder=self.data_file_descriptions.data_folder)
 
     @property
+    def paper_sections_and_citations(self) -> Dict[str, Tuple[str, Set[Citation]]]:
+        section_names_to_sections_and_citations = {}
+        for section_name, section_and_optional_citations in self.paper_sections_and_optional_citations.items():
+            if isinstance(section_and_optional_citations, str):
+                section_names_to_sections_and_citations[section_name] = (section_and_optional_citations, set())
+            else:
+                section_names_to_sections_and_citations[section_name] = section_and_optional_citations
+        return section_names_to_sections_and_citations
+
+    @property
+    def paper_sections_without_citations(self) -> Dict[str, str]:
+        return {section_name: section
+                for section_name, (section, citation) in self.paper_sections_and_citations.items()}
+
+    @property
     def citations(self) -> NiceList[CrossrefCitation]:
         """
         Return the citations of the paper.
         """
-        citations = set()
-        for section_content, section_citations in self.cited_paper_sections_and_citations.values():
+        citations = ListBasedSet()
+        for section_content, section_citations in self.paper_sections_and_citations.values():
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n')
-
-    @property
-    def cited_paper_sections(self) -> Dict[str, str]:
-        """
-        Return the actual cited paper sections.
-        """
-        return {section_name: section_content
-                for section_name, (section_content, _) in self.cited_paper_sections_and_citations.items()}
 
     @property
     def tabled_paper_sections(self) -> Dict[str, str]:
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: self.add_tables_to_paper_section(
-            self.cited_paper_sections[section_name] if section_name in self.cited_paper_sections else
-            self.paper_sections[section_name], section_tables)
-                for section_name, section_tables in self.tables.items()}
-
-    @staticmethod
-    def add_tables_to_paper_section(section_content: str, section_tables: List[str]) -> str:
-        """
-        Insert the tables into the ready_to_be_tabled_paper_sections.
-        """
-        for table in section_tables:
-            table_label_start = table.find('label{') + len('label{')  # find the start of the label
-            if table_label_start == -1:
-                table_label = None
-            else:
-                table_label_end = table.find('}', table_label_start)  # find the end of the label
-                table_label = table[table_label_start:table_label_end]  # extract the label
-            # find the parag that contains the table reference
-            for sentence in section_content.split('\n\n'):
-                if table_label is not None and table_label in sentence:
-                    # add the table after the table reference parag.
-                    section_content = section_content.replace(sentence, sentence + table)
-                    break
-            else:
-                # add the table at the end of the section
-                section_content += table
-        return section_content
-
-    @property
-    def most_updated_paper_sections(self) -> Dict[str, str]:
-        section_names_to_content = {}
-        section_names = ListBasedSet(self.paper_sections.keys()) | ListBasedSet(self.cited_paper_sections.keys())
-        for section_name in section_names:
-            if section_name in self.cited_paper_sections:
-                section = self.cited_paper_sections[section_name]
-            elif section_name in self.tabled_paper_sections:
-                section = self.tabled_paper_sections[section_name]
-            elif section_name in self.paper_sections:
-                section = self.paper_sections[section_name]
-            else:
-                raise ValueError(f'Unknown section name: {section_name}')
-            section_names_to_content[section_name] = section
-        return section_names_to_content
+        return {section_name: section if section_name not in self.tables
+                else add_tables_to_paper_section(section, self.tables[section_name])
+                for section_name, section in self.paper_sections_without_citations.items()}
 
     def get_title(self) -> str:
         """
         Return the title of the paper.
         """
-        latex_title = self.most_updated_paper_sections['title']
-        return latex_title[latex_title.find('{') + 1:latex_title.find('}')]
+        latex = self.paper_sections_without_citations['title']
+        return latex[latex.find('{') + 1:latex.find('}')]
 
     def get_abstract(self) -> str:
         """
         Return the abstract of the paper.
         """
-        latex_abstract = self.most_updated_paper_sections['abstract']
-        return latex_abstract[latex_abstract.find('{') + 1:latex_abstract.find('}')]
-
-    def get_paper(self, product_field: str) -> str:
-        """
-        Compose the paper from the different paper sections.
-        product_field can be one of the following:
-            'paper_sections'
-            'cited_paper_sections'
-            'tabled_paper_sections'
-            'most_updated_paper_sections'
-        """
-        paper_sections = getattr(self, product_field)
-        paper = ''
-        for section_name, section_content in paper_sections.items():
-            paper += f"``{section_name}``\n\n{section_content}\n\n\n"
-        return paper
+        latex = self.paper_sections_without_citations['abstract']
+        return latex[latex.find('{') + 1:latex.find('}')]
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
@@ -417,35 +369,15 @@ class ScientificProducts(Products):
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
                 ScientificStages.WRITING,
-                lambda: (self.most_updated_paper_sections['title'], self.most_updated_paper_sections['abstract']),
+                lambda: (self.paper_sections_without_citations['title'],
+                         self.paper_sections_without_citations['abstract']),
             ),
 
-            'paper_sections': NameDescriptionStageGenerator(
-                'Paper Sections',
+            'most_updated_paper': NameDescriptionStageGenerator(
+                'Most Updated Draft of the Paper',
                 '{}',
                 ScientificStages.WRITING,
-                lambda: self.get_paper("paper_sections")
-            ),
-
-            'cited_paper_sections_and_citations': NameDescriptionStageGenerator(
-                'Cited Paper Sections and Citations',
-                '{}\n\n\n``Citations``\n\n{}',
-                ScientificStages.CITATIONS,
-                lambda: (self.get_paper("cited_paper_sections"), self.citations),
-            ),
-
-            'tabled_paper_sections': NameDescriptionStageGenerator(
-                'Paper Sections with Tables',
-                '{}',
-                ScientificStages.TABLES,
-                lambda: self.get_paper("tabled_paper_sections")
-            ),
-
-            'most_updated_paper_sections': NameDescriptionStageGenerator(
-                'Most Updated Paper Sections',
-                '{}',
-                ScientificStages.WRITING,
-                lambda: self.get_paper("most_updated_paper_sections")
+                lambda: '\n\n'.join(self.tabled_paper_sections.values())
             ),
 
             'paper_sections:{}': NameDescriptionStageGenerator(
@@ -453,17 +385,7 @@ class ScientificProducts(Products):
                 'Here is the {section_name} section of the paper:\n\n{content}',
                 ScientificStages.WRITING,
                 lambda section_name: {'section_name': section_name.title(),
-                                      'content': self.paper_sections[section_name],
-                                      },
-            ),
-
-            'cited_paper_sections_and_citations:{}': NameDescriptionStageGenerator(
-                'The {section_name} Section of the Paper with Citations',
-                'Here is the cited {section_name} section of the paper:\n\n{content}\n\n``Citations``\n\n{citations}',
-                ScientificStages.CITATIONS,
-                lambda section_name: {'section_name': section_name.title(),
-                                      'content': self.cited_paper_sections[section_name],
-                                      'citations': self.citations[section_name],
+                                      'content': self.paper_sections_without_citations[section_name],
                                       },
             ),
 
@@ -473,15 +395,6 @@ class ScientificProducts(Products):
                 ScientificStages.TABLES,
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.tabled_paper_sections[section_name],
-                                      },
-            ),
-
-            'most_updated_paper_sections:{}': NameDescriptionStageGenerator(
-                'The most-updated {section_name} Section of the Paper',
-                'Here is the most-updated {section_name} section of the paper:\n\n{content}',
-                ScientificStages.TABLES,
-                lambda section_name: {'section_name': section_name.title(),
-                                      'content': self.most_updated_paper_sections[section_name],
                                       },
             ),
 
