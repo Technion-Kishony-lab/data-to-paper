@@ -42,7 +42,8 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please suggest a research goal and an hypothesis. 
-        The goal and hypothesis should be interesting and novel. 
+        The goal and hypothesis should be interesting and novel, testing complex associations and relationships, \
+        including mediation and moderation. 
         Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
 
         Do not suggest methodology. Just the goal and an hypothesis. 
@@ -50,6 +51,9 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of our data files \
         as in the description of the original dataset, above).
+        
+        Avoid goals and hypotheses that involve sociodemographic (Income, Education, etc.) and psychological \
+        (Mental Health) variables. Note that you can, and should still use these as confounding variables if needed.
 
         {quote_request}
         """)

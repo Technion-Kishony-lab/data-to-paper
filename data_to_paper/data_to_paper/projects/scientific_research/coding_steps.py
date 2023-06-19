@@ -180,7 +180,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
          'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan', 'tables_names')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'xgboost')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
     output_filename: str = 'results.txt'
     allowed_created_files: Tuple[str, ...] = ()
