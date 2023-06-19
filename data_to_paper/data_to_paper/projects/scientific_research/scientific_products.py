@@ -124,7 +124,7 @@ class ScientificProducts(Products):
     tables: Dict[str, List[str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
-    paper_sections_and_optional_citations: MemoryDict[str, Union[str, Tuple[str, Set[Citation]]]] = \
+    paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
     @property
