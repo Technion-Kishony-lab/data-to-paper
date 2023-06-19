@@ -95,11 +95,25 @@ class OpenaiSeverCaller(ServerCaller):
             else OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[None]
         openai.api_key = api_key
         openai.organization = organization
-        response = openai.ChatCompletion.create(
-            model=model_engine.value,
-            messages=[message.to_chatgpt_dict() for message in messages],
-            **kwargs,
-        )
+        for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
+            try:
+                response = openai.ChatCompletion.create(
+                    model=model_engine.value,
+                    messages=[message.to_chatgpt_dict() for message in messages],
+                    **kwargs,
+                )
+                break
+            except openai.error.InvalidRequestError:
+                raise
+            except openai.error.OpenAIError as e:
+                print_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
+                sleep_time = 1.0 * 2 ** attempt
+                print_red(f'Going to sleep for {sleep_time} seconds before trying again.')
+                time.sleep(sleep_time)
+                print(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_OPENAI_ATTEMPTS}) ...')
+        else:
+            raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')
+
         content = response['choices'][0]['message']['content']
         OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
         return content
@@ -147,22 +161,12 @@ def try_get_chatgpt_response(messages: List[Message],
     if tokens + expected_tokens_in_response < DEFAULT_MODEL_ENGINE.max_tokens and model_engine > DEFAULT_MODEL_ENGINE:
         print(f'WARNING: Consider using {DEFAULT_MODEL_ENGINE} (max {DEFAULT_MODEL_ENGINE.max_tokens} tokens).')
 
-    for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
-        try:
-            return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
-        except openai.error.InvalidRequestError as e:
-            # TODO: add here any other exception that can be addressed by changing the number of tokens
-            #     or bump up the model engine
-            if OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS in str(e):
-                return e
-            print(f'OPENAI error:\n{type(e)}\n{e}')
-        except NoMoreResponsesToMockError:
+    try:
+        return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+    except openai.error.InvalidRequestError as e:
+        # TODO: add here any other exception that can be addressed by changing the number of tokens
+        #     or bump up the model engine
+        if OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS in str(e):
+            return e
+        else:
             raise
-        except UserAbort:
-            raise
-        except Exception as e:
-            print(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
-        sleep_time = 1.0 * 2 ** attempt
-        print_red(f'Going to sleep for {sleep_time} seconds before trying again.')
-        time.sleep(sleep_time)
-    raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')
