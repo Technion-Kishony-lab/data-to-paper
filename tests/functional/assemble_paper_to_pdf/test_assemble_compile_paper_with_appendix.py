@@ -83,17 +83,15 @@ DATA_FILE_DESCRIPTION = DataFileDescriptions([TestDataFileDescription('data_file
 def products():
     return ScientificProducts(
         data_file_descriptions=DATA_FILE_DESCRIPTION,
-        paper_sections={'title': '\\title{content of title}',
-                        'abstract': '\\begin{abstract}content of abstract\\end{abstract}',
-                        'introduction': '\\section{Introduction}{content of introduction}',
-                        'methods': '\\section{Methods}{content of method}',
-                        'results': '\\section{Results}This is the results with table:',
-                        'discussion': '\\section{Discussion}{content of discussion}',
-                        'conclusion': '\\section{Conclusion}{content of conclusion}'},
-        cited_paper_sections_and_citations={'introduction': ('\\section{Introduction}'
-                                                             'This is the intro with citation'
-                                                             '\\cite{' + INTRODUCTION_CITATION_ID + '}',
-                                                             INTRODUCTION_CITATION)},
+        paper_sections_and_optional_citations={
+            'title': '\\title{content of title}',
+            'abstract': '\\begin{abstract}content of abstract\\end{abstract}',
+            'introduction': ('\\section{Introduction}This is the intro with citation'
+                             '\\cite{' + INTRODUCTION_CITATION_ID + '}', INTRODUCTION_CITATION),
+            'methods': '\\section{Methods}{content of method}',
+            'results': '\\section{Results}This is the results with table:',
+            'discussion': '\\section{Discussion}{content of discussion}',
+            'conclusion': '\\section{Conclusion}{content of conclusion}'},
         tables={'results': ["""\\begin{table}
                                 \\centering
                                 \\begin{tabular}{ *{3}{c} }

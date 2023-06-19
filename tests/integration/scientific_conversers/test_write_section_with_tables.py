@@ -28,10 +28,11 @@ def products():
                       "terms.",
         results_summary="The 20 first terms of the Fibonacci sequence are: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, "
                         "55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181.",
-        paper_sections={'title': r"\\title{Fast recursive Fibonacci sequence algorithm} ",
-                        'abstract': r"\\begin{abstract} The algorithm uses recursion to calculate the "
-                                    r"fibonacci sequence. It is the fastest known.\\end{abstract}",
-                        'results': r"\\section{Results}\nThe fastest algorithm known uses recursion in python. "
-                                   r"The 20 first term was first calculated in the paper by \\cite{Fibonacci}."},
+        cited_paper_sections_and_citations={
+            'title': (r"\\title{Fast recursive Fibonacci sequence algorithm} ", set()),
+            'abstract': (r"\\begin{abstract} The algorithm uses recursion to calculate the "
+                         r"fibonacci sequence. It is the fastest known.\\end{abstract}", set()),
+            'results': (r"\\section{Results}\nThe fastest algorithm known uses recursion in python. "
+                        r"The 20 first term was first calculated in the paper by \\cite{Fibonacci}.", set())},
         codes_and_outputs={'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt')},
     )

@@ -25,17 +25,15 @@ introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 @fixture
 def products():
     return ScientificProducts(
-        paper_sections={'title': '\\title{content of title}',
-                        'abstract': '\\begin{abstract}content of abstract\\end{abstract}',
-                        'introduction': '\\section{Introduction}{content of introduction}',
-                        'methods': '\\section{Methods}{content of method}',
-                        'results': '\\section{Results}{content of results}',
-                        'discussion': '\\section{Discussion}{content of discussion}',
-                        'conclusion': '\\section{Conclusion}{content of conclusion}', },
-        cited_paper_sections_and_citations={'introduction': ('\\section{Introduction}'
-                                                             'This is the intro with citation'
-                                                             '\\cite{' + introduction_citation_id + '}',
-                                                             introduction_citation)},
+        paper_sections_and_optional_citations=
+        {'title': ('\\title{content of title}', set()),
+         'abstract': ('\\begin{abstract}content of abstract\\end{abstract}', set()),
+         'introduction': ('\\section{Introduction}This is the intro with citation'
+                          '\\cite{' + introduction_citation_id + '}', introduction_citation),
+         'methods': ('\\section{Methods}{content of method}', set()),
+         'results': ('\\section{Results}{content of results}', set()),
+         'discussion': ('\\section{Discussion}{content of discussion}', set()),
+         'conclusion': ('\\section{Conclusion}{content of conclusion}', set()), },
         tables={'results': ["""\\begin{table}
                                 \\centering
                                 \\begin{tabular}{ *{3}{c} }
