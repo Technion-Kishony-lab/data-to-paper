@@ -38,8 +38,7 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         of the "United Kingdom National Core Data (UK-NCD)", the queries could be:  
         {
             "dataset": ["The UK-NCD dataset", "covid-19 vaccine efficacy dataset"]
-            "questions": ["covid-19 vaccine efficacy over time", "covid-19 vaccine waning", \
-            "ANY OTHER RELATED STUDY GOALS"]
+            "questions": ["covid-19 vaccine efficacy over time", "covid-19 vaccine waning"]
         }
         """)
 
@@ -60,8 +59,11 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
             num_queries = len(queries)
             number_of_papers_per_query = self.number_of_papers_per_scope // num_queries + 1
             for query in queries:
-                queries_to_citations[query] = \
-                    SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=number_of_papers_per_query)
+                citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=number_of_papers_per_query)
+                self.comment(f'\nQuerying Semantic Scholar for {number_of_papers_per_query} citations, for: '
+                             f'"{query}".\nFound {len(citations)} citations:\n{citations}')
+                queries_to_citations[query] = citations
+
             literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
         return literature_search
 

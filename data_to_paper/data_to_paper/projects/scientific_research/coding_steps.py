@@ -68,7 +68,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
     def list_additional_data_files_if_any(self) -> str:
         if len(self.files_created_in_prior_stages) == 0:
             return ''
-        return f'Or you can also use the processed files created above by the data processing code:\n' \
+        return f'\nOr you can also use the processed files created above by the data processing code:\n' \
                f'```\n' \
                f'{self.files_created_in_prior_stages}' \
                f'```\n' \
@@ -217,9 +217,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not write to any other files.
 
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
-
         {list_additional_data_files_if_any}
-
         As needed, you can use the following packages which are already installed:
         {supported_packages}
 
