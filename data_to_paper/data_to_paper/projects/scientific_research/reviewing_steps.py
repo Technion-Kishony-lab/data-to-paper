@@ -109,8 +109,9 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     request_decision: str = dedent_triple_quote_str("""
         Choose one of the following two options:
 
-        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing.
-        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised.
+        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing. Choice 1.
+        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised. \
+        Choice 2.
 
         {choice_instructions}
         """)
