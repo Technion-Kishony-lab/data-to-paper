@@ -41,6 +41,8 @@ def test_add_one_to_last_digit(x, y):
     ('4.725', 'both 4.73 or 4.72 are correct', []),
     ('4.72e05', '4.72 \\times 10^5,  0.472 \\times 10^6', []),
     ('4.72e-05', '4.72 \\times 10^{-5}', []),
+    ('0.127', '0.12', []),  # we allow rounding by truncation
+    ('0.13', '0.12', ['0.12']),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target)[0] == non_matching
