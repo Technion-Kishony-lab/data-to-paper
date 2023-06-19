@@ -88,7 +88,7 @@ def truncate_to_n_digits(str_number: str, n_digits: int, remove_sign: bool = Tru
             break
     if not is_after_point:
         power = power + len(str_number) - i - 1
-    truncated = float(str_number[:i+1]) * 10 ** power
+    truncated = float(str_number[:i + 1]) * 10 ** power
     if remove_sign:
         return abs(truncated)
     return truncated

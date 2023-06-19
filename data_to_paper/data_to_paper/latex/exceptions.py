@@ -100,7 +100,7 @@ class UnwantedCommandsUsedInLatex(data_to_paperException, ValueError):
 @dataclass
 class TooWideTableOrText(LatexProblemInCompilation):
     """
-    Raised when the latex content contains a table or text that is too wide (Overfull \hbox).
+    Raised when the latex content contains a table or text that is too wide (Overfull hbox).
     """
     problem_starting_term: str = r'Overfull \hbox '
 

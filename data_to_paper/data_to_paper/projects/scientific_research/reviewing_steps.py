@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, Dict, Any, List
+from typing import Tuple, Dict, Any
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
@@ -94,22 +94,22 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         From the literature search above, find the 3 papers whose results are most similar/overlapping with our \
         research goal and hypothesis.
-        
+
         Return your answer as a Python Dict[str, str] where the keys are ID and the values are the titles \
         of these 3 papers.
-        
+
         For example: 
         {
         "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
         "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
         "Doe2021TheLD", "Another title of a paper that may overlap with our goal or hypothesis",
         }
-        
+
         """)
 
     request_decision: str = dedent_triple_quote_str("""
-        Choose one of the following two options: 
-        
+        Choose one of the following two options:
+
         1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing.
         2. Our goal and hypothesis seem to completely overlap with existing literature, and should be revised.
 
@@ -282,10 +282,10 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
         Please check the above chosen table names, with specific attention to whether they \
         represent all the hypotheses we are testing, and can be created solely from the dataset provided.
-        
+
         If you find any issues, please provide bullet-point feedback.
         Or, if you are satisfied, please respond with "{termination_phrase}".
-        
+
         Note you must either approve the table names or provide feedback but not both.
         """)
 

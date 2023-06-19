@@ -183,7 +183,8 @@ class ScientificStepsRunner(BaseStepsRunner):
                 products.literature_search[step] = writing_class.from_(self).get_literature_search()
             else:
                 # writing section
-                sections_with_citations = writing_class.from_(self, section_names=section_names).write_sections_with_citations()
+                sections_with_citations = \
+                    writing_class.from_(self, section_names=section_names).write_sections_with_citations()
                 for section_name, section_and_citations in zip(section_names, sections_with_citations):
                     products.cited_paper_sections_and_citations[section_name] = section_and_citations
         self.send_product_to_client('cited_paper_sections_and_citations')
