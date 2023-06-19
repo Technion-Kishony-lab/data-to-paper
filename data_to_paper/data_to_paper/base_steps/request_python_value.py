@@ -2,12 +2,12 @@ from dataclasses import dataclass
 
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Tuple, get_args, Iterable, Set, Optional
+from typing import Any, Dict, Iterable, Optional, get_origin
 
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.utils import extract_text_between_tags
 from data_to_paper.utils.tag_pairs import TagPairs
-
+from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -15,26 +15,6 @@ TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     tuple: TagPairs('(', ')'),
     set: TagPairs('{', '}'),
 }
-
-
-def get_origin(t: type) -> type:
-    """
-    Get the origin of a type.
-
-    For example, get_origin(List[str]) is list.
-    """
-    if hasattr(t, '__origin__'):
-        return t.__origin__
-    return t
-
-
-def check_all_of_type(elements: Iterable, type_: type) -> bool:
-    """
-    Check if all elements in a list are of a certain type.
-    """
-    if type_ is Any:
-        return True
-    return all(isinstance(e, type_) for e in elements)
 
 
 @dataclass
@@ -49,10 +29,6 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     @property
     def parent_type(self) -> type:
         return get_origin(self.value_type)
-
-    @property
-    def child_types(self) -> Tuple[type, ...]:
-        return get_args(self.value_type)
 
     def _get_fresh_looking_response(self, response) -> str:
         """
@@ -93,19 +69,11 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         Validate that the response is given in the correct format. if not raise TypeError.
         """
-        if not isinstance(response_value, self.parent_type):
-            self._raise_self_response_error(f'object is not of type: {self.parent_type}')
-        if isinstance(response_value, dict):
-            if not check_all_of_type(response_value.keys(), self.child_types[0]):
-                self._raise_self_response_error(f'The dict keys must be of type: {self.child_types[0]}')
-            if not check_all_of_type(response_value.values(), self.child_types[1]):
-                self._raise_self_response_error(f'The dict values must be of type: {self.child_types[1]}')
-            return response_value
-        elif isinstance(response_value, (list, tuple, set)):
-            if not check_all_of_type(response_value, self.child_types[0]):
-                self._raise_self_response_error(f'The values must be of type: {self.child_types[0]}')
-            return response_value
-        raise NotImplementedError(f'format_type: {self.value_type} is not implemented')
+        try:
+            validate_value_type(response_value, self.value_type)
+        except WrongTypeException as e:
+            self._raise_self_response_error(e.message)
+        return response_value
 
     def _check_response_value(self, response_value: Any) -> Any:
         """
@@ -121,7 +89,7 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
     """
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """
-    requested_keys: Set[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
+    requested_keys: Iterable[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
 
     def _check_response_value(self, response_value: Any) -> Any:
         """
@@ -130,8 +98,7 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
         """
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
-            keys_in_response = set(response_value.keys())
-            if keys_in_response != self.requested_keys:
+            if set(response_value.keys()) != set(self.requested_keys):
                 self._raise_self_response_error(f'Your response should contain the keys: {self.requested_keys}')
 
         return check_response_value

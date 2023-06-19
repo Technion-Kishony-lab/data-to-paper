@@ -19,7 +19,7 @@ introduction_citation = {CrossrefCitation({
 }),
 }
 
-introduction_citation_id = next(iter(introduction_citation)).get_bibtex_id()
+introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 
 
 @fixture

@@ -9,7 +9,8 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
-
+from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.servers.types import Citation
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
@@ -52,6 +53,61 @@ def convert_description_of_created_files_to_string(description_of_created_files:
 
 
 @dataclass
+class LiteratureSearch:
+    scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
+
+    def get_queries_for_scope(self, scope: Optional[str]) -> List[str]:
+        """
+        Return the queries in the given scope.
+        if scope=None, return all queries.
+        """
+        if scope is None:
+            return self.get_all_queries()
+        return list(self.scopes_to_queries_to_citations[scope].keys())
+
+    def get_all_queries(self) -> List[str]:
+        queries = []
+        for queries_to_citations in self.scopes_to_queries_to_citations.values():
+            queries.extend(list(queries_to_citations.keys()))
+        return queries
+
+    def get_citations_for_scope(self, scope: Optional[str]) -> ListBasedSet[Citation]:
+        """
+        Return the citations in the given scope.
+        """
+        if scope is None:
+            return self.get_all_citations()
+        all_citations = ListBasedSet()
+        for citations in self.scopes_to_queries_to_citations[scope].values():
+            all_citations.update(citations)
+        return all_citations
+
+    def get_all_citations(self) -> ListBasedSet[Citation]:
+        all_citations = ListBasedSet()
+        for scope in self.scopes_to_queries_to_citations:
+            all_citations.update(self.get_citations_for_scope(scope))
+        return all_citations
+
+    def pretty_repr(self, with_scope_and_queries: bool = False) -> str:
+        s = ''
+        for scope in self.scopes_to_queries_to_citations:
+            if with_scope_and_queries:
+                s += f'Scope: {repr(scope)}\n'
+                s += f'Queries: {repr(self.get_queries_for_scope(scope))}\n\n'
+            s += self.pretty_repr_for_scope(scope)
+        return s
+
+    def pretty_repr_for_scope(self, scope: str) -> str:
+        return '\n'.join(citation.pretty_repr() for citation in self.get_citations_for_scope(scope))
+
+    def get_citation(self, bibtex_id: str) -> Optional[Citation]:
+        for citation in self.get_all_citations():
+            if citation.bibtex_id == bibtex_id:
+                return citation
+        return None
+
+
+@dataclass
 class ScientificProducts(Products):
     """
     Contains the different scientific outcomes of the research.
@@ -60,6 +116,7 @@ class ScientificProducts(Products):
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
+    literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
     analysis_plan: Optional[str] = None
     hypothesis_testing_plan: Optional[Dict[str, str]] = None
     tables_names: Dict[str, str] = field(default_factory=dict)
@@ -67,8 +124,16 @@ class ScientificProducts(Products):
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections: Dict[str, str] = field(default_factory=dict)
-    cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[CrossrefCitation]]] = field(default_factory=dict)
+    cited_paper_sections_and_citations: Dict[str, Tuple[str, Set[Citation]]] = field(default_factory=dict)
     # ready_to_be_tabled_paper_sections: Dict[str, str] = field(default_factory=dict)
+
+    @property
+    def pretty_hypothesis_testing_plan(self) -> str:
+        """
+        Return the hypothesis testing plan in a pretty way.
+        """
+        return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
+                         for hypothesis, test in self.hypothesis_testing_plan.items())
 
     @property
     def pretty_tables_names(self) -> str:
@@ -149,7 +214,9 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: self.add_tables_to_paper_section(self.paper_sections[section_name], section_tables)
+        return {section_name: self.add_tables_to_paper_section(
+            self.cited_paper_sections[section_name] if section_name in self.cited_paper_sections else
+            self.paper_sections[section_name], section_tables)
                 for section_name, section_tables in self.tables.items()}
 
     @staticmethod
@@ -178,13 +245,32 @@ class ScientificProducts(Products):
     @property
     def most_updated_paper_sections(self) -> Dict[str, str]:
         section_names_to_content = {}
-        for section_name, section in self.paper_sections.items():
-            if section_name in self.tables:
-                section = self.tabled_paper_sections[section_name]
-            elif section_name in self.cited_paper_sections:
+        section_names = ListBasedSet(self.paper_sections.keys()) | ListBasedSet(self.cited_paper_sections.keys())
+        for section_name in section_names:
+            if section_name in self.cited_paper_sections:
                 section = self.cited_paper_sections[section_name]
+            elif section_name in self.tabled_paper_sections:
+                section = self.tabled_paper_sections[section_name]
+            elif section_name in self.paper_sections:
+                section = self.paper_sections[section_name]
+            else:
+                raise ValueError(f'Unknown section name: {section_name}')
             section_names_to_content[section_name] = section
         return section_names_to_content
+
+    def get_title(self) -> str:
+        """
+        Return the title of the paper.
+        """
+        latex_title = self.most_updated_paper_sections['title']
+        return latex_title[latex_title.find('{') + 1:latex_title.find('}')]
+
+    def get_abstract(self) -> str:
+        """
+        Return the abstract of the paper.
+        """
+        latex_abstract = self.most_updated_paper_sections['abstract']
+        return latex_abstract[latex_abstract.find('{') + 1:latex_abstract.find('}')]
 
     def get_paper(self, product_field: str) -> str:
         """
@@ -244,7 +330,24 @@ class ScientificProducts(Products):
                 'Hypothesis Testing Plan',
                 'Here is our Hypothesis Testing Plan:\n\n{}',
                 ScientificStages.PLAN,
-                lambda: str(self.hypothesis_testing_plan),
+                lambda: str(self.pretty_hypothesis_testing_plan),
+            ),
+
+            'literature_search:{}': NameDescriptionStageGenerator(
+                'Literature Search',
+                'We did a Literature Search and here are the results:\n\n{}',
+                ScientificStages.WRITING,
+                lambda step: self.literature_search[step].pretty_repr(),
+            ),
+
+            'literature_search:{}:{}': NameDescriptionStageGenerator(
+                'Literature Search for {scope}',
+                'Here are the results of our Literature Search for {scope}:\n\n{papers}',
+                ScientificStages.WRITING,
+                lambda step, scope: {
+                    'scope': scope.title(),
+                    'papers': self.literature_search[step].pretty_repr_for_scope(scope),
+                },
             ),
 
             'codes:{}': NameDescriptionStageGenerator(
@@ -314,7 +417,7 @@ class ScientificProducts(Products):
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
                 ScientificStages.WRITING,
-                lambda: (self.paper_sections['title'], self.paper_sections['abstract']),
+                lambda: (self.most_updated_paper_sections['title'], self.most_updated_paper_sections['abstract']),
             ),
 
             'paper_sections': NameDescriptionStageGenerator(
