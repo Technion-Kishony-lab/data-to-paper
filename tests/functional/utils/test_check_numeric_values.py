@@ -1,7 +1,7 @@
 import pytest
 
 from data_to_paper.utils.check_numeric_values import extract_numeric_values, find_non_matching_numeric_values, \
-    add_one_to_last_digit, is_after_smaller_than_sign
+    add_one_to_last_digit, is_after_smaller_than_sign, truncate_to_n_digits
 
 
 @pytest.mark.parametrize('text, numbers', [
@@ -25,6 +25,21 @@ def test_add_one_to_last_digit(x, y):
     assert add_one_to_last_digit(x) == y
 
 
+@pytest.mark.parametrize('str_number, n_digits, expected', [
+    ('127', 2, 120),
+    ('127', 1, 100),
+    ('-127', 2, -120),
+    ('000127', 2, 120),
+    ('0.0127', 2, 0.012),
+    ('0.012712345', 2, 0.012),
+    ('-0.012712345', 2, -0.012),
+    ('0.0127e05', 2, 0.012e05),
+])
+def test_truncate_to_n_digits(str_number, n_digits, expected):
+    assert truncate_to_n_digits(str_number, n_digits, remove_sign=False) == expected
+    assert truncate_to_n_digits(str_number, n_digits, remove_sign=True) == abs(expected)
+
+
 @pytest.mark.parametrize('source, target, non_matching', [
     ('p-value 1.0187912, variance 10.0000001', 'p-value 1.02, variance 10.00', []),
     ('p-value 1.0187912, variance 10.0000001', 'p-value 1.01, variance 10.00', []),
@@ -41,6 +56,8 @@ def test_add_one_to_last_digit(x, y):
     ('4.725', 'both 4.73 or 4.72 are correct', []),
     ('4.72e05', '4.72 \\times 10^5,  0.472 \\times 10^6', []),
     ('4.72e-05', '4.72 \\times 10^{-5}', []),
+    ('0.127', '0.12', []),  # we allow rounding by truncation
+    ('0.13', '0.12', ['0.12']),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target)[0] == non_matching

@@ -60,6 +60,37 @@ def round_to_n_digits(str_number: str, n_digits: int) -> float:
     return float(f'{float(f"{number:.{n_digits}g}"):g}')
 
 
+def truncate_to_n_digits(str_number: str, n_digits: int, remove_sign: bool = True) -> float:
+    """
+    Truncate the given number to the given number of digits.
+    1.237 -> 1.23  (n_digits=3)
+    """
+    str_number = str_number.replace(',', '')
+    str_number, power = split_number_and_power(str_number)
+    digit_count = 0
+    is_leading_zero = True
+    is_after_point = False
+    for i in range(len(str_number)):
+        digit = str_number[i]
+        if digit == '-':
+            continue
+        if digit == '.':
+            is_after_point = True
+            continue
+        if is_leading_zero and digit != '0':
+            is_leading_zero = False
+        if not is_leading_zero:
+            digit_count += 1
+        if digit_count == n_digits:
+            break
+    if not is_after_point:
+        power = power + len(str_number) - i - 1
+    truncated = float(str_number[:i+1]) * 10 ** power
+    if remove_sign:
+        return abs(truncated)
+    return truncated
+
+
 def is_after_smaller_than_sign(str_number: str, target: str) -> Optional[bool]:
     """
     Check if the given string number extracted from the target str appear after a '<' sign.
@@ -99,15 +130,28 @@ def is_percentage(str_number: str, target: str, search_distance: int = 30) -> Op
     return False
 
 
-def is_any_matching_value_up_to_n_digits(source_str_numbers: List[str], target_number: float, n_digits: int
-                                         ) -> bool:
+def is_any_matching_value_after_rounding_to_n_digits(source_str_numbers: List[str], target_number: float,
+                                                     n_digits: int) -> bool:
     """
     Check if there exists a number in the source that matches after rounding to the given number of digits.
     """
-    return any(round_to_n_digits(source_number, n_digits) == target_number
-               for source_number in source_str_numbers) \
-        or any(round_to_n_digits(source_number[:-1] + '6', n_digits) == target_number
-               for source_number in source_str_numbers if source_number.endswith('5'))
+    any_match = \
+        any(round_to_n_digits(source_number, n_digits) == target_number
+            for source_number in source_str_numbers)
+    # if a number ends with '5' we allow also rounding it upwards
+    any_match = any_match or \
+        any(round_to_n_digits(source_number[:-1] + '6', n_digits) == target_number
+            for source_number in source_str_numbers if source_number.endswith('5'))
+    return any_match
+
+
+def is_any_matching_value_after_truncating_to_n_digits(source_str_numbers: List[str], target_number: float,
+                                                       n_digits: int) -> bool:
+    """
+    Check if there exists a number in the source that matches after rounding to the given number of digits.
+    """
+    return any(truncate_to_n_digits(source_number, n_digits) == target_number
+               for source_number in source_str_numbers)
 
 
 def get_number_of_significant_figures(str_number: str, remove_trailing_zeros: bool = True) -> int:
@@ -142,6 +186,15 @@ def add_one_to_last_digit(num_str):
     return ''.join(num_list)
 
 
+def split_number_and_power(str_number: str) -> Tuple[str, int]:
+    if 'e' in str_number:
+        str_number, power = str_number.split('e')
+        power = int(power)
+    else:
+        power = 0
+    return str_number, power
+
+
 def find_non_matching_numeric_values(source: str, target: str, ignore_int_below: int = 0,
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
@@ -163,11 +216,8 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     matching_str_numbers = []
     for str_target_number in str_target_numbers:
         str_target_number = str_target_number.lower()
-        if 'e' in str_target_number:
-            str_target_number, power = str_target_number.split('e')
-            power = int(power)
-        else:
-            power = 0
+
+        str_target_number, power = split_number_and_power(str_target_number)
 
         if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
             continue
@@ -183,17 +233,21 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
         num_digits = get_number_of_significant_figures(str_target_number, remove_trailing_zeros)
 
         for should_truncate in range(allow_truncating + 1):
-            if should_truncate:
-                to_check = add_one_to_last_digit(str_target_number)
-            else:
-                to_check = str_target_number
 
-            target_number = round_to_n_digits(to_check, num_digits) * 10 ** power
+            target_number = round_to_n_digits(str_target_number, num_digits) * 10 ** power
+            target_number_if_percent = round(target_number / 100, 10)  # round is just for python float precision
 
             # check that there exists a number in the source that matches after rounding to the same number of digits:
-            is_match_as_is = is_any_matching_value_up_to_n_digits(str_source_numbers, target_number, num_digits)
-            is_match_100 = is_any_matching_value_up_to_n_digits(str_source_numbers, round(target_number / 100, 10),
-                                                                num_digits)
+            if should_truncate:
+                is_match_as_is = is_any_matching_value_after_truncating_to_n_digits(
+                    str_source_numbers, target_number, num_digits)
+                is_match_100 = is_any_matching_value_after_truncating_to_n_digits(
+                    str_source_numbers, target_number_if_percent, num_digits)
+            else:
+                is_match_as_is = is_any_matching_value_after_rounding_to_n_digits(
+                    str_source_numbers, target_number, num_digits)
+                is_match_100 = is_any_matching_value_after_rounding_to_n_digits(
+                    str_source_numbers, target_number_if_percent, num_digits)
 
             # for now, we assume that any number might be a percentage, setting to None:
             is_target_percentage = None  # is_percentage(str_target_number, target)
