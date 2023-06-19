@@ -1,7 +1,7 @@
 import pytest
 
 from data_to_paper.utils.check_numeric_values import extract_numeric_values, find_non_matching_numeric_values, \
-    add_one_to_last_digit, is_after_smaller_than_sign
+    add_one_to_last_digit, is_after_smaller_than_sign, truncate_to_n_digits
 
 
 @pytest.mark.parametrize('text, numbers', [
@@ -23,6 +23,21 @@ def test_extract_numeric_values(text, numbers):
 ])
 def test_add_one_to_last_digit(x, y):
     assert add_one_to_last_digit(x) == y
+
+
+@pytest.mark.parametrize('str_number, n_digits, expected', [
+    ('127', 2, 120),
+    ('127', 1, 100),
+    ('-127', 2, -120),
+    ('000127', 2, 120),
+    ('0.0127', 2, 0.012),
+    ('0.012712345', 2, 0.012),
+    ('-0.012712345', 2, -0.012),
+    ('0.0127e05', 2, 0.012e05),
+])
+def test_truncate_to_n_digits(str_number, n_digits, expected):
+    assert truncate_to_n_digits(str_number, n_digits, remove_sign=False) == expected
+    assert truncate_to_n_digits(str_number, n_digits, remove_sign=True) == abs(expected)
 
 
 @pytest.mark.parametrize('source, target, non_matching', [
