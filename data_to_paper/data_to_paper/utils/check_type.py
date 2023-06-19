@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable, Any, Tuple, get_args, get_origin
+from typing import Iterable, Any, get_args, get_origin
 
 
 @dataclass
@@ -9,7 +9,7 @@ class WrongTypeException(Exception):
     Raised when a value is of the wrong type.
     """
     message: str = ''
-    
+
     def __str__(self):
         return self.message
 

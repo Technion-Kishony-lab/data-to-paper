@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Tuple, Dict, Set, Iterable, List
+from typing import Tuple, Dict, Iterable, List
 
 from data_to_paper.base_steps import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch, ScientificProducts
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
-    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 
@@ -26,15 +25,15 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
     user_agent: ScientificAgent = ScientificAgent.CitationExpert
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please write literature-search queries that we can use to search for papers related to our study.
-        
+
         You would need to compose search queries to identify prior papers covering these 2 areas:
-        
+
         "dataset": papers that use the same or similar datasets as in our study
         "questions": papers that ask questions similar to our study
 
         Return your answer as a `Dict[str, List[str]]`, where the keys are the 2 areas noted above, \
         and the values are lists of query string. Each individual query should be a string with up to 5-10 words. 
-        
+
         For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis \
         of the "United Kingdom National Core Data (UK-NCD)", the queries could be:  
         {

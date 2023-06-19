@@ -218,7 +218,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
-        
+
         Specifically, the introduction should follow the following paragraph structure:
 
         * Introduce the topic of the paper and why it is important \
@@ -232,12 +232,12 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 
         * Outline the methodological procedure and briefly state the main findings \
         (cite relevant papers from the above "Literature Search for Methods"). 
-        
+
         Each of these paragraphs should be 4-6 sentence long.
 
-        Citations should be added in the following format: \cite{paper_id}.
-        Do not add a \section{References} section, I will add it later manually.
-        
+        Citations should be added in the following format: \\cite{paper_id}.
+        Do not add a \\section{References} section, I will add it later manually.
+
         Note that there is no need to describe limitations, implications, or impact in the introduction.
         """)
 
@@ -379,9 +379,9 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
         * Discuss the limitations of the study.
         * End with a concluding paragraph summarizing the main results, their implications and impact, \
         and future directions.
-        
-        Citations should be added in the following format: \cite{paper_id}.
-        Do not add a \section{References} section, I will add it later manually.
+
+        Citations should be added in the following format: \\cite{paper_id}.
+        Do not add a \\section{References} section, I will add it later manually.
         """)
 
 
