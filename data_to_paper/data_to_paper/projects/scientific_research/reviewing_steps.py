@@ -92,17 +92,16 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        From the literature search above, find the 3 papers whose results are most similar/overlapping with our \
-        research goal and hypothesis.
+        From the literature search above, find the up to 3 papers whose results are most 
+        similar/overlapping with our research goal and hypothesis.
 
         Return your answer as a Python Dict[str, str] where the keys are ID and the values are the titles \
-        of these 3 papers.
+        of these most related papers.
 
         For example: 
         {
         "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
         "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
-        "Doe2021TheLD", "Another title of a paper that may overlap with our goal or hypothesis",
         }
 
         """)
@@ -111,7 +110,7 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
         Choose one of the following two options:
 
         1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing.
-        2. Our goal and hypothesis seem to completely overlap with existing literature, and should be revised.
+        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised.
 
         {choice_instructions}
         """)
