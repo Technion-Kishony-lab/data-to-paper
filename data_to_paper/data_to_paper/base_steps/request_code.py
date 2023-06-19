@@ -70,9 +70,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
         that may indicate that code improvements are needed), then choose one of the following options:
 
-        1. The results seem reasonable. Let's proceed.
+        1. The results seem reasonable. Let's proceed. Choice 1
 
-        2. Something is wrong. I need to go back and change/improve the code.
+        2. Something is wrong. I need to go back and change/improve the code. Choice 2
 
         {choice_instructions}
         """)  # set to None to skip option for revision

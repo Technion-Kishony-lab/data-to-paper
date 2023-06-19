@@ -242,10 +242,10 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Choose one of the following options:
 
         1. The output looks right, has everything we need for creating distinct Tables, \
-        and I therefore don't think we can further improve the code. Let's proceed.
+        and I therefore don't think we can further improve the code. Let's proceed. Choice 1.
 
         2. The output does not yet perfectly provides everything we need for the Tables. \
-        We should revise the code to make it better.
+        We should revise the code to make it better. Choice 2.
 
         {choice_instructions}
         """)  # set to None to skip option for revision
