@@ -33,7 +33,8 @@ def get_file_description(directory: Path, data_filename: str):
 
 
 def get_file_descriptions(input_directory: Path, data_filenames: List[str], data_folder: Path):
-    return DataFileDescriptions([get_file_description(input_directory, data_filename) for data_filename in data_filenames],
+    return DataFileDescriptions([get_file_description(input_directory, data_filename)
+                                 for data_filename in data_filenames],
                                 data_folder=data_folder,
                                 general_description=read_general_file_description(input_directory))
 
