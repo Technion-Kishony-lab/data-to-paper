@@ -4,10 +4,11 @@ from typing import Union
 
 import pytest
 
-from data_to_paper.servers.base_server import ServerCaller, NoMoreResponsesToMockError, convert_args_kwargs_to_tuple
+from data_to_paper.servers.base_server import ListServerCaller, DictServerCaller, \
+    NoMoreResponsesToMockError, convert_args_kwargs_to_tuple
 
 
-class MockServer(ServerCaller):
+class MockServer(ListServerCaller):
     @staticmethod
     def _get_server_response(response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
@@ -15,8 +16,12 @@ class MockServer(ServerCaller):
         return response
 
 
-class DictMockServer(MockServer):
-    as_dict = True
+class DictMockServer(DictServerCaller):
+    @staticmethod
+    def _get_server_response(response: Union[str, Exception] = 'response'):
+        if isinstance(response, Exception):
+            raise response
+        return response
 
 
 def test_server_mock_responses():

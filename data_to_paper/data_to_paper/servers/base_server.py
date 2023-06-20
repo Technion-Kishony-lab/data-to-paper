@@ -1,10 +1,11 @@
 import functools
 import os
+from abc import ABC
 
 from pathlib import Path
 from typing import Union
 
-from .json import save_to_json, load_from_json
+from .json import save_list_to_json, load_list_from_json
 
 
 class NoMoreResponsesToMockError(Exception):
@@ -15,20 +16,18 @@ def convert_args_kwargs_to_tuple(args, kwargs):
     return args, tuple(sorted(kwargs.items()))
 
 
-class ServerCaller:
+class ServerCaller(ABC):
     """
     A base class for calling a remote server, while allowing recording and replaying server responses.
     """
 
     name: str = None
     file_extension: str = None
-    as_dict: bool = False
 
     def __init__(self):
-        self.old_records = self.empty_dict_or_list
-        self.new_records = self.empty_dict_or_list
+        self.old_records = self.empty_records
+        self.new_records = self.empty_records
         self.args_kwargs_response_history = []  # for debugging
-        self.index_in_old_records = None if self.as_dict else 0
         self.is_playing_or_recording = False
         self.record_more_if_needed = False
         self.fail_if_not_all_responses_used = True
@@ -36,8 +35,12 @@ class ServerCaller:
         self.file_path = None
 
     @property
-    def empty_dict_or_list(self):
-        return {} if self.as_dict else []
+    def empty_records(self) -> Union[list, dict]:
+        raise NotImplementedError()
+
+    @property
+    def all_records(self) -> Union[list, dict]:
+        raise NotImplementedError()
 
     @staticmethod
     def _get_server_response(*args, **kwargs):
@@ -65,14 +68,14 @@ class ServerCaller:
         """
         saves the records to a file.
         """
-        save_to_json(records, filepath)
+        raise NotImplementedError()
 
     @staticmethod
     def _load_records(file):
         """
         loads the records from a file.
         """
-        return load_from_json(file)
+        raise NotImplementedError()
 
     def get_server_response(self, *args, **kwargs):
         """
@@ -84,26 +87,10 @@ class ServerCaller:
         return self._post_process_response(response)
 
     def _get_response_from_records(self, args, kwargs):
-        tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
-        if self.as_dict:
-            if tuple_args_and_kwargs in self.all_records:
-                return self.all_records[tuple_args_and_kwargs]
-            else:
-                return None
-        else:
-            if self.index_in_old_records < len(self.old_records):
-                response = self.old_records[self.index_in_old_records]
-                self.index_in_old_records += 1
-                return response
-            else:
-                return None
+        raise NotImplementedError()
 
     def _add_response_to_new_records(self, args, kwargs, response):
-        tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
-        if self.as_dict:
-            self.new_records[tuple_args_and_kwargs] = response
-        else:
-            self.new_records.append(response)
+        raise NotImplementedError()
 
     def _get_raw_server_response(self, *args, **kwargs):
         """
@@ -123,8 +110,7 @@ class ServerCaller:
         return response
 
     def __enter__(self):
-        self.new_records = self.empty_dict_or_list
-        self.index_in_old_records = None if self.as_dict else 0
+        self.new_records = self.empty_records
         self.is_playing_or_recording = True
         return self
 
@@ -132,9 +118,6 @@ class ServerCaller:
         self.is_playing_or_recording = False
         if self.should_save:
             self.save_records(self.file_path)
-        if not self.as_dict \
-                and self.fail_if_not_all_responses_used and self.index_in_old_records < len(self.old_records):
-            raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
         return False  # do not suppress exceptions
 
     def mock(self, old_records=None, record_more_if_needed=True, fail_if_not_all_responses_used=True,
@@ -142,20 +125,13 @@ class ServerCaller:
         """
         Returns a context manager to mock the server responses (specified as old_records).
         """
-        self.old_records = old_records or self.empty_dict_or_list
+        self.old_records = old_records or self.empty_records
         self.args_kwargs_response_history = []
         self.record_more_if_needed = record_more_if_needed
         self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
         self.should_save = should_save
         self.file_path = file_path
         return self
-
-    @property
-    def all_records(self):
-        if self.as_dict:
-            return self.old_records | self.new_records
-        else:
-            return self.old_records + self.new_records
 
     def save_records(self, file_path):
         """
@@ -210,3 +186,72 @@ class ServerCaller:
             return wrapper if should_mock else func
 
         return decorator
+
+
+class ListServerCaller(ServerCaller, ABC):
+    def __init__(self):
+        super().__init__()
+        self.index_in_old_records = 0
+
+    @property
+    def empty_records(self) -> list:
+        return []
+
+    @property
+    def all_records(self):
+        return self.old_records + self.new_records
+
+    def _get_response_from_records(self, args, kwargs):
+        if self.index_in_old_records < len(self.old_records):
+            response = self.old_records[self.index_in_old_records]
+            self.index_in_old_records += 1
+            return response
+        return None
+
+    def _add_response_to_new_records(self, args, kwargs, response):
+        self.new_records.append(response)
+
+    @staticmethod
+    def _save_records(records, filepath):
+        save_list_to_json(records, filepath)
+
+    @staticmethod
+    def _load_records(file):
+        return load_list_from_json(file)
+
+    def __enter__(self):
+        self.index_in_old_records = 0
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        results = super().__exit__(exc_type, exc_val, exc_tb)
+        if self.fail_if_not_all_responses_used and self.index_in_old_records < len(self.old_records):
+            raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
+        return results
+
+
+class DictServerCaller(ServerCaller, ABC):
+
+    @property
+    def empty_records(self) -> dict:
+        return {}
+
+    @property
+    def all_records(self):
+        return self.old_records | self.new_records
+
+    def _get_response_from_records(self, args, kwargs):
+        tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
+        return self.all_records.get(tuple_args_and_kwargs, None)
+
+    def _add_response_to_new_records(self, args, kwargs, response):
+        tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
+        self.new_records[tuple_args_and_kwargs] = response
+
+    @staticmethod
+    def _save_records(records, filepath):
+        save_list_to_json(records, filepath)
+
+    @staticmethod
+    def _load_records(file):
+        return load_list_from_json(file)
