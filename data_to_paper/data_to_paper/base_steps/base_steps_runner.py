@@ -27,8 +27,8 @@ class BaseStepsRunner(ProductsHandler):
     """
     ACTIONS_FILENAME = 'conversation_actions.pkl'
     OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
-    CROSSREF_RESPONSES_FILENAME = 'crossref_responses.txt'
-    SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.txt'
+    CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
+    SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
 
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
 

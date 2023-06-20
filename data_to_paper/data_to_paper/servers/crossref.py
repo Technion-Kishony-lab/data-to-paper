@@ -6,7 +6,7 @@ from unidecode import unidecode
 
 from data_to_paper.exceptions import data_to_paperException
 
-from .base_server import ServerCaller
+from .base_server import DictServerCaller
 from .types import Citation
 
 CROSSREF_URL = "https://api.crossref.org/works"
@@ -115,12 +115,12 @@ class CrossrefCitation(Citation):
         return bibtex_id
 
 
-class CrossrefServerCaller(ServerCaller):
+class CrossrefServerCaller(DictServerCaller):
     """
     Search for citations in Crossref.
     """
 
-    file_extension = "_crossref.txt"
+    file_extension = "_crossref.bin"
 
     @staticmethod
     def crossref_item_to_citation(item):

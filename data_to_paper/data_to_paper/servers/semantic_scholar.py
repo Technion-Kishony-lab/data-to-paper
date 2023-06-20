@@ -7,7 +7,7 @@ import requests
 from data_to_paper.env import S2_API_KEY
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.latex.latex_to_pdf import process_non_math_part
-from data_to_paper.servers.base_server import ServerCaller
+from data_to_paper.servers.base_server import DictServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.highlighted_text import print_red
@@ -78,12 +78,12 @@ class ServerErrorNoMatchesFoundForQuery(data_to_paperException):
         return f"Server wasn't able to find any matches for the query:\n {self.query}\n please try a different query."
 
 
-class SemanticScholarPaperServerCaller(ServerCaller):
+class SemanticScholarPaperServerCaller(DictServerCaller):
     """
     Search for citations with abstracts in Semantic Scholar.
     """
 
-    file_extension = "_semanticscholar_paper.txt"
+    file_extension = "_semanticscholar_paper.bin"
 
     @staticmethod
     def _get_server_response(query, rows=25) -> List[dict]:
@@ -133,12 +133,12 @@ class SemanticScholarPaperServerCaller(ServerCaller):
         return NiceList([SemanticCitation(paper) for paper in response], separator='\n', prefix='[\n', suffix='\n]')
 
 
-class SemanticScholarEmbeddingServerCaller(ServerCaller):
+class SemanticScholarEmbeddingServerCaller(DictServerCaller):
     """
     Embed "paper" (title + abstract) using SPECTER Semantic Scholar API.
     """
 
-    file_extension = "_semanticscholar_embedding.txt"
+    file_extension = "_semanticscholar_embedding.bin"
 
     @staticmethod
     def _get_server_response(paper: Dict[str, str]) -> np.ndarray:
