@@ -12,6 +12,7 @@ ON_CHANGE = Mutable(None)
 original_init = DataFrame.__init__
 original_to_string = DataFrame.to_string
 original_to_csv = DataFrame.to_csv
+original_describe = DataFrame.describe
 original_str = DataFrame.__str__
 original_setitem = DataFrame.__setitem__
 original_delitem = DataFrame.__delitem__
@@ -84,6 +85,14 @@ def to_csv(self, *args, **kwargs):
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
     _notify_on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result
+
+
+def describe(self, *args, **kwargs):
+    """
+    Removes the min, 25%, 50%, 75%, max rows from the result of the original describe function.
+    """
+    result = original_describe(self, *args, **kwargs)
+    return result.drop(['min', '25%', '50%', '75%', 'max'])
 
 
 def is_overriden(self):
