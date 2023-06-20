@@ -10,7 +10,16 @@ from data_to_paper.latex.latex_to_pdf import process_non_math_part
 from data_to_paper.servers.base_server import ServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
 from data_to_paper.servers.types import Citation
+from data_to_paper.utils.highlighted_text import print_red
 from data_to_paper.utils.nice_list import NiceList
+
+
+# TODO: this is part of the WORKAROUND. remove it when the bug is fixed.
+def remove_word(string, word):
+    import re
+    pattern = re.compile(r'\b{}\s*'.format(re.escape(word)), re.IGNORECASE)
+    return re.sub(pattern, '', string)
+
 
 HEADERS = {
     'x-api-key': S2_API_KEY
@@ -81,24 +90,40 @@ class SemanticScholarPaperServerCaller(ServerCaller):
         """
         Get the response from the semantic scholar server as a list of dict citation objects.
         """
-        params = {
-            "query": query,
-            "limit": rows,
-            "fields": "title,url,abstract,tldr,journal,year,citationStyles",  # can also add 'embedding'
-        }
 
-        response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
+        # TODO: THIS IS A WORKAROUND FOR A BUG IN SEMANTIC SCHOLAR. REMOVE WHEN FIXED.
+        words_to_remove_in_case_of_zero_citation_error = \
+            ('the', 'of', 'in', 'and', 'or', 'a', 'an', 'to', 'for', 'on', 'at', 'by', 'with', 'from', 'as', 'into',
+             'through', 'effect')
 
-        if response.status_code != 200:
-            raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
+        while True:
+            params = {
+                "query": query,
+                "limit": rows,
+                "fields": "title,url,abstract,tldr,journal,year,citationStyles",  # can also add 'embedding'
+            }
+            print_red(f"QUERYING SEMANTIC SCHOLAR WITH QUERY: {query}")
+            response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
 
-        data = response.json()
-        try:
-            papers = data["data"]
-        except KeyError:
-            papers = []
+            if response.status_code != 200:
+                raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
 
-        return papers
+            data = response.json()
+            try:
+                papers = data["data"]
+            except KeyError:
+                papers = []
+
+            if len(papers) > 0:
+                return papers
+
+            for word in words_to_remove_in_case_of_zero_citation_error:
+                if word in query.lower():
+                    print_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY")
+                    query = remove_word(query, word)
+                    break
+            else:
+                raise ServerErrorNoMatchesFoundForQuery(query=query)
 
     @staticmethod
     def _post_process_response(response):
