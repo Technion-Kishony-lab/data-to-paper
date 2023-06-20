@@ -12,7 +12,7 @@ import tiktoken
 from data_to_paper.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 from data_to_paper.utils.highlighted_text import print_red
 
-from .base_server import ServerCaller, NoMoreResponsesToMockError
+from .base_server import ServerCaller
 from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
