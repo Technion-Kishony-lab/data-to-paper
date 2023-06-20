@@ -106,6 +106,7 @@ FUNC_NAMES_TO_FUNCS = {
     '__str__': __str__,
     'to_string': to_string,
     'to_csv': to_csv,
+    'describe': describe,
 }
 
 
