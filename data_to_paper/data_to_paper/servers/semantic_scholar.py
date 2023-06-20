@@ -99,7 +99,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         while True:
             params = {
                 "query": query,
-                "limit": rows,
+                "limit": rows + 10,  # add 10 to make sure we get enough results after removing faulty ones
                 "fields": "title,url,abstract,tldr,journal,year,citationStyles",  # can also add 'embedding'
             }
             print_red(f"QUERYING SEMANTIC SCHOLAR WITH QUERY: {query}")
@@ -114,8 +114,9 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             except KeyError:
                 papers = []
 
-            if len(papers) > 0:
-                return papers
+            if len(papers) > 0:  # if there is no server bug
+                papers = [paper for paper in papers if SemanticCitation(paper).bibtex_id != 'None']
+                return papers[:rows]
 
             for word in words_to_remove_in_case_of_zero_citation_error:
                 if word in query.lower():
