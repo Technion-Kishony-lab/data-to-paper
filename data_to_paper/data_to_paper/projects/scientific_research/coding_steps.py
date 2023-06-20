@@ -204,6 +204,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         ## Results for Table 2:
         ... 
         etc
+        Remember that the results of nominal values should be accompanied by a measure of uncertainty (p-value, CI).
 
         (3) Create and output a Python Dict[str, Any] reporting any other numerical results you deem relevant \
         to our research paper.
