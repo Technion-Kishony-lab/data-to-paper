@@ -7,7 +7,7 @@ from data_to_paper.utils.types import IndexOrderedEnum
 MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     "gpt-3.5-turbo-0613": (4096, 0.0015, 0.002),
     "gpt-3.5-turbo-16k-0613": (16384, 0.003, 0.004),
-    "gpt-4-0613": (8192, 0.03, 0.06),
+    "gpt-4": (8192, 0.03, 0.06),
     # "gpt-4-32k": 32768,
 }
 
@@ -19,7 +19,7 @@ class ModelEngine(IndexOrderedEnum):
     """
     GPT35_TURBO = "gpt-3.5-turbo-0613"  # latest version that supports better system prompt adherence
     GPT35_TURBO_16 = "gpt-3.5-turbo-16k-0613"
-    GPT4 = "gpt-4-0613"
+    GPT4 = "gpt-4"
     # GPT4_32 = "gpt-4-32k"
 
     def __str__(self):
