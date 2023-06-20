@@ -83,7 +83,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
     Search for citations with abstracts in Semantic Scholar.
     """
 
-    file_extension = "_semanticscholar_paper.txt"
+    file_extension = "_semanticscholar_paper.bin"
 
     @staticmethod
     def _get_server_response(query, rows=25) -> List[dict]:
@@ -138,7 +138,7 @@ class SemanticScholarEmbeddingServerCaller(DictServerCaller):
     Embed "paper" (title + abstract) using SPECTER Semantic Scholar API.
     """
 
-    file_extension = "_semanticscholar_embedding.txt"
+    file_extension = "_semanticscholar_embedding.bin"
 
     @staticmethod
     def _get_server_response(paper: Dict[str, str]) -> np.ndarray:

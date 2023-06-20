@@ -120,7 +120,7 @@ class CrossrefServerCaller(DictServerCaller):
     Search for citations in Crossref.
     """
 
-    file_extension = "_crossref.txt"
+    file_extension = "_crossref.bin"
 
     @staticmethod
     def crossref_item_to_citation(item):

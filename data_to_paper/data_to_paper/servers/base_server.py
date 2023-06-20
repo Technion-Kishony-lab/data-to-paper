@@ -1,5 +1,6 @@
 import functools
 import os
+import pickle
 from abc import ABC
 
 from pathlib import Path
@@ -71,7 +72,7 @@ class ServerCaller(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def _load_records(file):
+    def _load_records(filepath):
         """
         loads the records from a file.
         """
@@ -216,8 +217,8 @@ class ListServerCaller(ServerCaller, ABC):
         save_list_to_json(records, filepath)
 
     @staticmethod
-    def _load_records(file):
-        return load_list_from_json(file)
+    def _load_records(filepath):
+        return load_list_from_json(filepath)
 
     def __enter__(self):
         self.index_in_old_records = 0
@@ -250,8 +251,10 @@ class DictServerCaller(ServerCaller, ABC):
 
     @staticmethod
     def _save_records(records, filepath):
-        save_list_to_json(records, filepath)
+        with open(filepath, 'wb') as file:
+            pickle.dump(records, file)
 
     @staticmethod
-    def _load_records(file):
-        return load_list_from_json(file)
+    def _load_records(filepath):
+        with open(filepath, 'rb') as filepath:
+            return pickle.load(filepath)
