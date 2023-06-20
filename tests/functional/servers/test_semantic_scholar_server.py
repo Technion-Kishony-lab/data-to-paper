@@ -1,11 +1,9 @@
 import numpy as np
+import pytest
 from _pytest.fixtures import fixture
+
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
-
-@fixture
-def query():
-    return "the distance between the earth and the moon"
 
 
 @fixture()
@@ -16,6 +14,10 @@ def paper():
             }
 
 
+@pytest.mark.parametrize('query', [
+    "Effect of physical activity on mental health and diabetes",  # this query somehow returns 0 results!
+    "Poor or fair self-rated health is associated with depressive symptoms and impaired perceived physical health",
+])
 def test_semantic_scholar_get_papers(query):
     papers = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query)
     assert len(papers) > 0
