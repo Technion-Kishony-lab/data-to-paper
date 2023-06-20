@@ -120,6 +120,8 @@ class CrossrefServerCaller(ServerCaller):
     Search for citations in Crossref.
     """
 
+    as_dict: bool = True
+
     file_extension = "_crossref.txt"
 
     @staticmethod
