@@ -96,10 +96,10 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        From the literature search above, find the up to 3 papers whose results are most 
-        similar/overlapping with our research goal and hypothesis.
+        From the literature search above, find the key papers whose results are most \
+        similar/overlapping with our research goal and hypothesis (up to a maximum of 3 papers).
 
-        Return your answer as a Python Dict[str, str] where the keys are ID and the values are the titles \
+        Return your answer as a Python Dict[str, str] where the keys are IDs and the values are the titles \
         of these most related papers.
 
         For example: 
@@ -107,7 +107,6 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
         "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
         "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
         }
-
         """)
 
     request_decision: str = dedent_triple_quote_str("""
@@ -270,7 +269,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         and the hypotheses we are testing.
         The names you choose should accurately describe the tables that will be produced in a later stage.
 
-        Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
+        Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
         You need to choose names for a maximum of 1-3 tables that will each present distinct non-overlapping \
         information.
 
