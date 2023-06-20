@@ -381,7 +381,7 @@ class ScientificProducts(Products):
             ),
 
             'paper_sections:{}': NameDescriptionStageGenerator(
-                'The {section_name} Section of the Paper',
+                '{section_name} Section of the Paper',
                 'Here is the {section_name} section of the paper:\n\n{content}',
                 ScientificStages.WRITING,
                 lambda section_name: {'section_name': section_name.title(),
@@ -390,7 +390,7 @@ class ScientificProducts(Products):
             ),
 
             'tabled_paper_sections:{}': NameDescriptionStageGenerator(
-                'The {section_name} Section of the Paper with Tables',
+                '{section_name} Section of the Paper with Tables',
                 'Here is the {section_name} section of the paper with tables:\n\n{content}',
                 ScientificStages.TABLES,
                 lambda section_name: {'section_name': section_name.title(),
@@ -399,14 +399,14 @@ class ScientificProducts(Products):
             ),
 
             'tables_names': NameDescriptionStageGenerator(
-                'The Names of the Tables of the Paper',
-                'Here are the names of the tables for the paper:\n\n{}',
+                'Names of the Tables of the Paper',
+                'Here are the Names of the Tables of the Paper:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.tables_names else self.pretty_tables_names,
             ),
 
             'tables': NameDescriptionStageGenerator(
-                'The Tables of the Paper',
+                'Tables of the Paper',
                 'Here are the tables we have for the paper:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.all_tables else
@@ -415,13 +415,13 @@ class ScientificProducts(Products):
             ),
 
             'tables_and_tables_names': NameDescriptionStageGenerator(
-                'The Tables of the Paper',
+                'Tables of the Paper',
                 '{tables}',
                 ScientificStages.TABLES,
                 lambda: {'tables': self.get_tables_names_and_content()}),
 
             'numeric_values': NameDescriptionStageGenerator(
-                'The Numeric Values of the Paper',
+                'Numeric Values of the Paper',
                 'Here are some key numeric values we can use to write the results of the paper:\n\n{}',
                 ScientificStages.INTERPRETATION,
                 lambda: None if not self.numeric_values else
@@ -432,7 +432,7 @@ class ScientificProducts(Products):
             ),
 
             'tables_and_numeric_values': NameDescriptionStageGenerator(
-                'The Tables and Numeric Values of the Paper',
+                'Tables and Numeric Values of the Paper',
                 '{tables}\n\n{numeric_values}',
                 ScientificStages.INTERPRETATION,
                 lambda: {'tables': self.get_description('tables'),

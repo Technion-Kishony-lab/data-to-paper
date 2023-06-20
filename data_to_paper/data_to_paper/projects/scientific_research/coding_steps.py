@@ -252,7 +252,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         2. The output does not yet perfectly provides everything we need for the Tables. There is missing data for one \
         or more tables, or one of the tests performed was incorrect, or there is anything else that may indicate that \
-        We should revise the code to make it better. Choice 2.
+        we should revise the code to make it better. Choice 2.
 
         {choice_instructions}
         """)  # set to None to skip option for revision

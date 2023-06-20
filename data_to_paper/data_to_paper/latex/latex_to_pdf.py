@@ -72,14 +72,12 @@ MATH_PATTERN = r"""
 def process_non_math_part(text):
     # Process non-math part and replace special characters if not already escaped
     processed_part = ""
-    i = 0
-    while i < len(text):
+    for i in range(len(text)):
         char = text[i]
         if char in CHARS and (i == 0 or text[i - 1] != '\\'):
             processed_part += CHARS[char]
         else:
             processed_part += char
-        i += 1
     return processed_part
 
 

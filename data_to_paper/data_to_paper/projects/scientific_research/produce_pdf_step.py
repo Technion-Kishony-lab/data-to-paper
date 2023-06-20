@@ -21,7 +21,7 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         Start by choosing section with tables, then cited sections, then without both of those.
         If there are references we also collect them to a set.
         """
-        return {section_name: self.products.paper_sections_without_citations[section_name]
+        return {section_name: self.products.tabled_paper_sections[section_name]
                 for section_name in self.get_paper_section_names()}, self.products.citations
 
 
