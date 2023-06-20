@@ -14,6 +14,11 @@ def paper():
             }
 
 
+@fixture()
+def query():
+    return "diabetes impact on health indicators"
+
+
 @pytest.mark.parametrize('query', [
     "Effect of physical activity on mental health and diabetes",  # this query somehow returns 0 results!
     "Poor or fair self-rated health is associated with depressive symptoms and impaired perceived physical health",
@@ -29,3 +34,8 @@ def test_semantic_scholar_get_paper_embedding(paper):
     embedding2 = SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response(paper)
     assert len(embedding1) > 0
     assert np.array_equal(embedding1, embedding2)
+
+
+def test_semantic_scholar_paper_bibtex_id_not_none(query):
+    papers = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=3)
+    assert all(paper.bibtex_id != 'None' for paper in papers)
