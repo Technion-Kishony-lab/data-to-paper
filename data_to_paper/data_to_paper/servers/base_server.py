@@ -11,6 +11,10 @@ class NoMoreResponsesToMockError(Exception):
     pass
 
 
+def convert_args_kwargs_to_tuple(args, kwargs):
+    return args, tuple(sorted(kwargs.items()))
+
+
 class ServerCaller:
     """
     A base class for calling a remote server, while allowing recording and replaying server responses.
@@ -18,17 +22,22 @@ class ServerCaller:
 
     name: str = None
     file_extension: str = None
+    as_dict: bool = False
 
     def __init__(self):
-        self.old_records = []
-        self.new_records = []
-        self.args_kwargs_response_history = []
-        self.index_in_old_records = 0
+        self.old_records = self.empty_dict_or_list
+        self.new_records = self.empty_dict_or_list
+        self.args_kwargs_response_history = []  # for debugging
+        self.index_in_old_records = None if self.as_dict else 0
         self.is_playing_or_recording = False
         self.record_more_if_needed = False
         self.fail_if_not_all_responses_used = True
         self.should_save = False
         self.file_path = None
+
+    @property
+    def empty_dict_or_list(self):
+        return {} if self.as_dict else []
 
     @staticmethod
     def _get_server_response(*args, **kwargs):
@@ -74,29 +83,48 @@ class ServerCaller:
             raise response
         return self._post_process_response(response)
 
+    def _get_response_from_records(self, args, kwargs):
+        tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
+        if self.as_dict:
+            if tuple_args_and_kwargs in self.all_records:
+                return self.all_records[tuple_args_and_kwargs]
+            else:
+                return None
+        else:
+            if self.index_in_old_records < len(self.old_records):
+                response = self.old_records[self.index_in_old_records]
+                self.index_in_old_records += 1
+                return response
+            else:
+                return None
+
+    def _add_response_to_new_records(self, args, kwargs, response):
+        tuple_args_and_kwargs = convert_args_kwargs_to_tuple(args, kwargs)
+        if self.as_dict:
+            self.new_records[tuple_args_and_kwargs] = response
+        else:
+            self.new_records.append(response)
+
     def _get_raw_server_response(self, *args, **kwargs):
         """
         returns the raw response from the server, allows recording and replaying.
         """
         if not self.is_playing_or_recording:
             return self._get_server_response_without_raising(*args, **kwargs)
-
-        if self.index_in_old_records < len(self.old_records):
-            response = self.old_records[self.index_in_old_records]
-            self.index_in_old_records += 1
-        else:
+        response = self._get_response_from_records(args, kwargs)
+        if response is None:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()
             response = self._get_server_response_without_raising(*args, **kwargs)
-            self.new_records.append(response)
+            self._add_response_to_new_records(args, kwargs, response)
             if self.should_save:
                 self.save_records(self.file_path)
         self.args_kwargs_response_history.append((args, kwargs, response))  # for debugging and testing
         return response
 
     def __enter__(self):
-        self.new_records = []
-        self.index_in_old_records = 0
+        self.new_records = self.empty_dict_or_list
+        self.index_in_old_records = None if self.as_dict else 0
         self.is_playing_or_recording = True
         return self
 
@@ -104,7 +132,8 @@ class ServerCaller:
         self.is_playing_or_recording = False
         if self.should_save:
             self.save_records(self.file_path)
-        if self.fail_if_not_all_responses_used and self.index_in_old_records < len(self.old_records):
+        if not self.as_dict \
+                and self.fail_if_not_all_responses_used and self.index_in_old_records < len(self.old_records):
             raise AssertionError(f'Not all responses were used ({self.__class__.__name__}).')
         return False  # do not suppress exceptions
 
@@ -113,7 +142,7 @@ class ServerCaller:
         """
         Returns a context manager to mock the server responses (specified as old_records).
         """
-        self.old_records = old_records or []
+        self.old_records = old_records or self.empty_dict_or_list
         self.args_kwargs_response_history = []
         self.record_more_if_needed = record_more_if_needed
         self.fail_if_not_all_responses_used = fail_if_not_all_responses_used
@@ -121,13 +150,20 @@ class ServerCaller:
         self.file_path = file_path
         return self
 
+    @property
+    def all_records(self):
+        if self.as_dict:
+            return self.old_records | self.new_records
+        else:
+            return self.old_records + self.new_records
+
     def save_records(self, file_path):
         """
         Save the recorded responses to a file.
         """
         # create the directory if not exist
         Path(os.path.dirname(file_path)).mkdir(parents=True, exist_ok=True)
-        self._save_records(self.old_records + self.new_records, file_path)
+        self._save_records(self.all_records, file_path)
 
     def mock_with_file(self, file_path, record_more_if_needed=True, fail_if_not_all_responses_used=True,
                        should_save=True):
