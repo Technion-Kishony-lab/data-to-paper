@@ -106,7 +106,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
 }
 
-NEEDS_NO_WRAPPING = {'python'}
+NEEDS_NO_WRAPPING = {'python', 'output'}
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '',
