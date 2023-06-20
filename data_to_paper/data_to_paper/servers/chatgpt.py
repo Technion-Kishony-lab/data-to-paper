@@ -12,7 +12,7 @@ import tiktoken
 from data_to_paper.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 from data_to_paper.utils.highlighted_text import print_red
 
-from .base_server import ServerCaller
+from .base_server import ListServerCaller
 from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
@@ -56,7 +56,7 @@ def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine
     return min(MAX_MODEL_ENGINE, model_engine)
 
 
-class OpenaiSeverCaller(ServerCaller):
+class OpenaiSeverCaller(ListServerCaller):
     """
     Class to call OpenAI API.
     """
