@@ -1,16 +1,14 @@
 import os
-from dataclasses import dataclass
 
 from typing import Union
 
 import pytest
 
-from data_to_paper.servers.base_server import ServerCaller, NoMoreResponsesToMockError
+from data_to_paper.servers.base_server import ListServerCaller, DictServerCaller, \
+    NoMoreResponsesToMockError, convert_args_kwargs_to_tuple
 
 
-@dataclass
-class MockServer(ServerCaller):
-
+class MockServer(ListServerCaller):
     @staticmethod
     def _get_server_response(response: Union[str, Exception] = 'response'):
         if isinstance(response, Exception):
@@ -18,12 +16,28 @@ class MockServer(ServerCaller):
         return response
 
 
-# tests
+class DictMockServer(DictServerCaller):
+    @staticmethod
+    def _get_server_response(response: Union[str, Exception] = 'response'):
+        if isinstance(response, Exception):
+            raise response
+        return response
+
+
 def test_server_mock_responses():
     server = MockServer()
     with server.mock(old_records=['response1', 'response2']) as mock:
         assert mock.get_server_response() == 'response1'
         assert mock.get_server_response() == 'response2'
+
+
+def test_dict_server_mock_responses():
+    server = DictMockServer()
+    with server.mock(old_records={convert_args_kwargs_to_tuple(('arg1', ), {}): 'response1',
+                                  convert_args_kwargs_to_tuple(('arg2', ), {}): 'response2'}) as mock:
+        assert mock.get_server_response('arg1') == 'response1'
+        assert mock.get_server_response('arg2') == 'response2'
+        assert mock.get_server_response('arg1') == 'response1'
 
 
 def test_server_mock_exception_when_no_responses_left():
@@ -34,12 +48,32 @@ def test_server_mock_exception_when_no_responses_left():
             mock.get_server_response()
 
 
+def test_dict_server_mock_exception_when_no_responses_matching():
+    server = DictMockServer()
+    with server.mock(old_records={convert_args_kwargs_to_tuple(('arg1', ), {}): 'response1',
+                                  convert_args_kwargs_to_tuple(('arg2', ), {}): 'response2'},
+                     record_more_if_needed=False) as mock:
+        assert mock.get_server_response('arg1') == 'response1'
+        with pytest.raises(NoMoreResponsesToMockError):
+            mock.get_server_response('arg3')
+
+
 def test_server_mock_records_when_runs_out_of_responses():
     server = MockServer()
     with server.mock(old_records=['response1'], record_more_if_needed=True) as mock:
         assert mock.get_server_response() == 'response1'
         assert mock.get_server_response() == 'response'
         assert mock.new_records == ['response']
+
+
+def test_dict_server_mock_records_when_args_not_matching_records():
+    server = DictMockServer()
+    with server.mock(old_records={convert_args_kwargs_to_tuple(('arg1', ), {}): 'response1',
+                                  convert_args_kwargs_to_tuple(('arg2', ), {}): 'response2'},
+                     record_more_if_needed=True) as mock:
+        assert mock.get_server_response('arg1') == 'response1'
+        assert mock.get_server_response('arg3') == 'arg3'
+        assert mock.new_records == {convert_args_kwargs_to_tuple(('arg3', ), {}): 'arg3'}
 
 
 def test_mock_server_exception():
