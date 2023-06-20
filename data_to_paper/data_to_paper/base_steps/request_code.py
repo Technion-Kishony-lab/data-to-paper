@@ -151,6 +151,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
                 enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,
                 supported_packages=self.supported_packages,
+                model_engine=self.model_engine,
             ).run_debugging()
             if code_and_output is None:
                 # debugging failed
