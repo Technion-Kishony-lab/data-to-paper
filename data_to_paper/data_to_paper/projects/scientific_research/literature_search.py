@@ -12,7 +12,7 @@ from data_to_paper.utils.nice_list import NiceDict, NiceList
 @dataclass
 class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    number_of_papers_per_query: int = 7
+    number_of_papers_per_scope: int = 7
     max_reviewing_rounds: int = 0
     requested_keys: Iterable[str] = ('dataset', 'questions', )
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan')
@@ -57,16 +57,17 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         literature_search = LiteratureSearch()
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}
+            num_queries = len(queries)
+            number_of_papers_per_query = self.number_of_papers_per_scope // num_queries + 1
             for query in queries:
                 queries_to_citations[query] = \
-                    SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=self.number_of_papers_per_query)
+                    SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=number_of_papers_per_query)
             literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
         return literature_search
 
 
 @dataclass
 class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
-    number_of_papers_per_query: int = 5
     requested_keys: Iterable[str] = ('background', 'dataset', 'methods', 'results')
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan',
                                                   'title_and_abstract')
