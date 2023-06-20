@@ -360,7 +360,7 @@ class ScientificProducts(Products):
 
             'outputs:{}': NameDescriptionStageGenerator(
                 'Output of the {code_name} Code',
-                'Here is the output of our {code_name} code:\n```\n{output}\n```\n',
+                'Here is the output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {'output': self.codes_and_outputs[code_step].output,
                                    'code_name': self.codes_and_outputs[code_step].name},

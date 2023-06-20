@@ -230,7 +230,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
         I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
-        ```
+        ```output
         {}
         ```
 
