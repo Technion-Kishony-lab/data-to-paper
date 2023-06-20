@@ -83,6 +83,8 @@ class SemanticScholarPaperServerCaller(ServerCaller):
     Search for citations with abstracts in Semantic Scholar.
     """
 
+    as_dict: bool = True
+
     file_extension = "_semanticscholar_paper.txt"
 
     @staticmethod
@@ -137,6 +139,8 @@ class SemanticScholarEmbeddingServerCaller(ServerCaller):
     """
     Embed "paper" (title + abstract) using SPECTER Semantic Scholar API.
     """
+
+    as_dict: bool = True
 
     file_extension = "_semanticscholar_embedding.txt"
 
