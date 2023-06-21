@@ -303,12 +303,12 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
     model_engine: ModelEngine = ModelEngine.GPT4
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions',
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
                                                   'tables_and_tables_names')
     table_name: str = None
     product_fields_from_which_response_is_extracted: Tuple[str] = \
-        ('data_file_descriptions', 'outputs:data_exploration', 'outputs:data_analysis',)
+        ('data_file_descriptions', 'outputs:data_analysis',)
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
