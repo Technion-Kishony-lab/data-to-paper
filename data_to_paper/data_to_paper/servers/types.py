@@ -48,14 +48,18 @@ class Citation(dict):
         return None
 
     @property
+    def influence(self) -> int:
+        return 0
+
+    @property
     def journal_and_year(self) -> Optional[str]:
         if self.journal is None or self.year is None:
             return None
         return f'{self.journal} ({self.year})'
 
     def pretty_repr(self,
-                    fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr'),
-                    names: Iterable[str] = ('ID', 'Title', 'Journal and Year', 'TLDR'),
+                    fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence'),
+                    names: Iterable[str] = ('ID', 'Title', 'Journal and Year', 'TLDR', 'Citation influence'),
                     ) -> str:
         """
         Get a pretty representation of the citation.
@@ -66,7 +70,7 @@ class Citation(dict):
             value = getattr(self, field, None)
             if value is None:
                 continue
-            s += f'{name}: "{value}"\n'
+            s += f'{name}: {repr(value)}\n'
         s += '\n'
         return s
 
