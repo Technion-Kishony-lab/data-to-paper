@@ -1,6 +1,20 @@
 from typing import Iterable, Optional
 
 
+FILEDS_TO_NAMES = {
+    'bibtex_id': 'ID',
+    'title': 'Title',
+    'journal': 'Journal',
+    'journal_and_year': 'Journal and year',
+    'tldr': 'TLDR',
+    'abstract': 'Abstract',
+    'year': 'Year',
+    'influence': 'Citation influence',
+    'query': 'Query',
+    'search_rank': 'Search rank',
+}
+
+
 class Citation(dict):
     """
     A citation of a paper.
@@ -60,15 +74,15 @@ class Citation(dict):
 
     def pretty_repr(self,
                     fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence'),
-                    names: Iterable[str] = ('ID', 'Title', 'Journal and Year', 'TLDR', 'Citation influence'),
                     ) -> str:
         """
         Get a pretty representation of the citation.
         Allows specifying which fields to include.
         """
         s = ''
-        for field, name in zip(fields, names):
-            value = getattr(self, field, None)
+        for field in fields:
+            name = FILEDS_TO_NAMES[field]
+            value = getattr(self, field, field)
             if value is None:
                 continue
             s += f'{name}: {repr(value)}\n'
