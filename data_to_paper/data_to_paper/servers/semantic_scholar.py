@@ -131,10 +131,11 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 raise ServerErrorNoMatchesFoundForQuery(query=query)
 
     @staticmethod
-    def _post_process_response(response):
+    def _post_process_response(response, args, kwargs):
         """
         Post process the response from the server.
         """
+        query = args[0] if len(args) > 0 else kwargs.get('query', None)
         citations = NiceList(separator='\n', prefix='[\n', suffix='\n]')
         for rank, paper in enumerate(response):
 
@@ -147,7 +148,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                     print_red(f"ERROR: embedding is not in the expected format. skipping."
                               f"Title: {paper.get('title', None)}")
                     continue
-            citations.append(SemanticCitation(paper, search_rank=rank))
+            citations.append(SemanticCitation(paper, search_rank=rank, query=query))
         return citations
 
 
@@ -177,7 +178,7 @@ class SemanticScholarEmbeddingServerCaller(DictServerCaller):
         return np.array(paper_embedding)
 
     @staticmethod
-    def _post_process_response(response):
+    def _post_process_response(response, args, kwargs):
         """
         Post process the response from the server.
         """
