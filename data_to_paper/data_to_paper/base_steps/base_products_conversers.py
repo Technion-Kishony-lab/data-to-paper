@@ -206,19 +206,27 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     report_non_match_prompt: str = dedent_triple_quote_str("""
         Some of the specified values {} are not explicitly extracted from the provided data \
         (see above: {names_of_products_from_which_to_extract}).
-        Please retry while making sure to only include values extracted from the outputs provided above.
+        
+        Please correct these numbers so that they are correctly extracted, or correctly rounded, \
+        from the code outputs provided above.
         {ask_for_formula_prompt}
     """)
 
-    ask_for_formula_prompt: str = dedent_triple_quote_str("""
-        If you would like to indicate a number which is not a direct extraction from the numbers provided above, \
-        but is rather mathematically derived from them, do not write it directly; provide instead the relevant \
-        formula for the number, enclosed within square brackets. 
-        For example, if you would like to specify the difference between two provided numbers 87 and 22, \
-        do not write "The difference is 65", but instead provide the formula:
+    ask_for_formula_prompt: str = dedent_triple_quote_str("""\n
+        Alternatively, if you would like to indicate a number which is NOT an extraction or rounding from the numbers 
+        provided above, \
+        but is rather mathematically derived from them, then follow these guidelines:
+        * At the place where you want to put this derived number, replace it instead with a formula, \
+        enclosed within square brackets. 
+        * The square brackets should be written as "[<formula> = <number>]", where <formula> is the formula \
+        you used to derive the number, and <number> is the number you derived.
+        
+        For example, if you would like to specify the difference between two numbers, say 87 and 22, \
+        provided in the code output, \
+        then do not write "The difference is 65", but instead provide the formula:
         "The difference is [87 - 22 = 65]". 
-        This will help me understand how you got to the number and I will then later replace the formula with \
-        the actual number.
+        This will help me understand how you got to the number. I will later manually replace any formulas with \
+        the actual numbers.
         """)  # set to None or '' to disable formula-writing option
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
