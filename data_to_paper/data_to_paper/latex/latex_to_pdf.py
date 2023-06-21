@@ -138,11 +138,11 @@ def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List
 def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None):
     with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
-    save_latex_and_compile_to_pdf(latex_document, file_stem, output_directory)
+    save_latex_and_compile_to_pdf(latex_document, file_stem, output_directory, compile_check=True)
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
-                                  references: Set[CrossrefCitation] = None):
+                                  references: Set[CrossrefCitation] = None, compile_check: bool = False):
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
@@ -162,7 +162,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         except subprocess.CalledProcessError as e:
             raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
 
-        if r'Overfull \hbox' in pdflatex_output.stdout.decode('utf-8'):
+        if r'Overfull \hbox' in pdflatex_output.stdout.decode('utf-8') and compile_check:
             raise TooWideTableOrText(latex_content=latex_content,
                                      pdflatex_output=pdflatex_output.stdout.decode('utf-8'))
 
