@@ -81,7 +81,7 @@ class LiteratureSearch:
             return sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
         return list(self.scopes_to_queries_to_citations[scope].keys())
 
-    def get_citations(self, scope: Optional[str] = None, total: int = None) -> List[Citation]:
+    def get_citations(self, scope: Optional[str] = None, total: int = None, should_sort: bool = True) -> List[Citation]:
         """
         Return the citations in the given scope.
         If embedding_target is not None, sort the citations by embedding similarity.
@@ -93,7 +93,7 @@ class LiteratureSearch:
         else:
             citations = reduce(or_, self.scopes_to_queries_to_citations[scope].values(), empty)
         citations = list(citations)
-        if self.embedding_target is not None:
+        if should_sort and self.embedding_target is not None:
             citations = sort_citations_by_embedding_similarity(citations, self.embedding_target)
         return citations[:total]
 
@@ -106,8 +106,8 @@ class LiteratureSearch:
             s += self.pretty_repr_for_scope(scope)
         return s
 
-    def pretty_repr_for_scope(self, scope: str) -> str:
-        return '\n'.join(citation.pretty_repr() for citation in self.get_citations(scope))
+    def pretty_repr_for_scope(self, scope: str, total: int = None, should_sort: bool = True) -> str:
+        return '\n'.join(citation.pretty_repr() for citation in self.get_citations(scope, total, should_sort))
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
         for citation in self.get_citations():
@@ -300,13 +300,13 @@ class ScientificProducts(Products):
                 lambda step: self.literature_search[step].pretty_repr(),
             ),
 
-            'literature_search_by_scope:{}:{}': NameDescriptionStageGenerator(
+            'literature_search_by_scope:{}:{}:{}': NameDescriptionStageGenerator(
                 'Literature Search for {scope}',
                 'Here are the results of our Literature Search for {scope}:\n\n{papers}',
                 ScientificStages.WRITING,
-                lambda step, scope: {
+                lambda step, scope, total: {
                     'scope': scope.title(),
-                    'papers': self.literature_search[step].pretty_repr_for_scope(scope),
+                    'papers': self.literature_search[step].pretty_repr_for_scope(scope, int(total)),
                 },
             ),
 
