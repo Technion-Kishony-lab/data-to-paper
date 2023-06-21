@@ -3,6 +3,7 @@ from functools import reduce
 from typing import Optional, Dict, Tuple, Set, List, Union
 from operator import or_
 
+import numpy as np
 
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex.tables import add_tables_to_paper_section
@@ -56,9 +57,20 @@ def convert_description_of_created_files_to_string(description_of_created_files:
     )
 
 
+def sort_citations_by_embedding_similarity(citations: List[Citation], embedding: np.ndarray) -> List[Citation]:
+    """
+    Sort the citations by embedding similarity.
+    """
+    embeddings = np.array([citation['embedding'] for citation in citations])
+    similarities = np.dot(embeddings, embedding)
+    indices = np.argsort(similarities)[::-1]
+    return [citations[i] for i in indices]
+
+
 @dataclass
 class LiteratureSearch:
     scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
+    embedding_target: Optional[np.ndarray] = None
 
     def get_queries(self, scope: Optional[str] = None) -> List[str]:
         """
@@ -80,6 +92,9 @@ class LiteratureSearch:
             citations = reduce(or_, [self.get_citations(scope) for scope in self.scopes_to_queries_to_citations], empty)
         else:
             citations = reduce(or_, self.scopes_to_queries_to_citations[scope].values(), empty)
+        citations = list(citations)
+        if self.embedding_target is not None:
+            citations = sort_citations_by_embedding_similarity(citations, self.embedding_target)
         return citations[:total]
 
     def pretty_repr(self, with_scope_and_queries: bool = False) -> str:
