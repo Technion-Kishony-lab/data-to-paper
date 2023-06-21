@@ -1,5 +1,8 @@
 from dataclasses import dataclass, field
+from functools import reduce
 from typing import Optional, Dict, Tuple, Set, List, Union
+from operator import or_
+
 
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex.tables import add_tables_to_paper_section
@@ -57,52 +60,42 @@ def convert_description_of_created_files_to_string(description_of_created_files:
 class LiteratureSearch:
     scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
 
-    def get_queries_for_scope(self, scope: Optional[str]) -> List[str]:
+    def get_queries(self, scope: Optional[str] = None) -> List[str]:
         """
         Return the queries in the given scope.
         if scope=None, return all queries.
         """
         if scope is None:
-            return self.get_all_queries()
+            return sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
         return list(self.scopes_to_queries_to_citations[scope].keys())
 
-    def get_all_queries(self) -> List[str]:
-        queries = []
-        for queries_to_citations in self.scopes_to_queries_to_citations.values():
-            queries.extend(list(queries_to_citations.keys()))
-        return queries
-
-    def get_citations_for_scope(self, scope: Optional[str]) -> ListBasedSet[Citation]:
+    def get_citations(self, scope: Optional[str] = None, total: int = None) -> List[Citation]:
         """
         Return the citations in the given scope.
+        If embedding_target is not None, sort the citations by embedding similarity.
+        If total is not None, return only the first total citations.
         """
+        empty = ListBasedSet()
         if scope is None:
-            return self.get_all_citations()
-        all_citations = ListBasedSet()
-        for citations in self.scopes_to_queries_to_citations[scope].values():
-            all_citations.update(citations)
-        return all_citations
-
-    def get_all_citations(self) -> ListBasedSet[Citation]:
-        all_citations = ListBasedSet()
-        for scope in self.scopes_to_queries_to_citations:
-            all_citations.update(self.get_citations_for_scope(scope))
-        return all_citations
+            citations = reduce(or_, [self.get_citations(scope) for scope in self.scopes_to_queries_to_citations], empty)
+        else:
+            citations = reduce(or_, self.scopes_to_queries_to_citations[scope].values(), empty)
+        return citations[:total]
 
     def pretty_repr(self, with_scope_and_queries: bool = False) -> str:
         s = ''
         for scope in self.scopes_to_queries_to_citations:
             if with_scope_and_queries:
                 s += f'Scope: {repr(scope)}\n'
-                s += f'Queries: {repr(self.get_queries_for_scope(scope))}\n\n'
+                s += f'Queries: {repr(self.get_queries(scope))}\n\n'
             s += self.pretty_repr_for_scope(scope)
         return s
 
     def pretty_repr_for_scope(self, scope: str) -> str:
-        return '\n'.join(citation.pretty_repr() for citation in self.get_citations_for_scope(scope))
+        return '\n'.join(citation.pretty_repr() for citation in self.get_citations(scope))
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
-        for citation in self.get_all_citations():
+        for citation in self.get_citations():
             if citation.bibtex_id == bibtex_id:
                 return citation
         return None
