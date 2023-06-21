@@ -107,4 +107,15 @@ class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
                 "paper_id": "",
                 "title": self.products.get_title(),
                 "abstract": self.products.get_abstract()})
+
+        for scope in literature_search.scopes_to_queries_to_citations.keys():
+            for query in literature_search.scopes_to_queries_to_citations[scope].keys():
+                print(f'\n\nScope: "{scope}", Query: "{query}"')
+                print(f'First 3 UNSORTED papers:')
+                print(literature_search.pretty_repr_for_scope_and_query(scope, query, total=3, sort_by_similarity=False, minimal_influence=2))
+                print(f'First 3 SORTED papers:')
+                print(literature_search.pretty_repr_for_scope_and_query(scope, query, total=3, sort_by_similarity=True, minimal_influence=2))
+                print(f'Last 3 SORTED papers:')
+                print(literature_search.pretty_repr_for_scope_and_query(scope, query, total=-3, sort_by_similarity=True, minimal_influence=2))
+
         return literature_search
