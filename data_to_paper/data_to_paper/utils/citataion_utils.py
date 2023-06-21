@@ -27,6 +27,18 @@ def remove_citations_from_section(section):
     return section
 
 
+def get_non_latex_citations(section):
+    """
+    Get the citations that are not in latex format, i.e., not in the form \cite{citation_id_1, citation_id2}.
+    for example find any APA citation in the form (Author, year) or (Author et al., year) or (Author, year, p. 123).
+    """
+    # find all types of APA citations including without et al. and page number
+    pattern = r'\([^\)]*,[^\)]*\)'
+    matches = re.findall(pattern, section)
+    non_latex_citations = [match.strip() for match in matches]
+    return non_latex_citations
+
+
 def choose_first_citation(sentence_citations):
     """
     Choose the first citation for the sentence, if any.

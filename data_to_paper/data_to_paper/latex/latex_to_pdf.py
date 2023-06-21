@@ -8,7 +8,8 @@ from typing import Set, Optional, List
 from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 
-from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex, TooWideTableOrText
+from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex, TooWideTableOrText, NonLatexCitations
+from ..utils.citataion_utils import get_non_latex_citations
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
@@ -133,6 +134,12 @@ def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List
     unwanted_commands_used = [c for c in unwanted_commands if c in latex_content]
     if unwanted_commands_used:
         raise UnwantedCommandsUsedInLatex(unwanted_commands_used)
+
+
+def check_non_latex_citations(latex_content: str):
+    non_latex_citations = get_non_latex_citations(latex_content)
+    if non_latex_citations:
+        raise NonLatexCitations(non_latex_citations)
 
 
 def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None):

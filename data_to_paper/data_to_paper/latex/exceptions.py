@@ -98,6 +98,19 @@ class UnwantedCommandsUsedInLatex(data_to_paperException, ValueError):
 
 
 @dataclass
+class NonLatexCitations(data_to_paperException, ValueError):
+    """
+    Raised when there are citations that are not written using latex \\cite{} command.
+    """
+    non_latex_citations: list
+
+    def __str__(self):
+        return f'The following citations are not written using latex \\cite{{}} command:\n' \
+               f'{self.non_latex_citations}\n\n' \
+               f'Please use latex \\cite{{}} command to write citations.\n\n'
+
+
+@dataclass
 class TooWideTableOrText(LatexProblemInCompilation):
     """
     Raised when the latex content contains a table or text that is too wide (Overfull hbox).
