@@ -7,7 +7,6 @@ from data_to_paper.projects.scientific_research.scientific_products import Scien
 from data_to_paper.projects.scientific_research.get_template import get_paper_template_path
 from data_to_paper.servers.crossref import CrossrefCitation
 
-
 introduction_citation = {CrossrefCitation({
     "title": "Extended reporting guidance for vaccine effectiveness studies for variants of concern for COVID-19",
     "first_author_family": "Linkins",
@@ -25,15 +24,16 @@ introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 @fixture
 def products():
     return ScientificProducts(
-        paper_sections_and_optional_citations=
-        {'title': ('\\title{content of title}', set()),
-         'abstract': ('\\begin{abstract}content of abstract\\end{abstract}', set()),
-         'introduction': ('\\section{Introduction}This is the intro with citation'
-                          '\\cite{' + introduction_citation_id + '}', introduction_citation),
-         'methods': ('\\section{Methods}{content of method}', set()),
-         'results': ('\\section{Results}{content of results}', set()),
-         'discussion': ('\\section{Discussion}{content of discussion}', set()),
-         'conclusion': ('\\section{Conclusion}{content of conclusion}', set()), },
+        paper_sections_and_optional_citations={'title': ('\\title{content of title}', set()),
+                                               'abstract': (
+                                               '\\begin{abstract}content of abstract\\end{abstract}', set()),
+                                               'introduction': ('\\section{Introduction}This is the intro with citation'
+                                                                '\\cite{' + introduction_citation_id + '}',
+                                                                introduction_citation),
+                                               'methods': ('\\section{Methods}{content of method}', set()),
+                                               'results': ('\\section{Results}{content of results}', set()),
+                                               'discussion': ('\\section{Discussion}{content of discussion}', set()),
+                                               'conclusion': ('\\section{Conclusion}{content of conclusion}', set()), },
         tables={'results': ["""\\begin{table}
                                 \\centering
                                 \\begin{tabular}{ *{3}{c} }

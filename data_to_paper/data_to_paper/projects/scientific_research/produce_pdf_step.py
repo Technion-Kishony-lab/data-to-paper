@@ -8,7 +8,6 @@ from data_to_paper.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.text_formatting import wrap_python_code
-from data_to_paper.utils.types import ListBasedSet
 
 
 @dataclass

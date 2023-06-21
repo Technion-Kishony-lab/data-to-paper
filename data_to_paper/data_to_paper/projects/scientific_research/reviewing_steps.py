@@ -51,7 +51,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of our data files \
         as in the description of the original dataset, above).
-        
+
         Avoid goals and hypotheses that involve sociodemographic (Income, Education, etc.) and psychological \
         (Mental Health) variables. Note that you can, and should still use these as confounding variables if needed.
 
