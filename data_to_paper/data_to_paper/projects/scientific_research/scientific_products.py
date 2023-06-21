@@ -81,7 +81,8 @@ class LiteratureSearch:
             return sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
         return list(self.scopes_to_queries_to_citations[scope].keys())
 
-    def get_citations(self, scope: Optional[str] = None, total: int = None, should_sort: bool = True) -> List[Citation]:
+    def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
+                      total: int = None, sort_by_similarity: bool = True) -> List[Citation]:
         """
         Return the citations in the given scope.
         If embedding_target is not None, sort the citations by embedding similarity.
@@ -90,11 +91,19 @@ class LiteratureSearch:
         empty = ListBasedSet()
         if scope is None:
             citations = reduce(or_, [self.get_citations(scope) for scope in self.scopes_to_queries_to_citations], empty)
-        else:
+        elif query is None:
             citations = reduce(or_, self.scopes_to_queries_to_citations[scope].values(), empty)
+        else:
+            citations = self.scopes_to_queries_to_citations[scope][query]
         citations = list(citations)
-        if should_sort and self.embedding_target is not None:
+        if sort_by_similarity and self.embedding_target is not None:
             citations = sort_citations_by_embedding_similarity(citations, self.embedding_target)
+        else:
+            citations = sorted(citations, key=lambda citation: citation.search_rank)
+        if total is None:
+            return citations
+        if total < 0:
+            return citations[total:]
         return citations[:total]
 
     def pretty_repr(self, with_scope_and_queries: bool = False) -> str:
@@ -103,11 +112,14 @@ class LiteratureSearch:
             if with_scope_and_queries:
                 s += f'Scope: {repr(scope)}\n'
                 s += f'Queries: {repr(self.get_queries(scope))}\n\n'
-            s += self.pretty_repr_for_scope(scope)
+            s += self.pretty_repr_for_scope_and_query(scope)
         return s
 
-    def pretty_repr_for_scope(self, scope: str, total: int = None, should_sort: bool = True) -> str:
-        return '\n'.join(citation.pretty_repr() for citation in self.get_citations(scope, total, should_sort))
+    def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
+                                        total: int = None, sort_by_similarity: bool = True) -> str:
+        return '\n'.join(
+            citation.pretty_repr() for citation
+            in self.get_citations(scope=scope, query=query, total=total, sort_by_similarity=sort_by_similarity))
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
         for citation in self.get_citations():
@@ -306,7 +318,7 @@ class ScientificProducts(Products):
                 ScientificStages.WRITING,
                 lambda step, scope, total: {
                     'scope': scope.title(),
-                    'papers': self.literature_search[step].pretty_repr_for_scope(scope, int(total)),
+                    'papers': self.literature_search[step].pretty_repr_for_scope_and_query(scope, total=int(total)),
                 },
             ),
 

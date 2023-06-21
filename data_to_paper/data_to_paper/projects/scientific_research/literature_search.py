@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Tuple, Dict, Iterable, List
 
-import numpy as np
 
 from data_to_paper.base_steps import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
@@ -64,7 +63,7 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
             for query in queries:
                 citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=number_of_papers_per_query)
                 self.comment(f'\nQuerying Semantic Scholar for {number_of_papers_per_query} citations, for: '
-                             f'"{query}".\nFound {len(citations)} citations:\n{citations}')
+                             f'"{query}". Found {len(citations)} citations.')
                 queries_to_citations[query] = citations
 
             literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
