@@ -38,7 +38,7 @@ class SemanticCitation(Citation):
     @property
     def bibtex_id(self) -> str:
         # extract the id from the bibtex
-        return process_non_math_part(self.bibtex.split('{')[1].split(',')[0])
+        return process_non_math_part(self['citationStyles']['bibtex'].split('{')[1].split(',')[0])
 
     @property
     def title(self) -> Optional[str]:
