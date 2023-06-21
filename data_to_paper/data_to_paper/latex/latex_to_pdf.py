@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import regex
@@ -71,15 +72,9 @@ MATH_PATTERN = r"""
 
 
 def process_non_math_part(text):
-    # Process non-math part and replace special characters if not already escaped
-    processed_part = ""
-    for i in range(len(text)):
-        char = text[i]
-        if char in CHARS and (i == 0 or text[i - 1] != '\\'):
-            processed_part += CHARS[char]
-        else:
-            processed_part += char
-    return processed_part
+    pattern = r'(?<!\\)([&%#_$~^])'
+    repl_func = lambda match: CHARS[match.group(1)]
+    return re.sub(pattern, repl_func, text)
 
 
 def replace_special_chars(text):
