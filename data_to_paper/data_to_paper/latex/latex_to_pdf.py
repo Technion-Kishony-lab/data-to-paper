@@ -165,6 +165,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
 
         if r'Overfull \hbox' in pdflatex_output.stdout.decode('utf-8') and compile_check:
+            move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name,
+                                                   should_compile_with_bib)
             raise TooWideTableOrText(latex_content=latex_content,
                                      pdflatex_output=pdflatex_output.stdout.decode('utf-8'))
 
@@ -173,9 +175,14 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
             subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
 
-        # Move the pdf and the latex and the citation file to the original directory:
-        if output_directory is not None:
-            shutil.move(file_stem + '.pdf', output_directory)
-            shutil.move(latex_file_name, output_directory)
-            if should_compile_with_bib:
-                shutil.move('citations.bib', output_directory)
+        move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name, should_compile_with_bib)
+
+
+def move_latex_and_pdf_to_output_directory(file_stem: str, output_directory: str = None, latex_file_name: str = None,
+                                           should_compile_with_bib: bool = False):
+    # Move the pdf and the latex and the citation file to the original directory:
+    if output_directory is not None:
+        shutil.move(file_stem + '.pdf', output_directory)
+        shutil.move(latex_file_name, output_directory)
+        if should_compile_with_bib:
+            shutil.move('citations.bib', output_directory)
