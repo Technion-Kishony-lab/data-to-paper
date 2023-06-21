@@ -198,7 +198,7 @@ class CrossrefServerCaller(DictServerCaller):
         """
         Post process the response from the server.
         """
-        return [CrossrefCitation(citation) for citation in response]
+        return [CrossrefCitation(citation, search_rank=rank) for rank, citation in enumerate(response)]
 
 
 CROSSREF_SERVER_CALLER = CrossrefServerCaller()
