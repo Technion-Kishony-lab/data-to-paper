@@ -300,7 +300,7 @@ class ScientificProducts(Products):
                 lambda step: self.literature_search[step].pretty_repr(),
             ),
 
-            'literature_search:{}:{}': NameDescriptionStageGenerator(
+            'literature_search_by_scope:{}:{}': NameDescriptionStageGenerator(
                 'Literature Search for {scope}',
                 'Here are the results of our Literature Search for {scope}:\n\n{papers}',
                 ScientificStages.WRITING,

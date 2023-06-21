@@ -207,10 +207,10 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT35_TURBO_16
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
-                                                  'literature_search:writing:background',
-                                                  'literature_search:writing:results',
-                                                  'literature_search:writing:dataset',
-                                                  'literature_search:writing:methods',
+                                                  'literature_search_by_scope:writing:background',
+                                                  'literature_search_by_scope:writing:results',
+                                                  'literature_search_by_scope:writing:dataset',
+                                                  'literature_search_by_scope:writing:methods',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
@@ -364,8 +364,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT35_TURBO_16
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
-                                                  'literature_search:writing:background',
-                                                  'literature_search:writing:results',
+                                                  'literature_search_by_scope:writing:background',
+                                                  'literature_search_by_scope:writing:results',
                                                   'paper_sections:introduction',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
