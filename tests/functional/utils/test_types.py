@@ -1,4 +1,5 @@
-from data_to_paper.utils.types import ListBasedSet
+import unittest
+from data_to_paper.utils.types import ListBasedSet, MemoryDict
 
 
 def test_list_based_set():
@@ -46,3 +47,36 @@ def test_list_based_set_comparisons_with_other_types():
     s = ListBasedSet([1, 2, 3, 4])
     assert s == {4, 3, 2, 1}
     assert s != {3, 4, 5, 6}
+
+
+class MemoryDictTests(unittest.TestCase):
+    def test_getitem(self):
+        my_dict = MemoryDict()
+        my_dict['key'] = 'value1'
+        my_dict['key'] = 'value2'
+        self.assertEqual(my_dict['key'], 'value2')
+
+    def test_add_named_value(self):
+        my_dict = MemoryDict()
+        my_dict.add_named_value('key', 'name1', 'value1')
+        my_dict.add_named_value('key', 'name2', 'value2')
+        self.assertEqual(my_dict.get_named_value('key', 'name1'), 'value1')
+        self.assertEqual(my_dict.get_named_value('key', 'name2'), 'value2')
+
+    def test_delitem(self):
+        my_dict = MemoryDict()
+        my_dict['key'] = 'value1'
+        del my_dict['key']
+        self.assertNotIn('key', my_dict)
+
+    def test_contains(self):
+        my_dict = MemoryDict()
+        my_dict['key'] = 'value1'
+        self.assertIn('key', my_dict)
+        self.assertNotIn('nonexistent_key', my_dict)
+
+    def test_len(self):
+        my_dict = MemoryDict()
+        my_dict['key1'] = 'value1'
+        my_dict['key2'] = 'value2'
+        self.assertEqual(len(my_dict), 2)

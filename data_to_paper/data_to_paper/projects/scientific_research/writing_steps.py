@@ -185,7 +185,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
     max_reviewing_rounds: int = 0
     conversation_name: str = 'title_abstract_section_second'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
-                                             'most_updated_paper_sections:results',
+                                             'paper_sections:results',
                                              'literature_search:writing',
                                              'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -211,8 +211,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
                                                   'literature_search:writing:results',
                                                   'literature_search:writing:dataset',
                                                   'literature_search:writing:methods',
-                                                  'most_updated_paper_sections:methods',
-                                                  'most_updated_paper_sections:results')
+                                                  'paper_sections:methods',
+                                                  'paper_sections:results')
     allow_citations_from_step: str = 'writing'
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
@@ -366,9 +366,9 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
                                                   'literature_search:writing:background',
                                                   'literature_search:writing:results',
-                                                  'most_updated_paper_sections:introduction',
-                                                  'most_updated_paper_sections:methods',
-                                                  'most_updated_paper_sections:results')
+                                                  'paper_sections:introduction',
+                                                  'paper_sections:methods',
+                                                  'paper_sections:results')
     allow_citations_from_step: str = 'writing'
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
@@ -388,8 +388,8 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
 @dataclass
 class ConclusionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = ('research_goal', 'title_and_abstract',
-                                                  'most_updated_paper_sections:results',
-                                                  'most_updated_paper_sections:discussion')
+                                                  'paper_sections:results',
+                                                  'paper_sections:discussion')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Summarize the main results and their implications, impact, and future directions.

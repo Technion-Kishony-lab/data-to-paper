@@ -190,18 +190,18 @@ class ScientificStepsRunner(BaseStepsRunner):
                 sections_with_citations = \
                     writing_class.from_(self, section_names=section_names).write_sections_with_citations()
                 for section_name, section_and_citations in zip(section_names, sections_with_citations):
-                    products.cited_paper_sections_and_citations[section_name] = section_and_citations
-        self.send_product_to_client('cited_paper_sections_and_citations')
+                    products.paper_sections_and_optional_citations[section_name] = section_and_citations
+        self.send_product_to_client('most_updated_paper')
 
         # Add citations to relevant paper sections
         if self.should_add_citations:
             self.advance_stage_and_set_active_conversation(ScientificStages.CITATIONS, ScientificAgent.CitationExpert)
             for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
-                products.cited_paper_sections_and_citations[section_name] = \
+                products.paper_sections_and_optional_citations[section_name] = \
                     AddCitationReviewGPT.from_(self, section_name=section_name,
                                                conversation_name=f'add_citations_to_{section_name}') \
                         .rewrite_section_with_citations()
-            self.send_product_to_client('cited_paper_sections_and_citations')
+            self.send_product_to_client('most_updated_paper')
 
         paper_producer.assemble_compile_paper()
 

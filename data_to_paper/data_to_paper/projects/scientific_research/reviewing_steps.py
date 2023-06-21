@@ -42,7 +42,8 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         'I hereby approve the research goal'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please suggest a research goal and an hypothesis. 
-        The goal and hypothesis should be interesting and novel. 
+        The goal and hypothesis should be interesting and novel, testing complex associations and relationships, \
+        including mediation and moderation. 
         Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
 
         Do not suggest methodology. Just the goal and an hypothesis. 
@@ -50,6 +51,9 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of our data files \
         as in the description of the original dataset, above).
+
+        Avoid goals and hypotheses that involve sociodemographic (Income, Education, etc.) and psychological \
+        (Mental Health) variables. Note that you can, and should still use these as confounding variables if needed.
 
         {quote_request}
         """)
@@ -92,10 +96,10 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        From the literature search above, find the up to 3 papers whose results are most 
-        similar/overlapping with our research goal and hypothesis.
+        From the literature search above, find the key papers whose results are most \
+        similar/overlapping with our research goal and hypothesis (up to a maximum of 3 papers).
 
-        Return your answer as a Python Dict[str, str] where the keys are ID and the values are the titles \
+        Return your answer as a Python Dict[str, str] where the keys are IDs and the values are the titles \
         of these most related papers.
 
         For example: 
@@ -103,14 +107,14 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
         "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
         "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
         }
-
         """)
 
     request_decision: str = dedent_triple_quote_str("""
         Choose one of the following two options:
 
-        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing.
-        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised.
+        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing. Choice 1.
+        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised. \
+        Choice 2.
 
         {choice_instructions}
         """)
@@ -265,7 +269,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         and the hypotheses we are testing.
         The names you choose should accurately describe the tables that will be produced in a later stage.
 
-        Typically, a scientific paper has up to 2 tables, each containing completely unique and different results.
+        Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
         You need to choose names for a maximum of 1-3 tables that will each present distinct non-overlapping \
         information.
 

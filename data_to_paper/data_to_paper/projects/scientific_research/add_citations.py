@@ -174,7 +174,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
     @property
     def section(self):
-        return self.products.paper_sections[self.section_name]
+        return self.products.paper_sections_without_citations[self.section_name]
 
     def _add_sentences_in_section_and_return_sentences_not_in_section(self, sentences_to_queries: Dict[str, str]
                                                                       ) -> List[str]:
