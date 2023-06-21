@@ -106,7 +106,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     def _get_available_citations(self) -> List[Citation]:
         if self.allow_citations_from_step is None:
             return []
-        return self.products.literature_search[self.allow_citations_from_step].get_all_citations()
+        return self.products.literature_search[self.allow_citations_from_step].get_citations()
 
     def _check_citation_ids(self, section: str):
         available_citations = self._get_available_citations()
