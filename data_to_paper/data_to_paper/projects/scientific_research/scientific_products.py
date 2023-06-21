@@ -61,6 +61,8 @@ def sort_citations_by_embedding_similarity(citations: List[Citation], embedding:
     """
     Sort the citations by embedding similarity.
     """
+    if not citations:
+        return []
     embeddings = np.array([citation['embedding'] for citation in citations])
     similarities = np.dot(embeddings, embedding)
     indices = np.argsort(similarities)[::-1]
