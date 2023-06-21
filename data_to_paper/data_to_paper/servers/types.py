@@ -6,6 +6,10 @@ class Citation(dict):
     A citation of a paper.
     """
 
+    def __init__(self, *args, search_rank: int = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.search_rank = search_rank
+
     def __key(self):
         return self.bibtex_id
 

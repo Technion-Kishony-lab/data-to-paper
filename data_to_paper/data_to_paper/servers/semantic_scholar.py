@@ -132,7 +132,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         Post process the response from the server.
         """
         citations = NiceList(separator='\n', prefix='[\n', suffix='\n]')
-        for paper in response:
+        for rank, paper in enumerate(response):
 
             if 'embedding' in paper:
                 paper = paper.copy()
@@ -140,8 +140,10 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                     assert paper['embedding']['model'] == 'specter@v0.1.1'
                     paper['embedding'] = np.array(paper['embedding']['vector'])
                 except (AssertionError, KeyError, IndexError, TypeError):
-                    paper['embedding'] = None
-            citations.append(SemanticCitation(paper))
+                    print_red(f"ERROR: embedding is not in the expected format. skipping."
+                              f"Title: {paper.get('title', None)}")
+                    continue
+            citations.append(SemanticCitation(paper, search_rank=rank))
         return citations
 
 
