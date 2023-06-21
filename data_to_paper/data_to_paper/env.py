@@ -49,3 +49,4 @@ DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 # Debugging switches:
 SHOW_CHATGPT_CONTEXT = Flag(True)
 SAVE_INTERMEDIATE_LATEX = Flag(True)
+PRINT_CITATIONS = Flag(True)

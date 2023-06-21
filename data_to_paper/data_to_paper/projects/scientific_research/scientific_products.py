@@ -6,6 +6,7 @@ from operator import or_
 import numpy as np
 
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.env import PRINT_CITATIONS
 from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
@@ -152,12 +153,16 @@ class LiteratureSearch:
                                         total: int = None, distribute_evenly: bool = True,
                                         sort_by_similarity: bool = False,
                                         minimal_influence: int = 0) -> str:
-        return '\n'.join(
-            citation.pretty_repr() for citation
-            in self.get_citations(scope=scope, query=query, total=total, distribute_evenly=distribute_evenly,
-                                  sort_by_similarity=sort_by_similarity,
-                                  minimal_influence=minimal_influence,
-                                  ))
+        citations = self.get_citations(scope=scope, query=query, total=total,
+                                       distribute_evenly=distribute_evenly,
+                                       sort_by_similarity=sort_by_similarity,
+                                       minimal_influence=minimal_influence,
+                                       )
+        if PRINT_CITATIONS:
+            print('CITATIONS\n\n' + '\n'.join(citation.pretty_repr(
+                fields=('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'influence')
+            ) for citation in citations))
+        return '\n'.join(citation.pretty_repr() for citation in citations)
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
         for citation in self.get_citations():
