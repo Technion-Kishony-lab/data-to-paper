@@ -33,6 +33,13 @@ class LatexProblemInCompilation(data_to_paperException, ValueError):
                                             line.startswith(self.problem_starting_term)), None)
         return '\n'.join(lines[first_line_of_error_message:first_line_of_error_message + 4])
 
+    @property
+    def error_message(self) -> str:
+        """
+        Get the error message from the pdflatex output.
+        """
+        return f'```\n{self._extract_error_message()}\n```\n'
+
     def get_latex_exception_line_number(self) -> Optional[int]:
         """
         Get the line number of the latex exception.
@@ -54,15 +61,10 @@ class LatexProblemInCompilation(data_to_paperException, ValueError):
     def __str__(self):
         erroneous_lines = self._get_erroneous_lines()
         if erroneous_lines is None:
-            return f'Problem to successfully compile latex due to the following problem or error:\n\n' \
-                   f'```\n' \
-                   f'{self._extract_error_message()}' \
-                   f'```\n'
-        return f'Problem to successfully compile latex due to these lines:\n{self._get_erroneous_lines()}\n\n' \
-               f'Got the following problem or error:\n' \
-               f'```\n' \
-               f'{self._extract_error_message()}' \
-               f'```\n'
+            message_header = f'There was a latex compilation problem.\n\n'
+        else:
+            message_header = f'There was a latex compilation problem in these lines:\n{erroneous_lines}\n\n'
+        return f'{message_header}Got the following pdflatex error:\n{self.error_message}'
 
 
 @dataclass
@@ -71,19 +73,6 @@ class LatexCompilationError(LatexProblemInCompilation):
     Raised when the latex content could not be compiled.
     """
     problem_starting_term: str = '! '
-
-    def __str__(self):
-        erroneous_lines = self._get_erroneous_lines()
-        if erroneous_lines is None:
-            return f'Failed to compile latex due to the following pdflatex error:\n\n' \
-                   f'```\n' \
-                   f'{self._extract_error_message()}' \
-                   f'```\n'
-        return f'Failed to compile latex due to problem in these lines:\n{self._get_erroneous_lines()}\n\n' \
-               f'Got the following pdflatex error:\n' \
-               f'```\n' \
-               f'{self._extract_error_message()}' \
-               f'```\n'
 
 
 @dataclass
@@ -94,7 +83,7 @@ class UnwantedCommandsUsedInLatex(data_to_paperException, ValueError):
     unwanted_commands: list
 
     def __str__(self):
-        return f'Unwanted commands used in latex:\n{self.unwanted_commands}\n\n'
+        return f'Unwanted commands used in latex:\n{self.unwanted_commands}\n'
 
 
 @dataclass
@@ -107,7 +96,7 @@ class NonLatexCitations(data_to_paperException, ValueError):
     def __str__(self):
         return f'The following citations are not written using latex \\cite{{}} command:\n' \
                f'{self.non_latex_citations}\n\n' \
-               f'Please use latex \\cite{{}} command to write citations.\n\n'
+               f'Please use latex \\cite{{}} command to write citations.\n'
 
 
 @dataclass
@@ -118,17 +107,6 @@ class TooWideTableOrText(LatexProblemInCompilation):
     problem_starting_term: str = r'Overfull \hbox '
 
     def __str__(self):
-        erroneous_lines = self._get_erroneous_lines()
-        if erroneous_lines is None:
-            return f'There was a problem with the latex compilation, the table or section you wrote was to wide ' \
-                   f'to fit within the text width:\n\n' \
-                   f'```\n' \
-                   f'{self._extract_error_message()}' \
-                   f'```\n' \
-                   f'Try to shorten the text in the table or section you wrote or drop unnecessary columns.\n\n'
-        return f'There was a problem with the latex compilation in these lines:\n{self._get_erroneous_lines()}\n\n' \
-               f'The table or section you wrote was to wide to fit within the text width:\n' \
-               f'```\n' \
-               f'{self._extract_error_message()}' \
-               f'```\n' \
-               f'Try to shorten the text in the table or section you wrote or drop unnecessary columns.\n\n'
+        return super().__str__() + \
+            f'The table or section you wrote is too wide to fit within the text width.\n' \
+            f'Try to shorten the text, or drop unnecessary columns.\n'
