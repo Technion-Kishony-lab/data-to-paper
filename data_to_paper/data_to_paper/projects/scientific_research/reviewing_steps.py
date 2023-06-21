@@ -92,7 +92,8 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'literature_search:goal')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+                                                  'literature_search:goal:20:2')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -146,7 +147,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
     is_new_conversation: bool = None
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
-                                                  'research_goal', 'literature_search:goal')
+                                                  'research_goal', 'literature_search:goal:20:2')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \

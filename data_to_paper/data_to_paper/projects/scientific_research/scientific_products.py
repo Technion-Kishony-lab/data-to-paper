@@ -85,7 +85,7 @@ class LiteratureSearch:
 
     def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
                       total: int = None, distribute_evenly: bool = True,
-                      sort_by_similarity: bool = True, minimal_influence: int = 0) -> List[Citation]:
+                      sort_by_similarity: bool = False, minimal_influence: int = 0) -> List[Citation]:
         """
         Return the citations in the given scope.
         If embedding_target is not None, sort the citations by embedding similarity.
@@ -97,7 +97,8 @@ class LiteratureSearch:
             citations = reduce(
                 or_, [self.get_citations(
                     scope=scope,
-                    total=total // len(self.scopes_to_queries_to_citations) + 1 if distribute_evenly else None,
+                    total=total // len(self.scopes_to_queries_to_citations) + 1
+                    if distribute_evenly and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribute_evenly=distribute_evenly,
                 ) for scope in self.scopes_to_queries_to_citations], empty)
@@ -106,7 +107,8 @@ class LiteratureSearch:
                 or_, [self.get_citations(
                     scope=scope,
                     query=query,
-                    total=total // len(self.scopes_to_queries_to_citations[scope]) + 1 if distribute_evenly else None,
+                    total=total // len(self.scopes_to_queries_to_citations[scope]) + 1
+                    if distribute_evenly and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribute_evenly=distribute_evenly,
                 ) for query in self.scopes_to_queries_to_citations[scope]], empty)
@@ -129,18 +131,26 @@ class LiteratureSearch:
         else:
             return citations[:total]
 
-    def pretty_repr(self, with_scope_and_queries: bool = False) -> str:
+    def pretty_repr(self, with_scope_and_queries: bool = False,
+                    total: int = None, distribute_evenly: bool = True,
+                    sort_by_similarity: bool = False,
+                    minimal_influence: int = 0
+                    ) -> str:
         s = ''
         for scope in self.scopes_to_queries_to_citations:
             if with_scope_and_queries:
                 s += f'Scope: {repr(scope)}\n'
                 s += f'Queries: {repr(self.get_queries(scope))}\n\n'
-            s += self.pretty_repr_for_scope_and_query(scope)
+            s += self.pretty_repr_for_scope_and_query(scope=scope,
+                                                      total=total // len(self.scopes_to_queries_to_citations) + 1,
+                                                      distribute_evenly=distribute_evenly,
+                                                      sort_by_similarity=sort_by_similarity,
+                                                      minimal_influence=minimal_influence)
         return s
 
     def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
                                         total: int = None, distribute_evenly: bool = True,
-                                        sort_by_similarity: bool = True,
+                                        sort_by_similarity: bool = False,
                                         minimal_influence: int = 0) -> str:
         return '\n'.join(
             citation.pretty_repr() for citation
@@ -333,11 +343,16 @@ class ScientificProducts(Products):
                 lambda: str(self.pretty_hypothesis_testing_plan),
             ),
 
-            'literature_search:{}': NameDescriptionStageGenerator(
+            'literature_search:{}:{}:{}': NameDescriptionStageGenerator(
                 'Literature Search',
                 'We did a Literature Search and here are the results:\n\n{}',
                 ScientificStages.WRITING,
-                lambda step: self.literature_search[step].pretty_repr(),
+                lambda step, total, minimal_influence: self.literature_search[step].pretty_repr(
+                    total=int(total),
+                    minimal_influence=int(minimal_influence),
+                    distribute_evenly=True,
+                    sort_by_similarity=False,
+                ),
             ),
 
             'literature_search_by_scope:{}:{}:{}:{}': NameDescriptionStageGenerator(
