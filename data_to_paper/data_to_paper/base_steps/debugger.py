@@ -41,10 +41,10 @@ class DebuggerConverser(ProductsConverser):
     * too long runs (timeout)
     * output file not created
     """
-    model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.GPT35_TURBO)
     allowed_created_files: Tuple[str, ...] = None
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
+    supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
     user_initiation_prompt: str = None
 
@@ -90,7 +90,7 @@ class DebuggerConverser(ProductsConverser):
             {}
             ```
             Please rewrite the code using only these packages: {}. 
-            """).format(error_message, SUPPORTED_PACKAGES),
+            """).format(error_message, self.supported_packages),
             comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
     def _respond_to_file_not_found(self, error_message: str):

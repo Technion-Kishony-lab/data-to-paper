@@ -12,6 +12,7 @@ from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
@@ -68,7 +69,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
     def list_additional_data_files_if_any(self) -> str:
         if len(self.files_created_in_prior_stages) == 0:
             return ''
-        return f'Or you can also use the processed files created above by the data processing code:\n' \
+        return f'\nOr you can also use the processed files created above by the data processing code:\n' \
                f'```\n' \
                f'{self.files_created_in_prior_stages}' \
                f'```\n' \
@@ -180,12 +181,13 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
          'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan', 'tables_names')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'xgboost')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
     output_filename: str = 'results.txt'
     allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
+    model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above. 
@@ -202,6 +204,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         ## Results for Table 2:
         ... 
         etc
+        Remember that the results of nominal values should be accompanied by a measure of uncertainty (p-value, CI).
 
         (3) Create and output a Python Dict[str, Any] reporting any other numerical results you deem relevant \
         to our research paper.
@@ -217,9 +220,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not write to any other files.
 
         As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
-
         {list_additional_data_files_if_any}
-
         As needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -234,18 +235,24 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         {}
         ```
 
-        Please check if there is anything wrong or missing in these results (like unexpected NaN values, \
-        or anything else that may indicate that code improvements are needed).
-        Also, check that we have all the data needed for the tables we want to create AND that the data \
-        for each table is distinct and non-overlapping. (see above "The Names of the Tables of the Paper").
+        Please check if there is anything wrong or missing in these results, specifically:
+        * Unexpected NaN values
+        * Missing statistical tests, or parts of their results needed for the tables
+        * Incorrect statistical tests, needed to be written again
+        * All the data needed for the tables we want to create exists in the output file
+        * The data for each table is distinct and non-overlapping
+
+        Also check if anything else that may indicate that code improvements are needed.
+        For the tables we want to create, see above "The Names of the Tables of the Paper".
 
         Choose one of the following options:
 
-        1. The output looks right, has everything we need for creating distinct Tables, \
-        and I therefore don't think we can further improve the code. Let's proceed.
+        1. The output looks right, has everything we need for creating distinct Tables, all tests performed were \
+        correct, and I therefore don't think we can further improve the code. Let's proceed. Choice 1.
 
-        2. The output does not yet perfectly provides everything we need for the Tables. \
-        We should revise the code to make it better.
+        2. The output does not yet perfectly provides everything we need for the Tables. There is missing data for one \
+        or more tables, or one of the tests performed was incorrect, or there is anything else that may indicate that \
+        we should revise the code to make it better. Choice 2.
 
         {choice_instructions}
         """)  # set to None to skip option for revision

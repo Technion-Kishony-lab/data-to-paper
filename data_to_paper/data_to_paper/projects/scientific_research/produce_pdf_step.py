@@ -8,7 +8,6 @@ from data_to_paper.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.text_formatting import wrap_python_code
-from data_to_paper.utils.types import ListBasedSet
 
 
 @dataclass
@@ -21,14 +20,8 @@ class ProduceScientificPaperPDF(BaseLatexToPDF):
         Start by choosing section with tables, then cited sections, then without both of those.
         If there are references we also collect them to a set.
         """
-        references = ListBasedSet()
-        sections = {}
-        for section_name in self.get_paper_section_names():
-            sections[section_name] = self.products.most_updated_paper_sections[section_name]
-            if section_name in self.products.cited_paper_sections_and_citations:
-                references |= self.products.cited_paper_sections_and_citations[section_name][1]  # 1 is the references
-
-        return sections, references
+        return {section_name: self.products.tabled_paper_sections[section_name]
+                for section_name in self.get_paper_section_names()}, self.products.citations
 
 
 @dataclass

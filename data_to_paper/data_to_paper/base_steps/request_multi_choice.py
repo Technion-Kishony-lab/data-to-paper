@@ -17,8 +17,8 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please choose one of the following options:
-        1. Looks good.
-        2. Something is wrong.
+        1. Looks good. Choice 1.
+        2. Something is wrong. Choice 2.
 
         {choice_instructions}
         """)
