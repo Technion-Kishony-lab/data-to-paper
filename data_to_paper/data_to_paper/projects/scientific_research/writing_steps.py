@@ -205,7 +205,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
 
 @dataclass
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    model_engine: ModelEngine = ModelEngine.GPT35_TURBO_16
+    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
                                                   'literature_search_by_scope:writing:background:8:2',
                                                   'literature_search_by_scope:writing:results:6:2',
@@ -362,7 +362,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    model_engine: ModelEngine = ModelEngine.GPT35_TURBO_16
+    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
                                                   'literature_search_by_scope:writing:background:5:2',
                                                   'literature_search_by_scope:writing:results:8:2',
