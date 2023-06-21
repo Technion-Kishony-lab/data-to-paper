@@ -35,7 +35,8 @@ def get_non_latex_citations(section):
     # find all types of APA citations including without et al. and page number
     pattern = r'\([^\)]*,[^\)]*\)'
     matches = re.findall(pattern, section)
-    non_latex_citations = [match.strip() for match in matches]
+    # check that the matches contains et al. or year
+    non_latex_citations = [match.strip() for match in matches if 'et al.' in match or re.search(r'\d{4}', match)]
     return non_latex_citations
 
 
