@@ -131,10 +131,18 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         """
         Post process the response from the server.
         """
+        citations = NiceList(separator='\n', prefix='[\n', suffix='\n]')
         for paper in response:
+
             if 'embedding' in paper:
-                paper['embedding'] = np.array(paper['embedding'])
-        return NiceList([SemanticCitation(paper) for paper in response], separator='\n', prefix='[\n', suffix='\n]')
+                paper = paper.copy()
+                try:
+                    assert paper['embedding']['model'] == 'specter@v0.1.1'
+                    paper['embedding'] = np.array(paper['embedding']['vector'])
+                except (AssertionError, KeyError, IndexError, TypeError):
+                    paper['embedding'] = None
+            citations.append(SemanticCitation(paper))
+        return citations
 
 
 class SemanticScholarEmbeddingServerCaller(DictServerCaller):
