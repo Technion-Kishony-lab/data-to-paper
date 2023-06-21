@@ -51,7 +51,6 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         1. Write the article section by section: Abstract, Introduction, Results, Discussion, and Methods.
         2. Write every section of the article in scientific language, in `.tex` format.
         3. Write the article in a way that is fully consistent with the scientific results we have.
-        4. Write the text without adding any citations (we will only add citations in a later stage).
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
