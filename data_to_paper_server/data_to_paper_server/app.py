@@ -33,12 +33,14 @@ if PROJECT:
     # Choose RUN_PARAMETERS. `None` to get from web ui, or set to an example project
     RUN_PARAMETERS = getattr(projects, PROJECT).RUN_PARAMETERS
 
-    # Choose TEMP_FOLDER_TO_RUN_IN. `None` for /tmp/data_to_paper_server/ + id, or set to the local examples temp folder:
+    # Choose TEMP_FOLDER_TO_RUN_IN.
+    # `None` for /tmp/data_to_paper_server/ + id, or set to the local examples temp folder:
     INPUT_DIRECTORY = run_project.get_input_path(PROJECT, load_from_repo)
     TEMP_FOLDER_TO_RUN_IN: Optional[str] = INPUT_DIRECTORY / 'temp_folder'
 
     # Choose OUTPUT_DIRECTORY. `None` for TEMP_FOLDER_TO_RUN_IN/output, or set to the local examples output folder:
-    OUTPUT_DIRECTORY: Optional[Path] = get_output_path(PROJECT, '2023-05-26 Nice classifiers results', save_on_repo=True)
+    OUTPUT_DIRECTORY: Optional[Path] = get_output_path(PROJECT,
+                                                       '2023-05-26 Nice classifiers results', save_on_repo=True)
 
     # Choose MOCK_SERVERS.
     # `False` to avoid mocking servers

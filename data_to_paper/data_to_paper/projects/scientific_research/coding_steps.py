@@ -241,7 +241,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Incorrect statistical tests, needed to be written again
         * All the data needed for the tables we want to create exists in the output file
         * The data for each table is distinct and non-overlapping
-        
+
         Also check if anything else that may indicate that code improvements are needed.
         For the tables we want to create, see above "The Names of the Tables of the Paper".
 

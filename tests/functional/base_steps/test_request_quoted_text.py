@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import pytest
 
-from data_to_paper.env import MAX_MODEL_ENGINE
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.openai_models import ModelEngine
 
