@@ -60,6 +60,10 @@ class SemanticCitation(Citation):
         return self.get('year', None)
 
     @property
+    def influence(self) -> int:
+        return self['influentialCitationCount']
+
+    @property
     def tldr(self) -> Optional[str]:
         tldr = self.get('tldr', None)
         if tldr is None:
@@ -100,7 +104,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             params = {
                 "query": query,
                 "limit": min(rows * 2, 100),  # x2 more to make sure we get enough results after removing faulty ones
-                "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding",
+                "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
             print_red(f"QUERYING SEMANTIC SCHOLAR WITH QUERY: {query}")
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
