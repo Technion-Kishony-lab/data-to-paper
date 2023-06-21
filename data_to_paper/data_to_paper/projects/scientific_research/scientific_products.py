@@ -85,7 +85,7 @@ class LiteratureSearch:
 
     def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
                       total: int = None, distribute_evenly: bool = True,
-                      sort_by_similarity: bool = True) -> List[Citation]:
+                      sort_by_similarity: bool = True, minimal_influence: int = 0) -> List[Citation]:
         """
         Return the citations in the given scope.
         If embedding_target is not None, sort the citations by embedding similarity.
@@ -98,6 +98,7 @@ class LiteratureSearch:
                 or_, [self.get_citations(
                     scope=scope,
                     total=total // len(self.scopes_to_queries_to_citations) + 1 if distribute_evenly else None,
+                    minimal_influence=minimal_influence,
                     distribute_evenly=distribute_evenly,
                 ) for scope in self.scopes_to_queries_to_citations], empty)
         elif query is None:
@@ -106,11 +107,15 @@ class LiteratureSearch:
                     scope=scope,
                     query=query,
                     total=total // len(self.scopes_to_queries_to_citations[scope]) + 1 if distribute_evenly else None,
+                    minimal_influence=minimal_influence,
                     distribute_evenly=distribute_evenly,
                 ) for query in self.scopes_to_queries_to_citations[scope]], empty)
         else:
             citations = self.scopes_to_queries_to_citations[scope][query]
         citations = list(citations)
+
+        if minimal_influence > 0:
+            citations = [citation for citation in citations if citation.influence >= minimal_influence]
 
         if sort_by_similarity and self.embedding_target is not None:
             citations = sort_citations_by_embedding_similarity(citations, self.embedding_target)
@@ -135,11 +140,13 @@ class LiteratureSearch:
 
     def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
                                         total: int = None, distribute_evenly: bool = True,
-                                        sort_by_similarity: bool = True) -> str:
+                                        sort_by_similarity: bool = True,
+                                        minimal_influence: int = 0) -> str:
         return '\n'.join(
             citation.pretty_repr() for citation
             in self.get_citations(scope=scope, query=query, total=total, distribute_evenly=distribute_evenly,
                                   sort_by_similarity=sort_by_similarity,
+                                  minimal_influence=minimal_influence,
                                   ))
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
@@ -333,13 +340,19 @@ class ScientificProducts(Products):
                 lambda step: self.literature_search[step].pretty_repr(),
             ),
 
-            'literature_search_by_scope:{}:{}:{}': NameDescriptionStageGenerator(
+            'literature_search_by_scope:{}:{}:{}:{}': NameDescriptionStageGenerator(
                 'Literature Search for {scope}',
                 'Here are the results of our Literature Search for {scope}:\n\n{papers}',
                 ScientificStages.WRITING,
-                lambda step, scope, total: {
+                lambda step, scope, total, minimal_influence: {
                     'scope': scope.title(),
-                    'papers': self.literature_search[step].pretty_repr_for_scope_and_query(scope, total=int(total)),
+                    'papers': self.literature_search[step].pretty_repr_for_scope_and_query(
+                        scope=scope,
+                        total=int(total),
+                        minimal_influence=int(minimal_influence),
+                        distribute_evenly=True,
+                        sort_by_similarity=False,
+                    ),
                 },
             ),
 
