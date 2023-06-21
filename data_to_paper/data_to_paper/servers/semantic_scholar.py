@@ -99,8 +99,8 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         while True:
             params = {
                 "query": query,
-                "limit": rows + 10,  # add 10 to make sure we get enough results after removing faulty ones
-                "fields": "title,url,abstract,tldr,journal,year,citationStyles",  # can also add 'embedding'
+                "limit": min(rows * 2, 100),  # x2 more to make sure we get enough results after removing faulty ones
+                "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding",
             }
             print_red(f"QUERYING SEMANTIC SCHOLAR WITH QUERY: {query}")
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
@@ -131,6 +131,9 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         """
         Post process the response from the server.
         """
+        for paper in response:
+            if 'embedding' in paper:
+                paper['embedding'] = np.array(paper['embedding'])
         return NiceList([SemanticCitation(paper) for paper in response], separator='\n', prefix='[\n', suffix='\n]')
 
 

@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 from typing import Tuple, Dict, Iterable, List
 
+import numpy as np
+
 from data_to_paper.base_steps import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch, ScientificProducts
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 
@@ -51,13 +54,13 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                                      separator=',\n' + ' ' * 8)
                          for k, v in response_value.items()})
 
-    def get_literature_search(self) -> LiteratureSearch:
+    def get_literature_search(self, rows: int = None) -> LiteratureSearch:
         scopes_to_list_of_queries = self.run_dialog_and_get_valid_result()
         literature_search = LiteratureSearch()
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}
             num_queries = len(queries)
-            number_of_papers_per_query = self.number_of_papers_per_scope // num_queries + 1
+            number_of_papers_per_query = self.number_of_papers_per_scope // num_queries + 1 if rows is None else rows
             for query in queries:
                 citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=number_of_papers_per_query)
                 self.comment(f'\nQuerying Semantic Scholar for {number_of_papers_per_query} citations, for: '
@@ -98,11 +101,11 @@ class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
         }
         """)
 
-    def get_literature_search(self) -> LiteratureSearch:
-        literature_search = super().get_literature_search()
-        # literature_search.scopes_to_queries_to_citations['similarity'] = \
-        #     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
-        #         "paper_id": "",
-        #         "title": self.products.get_title(),
-        #         "abstract": self.products.get_abstract()})
+    def get_literature_search(self, rows: int = None) -> LiteratureSearch:
+        literature_search = super().get_literature_search(rows=100)
+        literature_search.embedding_target = \
+            SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
+                "paper_id": "",
+                "title": self.products.get_title(),
+                "abstract": self.products.get_abstract()})
         return literature_search
