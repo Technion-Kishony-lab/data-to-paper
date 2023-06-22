@@ -23,6 +23,9 @@ MAX_MODEL_ENGINE = ModelEngine.GPT4
 # Text width for conversation output:
 TEXT_WIDTH = 150
 
+# Text width for PDF code output:
+PDF_TEXT_WIDTH = 80
+
 # max time for code timeout when running code from chatgpt (seconds)
 MAX_EXEC_TIME = Mutable(200)
 
