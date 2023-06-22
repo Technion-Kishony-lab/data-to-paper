@@ -29,6 +29,8 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
     should_remove_citations_from_section = True
 
+    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
+
     section_names: List[str] = field(default_factory=list)
 
     response_to_self_error: str = dedent_triple_quote_str("""
@@ -100,7 +102,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         else:
             file_stem, output_directory = 'test', None
         try:
-            check_latex_compilation(extracted_section, file_stem, output_directory)
+            check_latex_compilation(extracted_section, file_stem, output_directory, self.tolerance_for_too_wide_in_pts)
         except LatexProblemInCompilation as e:
             self._raise_self_response_error(str(e))
         self._check_usage_of_unwanted_commands(extracted_section)

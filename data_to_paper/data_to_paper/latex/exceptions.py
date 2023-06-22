@@ -108,6 +108,6 @@ class TooWideTableOrText(LatexProblemInCompilation):
 
     def __str__(self):
         return super().__str__() + \
-            f'The table or section you wrote is too wide to fit within the text width.\n' \
-            f'Try to shorten the text, or drop unnecessary columns, \
-            or consider whether completely transposing the table might be better.\n'
+            'The table you wrote is too wide to fit within the text width.\n' \
+            'Try to shorten the text, or drop unnecessary columns, ' \
+            'or consider whether completely transposing the table might be better.\n'
