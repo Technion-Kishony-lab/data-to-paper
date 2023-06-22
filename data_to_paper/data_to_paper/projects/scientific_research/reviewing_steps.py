@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
@@ -302,6 +302,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 @dataclass
 class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
                                               CheckExtractionReviewBackgroundProductsConverser):
+    tolerance_for_too_wide_in_pts: Optional[float] = 25.0  # we allow tables to extend a bit out
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
     model_engine: ModelEngine = ModelEngine.GPT4
