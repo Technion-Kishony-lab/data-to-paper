@@ -37,7 +37,12 @@ class SemanticCitation(Citation):
 
     @property
     def bibtex(self) -> str:
-        return process_non_math_part(self['citationStyles']['bibtex'])
+        bibtex = self['citationStyles']['bibtex']
+        # remove commas from authors:
+        authors = bibtex.split('author = {', 1)[1].split('},', 1)[0]
+        authors = authors.replace(', ', ' and ')
+        bibtex = bibtex.split('author = {', 1)[0] + 'author = {' + authors + '},' + bibtex.split('},', 1)[1]
+        return process_non_math_part(bibtex)
 
     @property
     def bibtex_id(self) -> str:
@@ -134,6 +139,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                     query = redacted_query
                     break
             else:
+                # failing gracefully
                 return []
 
     @staticmethod
