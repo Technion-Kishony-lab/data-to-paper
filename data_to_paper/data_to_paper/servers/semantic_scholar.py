@@ -31,14 +31,19 @@ EMBEDDING_URL = 'https://model-apis.semanticscholar.org/specter/v1/invoke'
 
 class SemanticCitation(Citation):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._bibtex_id = None
+
     @property
     def bibtex(self) -> str:
         return process_non_math_part(self['citationStyles']['bibtex'])
 
     @property
     def bibtex_id(self) -> str:
-        # extract the id from the bibtex
-        return process_non_math_part(self['citationStyles']['bibtex'].split('{')[1].split(',')[0])
+        if self._bibtex_id is None:
+            self._bibtex_id = process_non_math_part(self['citationStyles']['bibtex'].split('{', 1)[1].split(',', 1)[0])
+        return self._bibtex_id
 
     @property
     def title(self) -> Optional[str]:
