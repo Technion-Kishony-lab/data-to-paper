@@ -9,6 +9,7 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     MultiChoiceBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -115,7 +116,7 @@ class IsGoalOK(ShowCitationProducts, PythonValueReviewBackgroundProductsConverse
         Choose one of the following two options:
 
         1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing. Choice 1.
-        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised. \
+        2. Our goal and hypothesis seem totally overlapping with existing literature, and should therefore be revised. \
         Choice 2.
 
         {choice_instructions}
@@ -152,7 +153,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \
-        and do not overlap existing literature.
+        do not completely overlap existing literature.
 
         Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
 
@@ -380,6 +381,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
+        section = escape_special_chars_and_symbols_in_table(section)
         return self._check_extracted_numbers(section)
 
 
