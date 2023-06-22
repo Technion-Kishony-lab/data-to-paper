@@ -239,7 +239,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
 
-        Specifically, the introduction should follow the following paragraph structure:
+        Specifically, the introduction should follow the following multi-paragraph structure:
 
         * Introduce the topic of the paper and why it is important \
         (cite relevant papers from the above "Literature Search for Background"). 
@@ -259,6 +259,9 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Do not add a \\section{References} section, I will add it later manually.
 
         Note that there is no need to describe limitations, implications, or impact in the introduction.
+        """)
+    section_review_specific_instructions: str = dedent_triple_quote_str("""\n
+        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
         """)
 
 
@@ -391,6 +394,9 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
     max_reviewing_rounds: int = 1
+    section_review_specific_instructions: str = dedent_triple_quote_str("""\n
+        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
+        """)
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Discussion section should follow the following structure:
         * Recap the subject of the study (cite relevant papers from the above "Literature Search for Background").  
