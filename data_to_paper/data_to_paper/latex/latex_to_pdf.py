@@ -24,6 +24,9 @@ CHARS = {
     '$': r'\$',
     '~': r'\textasciitilde{}',
     '^': r'\textasciicircum{}',
+    '<': r'$<$',
+    '>': r'$>$',
+    '|': r'\textbar{}',
 }
 
 MATH_PATTERN = r"""
@@ -70,27 +73,48 @@ MATH_PATTERN = r"""
 )))))
 """
 
+TABLES_CHARS = {
+    r'>': r'$>$',
+    r'<': r'$<$',
+    r'=': r'$=$',
+    r'|': r'\textbar{}',
+}
+
+def escape_special_chars_and_symbols_in_table(table: str) -> str:
+    # extract the tabular part from the table using split
+    before_tabular, tabular_part = table.split(r'\begin{tabular}', 1)
+    tabular_part, after_tabular = tabular_part.split(r'\end{tabular}', 1)
+    tabular_part = replace_special_chars(tabular_part, process_table_part)
+    return before_tabular + r'\begin{tabular}' + tabular_part + r'\end{tabular}' + after_tabular
+
+def process_table_part(tabular_part: str) -> str:
+    pattern = re.compile(r'(%s)' % '|'.join(re.escape(key) for key in TABLES_CHARS.keys()))
+    repl_func = lambda match: TABLES_CHARS[match.group(1)]
+    return re.sub(pattern, repl_func, tabular_part)
+
 
 def process_non_math_part(text):
-    pattern = r'(?<!\\)([&%#_$~^])'
+    assert all(len(c) == 1 for c in CHARS.keys())
+    chars = ''.join(CHARS.keys())
+    pattern = fr'(?<!\\)([{chars}])'
     repl_func = lambda match: CHARS[match.group(1)]
     return re.sub(pattern, repl_func, text)
 
 
-def replace_special_chars(text):
+def replace_special_chars(text, processing_func=process_non_math_part):
     result = []
     last_end = 0
 
     for match in regex.finditer(MATH_PATTERN, text, flags=regex.VERBOSE):
         non_math_part = text[last_end:match.start()]
 
-        processed_part = process_non_math_part(non_math_part)
+        processed_part = processing_func(non_math_part)
         result.append(processed_part)
 
         possibly_math_part = match.group()
         # find `\caption{...} parts in possibly_math_part and apply escaping on what's inside the curly braces
         math_part = regex.sub(r'\\caption\{.*?\}',
-                              lambda m: m.group().replace(m.group(0)[9:-1], process_non_math_part(m.group(0)[9:-1])),
+                              lambda m: m.group().replace(m.group(0)[9:-1], processing_func(m.group(0)[9:-1])),
                               possibly_math_part)
         result.append(math_part)
 
@@ -98,7 +122,7 @@ def replace_special_chars(text):
 
     # Process the remaining non-math part after the last match
     non_math_part = text[last_end:]
-    processed_part = process_non_math_part(non_math_part)
+    processed_part = processing_func(non_math_part)
     result.append(processed_part)
 
     return "".join(result)
@@ -118,9 +142,10 @@ def remove_figure_envs_from_latex(latex_content):
 
 def clean_latex(latex_content):
     preamble = latex_content[:latex_content.find(r'\begin{document}')]
-    latex_content = latex_content[latex_content.find(r'\begin{document}'):]
+    appendices = latex_content[latex_content.find(r'\appendix'):]
+    latex_content = latex_content[latex_content.find(r'\begin{document}'):latex_content.find(r'\appendix')]
     latex_content = remove_figure_envs_from_latex(latex_content)
-    latex_content = preamble + replace_special_chars(latex_content)
+    latex_content = preamble + replace_special_chars(latex_content) + appendices
     return latex_content
 
 
