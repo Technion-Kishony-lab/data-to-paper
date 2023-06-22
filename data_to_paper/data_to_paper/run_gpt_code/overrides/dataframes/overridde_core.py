@@ -87,12 +87,26 @@ def to_csv(self, *args, **kwargs):
     return result
 
 
+class ModifiedDescribeDF(DataFrame):
+    def _drop_rows(self):
+        return self.drop(['min', '25%', '50%', '75%', 'max'])
+
+    def __str__(self):
+        return DataFrame.__str__(self._drop_rows())
+
+    def __repr__(self):
+        return DataFrame.__repr__(self._drop_rows())
+
+    def to_string(self):
+        return DataFrame.to_string(self._drop_rows())
+
+
 def describe(self, *args, **kwargs):
     """
     Removes the min, 25%, 50%, 75%, max rows from the result of the original describe function.
     """
     result = original_describe(self, *args, **kwargs)
-    return result.drop(['min', '25%', '50%', '75%', 'max'])
+    return ModifiedDescribeDF(result)
 
 
 def is_overriden(self):
