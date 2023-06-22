@@ -325,11 +325,13 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         is relevant and suitable for inclusion in a table of a scientific paper.
 
         As appropriate, you should:
-        * Exclude and re-order rows/columns.
-        * Organize the table sensibly.  
+        * Exclude rows/columns that are not important to the research goal, or that are too technical, \
+        or that repeat the same information multiple times. 
+        * Organize the table sensibly, re-ordering rows/columns as appropriate.   
         * Re-name technical names to scientifically-suitable names.
-        * Rename technical values (like 0/1) to scientifically-suitable values (like "No"/"Yes").
-        * Use proper scientific notation for numbers and round numbers to a reasonable number of digits.
+        * Rename technical values to scientifically-suitable values \
+        (like values of 0/1 may be suitable to represent as "No"/"Yes").
+        * Round numbers to a reasonable number of digits, and present numbers using proper scientific notation.
         * Indicate standard errors using the $\\pm$ symbol, or parentheses.
         * Add a caption suitable for inclusion as part of a scientific paper \
         (you can use the table name provided above, or modify it as you see fit).
