@@ -25,7 +25,7 @@ def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
     return s
 
 
-def wrap_string(input_string, width: Optional[int] = 40, indent=0):
+def wrap_string(input_string, width: Optional[int] = 40, indent: int = 0, new_line_indent: bool = False):
     """
     Add linebreaks to wrap a long string.
     """
@@ -38,7 +38,7 @@ def wrap_string(input_string, width: Optional[int] = 40, indent=0):
         if width is None:
             wrapped_line = line
         else:
-            wrapped_line = textwrap.fill(line, width=width)
+            wrapped_line = textwrap.fill(line, width=width).replace('\n', '\n\t' if new_line_indent else '\n')
         wrapped_lines.append(wrapped_line)
 
     # join wrapped lines back together with preserved line breaks
