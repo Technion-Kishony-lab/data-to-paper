@@ -380,10 +380,13 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         else:
             return ''
 
+    def _check_section(self, section: str, section_name: str):
+        super()._check_section(section, section_name)
+        self._check_extracted_numbers(section)
+
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
-        section = escape_special_chars_and_symbols_in_table(section)
-        return self._check_extracted_numbers(section)
+        return escape_special_chars_and_symbols_in_table(section)
 
 
 @dataclass
@@ -394,6 +397,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
                                                   'tables')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = (
         'outputs:data_exploration', 'outputs:data_analysis')
+    ask_for_formula_prompt: str = None
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -433,7 +437,8 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
         extracted_str = super()._extract_str_of_python_value_from_response(response)
-        return self._check_extracted_numbers(extracted_str)
+        self._check_extracted_numbers(extracted_str)
+        return extracted_str
 
     def _check_response_value(self, response_value: Any) -> Any:
         return NiceDict(response_value)

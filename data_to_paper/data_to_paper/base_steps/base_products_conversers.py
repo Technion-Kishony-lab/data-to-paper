@@ -221,10 +221,15 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         * The square brackets should be written as "[<formula> = <number>]", where <formula> is the formula \
         you used to derive the number, and <number> is the number you derived.
         
-        For example, if you would like to specify the difference between two numbers, say 87 and 22, \
-        provided in the code output, \
-        then do not write "The difference is 65", but instead provide the formula:
-        "The difference is [87 - 22 = 65]". 
+        For example, if you would like to specify the difference between two numbers, say "87 km/hr" and "22 km/hr", \
+        then the sentence:
+        "The difference is 65 km/hr." 
+        
+        should be replaced with a formula-syntax sentence, like this:
+        "The difference is [87 - 22 = 65] km/hr."
+        
+        Note that the formula itself should include only explicit numerical values.
+         
         This will help me understand how you got to the number. I will later manually replace any formulas with \
         the actual numbers.
         """)  # set to None or '' to disable formula-writing option
@@ -238,12 +243,13 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     def names_of_products_from_which_to_extract(self) -> List[str]:
         return NiceList((self.products.get_name(product_field)
                         for product_field in self.product_fields_from_which_response_is_extracted),
+                        wrap_with='"',
                         last_separator=' and ')
 
     def _check_extracted_numbers(self, text: str,
                                  ignore_int_below: int = 20,
                                  remove_trailing_zeros: bool = True,
-                                 allow_truncating: bool = True) -> str:
+                                 allow_truncating: bool = True):
         if self.product_fields_from_which_response_is_extracted is None:
             return text
 
@@ -256,16 +262,18 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
             ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
             allow_truncating=allow_truncating)
         number_of_non_matching_values, number_of_matching_values = len(non_matching), len(matching)
-        is_converging = self._number_of_non_matching_values is not None \
-            and number_of_non_matching_values < self._number_of_non_matching_values
+        if self._number_of_non_matching_values is None:
+            add_iterations = 3  # first time, we start with added 3 iterations
+        else:
+            add_iterations = int(number_of_non_matching_values < self._number_of_non_matching_values)
 
         # Print to the console the number of non-matching values:
         self.comment(f'Checking {number_of_matching_values + number_of_non_matching_values} numerical values. '
                      f'Found {number_of_non_matching_values} non-matching.', as_action=False)
         if self._number_of_non_matching_values is not None:
             self.comment(f'Compared to {self._number_of_non_matching_values} non-matching in the previous iteration '
-                         f'(is_converging: {is_converging})', as_action=False)
-
+                         f'(add_iterations: {add_iterations})', as_action=False)
+        self._number_of_non_matching_values = number_of_non_matching_values
         if non_matching:
             if self.only_warn_about_non_matching_values:
                 self.comment(Replacer(self, self.warning_about_non_matching_values, args=(non_matching,)),
@@ -274,7 +282,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                 self._raise_self_response_error(
                     Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
                     rewind=Rewind.REPOST_AS_FRESH,
-                    add_iterations=int(is_converging),
+                    add_iterations=add_iterations,
+                    bump_model=True,
                 )
 
         if self.ask_for_formula_prompt:
@@ -284,7 +293,20 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                 left_str, right_str = formula.split('=')
                 assert left_str.startswith('[') and right_str.endswith(']')
                 left_str, right_str = left_str[1:], right_str[:-1]
-                left_num, right_num = eval(left_str), eval(right_str)
+                try:
+                    left_num, right_num = eval(left_str), eval(right_str)
+                except NameError as e:
+                    self._raise_self_response_error(
+                        f'The formula {formula} is not correct.\n'
+                        f'Please make sure to only use numeric values in the formula.',
+                        rewind=Rewind.REPOST_AS_FRESH,
+                    )
+                except Exception as e:
+                    self._raise_self_response_error(
+                        f'The formula {formula} is not correct.\n'
+                        f'I tied eval and got the following error:\n{e}',
+                        rewind=Rewind.REPOST_AS_FRESH,
+                    )
                 if math.isclose(left_num, right_num):
                     text = text.replace(formula, right_str.strip())
                 else:
