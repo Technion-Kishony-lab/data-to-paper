@@ -11,6 +11,7 @@ from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
 from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
@@ -68,6 +69,12 @@ def sort_citations_by_embedding_similarity(citations: List[Citation], embedding:
     similarities = np.dot(embeddings, embedding)
     indices = np.argsort(similarities)[::-1]
     return [citations[i] for i in indices]
+
+
+CITATION_REPR_FIELDS_FOR_CHATGPT = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
+CITATION_REPR_FIELDS_FOR_PRINT = ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'influence')
+
+CITATION_REPR_FIELDS = Mutable(CITATION_REPR_FIELDS_FOR_CHATGPT)
 
 
 @dataclass
@@ -158,11 +165,7 @@ class LiteratureSearch:
                                        sort_by_similarity=sort_by_similarity,
                                        minimal_influence=minimal_influence,
                                        )
-        if PRINT_CITATIONS:
-            print('CITATIONS\n\n' + '\n'.join(citation.pretty_repr(
-                fields=('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'influence')
-            ) for citation in citations))
-        return '\n'.join(citation.pretty_repr() for citation in citations)
+        return '\n'.join(citation.pretty_repr(fields=CITATION_REPR_FIELDS.val) for citation in citations)
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
         for citation in self.get_citations():

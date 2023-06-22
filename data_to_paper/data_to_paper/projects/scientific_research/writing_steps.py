@@ -5,7 +5,8 @@ from typing import Tuple, List, Set
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, CITATION_REPR_FIELDS, \
+    CITATION_REPR_FIELDS_FOR_PRINT
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 
@@ -15,8 +16,28 @@ from data_to_paper.utils.nice_list import nicely_join
 from data_to_paper.utils.types import ListBasedSet
 
 
+class ShowCitationProducts:
+    products: ScientificProducts = None
+    background_product_fields: Tuple[str, ...] = ()
+
+    def _pre_populate_background(self):
+        for content in self.get_repr_citation_products():
+            self.comment(content)
+        return super()._pre_populate_background()
+
+    def get_repr_citation_products(self) -> List[str]:
+        contents = []
+        for field in self.background_product_fields:
+            if field.startswith('literature_search') and self.products.is_product_available(field):
+                with CITATION_REPR_FIELDS.temporary_set(CITATION_REPR_FIELDS_FOR_PRINT):
+                    product = self.products[field]
+                    contents.append(f'{product.name}:\n{product.description}')
+        return contents
+
+
 @dataclass
-class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
+class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
+                                                     LatexReviewBackgroundProductsConverser,
                                                      CheckExtractionReviewBackgroundProductsConverser):
     """
     Base class for the writer of a paper section in latex format.

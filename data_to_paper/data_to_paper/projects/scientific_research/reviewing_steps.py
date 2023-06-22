@@ -12,6 +12,7 @@ from data_to_paper.base_steps.result_converser import Rewind
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
+from .writing_steps import ShowCitationProducts
 
 
 @dataclass
@@ -81,7 +82,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
+class IsGoalOK(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 0
     products: ScientificProducts = None
     model_engine: ModelEngine = ModelEngine.GPT4

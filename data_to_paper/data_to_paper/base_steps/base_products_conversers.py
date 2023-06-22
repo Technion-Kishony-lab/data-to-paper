@@ -141,7 +141,7 @@ class BackgroundProductsConverser(ProductsConverser):
         """
         previous_product_items = self.actual_background_product_fields
         if previous_product_items is not None:
-            assert len(self.conversation) == 1
+            assert len(self.conversation.get_chosen_messages()) == 1
             self._add_fake_pre_conversation_exchange()
             for i, product_field in enumerate(previous_product_items or []):
                 is_last = i == len(previous_product_items) - 1
