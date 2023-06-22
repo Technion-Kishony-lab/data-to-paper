@@ -17,7 +17,7 @@ from data_to_paper.utils.nice_list import NiceList
 # TODO: this is part of the WORKAROUND. remove it when the bug is fixed.
 def remove_word(string, word):
     import re
-    pattern = re.compile(r'\b{}\s*'.format(re.escape(word)), re.IGNORECASE)
+    pattern = re.compile(r'\b{}\b\s*'.format(re.escape(word)), re.IGNORECASE)
     return re.sub(pattern, '', string)
 
 
@@ -123,12 +123,13 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 return papers[:rows]
 
             for word in words_to_remove_in_case_of_zero_citation_error:
-                if word in query.lower():
+                redacted_query = remove_word(query, word)
+                if redacted_query != query:
                     print_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY")
-                    query = remove_word(query, word)
+                    query = redacted_query
                     break
             else:
-                raise ServerErrorNoMatchesFoundForQuery(query=query)
+                return []
 
     @staticmethod
     def _post_process_response(response, args, kwargs):
