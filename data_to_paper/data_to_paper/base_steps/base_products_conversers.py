@@ -11,8 +11,7 @@ from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values, remove_equal_sign_and_result, \
-    get_all_formulas
+from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values
 
 
 @dataclass
@@ -212,26 +211,20 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         {ask_for_formula_prompt}
     """)
 
-    ask_for_formula_prompt: str = dedent_triple_quote_str("""\n
-        Alternatively, if you would like to indicate a number which is NOT an extraction or rounding from the numbers 
+    ask_for_formula_prompt: str = dedent_triple_quote_str("""\n\n
+        Alternatively, if you need to indicate a number which is NOT an explicit extraction or rounding from the numbers 
         provided above, \
-        but is rather mathematically derived from them, then follow these guidelines:
-        * At the place where you want to put this derived number, replace it instead with a formula, \
-        enclosed within square brackets. 
-        * The square brackets should be written as "[<formula> = <number>]", where <formula> is the formula \
-        you used to derive the number, and <number> is the number you derived.
-        
+        but is rather mathematically derived from them, then replace the number with the formula for deriving it, \
+        using the \\num command.
+
         For example, if you would like to specify the difference between two numbers, say "87 km/hr" and "22 km/hr", \
-        then the sentence:
+        then instead of the sentence:
         "The difference is 65 km/hr." 
         
-        should be replaced with a formula-syntax sentence, like this:
-        "The difference is [87 - 22 = 65] km/hr."
+        you should write:
+        "The difference is \\num{87 - 22} km/hr."
         
-        Note that the formula itself should include only explicit numerical values.
-         
-        This will help me understand how you got to the number. I will later manually replace any formulas with \
-        the actual numbers.
+        This will help me understand how you got to the number. 
         """)  # set to None or '' to disable formula-writing option
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
@@ -251,12 +244,12 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True):
         if self.product_fields_from_which_response_is_extracted is None:
-            return text
+            return
 
         # Find the non-matching values:
         non_matching, matching = find_non_matching_numeric_values(
             source=self._get_text_from_which_response_should_be_extracted(),
-            target=remove_equal_sign_and_result(text) if self.ask_for_formula_prompt else text,
+            target=text,
             ignore_int_below=ignore_int_below,
             remove_trailing_zeros=remove_trailing_zeros,
             ignore_one_with_zeros=True, ignore_after_smaller_than_sign=True,
@@ -285,37 +278,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                     add_iterations=add_iterations,
                     bump_model=True,
                 )
-
-        if self.ask_for_formula_prompt:
-            # Replace the formulas with the actual numbers, eg [87 - 22 = 65] -> 65:
-            formulas = get_all_formulas(text)
-            for formula in formulas:
-                left_str, right_str = formula.split('=')
-                assert left_str.startswith('[') and right_str.endswith(']')
-                left_str, right_str = left_str[1:], right_str[:-1]
-                try:
-                    left_num, right_num = eval(left_str), eval(right_str)
-                except NameError as e:
-                    self._raise_self_response_error(
-                        f'The formula {formula} is not correct.\n'
-                        f'Please make sure to only use numeric values in the formula.',
-                        rewind=Rewind.REPOST_AS_FRESH,
-                    )
-                except Exception as e:
-                    self._raise_self_response_error(
-                        f'The formula {formula} is not correct.\n'
-                        f'I tied eval and got the following error:\n{e}',
-                        rewind=Rewind.REPOST_AS_FRESH,
-                    )
-                if math.isclose(left_num, right_num):
-                    text = text.replace(formula, right_str.strip())
-                else:
-                    self._raise_self_response_error(
-                        f'The formula {formula} is not correct.',
-                        rewind=Rewind.REPOST_AS_FRESH,
-                    )
-
-        return text
 
     def _check_url_in_text(self, text: str) -> str:
         """

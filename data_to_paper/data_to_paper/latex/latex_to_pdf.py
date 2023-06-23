@@ -149,6 +149,21 @@ def clean_latex(latex_content):
     return latex_content
 
 
+def evaluate_latex_num_command(latex_str):
+    """
+    Evaluates all expressions of the form \num{...} in the given latex string and replaces them with the result.
+    """
+    pattern = r'\\num{(.+?)}'
+    matches = re.findall(pattern, latex_str)
+    for match in matches:
+        try:
+            result = round(eval(match), 10)
+            latex_str = latex_str.replace(f'\\num{{{match}}}', str(result))
+        except:
+            pass
+    return latex_str
+
+
 def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List[str] = None):
     unwanted_commands = unwanted_commands if unwanted_commands is not None else [r'\cite', r'\verb']
     unwanted_commands_used = [c for c in unwanted_commands if c in latex_content]
@@ -173,6 +188,7 @@ def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
                                   references: Set[Citation] = None,
                                   tolerance_for_too_wide_in_pts: Optional[float] = None):
+    latex_content = evaluate_latex_num_command(latex_content)
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'

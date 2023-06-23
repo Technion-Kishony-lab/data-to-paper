@@ -5,7 +5,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.exceptions import LatexCompilationError
-from data_to_paper.latex.latex_to_pdf import clean_latex
+from data_to_paper.latex.latex_to_pdf import clean_latex, evaluate_latex_num_command
 from data_to_paper.servers.crossref import CrossrefCitation
 
 
@@ -142,3 +142,10 @@ def test_latex_to_pdf_exception(tmpdir, wrong_latex_content):
     e = e.value
     assert e.latex_content == wrong_latex_content
     assert e.get_latex_exception_line_number() == 3
+
+
+
+def test_evaluate_latex_expression():
+    assert evaluate_latex_num_command(r'I have \num{1+1} apples') == 'I have 2 apples'
+    assert evaluate_latex_num_command(r'this number must be rounded \num{7.95 - 3.64}') == \
+           'this number must be rounded 4.31'
