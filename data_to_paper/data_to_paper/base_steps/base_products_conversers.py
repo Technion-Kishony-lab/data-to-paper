@@ -1,4 +1,3 @@
-import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -205,7 +204,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     report_non_match_prompt: str = dedent_triple_quote_str("""
         Some of the specified values {} are not explicitly extracted from the provided data \
         (see above: {names_of_products_from_which_to_extract}).
-        
+
         Please correct these numbers so that they are correctly extracted, or correctly rounded, \
         from the code outputs provided above.
         {ask_for_formula_prompt}
@@ -220,10 +219,10 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         For example, if you would like to specify the difference between two numbers, say "87 km/hr" and "22 km/hr", \
         then instead of the sentence:
         "The difference is 65 km/hr." 
-        
+
         you should write:
         "The difference is \\num{87 - 22} km/hr."
-        
+
         This will help me understand how you got to the number. 
         """)  # set to None or '' to disable formula-writing option
 

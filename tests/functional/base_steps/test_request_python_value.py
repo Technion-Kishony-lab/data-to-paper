@@ -98,4 +98,4 @@ def test_request_python_ends_with_reposting_fresh_response():
     assert len(requester.conversation) == 3
 
     # Response is reposted as fresh:
-    assert requester.conversation[-1].content == correct_list_str_value
+    assert requester.conversation[-1].content == f"```python\n{correct_list_str_value}\n```"
