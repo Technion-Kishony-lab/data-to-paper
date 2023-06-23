@@ -6,7 +6,6 @@ from operator import or_
 import numpy as np
 
 from data_to_paper.conversation.stage import Stage
-from data_to_paper.env import PRINT_CITATIONS
 from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages

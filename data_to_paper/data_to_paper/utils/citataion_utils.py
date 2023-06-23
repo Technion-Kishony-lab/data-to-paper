@@ -28,7 +28,7 @@ def remove_citations_from_section(section):
 
 
 def get_non_latex_citations(section):
-    """
+    r"""
     Get the citations that are not in latex format, i.e., not in the form \cite{citation_id_1, citation_id2}.
     for example find any APA citation in the form (Author, year) or (Author et al., year) or (Author, year, p. 123).
     """

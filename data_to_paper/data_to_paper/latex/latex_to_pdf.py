@@ -80,12 +80,14 @@ TABLES_CHARS = {
     r'|': r'\textbar{}',
 }
 
+
 def escape_special_chars_and_symbols_in_table(table: str) -> str:
     # extract the tabular part from the table using split
     before_tabular, tabular_part = table.split(r'\begin{tabular}', 1)
     tabular_part, after_tabular = tabular_part.split(r'\end{tabular}', 1)
     tabular_part = replace_special_chars(tabular_part, process_table_part)
     return before_tabular + r'\begin{tabular}' + tabular_part + r'\end{tabular}' + after_tabular
+
 
 def process_table_part(tabular_part: str) -> str:
     pattern = re.compile(r'(%s)' % '|'.join(re.escape(key) for key in TABLES_CHARS.keys()))
@@ -159,7 +161,7 @@ def evaluate_latex_num_command(latex_str):
         try:
             result = round(eval(match), 10)
             latex_str = latex_str.replace(f'\\num{{{match}}}', str(result))
-        except:
+        except (SyntaxError, NameError):
             pass
     return latex_str
 
