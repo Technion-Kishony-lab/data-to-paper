@@ -1,0 +1,45 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[!htbp]
+\centering
+\caption{Association between fruit and vegetable consumption and diabetes risk: Logistic regression results}
+\label{table2}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Variable}                & \textbf{Coefficient} & \textbf{Standard Error} & \textbf{p-value} \\
+\midrule
+Intercept                        & $-4.861$             & $\pm 0.050$             & $<10^{-4}$       \\
+Fruit and Vegetable Consumption & $-0.181$             & $\pm 0.012$             & $<10^{-4}$       \\
+Age (18$\sim$80+ years)          & $0.211$              & $\pm 0.002$             & $<10^{-4}$       \\
+Sex (Male)                       & $0.329$              & $\pm 0.013$             & $<10^{-4}$       \\
+BMI                              & $0.085$              & $\pm 0.001$             & $<10^{-4}$       \\
+Education (1$\sim$6 scale)       & $-0.108$             & $\pm 0.007$             & $<10^{-4}$       \\
+Income (1$\sim$8 scale)          & $-0.147$             & $\pm 0.003$             & $<10^{-4}$       \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

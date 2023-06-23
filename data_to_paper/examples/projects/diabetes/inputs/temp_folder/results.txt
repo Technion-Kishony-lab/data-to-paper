@@ -1,0 +1,76 @@
+Results for Table 1:
+                      count    mean    std
+Diabetes_binary      253680  0.1393 0.3463
+HighBP               253680   0.429 0.4949
+HighChol             253680  0.4241 0.4942
+CholCheck            253680  0.9627 0.1896
+BMI                  253680   28.38  6.609
+Smoker               253680  0.4432 0.4968
+Stroke               253680 0.04057 0.1973
+HeartDiseaseorAttack 253680 0.09419 0.2921
+PhysActivity         253680  0.7565 0.4292
+Fruits               253680  0.6343 0.4816
+Veggies              253680  0.8114 0.3912
+HvyAlcoholConsump    253680  0.0562 0.2303
+AnyHealthcare        253680  0.9511 0.2158
+NoDocbcCost          253680 0.08418 0.2777
+GenHlth              253680   2.511  1.068
+MentHlth             253680   3.185  7.413
+PhysHlth             253680   4.242  8.718
+DiffWalk             253680  0.1682 0.3741
+Sex                  253680  0.4403 0.4964
+Age                  253680   8.032  3.054
+Education            253680    5.05 0.9858
+Income               253680   6.054  2.071
+FruitVeg             253680  0.5626 0.4961
+
+Results for Table 2:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:        Diabetes_binary   No. Observations:               253680
+Model:                          Logit   Df Residuals:                   253673
+Method:                           MLE   Df Model:                            6
+Date:                Fri, 23 Jun 2023   Pseudo R-squ.:                  0.1242
+Time:                        18:28:23   Log-Likelihood:                -89707.
+converged:                       True   LL-Null:                   -1.0242e+05
+Covariance Type:            nonrobust   LLR p-value:                     0.000
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -4.8608      0.050    -96.706      0.000      -4.959      -4.762
+FruitVeg      -0.1811      0.012    -14.572      0.000      -0.205      -0.157
+Age            0.2112      0.002     89.164      0.000       0.207       0.216
+Sex            0.3287      0.013     26.267      0.000       0.304       0.353
+BMI            0.0852      0.001     97.707      0.000       0.083       0.087
+Education     -0.1079      0.007    -16.469      0.000      -0.121      -0.095
+Income        -0.1466      0.003    -46.323      0.000      -0.153      -0.140
+==============================================================================
+
+Results for Table 3:
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:        Diabetes_binary   No. Observations:               253680
+Model:                          Logit   Df Residuals:                   253671
+Method:                           MLE   Df Model:                            8
+Date:                Fri, 23 Jun 2023   Pseudo R-squ.:                  0.1263
+Time:                        18:28:24   Log-Likelihood:                -89485.
+converged:                       True   LL-Null:                   -1.0242e+05
+Covariance Type:            nonrobust   LLR p-value:                     0.000
+=========================================================================================
+                            coef    std err          z      P>|z|      [0.025      0.975]
+-----------------------------------------------------------------------------------------
+Intercept                -4.7193      0.051    -92.094      0.000      -4.820      -4.619
+FruitVeg                 -0.0516      0.022     -2.400      0.016      -0.094      -0.009
+PhysActivity             -0.2109      0.018    -11.761      0.000      -0.246      -0.176
+FruitVeg_PhysActivity    -0.1426      0.026     -5.447      0.000      -0.194      -0.091
+Age                       0.2075      0.002     87.402      0.000       0.203       0.212
+Sex                       0.3390      0.013     27.027      0.000       0.314       0.364
+BMI                       0.0828      0.001     94.559      0.000       0.081       0.084
+Education                -0.0950      0.007    -14.412      0.000      -0.108      -0.082
+Income                   -0.1409      0.003    -44.350      0.000      -0.147      -0.135
+=========================================================================================
+
+Other numerical results:
+Total number of observations: 253680
+Correlation between fruit/veg consumption and diabetes risk: -0.18113600236572014
+Mean of BMI: 28.382363607694735

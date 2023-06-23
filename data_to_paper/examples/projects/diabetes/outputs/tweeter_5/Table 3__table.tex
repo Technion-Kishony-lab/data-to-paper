@@ -1,0 +1,47 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[!htbp]
+\centering
+\caption{Interaction between fruit and vegetable consumption and physical activity on diabetes risk: Logistic regression results}
+\label{table3}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Variable}                        & \textbf{Coeff.} & \textbf{Std. Err.} & \textbf{p-value} \\
+\midrule
+Intercept                                & $-4.719$       & $\pm 0.051$        & $<10^{-4}$    \\
+Fruit \& Vegetable                      & $-0.052$       & $\pm 0.022$        & $0.016$       \\
+Physical Activity (Yes)                  & $-0.211$       & $\pm 0.018$        & $<10^{-4}$    \\
+Fruit \& Vegetable $\times$ Phys. Activity & $-0.143$       & $\pm 0.026$        & $<10^{-4}$    \\
+Age (years)                              & $0.208$        & $\pm 0.002$        & $<10^{-4}$    \\
+Sex (Male)                               & $0.339$        & $\pm 0.013$        & $<10^{-4}$    \\
+BMI                                      & $0.083$        & $\pm 0.001$        & $<10^{-4}$    \\
+Education                                & $-0.095$       & $\pm 0.007$        & $<10^{-4}$    \\
+Income                                   & $-0.141$       & $\pm 0.003$        & $<10^{-4}$    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

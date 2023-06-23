@@ -1,0 +1,44 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\section{Results}
+
+In this section, we present the results of our analysis on the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey.
+
+\subsection{Association between Fruit and Vegetable Consumption and Diabetes Risk}
+
+To examine the relationship between fruit and vegetable consumption and diabetes risk, we conducted logistic regression analysis while controlling for age, sex, BMI, education, and income (Table \ref{table2}). Our results show that higher fruit and vegetable consumption is associated with a reduced risk of diabetes (Coefficient = $-0.181$, p-value $<10^{-4}$). This suggests that individuals who consume more fruits and vegetables have a lower probability of developing diabetes.
+
+\subsection{Association between Physical Activity, Fruit and Vegetable Consumption, and Diabetes Risk}
+
+Next, we explored whether engaging in regular physical activity further strengthens the association between fruit and vegetable consumption and diabetes risk. We performed a logistic regression analysis controlling for age, sex, BMI, education, income, and physical activity (Table \ref{table3}). Our results reveal that physical activity (Coefficient = $-0.211$, p-value $<10^{-4}$) and fruit and vegetable consumption (Coefficient = $-0.052$, p-value = 0.016) are independently associated with a reduced risk of diabetes. Furthermore, the interaction term between fruit and vegetable consumption and physical activity is also statistically significant (Coefficient = $-0.143$, p-value $<10^{-4}$), indicating that the combined effect of engaging in physical activity and consuming fruits and vegetables is even more protective against diabetes.
+
+Taken together, these findings underline the importance of promoting fruit and vegetable intake and regular physical activity as preventive measures for diabetes among adults. The negative correlation coefficient between fruit and vegetable consumption and diabetes risk (-0.181) suggests that for every unit increase in fruit and vegetable consumption, the odds of developing diabetes decrease by 0.181 units. Additionally, the pseudo R-squared value of 0.1242 for the logistic regression model in Table \ref{table2} indicates that 12.42\% of the variation in diabetes risk can be explained by the included covariates.
+
+The logistic regression model in Table \ref{table3} captures 12.63\% of the variability in diabetes risk (pseudo R-squared value), indicating that including physical activity and the interaction term improves the predictive power of the model. These results provide insights into potential mechanisms by which lifestyle interventions, such as increasing fruit and vegetable consumption and engaging in physical activity, may contribute to reducing the burden of diabetes among adults. However, it is important to note that the analysis is based on self-reported data, which may introduce measurement errors and other limitations.
+
+In summary, our findings support the hypothesis that higher fruit and vegetable consumption, in conjunction with regular physical activity, is associated with a reduced risk of diabetes among adults. The results suggest that targeting interventions and policies to promote healthy lifestyle behaviors, such as increased fruit and vegetable consumption and engagement in physical activity, could have a significant impact on reducing the burden of diabetes in the adult population.
+
+\end{document}

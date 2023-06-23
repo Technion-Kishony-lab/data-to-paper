@@ -1,0 +1,60 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[!htbp]
+\centering
+\caption{Descriptive statistics of the dataset}
+\label{table1}
+\begin{tabular}{l c c}
+\toprule
+\textbf{Variable}                & \textbf{Mean}       & \textbf{Standard Deviation} \\
+\midrule
+Diabetes                         & 0.139               & 0.346                       \\
+High Blood Pressure              & 0.429               & 0.495                       \\
+High Cholesterol                 & 0.424               & 0.494                       \\
+Cholesterol Check (Yes)          & 0.963               & 0.190                       \\
+BMI                              & 28.38               & 6.61                        \\
+Smoker (Yes)                     & 0.443               & 0.497                       \\
+Stroke (Yes)                     & 0.041               & 0.197                       \\
+Heart Disease or Attack (Yes)    & 0.094               & 0.292                       \\
+Physical Activity (Yes)          & 0.756               & 0.429                       \\
+Fruits Consumption (Yes)         & 0.634               & 0.482                       \\
+Vegetables Consumption (Yes)     & 0.811               & 0.391                       \\
+Heavy Alcohol Consumption (Yes)  & 0.056               & 0.230                       \\
+Healthcare Coverage (Yes)        & 0.951               & 0.216                       \\
+No Doctor due to Cost (Yes)      & 0.084               & 0.278                       \\
+General Health (1$\sim$5 scale)  & 2.51                & 1.07                        \\
+Mental Health (1$\sim$30 days)   & 3.19                & 7.41                        \\
+Physical Health (1$\sim$30 days) & 4.24                & 8.72                        \\
+Difficulty Walking (Yes)         & 0.168               & 0.374                       \\
+Sex (Male)                       & 0.440               & 0.497                       \\
+Age (18$\sim$80+ years)          & 8.03                & 3.05                        \\
+Education (1$\sim$6 scale)       & 5.05                & 0.986                       \\
+Income (1$\sim$8 scale)          & 6.05                & 2.07                        \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

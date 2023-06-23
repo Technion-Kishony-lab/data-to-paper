@@ -1,0 +1,122 @@
+Number of rows: 253680
+Number of columns: 22
+
+Summary Statistics:
+                      count    mean    std
+Diabetes_binary      253680  0.1393 0.3463
+HighBP               253680   0.429 0.4949
+HighChol             253680  0.4241 0.4942
+CholCheck            253680  0.9627 0.1896
+BMI                  253680   28.38  6.609
+Smoker               253680  0.4432 0.4968
+Stroke               253680 0.04057 0.1973
+HeartDiseaseorAttack 253680 0.09419 0.2921
+PhysActivity         253680  0.7565 0.4292
+Fruits               253680  0.6343 0.4816
+Veggies              253680  0.8114 0.3912
+HvyAlcoholConsump    253680  0.0562 0.2303
+AnyHealthcare        253680  0.9511 0.2158
+NoDocbcCost          253680 0.08418 0.2777
+GenHlth              253680   2.511  1.068
+MentHlth             253680   3.185  7.413
+PhysHlth             253680   4.242  8.718
+DiffWalk             253680  0.1682 0.3741
+Sex                  253680  0.4403 0.4964
+Age                  253680   8.032  3.054
+Education            253680    5.05 0.9858
+Income               253680   6.054  2.071
+
+Most Common Values:
+Diabetes_binary: 0    218334
+1     35346
+Name: Diabetes_binary, dtype: int64
+HighBP: 0    144851
+1    108829
+Name: HighBP, dtype: int64
+HighChol: 0    146089
+1    107591
+Name: HighChol, dtype: int64
+CholCheck: 1    244210
+0      9470
+Name: CholCheck, dtype: int64
+Smoker: 0    141257
+1    112423
+Name: Smoker, dtype: int64
+Stroke: 0    243388
+1     10292
+Name: Stroke, dtype: int64
+HeartDiseaseorAttack: 0    229787
+1     23893
+Name: HeartDiseaseorAttack, dtype: int64
+PhysActivity: 1    191920
+0     61760
+Name: PhysActivity, dtype: int64
+Fruits: 1    160898
+0     92782
+Name: Fruits, dtype: int64
+Veggies: 1    205841
+0     47839
+Name: Veggies, dtype: int64
+HvyAlcoholConsump: 0    239424
+1     14256
+Name: HvyAlcoholConsump, dtype: int64
+AnyHealthcare: 1    241263
+0     12417
+Name: AnyHealthcare, dtype: int64
+NoDocbcCost: 0    232326
+1     21354
+Name: NoDocbcCost, dtype: int64
+GenHlth: 2    89084
+3    75646
+1    45299
+4    31570
+5    12081
+Name: GenHlth, dtype: int64
+DiffWalk: 0    211005
+1     42675
+Name: DiffWalk, dtype: int64
+Sex: 0    141974
+1    111706
+Name: Sex, dtype: int64
+Age: 9     33244
+10    32194
+8     30832
+7     26314
+11    23533
+Name: Age, dtype: int64
+Education: 6    107325
+5     69910
+4     62750
+3      9478
+2      4043
+Name: Education, dtype: int64
+Income: 8    90385
+7    43219
+6    36470
+5    25883
+4    20135
+Name: Income, dtype: int64
+
+Counts of Missing Values:
+Diabetes_binary         0
+HighBP                  0
+HighChol                0
+CholCheck               0
+BMI                     0
+Smoker                  0
+Stroke                  0
+HeartDiseaseorAttack    0
+PhysActivity            0
+Fruits                  0
+Veggies                 0
+HvyAlcoholConsump       0
+AnyHealthcare           0
+NoDocbcCost             0
+GenHlth                 0
+MentHlth                0
+PhysHlth                0
+DiffWalk                0
+Sex                     0
+Age                     0
+Education               0
+Income                  0
