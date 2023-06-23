@@ -1,0 +1,41 @@
+FROM ubuntu:20.04
+
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+	curl \
+	nano \
+	iproute2
+	
+#Update to python 3.10/3.9
+RUN apt install software-properties-common -y
+RUN DEBIAN_FRONTEND=noninteractive apt install python3.9 -y 
+
+#PIP
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN apt install python3.9-distutils -y
+RUN python3.9 get-pip.py
+
+#Install node js
+RUN apt install npm -y
+RUN npm install typescript
+
+
+COPY g3pt/ g3pt/
+RUN python3.9 -m pip install -r g3pt/requirements.txt
+RUN cd /g3pt/data_to_paper && python3.9 -m pip install .
+RUN cd /g3pt/data_to_paper_server && python3.9 -m pip install .
+
+#Add ssh key for git clone
+
+#RUN git clone https://github.com/Technion-Kishony-lab/g3pt.git
+
+#RUN python3 -m pip install flask 
+#RUN python3 -m pip install flask flask_socketio pytest
+#RUN python3 -m pip install ipython
+#RUN python3 -m pip install gevent
+#RUN python3 -m pip install g3pt/data_to_paper
+
+
+ENTRYPOINT bash

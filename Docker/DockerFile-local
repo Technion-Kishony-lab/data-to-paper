@@ -1,0 +1,30 @@
+FROM ubuntu:20.04
+
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+	curl \
+	nano \
+	iproute2 \
+	openssh-server
+	
+#Update to python 3.10/3.9
+RUN apt install software-properties-common -y
+RUN DEBIAN_FRONTEND=noninteractive apt install python3.9 -y 
+
+#PIP
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN apt install python3.9-distutils -y
+RUN python3.9 get-pip.py
+RUN python3.9 -m pip install ipython
+
+#Enable ssh for remote development
+RUN echo 'root:Docker!' | chpasswd
+RUN mkdir /var/run/sshd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN echo 'PermitRootLogin yes #enabled' >> /etc/ssh/sshd_config
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]

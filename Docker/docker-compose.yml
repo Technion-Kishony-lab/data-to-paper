@@ -1,0 +1,8 @@
+services:
+  dev-server:
+    container_name: dev
+    hostname: dev
+    image: gpt:dev
+    ports:
+      - 22:22
+
