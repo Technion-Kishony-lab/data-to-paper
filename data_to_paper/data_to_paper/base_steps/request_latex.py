@@ -10,9 +10,9 @@ from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.file_utils import get_non_existing_file_name
 
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
-from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, LatexProblemInCompilation
+from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, LatexProblemInCompilation, NonLatexCitations
 from data_to_paper.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
-    replace_special_chars, check_usage_of_unwanted_commands
+    replace_special_chars, check_usage_of_unwanted_commands, check_non_latex_citations
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
 
@@ -28,6 +28,8 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     Option for reviewing the sections (set max_review_turns > 0).
     """
     should_remove_citations_from_section = True
+
+    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
 
     section_names: List[str] = field(default_factory=list)
 
@@ -100,15 +102,25 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         else:
             file_stem, output_directory = 'test', None
         try:
-            check_latex_compilation(extracted_section, file_stem, output_directory)
+            check_latex_compilation(extracted_section, file_stem, output_directory, self.tolerance_for_too_wide_in_pts)
         except LatexProblemInCompilation as e:
             self._raise_self_response_error(str(e))
         self._check_usage_of_unwanted_commands(extracted_section)
+        self._check_usage_of_non_latex_citations(extracted_section)
 
     def _check_usage_of_unwanted_commands(self, extracted_section: str, unwanted_commands: List[str] = None):
         try:
             check_usage_of_unwanted_commands(extracted_section, unwanted_commands)
         except UnwantedCommandsUsedInLatex as e:
+            self._raise_self_response_error(str(e))
+
+    def _check_usage_of_non_latex_citations(self, extracted_section: str):
+        """
+        Check that there are no citations that are not in latex format.
+        """
+        try:
+            check_non_latex_citations(extracted_section)
+        except NonLatexCitations as e:
             self._raise_self_response_error(str(e))
 
     def _check_and_extract_result_from_self_response(self, response: str):

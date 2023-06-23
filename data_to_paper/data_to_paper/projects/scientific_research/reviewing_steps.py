@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
@@ -9,9 +9,11 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     MultiChoiceBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
+from .writing_steps import ShowCitationProducts
 
 
 @dataclass
@@ -81,7 +83,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
+class IsGoalOK(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 0
     products: ScientificProducts = None
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -92,7 +94,8 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'literature_search:goal')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+                                                  'literature_search:goal:20:2')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -113,7 +116,7 @@ class IsGoalOK(PythonValueReviewBackgroundProductsConverser):
         Choose one of the following two options:
 
         1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing. Choice 1.
-        2. Our goal and hypothesis seem too overlapping with existing literature, and should therefore be revised. \
+        2. Our goal and hypothesis seem totally overlapping with existing literature, and should therefore be revised. \
         Choice 2.
 
         {choice_instructions}
@@ -146,11 +149,11 @@ class ReGoalReviewGPT(GoalReviewGPT):
     is_new_conversation: bool = None
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
-                                                  'research_goal', 'literature_search:goal')
+                                                  'research_goal', 'literature_search:goal:20:2')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \
-        and do not overlap existing literature.
+        do not completely overlap existing literature.
 
         Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
 
@@ -299,15 +302,16 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 @dataclass
 class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
                                               CheckExtractionReviewBackgroundProductsConverser):
+    tolerance_for_too_wide_in_pts: Optional[float] = 25.0  # we allow tables to extend a bit out
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
     model_engine: ModelEngine = ModelEngine.GPT4
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions',
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
                                                   'tables_and_tables_names')
     table_name: str = None
     product_fields_from_which_response_is_extracted: Tuple[str] = \
-        ('data_file_descriptions', 'outputs:data_exploration', 'outputs:data_analysis',)
+        ('data_file_descriptions', 'outputs:data_analysis',)
     conversation_name: str = 'tables'
     goal_noun: str = 'table for a scientific paper'
     goal_verb: str = 'produce'
@@ -323,11 +327,13 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         is relevant and suitable for inclusion in a table of a scientific paper.
 
         As appropriate, you should:
-        * Exclude and re-order rows/columns.
-        * Organize the table sensibly.  
+        * Exclude rows/columns that are not important to the research goal, or that are too technical, \
+        or that repeat the same information multiple times. 
+        * Organize the table sensibly, re-ordering rows/columns as appropriate.   
         * Re-name technical names to scientifically-suitable names.
-        * Rename technical values (like 0/1) to scientifically-suitable values (like "No"/"Yes").
-        * Use proper scientific notation for numbers and round numbers to a reasonable number of digits.
+        * Rename technical values to scientifically-suitable values \
+        (like values of 0/1 may be suitable to represent as "No"/"Yes").
+        * Round numbers to a reasonable number of digits, and present numbers using proper scientific notation.
         * Indicate standard errors using the $\\pm$ symbol, or parentheses.
         * Add a caption suitable for inclusion as part of a scientific paper \
         (you can use the table name provided above, or modify it as you see fit).
@@ -374,9 +380,13 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         else:
             return ''
 
+    def _check_section(self, section: str, section_name: str):
+        super()._check_section(section, section_name)
+        self._check_extracted_numbers(section)
+
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
-        return self._check_extracted_numbers(section)
+        return escape_special_chars_and_symbols_in_table(section)
 
 
 @dataclass
@@ -387,6 +397,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
                                                   'tables')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = (
         'outputs:data_exploration', 'outputs:data_analysis')
+    ask_for_formula_prompt: str = None
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'
@@ -426,7 +437,8 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
         extracted_str = super()._extract_str_of_python_value_from_response(response)
-        return self._check_extracted_numbers(extracted_str)
+        self._check_extracted_numbers(extracted_str)
+        return extracted_str
 
     def _check_response_value(self, response_value: Any) -> Any:
         return NiceDict(response_value)

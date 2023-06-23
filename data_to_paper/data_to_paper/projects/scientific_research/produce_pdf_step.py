@@ -5,6 +5,7 @@ from pygments.formatters.latex import LatexFormatter
 from pygments.lexers import PythonLexer
 
 from data_to_paper.base_steps import BaseLatexToPDF, BaseLatexToPDFWithAppendix
+from data_to_paper.latex.latex_to_pdf import replace_special_chars
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.text_formatting import wrap_python_code
@@ -45,7 +46,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, ProduceS
         code_section += '\n\n' + latex_code
         if code_and_output.code_explanation:
             code_section += "\\subsection{Code Description}"
-            code_section += '\n\n' + code_and_output.code_explanation
+            code_section += '\n\n' + replace_special_chars(code_and_output.code_explanation)
         if code_and_output.output:
             code_section += '\n\n' + "\\subsection{Code Output}"
             code_section += '\n\n' + self.wrap_with_lstlisting(code_and_output.output)

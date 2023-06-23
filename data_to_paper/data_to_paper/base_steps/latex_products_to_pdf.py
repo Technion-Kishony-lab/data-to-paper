@@ -6,6 +6,7 @@ from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.latex.latex_to_pdf import clean_latex
 
 from .base_products_to_file import BaseFileProducer
+from ..utils.text_formatting import wrap_string
 
 APPENDIX_TEMPLATE = r"""
 \clearpage
@@ -40,7 +41,8 @@ class BaseLatexToPDF(BaseFileProducer):
 
     @staticmethod
     def wrap_with_lstlisting(paragraph):
-        return "\\begin{lstlisting}[language=TeX]\n" + paragraph + "\n\\end{lstlisting}"
+        return "\\begin{Verbatim}[tabsize=4]\n" + \
+            wrap_string(paragraph, width=80, new_line_indent=True) + "\n\\end{Verbatim}"
 
     def get_raw_paper_template(self) -> str:
         """

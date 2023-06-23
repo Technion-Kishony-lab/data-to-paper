@@ -88,6 +88,9 @@ class ListBasedSet(collections.abc.Set, Generic[T]):
         for value in other:
             self.add(value)
 
+    def union(self, other):
+        return self.__class__(self.elements + list(other))
+
 
 K = TypeVar('K')
 V = TypeVar('V')

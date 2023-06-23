@@ -202,6 +202,7 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
                                      ignore_after_smaller_than_sign: bool = True,
+                                     special_numbers_to_ignore: List[str] = ('95', '99', '100'),
                                      allow_truncating: bool = True) -> Tuple[List[str], List[str]]:
     """
     Check that all the numerical values mentioned in the target are also mentioned in the source.
@@ -231,6 +232,10 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
 
         # check if the string number appears after a '<' sign:
         if ignore_after_smaller_than_sign and is_after_smaller_than_sign(str_target_number, target):
+            continue
+
+        # check if the string number is a special number that we want to ignore:
+        if str_target_number in special_numbers_to_ignore:
             continue
 
         num_digits = get_number_of_significant_figures(str_target_number, remove_trailing_zeros)
@@ -268,18 +273,3 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             non_matching_str_numbers.append(str_target_number)
 
     return non_matching_str_numbers, matching_str_numbers
-
-
-"""
-Formulas
-to allow chatgpt to add numbers that are calculated from the context, we provide a formula pattern:
-"The difference between x and y was [12345 - 12300 = 45]"
-"""
-
-
-def remove_equal_sign_and_result(string):
-    return re.sub(r'\[(.*?) = (.*?)\]', r"[\1]", string)
-
-
-def get_all_formulas(string):
-    return re.findall(r"(\[[^\]=]+\=[^\]]+\])", string)

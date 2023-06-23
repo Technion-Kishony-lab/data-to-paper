@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 from typing import Tuple, Dict, Iterable, List
 
+
 from data_to_paper.base_steps import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch, ScientificProducts
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 
@@ -12,7 +14,7 @@ from data_to_paper.utils.nice_list import NiceDict, NiceList
 @dataclass
 class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    number_of_papers_per_scope: int = 7
+    number_of_papers_per_query: int = 100
     max_reviewing_rounds: int = 0
     requested_keys: Iterable[str] = ('dataset', 'questions', )
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan')
@@ -56,12 +58,12 @@ class GoalLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         literature_search = LiteratureSearch()
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}
-            num_queries = len(queries)
-            number_of_papers_per_query = self.number_of_papers_per_scope // num_queries + 1
             for query in queries:
-                citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=number_of_papers_per_query)
-                self.comment(f'\nQuerying Semantic Scholar for {number_of_papers_per_query} citations, for: '
-                             f'"{query}".\nFound {len(citations)} citations:\n{citations}')
+                citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
+                                                                               rows=self.number_of_papers_per_query)
+                self.comment(f'\nQuerying Semantic Scholar. '
+                             f'Found {len(citations)} / {self.number_of_papers_per_query} citations. '
+                             f'Query: "{query}".')
                 queries_to_citations[query] = citations
 
             literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
@@ -100,9 +102,23 @@ class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
 
     def get_literature_search(self) -> LiteratureSearch:
         literature_search = super().get_literature_search()
-        # literature_search.scopes_to_queries_to_citations['similarity'] = \
-        #     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
-        #         "paper_id": "",
-        #         "title": self.products.get_title(),
-        #         "abstract": self.products.get_abstract()})
+        literature_search.embedding_target = \
+            SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
+                "paper_id": "",
+                "title": self.products.get_title(),
+                "abstract": self.products.get_abstract()})
+
+        # for scope in literature_search.scopes_to_queries_to_citations.keys():
+        #     for query in literature_search.scopes_to_queries_to_citations[scope].keys():
+        #         print(f'\n\nScope: "{scope}", Query: "{query}"')
+        #         print(f'First 3 UNSORTED papers:')
+        #         print(literature_search.pretty_repr_for_scope_and_query(
+        #             scope, query, total=3, sort_by_similarity=False, minimal_influence=2))
+        #         print(f'First 3 SORTED papers:')
+        #         print(literature_search.pretty_repr_for_scope_and_query(
+        #             scope, query, total=3, sort_by_similarity=True, minimal_influence=2))
+        #         print(f'Last 3 SORTED papers:')
+        #         print(literature_search.pretty_repr_for_scope_and_query(
+        #             scope, query, total=-3, sort_by_similarity=True, minimal_influence=2))
+        #
         return literature_search

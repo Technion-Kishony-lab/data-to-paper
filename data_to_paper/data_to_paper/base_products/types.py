@@ -33,7 +33,7 @@ class DataFileDescription:
             s += f'{self.description}\n\n'
         if num_lines > 0:
             s += f'Here are the first few lines of the file:\n' \
-                 f'```\n{self.get_file_header(num_lines)}\n```\n'
+                 f'```output\n{self.get_file_header(num_lines)}\n```\n'
         return s
 
 
