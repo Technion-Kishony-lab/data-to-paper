@@ -5,7 +5,8 @@ from typing import Tuple, List, Set
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, CITATION_REPR_FIELDS, \
+    CITATION_REPR_FIELDS_FOR_PRINT
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 
@@ -15,8 +16,28 @@ from data_to_paper.utils.nice_list import nicely_join
 from data_to_paper.utils.types import ListBasedSet
 
 
+class ShowCitationProducts:
+    products: ScientificProducts = None
+    background_product_fields: Tuple[str, ...] = ()
+
+    def _pre_populate_background(self):
+        for content in self.get_repr_citation_products():
+            self.comment(content)
+        return super()._pre_populate_background()
+
+    def get_repr_citation_products(self) -> List[str]:
+        contents = []
+        for field in self.background_product_fields:
+            if field.startswith('literature_search') and self.products.is_product_available(field):
+                with CITATION_REPR_FIELDS.temporary_set(CITATION_REPR_FIELDS_FOR_PRINT):
+                    product = self.products[field]
+                    contents.append(f'{product.name}:\n{product.description}')
+        return contents
+
+
 @dataclass
-class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
+class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
+                                                     LatexReviewBackgroundProductsConverser,
                                                      CheckExtractionReviewBackgroundProductsConverser):
     """
     Base class for the writer of a paper section in latex format.
@@ -51,7 +72,6 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
         1. Write the article section by section: Abstract, Introduction, Results, Discussion, and Methods.
         2. Write every section of the article in scientific language, in `.tex` format.
         3. Write the article in a way that is fully consistent with the scientific results we have.
-        4. Write the text without adding any citations (we will only add citations in a later stage).
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -106,7 +126,7 @@ class SectionWriterReviewBackgroundProductsConverser(LatexReviewBackgroundProduc
     def _get_available_citations(self) -> List[Citation]:
         if self.allow_citations_from_step is None:
             return []
-        return self.products.literature_search[self.allow_citations_from_step].get_all_citations()
+        return self.products.literature_search[self.allow_citations_from_step].get_citations()
 
     def _check_citation_ids(self, section: str):
         available_citations = self._get_available_citations()
@@ -186,7 +206,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
     conversation_name: str = 'title_abstract_section_second'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'paper_sections:results',
-                                             'literature_search:writing',
+                                             'literature_search:writing:20:2',
                                              'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
@@ -205,12 +225,12 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
 
 @dataclass
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    model_engine: ModelEngine = ModelEngine.GPT35_TURBO_16
+    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
-                                                  'literature_search:writing:background',
-                                                  'literature_search:writing:results',
-                                                  'literature_search:writing:dataset',
-                                                  'literature_search:writing:methods',
+                                                  'literature_search_by_scope:writing:background:8:2',
+                                                  'literature_search_by_scope:writing:results:6:2',
+                                                  'literature_search_by_scope:writing:dataset:4:2',
+                                                  'literature_search_by_scope:writing:methods:4:2',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
@@ -219,7 +239,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
 
-        Specifically, the introduction should follow the following paragraph structure:
+        Specifically, the introduction should follow the following multi-paragraph structure:
 
         * Introduce the topic of the paper and why it is important \
         (cite relevant papers from the above "Literature Search for Background"). 
@@ -239,6 +259,9 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Do not add a \\section{References} section, I will add it later manually.
 
         Note that there is no need to describe limitations, implications, or impact in the introduction.
+        """)
+    section_review_specific_instructions: str = dedent_triple_quote_str("""\n
+        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
         """)
 
 
@@ -355,22 +378,21 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         Tables and Numerical Values.
         """)
 
-    def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
-        section = super()._get_latex_section_from_response(response, section_name)
-        return self._check_extracted_numbers(section)
-
 
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    model_engine: ModelEngine = ModelEngine.GPT35_TURBO_16
+    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
-                                                  'literature_search:writing:background',
-                                                  'literature_search:writing:results',
+                                                  'literature_search_by_scope:writing:background:5:2',
+                                                  'literature_search_by_scope:writing:results:8:2',
                                                   'paper_sections:introduction',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
     max_reviewing_rounds: int = 1
+    section_review_specific_instructions: str = dedent_triple_quote_str("""\n
+        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
+        """)
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Discussion section should follow the following structure:
         * Recap the subject of the study (cite relevant papers from the above "Literature Search for Background").  

@@ -17,7 +17,7 @@ from data_to_paper.utils.nice_list import NiceList
 # TODO: this is part of the WORKAROUND. remove it when the bug is fixed.
 def remove_word(string, word):
     import re
-    pattern = re.compile(r'\b{}\s*'.format(re.escape(word)), re.IGNORECASE)
+    pattern = re.compile(r'\b{}\b\s*'.format(re.escape(word)), re.IGNORECASE)
     return re.sub(pattern, '', string)
 
 
@@ -31,14 +31,24 @@ EMBEDDING_URL = 'https://model-apis.semanticscholar.org/specter/v1/invoke'
 
 class SemanticCitation(Citation):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._bibtex_id = None
+
     @property
     def bibtex(self) -> str:
-        return process_non_math_part(self['citationStyles']['bibtex'])
+        bibtex = self['citationStyles']['bibtex']
+        # remove commas from authors:
+        authors = bibtex.split('author = {', 1)[1].split('},', 1)[0]
+        authors = authors.replace(', ', ' and ')
+        bibtex = bibtex.split('author = {', 1)[0] + 'author = {' + authors + '},' + bibtex.split('},', 1)[1]
+        return process_non_math_part(bibtex)
 
     @property
     def bibtex_id(self) -> str:
-        # extract the id from the bibtex
-        return process_non_math_part(self.bibtex.split('{')[1].split(',')[0])
+        if self._bibtex_id is None:
+            self._bibtex_id = process_non_math_part(self['citationStyles']['bibtex'].split('{', 1)[1].split(',', 1)[0])
+        return self._bibtex_id
 
     @property
     def title(self) -> Optional[str]:
@@ -58,6 +68,10 @@ class SemanticCitation(Citation):
     @property
     def year(self) -> Optional[str]:
         return self.get('year', None)
+
+    @property
+    def influence(self) -> int:
+        return self['influentialCitationCount']
 
     @property
     def tldr(self) -> Optional[str]:
@@ -99,8 +113,8 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         while True:
             params = {
                 "query": query,
-                "limit": rows + 10,  # add 10 to make sure we get enough results after removing faulty ones
-                "fields": "title,url,abstract,tldr,journal,year,citationStyles",  # can also add 'embedding'
+                "limit": min(rows * 2, 100),  # x2 more to make sure we get enough results after removing faulty ones
+                "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
             print_red(f"QUERYING SEMANTIC SCHOLAR WITH QUERY: {query}")
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
@@ -119,19 +133,35 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 return papers[:rows]
 
             for word in words_to_remove_in_case_of_zero_citation_error:
-                if word in query.lower():
+                redacted_query = remove_word(query, word)
+                if redacted_query != query:
                     print_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY")
-                    query = remove_word(query, word)
+                    query = redacted_query
                     break
             else:
-                raise ServerErrorNoMatchesFoundForQuery(query=query)
+                # failing gracefully
+                return []
 
     @staticmethod
-    def _post_process_response(response):
+    def _post_process_response(response, args, kwargs):
         """
         Post process the response from the server.
         """
-        return NiceList([SemanticCitation(paper) for paper in response], separator='\n', prefix='[\n', suffix='\n]')
+        query = args[0] if len(args) > 0 else kwargs.get('query', None)
+        citations = NiceList(separator='\n', prefix='[\n', suffix='\n]')
+        for rank, paper in enumerate(response):
+
+            if 'embedding' in paper:
+                paper = paper.copy()
+                try:
+                    assert paper['embedding']['model'] == 'specter@v0.1.1'
+                    paper['embedding'] = np.array(paper['embedding']['vector'])
+                except (AssertionError, KeyError, IndexError, TypeError):
+                    print_red(f"ERROR: embedding is not in the expected format. skipping."
+                              f"Title: {paper.get('title', None)}")
+                    continue
+            citations.append(SemanticCitation(paper, search_rank=rank, query=query))
+        return citations
 
 
 class SemanticScholarEmbeddingServerCaller(DictServerCaller):
@@ -160,7 +190,7 @@ class SemanticScholarEmbeddingServerCaller(DictServerCaller):
         return np.array(paper_embedding)
 
     @staticmethod
-    def _post_process_response(response):
+    def _post_process_response(response, args, kwargs):
         """
         Post process the response from the server.
         """

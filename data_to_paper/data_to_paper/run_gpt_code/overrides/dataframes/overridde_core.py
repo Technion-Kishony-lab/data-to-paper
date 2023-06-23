@@ -1,6 +1,7 @@
 import pandas as pd
 from pandas.core.frame import DataFrame
 
+from data_to_paper.env import PDF_TEXT_WIDTH
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.singleton import run_once
 from .dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, DataframeOperation, \
@@ -69,9 +70,19 @@ def __str__(self):
 
 
 def to_string(self, *args, **kwargs):
+    """
+    We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
+    """
     current_float_format = pd.get_option('display.float_format')
     pd.set_option(f'display.float_format', STR_FLOAT_FORMAT)
-    result = original_to_string(self, *args, **kwargs)
+    result1 = original_to_string(self, *args, **kwargs)
+    result2 = original_to_string(self.T, *args, **kwargs)
+    longest_line1 = max(len(line) for line in result1.split('\n'))
+    longest_line2 = max(len(line) for line in result2.split('\n'))
+    if longest_line1 > PDF_TEXT_WIDTH > longest_line2:
+        result = result2
+    else:
+        result = result1
     pd.set_option(f'display.float_format', current_float_format)
     return result
 
@@ -87,12 +98,26 @@ def to_csv(self, *args, **kwargs):
     return result
 
 
+class ModifiedDescribeDF(DataFrame):
+    def _drop_rows(self):
+        return self.drop(['min', '25%', '50%', '75%', 'max'])
+
+    def __str__(self):
+        return DataFrame.__str__(self._drop_rows())
+
+    def __repr__(self):
+        return DataFrame.__repr__(self._drop_rows())
+
+    def to_string(self):
+        return DataFrame.to_string(self._drop_rows())
+
+
 def describe(self, *args, **kwargs):
     """
     Removes the min, 25%, 50%, 75%, max rows from the result of the original describe function.
     """
     result = original_describe(self, *args, **kwargs)
-    return result.drop(['min', '25%', '50%', '75%', 'max'])
+    return ModifiedDescribeDF(result)
 
 
 def is_overriden(self):

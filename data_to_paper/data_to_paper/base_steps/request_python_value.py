@@ -35,7 +35,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         Return a response that contains just the python value.
         """
         response = self.returned_result
-        return super()._get_fresh_looking_response(str(response))
+        return super()._get_fresh_looking_response(f"```python\n{response}\n```")
 
     def _check_and_extract_result_from_self_response(self, response: str):
         response_value_str = self._extract_str_of_python_value_from_response(response)

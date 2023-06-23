@@ -58,7 +58,7 @@ class ServerCaller(ABC):
             return e
 
     @staticmethod
-    def _post_process_response(response):
+    def _post_process_response(response, args, kwargs):
         """
         post process the response before transmitting.
         """
@@ -85,7 +85,7 @@ class ServerCaller(ABC):
         response = self._get_raw_server_response(*args, **kwargs)
         if isinstance(response, Exception):
             raise response
-        return self._post_process_response(response)
+        return self._post_process_response(response, args, kwargs)
 
     def _get_response_from_records(self, args, kwargs):
         raise NotImplementedError()

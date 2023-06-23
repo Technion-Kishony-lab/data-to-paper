@@ -194,11 +194,12 @@ class CrossrefServerCaller(DictServerCaller):
         return citations
 
     @staticmethod
-    def _post_process_response(response: List[dict]) -> List[CrossrefCitation]:
+    def _post_process_response(response: List[dict], args, kwargs) -> List[CrossrefCitation]:
         """
         Post process the response from the server.
         """
-        return [CrossrefCitation(citation) for citation in response]
+        query = args[0] if args else kwargs.get("query", None)
+        return [CrossrefCitation(citation, search_rank=rank, query=query) for rank, citation in enumerate(response)]
 
 
 CROSSREF_SERVER_CALLER = CrossrefServerCaller()

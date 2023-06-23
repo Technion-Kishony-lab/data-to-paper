@@ -1,10 +1,29 @@
 from typing import Iterable, Optional
 
 
+FILEDS_TO_NAMES = {
+    'bibtex_id': 'ID',
+    'title': 'Title',
+    'journal': 'Journal',
+    'journal_and_year': 'Journal and year',
+    'tldr': 'TLDR',
+    'abstract': 'Abstract',
+    'year': 'Year',
+    'influence': 'Citation influence',
+    'query': 'Query',
+    'search_rank': 'Search rank',
+}
+
+
 class Citation(dict):
     """
     A citation of a paper.
     """
+
+    def __init__(self, *args, search_rank: int = None, query: str = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.search_rank = search_rank
+        self.query = query
 
     def __key(self):
         return self.bibtex_id
@@ -44,25 +63,29 @@ class Citation(dict):
         return None
 
     @property
+    def influence(self) -> int:
+        return 0
+
+    @property
     def journal_and_year(self) -> Optional[str]:
         if self.journal is None or self.year is None:
             return None
         return f'{self.journal} ({self.year})'
 
     def pretty_repr(self,
-                    fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr'),
-                    names: Iterable[str] = ('ID', 'Title', 'Journal and Year', 'TLDR'),
+                    fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence'),
                     ) -> str:
         """
         Get a pretty representation of the citation.
         Allows specifying which fields to include.
         """
         s = ''
-        for field, name in zip(fields, names):
-            value = getattr(self, field, None)
+        for field in fields:
+            name = FILEDS_TO_NAMES[field]
+            value = getattr(self, field, field)
             if value is None:
                 continue
-            s += f'{name}: "{value}"\n'
+            s += f'{name}: {repr(value)}\n'
         s += '\n'
         return s
 
