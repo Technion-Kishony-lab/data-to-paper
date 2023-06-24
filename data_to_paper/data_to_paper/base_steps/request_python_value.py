@@ -102,3 +102,25 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
                 self._raise_self_response_error(f'Your response should contain the keys: {self.requested_keys}')
 
         return check_response_value
+
+
+@dataclass
+class PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser(
+        PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    allowed_values_for_keys: Dict[str, Iterable] = None  # The values that the dict may contain.
+    value_type: type = Dict[str, int]
+    is_new_conversation: bool = False
+    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+
+    def __post_init__(self):
+        super().__post_init__()
+        assert self.requested_keys is None
+        self.requested_keys = self.allowed_values_for_keys.keys()
+
+    def _check_response_value(self, response_value):
+        check_response_value = super()._check_response_value(response_value)
+        for key, value in response_value.items():
+            if value not in self.allowed_values_for_keys[key]:
+                self._raise_self_response_error(
+                    f'The value for key `{key}` should be one of: {self.allowed_values_for_keys[key]}')
+        return check_response_value
