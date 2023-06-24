@@ -235,26 +235,27 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         {}
         ```
 
-        Please check if there is anything wrong or missing in these results, specifically:
-        * Unexpected NaN values
-        * Missing statistical tests, or parts of their results needed for the tables
-        * Incorrect statistical tests, needed to be written again
-        * All the data needed for the tables we want to create exists in the output file
-        * The data for each table is distinct and non-overlapping
+        Considering the scientific tables we want to create ("The Names of the Tables of the Paper", above), \
+        please follow these two steps:
+         
+        (1) Check the code output for any issues, and return a bullet-point response addressing these points:
+        * Unexpected NaN values.
+        * Missing results needed for any of the tables.
+        * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
+        * The data for each table is distinct and non-overlapping.
+        * Results can be understood from the output file; all values have sensible names, etc.
+        * Any other issues you find.
 
-        Also check if anything else that may indicate that code improvements are needed.
-        For the tables we want to create, see above "The Names of the Tables of the Paper".
 
-        Choose one of the following options:
+        (2) Based on your assessment above, choose one of the following options:
 
-        1. The output looks right, has everything we need for creating distinct Tables, all tests performed were \
-        correct, and I therefore don't think we can further improve the code. Let's proceed. Choice 1.
+        1. I didn't find any issues with the output that require correcting the code.
 
-        2. The output does not yet perfectly provides everything we need for the Tables. There is missing data for one \
-        or more tables, or one of the tests performed was incorrect, or there is anything else that may indicate that \
-        we should revise the code to make it better. Choice 2.
-
-        {choice_instructions}
+        2. The output does not perfectly provides everything we need for the Tables. \
+        We should revise the code to better address the above issues.
+        
+        Return your choice as a Python Dict[str, int], mapping 'choice' to the choice number.
+        Namely, return one of the following: {'choice': 0} or {'choice': 1}.
         """)  # set to None to skip option for revision
 
 
