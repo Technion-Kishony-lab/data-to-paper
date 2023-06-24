@@ -42,6 +42,7 @@ from .request_latex import LatexReviewBackgroundProductsConverser
 # Requesting Python values (with optional gpt-review):
 from .request_python_value import PythonValueReviewBackgroundProductsConverser
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 
 # Requesting code (with automatic debugging feedback):
 from .request_code import BaseCodeProductsGPT
