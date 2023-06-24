@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Iterable
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.env import SUPPORTED_PACKAGES
@@ -12,7 +12,7 @@ from data_to_paper.utils.replacer import Replacer
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
-from .request_multi_choice import MultiChoiceBackgroundProductsConverser
+from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
 
 @dataclass
@@ -70,11 +70,12 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
         that may indicate that code improvements are needed), then choose one of the following options:
 
-        1. The results seem reasonable. Let's proceed. Choice 1
+        1. The results seem reasonable. Let's proceed.
 
-        2. Something is wrong. I need to go back and change/improve the code. Choice 2
+        2. Something is wrong. I need to go back and change/improve the code.
 
-        {choice_instructions}
+        Return your choice as a Python Dict[str, int], mapping 'choice' to your chosen number.
+        Namely, return either {'choice': 1} or {'choice': 2}.
         """)  # set to None to skip option for revision
 
     @property
@@ -176,9 +177,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         if self.offer_revision_prompt is None or self.output_filename is None:
             return False
 
-        return MultiChoiceBackgroundProductsConverser.from_(
+        return PythonDictWithDefinedKeysReviewBackgroundProductsConverser.from_(
             self,
+            allowed_values_for_keys={'choice': [1, 2]},
             is_new_conversation=False,
             user_initiation_prompt=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
-            possible_choices=('1', '2'),
-        ).run_and_get_valid_result() == '2'
+        ).run_and_get_valid_result()['choice'] == 2
