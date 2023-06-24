@@ -44,8 +44,9 @@ class Conversation:
 
         return selected_message
 
-    def _delete_last_message(self) -> None:
-        if len(self._messages_list) == 0:
-            return
 
-        self._messages_list.pop()
+    def pop_last_message(self) -> Message:
+        if len(self._messages_list) == 0:
+            raise Exception("No messages in to pop in conversation")
+
+        return self._messages_list.pop()

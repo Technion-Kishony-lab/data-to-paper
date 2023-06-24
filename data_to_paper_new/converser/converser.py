@@ -59,6 +59,19 @@ class Conversor:
 
         return history_messages
 
+
+    def regenerate_last_response(self) -> str:
+        last_message = self.conversation.pop_last_message()
+        regenerated_output = self.query_chatgpt(RequestHistoryTypes.ALL_CHAT_HISTORY, last_message.request_content)
+
+        return regenerated_output
+
+    def replace_last_response(self, new_response_content: str) -> None:
+        last_message = self.conversation.pop_last_message()
+        last_message.response_content = new_response_content
+        self.conversation.append_new_message_to_conversation(last_message)
+
+
     @staticmethod
     def _message_to_chatgpt_messages(message: Message) -> list[dict]:
         if not isinstance(message, Message):
