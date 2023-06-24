@@ -21,3 +21,4 @@ greenlet==2.0.2
 idna==3.4
 matplotlib==3.7.1
 gevent-websocket==0.10.1
+openai==0.27.8
