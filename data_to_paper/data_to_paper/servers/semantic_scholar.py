@@ -6,7 +6,7 @@ import requests
 
 from data_to_paper.env import S2_API_KEY
 from data_to_paper.exceptions import data_to_paperException
-from data_to_paper.latex.latex_to_pdf import process_non_math_part
+from data_to_paper.latex.latex_to_pdf import process_non_math_part, process_bibtex_id
 from data_to_paper.servers.base_server import DictServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
 from data_to_paper.servers.types import Citation
@@ -47,7 +47,7 @@ class SemanticCitation(Citation):
     @property
     def bibtex_id(self) -> str:
         if self._bibtex_id is None:
-            self._bibtex_id = process_non_math_part(self['citationStyles']['bibtex'].split('{', 1)[1].split(',', 1)[0])
+            self._bibtex_id = process_bibtex_id(self['citationStyles']['bibtex'].split('{', 1)[1].split(',', 1)[0])
         return self._bibtex_id
 
     @property
