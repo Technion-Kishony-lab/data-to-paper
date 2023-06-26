@@ -43,7 +43,7 @@ class DataFileDescriptions(List[DataFileDescription]):
     """
 
     def __init__(self, *args, data_folder: Optional[Union[str, Path]] = None,
-                 general_description: str = '', **kwargs):
+                 general_description: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_folder = data_folder
         self.general_description = general_description
@@ -92,7 +92,9 @@ class DataFileDescriptions(List[DataFileDescription]):
         return s
 
     def pretty_repr(self, num_lines: int = 4):
-        s = self.general_description + '\n\n'
+        s = ''
+        if self.general_description is not None:
+            s += self.general_description + '\n\n'
         with run_in_directory(self.data_folder):
             if len(self) == 0:
                 s += 'No data files'
