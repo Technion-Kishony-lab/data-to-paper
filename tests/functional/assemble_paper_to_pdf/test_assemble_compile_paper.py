@@ -2,7 +2,7 @@ import os
 
 from _pytest.fixtures import fixture
 
-from data_to_paper.projects.scientific_research.produce_pdf_step import ProduceScientificPaperPDF
+from data_to_paper.projects.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.projects.scientific_research.get_template import get_paper_template_path
 from data_to_paper.servers.crossref import CrossrefCitation
@@ -52,7 +52,7 @@ def products():
 
 
 def test_paper_assembler_compiler_gpt(tmpdir, products):
-    paper_assembler_compiler = ProduceScientificPaperPDF(
+    paper_assembler_compiler = ProduceScientificPaperPDFWithAppendix(
         products=products,
         output_directory=tmpdir,
         output_filename='output.pdf',

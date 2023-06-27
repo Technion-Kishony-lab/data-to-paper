@@ -9,6 +9,7 @@ from typing import Set, Optional, List
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.utils.citataion_utils import get_non_latex_citations
+from data_to_paper.utils.text_formatting import wrap_string
 
 from .exceptions import LatexCompilationError, UnwantedCommandsUsedInLatex, TooWideTableOrText, NonLatexCitations
 
@@ -133,6 +134,11 @@ def replace_special_chars(text, processing_func=process_non_math_part):
     result.append(processed_part)
 
     return "".join(result)
+
+
+def wrap_with_lstlisting(paragraph):
+    return "\\begin{Verbatim}[tabsize=4]\n" + \
+        wrap_string(paragraph, width=80, new_line_indent=True) + "\n\\end{Verbatim}"
 
 
 def remove_figure_envs_from_latex(latex_content):
