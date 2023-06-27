@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, Type, List, Union
+from typing import Optional
 
 from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
@@ -12,8 +12,6 @@ from data_to_paper.projects.demo_project.stage import DemoStages
 from data_to_paper.projects.demo_project.writing_steps import WriteTitleAndAbstract
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('abstract_only.tex')
-
-
 
 
 @dataclass
