@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Iterable, Optional, get_origin
+from typing import Any, Dict, Optional, get_origin, Collection
 
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.utils import extract_text_between_tags
@@ -89,7 +89,7 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
     """
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """
-    requested_keys: Iterable[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
+    requested_keys: Collection[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
 
     def _check_response_value(self, response_value: Any) -> Any:
         """

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
+from data_to_paper.latex.latex_to_pdf import wrap_with_lstlisting
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
 
@@ -43,7 +44,7 @@ class DataFileDescriptions(List[DataFileDescription]):
     """
 
     def __init__(self, *args, data_folder: Optional[Union[str, Path]] = None,
-                 general_description: str = '', **kwargs):
+                 general_description: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_folder = data_folder
         self.general_description = general_description
@@ -92,7 +93,9 @@ class DataFileDescriptions(List[DataFileDescription]):
         return s
 
     def pretty_repr(self, num_lines: int = 4):
-        s = self.general_description + '\n\n'
+        s = ''
+        if self.general_description is not None:
+            s += self.general_description + '\n\n'
         with run_in_directory(self.data_folder):
             if len(self) == 0:
                 s += 'No data files'
@@ -108,3 +111,11 @@ class DataFileDescriptions(List[DataFileDescription]):
 
     def get_data_filenames(self):
         return [data_file_description.file_path for data_file_description in self]
+
+    def to_latex(self,
+                 section_name: str = 'Data Description',
+                 label: str = 'sec:data_description',
+                 text: str = 'Here is the data description, as provided by the user:'):
+        s = f"\\section{{{section_name}}} \\label{{{label}}} {text}"
+        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0))
+        return s
