@@ -8,7 +8,6 @@ from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.latex.latex_to_pdf import clean_latex
 
 from .base_products_to_file import BaseFileProducer
-from ..utils.text_formatting import wrap_string
 
 APPENDIX_TEMPLATE = r"""
 \clearpage

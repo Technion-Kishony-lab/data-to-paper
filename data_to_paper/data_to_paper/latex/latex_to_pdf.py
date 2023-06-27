@@ -103,11 +103,13 @@ def process_non_math_part(text):
     repl_func = lambda match: CHARS[match.group(1)]
     return re.sub(pattern, repl_func, text)
 
+
 def process_bibtex_id(bibtex_id: str) -> str:
     # "{}(),\\\"-#~^:'`ʹ";  # characters that are not allowed in bibtex ids and should be replaced with ' '
     # replace non unicode characters with their unicode equivalent
     bibtex_id = bibtex_id.encode('ascii', 'ignore').decode('utf-8')
     return re.sub(r'[{}(),\\\"-#~^:\'`ʹ]', ' ', bibtex_id)
+
 
 def replace_special_chars(text, processing_func=process_non_math_part):
     result = []

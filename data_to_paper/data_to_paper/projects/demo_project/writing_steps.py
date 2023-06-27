@@ -43,7 +43,7 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         Based on the material provided above ({actual_background_product_names}), \
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
-        
+
         While making it funny, please make sure to specifically relate to the specific numerical results that we have.
 
         {latex_instructions}
@@ -83,5 +83,3 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "{termination_phrase}"; \
         If you chose to provide bullet-point feedback then DO NOT include "{termination_phrase}".
         """)
-
-

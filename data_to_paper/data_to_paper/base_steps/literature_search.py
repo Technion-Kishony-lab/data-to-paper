@@ -4,7 +4,8 @@ from typing import Dict, List, Collection, Optional
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
 from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
+    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
