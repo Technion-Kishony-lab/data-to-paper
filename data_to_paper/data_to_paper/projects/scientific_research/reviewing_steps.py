@@ -1,13 +1,13 @@
 import re
-from dataclasses import dataclass
-from typing import Tuple, Dict, Any, Optional
+from dataclasses import dataclass, field
+from typing import Tuple, Dict, Any, Optional, Iterable
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
-    MultiChoiceBackgroundProductsConverser
+    PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
 
@@ -83,11 +83,11 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class IsGoalOK(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
-    max_reviewing_rounds: int = 0
+class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     model_engine: ModelEngine = ModelEngine.GPT4
     value_type: type = Dict[str, str]
+    allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -99,49 +99,26 @@ class IsGoalOK(ShowCitationProducts, PythonValueReviewBackgroundProductsConverse
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        From the literature search above, find the key papers whose results are most \
+        Please follow these two steps:
+
+        (1) From the literature search above, list the key papers whose results are most \
         similar/overlapping with our research goal and hypothesis (up to a maximum of 3 papers).
 
-        Return your answer as a Python Dict[str, str] where the keys are IDs and the values are the titles \
-        of these most related papers.
-
         For example: 
-        {
         "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
         "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
-        }
+
+        (2) Given these related papers, choose one of the following two options:
+        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing ('OK').
+        2. Our goal and hypothesis seem totally overlapping with existing literature, \
+        and should therefore be revised ('REVISE').
+
+        Return your response as a Python dictionary mapping 'choice' to either 'OK' or 'REVISE'. Namely, return either:
+        {'choice': 'OK'} or {'choice': 'REVISE'}
         """)
 
-    request_decision: str = dedent_triple_quote_str("""
-        Choose one of the following two options:
-
-        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing. Choice 1.
-        2. Our goal and hypothesis seem totally overlapping with existing literature, and should therefore be revised. \
-        Choice 2.
-
-        {choice_instructions}
-        """)
-
-    def _get_fresh_looking_response(self, response) -> str:
-        return f'The following papers are most similar to our goal and hypothesis: \n\n' \
-               f'{super()._get_fresh_looking_response(response)}'
-
-    def _check_response_value(self, response_value: Any) -> Any:
-        for bibtex_id in response_value:
-            citation = self.products.literature_search['goal'].get_citation(bibtex_id)
-            if citation is None:
-                self._raise_self_response_error(f'Invalid bibtex_id: "{bibtex_id}"')
-            # we don't check the title, even if it is wrong, we just replace with the correct one
-            response_value[bibtex_id] = citation.title
-        return NiceDict(response_value)
-
-    def run_and_get_valid_result(self):
-        super().run_and_get_valid_result()
-        return MultiChoiceBackgroundProductsConverser.from_(
-            self,
-            user_initiation_prompt=self.request_decision,
-            is_new_conversation=False,
-        ).run_and_get_valid_result()
+    def is_goal_ok(self):
+        return self.run_and_get_valid_result()['choice'] == 'OK'
 
 
 @dataclass

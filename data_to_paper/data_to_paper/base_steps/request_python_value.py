@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
 
-from typing import Any, Dict, Optional, get_origin, Collection
+from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.utils import extract_text_between_tags
@@ -90,6 +90,7 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """
     requested_keys: Collection[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
+    value_type: type = Dict[str, Any]
 
     def _check_response_value(self, response_value: Any) -> Any:
         """
@@ -101,4 +102,25 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
             if set(response_value.keys()) != set(self.requested_keys):
                 self._raise_self_response_error(f'Your response should contain the keys: {self.requested_keys}')
 
+        return check_response_value
+
+
+@dataclass
+class PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser(
+        PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
+    allowed_values_for_keys: Dict[str, Iterable] = None  # The values that the dict may contain.
+    is_new_conversation: bool = False
+    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+
+    def __post_init__(self):
+        super().__post_init__()
+        assert self.requested_keys is None
+        self.requested_keys = self.allowed_values_for_keys.keys()
+
+    def _check_response_value(self, response_value):
+        check_response_value = super()._check_response_value(response_value)
+        for key, value in response_value.items():
+            if value not in self.allowed_values_for_keys[key]:
+                self._raise_self_response_error(
+                    f'The value for key `{key}` should be one of: {self.allowed_values_for_keys[key]}')
         return check_response_value
