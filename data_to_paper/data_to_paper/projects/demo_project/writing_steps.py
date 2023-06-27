@@ -24,30 +24,28 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
 
     max_reviewing_rounds: int = 1
-    goal_noun: str = '{pretty_section_names} section'
+    goal_noun: str = 'Title and Abstract for a funny math article'
     goal_verb: str = 'write'
     performer: str = 'scientific writer'
     reviewer: str = 'scientific reviewer'
     assistant_agent: DemoAgent = DemoAgent.Performer
     user_agent: DemoAgent = DemoAgent.Writer
-    section_specific_instructions: str = ''
-    section_review_specific_instructions: str = ''
-    journal_name: str = 'Nature Communications'
+    journal_name: str = 'Crazy Math Journal'
+    termination_phrase: str = 'This is just great and funny.'
 
     system_prompt: str = dedent_triple_quote_str("""
-        You are a data-scientist with experience writing accurate scientific research papers.
+        You are a writer.
 
-        You will write a scientific article for the journal {journal_name}, following the instructions below:
-        1. Write the article section by section: Abstract, Introduction, Results, Discussion, and Methods.
-        2. Write every section of the article in scientific language, in `.tex` format.
-        3. Write the article in a way that is fully consistent with the scientific results we have.
+        You will write a fake funny scientific article for the journal {journal_name}.
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), \
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
-        {section_specific_instructions}
+        
+        While making it funny, please make sure to specifically relate to the specific numerical results that we have.
+
         {latex_instructions}
         """)
 
@@ -56,13 +54,10 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         and any math or symbols that needs tex escapes.
         """)
 
-    termination_phrase: str = 'I hereby approve the {goal_noun}.'
-
     other_system_prompt: str = dedent_triple_quote_str("""
-        You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
-        Your job is to provide constructive bullet-point feedback.
-        We will write each section of the research paper separately. 
-        If you feel that the paper section does not need further improvements, you should reply only with:
+        You are a reviewer for a writer who is writing a funny scientific-like paper about their results.
+        Your job is to provide constructive bullet-point feedback. 
+        If you feel that the writing does not need further improvements, you should reply only with:
         "{termination_phrase}".
     """)
 
@@ -76,9 +71,9 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \
         for my paper. Do not provide positive feedback, only provide actionable instructions for improvements in \
         bullet points. 
-        In particular, make sure that the section is correctly grounded in the information provided above.
+        In particular, make sure that the section is correctly grounded in the information provided above, \
+        yet is written in a funny way.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
-        {section_review_specific_instructions}
 
         You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
         or other parts of the paper, like tables or Python code, provided above.
