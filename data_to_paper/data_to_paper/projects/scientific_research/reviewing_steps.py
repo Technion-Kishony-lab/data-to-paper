@@ -7,7 +7,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
-    MultiChoiceBackgroundProductsConverser, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
+    PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
 
@@ -86,7 +86,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     model_engine: ModelEngine = ModelEngine.GPT4
-    value_type: type = Dict[str, int]
+    value_type: type = Dict[str, str]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'check'
@@ -100,19 +100,19 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please follow these two steps:
-        
+
         (1) From the literature search above, list the key papers whose results are most \
         similar/overlapping with our research goal and hypothesis (up to a maximum of 3 papers).
 
         For example: 
         "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
         "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
-        
+
         (2) Given these related papers, choose one of the following two options:
         1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing ('OK').
         2. Our goal and hypothesis seem totally overlapping with existing literature, \
         and should therefore be revised ('REVISE').
-        
+
         Return your response as a Python dictionary mapping 'choice' to either 'OK' or 'REVISE'. Namely, return either:
         {'choice': 'OK'} or {'choice': 'REVISE'}
         """)

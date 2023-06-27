@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.env import SUPPORTED_PACKAGES
@@ -178,6 +178,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
         return PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser.from_(
             self,
+            value_type=Dict[str, str],
             allowed_values_for_keys={'choice': ['ok', 'revise']},
             is_new_conversation=False,
             user_initiation_prompt=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),

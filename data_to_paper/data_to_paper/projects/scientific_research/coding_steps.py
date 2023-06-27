@@ -217,10 +217,10 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above. 
         The code should:
-        
+
         (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).
         {list_additional_data_files_if_any}
-        
+
         (2) Create an output text file named "{actual_output_filename}".
         All the results should be writen to this text file.
         Do not write to any other files.
@@ -237,31 +237,31 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         (5) Create and output the data analysis results that are needed to produce a scientific paper \
         including the data for each of the tables specified above.
         For example: 
-        
+
         ```output                
         ## General results:
         Report any general numerical values you deem relevant to our research paper.
         For example:
             Total number of observations: xxx
             etc.
-            
+
         ## Results for Table 1:
         all the data needed for Table 1
-        
+
         ## Results for Table 2:
         all the data needed for Table 2
-        
+
         etc
         ```
-        
+
         Note:
         * The data produced for each table should be distinct and non-overlapping.
-        * Remember of nominal values should be accompanied by a measure of uncertainty (p-value, CI).
+        * Nominal values should be accompanied by a measure of uncertainty (p-value, CI).
         * The output should be self-contained; results should be accompanied with a short text header, \
         values should have sensible names, etc. 
         * As needed, you can use the following packages which are already installed:
         {supported_packages}
-        
+
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
@@ -276,10 +276,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Considering the scientific tables we want to create ("The Names of the Tables of the Paper", above), \
         please follow these two steps:
-         
+
         (1) Check the code output for any issues, and return a bullet-point response addressing these points:
         * Unexpected NaN values.
         * Missing results needed for any of the tables.
+        * Nominal values are reported together with measure of uncertainty (p-value, CI).
         * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
         * The data for each table is distinct and non-overlapping.
         * Results can be understood from the output file; all values have sensible names, etc.
@@ -292,7 +293,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         2. The output does not perfectly provides everything we need for the Tables. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
-        
+
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
         """)  # set to None to skip option for revision
 
