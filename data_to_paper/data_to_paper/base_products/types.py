@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
+from data_to_paper.latex.latex_to_pdf import wrap_with_lstlisting
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
 
@@ -110,3 +111,11 @@ class DataFileDescriptions(List[DataFileDescription]):
 
     def get_data_filenames(self):
         return [data_file_description.file_path for data_file_description in self]
+
+    def to_latex(self,
+                 section_name: str = 'Data Description',
+                 label: str = 'sec:data_description',
+                 text: str = 'Here is the data description, as provided by the user:'):
+        s = f"\\section{{{section_name}}} \\label{{{label}}} {text}"
+        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0))
+        return s
