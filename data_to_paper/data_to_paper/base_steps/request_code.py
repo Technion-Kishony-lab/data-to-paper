@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Iterable
+from typing import Optional, Tuple
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.env import SUPPORTED_PACKAGES
@@ -12,7 +12,7 @@ from data_to_paper.utils.replacer import Replacer
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
-from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 
 
 @dataclass
@@ -70,12 +70,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
         that may indicate that code improvements are needed), then choose one of the following options:
 
-        1. The results seem reasonable. Let's proceed.
+        1. The results seem reasonable, I am happy with the code and the results, {'choice': 'ok'}.  
 
-        2. Something is wrong. I need to go back and change/improve the code.
+        2. Something is wrong. I need to go back and change/improve the code, {'choice': 'revise'}.
 
-        Return your choice as a Python Dict[str, int], mapping 'choice' to your chosen number.
-        Namely, return either {'choice': 1} or {'choice': 2}.
+        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
         """)  # set to None to skip option for revision
 
     @property
@@ -177,9 +176,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         if self.offer_revision_prompt is None or self.output_filename is None:
             return False
 
-        return PythonDictWithDefinedKeysReviewBackgroundProductsConverser.from_(
+        return PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser.from_(
             self,
-            allowed_values_for_keys={'choice': [1, 2]},
+            allowed_values_for_keys={'choice': ['ok', 'revise']},
             is_new_conversation=False,
             user_initiation_prompt=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
-        ).run_and_get_valid_result()['choice'] == 2
+        ).run_and_get_valid_result()['choice'] == 'revise'
