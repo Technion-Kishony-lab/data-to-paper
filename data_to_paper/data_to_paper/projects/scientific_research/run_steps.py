@@ -131,7 +131,7 @@ class ScientificStepsRunner(BaseStepsRunner):
 
             # Check if the goal is OK
             if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations or \
-                    IsGoalOK.from_(self).run_and_get_valid_result() == '1':
+                    IsGoalOK.from_(self).is_goal_ok():
                 break
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
