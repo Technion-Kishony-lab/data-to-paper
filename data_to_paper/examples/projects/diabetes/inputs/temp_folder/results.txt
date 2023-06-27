@@ -30,8 +30,8 @@ Results for Table 2:
 Dep. Variable:        Diabetes_binary   No. Observations:               253680
 Model:                          Logit   Df Residuals:                   253673
 Method:                           MLE   Df Model:                            6
-Date:                Fri, 23 Jun 2023   Pseudo R-squ.:                  0.1242
-Time:                        18:28:23   Log-Likelihood:                -89707.
+Date:                Tue, 27 Jun 2023   Pseudo R-squ.:                  0.1242
+Time:                        08:53:39   Log-Likelihood:                -89707.
 converged:                       True   LL-Null:                   -1.0242e+05
 Covariance Type:            nonrobust   LLR p-value:                     0.000
 ==============================================================================
@@ -52,8 +52,8 @@ Results for Table 3:
 Dep. Variable:        Diabetes_binary   No. Observations:               253680
 Model:                          Logit   Df Residuals:                   253671
 Method:                           MLE   Df Model:                            8
-Date:                Fri, 23 Jun 2023   Pseudo R-squ.:                  0.1263
-Time:                        18:28:24   Log-Likelihood:                -89485.
+Date:                Tue, 27 Jun 2023   Pseudo R-squ.:                  0.1263
+Time:                        08:53:40   Log-Likelihood:                -89485.
 converged:                       True   LL-Null:                   -1.0242e+05
 Covariance Type:            nonrobust   LLR p-value:                     0.000
 =========================================================================================

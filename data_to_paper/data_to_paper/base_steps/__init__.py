@@ -49,6 +49,9 @@ from .request_code import BaseCodeProductsGPT
 # Requesting answer to multiple choice question
 from .request_multi_choice import MultiChoiceBackgroundProductsConverser
 
+# Requesting literature search
+from .literature_search import BaseLiteratureSearchReviewGPT
+
 # --- CONVERTING PRODUCTS TO FILES ---
 
 # Base classes for creating files from Products:
