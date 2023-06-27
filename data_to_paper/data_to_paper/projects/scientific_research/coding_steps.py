@@ -129,6 +129,31 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
+    offer_revision_prompt: str = dedent_triple_quote_str("""
+        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
+        ```output
+        {}
+        ```
+
+        Please follow these two steps:
+
+        (1) Check the code output for any issues, and return a bullet-point response addressing these points:
+        * Are there any unexpected NaN values.
+        * Can results be understood from the output file, do we have short headers for each result and \
+        do all values have sensible names, etc.
+        * Any other issues you find.
+
+
+        (2) Based on your assessment above, choose one of the following options:
+
+        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+
+        2. The data exploration is not perfectly. \
+        We should revise the code to better address the above issues, {'choice': 'revise'}.
+
+        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
+        """)  # set to None to skip option for revision
+
 
 @dataclass
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
@@ -193,37 +218,51 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Write a complete Python code to achieve the research goal specified above. 
         The code should:
 
-        (1) Perform the appropriate statistical tests needed to directly test our specified hypotheses \
-        (see above our Research Goal and our Hypothesis Testing Plan).
+        (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).
+        {list_additional_data_files_if_any}
 
-        (2) Create and output the data analysis results that are needed to produce each of the tables specified above.
-        The data produced for each table should be distinct and non-overlapping.
-        For example: 
-        ## Results for Table 1:
-        ...
-        ## Results for Table 2:
-        ... 
-        etc
-        Remember that the results of nominal values should be accompanied by a measure of uncertainty (p-value, CI).
-
-        (3) Create and output a Python Dict[str, Any] reporting any other numerical results you deem relevant \
-        to our research paper.
-        For example:
-        {
-            'Total number of observations': aaa,
-            'Correlation between X and Y': bbb,
-            'Mean of Z': ccc,
-        }
-
-        The output of your code should be a text file named "{actual_output_filename}".
-        Both the results for the tables and the Python dict should be writen to this text file.
+        (2) Create an output text file named "{actual_output_filename}".
+        All the results should be writen to this text file.
         Do not write to any other files.
 
-        As input, you can use the original data files I've described above (DESCRIPTION OF THE ORIGINAL DATASET).
-        {list_additional_data_files_if_any}
-        As needed, you can use the following packages which are already installed:
+        (3) Perform any preprocessing steps needed to prepare the data for the analysis.
+        For example, as applicable:
+        * Dealing with missing values - imputation, deletion, etc.
+        * Normalization of numeric values with different units into same-unit values.
+        * Any other data preprocessing you deem relevant
+
+        (4) Perform the analysis and appropriate statistical tests needed to directly test our specified hypotheses \
+        (see above our Research Goal and our Hypothesis Testing Plan).
+
+        (5) Create and output the data analysis results that are needed to produce a scientific paper \
+        including the data for each of the tables specified above.
+        For example: 
+
+        ```output                
+        ## General results:
+        Report any general numerical values you deem relevant to our research paper.
+        For example:
+            Total number of observations: xxx
+            etc.
+
+        ## Results for Table 1:
+        all the data needed for Table 1
+
+        ## Results for Table 2:
+        all the data needed for Table 2
+
+        etc
+        ```
+
+        Note:
+        * The data produced for each table should be distinct and non-overlapping.
+        * Nominal values should be accompanied by a measure of uncertainty (p-value, CI).
+        * The output should be self-contained; results should be accompanied with a short text header, \
+        values should have sensible names, etc. 
+        * As needed, you can use the following packages which are already installed:
         {supported_packages}
 
+        Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
@@ -235,26 +274,27 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         {}
         ```
 
-        Please check if there is anything wrong or missing in these results, specifically:
-        * Unexpected NaN values
-        * Missing statistical tests, or parts of their results needed for the tables
-        * Incorrect statistical tests, needed to be written again
-        * All the data needed for the tables we want to create exists in the output file
-        * The data for each table is distinct and non-overlapping
+        Considering the scientific tables we want to create ("The Names of the Tables of the Paper", above), \
+        please follow these two steps:
 
-        Also check if anything else that may indicate that code improvements are needed.
-        For the tables we want to create, see above "The Names of the Tables of the Paper".
+        (1) Check the code output for any issues, and return a bullet-point response addressing these points:
+        * Unexpected NaN values.
+        * Missing results needed for any of the tables.
+        * Nominal values are reported together with measure of uncertainty (p-value, CI).
+        * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
+        * The data for each table is distinct and non-overlapping.
+        * Results can be understood from the output file; all values have sensible names, etc.
+        * Any other issues you find.
 
-        Choose one of the following options:
 
-        1. The output looks right, has everything we need for creating distinct Tables, all tests performed were \
-        correct, and I therefore don't think we can further improve the code. Let's proceed. Choice 1.
+        (2) Based on your assessment above, choose one of the following options:
 
-        2. The output does not yet perfectly provides everything we need for the Tables. There is missing data for one \
-        or more tables, or one of the tests performed was incorrect, or there is anything else that may indicate that \
-        we should revise the code to make it better. Choice 2.
+        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        {choice_instructions}
+        2. The output does not perfectly provides everything we need for the Tables. \
+        We should revise the code to better address the above issues, {'choice': 'revise'}.
+
+        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
         """)  # set to None to skip option for revision
 
 

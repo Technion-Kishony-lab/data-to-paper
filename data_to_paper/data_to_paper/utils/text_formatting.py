@@ -19,7 +19,9 @@ def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
     """
     Format a triple-quote string to remove extra indentation and leading newline.
     """
-    s = textwrap.dedent(s).lstrip()
+    if s.startswith('\n'):
+        s = s[1:]
+    s = textwrap.dedent(s)
     if remove_repeated_spaces:
         s = re.sub(r' +', ' ', s)
     return s
