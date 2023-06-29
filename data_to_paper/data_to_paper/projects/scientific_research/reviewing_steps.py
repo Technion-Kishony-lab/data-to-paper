@@ -250,7 +250,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         The names you choose should accurately describe the tables that will be produced in a later stage.
 
         Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 1-3 tables that will each present distinct non-overlapping \
+        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
         information.
 
         Don't suggest name of tables that are:
@@ -273,6 +273,8 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         """)
 
     def _check_response_value(self, response_value: Any) -> Any:
+        if len(response_value) > 4:
+            self._raise_self_response_error(f'Please choose a maximum of 4 tables.')
         return NiceDict(response_value)
 
 
