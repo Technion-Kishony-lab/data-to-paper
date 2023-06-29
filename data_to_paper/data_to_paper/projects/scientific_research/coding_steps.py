@@ -115,7 +115,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Measure of the scale of our data (e.g., number of rows, number of columns)
         * Summary statistics of key variables
         * List of most common values of categorical variables (if any) 
-        * Counts of missing values
+        * Counts of missing, unknown, or undefined values, and for numeric values that stand for \
+        unknown/undefined (check in the file description above for any).
         * Any other data exploration analysis you deem relevant
 
         The output file should be self-contained; any results you choose to save to this file \
@@ -137,8 +138,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Please follow these two steps:
 
-        (1) Check the code output for any issues, and return a bullet-point response addressing these points:
-        * Are there any unexpected NaN values.
+        (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
+        * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file, do we have short headers for each result and \
         do all values have sensible names, etc.
         * Any other issues you find.
@@ -227,12 +228,14 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (3) Perform any preprocessing steps needed to prepare the data for the analysis.
         For example, as applicable:
-        * Dealing with missing values - imputation, deletion, etc.
+        * Dealing with missing, unknown, or undefined values, and for numeric values that stand for unknown/undefined \
+        (check in the file description above for any).
         * Normalization of numeric values with different units into same-unit values.
-        * Any other data preprocessing you deem relevant
+        * Any other data preprocessing you deem relevant.
 
         (4) Perform the analysis and appropriate statistical tests needed to directly test our specified hypotheses \
         (see above our Research Goal and our Hypothesis Testing Plan).
+        Note that the analysis should account for any relevant confounding variables, as applicable. 
 
         (5) Create and output the data analysis results that are needed to produce a scientific paper \
         including the data for each of the tables specified above.
