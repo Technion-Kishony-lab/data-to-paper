@@ -1,3 +1,4 @@
+import os
 import re
 from dataclasses import dataclass
 from typing import Tuple, List, Set
@@ -21,8 +22,9 @@ class ShowCitationProducts:
     background_product_fields: Tuple[str, ...] = ()
 
     def _pre_populate_background(self):
-        for content in self.get_repr_citation_products():
-            self.comment(content)
+        if os.environ['CLIENT_SERVER_MODE'] == 'False':
+            for content in self.get_repr_citation_products():
+                self.comment(content)
         return super()._pre_populate_background()
 
     def get_repr_citation_products(self) -> List[str]:
