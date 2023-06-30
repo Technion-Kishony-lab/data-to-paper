@@ -218,7 +218,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         with open(latex_file_name, 'w') as f:
             f.write(latex_content)
         try:
-            pdflatex_output = subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name],
+            pdflatex_output = subprocess.run(['pdflatex', '--shell-escape', '-interaction', 'nonstopmode', latex_file_name],
                                              check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
         except subprocess.CalledProcessError as e:
             raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
@@ -235,8 +235,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
 
         if should_compile_with_bib:
             subprocess.run(['bibtex', file_stem], check=True)
-            subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
-            subprocess.run(['pdflatex', '-interaction', 'nonstopmode', latex_file_name], check=True)
+            subprocess.run(['pdflatex', '--shell-escape', '-interaction', 'nonstopmode', latex_file_name], check=True)
+            subprocess.run(['pdflatex', '--shell-escape', '-interaction', 'nonstopmode', latex_file_name], check=True)
 
         move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name, should_compile_with_bib)
 
