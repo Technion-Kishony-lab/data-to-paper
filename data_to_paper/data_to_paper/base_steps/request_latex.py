@@ -10,7 +10,9 @@ from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.file_utils import get_non_existing_file_name
 
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
-from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, LatexProblemInCompilation, NonLatexCitations
+from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, LatexProblemInCompilation, NonLatexCitations, \
+    TooWideTableOrText
+
 from data_to_paper.latex.latex_to_pdf import check_latex_compilation, remove_figure_envs_from_latex, \
     replace_special_chars, check_usage_of_unwanted_commands, check_non_latex_citations
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
@@ -94,17 +96,19 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         extracted_section = replace_special_chars(extracted_section)
         return extracted_section
 
-    def _check_section(self, extracted_section: str, section_name: str):
+    def _check_latex_compilation(self, section: str, section_name: str) -> Optional[LatexProblemInCompilation]:
         if SAVE_INTERMEDIATE_LATEX:
-            file_stem = f'{self.conversation_name}__{section_name}'
+            file_stem = f'{section_name}__{self.conversation_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
         else:
             file_stem, output_directory = 'test', None
         try:
-            check_latex_compilation(extracted_section, file_stem, output_directory, self.tolerance_for_too_wide_in_pts)
+            check_latex_compilation(section, file_stem, output_directory, self.tolerance_for_too_wide_in_pts)
         except LatexProblemInCompilation as e:
-            self._raise_self_response_error(str(e))
+            return e
+
+    def _check_section(self, extracted_section: str, section_name: str):
         self._check_usage_of_unwanted_commands(extracted_section)
         self._check_usage_of_non_latex_citations(extracted_section)
 
@@ -123,11 +127,9 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         except NonLatexCitations as e:
             self._raise_self_response_error(str(e))
 
-    def _check_and_extract_result_from_self_response(self, response: str):
+    def _check_no_additional_sections(self, response: str):
         """
-        Check the response and extract latex sections from it into returned_result.
-        If the there are errors that require self to revise the response, raise an SelfResponseError describing
-        the problem.
+        Check that there are no additional sections in the response.
         """
         num_sections = response.count('\\section')
         if num_sections != len([section_name for section_name in self.section_names
@@ -136,10 +138,31 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
                 f'You must only write the {self.pretty_section_names} section.'
             )
 
-        section_contents = []
-        for section_name in self.section_names:
-            section_contents.append(self._get_latex_section_from_response(response, section_name))
-        self.returned_result = section_contents
+    def _check_and_extract_result_from_self_response(self, response: str):
+        """
+        Check the response and extract latex sections from it into returned_result.
+        Raise if there are errors that require self to revise the response.
+        """
+        self._check_no_additional_sections(response)
 
+        # extract the latex sections
+        section_contents = [self._get_latex_section_from_response(response, section_name)
+                            for section_name in self.section_names]
+
+        # check the latex compilation
+        exceptions = [self._check_latex_compilation(section, section_name)
+                      for section, section_name in zip(section_contents, self.section_names)]
+        exceptions = [e for e in exceptions if e is not None]
+
+        # store the result if there are no exceptions, forgiving TooWideTableOrText:
+        is_just_too_wide = [isinstance(e, TooWideTableOrText) for e in exceptions]
+        if all(is_just_too_wide):
+            self.returned_result = section_contents
+
+        # raise the compilation errors
+        if any(exceptions):
+            self._raise_self_response_error('\n\n'.join((str(e) for e in exceptions)))
+
+        # check the sections for other problems
         for section_name, section in zip(self.section_names, section_contents):
             self._check_section(section, section_name)
