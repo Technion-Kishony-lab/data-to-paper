@@ -61,7 +61,7 @@ class BaseStepsRunner(ProductsHandler):
 
     def advance_stage(self, stage: Stage):
         """
-        Advance the stage of the research goal.
+        Advance the stage.
         """
         self.current_stage = stage
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))

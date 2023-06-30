@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 from dataclasses import dataclass
 
@@ -87,8 +88,8 @@ class OpenaiSeverCaller(ListServerCaller):
         """
         Connect with openai to get response to conversation.
         """
-
-        OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
+        if os.environ['CLIENT_SERVER_MODE'] == 'False':
+            OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
         organization, api_key = OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[model_engine] \
             if model_engine in OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS \
