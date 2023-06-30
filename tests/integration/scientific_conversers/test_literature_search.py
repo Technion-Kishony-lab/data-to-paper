@@ -22,9 +22,9 @@ class TestLiteratureSearchReviewGPT(TestProductsReviewGPT, WritingLiteratureSear
 def scientific_products():
     products = Mock()
     products.get_title = Mock(return_value='Evidence of waning of COVID-19 vaccine efficacy')
-    products.get_abstract = Mock(return_value=
-                                 'We analyzed the efficacy of the BNT162b2 vaccine over time.'
-                                 'We found that the efficacy of the BNT162b2 vaccine wanes over time.')
+    products.get_abstract = \
+        Mock(return_value='We analyzed the efficacy of the BNT162b2 vaccine over time.'
+                          'We found that the efficacy of the BNT162b2 vaccine wanes over time.')
 
     return products
 
