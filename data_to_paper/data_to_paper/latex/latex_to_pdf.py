@@ -239,8 +239,10 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
                 subprocess.run(['bibtex', file_stem], check=True)
                 subprocess.run(pdflatex_params, check=True)
                 subprocess.run(pdflatex_params, check=True)
-            finally:
+            except subprocess.CalledProcessError:
                 move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
+                raise
+        move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
 
 
 def move_latex_and_pdf_to_output_directory(file_stem: str, output_directory: str = None, latex_file_name: str = None):
