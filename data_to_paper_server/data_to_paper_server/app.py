@@ -94,6 +94,7 @@ def _run(
         writer,
         step_runner_kwargs,
 ):
+    os.environ['CLIENT_SERVER_MODE'] = 'True'
     QueueMessenger(first_person=ScientificAgent.Performer, writer=writer)
     ScientificStepsRunner(**step_runner_kwargs).run_all_steps()
     # TODO: this is a hack to make sure the last action is sent- once the writer dies, gipc's reader can't read
@@ -254,7 +255,7 @@ def test_connect(auth):
 
 if __name__ == '__main__':
     try:
-        socketio.run(app, port=os.getenv('PORT', 80), host='0.0.0.0')
+        socketio.run(app, port=os.getenv('PORT', 8000), host='0.0.0.0')
     finally:
         for p in PROCESSES:
             if p.is_alive():

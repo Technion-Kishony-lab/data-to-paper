@@ -7,6 +7,8 @@ class ScientificStages(Stages):
     GOAL = Stage("goal")
     PREPROCESSING = Stage("preprocessing")
     PLAN = Stage("plan")
+    GOAL_AND_PLAN = Stage("goal_and_plan")
+    LITERATURE_REVIEW_AND_SCOPE = Stage("literature_review_and_scope")
     CODE = Stage("code")
     INTERPRETATION = Stage("interpretation")
     WRITING = Stage("writing")

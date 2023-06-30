@@ -15,5 +15,6 @@ setup(
         "flask-socketio",
         "gipc",
         "gevent",
+        "gevent-websocket",
     ]
 )

@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from data_to_paper.servers.openai_models import ModelEngine
@@ -48,6 +49,7 @@ COALESCE_WEB_CONVERSATIONS = Flag(True)
 
 DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 
+os.environ['CLIENT_SERVER_MODE'] = 'False'
 
 # Debugging switches:
 SHOW_CHATGPT_CONTEXT = Flag(True)

@@ -38,7 +38,7 @@ class ScientificStepsRunner(BaseStepsRunner):
     should_do_data_preprocessing: bool = False
     should_prepare_data_analysis_plan: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
-    should_do_literal_search: bool = True
+    should_do_literature_search: bool = True
     should_add_citations: bool = False
     should_add_tables: bool = True
     should_interpret_results: bool = False
@@ -46,8 +46,8 @@ class ScientificStepsRunner(BaseStepsRunner):
     def get_sections_to_writing_class(
             self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
         return [
-            (('title', 'abstract'), FirstTitleAbstractSectionWriterReviewGPT),
-            ('writing', WritingLiteratureSearchReviewGPT),
+            # (('title', 'abstract'), FirstTitleAbstractSectionWriterReviewGPT),
+            # ('writing', WritingLiteratureSearchReviewGPT),
             (('results',), (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
                             else SectionWriterReviewBackgroundProductsConverser)),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
@@ -96,7 +96,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.send_product_to_client('codes_and_outputs:data_exploration')
 
         # Goal
-        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL_AND_PLAN, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
@@ -105,27 +105,27 @@ class ScientificStepsRunner(BaseStepsRunner):
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
             products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
-        self.send_product_to_client('research_goal')
+        # self.send_product_to_client('research_goal')
 
         goal_refinement_iteration = 0
         while True:
             # Analysis plan
             if self.should_prepare_data_analysis_plan:
-                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+                self.set_active_conversation(ScientificAgent.PlanReviewer)
                 products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-                self.send_product_to_client('analysis_plan')
+                # self.send_product_to_client('analysis_plan')
 
             # Hypotheses testing plan
             if self.should_prepare_hypothesis_testing_plan:
-                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
+                self.set_active_conversation(ScientificAgent.PlanReviewer)
                 products.hypothesis_testing_plan = \
                     HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-                self.send_product_to_client('hypothesis_testing_plan')
+                # self.send_product_to_client('hypothesis_testing_plan')
 
             # Literature search
-            if self.should_do_literal_search:
+            if self.should_do_literature_search:
                 # TODO: need a dedicated client Stage for literature search
-                self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.CitationExpert)
+                self.set_active_conversation(ScientificAgent.CitationExpert)
                 products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(self).get_literature_search()
                 # self.send_product_to_client('citations')
 
@@ -137,6 +137,9 @@ class ScientificStepsRunner(BaseStepsRunner):
             # Goal is not OK, so we need to devise the goal according to the literature search:
             goal_refinement_iteration += 1
             products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
+        # TODO: need to decide what and how to send to the client, we need to somehow split between
+        #  stages and produces
+        self.send_product_to_client('goal_and_plan')
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:
@@ -178,19 +181,25 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.results_summary = ResultsInterpretationReviewGPT.from_(self).get_value()
             self.send_product_to_client('results_summary')
 
+        # literature review and scope
+        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
+                                                       ScientificAgent.Writer)
+        products.paper_sections_and_optional_citations['title'], \
+            products.paper_sections_and_optional_citations['abstract'] = \
+            FirstTitleAbstractSectionWriterReviewGPT.from_(self).write_sections_with_citations(
+                section_names=['title', 'abstract'])
+        products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(self).get_literature_search()
+        # TODO: create the actual scope and literature review scientific product (currently it is just "hello")
+        self.send_product_to_client('scope_and_literature_review')
+
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_and_writing_class:
-            if isinstance(section_names, str):
-                # literature review section
-                step = section_names
-                products.literature_search[step] = writing_class.from_(self).get_literature_search()
-            else:
-                # writing section
-                sections_with_citations = \
-                    writing_class.from_(self, section_names=section_names).write_sections_with_citations()
-                for section_name, section_and_citations in zip(section_names, sections_with_citations):
-                    products.paper_sections_and_optional_citations[section_name] = section_and_citations
+            # writing section
+            sections_with_citations = \
+                writing_class.from_(self, section_names=section_names).write_sections_with_citations()
+            for section_name, section_and_citations in zip(section_names, sections_with_citations):
+                products.paper_sections_and_optional_citations[section_name] = section_and_citations
         self.send_product_to_client('most_updated_paper')
 
         # Add citations to relevant paper sections

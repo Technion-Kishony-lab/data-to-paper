@@ -514,4 +514,18 @@ class ScientificProducts(Products):
                 lambda: {'tables': self.get_description('tables'),
                          'numeric_values': self.get_description('numeric_values')},
             ),
+
+            'scope_and_literature_review': NameDescriptionStageGenerator(
+                'Scope and Literature Review',
+                'Here is the scope and literature review of the paper:\n\n{}',
+                ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
+                lambda: "hello",  # TODO: add scope and literature review
+            ),
+
+            'goal_and_plan': NameDescriptionStageGenerator(
+                'Goal and Plan',
+                'Here is the goal and plan of the paper:\n\n{}',
+                ScientificStages.GOAL_AND_PLAN,
+                lambda: "hello2",  # TODO: add scope and literature review
+            ),
         }
