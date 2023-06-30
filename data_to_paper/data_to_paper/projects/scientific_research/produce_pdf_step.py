@@ -2,13 +2,12 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from data_to_paper.base_steps import BaseLatexToPDFWithAppendix
-from data_to_paper.base_steps.latex_products_to_pdf import BaseLatexToPDFWithCode
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.crossref import CrossrefCitation
 
 
 @dataclass
-class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, BaseLatexToPDFWithCode):
+class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix):
     products: ScientificProducts = None
 
     def _choose_sections_to_add_to_paper_and_collect_references(self) -> (Dict[str, str], List[CrossrefCitation]):
@@ -21,5 +20,5 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDFWithAppendix, BaseLate
     def _create_appendix(self):
         s = self.products.data_file_descriptions.to_latex()
         for code_step in self.products.codes_and_outputs:
-            s += '\n\n' + self.products.codes_and_outputs[code_step].to_latex(latex_formatter=self.code_latex_formatter)
+            s += '\n\n' + self.products.codes_and_outputs[code_step].to_latex()
         return s
