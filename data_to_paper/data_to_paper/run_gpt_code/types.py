@@ -1,14 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
-from pygments import highlight
-from pygments.formatters.latex import LatexFormatter
-from pygments.lexers import PythonLexer
-
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.latex.latex_to_pdf import replace_special_chars, wrap_with_lstlisting
 from data_to_paper.run_gpt_code.overrides.dataframes import DataframeOperations
-from data_to_paper.utils.text_formatting import wrap_python_code
 
 
 @dataclass

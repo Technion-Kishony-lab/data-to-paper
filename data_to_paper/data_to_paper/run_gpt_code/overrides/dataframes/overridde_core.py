@@ -135,7 +135,7 @@ def is_overriden(self):
     return True
 
 
-def raise_on_call(*args, method_name: str,  **kwargs):
+def raise_on_call(*args, method_name: str, **kwargs):
     raise UnAllowedDataframeMethodCall(method_name=method_name)
 
 
