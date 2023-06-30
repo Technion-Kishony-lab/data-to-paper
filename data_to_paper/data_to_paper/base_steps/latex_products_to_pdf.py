@@ -106,15 +106,6 @@ class BaseLatexToPDF(BaseFileProducer):
 
 
 @dataclass
-class BaseLatexToPDFWithCode(BaseLatexToPDF):
-    code_latex_formatter: LatexFormatter = LatexFormatter(linenos=True, texcomments=False, mathescape=False,
-                                                          verboptions=r"formatcom=\footnotesize")
-
-    def _add_preamble(self, paper: str) -> str:
-        return self.code_latex_formatter.get_style_defs() + paper
-
-
-@dataclass
 class BaseLatexToPDFWithAppendix(BaseLatexToPDF):
     """
     Allows creating a pdf based on a tex template whose sections are populated from the Products. Also allows adding

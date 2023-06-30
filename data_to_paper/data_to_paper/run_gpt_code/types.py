@@ -1,14 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
-from pygments import highlight
-from pygments.formatters.latex import LatexFormatter
-from pygments.lexers import PythonLexer
-
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.latex.latex_to_pdf import replace_special_chars, wrap_with_lstlisting
 from data_to_paper.run_gpt_code.overrides.dataframes import DataframeOperations
-from data_to_paper.utils.text_formatting import wrap_python_code
 
 
 @dataclass
@@ -31,14 +26,11 @@ class CodeAndOutput:
             return []
         return [file for file in self.created_files if file != self.output_file]
 
-    def to_latex(self, width: int = 80, latex_formatter=None):
-        latex_formatter = latex_formatter or LatexFormatter(linenos=True, texcomments=False, mathescape=False,
-                                                            verboptions=r"formatcom=\footnotesize")
-        wrapped_code = wrap_python_code(self.code, width=width)
-        latex_code = highlight(wrapped_code, PythonLexer(), latex_formatter)
+    def to_latex(self):
         s = f"\\section{{{self.name}}} \\subsection{{Code}}" \
             f"The {self.name} was carried out using the following custom code:"
-        s += '\n\n' + latex_code
+        s += '\n\n'
+        s += '\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
         if self.code_explanation:
             s += "\\subsection{Code Description}"
             s += '\n\n' + replace_special_chars(self.code_explanation)
