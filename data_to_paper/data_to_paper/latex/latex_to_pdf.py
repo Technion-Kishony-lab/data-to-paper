@@ -229,24 +229,27 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             overflow_in_pt = float(re.search(r'Overfull \\hbox \((.*?)pt too wide\)', output).group(1))
             print('Overflow in pt: ', overflow_in_pt)
             if tolerance_for_too_wide_in_pts is not None and overflow_in_pt > tolerance_for_too_wide_in_pts:
-                move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name,
-                                                       should_compile_with_bib)
+                move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
                 raise TooWideTableOrText(latex_content=latex_content,
                                          pdflatex_output=pdflatex_output.stdout.decode('utf-8'))
 
         if should_compile_with_bib:
-            subprocess.run(['bibtex', file_stem], check=True)
-            subprocess.run(pdflatex_params, check=True)
-            subprocess.run(pdflatex_params, check=True)
+            try:
+                subprocess.run(['bibtex', file_stem], check=True)
+                subprocess.run(pdflatex_params, check=True)
+                subprocess.run(pdflatex_params, check=True)
+            finally:
+                move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
 
-        move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name, should_compile_with_bib)
 
-
-def move_latex_and_pdf_to_output_directory(file_stem: str, output_directory: str = None, latex_file_name: str = None,
-                                           should_compile_with_bib: bool = False):
+def move_latex_and_pdf_to_output_directory(file_stem: str, output_directory: str = None, latex_file_name: str = None):
     # Move the pdf and the latex and the citation file to the original directory:
+
+    def move_if_exists(file_name):
+        if os.path.exists(file_name):
+            shutil.move(file_name, output_directory)
+
     if output_directory is not None:
-        shutil.move(file_stem + '.pdf', output_directory)
-        shutil.move(latex_file_name, output_directory)
-        if should_compile_with_bib:
-            shutil.move('citations.bib', output_directory)
+        move_if_exists(file_stem + '.pdf')
+        move_if_exists(latex_file_name)
+        move_if_exists('citations.bib')
