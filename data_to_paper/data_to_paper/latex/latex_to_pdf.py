@@ -98,6 +98,7 @@ def process_table_part(tabular_part: str) -> str:
 
 def process_non_math_part(text):
     assert all(len(c) == 1 for c in CHARS.keys())
+    text = text.encode('ascii', 'ignore').decode('utf-8')
     chars = ''.join(CHARS.keys())
     pattern = fr'(?<!\\)([{chars}])'
     repl_func = lambda match: CHARS[match.group(1)]
