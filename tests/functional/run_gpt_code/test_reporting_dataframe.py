@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
+from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe_creating_funcs, \
     collect_created_and_changed_data_frames, DataFrameSeriesChange
 from data_to_paper.utils.file_utils import run_in_directory
@@ -129,3 +130,11 @@ def test_df_float_precision_to_string():
     with collect_created_and_changed_data_frames():
         df = pd.DataFrame({'a': [1.23456789]})
         assert df.to_string().endswith('1.235')
+
+
+def test_raise_on_call():
+    with collect_created_and_changed_data_frames():
+        df = pd.DataFrame()
+        with pytest.raises(UnAllowedDataframeMethodCall) as exc:
+            df.to_html()
+    assert 'to_html' in str(exc.value)

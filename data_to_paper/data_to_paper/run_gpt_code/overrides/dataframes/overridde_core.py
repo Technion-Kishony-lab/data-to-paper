@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from functools import partial
+
 import pandas as pd
 from pandas.core.frame import DataFrame
 
@@ -8,6 +11,14 @@ from .dataframe_operations import SaveDataframeOperation, CreationDataframeOpera
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
 ON_CHANGE = Mutable(None)
+
+
+@dataclass
+class UnAllowedDataframeMethodCall(Exception):
+    method_name: str
+
+    def __str__(self):
+        return f"Calling dataframe method '{self.method_name}' is not allowed."
 
 
 original_init = DataFrame.__init__
@@ -124,6 +135,10 @@ def is_overriden(self):
     return True
 
 
+def raise_on_call(*args, method_name: str,  **kwargs):
+    raise UnAllowedDataframeMethodCall(method_name=method_name)
+
+
 FUNC_NAMES_TO_FUNCS = {
     '__init__': __init__,
     '__setitem__': __setitem__,
@@ -135,6 +150,9 @@ FUNC_NAMES_TO_FUNCS = {
 }
 
 
+RAISE_ON_CALL_FUNC_NAMES = ['to_latex', 'to_html', 'to_json']
+
+
 @run_once
 def override_core_ndframe():
     """
@@ -142,6 +160,10 @@ def override_core_ndframe():
     """
     for func_name, func in FUNC_NAMES_TO_FUNCS.items():
         setattr(DataFrame, func_name, func)
+
+    for func_name in RAISE_ON_CALL_FUNC_NAMES:
+        setattr(DataFrame, func_name, partial(raise_on_call, method_name=func_name))
+
     DataFrame.is_overriden = is_overriden
 
     if STR_FLOAT_FORMAT:

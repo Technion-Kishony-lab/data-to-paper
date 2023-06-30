@@ -22,6 +22,7 @@ from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directo
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import ProductsConverser
+from ..run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
 from ..servers.chatgpt import count_number_of_tokens_in_message
 
 
@@ -336,6 +337,8 @@ class DebuggerConverser(ProductsConverser):
                 self._respond_to_file_not_found(str(e.exception))
             except CodeUsesForbiddenFunctions as f:
                 self._respond_to_forbidden_functions(f.func)
+            except UnAllowedDataframeMethodCall as f:
+                self._respond_to_forbidden_functions(f.method_name)
             except CodeImportForbiddenModule as f:
                 self._respond_to_forbidden_import(f.module)
             except CodeWriteForbiddenFile as f:
