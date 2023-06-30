@@ -186,8 +186,8 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                        ScientificAgent.Writer)
         products.paper_sections_and_optional_citations['title'], \
             products.paper_sections_and_optional_citations['abstract'] = \
-            FirstTitleAbstractSectionWriterReviewGPT.from_(self).write_sections_with_citations(
-                section_names=['title', 'abstract'])
+            FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
+                                                           ).write_sections_with_citations()
         products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(self).get_literature_search()
         # TODO: create the actual scope and literature review scientific product (currently it is just "hello")
         self.send_product_to_client('scope_and_literature_review')
