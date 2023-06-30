@@ -31,7 +31,7 @@ class CodeAndOutput:
             return []
         return [file for file in self.created_files if file != self.output_file]
 
-    def to_latex(self, width: int = 80, latex_formatter=None):
+    def to_latex(self):
         s = f"\\section{{{self.name}}} \\subsection{{Code}}" \
             f"The {self.name} was carried out using the following custom code:"
         s += '\n\n'
