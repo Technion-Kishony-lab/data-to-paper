@@ -32,13 +32,10 @@ class CodeAndOutput:
         return [file for file in self.created_files if file != self.output_file]
 
     def to_latex(self, width: int = 80, latex_formatter=None):
-        latex_formatter = latex_formatter or LatexFormatter(linenos=True, texcomments=False, mathescape=False,
-                                                            verboptions=r"formatcom=\footnotesize")
-        wrapped_code = wrap_python_code(self.code, width=width)
-        latex_code = highlight(wrapped_code, PythonLexer(), latex_formatter)
         s = f"\\section{{{self.name}}} \\subsection{{Code}}" \
             f"The {self.name} was carried out using the following custom code:"
-        s += '\n\n' + latex_code
+        s += '\n\n'
+        s += '\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
         if self.code_explanation:
             s += "\\subsection{Code Description}"
             s += '\n\n' + replace_special_chars(self.code_explanation)
