@@ -389,9 +389,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         for table_label in table_labels:
             if table_label not in section:
                 self._raise_self_response_error(dedent_triple_quote_str(f"""
-                    The {section_name} section should specifically reference each of the Tables that we have. \ 
-                    Please rewrite the section making sure we have a sentence addressing \
-                    Table "{table_label}". \
+                    The {section_name} section should specifically reference each of the Tables that we have.
+                    Please make sure we have a sentence addressing Table "{table_label}".
                     The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
                     """))
 
