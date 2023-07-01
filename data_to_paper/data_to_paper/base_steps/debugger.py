@@ -55,7 +55,6 @@ class DebuggerConverser(ProductsConverser):
     max_debug_iterations: int = 5
 
     debug_iteration = 0
-    initiation_tag: Optional[str] = None
 
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
@@ -157,7 +156,7 @@ class DebuggerConverser(ProductsConverser):
             comment=f'{self.iteration_str}: GPT code is incomplete.')
 
         # delete the last two messages (incomplete code and this just-posted user response):
-        self.apply_delete_messages((-2, -1))
+        self.apply_delete_messages([-2, -1])
 
     def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
         """
@@ -311,10 +310,7 @@ class DebuggerConverser(ProductsConverser):
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
             # We first clean up, re-reposting the code as if it was the immediate response
-            self.apply_delete_messages(
-                message_designation=RangeMessageDesignation.from_(
-                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -1),  # keeps the last 2 messages
-                comment="Deleting previous debug iterations.")
+            self._rewind_conversation_to_first_response()
             self.apply_append_surrogate_message(
                 'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
                     code_runner.extract_code()),
@@ -390,17 +386,6 @@ class DebuggerConverser(ProductsConverser):
 
         return None  # code failed
 
-    def _get_tag(self):
-        """
-        If the last message has a tag, use it as the initiation tag.
-        Otherwise, create a new tag tagged comment and use it as the initiation tag.
-        """
-        if self.initiation_tag is None:
-            if self.conversation[-1].tag:
-                self.initiation_tag = self.conversation[-1].tag
-            else:
-                raise ValueError("The last message must have a tag.")
-
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """
         Run the debugging process.
@@ -408,7 +393,6 @@ class DebuggerConverser(ProductsConverser):
         Otherwise, return the code and output.
         """
         self.initialize_conversation_if_needed()
-        self._get_tag()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             code_and_output = self._get_and_run_code()
             if code_and_output is not None:
