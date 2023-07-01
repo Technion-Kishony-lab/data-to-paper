@@ -108,7 +108,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         As part of a data-exploration phase, please write a complete short Python code for getting a \
         first sense of the data. 
 
-        Your code should create an output text file named "{actual_output_filename}", which should \
+        Your code should create an output text file named "{output_filename}", which should \
         contain a summary of the data.
         Depending on the specifics of the dataset, you might want to include:
 
@@ -131,7 +131,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
+        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
         ```output
         {}
         ```
@@ -222,7 +222,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).
         {list_additional_data_files_if_any}
 
-        (2) Create an output text file named "{actual_output_filename}".
+        (2) Create an output text file named "{output_filename}".
         All the results should be writen to this text file.
         Do not write to any other files.
 
@@ -272,7 +272,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
+        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
         ```output
         {}
         ```

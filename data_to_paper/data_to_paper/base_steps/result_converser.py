@@ -112,6 +112,7 @@ class ResultConverser(Converser):
     def initialize_conversation_if_needed(self, print_header: bool = True):
         super().initialize_conversation_if_needed(print_header=print_header)
         self._pre_populate_background()
+        self._conversation_len_before_first_response = len(self.conversation)
 
     def _pre_populate_background(self):
         """
