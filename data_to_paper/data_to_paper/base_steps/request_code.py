@@ -150,10 +150,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
             if self.present_code_as_fresh:
                 # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
-                self.apply_delete_messages(
-                    message_designation=RangeMessageDesignation.from_(start=start_tag, end=-1),
-                    comment='Deleting all debugging correspondence.')
-
+                self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(
                     content=Replacer(self, self.present_code_as_fresh, args=(code_and_output.code,)),
                     comment='Adding the debugged code as if it was the original response.',
