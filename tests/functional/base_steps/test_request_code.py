@@ -66,7 +66,13 @@ class TestRequestCodeProducts(TestProductsReviewGPT, RequestCodeProducts):
 
 @fixture()
 def code_running_converser(tmpdir_with_csv_file):
-    return TestDataframeChangingCodeProductsGPT(temp_dir=tmpdir_with_csv_file)
+    return TestDataframeChangingCodeProductsGPT(
+        temp_dir=tmpdir_with_csv_file,
+        code_name='Testing',
+        conversation_name='testing',
+        offer_revision_prompt='Output: "{}"\nRevise?',
+        output_filename='output.txt',
+    )
 
 
 @fixture()
@@ -117,6 +123,40 @@ the column explanation is:
     'new_column': 'this is just a new column',
 }
 """
+
+
+code1 = r"""
+with open('output.txt', 'w') as f:
+    f.write('Output with mistakes')
+"""
+
+
+code2 = r"""
+with open('output.txt', 'w') as f:
+    f.write('Improved output')
+"""
+
+
+code3 = r"""
+with open('output.txt', 'w') as f:
+    f.write('Best output')
+"""
+
+
+def test_request_code_with_revisions(code_running_converser):
+    with OPENAI_SERVER_CALLER.mock(
+            [f'Here is my first attempt:\n```python{code1}```\n',
+             '{"choice": "revise"}',
+             f'Here is the improved code:\n```python{code2}```\n',
+             '{"choice": "revise"}',
+             f'Here is the best code:\n```python{code3}```\n',
+             '{"choice": "ok"}',
+             ],
+            record_more_if_needed=False):
+        code_and_output = code_running_converser.get_code_and_output()
+    assert code_and_output.code == code3
+    assert code_and_output.output == 'Best output'
+    assert len(code_running_converser.conversation) == 5
 
 
 def test_code_request_with_description_of_added_df_columns(code_request_converser, scientific_products):
