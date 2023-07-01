@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict
 
-from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils import dedent_triple_quote_str
@@ -122,12 +121,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return code_and_output
 
     def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
-        start_tag = self._request_code_tag + '_debugging'
         for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
                                    f"(attempt {attempt + 1}/{self.max_code_writing_attempts})"
-            self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
+            self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerConverser.from_(
