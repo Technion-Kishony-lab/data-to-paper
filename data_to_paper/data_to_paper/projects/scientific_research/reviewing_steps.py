@@ -10,6 +10,7 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
+from data_to_paper.latex.tables import get_table_label
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -318,6 +319,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         (you can use the table name provided above, or modify it as you see fit).
         * If you indicate p-values, you can use the $<$ symbol to indicate smaller than a given value, \
         (any p-value less than 10^-4 should be indicated as $<$10^{-4}).
+        * Choose and add a table label in the format "\\label{{table:xxx}}". 
 
         {do_not_repeat_information_from_previous_tables}
         Write the table in latex format, centered, in booktabs, multirow format with caption and label.
@@ -336,6 +338,8 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         If you don't see any issues, respond with "{termination_phrase}".
         NOTICE: If you give any type of constructive feedback, do not include "{termination_phrase}" in your response.
         """)
+
+    rewrite_prompt: str = "\n\nPlease rewrite the table, based on the feedback provided above."
 
     @property
     def num_of_existing_tables(self) -> int:
@@ -359,9 +363,26 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         else:
             return ''
 
+    def _get_table_labels(self, section_name: str) -> List[str]:
+        return [get_table_label(table) for table in self.products.tables[section_name]]
+
+    def _check_table_label(self, section: str):
+        label = get_table_label(section)
+        if label is None:
+            self._raise_self_response_error(
+                r'Please add a label to the table. Use the format "\label{table:xxx}"{rewrite_prompt}')
+        if not label.startswith('table:'):
+            self._raise_self_response_error(
+                r'The tabel label should start with "table:"{rewrite_prompt}')
+        if label in self._get_table_labels(section):
+            self._raise_self_response_error(
+                f'The table label "{label}" is already used in another table. ' 
+                r'You need to choose a different label{rewrite_prompt}')
+
     def _check_section(self, section: str, section_name: str):
         super()._check_section(section, section_name)
         self._check_extracted_numbers(section)
+        self._check_table_label(section)
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
