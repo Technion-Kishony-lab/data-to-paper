@@ -7,7 +7,6 @@ from typing import Optional, List, Set, Tuple
 from data_to_paper.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, \
     MAX_MODEL_ENGINE
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
