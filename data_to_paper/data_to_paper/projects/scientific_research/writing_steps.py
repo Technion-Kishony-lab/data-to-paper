@@ -5,6 +5,7 @@ from typing import Tuple, List, Set
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
+from data_to_paper.latex.tables import get_table_label
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, CITATION_REPR_FIELDS, \
     CITATION_REPR_FIELDS_FOR_PRINT
@@ -379,6 +380,20 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
         Tables and Numerical Values.
         """)
+
+    def _get_table_labels(self, section_name: str) -> List[str]:
+        return [get_table_label(table) for table in self.products.tables[section_name]]
+
+    def _check_section(self, section: str, section_name: str):
+        table_labels = self._get_table_labels(section_name)
+        for table_label in table_labels:
+            if table_label not in section:
+                self._raise_self_response_error(dedent_triple_quote_str(f"""
+                    The {section_name} section should specifically reference each of the Tables that we have. \ 
+                    Please rewrite the section making sure we have a sentence addressing \
+                    Table "{table_label}". \
+                    The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
+                    """))
 
 
 @dataclass
