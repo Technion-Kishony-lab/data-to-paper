@@ -17,7 +17,7 @@ class TestDebuggerGPT(DebuggerConverser):
     assistant_agent: TestAgent = TestAgent.REVIEWER
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     output_filename: str = 'test_output.txt'
-    data_files: tuple = ('test.csv',)
+    data_filenames: tuple = ('test.csv',)
     enforce_saving_altered_dataframes: bool = True
 
 

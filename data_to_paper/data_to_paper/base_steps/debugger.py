@@ -59,7 +59,7 @@ class DebuggerConverser(ProductsConverser):
 
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
-    data_files: Optional[list] = field(default_factory=list)
+    data_filenames: Optional[list] = field(default_factory=list)
     data_folder: Path = None
     output_filename: str = 'results.txt'
 
@@ -73,7 +73,7 @@ class DebuggerConverser(ProductsConverser):
 
     def _get_code_runner(self, response: str) -> CodeRunner:
         return CodeRunner(response=response,
-                          allowed_read_files=self.data_files,
+                          allowed_read_files=self.data_filenames,
                           output_file=self.output_filename,
                           allowed_created_files=self.allowed_created_files,
                           allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
@@ -104,7 +104,7 @@ class DebuggerConverser(ProductsConverser):
             As noted in the data description, we only have {}.  
 
             Files are located in the same directory as the code. 
-            """).format(error_message, self.data_files),
+            """).format(error_message, self.data_filenames),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _respond_to_error_message(self, error_message: str, is_warning: bool = False):
@@ -249,7 +249,7 @@ class DebuggerConverser(ProductsConverser):
                 The code should create and write to this output file, but should not read from it.
                 Please rewrite the complete code again, making sure it does not read from the output file.
                 Note that the input files from which we can read the data are: {}. 
-                """).format(file, self.data_files),
+                """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from output file {file}.')
             return
         else:
@@ -257,7 +257,7 @@ class DebuggerConverser(ProductsConverser):
                 content=dedent_triple_quote_str("""
                 Your code reads from the file "{}" which is not part of the dataset.
                 Please rewrite the complete code again, noting that we only have {}. 
-                """).format(file, self.data_files),
+                """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_dataframe_series_change(self, series: str):

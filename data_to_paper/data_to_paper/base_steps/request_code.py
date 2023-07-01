@@ -134,7 +134,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 self,
                 is_new_conversation=False,
                 output_filename=self.output_filename,
-                data_files=self.data_filenames,
+                data_filenames=self.data_filenames,
                 data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
