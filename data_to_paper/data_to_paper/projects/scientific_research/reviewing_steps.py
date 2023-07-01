@@ -339,8 +339,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         NOTICE: If you give any type of constructive feedback, do not include "{termination_phrase}" in your response.
         """)
 
-    rewrite_prompt: str = "\n\nPlease rewrite the table, based on the feedback provided above."
-
     @property
     def num_of_existing_tables(self) -> int:
         return len(self.products.all_tables)
@@ -363,21 +361,17 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         else:
             return ''
 
-    def _get_table_labels(self, section_name: str) -> List[str]:
-        return [get_table_label(table) for table in self.products.tables[section_name]]
+    def _get_table_labels(self) -> List[str]:
+        return [get_table_label(table) for table in self.products.tables['results']]
 
     def _check_table_label(self, section: str):
         label = get_table_label(section)
         if label is None:
-            self._raise_self_response_error(
-                r'Please add a label to the table. Use the format "\label{table:xxx}"{rewrite_prompt}')
+            self._raise_self_response_error(r'Please add a label to the table. Use the format "\label{table:xxx}".')
         if not label.startswith('table:'):
-            self._raise_self_response_error(
-                r'The tabel label should start with "table:"{rewrite_prompt}')
-        if label in self._get_table_labels(section):
-            self._raise_self_response_error(
-                f'The table label "{label}" is already used in another table. ' 
-                r'You need to choose a different label{rewrite_prompt}')
+            self._raise_self_response_error(r'The tabel label should start with "table:".')
+        if label in self._get_table_labels():
+            self._raise_self_response_error(f'The table label "{label}" is already used in another table.')
 
     def _check_section(self, section: str, section_name: str):
         super()._check_section(section, section_name)
