@@ -4,10 +4,10 @@ from typing import Tuple, List, Set
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
+from data_to_paper.base_steps.literature_search import CITATION_REPR_FIELDS, CITATION_REPR_FIELDS_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, CITATION_REPR_FIELDS, \
-    CITATION_REPR_FIELDS_FOR_PRINT
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 
@@ -17,6 +17,7 @@ from data_to_paper.utils.nice_list import nicely_join
 from data_to_paper.utils.types import ListBasedSet
 
 
+# TODO: need to generalize this class and move to base steps
 class ShowCitationProducts:
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ()
