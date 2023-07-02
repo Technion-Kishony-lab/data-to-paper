@@ -51,7 +51,8 @@ from .request_code import BaseCodeProductsGPT
 from .request_multi_choice import MultiChoiceBackgroundProductsConverser
 
 # Requesting literature search
-from .literature_search import BaseLiteratureSearchReviewGPT
+from .request_literature_search import BaseLiteratureSearchReviewGPT
+from .literature_search import LiteratureSearch
 
 # --- CONVERTING PRODUCTS TO FILES ---
 
