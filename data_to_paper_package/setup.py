@@ -29,6 +29,7 @@ setup(
         'data_to_paper': [
             'data_to_paper/projects/scientific_research/templates/*',
         ],
+        '': ['*.tex']
     },
     install_requires=[
         "requests",

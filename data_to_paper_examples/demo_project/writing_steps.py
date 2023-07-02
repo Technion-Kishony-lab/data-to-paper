@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser
-from data_to_paper.projects.demo_project.cast import DemoAgent
-from data_to_paper.projects.demo_project.products import DemoProducts
-
 from data_to_paper.utils import dedent_triple_quote_str
 
+
+from cast import DemoAgent
+from products import DemoProducts
 
 @dataclass
 class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
