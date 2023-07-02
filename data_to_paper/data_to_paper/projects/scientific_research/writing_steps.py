@@ -23,9 +23,8 @@ class ShowCitationProducts:
     background_product_fields: Tuple[str, ...] = ()
 
     def _pre_populate_background(self):
-        if os.environ['CLIENT_SERVER_MODE'] == 'False':
-            for content in self.get_repr_citation_products():
-                self.comment(content)
+        for content in self.get_repr_citation_products():
+            self.comment(content, web_conversation_name=None)
         return super()._pre_populate_background()
 
     def get_repr_citation_products(self) -> List[str]:
