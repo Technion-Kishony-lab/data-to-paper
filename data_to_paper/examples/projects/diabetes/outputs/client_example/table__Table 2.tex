@@ -1,0 +1,40 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[ht]
+\centering
+\caption{Association between diabetes and BMI (Chi-squared test results)}
+\label{table:chi_squared_test}
+\begin{tabular}{lc}
+\toprule
+Statistic & Value \\
+\midrule
+Chi-squared statistic & $12942.93$  \\
+p-value & $<10^{-4}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

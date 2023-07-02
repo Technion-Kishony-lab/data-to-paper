@@ -94,7 +94,7 @@ class ScientificStepsRunner(BaseStepsRunner):
             self.send_product_to_client('codes_and_outputs:data_exploration')
 
         # Goal
-        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL_AND_PLAN, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
@@ -124,20 +124,26 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         # TODO: need to decide what and how to send to the client, we need to somehow split between
         #  stages and produces
-        self.send_product_to_client('goal_and_plan')
+        self.send_product_to_client('research_goal')
 
+        # Plan
+        self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
-            self.set_active_conversation(ScientificAgent.PlanReviewer)
             products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('analysis_plan')
 
         # Hypotheses testing plan
         if self.should_prepare_hypothesis_testing_plan:
-            self.set_active_conversation(ScientificAgent.PlanReviewer)
             products.hypothesis_testing_plan = \
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
+
+        if not self.should_prepare_data_analysis_plan and not self.should_prepare_hypothesis_testing_plan:
+            raise ValueError("At least one of the following should be True: "
+                             "should_prepare_data_analysis_plan, should_prepare_hypothesis_testing_plan")
+        # TODO: currently sending hypothesis testing plan to the client, need to decide what we really want to send
+        self.send_product_to_client('hypothesis_testing_plan')
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:

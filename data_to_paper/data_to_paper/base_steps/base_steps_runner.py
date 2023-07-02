@@ -5,11 +5,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.conversation.conversation_actions import CreateConversation
-from data_to_paper.conversation.stage import Stages, AdvanceStage, SetActiveConversation, SetProduct, Stage
+from data_to_paper.conversation.stage import Stages, AdvanceStage, SetActiveConversation, SetProduct, Stage, \
+    SendFinalProduct
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.base_cast import Agent
@@ -95,6 +96,14 @@ class BaseStepsRunner(ProductsHandler):
     def absolute_data_folder(self):
         return self.data_file_descriptions.data_folder
 
+    def send_final_products_to_client(self, product_name: str):
+        """
+        Get the base GPT script file.
+        """
+        self.actions_and_conversations.actions.apply_action(
+            SendFinalProduct(product_name=product_name)
+        )
+
     def _run_all_steps(self):
         """
         Run all the steps towards the high level goal.
@@ -150,4 +159,6 @@ class BaseStepsRunner(ProductsHandler):
         except Exception:
             raise
         else:
+            for product in PRODUCTS_TO_SEND_TO_CLIENT:
+                self.send_final_products_to_client(product_name=product)
             self.advance_stage(Stages.FINISHED)
