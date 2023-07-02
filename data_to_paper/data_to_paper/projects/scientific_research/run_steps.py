@@ -46,8 +46,6 @@ class ScientificStepsRunner(BaseStepsRunner):
     def get_sections_to_writing_class(
             self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
         return [
-            # (('title', 'abstract'), FirstTitleAbstractSectionWriterReviewGPT),
-            # ('writing', WritingLiteratureSearchReviewGPT),
             (('results',), (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
                             else SectionWriterReviewBackgroundProductsConverser)),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
@@ -109,19 +107,6 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         goal_refinement_iteration = 0
         while True:
-            # Analysis plan
-            if self.should_prepare_data_analysis_plan:
-                self.set_active_conversation(ScientificAgent.PlanReviewer)
-                products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-                # self.send_product_to_client('analysis_plan')
-
-            # Hypotheses testing plan
-            if self.should_prepare_hypothesis_testing_plan:
-                self.set_active_conversation(ScientificAgent.PlanReviewer)
-                products.hypothesis_testing_plan = \
-                    HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-                # self.send_product_to_client('hypothesis_testing_plan')
-
             # Literature search
             if self.should_do_literature_search:
                 # TODO: need a dedicated client Stage for literature search
@@ -140,6 +125,19 @@ class ScientificStepsRunner(BaseStepsRunner):
         # TODO: need to decide what and how to send to the client, we need to somehow split between
         #  stages and produces
         self.send_product_to_client('goal_and_plan')
+
+        # Analysis plan
+        if self.should_prepare_data_analysis_plan:
+            self.set_active_conversation(ScientificAgent.PlanReviewer)
+            products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            # self.send_product_to_client('analysis_plan')
+
+        # Hypotheses testing plan
+        if self.should_prepare_hypothesis_testing_plan:
+            self.set_active_conversation(ScientificAgent.PlanReviewer)
+            products.hypothesis_testing_plan = \
+                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            # self.send_product_to_client('hypothesis_testing_plan')
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:
