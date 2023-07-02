@@ -25,7 +25,7 @@ import gipc
 """
 SET RUN PARAMETERS HERE
 """
-PROJECT: Optional[str] = None  # None to get from web ui
+PROJECT: Optional[str] = 'diabetes'  # None to get from web ui
 
 if PROJECT:
     load_from_repo = True  # False to load from local examples folder (outside the repo)
@@ -40,7 +40,7 @@ if PROJECT:
 
     # Choose OUTPUT_DIRECTORY. `None` for TEMP_FOLDER_TO_RUN_IN/output, or set to the local examples output folder:
     OUTPUT_DIRECTORY: Optional[Path] = get_output_path(PROJECT,
-                                                       '2023-05-26 Nice classifiers results', save_on_repo=True)
+                                                       'client_example', save_on_repo=True)
 
     # Choose MOCK_SERVERS.
     # `False` to avoid mocking servers
@@ -71,6 +71,7 @@ PAPER_IDS_TO_SERIALIZED_ACTIONS = {}
 
 def _send_output_actions(id_, output_directory):
     output_paths = list(output_directory.glob("*.*"))
+    print("output_paths:", output_paths)
     for output_path in output_paths:
         serialized = SerializedAction(
             data={
@@ -128,7 +129,9 @@ def run_scientist_gpt_in_separate_process(id_, step_runner_kwargs):
                 },
                 to=id_
             )
+    print("-------------------------SENDING OUTPUT TO CLIENT-------------------------")
     _send_output_actions(id_, output_directory)
+    print("-------------------------SENT OUTPUT TO CLIENT-------------------------")
 
 
 @app.route('/', defaults={'path': ''})

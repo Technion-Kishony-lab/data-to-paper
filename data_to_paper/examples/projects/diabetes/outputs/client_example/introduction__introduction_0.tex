@@ -1,0 +1,36 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Diabetes, a disease of global concern \cite{Uloko2018PrevalenceAR}, when exacerbated by the increasing prevalence of obesity, poses a significant public health challenge \cite{Mokdad2001TheCE}. Among several risk factors associated with diabetes, Body Mass Index (BMI) is a crucial determinant representing a common thread among diabetes' disparate aspects \cite{Zhu2019RacialEthnicDI, rnlv2010ImpactOB}.
+
+Existing research has provided crucial insights into the association between diabetes prevalence and BMI. Compelling evidence suggests marked disparities in diabetes risks among diverse demographic parameters, such as BMI \cite{Read2021BMIAR}. Moreover, regional variations and gender-specific influences on diabetes risk among different BMI categories have been reported \cite{Rho2014IndependentIO}. However, a more comprehensive understanding of this association can be facilitated by analyzing a broader range of BMI values at a population level. 
+
+In addressing this research gap, we leveraged health indicators in a rich dataset \cite{Deberneh2021PredictionOT}, earmarking data related to diabetes prevalence and demographic characteristics, inclusive of an extensive assortment of BMI values. The breadth and diversity inherent in this dataset afforded us the opportunity to conduct an intricate exploration into the association between BMI and diabetes at a granular level.
+
+Our methodological approach involved a series of steps, including data preprocessing and the application of a chi-squared test of independence, a rigorously robust statistical test for investigating relationships between categorical variables \cite{Mongraw-Chaffin2015TheSA}. Our findings indicated a significantly higher mean BMI among individuals with diabetes compared to those without. Furthermore, the chi-squared test underscored a notable association between diabetes and BMI, affirming the critical relevance of analyzing BMI for managing diabetes at a population level.
+
+\end{document}

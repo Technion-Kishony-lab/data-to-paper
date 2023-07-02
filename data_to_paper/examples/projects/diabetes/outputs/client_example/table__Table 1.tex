@@ -1,0 +1,48 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[ht]
+\centering
+\caption{Summary statistics of diabetes and BMI in the dataset}
+\label{table:summary_statistics}
+\begin{tabular}{lcc}
+\toprule
+ & \multicolumn{2}{c}{Diabetes} \\
+\cmidrule(lr){2-3}
+ & No & Yes \\
+\midrule
+Count & 218,334 & 35,346 \\
+Mean BMI & 0.1838 & 0.2319 \\
+Std. Dev. of BMI & 0.07316 & 0.08562 \\
+Min BMI & 0 & 0.01163\\
+25\% percentile BMI & 0.1395 & 0.1744\\
+Median BMI & 0.1744 & 0.2209\\
+75\% percentile BMI & 0.2209 & 0.2674\\
+Max BMI & 1 &  1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
