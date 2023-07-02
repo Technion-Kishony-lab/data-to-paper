@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from typing import List, Dict
 
 from data_to_paper.base_steps import BaseLatexToPDFWithAppendix
-from data_to_paper.projects.demo_project.products import DemoProducts
 from data_to_paper.servers.crossref import CrossrefCitation
 
+from products import DemoProducts
 
 @dataclass
 class ProduceDemoPaperPDF(BaseLatexToPDFWithAppendix):
