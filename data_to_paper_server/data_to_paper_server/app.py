@@ -69,27 +69,6 @@ PROCESSES = []
 PAPER_IDS_TO_SERIALIZED_ACTIONS = {}
 
 
-def _send_output_actions(id_, output_directory):
-    output_paths = list(output_directory.glob("*.*"))
-    print("output_paths:", output_paths)
-    for output_path in output_paths:
-        serialized = SerializedAction(
-            data={
-                "name": output_path.name
-            },
-            event="Output",
-        )
-        PAPER_IDS_TO_SERIALIZED_ACTIONS.setdefault(id_, []).append(serialized)
-        socketio.emit(
-            serialized.event,
-            {
-                'eventId': len(PAPER_IDS_TO_SERIALIZED_ACTIONS[id_]),
-                'data': serialized.data
-            },
-            to=id_
-        )
-
-
 def _run(
         id_,
         writer,
@@ -129,9 +108,6 @@ def run_scientist_gpt_in_separate_process(id_, step_runner_kwargs):
                 },
                 to=id_
             )
-    print("-------------------------SENDING OUTPUT TO CLIENT-------------------------")
-    _send_output_actions(id_, output_directory)
-    print("-------------------------SENT OUTPUT TO CLIENT-------------------------")
 
 
 @app.route('/', defaults={'path': ''})
