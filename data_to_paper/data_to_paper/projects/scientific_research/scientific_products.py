@@ -521,11 +521,4 @@ class ScientificProducts(Products):
                 ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
                 lambda: "hello",  # TODO: add scope and literature review
             ),
-
-            'goal_and_plan': NameDescriptionStageGenerator(
-                'Goal and Plan',
-                'Here is the goal and plan of the paper:\n\n{}',
-                ScientificStages.GOAL_AND_PLAN,
-                lambda: "hello2",  # TODO: add scope and literature review
-            ),
         }
