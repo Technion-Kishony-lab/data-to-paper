@@ -10,7 +10,7 @@ from data_to_paper.projects.scientific_research.scientific_products import Scien
 class GoalLiteratureSearchReviewGPT(BaseLiteratureSearchReviewGPT):
     products: ScientificProducts = None
     requested_keys: Collection[str] = ('dataset', 'questions', )
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal')
     conversation_name: str = 'literature_search_goal'
     is_new_conversation: bool = None
     goal_noun: str = 'literature search queries'
