@@ -3,13 +3,13 @@ from typing import Optional
 
 from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
-from data_to_paper.projects.demo_project.cast import DemoAgent
-from data_to_paper.projects.demo_project.coding_steps import DemoCodeProductsGPT
-from data_to_paper.projects.demo_project.get_template import get_paper_template_path
-from data_to_paper.projects.demo_project.produce_pdf_step import ProduceDemoPaperPDF
-from data_to_paper.projects.demo_project.products import DemoProducts
-from data_to_paper.projects.demo_project.stage import DemoStages
-from data_to_paper.projects.demo_project.writing_steps import WriteTitleAndAbstract
+from cast import DemoAgent
+from coding_steps import DemoCodeProductsGPT
+from get_template import get_paper_template_path
+from produce_pdf_step import ProduceDemoPaperPDF
+from products import DemoProducts
+from stage import DemoStages
+from writing_steps import WriteTitleAndAbstract
 
 PAPER_TEMPLATE_FILE: str = get_paper_template_path('abstract_only.tex')
 
