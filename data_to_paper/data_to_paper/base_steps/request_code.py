@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict
 
-from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils import dedent_triple_quote_str
@@ -49,7 +48,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     code_revision_requesting_prompt: str = dedent_triple_quote_str("""
         Revise the code as needed to correct the above issues.
-        The output of your new code should be a text file named "{actual_output_filename}".
         Do not just point to what needs to be changed; send the full complete revised code.
         """)
 
@@ -62,7 +60,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         """)  # set to None to not present code
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{actual_output_filename}"):
+        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
         ```output
         {}
         ```
@@ -81,7 +79,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def code_save_result_to_file_explanation(self) -> str:
         if self.output_filename is None:
             return ''
-        return 'It saves results to the file "{actual_output_filename}".'
+        return 'It saves results to the file "{output_filename}".'
 
     @property
     def data_filenames(self) -> NiceList[str]:
@@ -100,13 +98,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         Need to be overridden by subclasses, to include the folder of the data files from Products
         """
         return None
-
-    @property
-    def actual_output_filename(self):
-        if self.revision_round == 0:
-            return self.output_filename
-        else:
-            return self.output_filename.replace('.', f'_revision_{self.revision_round}.')
 
     @property
     def _request_code_tag(self):
@@ -130,22 +121,21 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return code_and_output
 
     def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
-        start_tag = self._request_code_tag + '_debugging'
         for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
                                    f"(attempt {attempt + 1}/{self.max_code_writing_attempts})"
-            self.comment(f'Starting to write and debug code. {revision_and_attempt}.', tag=start_tag)
+            self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
             code_and_output = DebuggerConverser.from_(
                 self,
                 is_new_conversation=False,
-                output_filename=self.actual_output_filename,
-                data_files=self.data_filenames,
+                output_filename=self.output_filename,
+                data_filenames=self.data_filenames,
                 data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
-                gpt_script_filename=f"{self.gpt_script_filename}_attempt{attempt}",
+                gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
                 previous_code=previous_code,
                 allowed_created_files=self.allowed_created_files,
                 allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
@@ -160,10 +150,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
             if self.present_code_as_fresh:
                 # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
-                self.apply_delete_messages(
-                    message_designation=RangeMessageDesignation.from_(start=start_tag, end=-1),
-                    comment='Deleting all debugging correspondence.')
-
+                self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(
                     content=Replacer(self, self.present_code_as_fresh, args=(code_and_output.code,)),
                     comment='Adding the debugged code as if it was the original response.',

@@ -7,7 +7,6 @@ from typing import Optional, List, Set, Tuple
 from data_to_paper.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, \
     MAX_MODEL_ENGINE
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
@@ -55,11 +54,10 @@ class DebuggerConverser(ProductsConverser):
     max_debug_iterations: int = 5
 
     debug_iteration = 0
-    initiation_tag: Optional[str] = None
 
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
-    data_files: Optional[list] = field(default_factory=list)
+    data_filenames: Optional[list] = field(default_factory=list)
     data_folder: Path = None
     output_filename: str = 'results.txt'
 
@@ -73,7 +71,7 @@ class DebuggerConverser(ProductsConverser):
 
     def _get_code_runner(self, response: str) -> CodeRunner:
         return CodeRunner(response=response,
-                          allowed_read_files=self.data_files,
+                          allowed_read_files=self.data_filenames,
                           output_file=self.output_filename,
                           allowed_created_files=self.allowed_created_files,
                           allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
@@ -104,7 +102,7 @@ class DebuggerConverser(ProductsConverser):
             As noted in the data description, we only have {}.  
 
             Files are located in the same directory as the code. 
-            """).format(error_message, self.data_files),
+            """).format(error_message, self.data_filenames),
             comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
 
     def _respond_to_error_message(self, error_message: str, is_warning: bool = False):
@@ -157,7 +155,7 @@ class DebuggerConverser(ProductsConverser):
             comment=f'{self.iteration_str}: GPT code is incomplete.')
 
         # delete the last two messages (incomplete code and this just-posted user response):
-        self.apply_delete_messages((-2, -1))
+        self.apply_delete_messages([-2, -1])
 
     def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
         """
@@ -249,7 +247,7 @@ class DebuggerConverser(ProductsConverser):
                 The code should create and write to this output file, but should not read from it.
                 Please rewrite the complete code again, making sure it does not read from the output file.
                 Note that the input files from which we can read the data are: {}. 
-                """).format(file, self.data_files),
+                """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from output file {file}.')
             return
         else:
@@ -257,7 +255,7 @@ class DebuggerConverser(ProductsConverser):
                 content=dedent_triple_quote_str("""
                 Your code reads from the file "{}" which is not part of the dataset.
                 Please rewrite the complete code again, noting that we only have {}. 
-                """).format(file, self.data_files),
+                """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
     def _respond_to_dataframe_series_change(self, series: str):
@@ -311,10 +309,7 @@ class DebuggerConverser(ProductsConverser):
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
             # We first clean up, re-reposting the code as if it was the immediate response
-            self.apply_delete_messages(
-                message_designation=RangeMessageDesignation.from_(
-                    SingleMessageDesignation(tag=self.initiation_tag, off_set=1), -1),  # keeps the last 2 messages
-                comment="Deleting previous debug iterations.")
+            self._rewind_conversation_to_first_response()
             self.apply_append_surrogate_message(
                 'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
                     code_runner.extract_code()),
@@ -390,17 +385,6 @@ class DebuggerConverser(ProductsConverser):
 
         return None  # code failed
 
-    def _get_tag(self):
-        """
-        If the last message has a tag, use it as the initiation tag.
-        Otherwise, create a new tag tagged comment and use it as the initiation tag.
-        """
-        if self.initiation_tag is None:
-            if self.conversation[-1].tag:
-                self.initiation_tag = self.conversation[-1].tag
-            else:
-                raise ValueError("The last message must have a tag.")
-
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """
         Run the debugging process.
@@ -408,7 +392,6 @@ class DebuggerConverser(ProductsConverser):
         Otherwise, return the code and output.
         """
         self.initialize_conversation_if_needed()
-        self._get_tag()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
             code_and_output = self._get_and_run_code()
             if code_and_output is not None:

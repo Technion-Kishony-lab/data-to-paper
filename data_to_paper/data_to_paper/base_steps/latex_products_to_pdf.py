@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, Set, List
 
-from pygments.formatters.latex import LatexFormatter
-
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.latex.latex_to_pdf import clean_latex
