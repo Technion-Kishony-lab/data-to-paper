@@ -194,7 +194,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                            ).write_sections_with_citations()
         products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(self).get_literature_search()
         # TODO: create the actual scope and literature review scientific product (currently it is just "hello")
-        self.send_product_to_client('scope_and_literature_review')
+        self.send_product_to_client('scope_and_literature_search')
 
         # Paper sections
         self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)

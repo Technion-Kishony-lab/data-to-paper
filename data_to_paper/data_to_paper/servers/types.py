@@ -74,11 +74,14 @@ class Citation(dict):
 
     def pretty_repr(self,
                     fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence'),
+                    is_html: bool = False,
                     ) -> str:
         """
         Get a pretty representation of the citation.
         Allows specifying which fields to include.
         """
+        if is_html:
+            return self.to_html(fields)
         s = ''
         for field in fields:
             name = FILEDS_TO_NAMES[field]
@@ -87,6 +90,22 @@ class Citation(dict):
                 continue
             s += f'{name}: {repr(value)}\n'
         s += '\n'
+        return s
+
+    def to_html(self,
+                fields: Iterable[str] = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence'),
+                ) -> str:
+        """
+        Get an HTML representation of the citation.
+        Allows specifying which fields to include.
+        """
+        s = ''
+        for field in fields:
+            name = FILEDS_TO_NAMES[field]
+            value = getattr(self, field, field)
+            if value is None:
+                continue
+            s += f'<b>{name}</b>: {repr(value)}<br>'
         return s
 
     def __str__(self):

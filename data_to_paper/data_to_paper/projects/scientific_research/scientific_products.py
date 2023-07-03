@@ -396,10 +396,23 @@ class ScientificProducts(Products):
                          'numeric_values': self.get_description('numeric_values')},
             ),
 
-            'scope_and_literature_review': NameDescriptionStageGenerator(
-                'Scope and Literature Review',
-                'Here is the scope and literature review of the paper:\n\n{}',
+            'scope_and_literature_search': NameDescriptionStageGenerator(
+                'Scope and Literature Search',
+                'Here is a draft of the abstract, written as a basis for the literature search below:\n\n'
+                '{title}\n\n{abstract}\n\n'
+                'LITERATURE SEARCH\n\n```html\n{literature_search}\n```',
                 ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
-                lambda: "hello",  # TODO: add scope and literature review
+                lambda: {
+                    'title': self.get_title(),
+                    'abstract': self.get_abstract(),
+                    'literature_review': self.literature_search['writing'].pretty_repr(
+                        total=100,
+                        minimal_influence=2,  # TODO:  need to match this with the threshold used in the writing steps
+                        distribute_evenly=True,
+                        sort_by_similarity=False,
+                        with_scope_and_queries=True,
+                        is_html=True,
+                    ),
+                },
             ),
         }

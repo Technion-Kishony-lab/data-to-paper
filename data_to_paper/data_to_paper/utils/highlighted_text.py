@@ -71,7 +71,11 @@ print_red = partial(print_color, color=colorama.Fore.RED)
 print_magenta = partial(print_color, color=colorama.Fore.MAGENTA)
 
 
-def get_pre_html_format(text, color, font_style: str = 'normal', font_size: int = 16, font_weight: str = 'normal',
+def get_pre_html_format(text,
+                        color: str = None,
+                        font_style: str = 'normal',
+                        font_size: int = 16,
+                        font_weight: str = 'normal',
                         font_family: str = None):
     s = '<pre style="'
     if color:
@@ -97,6 +101,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     True: BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
     'python': (python_to_highlighted_text, python_to_highlighted_html),
+    'html': (colored_text, get_pre_html_format),
     'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
                                         font_family="'Courier', sans-serif")),
     'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
@@ -106,7 +111,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
 }
 
-NEEDS_NO_WRAPPING = {'python', 'output'}
+NEEDS_NO_WRAPPING = {'python', 'output', 'html'}
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '',

@@ -6,6 +6,7 @@ from typing import Optional, Dict, List
 from operator import or_
 
 from data_to_paper.utils.mutable import Mutable
+from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.servers.types import Citation
 
@@ -39,8 +40,10 @@ class LiteratureSearch:
         if scope=None, return all queries.
         """
         if scope is None:
-            return sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
-        return list(self.scopes_to_queries_to_citations[scope].keys())
+            queries = sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
+        else:
+            queries = list(self.scopes_to_queries_to_citations[scope].keys())
+        return NiceList(queries, wrap_with='"', separator='\n', prefix='\n', suffix='\n')
 
     def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
                       total: int = None, distribute_evenly: bool = True,
@@ -93,30 +96,35 @@ class LiteratureSearch:
     def pretty_repr(self, with_scope_and_queries: bool = False,
                     total: int = None, distribute_evenly: bool = True,
                     sort_by_similarity: bool = False,
-                    minimal_influence: int = 0
+                    minimal_influence: int = 0,
+                    is_html: bool = False,
                     ) -> str:
         s = ''
         for scope in self.scopes_to_queries_to_citations:
             if with_scope_and_queries:
+                s += '\n\n'
                 s += f'Scope: {repr(scope)}\n'
-                s += f'Queries: {repr(self.get_queries(scope))}\n\n'
+                s += f'Queries: {repr(self.get_queries(scope))}\n'
             s += self.pretty_repr_for_scope_and_query(scope=scope,
                                                       total=total // len(self.scopes_to_queries_to_citations) + 1,
                                                       distribute_evenly=distribute_evenly,
                                                       sort_by_similarity=sort_by_similarity,
-                                                      minimal_influence=minimal_influence)
+                                                      minimal_influence=minimal_influence,
+                                                      is_html=is_html)
         return s
 
     def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
                                         total: int = None, distribute_evenly: bool = True,
                                         sort_by_similarity: bool = False,
-                                        minimal_influence: int = 0) -> str:
+                                        minimal_influence: int = 0,
+                                        is_html: bool = False) -> str:
         citations = self.get_citations(scope=scope, query=query, total=total,
                                        distribute_evenly=distribute_evenly,
                                        sort_by_similarity=sort_by_similarity,
                                        minimal_influence=minimal_influence,
                                        )
-        return '\n'.join(citation.pretty_repr(fields=CITATION_REPR_FIELDS.val) for citation in citations)
+        return '\n'.join(citation.pretty_repr(fields=CITATION_REPR_FIELDS.val, is_html=is_html)
+                         for citation in citations)
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
         for citation in self.get_citations():
