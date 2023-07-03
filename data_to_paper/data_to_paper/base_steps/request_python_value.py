@@ -51,7 +51,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
-            return extract_text_between_tags(response, *tags, leave_tags=True)
+            return extract_text_between_tags(response, *tags, keep_tags=True)
         except ValueError:
             self._raise_self_response_error(
                 f'Your response should be formatted as a Python {self.parent_type.__name__}, '

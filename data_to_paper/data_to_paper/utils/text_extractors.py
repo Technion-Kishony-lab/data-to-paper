@@ -3,7 +3,7 @@ import re
 FROM_OPEN_BRACKET_TO_CLOSE_BRACKET = {'[': ']', '{': '}', '(': ')'}
 
 
-def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, leave_tags: bool = False):
+def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, keep_tags: bool = False):
     """
     Extract text between two tags.
     If the right tag is None, then extract text from the left tag to the end of the text
@@ -23,12 +23,12 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
                 raise ValueError(f'Could not find left tag {right_tag} in text')
             if end - start - len(left_tag) == 0:
                 raise ValueError(f'Could not find left tag {left_tag} in text')
-            if leave_tags:
+            if keep_tags:
                 return text[start:end + len(right_tag)]
             return text[start + len(left_tag):end]
         else:
             # use extract_text_between_brackets to extract the text between the brackets
-            if leave_tags:
+            if keep_tags:
                 return left_tag + extract_text_between_brackets(text, left_bracket) + right_tag
             return extract_text_between_brackets(text, left_bracket)
     else:
@@ -36,7 +36,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, l
         start = text.find(left_tag)
         if start == -1:
             raise ValueError(f'Could not find left tag {left_tag} in text')
-        if leave_tags:
+        if keep_tags:
             return left_tag + text[start + len(left_tag):]
         return text[start + len(left_tag):]
 

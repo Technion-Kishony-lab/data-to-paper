@@ -3,6 +3,7 @@ from typing import Optional, Dict, Tuple, Set, List, Union
 
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
@@ -176,14 +177,14 @@ class ScientificProducts(Products):
         Return the title of the paper.
         """
         latex = self.paper_sections_without_citations['title']
-        return latex[latex.find('{') + 1:latex.find('}')]
+        return extract_latex_section_from_response(latex, 'title', keep_tags=False)
 
     def get_abstract(self) -> str:
         """
         Return the abstract of the paper.
         """
         latex = self.paper_sections_without_citations['abstract']
-        return latex[latex.find('{') + 1:latex.find('}')]
+        return extract_latex_section_from_response(latex, 'abstract', keep_tags=False)
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
@@ -405,7 +406,7 @@ class ScientificProducts(Products):
                 lambda: {
                     'title': self.get_title(),
                     'abstract': self.get_abstract(),
-                    'literature_review': self.literature_search['writing'].pretty_repr(
+                    'literature_search': self.literature_search['writing'].pretty_repr(
                         total=100,
                         minimal_influence=2,  # TODO:  need to match this with the threshold used in the writing steps
                         distribute_evenly=True,

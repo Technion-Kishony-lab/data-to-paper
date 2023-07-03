@@ -15,7 +15,7 @@ text_4 = 'hello [world [inner]], what is your [name]'
 text_5 = 'hello [world [inner]], what is your [name'
 
 
-@pytest.mark.parametrize('text, start_tag, end_tag, leave_tags, expected', [
+@pytest.mark.parametrize('text, start_tag, end_tag, keep_tags, expected', [
     (text_1, '[', ']', False, '1, 2, 3, [4], 5'),
     (text_1, '[', ']', True, '[1, 2, 3, [4], 5]'),
     (text_2, '\\title{', '}', False, '\\textbf{this is some title in bold}'),
@@ -26,8 +26,8 @@ text_5 = 'hello [world [inner]], what is your [name'
     (text_3, '\\section{Introduction}', None, False, ' \nthis is the introduction \n'),
     ('here is a """tripple-quoted text""".', '"""', '"""', False, 'tripple-quoted text'),
 ])
-def test_extract_text_between_tags(text, start_tag, end_tag, leave_tags, expected):
-    assert extract_text_between_tags(text, start_tag, end_tag, leave_tags) == expected
+def test_extract_text_between_tags(text, start_tag, end_tag, keep_tags, expected):
+    assert extract_text_between_tags(text, start_tag, end_tag, keep_tags) == expected
 
 
 @pytest.mark.parametrize('text, start_tag, expected', [
