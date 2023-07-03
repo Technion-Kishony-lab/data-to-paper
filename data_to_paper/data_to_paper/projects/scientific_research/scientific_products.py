@@ -6,7 +6,8 @@ from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
+from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages, \
+    SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
@@ -326,7 +327,7 @@ class ScientificProducts(Products):
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
-                ScientificStages.WRITING,
+                ScientificStages.WRITING_TITLE_AND_ABSTRACT,
                 lambda: (self.paper_sections_without_citations['title'],
                          self.paper_sections_without_citations['abstract']),
             ),
@@ -341,7 +342,7 @@ class ScientificProducts(Products):
             'paper_sections:{}': NameDescriptionStageGenerator(
                 '{section_name} Section of the Paper',
                 'Here is the {section_name} section of the paper:\n\n{content}',
-                ScientificStages.WRITING,
+                lambda section_name: SECTION_NAMES_TO_WRITING_STAGES[section_name],
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.paper_sections_without_citations[section_name],
                                       },

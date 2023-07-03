@@ -11,7 +11,7 @@ from .get_template import get_paper_template_path
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
-from .scientific_stage import ScientificStages
+from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
     TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT
@@ -197,14 +197,21 @@ class ScientificStepsRunner(BaseStepsRunner):
         self.send_product_to_client('scope_and_literature_search')
 
         # Paper sections
-        self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_and_writing_class:
             # writing section
+            if len(section_names) == 2:
+                stage = ScientificStages.WRITING_TITLE_AND_ABSTRACT
+            else:
+                stage = SECTION_NAMES_TO_WRITING_STAGES[section_names[0]]
+            self.advance_stage_and_set_active_conversation(stage, ScientificAgent.Writer)
             sections_with_citations = \
                 writing_class.from_(self, section_names=section_names).write_sections_with_citations()
             for section_name, section_and_citations in zip(section_names, sections_with_citations):
                 products.paper_sections_and_optional_citations[section_name] = section_and_citations
-        self.send_product_to_client('most_updated_paper')
+            if len(section_names) == 2:
+                self.send_product_to_client('title_and_abstract')
+            else:
+                self.send_product_to_client(f'paper_sections:{section_names[0]}')
 
         # Add citations to relevant paper sections
         if self.should_add_citations:

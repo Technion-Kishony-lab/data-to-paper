@@ -335,7 +335,6 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    user_agent: ScientificAgent = ScientificAgent.TableExpert
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'tables_and_numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
