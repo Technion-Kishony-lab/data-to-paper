@@ -203,7 +203,8 @@ class ResultConverser(Converser):
             if response_error and response_error.rewind == Rewind.REPOST_AS_FRESH \
                     or not response_error and self.rewind_after_getting_a_valid_response == Rewind.REPOST_AS_FRESH:
                 self._rewind_conversation_to_first_response()
-                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response))
+                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response),
+                                                    web_conversation_name=None)
 
             if not response_error:
                 if self.rewind_after_getting_a_valid_response == Rewind.DELETE_ALL:
