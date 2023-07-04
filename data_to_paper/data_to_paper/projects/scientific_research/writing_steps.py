@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, List, Set
+from typing import Tuple, List, Set, Optional
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
@@ -67,6 +67,8 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     section_review_specific_instructions: str = ''
     journal_name: str = 'Nature Communications'
 
+    request_triple_quote_block: Optional[str] = 'Please send your response as a triple-backtick "latex" block.'
+
     system_prompt: str = dedent_triple_quote_str("""
         You are a data-scientist with experience writing accurate scientific research papers.
 
@@ -82,6 +84,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         Do not write any other parts!
         {section_specific_instructions}
         {latex_instructions}
+        {request_triple_quote_block}
         """)
 
     latex_instructions: str = dedent_triple_quote_str("""
@@ -136,7 +139,11 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         not_found_citation_ids = [citation_id for citation_id in find_citation_ids(section)
                                   if citation_id not in available_citations_ids]
         if not_found_citation_ids:
-            self._raise_self_response_error(f'These citation ids are not correct: {not_found_citation_ids}')
+            self._raise_self_response_error(dedent_triple_quote_str("""
+                The following citation ids were not found: 
+                {}
+                Please make sure all citation ids are writen exactly as in the citation lists above.
+                """).format(not_found_citation_ids))
 
     def _check_section(self, section: str, section_name: str):
         super()._check_section(section, section_name)
@@ -171,6 +178,8 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
         and any math or symbols that needs tex escapes.
         """)
+    request_triple_quote_block: Optional[str] = ''
+    # no need for triple quote block in title and abstract because they have clear begin-end wraps
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Title should: 
         * be short and meaningful.
