@@ -11,7 +11,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
+from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
@@ -157,7 +157,7 @@ class DebuggerConverser(ProductsConverser):
         # delete the last two messages (incomplete code and this just-posted user response):
         self.apply_delete_messages([-2, -1])
 
-    def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
+    def _respond_to_missing_or_multiple_code(self, e: FailedExtractingBlock):
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
@@ -302,9 +302,9 @@ class DebuggerConverser(ProductsConverser):
         try:
             code_and_output = code_runner.run_code()
             dataframe_operations = code_and_output.dataframe_operations
-        except IncompleteBlockFailedExtractingCode:
+        except IncompleteBlockFailedExtractingBlock:
             self._respond_to_incomplete_code()
-        except FailedExtractingCode as e:
+        except FailedExtractingBlock as e:
             self._respond_to_missing_or_multiple_code(e)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
