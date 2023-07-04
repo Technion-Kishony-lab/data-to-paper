@@ -6,7 +6,7 @@ from data_to_paper.utils.highlighted_text import print_red
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.chatgpt import try_get_chatgpt_response
 from data_to_paper.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
-from data_to_paper.run_gpt_code.code_utils import add_python_label_to_first_triple_quotes_if_missing
+from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
@@ -267,7 +267,7 @@ class ConversationManager:
             return content
 
         if is_code:
-            content = add_python_label_to_first_triple_quotes_if_missing(content)
+            content = add_label_to_first_triple_quotes_if_missing(content, 'python')
         message = create_message(
             context=messages,
             role=Role.ASSISTANT, content=content, tag=tag, agent=self.assistant_agent,

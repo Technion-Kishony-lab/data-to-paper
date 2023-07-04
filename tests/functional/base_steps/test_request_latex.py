@@ -86,17 +86,17 @@ def test_request_latex_with_error(correct_latex, section, replaced_value, replac
 def test_request_latex_alter_response_for_reviewer():
     requester = TestLatexReviewBackgroundProductsConverser(section_names=['abstract'],
                                                            max_reviewing_rounds=1)
+    first_draft = correct_abstract.replace('ultimate', 'super ultimate')
     with OPENAI_SERVER_CALLER.mock([
-            f'Here is the abstract:\n{correct_abstract.replace("ultimate", "super ultimate")}\n',
+            f'Here is the abstract:\n{first_draft}\n',
             'I suggest making it short',
             f'Here is the corrected shorter abstract:\n{correct_abstract}\n'],
             record_more_if_needed=False):
         assert requester.run_dialog_and_get_valid_result() == [correct_abstract]
     assert len(requester.conversation) == 3
 
-    # Response is sent to reviewer with latex triple backticks:
     message_to_reviewer = requester.other_conversation[-2].content
-    assert 'Here is the abstract:\n```latex' in message_to_reviewer
+    assert message_to_reviewer == first_draft
 
     # Response is reposted as fresh:
     assert requester.conversation[-1].content == correct_abstract

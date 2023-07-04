@@ -20,6 +20,7 @@ from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_sec
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
 from .result_converser import Rewind, NoResponse
+from ..run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock
 
 
 @dataclass
@@ -42,6 +43,9 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         """)
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
+    request_triple_quote_block: Optional[str] = None  # `None` or "" - do not request triple-quoted.
+    # or, can be something like: 'Please send your response as a triple-backtick "latex" block.'
+
     @property
     def section_name(self) -> Optional[str]:
         if len(self.section_names) == 1:
@@ -57,10 +61,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
                         separator=', ', last_separator=' and ')
 
     def _alter_self_response(self, response: str) -> str:
-        for section_name in self.section_names:
-            latex = self._extract_latex_section_from_response(response, section_name)
-            response = response.replace(latex, wrap_text_with_triple_quotes(latex, 'latex'))
-        return super()._alter_self_response(response)
+        return self._get_fresh_looking_response(response)
 
     def _get_fresh_looking_response(self, response) -> str:
         """
@@ -68,9 +69,14 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         """
         if isinstance(self.returned_result, NoResponse):
             return super()._get_fresh_looking_response(response)
-        return super()._get_fresh_looking_response('\n\n'.join(self.returned_result))
+        response = '\n\n'.join(self.returned_result)
+        if self.request_triple_quote_block:
+            response = wrap_text_with_triple_quotes(response, 'latex')
+        return super()._get_fresh_looking_response(response)
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
+        if self.request_triple_quote_block:
+            response = self._extract_triply_quoted_latex_from_response(response)
         section = self._extract_latex_section_from_response(response, section_name)
         section = self._refine_extracted_section(section)
         return section
@@ -138,11 +144,21 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
                 f'You must only write the {self.pretty_section_names} section.'
             )
 
+    def _extract_triply_quoted_latex_from_response(self, response: str) -> str:
+        """
+        Extract latex sections from the response.
+        """
+        try:
+            return extract_content_of_triple_quote_block(response, 'latex', 'latex')
+        except FailedExtractingBlock as e:
+            self._raise_self_response_error(str(e))
+
     def _check_and_extract_result_from_self_response(self, response: str):
         """
         Check the response and extract latex sections from it into returned_result.
         Raise if there are errors that require self to revise the response.
         """
+
         self._check_no_additional_sections(response)
 
         # extract the latex sections

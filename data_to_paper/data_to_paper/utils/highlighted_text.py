@@ -49,6 +49,7 @@ class CSVLexer(RegexLexer):
         ]
     }
 
+
 def python_to_highlighted_html(code_str: str) -> str:
     return highlight(code_str, PythonLexer(), html_code_formatter)
 
