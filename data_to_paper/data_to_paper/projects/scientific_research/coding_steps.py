@@ -345,7 +345,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, ReviewBackgr
         """)
 
     requesting_output_explanation: str = dedent_triple_quote_str("""
-        Also explain what does the code writes into the "{output_filename}" file.    
+        Also explain what does the code write into the "{output_filename}" file.    
         """)
 
     @property

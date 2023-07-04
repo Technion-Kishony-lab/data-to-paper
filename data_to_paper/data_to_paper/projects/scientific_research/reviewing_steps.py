@@ -380,7 +380,11 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 
     def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
         section = super()._get_latex_section_from_response(response, section_name)
-        return escape_special_chars_and_symbols_in_table(section)
+        try:
+            section = escape_special_chars_and_symbols_in_table(section)
+        except ValueError as e:
+            self._raise_self_response_error(str(e))
+        return section
 
 
 @dataclass

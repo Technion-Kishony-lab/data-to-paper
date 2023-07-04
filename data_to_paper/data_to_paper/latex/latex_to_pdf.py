@@ -82,12 +82,17 @@ TABLES_CHARS = {
 }
 
 
-def escape_special_chars_and_symbols_in_table(table: str) -> str:
+def escape_special_chars_and_symbols_in_table(table: str,
+                                              begin: str = r'\begin{tabular}', end: str = r'\end{tabular}') -> str:
     # extract the tabular part from the table using split
-    before_tabular, tabular_part = table.split(r'\begin{tabular}', 1)
-    tabular_part, after_tabular = tabular_part.split(r'\end{tabular}', 1)
+    if begin not in table:
+        raise ValueError(f'The Table does not contain the begin command: {begin}')
+    if end not in table:
+        raise ValueError(f'The Table does not contain the end command: {end}')
+    before_tabular, tabular_part = table.split(begin, 1)
+    tabular_part, after_tabular = tabular_part.split(end, 1)
     tabular_part = replace_special_chars(tabular_part, process_table_part)
-    return before_tabular + r'\begin{tabular}' + tabular_part + r'\end{tabular}' + after_tabular
+    return before_tabular + begin + tabular_part + end + after_tabular
 
 
 def process_table_part(tabular_part: str) -> str:
