@@ -91,7 +91,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_do_data_exploration:
             self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
             RequestCodeProducts.from_(self, code_step='data_exploration').get_code_and_output_and_descriptions()
-            self.send_product_to_client('codes_and_outputs:data_exploration')
+            self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
@@ -151,7 +151,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
             RequestCodeProducts.from_(self, code_step='data_preprocessing') \
                 .get_code_and_output_and_descriptions(with_file_descriptions=False)
-            self.send_product_to_client('codes_and_outputs:data_preprocessing')
+            self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
 
         # Tables names
         if self.should_add_tables:
@@ -160,7 +160,7 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
         RequestCodeProducts.from_(self, code_step='data_analysis').get_code_and_output_and_descriptions()
-        self.send_product_to_client('codes_and_outputs:data_analysis')
+        self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)

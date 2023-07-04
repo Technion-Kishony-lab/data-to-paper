@@ -329,7 +329,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         response = [super().run_dialog_and_get_valid_result()[0] +
                     '\\subsection{Code Availability}\n\n'
                     'Custom code used to perform the data preprocessing and analysis, '
-                    'as well as the raw code output outputs, are provided in Supplementary Methods.']
+                    'as well as the raw code outputs, are provided in Supplementary Methods.']
         return response
 
 

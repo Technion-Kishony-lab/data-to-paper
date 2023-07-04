@@ -277,6 +277,15 @@ class ScientificProducts(Products):
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
+            'code_explanation:{}': NameDescriptionStageGenerator(
+                '{code_name} Code Description',
+                'Here is an explanation of our {code_name} code:\n\n{code_explanation}',
+                lambda code_step: get_code_stage(code_step),
+                lambda code_step: {
+                    'code_name': self.codes_and_outputs[code_step].name,
+                    'code_explanation': self.codes_and_outputs[code_step].code_explanation},
+            ),
+
             'codes_and_outputs:{}': NameDescriptionStageGenerator(
                 '{code_name} Code and Output',
                 '{code_description}\n\n{output_description}',
@@ -285,6 +294,17 @@ class ScientificProducts(Products):
                     'code_name': self.codes_and_outputs[code_step].name,
                     'code_description': self.get_description("codes:" + code_step),
                     'output_description': self.get_description("outputs:" + code_step)},
+            ),
+
+            'codes_and_outputs_with_explanations:{}': NameDescriptionStageGenerator(
+                '{code_name} Code and Output',
+                '{code_description}\n\n{output_description}\n\n{code_explanation}',
+                lambda code_step: get_code_stage(code_step),
+                lambda code_step: {
+                    'code_name': self.codes_and_outputs[code_step].name,
+                    'code_description': self.get_description("codes:" + code_step),
+                    'output_description': self.get_description("outputs:" + code_step),
+                    'code_explanation': self.get_description("code_explanation:" + code_step)},
             ),
 
             'created_files:{}': NameDescriptionStageGenerator(
