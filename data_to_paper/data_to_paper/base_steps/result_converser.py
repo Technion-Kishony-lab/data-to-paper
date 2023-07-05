@@ -144,7 +144,7 @@ class ResultConverser(Converser):
         Alter the response from self when posted to web.
         This method also used to alter the response to send to other in dual_conversation.
         """
-        return response
+        return self._get_fresh_looking_response(response)
 
     def _get_fresh_looking_response(self, response) -> str:
         """

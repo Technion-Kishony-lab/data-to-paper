@@ -60,9 +60,6 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ')
 
-    def _alter_self_response(self, response: str) -> str:
-        return self._get_fresh_looking_response(response)
-
     def _get_fresh_looking_response(self, response) -> str:
         """
         Return a response that looks fresh.
