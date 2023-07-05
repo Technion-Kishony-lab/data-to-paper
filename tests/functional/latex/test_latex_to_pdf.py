@@ -5,7 +5,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.exceptions import LatexCompilationError
-from data_to_paper.latex.latex_to_pdf import clean_latex, evaluate_latex_num_command
+from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command, replace_special_chars
 from data_to_paper.servers.crossref import CrossrefCitation
 
 
@@ -118,7 +118,7 @@ def test_latex_to_pdf_with_bibtex(tmpdir, latex_content_with_citations, citation
 
 def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_characters):
     save_latex_and_compile_to_pdf(
-        clean_latex(latex_content_with_unescaped_characters), file_name, tmpdir.strpath, )
+        replace_special_chars(latex_content_with_unescaped_characters), file_name, tmpdir.strpath, )
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
     assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.aux'))
@@ -132,8 +132,7 @@ def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_charac
     ('Hello _ World!', r'Hello \_ World!'),
 ])
 def test_clean_latex(latex, expected):
-    latex = r'\begin{document}' + latex + r'\end{document}'
-    assert clean_latex(latex) == r'\begin{document}' + expected + r'\end{document}'
+    assert replace_special_chars(latex) == expected
 
 
 def test_latex_to_pdf_exception(tmpdir, wrong_latex_content):

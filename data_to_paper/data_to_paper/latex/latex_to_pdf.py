@@ -149,14 +149,6 @@ def wrap_with_lstlisting(paragraph):
         wrap_string(paragraph, width=80, new_line_indent=True) + "\n\\end{Verbatim}"
 
 
-def clean_latex(latex_content):
-    preamble = latex_content[:latex_content.find(r'\begin{document}')]
-    appendices = latex_content[latex_content.find(r'\appendix'):]
-    latex_content = latex_content[latex_content.find(r'\begin{document}'):latex_content.find(r'\appendix')]
-    latex_content = preamble + replace_special_chars(latex_content) + appendices
-    return latex_content
-
-
 def evaluate_latex_num_command(latex_str):
     """
     Evaluates all expressions of the form \num{...} in the given latex string and replaces them with the result.
