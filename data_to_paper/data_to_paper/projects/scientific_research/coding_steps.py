@@ -285,7 +285,6 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Missing results needed for any of the tables.
         * Nominal values are reported together with measure of uncertainty (p-value, CI).
         * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
-        * The data for each table is distinct and non-overlapping.
         * Results can be understood from the output file; all values have sensible names, etc.
         * Any other issues you find.
 

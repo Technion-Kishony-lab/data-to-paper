@@ -50,7 +50,8 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     allow_citations_from_step: str = None
-    should_remove_citations_from_section: bool = False
+    should_remove_citations_from_section: bool = True
+    un_allowed_commands: Tuple[str, ...] = (r'\verb', r'\begin{figure}')
 
     fake_performer_request_for_help: str = \
         'Hi {user_skin_name}, could you please help me {goal_verb} the {pretty_section_names} for my paper?'
@@ -133,28 +134,14 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
             return []
         return self.products.literature_search[self.allow_citations_from_step].get_citations()
 
-    def _check_citation_ids(self, section: str):
-        available_citations = self._get_available_citations()
-        available_citations_ids = [citation.bibtex_id for citation in available_citations]
-        not_found_citation_ids = [citation_id for citation_id in find_citation_ids(section)
-                                  if citation_id not in available_citations_ids]
-        if not_found_citation_ids:
-            self._raise_self_response_error(dedent_triple_quote_str("""
-                The following citation ids were not found: 
-                {}
-                Please make sure all citation ids are writen exactly as in the citation lists above.
-                """).format(not_found_citation_ids))
+    def _get_allowed_bibtex_citation_ids(self) -> List[str]:
+        return [citation.bibtex_id for citation in self._get_available_citations()]
 
-    def _check_section(self, section: str, section_name: str):
-        super()._check_section(section, section_name)
-        self._check_citation_ids(section)
+    def _check_and_refine_section(self, section: str, section_name: str) -> str:
+        section = super()._check_and_refine_section(section, section_name)
         self._check_extracted_numbers(section)
         self._check_url_in_text(section)
-
-    def _check_usage_of_unwanted_commands(self, extracted_section: str, unwanted_commands: List[str] = None):
-        if self.allow_citations_from_step is None:
-            return super()._check_usage_of_unwanted_commands(extracted_section, unwanted_commands)
-        return super()._check_usage_of_unwanted_commands(extracted_section, [r'\verb'])
+        return section
 
     def write_sections_with_citations(self) -> List[Tuple[str, Set[Citation]]]:
         sections: List[str] = self.run_dialog_and_get_valid_result()
@@ -199,7 +186,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
 
     _raised_colon_error = False  # False to raise ":" error once. True to not raise error at all.
 
-    def _check_section(self, section: str, section_name: str):
+    def _check_and_refine_section(self, section: str, section_name: str) -> str:
         if section_name == 'title':
             if ':' in section and not self._raised_colon_error:
                 self._raised_colon_error = True
@@ -208,7 +195,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
                     'Can you think of a different title that clearly state a single message without using a colon?')
         if section_name == 'abstract' and section.count('\n') > 2:
             self._raise_self_response_error(f'The abstract should writen as a single paragraph.')
-        super()._check_section(section, section_name)
+        return super()._check_and_refine_section(section, section_name)
 
 
 @dataclass
@@ -245,6 +232,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
+    should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The introduction should be interesting and pique your reader’s interest. 
@@ -269,7 +257,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Citations should be added in the following format: \\cite{paper_id}.
         Do not add a \\section{References} section, I will add it later manually.
 
-        Note that there is no need to describe limitations, implications, or impact in the introduction.
+        Note that it is not advisable to write about limitations, implications, or impact in the introduction.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Also, please suggest if there are any additional citations to include from the "Literature Search" above.
@@ -391,7 +379,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     def _get_table_labels(self, section_name: str) -> List[str]:
         return [get_table_label(table) for table in self.products.tables[section_name]]
 
-    def _check_section(self, section: str, section_name: str):
+    def _check_and_refine_section(self, section: str, section_name: str) -> str:
         table_labels = self._get_table_labels(section_name)
         for table_label in table_labels:
             if table_label not in section:
@@ -400,6 +388,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
                     Please make sure we have a sentence addressing Table "{table_label}".
                     The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
                     """))
+        return super()._check_and_refine_section(section, section_name)
 
 
 @dataclass
@@ -412,6 +401,7 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
+    should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Also, please suggest if there are any additional citations to include from the "Literature Search" above.
