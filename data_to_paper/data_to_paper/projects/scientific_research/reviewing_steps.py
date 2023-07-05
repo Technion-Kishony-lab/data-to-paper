@@ -9,7 +9,7 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
-from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
+from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
 from data_to_paper.latex.tables import get_table_label
 
 from .cast import ScientificAgent

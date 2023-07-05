@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.latex.latex_to_pdf import replace_special_chars, wrap_with_lstlisting
+from data_to_paper.latex.clean_latex import process_non_math_parts, wrap_with_lstlisting
 from data_to_paper.run_gpt_code.overrides.dataframes import DataframeOperations
 
 
@@ -33,7 +33,7 @@ class CodeAndOutput:
         s += '\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
         if self.code_explanation:
             s += "\\subsection{Code Description}"
-            s += '\n\n' + replace_special_chars(self.code_explanation)
+            s += '\n\n' + process_non_math_parts(self.code_explanation)
         if self.output:
             s += '\n\n' + "\\subsection{Code Output}"
             s += '\n\n' + wrap_with_lstlisting(self.output)
