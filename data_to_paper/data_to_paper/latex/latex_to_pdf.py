@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import regex
 
-from typing import Set, Optional, List
+from typing import Set, Optional, List, Iterable
 
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
@@ -185,8 +185,7 @@ def evaluate_latex_num_command(latex_str):
     return latex_str
 
 
-def check_usage_of_unwanted_commands(latex_content: str, unwanted_commands: List[str] = None):
-    unwanted_commands = unwanted_commands if unwanted_commands is not None else [r'\cite', r'\verb']
+def check_usage_of_un_allowed_commands(latex_content: str, unwanted_commands: Iterable[str]):
     unwanted_commands_used = [c for c in unwanted_commands if c in latex_content]
     if unwanted_commands_used:
         raise UnwantedCommandsUsedInLatex(unwanted_commands_used)

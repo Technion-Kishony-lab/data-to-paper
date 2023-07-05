@@ -46,6 +46,8 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     request_triple_quote_block: Optional[str] = None  # `None` or "" - do not request triple-quoted.
     # or, can be something like: 'Please send your response as a triple-backtick "latex" block.'
 
+    un_allowed_commands: Tuple[str] = (r'\cite', r'\verb')
+
     @property
     def section_name(self) -> Optional[str]:
         if len(self.section_names) == 1:
@@ -115,11 +117,12 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         self._check_usage_of_unwanted_commands(extracted_section)
         self._check_usage_of_non_latex_citations(extracted_section)
 
-    def _check_usage_of_unwanted_commands(self, extracted_section: str, unwanted_commands: List[str] = None):
+    def _check_usage_of_un_allowed_commands(self, section: str) -> str:
         try:
-            check_usage_of_unwanted_commands(extracted_section, unwanted_commands)
+            check_usage_of_un_allowed_commands(section, self.un_allowed_commands)
         except UnwantedCommandsUsedInLatex as e:
             self._raise_self_response_error(str(e))
+        return section
 
     def _check_usage_of_non_latex_citations(self, extracted_section: str):
         """
