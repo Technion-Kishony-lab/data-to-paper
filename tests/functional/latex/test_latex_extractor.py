@@ -1,6 +1,6 @@
 import pytest
 
-from latex import extract_latex_section_from_response, FailedToExtractLatexContent
+from data_to_paper.latex import extract_latex_section_from_response, FailedToExtractLatexContent
 
 response_with_latex_title = r"""
 here is the title
@@ -39,7 +39,7 @@ def test_extract_latex_title_from_response():
 
 
 def test_extract_latex_abstract_from_response_as_plan_text():
-    assert extract_latex_section_from_response(response_with_latex_abstract, 'abstract', as_latex=False) == \
+    assert extract_latex_section_from_response(response_with_latex_abstract, 'abstract', keep_tags=False) == \
            'The most amazing abstract ever'
 
 
@@ -49,10 +49,10 @@ def test_extract_latex_fail_to_extract_title_from_response():
 
 
 def test_extract_latex_section_from_response_as_plan_text():
-    assert extract_latex_section_from_response(response_with_latex_section, 'introduction', as_latex=False) == \
+    assert extract_latex_section_from_response(response_with_latex_section, 'introduction', keep_tags=False) == \
            'This is the introduction\n'
 
 
 def test_extract_latex_starred_section_from_response_as_plan_text():
-    assert extract_latex_section_from_response(response_with_starred_latex_section, 'introduction', as_latex=False) == \
+    assert extract_latex_section_from_response(response_with_starred_latex_section, 'introduction', keep_tags=False) == \
            'This is the introduction\n'
