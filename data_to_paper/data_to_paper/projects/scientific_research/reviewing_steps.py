@@ -280,6 +280,56 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
 
 @dataclass
+class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
+    max_reviewing_rounds: int = 0
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal',
+                                             'hypothesis_testing_plan', 'codes:data_preprocessing',
+                                             'codes:data_analysis', 'outputs:data_analysis')
+    conversation_name: str = 'second_table_names'
+    value_type: type = Dict[str, str]
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please list captions for Tables that we can prepare for a scientific paper based on the \
+        Output of our Data Analysis code (provided above).
+
+        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the actual names of the tables.
+
+        For example, you might return the following:        
+        {
+            'Table 1': 'Summary statistics of the dataset',
+            'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
+            'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
+        }
+
+        Obviously, this is just an example. You should choose table names that suit the information we have in \
+        the output of the analysis code.
+
+        Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
+        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
+        information.
+
+        Don't suggest name of tables that are:
+        * Not completely necessary.
+        * Represent technical information, rather than scientific results.
+        * Irrelevant to the research goal. 
+        * Cannot be created solely from the code output.
+        * Overlapping with other tables in your list. 
+
+        Do not send any free text; Your response should be structured as a Python Dict[str, str].
+        """)
+
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
+        Please check the above chosen table names, with specific attention to whether they \
+        can be created solely from the code output above.
+
+        If you find any issues, please provide bullet-point feedback.
+        Or, if you are satisfied, please respond with "{termination_phrase}".
+
+        Note you must either approve the table names or provide feedback but not both.
+        """)
+
+
+@dataclass
 class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
                                               CheckExtractionReviewBackgroundProductsConverser):
     tolerance_for_too_wide_in_pts: Optional[float] = 25.0  # we allow tables to extend a bit out
@@ -299,31 +349,39 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     termination_phrase: str = 'I hereby approve the table'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please build the table "{table_name}". 
-        You should build the table using the results provided in the output files above.
-        The table should only include information that is explicitly extracted from these outputs.
-
-        Important: You do NOT need to include all the information from the outputs, just include the information that \
-        is relevant and suitable for inclusion in a table of a scientific paper.
-
-        As appropriate, you should:
+        Please build the table "{table_name}".
+        Write the table in latex format, centered, in booktabs, multirow format.
+         
+        You should build the table using only results provided in the output files above.
+        
+        As you build the Table, you should follow these guidelines (as applicable):
+        
+        (1) Table content:
+        * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
+        * There is absolutely no need to include all the information that is provided in the output.
         * Exclude rows/columns that are not important to the research goal, or that are too technical, \
         or that repeat the same information multiple times. 
+        
+        (2) Table format and organization:
         * Organize the table sensibly, re-ordering rows/columns as appropriate.   
-        * Re-name technical names to scientifically-suitable names.
+        * Rename technical names to scientifically-suitable names.
         * Rename technical values to scientifically-suitable values \
         (like values of 0/1 may be suitable to represent as "No"/"Yes").
+        
+        (3) Numeric values:
         * Round numbers to a reasonable number of digits, and present numbers using proper scientific notation.
         * Indicate standard errors using the $\\pm$ symbol, or parentheses.
-        * Add a caption suitable for inclusion as part of a scientific paper \
-        (you can use the table name provided above, or modify it as you see fit).
         * If you indicate p-values, you can use the $<$ symbol to indicate smaller than a given value, \
         (any p-value less than 10^-4 should be indicated as $<$10^{-4}).
-        * Choose and add a table label in the format "\\label{{table:xxx}}". 
+        
+        (4) Table caption and label:
+        * Add a caption suitable for inclusion as part of a scientific paper. \
+        you can use the table name provided above, or modify it as you see fit.
+        Use the format "\\caption{{Your chosen caption here}}".
+        * Choose and add a table label in the format "\\label{{table:xxx}}".
 
         {do_not_repeat_information_from_previous_tables}
-        Write the table in latex format, centered, in booktabs, multirow format with caption and label.
-        Make sure that the table is not too wide, so that it will fit within document text width.
+        
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
