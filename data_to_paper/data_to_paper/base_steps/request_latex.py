@@ -46,7 +46,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     request_triple_quote_block: Optional[str] = None  # `None` or "" - do not request triple-quoted.
     # or, can be something like: 'Please send your response as a triple-backtick "latex" block.'
 
-    un_allowed_commands: Tuple[str] = (r'\cite', r'\verb')
+    un_allowed_commands: Tuple[str] = (r'\cite', r'\verb', r'\begin{figure}')
 
     @property
     def section_name(self) -> Optional[str]:

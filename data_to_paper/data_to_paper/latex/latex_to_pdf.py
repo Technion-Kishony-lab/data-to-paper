@@ -149,23 +149,10 @@ def wrap_with_lstlisting(paragraph):
         wrap_string(paragraph, width=80, new_line_indent=True) + "\n\\end{Verbatim}"
 
 
-def remove_figure_envs_from_latex(latex_content):
-    # remove any figure environments from the given latex content
-    latex_content = regex.sub(r'\\begin\{figure\}.*?\\end\{figure\}', '', latex_content, flags=regex.DOTALL)
-
-    # find sentences that contain references to figures and remove them completely
-    sentences = regex.findall(r'[^\.]*?\\ref\{fig:.*?\}[^\.]*?\.', latex_content)
-    for sentence in sentences:
-        latex_content = latex_content.replace(sentence, '')
-
-    return latex_content
-
-
 def clean_latex(latex_content):
     preamble = latex_content[:latex_content.find(r'\begin{document}')]
     appendices = latex_content[latex_content.find(r'\appendix'):]
     latex_content = latex_content[latex_content.find(r'\begin{document}'):latex_content.find(r'\appendix')]
-    latex_content = remove_figure_envs_from_latex(latex_content)
     latex_content = preamble + replace_special_chars(latex_content) + appendices
     return latex_content
 
