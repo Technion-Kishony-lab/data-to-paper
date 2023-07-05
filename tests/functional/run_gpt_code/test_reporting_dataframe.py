@@ -132,6 +132,15 @@ def test_df_float_precision_to_string():
         assert df.to_string().endswith('1.235')
 
 
+@pytest.mark.skip
+def test_df_float_precision_of_mean_of_series():
+    with collect_created_and_changed_data_frames():
+        df = pd.DataFrame({'a': [1.23456789]})
+        result = df["a"].mean()
+        assert result == 1.23456789
+        assert str(result).endswith('1.235')
+
+
 def test_raise_on_call():
     with collect_created_and_changed_data_frames():
         df = pd.DataFrame()
