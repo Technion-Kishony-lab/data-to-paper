@@ -16,17 +16,6 @@ def find_citation_ids(latex_string) -> List[str]:
     return citation_ids
 
 
-def remove_citations_from_section(section):
-    """
-    Remove the citations that ChatGPT inserted by mistake.
-    """
-    section = re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', section)
-    # also remove \bibliographystyle{} and \bibliography{} commands
-    section = re.sub(r'\s*\\bibliographystyle\{.*?\}', '', section)
-    section = re.sub(r'\s*\\bibliography\{.*?\}', '', section)
-    return section
-
-
 def get_non_latex_citations(section):
     r"""
     Get the citations that are not in latex format, i.e., not in the form \cite{citation_id_1, citation_id2}.

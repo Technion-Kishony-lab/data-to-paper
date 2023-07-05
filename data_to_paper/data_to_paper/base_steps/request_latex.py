@@ -113,9 +113,20 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         except LatexProblemInCompilation as e:
             return e
 
-    def _check_section(self, extracted_section: str, section_name: str):
-        self._check_usage_of_unwanted_commands(extracted_section)
-        self._check_usage_of_non_latex_citations(extracted_section)
+    def _remove_citations_from_section(self, section) -> str:
+        """
+        Remove the citations that ChatGPT inserted by mistake.
+        """
+        if not self.should_remove_citations_from_section:
+            return section
+        section = re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', section)
+        # also remove \bibliographystyle{} and \bibliography{} commands
+        section = re.sub(r'\s*\\bibliographystyle\{.*?\}', '', section)
+        section = re.sub(r'\s*\\bibliography\{.*?\}', '', section)
+        return section
+
+    def _process_non_math_parts(self, section: str) -> str:
+        return process_non_math_parts(section)
 
     def _check_usage_of_un_allowed_commands(self, section: str) -> str:
         try:
