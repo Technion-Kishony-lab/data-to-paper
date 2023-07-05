@@ -49,7 +49,7 @@ class SemanticCitation(Citation):
     @property
     def bibtex_id(self) -> str:
         if self._bibtex_id is None:
-            bibtex_id = self['citationStyles']['bibtex'].split('{', 1)[1].split(',', 1)[0]
+            bibtex_id = self['citationStyles']['bibtex'].split('{', 1)[1].split(',\n', 1)[0]
             bibtex_id.encode('ascii', 'ignore').decode('utf-8')  # replace non unicode chars with unicode equivalent
             pattern = r'[{}(),\\\"-#~^:\'`ʹ]'  # characters not allowed in bibtex ids are replaced with ' '
             bibtex_id = re.sub(pattern, ' ', bibtex_id)

@@ -8,6 +8,7 @@ from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedK
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
+from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
@@ -329,7 +330,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
     rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
     rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
     should_remove_citations_from_section: bool = True
-    request_triple_quote_block: Optional[str] = 'Please send your response as a triple-backtick "latex" block.\n'
+    section_names: Tuple[str, ...] = ('Code Explanation',)
 
     def __post_init__(self):
         self.background_product_fields = self.background_product_fields + ('codes:' + self.code_step,)
@@ -338,7 +339,16 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
 
     user_initiation_prompt: str = "{requesting_code_explanation}\n" \
                                   "{actual_requesting_output_explanation}\n" \
-                                  "{request_triple_quote_block}\n"
+                                  "{request_triple_quote_block}\n" \
+                                  "{latex_instructions}\n"
+
+    request_triple_quote_block: Optional[str] = \
+        'Send your entire description as a single triple-backtick "latex" block.\n'
+
+    latex_instructions: str = dedent_triple_quote_str("""
+        Within the "latex" block, start with \\section{Code Explanation} command, and then write your explanation.
+        Use tex formatting.
+        """)
 
     requesting_code_explanation: str = dedent_triple_quote_str("""
         Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \
@@ -353,6 +363,10 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
     @property
     def actual_requesting_output_explanation(self):
         return self.requesting_output_explanation if self.code_and_output.output_file else ''
+
+    def run_dialog_and_get_valid_result(self):
+        result = super().run_dialog_and_get_valid_result()
+        return extract_latex_section_from_response(result[0], 'Code Explanation', keep_tags=False)
 
 
 @dataclass
@@ -489,7 +503,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         return self.code_writing_class.from_(self).get_code_and_output()
 
     def _get_description_of_created_files(self) -> Optional[DataFileDescriptions]:
-        return self.EXPLAIN_CREATED_FILES_CLASS(
+        return self.EXPLAIN_CREATED_FILES_CLASS.from_(
+            self,
             is_new_conversation=None,
             code_step=self.code_step,
             products=self.products,
@@ -497,7 +512,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         ).ask_for_created_files_descriptions()
 
     def _get_code_explanation(self) -> str:
-        return self.EXPLAIN_CODE_CLASS(
+        return self.EXPLAIN_CODE_CLASS.from_(
+            self,
             is_new_conversation=None,
             code_step=self.code_step,
             products=self.products,
