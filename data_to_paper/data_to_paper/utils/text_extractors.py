@@ -3,7 +3,17 @@ import re
 FROM_OPEN_BRACKET_TO_CLOSE_BRACKET = {'[': ']', '{': '}', '(': ')'}
 
 
-def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, keep_tags: bool = False):
+def find_str(text: str, query: str, start: int = 0, end: int = None, case_sensitive: bool = True) -> int:
+    if not case_sensitive:
+        text = text.lower()
+        query = query.lower()
+    if end is None:
+        end = len(text)
+    return text.find(query, start, end)
+
+
+def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, keep_tags: bool = False,
+                              case_sensitive: bool = True) -> str:
     """
     Extract text between two tags.
     If the right tag is None, then extract text from the left tag to the end of the text
@@ -15,10 +25,10 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, k
         right_bracket = right_tag[-1]
         if left_bracket not in optional_brackets.keys() or right_bracket != optional_brackets[left_bracket]:
             # just find the first instance of the right tag and return the text between the left tag and the right tag
-            start = text.find(left_tag)
+            start = find_str(text, left_tag, case_sensitive=case_sensitive)
             if start == -1:
                 raise ValueError(f'Could not find left tag {left_tag} in text')
-            end = text.find(right_tag, start + len(left_tag))
+            end = find_str(text, right_tag, start + len(left_tag), case_sensitive=case_sensitive)
             if end == -1:
                 raise ValueError(f'Could not find left tag {right_tag} in text')
             if end - start - len(left_tag) == 0:
@@ -33,7 +43,7 @@ def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, k
             return extract_text_between_brackets(text, left_bracket)
     else:
         # right tag is None, so we return the text from the left tag to the end of the text
-        start = text.find(left_tag)
+        start = find_str(text, left_tag, case_sensitive=case_sensitive)
         if start == -1:
             raise ValueError(f'Could not find left tag {left_tag} in text')
         if keep_tags:
