@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Dict, Type
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
-    BackgroundProductsConverser
+    BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
@@ -322,20 +322,23 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
 
 
 @dataclass
-class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, ReviewBackgroundProductsConverser):
+class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewBackgroundProductsConverser):
     goal_noun: str = 'explanation of the {code_name} code'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions',)
     max_reviewing_rounds: int = 0
     rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
     rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+    should_remove_citations_from_section: bool = True
+    request_triple_quote_block: Optional[str] = 'Please send your response as a triple-backtick "latex" block.\n'
 
     def __post_init__(self):
         self.background_product_fields = self.background_product_fields + ('codes:' + self.code_step,)
         BaseScientificPostCodeProductsHandler.__post_init__(self)
-        ReviewBackgroundProductsConverser.__post_init__(self)
+        LatexReviewBackgroundProductsConverser.__post_init__(self)
 
     user_initiation_prompt: str = "{requesting_code_explanation}\n" \
-                                  "{actual_requesting_output_explanation}"
+                                  "{actual_requesting_output_explanation}\n" \
+                                  "{request_triple_quote_block}\n"
 
     requesting_code_explanation: str = dedent_triple_quote_str("""
         Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \

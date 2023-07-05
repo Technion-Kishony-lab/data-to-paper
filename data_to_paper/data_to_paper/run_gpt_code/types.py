@@ -33,7 +33,7 @@ class CodeAndOutput:
         s += '\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
         if self.code_explanation:
             s += "\\subsection{Code Description}"
-            s += '\n\n' + process_non_math_parts(self.code_explanation)
+            s += '\n\n' + self.code_explanation
         if self.output:
             s += '\n\n' + "\\subsection{Code Output}"
             s += '\n\n' + wrap_with_lstlisting(self.output)
