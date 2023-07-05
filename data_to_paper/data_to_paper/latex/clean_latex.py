@@ -3,12 +3,11 @@ import regex
 
 from typing import Iterable
 
-from data_to_paper.utils.citataion_utils import get_non_latex_citations
 from data_to_paper.utils.text_formatting import wrap_string
 
 from data_to_paper.env import PDF_TEXT_WIDTH
 
-from .exceptions import UnwantedCommandsUsedInLatex, NonLatexCitations
+from .exceptions import UnwantedCommandsUsedInLatex
 
 CHARS = {
     '&': r'\&',
@@ -143,10 +142,3 @@ def check_usage_of_un_allowed_commands(latex_content: str, unwanted_commands: It
     unwanted_commands_used = [c for c in unwanted_commands if c in latex_content]
     if unwanted_commands_used:
         raise UnwantedCommandsUsedInLatex(unwanted_commands_used)
-
-
-def check_non_latex_citations(latex_content: str):
-    non_latex_citations = get_non_latex_citations(latex_content)
-    if non_latex_citations:
-        raise NonLatexCitations(non_latex_citations)
-

@@ -135,14 +135,31 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
             self._raise_self_response_error(str(e))
         return section
 
-    def _check_usage_of_non_latex_citations(self, extracted_section: str):
+    def _check_and_correct_citations(self, section: str) -> str:
         """
-        Check that there are no citations that are not in latex format.
+        Check that all \\cite{} commands refer to bibtex citations that are allowed.
+        Raise if citing un-allowed citations, or correct similar citations to the correct one.
         """
-        try:
-            check_non_latex_citations(extracted_section)
-        except NonLatexCitations as e:
-            self._raise_self_response_error(str(e))
+        allowed_ids = self._get_allowed_bibtex_citation_ids()
+        not_found_ids = ListBasedSet([citation_id for citation_id in find_citation_ids(section)
+                                      if citation_id not in allowed_ids])
+        # Correct almost-matching citations:
+        for not_found_id in not_found_ids:
+            similar_ids = [allowed_id for allowed_id in allowed_ids if is_similar_bibtex_ids(not_found_id, allowed_id)]
+            if len(similar_ids) == 1:
+                section = replace_word(section, not_found_id, similar_ids[0])
+                not_found_ids.remove(not_found_id)
+                self.comment(f'Replacing citation id {not_found_id} with {similar_ids[0]}', as_action=False)
+        if not_found_ids:
+            self._raise_self_response_error(self.response_to_non_matching_citations.format(not_found_ids))
+        return section
+
+    def _check_and_refine_section(self, section: str, section_name: str) -> str:
+        section = self._remove_citations_from_section(section)
+        section = self._process_non_math_parts(section)
+        section = self._check_usage_of_un_allowed_commands(section)
+        section = self._check_and_correct_citations(section)
+        return section
 
     def _check_no_additional_sections(self, response: str):
         """
