@@ -76,7 +76,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
 
         ```latex
-        \\section{{pretty_section_names}}
+        \\section{<section name>}
         <your latex-formatted writing here>
         ```
         """)
@@ -174,6 +174,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
 
         ```latex
         \\title{<your latex-formatted paper title here>}
+        
         \\begin{abstract}
         <your latex-formatted abstract here>
         \\end{abstract}

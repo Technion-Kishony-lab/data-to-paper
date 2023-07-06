@@ -66,9 +66,11 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
     @property
     def pretty_scopes_to_examples(self) -> str:
-        return '\n'.join([f'"{scope}": {definition_and_examples["examples"]}'
-                          for scope, definition_and_examples
-                          in self.chosen_domains_to_definitions_and_examples.items()])
+        return ('{\n' +
+                '\n'.join([f'    "{scope}": {definition_and_examples["examples"]}'
+                           for scope, definition_and_examples
+                           in self.chosen_domains_to_definitions_and_examples.items()]) +
+                '\n}')
 
     @property
     def num_scopes(self) -> int:
