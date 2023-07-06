@@ -68,7 +68,18 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     section_review_specific_instructions: str = ''
     journal_name: str = 'Nature Communications'
 
-    request_triple_quote_block: Optional[str] = 'Please send your response as a triple-backtick "latex" block.'
+    latex_instructions: str = dedent_triple_quote_str("""
+        Write in tex format, escaping any math or symbols that needs tex escapes.
+        """)
+
+    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
+        The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
+
+        ```latex
+        \\section{{pretty_section_names}}
+        <your latex-formatted writing here>
+        ```
+        """)
 
     system_prompt: str = dedent_triple_quote_str("""
         You are a data-scientist with experience writing accurate scientific research papers.
@@ -86,10 +97,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         {section_specific_instructions}
         {latex_instructions}
         {request_triple_quote_block}
-        """)
-
-    latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\section{} command, and any math or symbols that needs tex escapes.
         """)
 
     termination_phrase: str = 'I hereby approve the {goal_noun}.'
@@ -161,11 +168,18 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
                                              'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
-    latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
-        and any math or symbols that needs tex escapes.
+
+    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
+        The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
+
+        ```latex
+        \\title{<your latex-formatted paper title here>}
+        \\begin{abstract}
+        <your latex-formatted abstract here>
+        \\end{abstract}
+        ```
         """)
-    request_triple_quote_block: Optional[str] = ''
+
     # no need for triple quote block in title and abstract because they have clear begin-end wraps
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Title should: 
@@ -218,6 +232,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         (see above list of papers in the Literature Search).
 
         {latex_instructions}
+        {request_triple_quote_block}
         """)
 
 

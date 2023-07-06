@@ -151,6 +151,7 @@ def test_check_no_additional_sections():
 
         assert requester.run_dialog_and_get_valid_result() == [introduction]
 
+
 def test_check_for_floating_citations():
     requester = TestLatexReviewBackgroundProductsConverser(section_names=['introduction'],
                                                            un_allowed_commands=(),

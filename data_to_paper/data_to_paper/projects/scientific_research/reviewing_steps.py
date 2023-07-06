@@ -351,29 +351,29 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please build the table "{table_name}".
         Write the table in latex format, centered, in booktabs, multirow format.
-         
+
         You should build the table using only results provided in the output files above.
-        
+
         As you build the Table, you should follow these guidelines (as applicable):
-        
+
         (1) Table content:
         * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
         * There is absolutely no need to include all the information that is provided in the output.
         * Exclude rows/columns that are not important to the research goal, or that are too technical, \
         or that repeat the same information multiple times. 
-        
+
         (2) Table format and organization:
         * Organize the table sensibly, re-ordering rows/columns as appropriate.   
         * Rename technical names to scientifically-suitable names.
         * Rename technical values to scientifically-suitable values \
         (like values of 0/1 may be suitable to represent as "No"/"Yes").
-        
+
         (3) Numeric values:
         * Round numbers to a reasonable number of digits, and present numbers using proper scientific notation.
         * Indicate standard errors using the $\\pm$ symbol, or parentheses.
         * If you indicate p-values, you can use the $<$ symbol to indicate smaller than a given value, \
         (any p-value less than 10^-4 should be indicated as $<$10^{-4}).
-        
+
         (4) Table caption and label:
         * Add a caption suitable for inclusion as part of a scientific paper. \
         you can use the table name provided above, or modify it as you see fit.
@@ -381,7 +381,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         * Choose and add a table label in the format "\\label{{table:xxx}}".
 
         {do_not_repeat_information_from_previous_tables}
-        
+
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
@@ -431,17 +431,16 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         if label in self._get_table_labels():
             self._raise_self_response_error(f'The table label "{label}" is already used in another table.')
 
-    def _check_section(self, section: str, section_name: str):
-        super()._check_section(section, section_name)
-        self._check_extracted_numbers(section)
-        self._check_table_label(section)
-
-    def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
-        section = super()._get_latex_section_from_response(response, section_name)
+    def _process_non_math_parts(self, section: str) -> str:
         try:
-            section = escape_special_chars_and_symbols_in_table(section)
+            return escape_special_chars_and_symbols_in_table(section)
         except ValueError as e:
             self._raise_self_response_error(str(e))
+
+    def _check_and_refine_section(self, section: str, section_name: str) -> str:
+        section = super()._check_and_refine_section(section, section_name)
+        self._check_extracted_numbers(section)
+        self._check_table_label(section)
         return section
 
 
@@ -462,7 +461,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please {goal_verb} {goal_noun} that capture the most important results we got in the output.
-        The {goal_noun} you choose should be those that are not presented in the latex paper tables above but \
+        The {goal_noun} you choose should be those that are not presented in the latex tables above but \
         might still be needed for a scientific paper.
         These {goal_noun} should only include information that is explicitly extracted from the output files provided \
         above.

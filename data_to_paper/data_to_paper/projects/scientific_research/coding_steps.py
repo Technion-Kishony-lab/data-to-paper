@@ -337,11 +337,18 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         BaseScientificPostCodeProductsHandler.__post_init__(self)
         LatexReviewBackgroundProductsConverser.__post_init__(self)
 
-    user_initiation_prompt: str = "{requesting_code_explanation}\n" \
-                                  "{actual_requesting_output_explanation}\n" \
-                                  "{request_triple_quote_block}\n" \
-                                  "{latex_instructions}\n"
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        {requesting_code_explanation}
+        {actual_requesting_output_explanation}
+        {request_triple_quote_block}
+        {latex_instructions}
 
+        Your response should look like this:
+        ```latex
+        \\section{Code Explanation}
+        <your code explanation here>
+        ```    
+        """)
     request_triple_quote_block: Optional[str] = \
         'Send your entire description as a single triple-backtick "latex" block.\n'
 

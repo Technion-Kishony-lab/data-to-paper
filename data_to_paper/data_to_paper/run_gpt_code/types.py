@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.latex.clean_latex import process_non_math_parts, wrap_with_lstlisting
+from data_to_paper.latex.clean_latex import wrap_with_lstlisting
 from data_to_paper.run_gpt_code.overrides.dataframes import DataframeOperations
 
 
