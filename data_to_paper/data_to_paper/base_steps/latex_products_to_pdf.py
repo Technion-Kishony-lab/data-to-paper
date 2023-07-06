@@ -3,7 +3,6 @@ from typing import Dict, Set, List
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.servers.crossref import CrossrefCitation
-from data_to_paper.latex.latex_to_pdf import clean_latex
 
 from .base_products_to_file import BaseFileProducer
 
@@ -93,8 +92,7 @@ class BaseLatexToPDF(BaseFileProducer):
         """
         Save the latex paper to .tex file and compile to pdf file.
         """
-        clean_paper = clean_latex(self.latex_paper)
-        save_latex_and_compile_to_pdf(clean_paper, self.output_file_stem, str(self.output_directory), references)
+        save_latex_and_compile_to_pdf(self.latex_paper, self.output_file_stem, str(self.output_directory), references)
 
     def assemble_compile_paper(self):
         sections, references = self._choose_sections_to_add_to_paper_and_collect_references()

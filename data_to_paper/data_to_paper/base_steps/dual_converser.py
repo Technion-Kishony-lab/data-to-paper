@@ -349,6 +349,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         return response + '\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
     def _alter_self_response(self, response: str) -> str:
+        response = super()._alter_self_response(response)
         if self.sentence_to_add_at_the_end_of_performer_response:
             return response + '\n' + self.sentence_to_add_at_the_end_of_performer_response
         else:

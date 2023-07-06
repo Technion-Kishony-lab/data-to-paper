@@ -12,7 +12,7 @@ def extract_latex_section_from_response(response: str, section_or_fragment: str,
     list_of_tag_pairs = get_list_of_tag_pairs_for_section_or_fragment(section_or_fragment)
     for tag_pair in list_of_tag_pairs:
         try:
-            return extract_text_between_tags(response, *tag_pair, keep_tags=keep_tags)
+            return extract_text_between_tags(response, *tag_pair, keep_tags=keep_tags, case_sensitive=False)
         except ValueError:
             pass
 

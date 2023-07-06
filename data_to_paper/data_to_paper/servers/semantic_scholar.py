@@ -1,12 +1,13 @@
+import numpy as np
+import requests
+import re
+
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 
-import numpy as np
-import requests
-
 from data_to_paper.env import S2_API_KEY
 from data_to_paper.exceptions import data_to_paperException
-from data_to_paper.latex.latex_to_pdf import process_non_math_part, process_bibtex_id
+from data_to_paper.latex.clean_latex import replace_special_latex_chars
 from data_to_paper.servers.base_server import DictServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
 from data_to_paper.servers.types import Citation
@@ -42,12 +43,17 @@ class SemanticCitation(Citation):
         authors = bibtex.split('author = {', 1)[1].split('},', 1)[0]
         authors = authors.replace(', ', ' and ')
         bibtex = bibtex.split('author = {', 1)[0] + 'author = {' + authors + '},' + bibtex.split('},', 1)[1]
-        return process_non_math_part(bibtex)
+        bibtex = bibtex.encode('ascii', 'ignore').decode('utf-8')
+        return replace_special_latex_chars(bibtex)
 
     @property
     def bibtex_id(self) -> str:
         if self._bibtex_id is None:
-            self._bibtex_id = process_bibtex_id(self['citationStyles']['bibtex'].split('{', 1)[1].split(',', 1)[0])
+            bibtex_id = self['citationStyles']['bibtex'].split('{', 1)[1].split(',\n', 1)[0]
+            bibtex_id.encode('ascii', 'ignore').decode('utf-8')  # replace non unicode chars with unicode equivalent
+            pattern = r'[{}(),\\\"-#~^:\'`ʹ]'  # characters not allowed in bibtex ids are replaced with ' '
+            bibtex_id = re.sub(pattern, ' ', bibtex_id)
+            self._bibtex_id = bibtex_id
         return self._bibtex_id
 
     @property

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
-from data_to_paper.latex.latex_to_pdf import wrap_with_lstlisting
+from data_to_paper.latex.clean_latex import wrap_with_lstlisting
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
 
