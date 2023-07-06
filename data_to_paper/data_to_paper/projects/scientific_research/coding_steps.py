@@ -116,7 +116,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Measure of the scale of our data (e.g., number of rows, number of columns)
         * Summary statistics of key variables
         * List of most common values of categorical variables (if any) 
-        * Counts of missing, unknown, or undefined values, and for numeric values that stand for \
+        * Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
         unknown/undefined (check in the file description above for any).
         * Any other data exploration analysis you deem relevant
 
@@ -150,7 +150,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The data exploration is not perfectly. \
+        2. The data exploration is not perfect. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
@@ -229,8 +229,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (3) Perform any preprocessing steps needed to prepare the data for the analysis.
         For example, as applicable:
-        * Dealing with missing, unknown, or undefined values, and for numeric values that stand for unknown/undefined \
-        (check in the file description above for any).
+        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
+        unknown/undefined (check in the file description above for any).
         * Normalization of numeric values with different units into same-unit values.
         * Any other data preprocessing you deem relevant.
 

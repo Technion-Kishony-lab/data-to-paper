@@ -63,7 +63,7 @@ def extract_content_of_triple_quote_block(text: str, content_name: str, requeste
     block_section = block_sections[0]
     if not block_section.is_complete:
         raise IncompleteBlockFailedExtractingBlock(content_name, requested_label)
-    if requested_label is not None and block_section.label != requested_label:
+    if requested_label is not None and block_section.label and block_section.label != requested_label:
         raise WrongLabelFailedExtractingBlock(content_name, requested_label, block_section.label)
     return block_section.section
 
