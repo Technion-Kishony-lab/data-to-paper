@@ -75,7 +75,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
                f'{self.files_created_in_prior_stages}' \
                f'```\n' \
                f'Important: use the correct version of the data to perform each of the steps. For example, ' \
-               f'for descriptive statistics use the original data, for model building use the processed data.\n'
+               f'for descriptive statistics use the original data, for model building use the processed data.'
 
     @property
     def raw_data_filenames(self) -> NiceList[str]:
@@ -217,10 +217,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to achieve the research goal specified above. 
+        Write a complete Python code to achieve the research goal specified above.
+        
         The code should:
 
-        (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).
+        (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).\
         {list_additional_data_files_if_any}
 
         (2) Create an output text file named "{output_filename}".
@@ -343,19 +344,18 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         {request_triple_quote_block}
         {latex_instructions}
 
-        Your response should look like this:
+        Overall, your response should be formatted like this:
         ```latex
         \\section{Code Explanation}
         <your code explanation here>
         ```    
         """)
-    request_triple_quote_block: Optional[str] = \
-        'Send your entire description as a single triple-backtick "latex" block.\n'
-
+    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
+        INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
+        Send your entire description as a single triple-backtick "latex" block.""")
     latex_instructions: str = dedent_triple_quote_str("""
         Within the "latex" block, start with \\section{Code Explanation} command, and then write your explanation.
-        Use tex formatting.
-        """)
+        Use tex formatting.""")
 
     requesting_code_explanation: str = dedent_triple_quote_str("""
         Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \

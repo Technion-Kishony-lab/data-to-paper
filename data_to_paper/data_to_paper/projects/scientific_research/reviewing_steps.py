@@ -61,6 +61,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         {quote_request}
         """)
     quote_request: str = dedent_triple_quote_str("""
+        INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
         Please return the goal and hypothesis enclosed within triple-backticks, like this:
         ```
         Research Goal: 
@@ -202,7 +203,8 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         and specify how it should be used while accounting for any issues above that you deem relevant.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
-
+        
+        INSTRUCTIONS FOR HOW YOUR RESPONSE SHOULD BE FORMATTED:
         Return your suggested statistical tests as a Python dictionary Dict[str, str], \
         where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
 

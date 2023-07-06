@@ -211,8 +211,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     """)
 
     ask_for_formula_prompt: str = dedent_triple_quote_str("""\n\n
-        Alternatively, if you need to indicate a number which is NOT an explicit extraction or rounding from the numbers 
-        provided above, \
+        Alternatively, if you need to indicate a number which is NOT an explicit extraction \
+        or rounding from the numbers provided above, \
         but is rather mathematically derived from them, then replace the number with the formula for deriving it, \
         using the \\num command.
 
