@@ -179,7 +179,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
     def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
-        acknowledgement += self.user_initiation_prompt if is_last else ''
+        acknowledgement += f'\n{self.user_initiation_prompt}' if is_last else ''
         self.apply_to_other_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
     def _add_other_product_description(self, product_field: str):

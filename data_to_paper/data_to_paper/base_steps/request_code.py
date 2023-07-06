@@ -16,7 +16,7 @@ from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgr
 
 @dataclass
 class BaseCodeProductsGPT(BackgroundProductsConverser):
-    max_code_revisions: int = 3
+    max_code_revisions: int = 5
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
 

@@ -12,17 +12,17 @@ from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
+from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
+from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import ProductsConverser
-from ..run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
-from ..servers.chatgpt import count_number_of_tokens_in_message
 
 
 @dataclass

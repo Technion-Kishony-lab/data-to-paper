@@ -9,12 +9,18 @@ class FailedExtractingBlock(Exception):
     content_name: str  # e.g. "code", "latex"
     requested_label: Optional[str]  # e.g. "python", "latex"
 
+    def block_name(self):
+        if self.requested_label is None:
+            return f"triple-backtick block"
+        else:
+            return f'triple-backtick "{self.requested_label}" block'
+
 
 @dataclass
 class NoBlocksFailedExtractingBlock(FailedExtractingBlock):
     def __str__(self):
-        return f"You did not send any {self.content_name} block.\n" \
-               f"Please try again, making sure your {self.content_name} is enclosed within triple-backticks."
+        return f"You did not send any triple-backtick block.\n" \
+               f"Please try again, making sure the {self.content_name} is enclosed within {self.block_name()}."
 
 
 @dataclass
@@ -22,13 +28,14 @@ class MultiBlocksFailedExtractingBlock(FailedExtractingBlock):
     num_blocks: int
 
     def __str__(self):
-        return f"Please send your {self.content_name} as a single triple-quoted block."
+        return f"You sent {self.num_blocks} triple-backtick blocks. " \
+               f"Please send the {self.content_name} as a single {self.block_name()}."
 
 
 @dataclass
 class IncompleteBlockFailedExtractingBlock(FailedExtractingBlock):
     def __str__(self):
-        return f"Your sent incomplete {self.content_name} block. Please resend."
+        return f"Your sent an incomplete triple-quoted block. Please try again."
 
 
 @dataclass
@@ -37,7 +44,7 @@ class WrongLabelFailedExtractingBlock(FailedExtractingBlock):
 
     def __str__(self):
         return f'Your sent a "{self.label}" block. ' \
-               f'Please send your {self.content_name} as a "{self.requested_label}" block.'
+               f'Please send your {self.content_name} as a "{self.block_name()}".'
 
 
 def add_label_to_first_triple_quotes_if_missing(content: str, requested_label: str) -> str:

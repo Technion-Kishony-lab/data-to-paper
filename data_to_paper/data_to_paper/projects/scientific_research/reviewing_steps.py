@@ -60,8 +60,16 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
         {quote_request}
         """)
-    quote_request: str = 'Please return the goal and hypothesis enclosed within triple-backticks ' \
-                         '(make sure to flank the entire goal and hypotheses, not just their header).'
+    quote_request: str = dedent_triple_quote_str("""
+        Please return the goal and hypothesis enclosed within triple-backticks, like this:
+        ```
+        Research Goal: 
+        <your research goal here>
+        
+        Hypothesis: 
+        <your hypothesis here>
+        ``` 
+        """)
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
         """)
