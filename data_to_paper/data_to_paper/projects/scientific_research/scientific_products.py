@@ -401,8 +401,8 @@ class ScientificProducts(Products):
                 lambda: {'tables': self.get_tables_names_and_content()}),
 
             'numeric_values': NameDescriptionStageGenerator(
-                'Numeric Values of the Paper',
-                'Here are some key numeric values we can use to write the results of the paper:\n\n{}',
+                'Other Numeric Values for the Paper',
+                'Here are some other numeric values we can use to write the results of the paper:\n\n{}',
                 ScientificStages.INTERPRETATION,
                 lambda: None if not self.numeric_values else
                 NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"

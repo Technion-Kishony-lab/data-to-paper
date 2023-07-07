@@ -46,7 +46,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     """
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
+                                                  'codes:data_analysis', 'tables', 'numeric_values', 'results_summary',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     allow_citations_from_step: str = None
@@ -165,7 +165,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
-                                             'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
+                                             'codes:data_analysis', 'tables', 'numeric_values', 'results_summary')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
 
@@ -349,9 +349,9 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'tables_and_numeric_values')
+        ('title_and_abstract', 'tables', 'numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'tables_and_numeric_values')
+        ('title_and_abstract', 'tables', 'numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         As you write the results, \
