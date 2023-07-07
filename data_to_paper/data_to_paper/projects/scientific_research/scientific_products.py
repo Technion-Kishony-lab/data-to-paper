@@ -88,7 +88,8 @@ class ScientificProducts(Products):
         """
         Return the tables names in a pretty way.
         """
-        return '\n'.join(f'{table_num}: {table_name}' for table_num, table_name in self.tables_names.items())
+        return '\n'.join(f'({table_num + 1}) "{table_name}"'
+                         for table_num, table_name in enumerate(self.tables_names.values()))
 
     def get_tables_names_and_content(self) -> str:
         """

@@ -250,11 +250,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
             Total number of observations: xxx
             etc.
 
-        ## Results for Table 1:
-        all the data needed for Table 1
+        ## Results for a Table on "<table name here>":
+        <write here all the data needed for this table>
 
-        ## Results for Table 2:
-        all the data needed for Table 2
+        ## Results for a Table on "<table name here>":
+        <write here all the data needed for this table>
 
         etc
         ```
