@@ -99,7 +99,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         {request_triple_quote_block}
         """)
 
-    termination_phrase: str = 'I hereby approve the {goal_noun}.'
+    termination_phrase: str = 'The {goal_noun} does not require any changes'
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.

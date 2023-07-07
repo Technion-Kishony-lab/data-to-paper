@@ -42,7 +42,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
-        'I hereby approve the research goal'
+        'The research goal does not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please suggest a research goal and an hypothesis. 
         The goal and hypothesis should be interesting and novel, testing complex associations and relationships, \
@@ -241,7 +241,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    termination_phrase: str = 'I hereby approve the names of the tables'
+    termination_phrase: str = 'The names of the tables do not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please list captions for Tables that we should prepare for a scientific paper addressing the research goal and \
         hypothesis testing described above.
@@ -357,7 +357,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     goal_verb: str = 'produce'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    termination_phrase: str = 'I hereby approve the table'
+    termination_phrase: str = 'The table does not require any enhancements'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please build the table "{table_name}".
         Write the table in latex format, centered, in booktabs, multirow format.

@@ -159,7 +159,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
-    termination_phrase: str = "I hereby approve the {goal_noun}"
+    termination_phrase: str = "The {goal_noun} does not require any changes"
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
