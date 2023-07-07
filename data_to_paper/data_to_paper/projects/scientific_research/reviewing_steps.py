@@ -501,9 +501,10 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         """)
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
-        extracted_str = super()._extract_str_of_python_value_from_response(response)
-        self._check_extracted_numbers(extracted_str)
-        return extracted_str
+        # we check the entire response to avoid cases that the response was not correctly formatted, yet included \
+        # the correct flanking tags {} as part of a latex formula, rather than as part of a Python dict.
+        self._check_extracted_numbers(response)
+        return super()._extract_str_of_python_value_from_response(response)
 
     def _check_response_value(self, response_value: Any) -> Any:
         return NiceDict(response_value)
