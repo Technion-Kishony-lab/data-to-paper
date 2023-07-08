@@ -4,10 +4,10 @@ from typing import Tuple, List, Set, Optional, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
-from data_to_paper.base_steps.literature_search import CITATION_REPR_FIELDS, CITATION_REPR_FIELDS_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, \
+    DEFAULT_LITERATURE_SEARCH_STYLE
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 
@@ -31,7 +31,7 @@ class ShowCitationProducts:
         contents = []
         for field in self.background_product_fields:
             if field.startswith('literature_search') and self.products.is_product_available(field):
-                with CITATION_REPR_FIELDS.temporary_set(CITATION_REPR_FIELDS_FOR_PRINT):
+                with DEFAULT_LITERATURE_SEARCH_STYLE.temporary_set('print'):
                     product = self.products[field]
                     contents.append(f'{product.name}:\n{product.description}')
         return contents
@@ -219,7 +219,9 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
     conversation_name: str = 'title_abstract_section_second'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'paper_sections:results',
-                                             'literature_search:writing:20:2',
+                                             'literature_search:writing:background',
+                                             'literature_search:writing:dataset',
+                                             'literature_search:writing:results',
                                              'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
@@ -230,7 +232,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         I especially want you to:
         (1) Make sure that the abstract clearly states the main results of the paper (see above the Results Section).
         (2) Make sure that the abstract correctly defines the literature gap \
-        (see above list of papers in the Literature Search).
+        (see above Literature Searches for list of related papers).
 
         {latex_instructions}
         {request_triple_quote_block}
@@ -241,10 +243,10 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
-                                                  'literature_search_by_scope:writing:background:8:2',
-                                                  'literature_search_by_scope:writing:results:6:2',
-                                                  'literature_search_by_scope:writing:dataset:4:2',
-                                                  'literature_search_by_scope:writing:methods:4:2',
+                                                  'literature_search:writing:background',
+                                                  'literature_search:writing:dataset',
+                                                  'literature_search:writing:methods',
+                                                  'literature_search:writing:results',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
@@ -257,16 +259,16 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Specifically, the introduction should follow the following multi-paragraph structure:
 
         * Introduce the topic of the paper and why it is important \
-        (cite relevant papers from the above "Literature Search for Background"). 
+        (cite relevant papers from the above "Background-related Literature Search"). 
 
         * Explain what was already done and known on the topic, and what is then the research gap/question \
-        (cite relevant papers from the above "Literature Search for Results"). 
+        (cite relevant papers from the above "Results-related Literature Search"). 
 
         * State how the current paper addresses this gap/question \
-        (cite relevant papers from the above "Literature Search for Dataset").
+        (cite relevant papers from the above "Dataset-related Literature Search").
 
         * Outline the methodological procedure and briefly state the main findings \
-        (cite relevant papers from the above "Literature Search for Methods"). 
+        (cite relevant papers from the above "Methods-related Literature Search"). 
 
         Each of these paragraphs should be 4-6 sentence long.
 
@@ -276,7 +278,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Note that it is not advisable to write about limitations, implications, or impact in the introduction.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
-        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
+        Also, please suggest if there are any additional citations to include from the Literature Searches above.
         """)
 
 
@@ -413,8 +415,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
-                                                  'literature_search_by_scope:writing:background:5:2',
-                                                  'literature_search_by_scope:writing:results:8:2',
+                                                  'literature_search:writing:background',
+                                                  'literature_search:writing:results',
                                                   'paper_sections:introduction',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
@@ -426,9 +428,9 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
         """)
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Discussion section should follow the following structure:
-        * Recap the subject of the study (cite relevant papers from the above "Literature Search for Background").  
+        * Recap the subject of the study (cite relevant papers from the above "Background-related Literature Search").  
         * Recap our methodology (see "Methods" section above) and the main results (see "Results" section above), \
-        and compare them to the results from prior literature (see above "Literature Search for Results"). 
+        and compare them to the results from prior literature (see above "Results-related Literature Search"). 
         * Discuss the limitations of the study.
         * End with a concluding paragraph summarizing the main results, their implications and impact, \
         and future directions.

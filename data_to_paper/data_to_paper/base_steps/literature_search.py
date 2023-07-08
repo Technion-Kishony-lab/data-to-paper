@@ -1,32 +1,45 @@
+from copy import copy
+
 import numpy as np
 
 from dataclasses import dataclass, field
-from functools import reduce
-from typing import Optional, Dict, List
-from operator import or_
+from typing import Optional, Dict, List, Iterable
 
+from data_to_paper.utils.iterators import interleave
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.servers.types import Citation
 
 
-def sort_citations_by_embedding_similarity(citations: List[Citation], embedding: np.ndarray) -> List[Citation]:
+def unite_citation_lists(citations_lists: Iterable[Iterable[Citation]], total: int = None) -> List[Citation]:
     """
-    Sort the citations by embedding similarity.
+    Unite the two lists maintaining a single bibtex_id for each citation.
+    Citation that appears in both list will have the query as a set of both quereis.
     """
-    if not citations:
-        return []
-    embeddings = np.array([citation['embedding'] for citation in citations])
-    similarities = np.dot(embeddings, embedding)
-    indices = np.argsort(similarities)[::-1]
-    return [citations[i] for i in indices]
+    bibtex_ids_to_citations = {}
+    for citation in interleave(*citations_lists):
+        bibtex_id = citation.bibtex_id
+        query = citation.query
+        if isinstance(query, str):
+            query = {query}
+        if bibtex_id not in bibtex_ids_to_citations:
+            citation = copy(citation)
+            citation.query = query
+            bibtex_ids_to_citations[bibtex_id] = citation
+        else:
+            bibtex_ids_to_citations[bibtex_id].query.update(query)
+            bibtex_ids_to_citations[bibtex_id].search_rank = min(bibtex_ids_to_citations[bibtex_id].search_rank,
+                                                                 citation.search_rank)
+        if total is not None:
+            if len(bibtex_ids_to_citations) == total:
+                break
+    return list(bibtex_ids_to_citations.values())
 
 
-CITATION_REPR_FIELDS_FOR_CHATGPT = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
-CITATION_REPR_FIELDS_FOR_PRINT = ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'influence')
-
-CITATION_REPR_FIELDS = Mutable(CITATION_REPR_FIELDS_FOR_CHATGPT)
+CITATION_REPR_FIELDS_FOR_CHATGPT = \
+    ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
+CITATION_REPR_FIELDS_FOR_PRINT = \
+    ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence', 'embedding_similarity')
 
 
 @dataclass
@@ -46,34 +59,34 @@ class LiteratureSearch:
         return NiceList(queries, wrap_with='"', separator='\n', prefix='\n', suffix='\n')
 
     def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
-                      total: int = None, distribute_evenly: bool = True,
+                      total: int = None, distribution_factor: Optional[float] = None,
                       sort_by_similarity: bool = False, minimal_influence: int = 0) -> List[Citation]:
         """
         Return the citations in the given scope.
         If embedding_target is not None, sort the citations by embedding similarity.
         If total is not None, return only the first total citations.
+        If total < 0, return only the last total citations.
         """
-        empty = ListBasedSet()
         if scope is None:
             assert query is None
-            citations = reduce(
-                or_, [self.get_citations(
+            citations = unite_citation_lists((self.get_citations(
                     scope=scope,
-                    total=total // len(self.scopes_to_queries_to_citations) + 1
-                    if distribute_evenly and total is not None else None,
+                    total=int(total / len(self.scopes_to_queries_to_citations) * distribution_factor) + 1
+                    if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
-                    distribute_evenly=distribute_evenly,
-                ) for scope in self.scopes_to_queries_to_citations], empty)
+                    distribution_factor=distribution_factor,
+                    sort_by_similarity=sort_by_similarity,
+            ) for scope in self.scopes_to_queries_to_citations))
         elif query is None:
-            citations = reduce(
-                or_, [self.get_citations(
+            citations = unite_citation_lists((self.get_citations(
                     scope=scope,
                     query=query,
-                    total=total // len(self.scopes_to_queries_to_citations[scope]) + 1
-                    if distribute_evenly and total is not None else None,
+                    total=int(total / len(self.scopes_to_queries_to_citations[scope]) * distribution_factor) + 1
+                    if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
-                    distribute_evenly=distribute_evenly,
-                ) for query in self.scopes_to_queries_to_citations[scope]], empty)
+                    distribution_factor=distribution_factor,
+                    sort_by_similarity=sort_by_similarity,
+                ) for query in self.scopes_to_queries_to_citations[scope]))
         else:
             citations = self.scopes_to_queries_to_citations[scope][query]
         citations = list(citations)
@@ -82,7 +95,8 @@ class LiteratureSearch:
             citations = [citation for citation in citations if citation.influence >= minimal_influence]
 
         if sort_by_similarity and self.embedding_target is not None:
-            citations = sort_citations_by_embedding_similarity(citations, self.embedding_target)
+            citations = sorted(citations, key=lambda citation: citation.get_embedding_similarity(self.embedding_target),
+                               reverse=True)
         else:
             citations = sorted(citations, key=lambda citation: citation.search_rank)
 
@@ -94,10 +108,10 @@ class LiteratureSearch:
             return citations[:total]
 
     def pretty_repr(self, with_scope_and_queries: bool = False,
-                    total: int = None, distribute_evenly: bool = True,
+                    total: int = None, distribution_factor: Optional[float] = None,
                     sort_by_similarity: bool = False,
                     minimal_influence: int = 0,
-                    is_html: bool = False,
+                    style: str = None,
                     ) -> str:
         s = ''
         for scope in self.scopes_to_queries_to_citations:
@@ -107,24 +121,31 @@ class LiteratureSearch:
                 s += f'Queries: {repr(self.get_queries(scope))}\n'
             s += self.pretty_repr_for_scope_and_query(scope=scope,
                                                       total=total // len(self.scopes_to_queries_to_citations) + 1,
-                                                      distribute_evenly=distribute_evenly,
+                                                      distribution_factor=distribution_factor,
                                                       sort_by_similarity=sort_by_similarity,
                                                       minimal_influence=minimal_influence,
-                                                      is_html=is_html)
+                                                      style=style)
         return s
 
     def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
-                                        total: int = None, distribute_evenly: bool = True,
+                                        total: int = None, distribution_factor: Optional[float] = None,
                                         sort_by_similarity: bool = False,
                                         minimal_influence: int = 0,
-                                        is_html: bool = False) -> str:
+                                        style: str = None) -> str:
+        """
+        style: 'chatgpt', 'print', 'html'
+        """
+        style = style or 'chatgpt'
         citations = self.get_citations(scope=scope, query=query, total=total,
-                                       distribute_evenly=distribute_evenly,
+                                       distribution_factor=distribution_factor,
                                        sort_by_similarity=sort_by_similarity,
                                        minimal_influence=minimal_influence,
                                        )
-        return '\n'.join(citation.pretty_repr(fields=CITATION_REPR_FIELDS.val, is_html=is_html)
-                         for citation in citations)
+        return '\n'.join(citation.pretty_repr(
+            fields=CITATION_REPR_FIELDS_FOR_CHATGPT if style == 'chatgpt' else CITATION_REPR_FIELDS_FOR_PRINT,
+            is_html=style == 'html',
+            embedding_target=self.embedding_target,
+        ) for citation in citations)
 
     def get_citation(self, bibtex_id: str) -> Optional[Citation]:
         for citation in self.get_citations():

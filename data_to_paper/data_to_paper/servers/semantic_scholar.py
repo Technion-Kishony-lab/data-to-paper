@@ -80,6 +80,10 @@ class SemanticCitation(Citation):
         return self['influentialCitationCount']
 
     @property
+    def embedding(self) -> Optional[np.ndarray]:
+        return self.get('embedding', None)
+
+    @property
     def tldr(self) -> Optional[str]:
         tldr = self.get('tldr', None)
         if tldr is None:
