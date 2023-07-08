@@ -350,11 +350,13 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         <your code explanation here>
         ```    
         """)
+
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
-        Send your entire description as a single triple-backtick "latex" block.""")
+        YOUR RESPONSE SHOULD BE ENCLOSED WITHIN A TRIPLE-BACKTICK "latex" BLOCK:
+        The code explanation should writen in latex and enclosed within a triple-backtick "latex" block.""")
+
     latex_instructions: str = dedent_triple_quote_str("""
-        Within the "latex" block, start with \\section{Code Explanation} command, and then write your explanation.
+        Within this "latex" block, start with \\section{Code Explanation} command, and then write the code explanation.
         Use tex formatting.""")
 
     requesting_code_explanation: str = dedent_triple_quote_str("""

@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, List, Set, Optional
+from typing import Tuple, List, Set, Optional, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
@@ -136,7 +136,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
 
-    def _get_available_citations(self) -> List[Citation]:
+    def _get_available_citations(self) -> Iterable[Citation]:
         if self.allow_citations_from_step is None:
             return []
         return self.products.literature_search[self.allow_citations_from_step].get_citations()
@@ -354,38 +354,40 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         ('title_and_abstract', 'tables', 'numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        As you write the results, \
-        refer to the Tables by their labels and explain their content, but do not add the tables themselves \
-        (I will add the tables later manually).
+        Use the following guidelines when writing the Results:
+        
+        * One paragraph per Table: You should typically have a separate paragraph describing each of the Tables. \
+        In each such paragraph, indicate the motivation/question for the analysis, the methodology, \
+        and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \
+        and explain their content, but do not add the tables themselves (I will add the tables later manually).
 
-        You should typically have a separate paragraph describing for each Table. In each such paragraph, \
-        indicate the motivation/question for the analysis, the methodology, and only then describe the results.
-
-        It is often nice to have a story-like flow between the paragraphs, so that the reader can follow the \
-        analysis process with emphasis on the reasoning/motivation behind each analysis step. 
+        * Story-like flow: It is often nice to have a story-like flow between the paragraphs, so that the reader \
+        can follow the analysis process with emphasis on the reasoning/motivation behind each analysis step. 
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
         "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
-        ..."; "Finally, to further verify the effect of zzz, we tested whether ...". 
+        ..."; "Finally, to further verify the effect of zzz, we tested whether ...".
+        
+        * Numeric values: You can extract and mention numeric values from the Tables as well as from the \
+        "Other Numeric Values" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
+        going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
+        explicitly mention any such important numeric value as an integral part of the text.
+        
+        * p-values: When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
+        relevant value.
 
-        You can also extract and use any of the key Numerical Values provided above that you think are \
-        scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
-        added as a part of the paper, so you should explicitly mention any important values as an integral part of \
-        the text.
-        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the relevant value, \
-        in scientific writing it is not common to write 0 as a p-value.
-
-        Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
+        * Accuracy: Make sure that you are only mentioning details that are explicitly found within the Tables and \
+        Numerical Values.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
         whether the {goal_noun} contains only information that is explicitly extracted from the \
-        Tables and Numerical Values provided above. \
+        Tables and Other Numerical Values provided above. \
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
 
         Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \
-        only suggest changes that are relevant to the Results section text that are supported by the given \
+        only suggest changes that are relevant to the Results section itself and that are supported by the given \
         Tables and Numerical Values.
 
         Do not suggest changes to the {goal_noun} that may require data not available in the the \

@@ -188,27 +188,30 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
+        
+        Please follow these two steps:
 
-        In light of the dataset description and the data exploration output provided above, \
-        for each of the following generic \
+        (1) Create bullet-point review of relevant statistical issues. 
+        Read the Dataset Description and the Data Exploration Output provided above, \
+        and then for each of the following generic \
         statistical issues determine if they are relevant for our case and whether they should be accounted for: 
-
         * multiple comparisons.
         * confounding variables (see available variables in the dataset that we can adjust for).
         * dependencies between data points.
         * missing data points.
         * any other relevant statistical issues.
 
-        Then, for each hypothesis, suggest a *single* statistical test that should be performed to test the hypothesis \
+        (2) Suggest best statistical test. 
+        Considering the issues you have outlines above, for each of our hypotheses, suggest a *single* \
+        statistical test that should be performed to test the hypothesis \
         and specify how it should be used while accounting for any issues above that you deem relevant.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
         
-        INSTRUCTIONS FOR HOW YOUR RESPONSE SHOULD BE FORMATTED:
-        Return your suggested statistical tests as a Python dictionary Dict[str, str], \
+        REQUESTED FORMATTING: Return your suggested statistical tests as a Python dictionary Dict[str, str], \
         where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
 
-        { 
+        {
         'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
         yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
         'the variance of xxx is different than the variance of yyy': 'F-test for the equality of variances',
@@ -223,7 +226,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         """
         new_response_value = {}
         for k in response_value.keys():
-            new_k = re.sub(r'hypothesis \d+:', '', k, flags=re.IGNORECASE).strip()
+            new_k = re.sub(pattern=r'hypothesis \d+:', repl='', string=k, flags=re.IGNORECASE).strip()
             new_response_value[new_k] = response_value[k]
         return NiceDict(new_response_value)
 
