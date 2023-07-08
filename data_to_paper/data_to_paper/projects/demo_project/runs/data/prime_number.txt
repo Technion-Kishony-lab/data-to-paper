@@ -1,1 +1,0 @@
-The largest prime number below 10000 is 9973

@@ -1,4 +1,4 @@
-from examples.run_project import get_paper
+from run_project import get_paper
 
 goal = "Using machine learning models and multivariate analysis find risk factors for diabetes. " \
        "Build predictive models to predict diabetes from health indicators.",
