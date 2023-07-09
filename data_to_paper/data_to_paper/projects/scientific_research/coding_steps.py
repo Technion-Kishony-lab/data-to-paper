@@ -339,30 +339,24 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         LatexReviewBackgroundProductsConverser.__post_init__(self)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        {requesting_code_explanation}
+        Please return a triple-backtick Latex Block explaining what the code above does. 
+        Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. 
         {actual_requesting_output_explanation}
-        {request_triple_quote_block}
-        {latex_instructions}
+        
+        Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
 
-        Overall, your response should be formatted like this:
         ```latex
         \\section{Code Explanation}
         <your code explanation here>
-        ```    
+        ```
+        
+        Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it!
         """)
 
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        YOUR RESPONSE SHOULD BE ENCLOSED WITHIN A TRIPLE-BACKTICK "latex" BLOCK:
-        The code explanation should writen in latex and enclosed within a triple-backtick "latex" block.""")
-
-    latex_instructions: str = dedent_triple_quote_str("""
-        Within this "latex" block, start with \\section{Code Explanation} command, and then write the code explanation.
-        Use tex formatting.""")
-
-    requesting_code_explanation: str = dedent_triple_quote_str("""
-        Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. 
+        Your code explanation should be enclosed within a triple-backtick "latex" block.
         """)
 
     requesting_output_explanation: str = dedent_triple_quote_str("""

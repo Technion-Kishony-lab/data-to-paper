@@ -283,7 +283,7 @@ class DebuggerConverser(ProductsConverser):
             I ran the code, it created the output file "{}", but the file is too long!
 
             Here is the beginning of the output:
-            ```
+            ```output
             {}
             ```
 
