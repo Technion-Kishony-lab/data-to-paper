@@ -64,7 +64,8 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
     @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages)
+        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages,
+                        wrap_with='"', prefix='\n', separator='\n', suffix='\n')
 
     @property
     def list_additional_data_files_if_any(self) -> str:

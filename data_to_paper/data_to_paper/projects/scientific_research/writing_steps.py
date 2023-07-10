@@ -395,26 +395,31 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
 
-        * One paragraph per Table: You should typically have a separate paragraph describing each of the Tables. \
+        * Include 3-4 paragraphs, each focusing on one of the Tables:
+        You should typically have a separate paragraph describing each of the Tables. \
         In each such paragraph, indicate the motivation/question for the analysis, the methodology, \
         and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \
         and explain their content, but do not add the tables themselves (I will add the tables later manually).
 
-        * Story-like flow: It is often nice to have a story-like flow between the paragraphs, so that the reader \
+        * Story-like flow: 
+        It is often nice to have a story-like flow between the paragraphs, so that the reader \
         can follow the analysis process with emphasis on the reasoning/motivation behind each analysis step. 
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
         "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
         ..."; "Finally, to further verify the effect of zzz, we tested whether ...".
 
-        * Numeric values: You can extract and mention numeric values from the Tables as well as from the \
+        * Numeric values: 
+        You can extract and mention numeric values from the Tables as well as from the \
         "{numeric_values}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
         going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
         explicitly mention any such important numeric value as an integral part of the text.
 
-        * p-values: When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
+        * p-values:
+        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
         relevant value.
 
-        * Accuracy: Make sure that you are only mentioning details that are explicitly found within the Tables and \
+        * Accuracy: 
+        Make sure that you are only mentioning details that are explicitly found within the Tables and \
         Numerical Values.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
