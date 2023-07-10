@@ -66,7 +66,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         ```
         Research Goal: 
         <your research goal here>
-        
+
         Hypothesis: 
         <your hypothesis here>
         ``` 
@@ -189,7 +189,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
     goal_verb: str = 'write'
     user_initiation_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
-        
+
         Please follow these two steps:
 
         (1) Create a bullet-point review of relevant statistical issues. 
@@ -208,7 +208,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         and specify how it should be used while accounting for any issues above that you deem relevant.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
-        
+
         REQUESTED FORMATTING: Return your suggested statistical tests as a Python dictionary Dict[str, str], \
         where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
 
@@ -379,7 +379,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         (2) What NOT to include in the table:
         * Do not include any presumed information that is not explicitly provided in the {outputs:data_analysis} above.
         * Do not leave any blank cells, or to-be-filled-later cells.
-        
+
         (3) Table format and organization:
         * Organize the table sensibly, re-ordering rows/columns as appropriate.   
         * Rename technical names to scientifically-suitable names.

@@ -8,7 +8,8 @@ from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.highlighted_text import print_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.env import TEXT_WIDTH
-from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock
+from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
+    IncompleteBlockFailedExtractingBlock
 
 from .converser import Converser
 from .result_converser import ResultConverser, Rewind
@@ -415,7 +416,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         try:
             return extract_content_of_triple_quote_block(response, self.goal_noun, None)
         except FailedExtractingBlock as e:
-            self._raise_self_response_error(str(e))
+            self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock))
 
     def _check_flanked_response_is_not_just_header(self, response: str):
         if response.count('\n') < 2 and response.count(' ') < 5:

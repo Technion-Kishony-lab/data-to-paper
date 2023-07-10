@@ -218,7 +218,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
-        
+
         The code should:
 
         (1) Load the data from the original data files described above ({data_file_descriptions}).\
@@ -344,14 +344,14 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         high-level explanation of the code in a language suitable for a Methods section of a research \
         paper. 
         {actual_requesting_output_explanation}
-        
+
         Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
 
         ```latex
         \\section{Code Explanation}
         <your code explanation here>
         ```
-        
+
         Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it!
         """)
 

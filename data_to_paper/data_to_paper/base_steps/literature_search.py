@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Iterable
 
 from data_to_paper.utils.iterators import interleave
-from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.servers.types import Citation
 
