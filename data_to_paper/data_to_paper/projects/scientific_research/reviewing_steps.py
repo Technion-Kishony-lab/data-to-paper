@@ -114,7 +114,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
         (1) From the literature search above, list up to 3 key papers whose results are most \
         similar/overlapping with our research goal and hypothesis.
 
-        Your response for this part, should be formatted as a bullet point list, like this:
+        Your response for this part should be formatted as a bullet point list, like this:
         - Smith2020TheAB: "A title of a paper most overlapping with our goal and hypothesis"
         - Jones2021AssortedCD: "Another title of a paper that is similar to our goal and hypothesis"
 
@@ -124,7 +124,8 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
         b. Our goal and hypothesis seem too overlapping with existing literature, \
         and should therefore be revised {'choice': 'REVISE'}.
 
-        For this section, return your response as a Python dictionary mapping 'choice' to either 'OK' or 'REVISE'. 
+        Your response for this part should be formatted as a Python dictionary mapping 'choice' to \
+        either 'OK' or 'REVISE'. 
         Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}
         """)
 
@@ -192,7 +193,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
 
         Please follow these two steps:
 
-        (1) Create a bullet-point review of relevant statistical issues. 
+        (1) Return a bullet-point review of relevant statistical issues.
         Read the "{data_file_descriptions}" and the "{codes_and_outputs:data_exploration}" provided above, \
         and then for each of the following generic \
         statistical issues determine if they are relevant for our case and whether they should be accounted for: 
@@ -202,16 +203,17 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         * missing data points.
         * any other relevant statistical issues.
 
-        (2) Suggest best statistical test. 
-        Considering the issues you have outlines above, for each of our hypotheses, suggest a *single* \
-        statistical test that should be performed to test the hypothesis \
-        and specify how it should be used while accounting for any issues above that you deem relevant.
+        (2) Create a Python dictionary Dict[str, str], mapping each hypothesis to the statistical test that \
+        would be most adequate for testing it.
+        The keys of this dictionary should briefly describe each of our hypotheses.
+        The values of this dictionary should specify the most adequate statistical test for each hypothesis, \
+        and describe how it should be performed while accounting for any issues you have outlined above as relevant.
+        
+        For each of our hypotheses, suggest a *single* statistical test.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
 
-        REQUESTED FORMATTING: Return your suggested statistical tests as a Python dictionary Dict[str, str], \
-        where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
-
+        Your response for this part should be formatted as a Python dictionary, like this:
         {
         'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
         yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
@@ -478,26 +480,32 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun} that capture the most important results we got in the output.
-        The {goal_noun} you choose should be those that are not presented in the latex tables above but \
-        might still be needed for a scientific paper.
-        These {goal_noun} should only include information that is explicitly extracted from the output files provided \
-        above ("{outputs:data_exploration}", "{outputs:data_analysis}").
-        The {goal_noun} that you choose should be returned as a Python Dict[str, Any], where the keys are the names \
-        tou choose for the result, and the values are the numeric results themselves.
-        For example, if the analysis results provide summary of a some statistical tests, or statistical models, \
+        Return a Python Dict[str, Any] of key numerical results we might need for a scientific paper.
+        
+        Considering the output files provided above \
+        (see above "{outputs:data_exploration}" and "{outputs:data_analysis}"), \
+        please identify key numerical results that are not represented in the latex tables above, but \
+        that might still be needed for a scientific paper.
+        
+        These key numerical values should only include information that is explicitly extracted from the \
+        output files provided above.
+        The numerical results that you choose should be returned as a Python Dict[str, Any], \
+        where the keys are the names \
+        you choose for the results, and the values are the numerical results themselves.
+        
+        For example, if the analysis results provides a summary of a some statistical test, \
         you might include: 
         {
             'Total number of samples': xxx,
             'Accuracy of logistic regression for the XXX model': yyy,
             'AUC ROC of logistic regression for the XXX model': zzz,
         }
-        Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
-        results we got in the output and in light of the {research_goal} of the project as mentioned above.
+        Obviously, this is just an example. You should choose the numerical results that are most relevant \
+        to the specific \
+        results we got in the outputs and in light of the {research_goal} of the project as mentioned above.
 
-        Return a maximum of 5 {goal_noun}.
-        Do not send any free text. All descriptions should be included in the keys of the Python Dict.
         Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.
+        Do not send any free text! All descriptions should be included in the keys of the Python Dict[str, Any].
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether they \

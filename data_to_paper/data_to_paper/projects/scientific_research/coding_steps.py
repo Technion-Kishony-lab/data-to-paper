@@ -245,10 +245,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         ```output                
         ## General results:
-        Report any general numerical values you deem relevant to our research paper.
-        For example:
-            Total number of observations: xxx
-            etc.
+        <Report here any general numerical values you deem relevant to our research paper. For example:>
+        <Total number of observations: xxx>
+        <Number of groups: yyy>
 
         ## Results for a Table on "<table name here>":
         <write here all the data needed for this table>
