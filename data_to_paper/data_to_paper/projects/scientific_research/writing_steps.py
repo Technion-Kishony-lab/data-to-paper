@@ -132,6 +132,19 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         If you chose to provide bullet-point feedback then DO NOT include "{termination_phrase}".
         """)
 
+    forbidden_phrases: Tuple[Tuple[str, bool], ...] = (
+        # (phrase, match_case)
+        ('Acknowledgments', True, ),
+        ('Data Availability', False, ),
+        ('Author Contributions', False, ),
+        ('Competing Interests', False, ),
+        ('Additional Information', False, ),
+        ('References', True, ),
+        ('Supplementary', False, ),
+    )
+
+    allow_subsections: bool = False
+
     def __post_init__(self):
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
@@ -144,10 +157,30 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     def _get_allowed_bibtex_citation_ids(self) -> List[str]:
         return [citation.bibtex_id for citation in self._get_available_citations()]
 
+    def _check_allowed_subsections(self, section: str):
+        if not self.allow_subsections:
+            if r'\subsection' in section:
+                self._raise_self_response_error('Do not include subsections in the {goal_noun}')
+
+    def _check_forbidden_phrases(self, section: str):
+        used_forbidden_phrases = []
+        for phrase, match_case in self.forbidden_phrases:
+            if match_case:
+                if phrase in section:
+                    used_forbidden_phrases.append(phrase)
+            else:
+                if phrase.lower() in section.lower():
+                    used_forbidden_phrases.append(phrase)
+        if used_forbidden_phrases:
+            self._raise_self_response_error('Do not include: {}'.format(
+                nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
+
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         section = super()._check_and_refine_section(section, section_name)
         self._check_extracted_numbers(section)
         self._check_url_in_text(section)
+        self._check_forbidden_phrases(section)
+        self._check_allowed_subsections(section)
         return section
 
     def write_sections_with_citations(self) -> List[Tuple[str, Set[Citation]]]:
@@ -291,6 +324,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
                                                   'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     enforced_sub_headers: Tuple[str, ...] = ('Data Source', 'Data Preprocessing', 'Data Analysis')
+    allow_subsections: bool = True
 
     @property
     def enforced_subheader_prompt(self) -> str:
