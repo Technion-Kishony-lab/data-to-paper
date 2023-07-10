@@ -396,7 +396,7 @@ class DebuggerConverser(ProductsConverser):
             raise
         else:
             # The code ran without raising exceptions
-            output = code_and_output.output
+            output = code_and_output.get_clean_output()
             if output is not None and len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()

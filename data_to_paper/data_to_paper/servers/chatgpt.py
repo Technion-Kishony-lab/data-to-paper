@@ -67,7 +67,7 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        if model_engine > DEFAULT_MODEL_ENGINE:
+        if False and model_engine > DEFAULT_MODEL_ENGINE:
             while True:
                 answer = input(f'CONFIRM USING {model_engine} (y/n): ').lower()
                 if answer == 'y':

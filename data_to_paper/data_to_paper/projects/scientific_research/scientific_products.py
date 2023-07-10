@@ -333,7 +333,7 @@ class ScientificProducts(Products):
                 'Output of the {code_name} Code',
                 'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
-                lambda code_step: {'output': self.codes_and_outputs[code_step].output,
+                lambda code_step: {'output': self.codes_and_outputs[code_step].get_clean_output(),
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 

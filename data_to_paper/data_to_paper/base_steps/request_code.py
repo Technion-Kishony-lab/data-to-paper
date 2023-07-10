@@ -168,5 +168,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             value_type=Dict[str, str],
             allowed_values_for_keys={'choice': ['ok', 'revise']},
             is_new_conversation=False,
-            user_initiation_prompt=Replacer(self, self.offer_revision_prompt, args=(code_and_output.output,)),
+            user_initiation_prompt=Replacer(self, self.offer_revision_prompt,
+                                            args=(code_and_output.get_clean_output(),)),
         ).run_and_get_valid_result()['choice'] == 'revise'
