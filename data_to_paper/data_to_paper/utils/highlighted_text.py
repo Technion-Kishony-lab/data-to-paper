@@ -144,6 +144,8 @@ def format_text_with_code_blocks(text: str, text_color: str = '',
     for formatted_section in formatted_sections:
         label, section, _, = formatted_section.to_tuple()
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
+        if not is_html and label not in ['python', 'header', 'comment', 'system']:
+            section = FormattedSections([formatted_section]).to_text()
         if label not in NEEDS_NO_WRAPPING:
             section = wrap_string(section, width=width)
         if is_html:

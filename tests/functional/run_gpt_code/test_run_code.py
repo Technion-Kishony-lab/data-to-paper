@@ -121,6 +121,16 @@ def test_run_code_forbidden_import_should_not_raise_on_allowed_packages():
         assert True
 
 
+def test_run_code_wrong_import():
+    code = dedent_triple_quote_str("""
+        from xxx import yyy
+        """)
+    try:
+        run_code_using_module_reload(code)
+    except Exception as e:
+        assert e.fromlist == ['yyy']
+
+
 code = dedent_triple_quote_str("""
     with open('test.txt', 'w') as f:
         f.write('hello')

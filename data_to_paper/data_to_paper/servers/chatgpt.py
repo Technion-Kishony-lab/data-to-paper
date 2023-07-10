@@ -12,6 +12,7 @@ import tiktoken
 
 from data_to_paper.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 from data_to_paper.utils.highlighted_text import print_red
+from data_to_paper.run_gpt_code.runtime_decorators import timeout_context, CodeTimeoutException
 
 from .base_server import ListServerCaller
 from .openai_models import ModelEngine
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
 
 
+TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
 MAX_NUM_OPENAI_ATTEMPTS = 5
 DEFAULT_EXPECTED_TOKENS_IN_RESPONSE = 500
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
@@ -98,15 +100,16 @@ class OpenaiSeverCaller(ListServerCaller):
         openai.organization = organization
         for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
             try:
-                response = openai.ChatCompletion.create(
-                    model=model_engine.value,
-                    messages=[message.to_chatgpt_dict() for message in messages],
-                    **kwargs,
-                )
+                with timeout_context(TIME_LIMIT_FOR_OPENAI_CALL):
+                    response = openai.ChatCompletion.create(
+                        model=model_engine.value,
+                        messages=[message.to_chatgpt_dict() for message in messages],
+                        **kwargs,
+                    )
                 break
             except openai.error.InvalidRequestError:
                 raise
-            except openai.error.OpenAIError as e:
+            except (openai.error.OpenAIError, CodeTimeoutException) as e:
                 print_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
                 sleep_time = 1.0 * 2 ** attempt
                 print_red(f'Going to sleep for {sleep_time} seconds before trying again.')

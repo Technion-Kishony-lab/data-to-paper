@@ -1,13 +1,13 @@
 import re
 from dataclasses import dataclass
-from typing import Tuple, List, Set, Optional
+from typing import Tuple, List, Set, Optional, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
-from data_to_paper.base_steps.literature_search import CITATION_REPR_FIELDS, CITATION_REPR_FIELDS_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, \
+    DEFAULT_LITERATURE_SEARCH_STYLE
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 
@@ -31,7 +31,7 @@ class ShowCitationProducts:
         contents = []
         for field in self.background_product_fields:
             if field.startswith('literature_search') and self.products.is_product_available(field):
-                with CITATION_REPR_FIELDS.temporary_set(CITATION_REPR_FIELDS_FOR_PRINT):
+                with DEFAULT_LITERATURE_SEARCH_STYLE.temporary_set('print'):
                     product = self.products[field]
                     contents.append(f'{product.name}:\n{product.description}')
         return contents
@@ -46,7 +46,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     """
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'codes:data_analysis', 'tables_and_numeric_values', 'results_summary',
+                                                  'codes:data_analysis', 'tables', 'numeric_values', 'results_summary',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     allow_citations_from_step: str = None
@@ -73,7 +73,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         """)
 
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
+        The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
 
         ```latex
         \\section{<section name>}
@@ -99,7 +99,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         {request_triple_quote_block}
         """)
 
-    termination_phrase: str = 'I hereby approve the {goal_noun}.'
+    termination_phrase: str = 'The {goal_noun} does not require any changes'
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
@@ -124,7 +124,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         {section_review_specific_instructions}
 
         You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
-        or other parts of the paper, like tables or Python code, provided above.
+        or other parts of the paper, like LaTex Tables or Python code, provided above.
 
         If you don't see any flaws, respond solely with "{termination_phrase}".
 
@@ -136,7 +136,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
 
-    def _get_available_citations(self) -> List[Citation]:
+    def _get_available_citations(self) -> Iterable[Citation]:
         if self.allow_citations_from_step is None:
             return []
         return self.products.literature_search[self.allow_citations_from_step].get_citations()
@@ -165,16 +165,16 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
-                                             'codes:data_analysis', 'tables_and_numeric_values', 'results_summary')
+                                             'codes:data_analysis', 'tables', 'numeric_values', 'results_summary')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
 
     request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
-        The {goal_noun} should be enclosed within triple-backtick "latex" block, like this:
+        The {goal_noun} should be enclosed within triple-backtick "latex" code block, like this:
 
         ```latex
         \\title{<your latex-formatted paper title here>}
-        
+
         \\begin{abstract}
         <your latex-formatted abstract here>
         \\end{abstract}
@@ -206,7 +206,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
             if ':' in section and not self._raised_colon_error:
                 self._raised_colon_error = True
                 self._raise_self_response_error(
-                    'Title in {journal_name} typically do not have a colon. '
+                    'Titles of manuscripts in {journal_name} typically do not have a colon. '
                     'Can you think of a different title that clearly state a single message without using a colon?')
         if section_name == 'abstract' and section.count('\n') > 2:
             self._raise_self_response_error(f'The abstract should writen as a single paragraph.')
@@ -219,7 +219,9 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
     conversation_name: str = 'title_abstract_section_second'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
                                              'paper_sections:results',
-                                             'literature_search:writing:20:2',
+                                             'literature_search:writing:background',
+                                             'literature_search:writing:dataset',
+                                             'literature_search:writing:results',
                                              'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \
@@ -228,9 +230,10 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         {section_specific_instructions}
 
         I especially want you to:
-        (1) Make sure that the abstract clearly states the main results of the paper (see above the Results Section).
+        (1) Make sure that the abstract clearly states the main results of the paper \
+        (see above the {paper_sections:results}).
         (2) Make sure that the abstract correctly defines the literature gap \
-        (see above list of papers in the Literature Search).
+        (see above Literature Searches for list of related papers).
 
         {latex_instructions}
         {request_triple_quote_block}
@@ -241,10 +244,10 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
 class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'title_and_abstract',
-                                                  'literature_search_by_scope:writing:background:8:2',
-                                                  'literature_search_by_scope:writing:results:6:2',
-                                                  'literature_search_by_scope:writing:dataset:4:2',
-                                                  'literature_search_by_scope:writing:methods:4:2',
+                                                  'literature_search:writing:background',
+                                                  'literature_search:writing:results',
+                                                  'literature_search:writing:dataset',
+                                                  'literature_search:writing:methods',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
     allow_citations_from_step: str = 'writing'
@@ -257,16 +260,17 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Specifically, the introduction should follow the following multi-paragraph structure:
 
         * Introduce the topic of the paper and why it is important \
-        (cite relevant papers from the above "Literature Search for Background"). 
+        (cite relevant papers from the above "{literature_search:writing:background}"). 
 
         * Explain what was already done and known on the topic, and what is then the research gap/question \
-        (cite relevant papers from the above "Literature Search for Results"). 
+        (cite relevant papers from the above "{literature_search:writing:results}"). 
 
         * State how the current paper addresses this gap/question \
-        (cite relevant papers from the above "Literature Search for Dataset").
+        (cite relevant papers from the above "{literature_search:writing:dataset}" and \
+        "{literature_search:writing:results}").
 
         * Outline the methodological procedure and briefly state the main findings \
-        (cite relevant papers from the above "Literature Search for Methods"). 
+        (cite relevant papers from the above "{literature_search:writing:methods}")
 
         Each of these paragraphs should be 4-6 sentence long.
 
@@ -276,7 +280,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Note that it is not advisable to write about limitations, implications, or impact in the introduction.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
-        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
+        Also, please suggest if you see any specific additional citations that are adequate to include \
+        (from the Literature Searches above).
         """)
 
 
@@ -299,7 +304,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Methods section should have 3 subsections:
 
-        * "Data Source": Describe the data sources, based on the data file descriptions provided above.
+        * "Data Source": Describe the data sources, based on the above "{data_file_descriptions}".
 
         * "Data Preprocessing": Describe preprocessing of the data done by the Python code. Do not include \
         preprocessing steps that were not performed by the code, or that were performed by the code \
@@ -349,43 +354,45 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'tables_and_numeric_values')
+        ('title_and_abstract', 'tables', 'numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'tables_and_numeric_values')
+        ('title_and_abstract', 'tables', 'numeric_values')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        As you write the results, \
-        refer to the Tables by their labels and explain their content, but do not add the tables themselves \
-        (I will add the tables later manually).
+        Use the following guidelines when writing the Results:
 
-        You should typically have a separate paragraph describing for each Table. In each such paragraph, \
-        indicate the motivation/question for the analysis, the methodology, and only then describe the results.
+        * One paragraph per Table: You should typically have a separate paragraph describing each of the Tables. \
+        In each such paragraph, indicate the motivation/question for the analysis, the methodology, \
+        and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \
+        and explain their content, but do not add the tables themselves (I will add the tables later manually).
 
-        It is often nice to have a story-like flow between the paragraphs, so that the reader can follow the \
-        analysis process with emphasis on the reasoning/motivation behind each analysis step. 
+        * Story-like flow: It is often nice to have a story-like flow between the paragraphs, so that the reader \
+        can follow the analysis process with emphasis on the reasoning/motivation behind each analysis step. 
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
         "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
-        ..."; "Finally, to further verify the effect of zzz, we tested whether ...". 
+        ..."; "Finally, to further verify the effect of zzz, we tested whether ...".
 
-        You can also extract and use any of the key Numerical Values provided above that you think are \
-        scientifically meaningful. Note though that, unlike the Tables, these Numerical Values are not going to be \
-        added as a part of the paper, so you should explicitly mention any important values as an integral part of \
-        the text.
-        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the relevant value, \
-        in scientific writing it is not common to write 0 as a p-value.
+        * Numeric values: You can extract and mention numeric values from the Tables as well as from the \
+        "{numeric_values}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
+        going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
+        explicitly mention any such important numeric value as an integral part of the text.
 
-        Make sure that you are only mentioning details that are explicitly found within the Tables and Numerical Values.
+        * p-values: When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
+        relevant value.
+
+        * Accuracy: Make sure that you are only mentioning details that are explicitly found within the Tables and \
+        Numerical Values.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
         whether the {goal_noun} contains only information that is explicitly extracted from the \
-        Tables and Numerical Values provided above. \
+        {tables} and {numeric_values} provided above. \
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
 
         Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \
-        only suggest changes that are relevant to the Results section text that are supported by the given \
+        only suggest changes that are relevant to the Results section itself and that are supported by the given \
         Tables and Numerical Values.
 
         Do not suggest changes to the {goal_noun} that may require data not available in the the \
@@ -411,8 +418,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('title_and_abstract',
-                                                  'literature_search_by_scope:writing:background:5:2',
-                                                  'literature_search_by_scope:writing:results:8:2',
+                                                  'literature_search:writing:background',
+                                                  'literature_search:writing:results',
                                                   'paper_sections:introduction',
                                                   'paper_sections:methods',
                                                   'paper_sections:results')
@@ -420,13 +427,15 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
-        Also, please suggest if there are any additional citations to include from the "Literature Search" above.
+        Also, please suggest if you see any specific additional citations that are adequate to include \
+        (from the Literature Searches above).
         """)
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Discussion section should follow the following structure:
-        * Recap the subject of the study (cite relevant papers from the above "Literature Search for Background").  
-        * Recap our methodology (see "Methods" section above) and the main results (see "Results" section above), \
-        and compare them to the results from prior literature (see above "Literature Search for Results"). 
+        * Recap the subject of the study (cite relevant papers from the above "{literature_search:writing:background}").  
+        * Recap our methodology (see "Methods" section above) and the main results \
+        (see "{paper_sections:results}" above), \
+        and compare them to the results from prior literature (see above "{literature_search:writing:results}"). 
         * Discuss the limitations of the study.
         * End with a concluding paragraph summarizing the main results, their implications and impact, \
         and future directions.

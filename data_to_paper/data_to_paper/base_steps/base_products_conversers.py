@@ -76,6 +76,13 @@ class BackgroundProductsConverser(ProductsConverser):
     post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
 
     @property
+    def replacer_kwargs(self):
+        if self.background_product_fields is None:
+            return {}
+        return {field: self.products[field].name for field in self.background_product_fields
+                if self.products.is_product_available(field)}
+
+    @property
     def actual_background_product_fields(self) -> Optional[Tuple[str, ...]]:
         if self.background_product_fields is None:
             return None
@@ -159,7 +166,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
-    termination_phrase: str = "I hereby approve the {goal_noun}"
+    termination_phrase: str = "The {goal_noun} does not require any changes"
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
@@ -179,7 +186,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
     def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
-        acknowledgement += self.user_initiation_prompt if is_last else ''
+        acknowledgement += f'\n{self.user_initiation_prompt}' if is_last else ''
         self.apply_to_other_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
     def _add_other_product_description(self, product_field: str):
@@ -211,8 +218,8 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     """)
 
     ask_for_formula_prompt: str = dedent_triple_quote_str("""\n\n
-        Alternatively, if you need to indicate a number which is NOT an explicit extraction or rounding from the numbers 
-        provided above, \
+        Alternatively, if you need to indicate a number which is NOT an explicit extraction \
+        or rounding from the numbers provided above, \
         but is rather mathematically derived from them, then replace the number with the formula for deriving it, \
         using the \\num command.
 

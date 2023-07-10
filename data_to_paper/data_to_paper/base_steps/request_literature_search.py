@@ -121,5 +121,16 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "paper_id": "",
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
+            # for scope in literature_search.scopes_to_queries_to_citations:
+            #     for should_sort in (True, False):
+            #         print(f'\n\nscope: {scope}, sorted: {should_sort}')
+            #         print(literature_search.pretty_repr_for_scope_and_query(
+            #             scope=scope,
+            #             total=7,
+            #             distribution_factor=2.0,
+            #             sort_by_similarity=should_sort,
+            #             minimal_influence=1,
+            #             style='print',
+            #         ))
 
         return literature_search

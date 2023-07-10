@@ -215,7 +215,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
         Check that there are no additional sections in the response.
         """
         num_sections = response.count('\\section')
-        if num_sections != len([section_name for section_name in self.section_names
+        if num_sections > len([section_name for section_name in self.section_names
                                 if section_name not in SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS]):
             self._raise_self_response_error(
                 f'You must only write the {self.pretty_section_names} section.'

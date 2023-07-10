@@ -115,10 +115,14 @@ class PreventImport:
     def __exit__(self, exc_type, exc_val, exc_tb):
         builtins.__import__ = self.original_import
 
-    def custom_import(self, name, *args, **kwargs):
+    def custom_import(self, name, globals=None, locals=None, fromlist=(), level=0):
         if any(name.startswith(module + '.') for module in self.modules) or name in self.modules:
             frame = traceback.extract_stack()[-2]
             if frame.filename.endswith(self.module_filename):
                 raise CodeImportForbiddenModule(module=name)
         with within_import(name):
-            return self.original_import(name, *args, **kwargs)
+            try:
+                return self.original_import(name, globals, locals, fromlist, level)
+            except Exception as e:
+                e.fromlist = fromlist
+                raise e

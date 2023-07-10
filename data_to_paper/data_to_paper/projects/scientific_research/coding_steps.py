@@ -75,7 +75,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
                f'{self.files_created_in_prior_stages}' \
                f'```\n' \
                f'Important: use the correct version of the data to perform each of the steps. For example, ' \
-               f'for descriptive statistics use the original data, for model building use the processed data.\n'
+               f'for descriptive statistics use the original data, for model building use the processed data.'
 
     @property
     def raw_data_filenames(self) -> NiceList[str]:
@@ -116,8 +116,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Measure of the scale of our data (e.g., number of rows, number of columns)
         * Summary statistics of key variables
         * List of most common values of categorical variables (if any) 
-        * Counts of missing, unknown, or undefined values, and for numeric values that stand for \
-        unknown/undefined (check in the file description above for any).
+        * Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
+        unknown/undefined (check in the "{all_file_descriptions}" above for any).
         * Any other data exploration analysis you deem relevant
 
         The output file should be self-contained; any results you choose to save to this file \
@@ -148,9 +148,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (2) Based on your assessment above, choose one of the following options:
 
-        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The data exploration is not perfectly. \
+        b. The data exploration is not perfect. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
@@ -217,10 +217,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to achieve the research goal specified above. 
+        Write a complete Python code to achieve the research goal specified above.
+
         The code should:
 
-        (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).
+        (1) Load the data from the original data files described above ({data_file_descriptions}).\
         {list_additional_data_files_if_any}
 
         (2) Create an output text file named "{output_filename}".
@@ -229,13 +230,13 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (3) Perform any preprocessing steps needed to prepare the data for the analysis.
         For example, as applicable:
-        * Dealing with missing, unknown, or undefined values, and for numeric values that stand for unknown/undefined \
-        (check in the file description above for any).
+        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
+        unknown/undefined (check in the file description above for any).
         * Normalization of numeric values with different units into same-unit values.
         * Any other data preprocessing you deem relevant.
 
         (4) Perform the analysis and appropriate statistical tests needed to directly test our specified hypotheses \
-        (see above our Research Goal and our Hypothesis Testing Plan).
+        (see above our "{research_goal}" and our "{hypothesis_testing_plan}").
         Note that the analysis should account for any relevant confounding variables, as applicable. 
 
         (5) Create and output the data analysis results that are needed to produce a scientific paper \
@@ -249,11 +250,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
             Total number of observations: xxx
             etc.
 
-        ## Results for Table 1:
-        all the data needed for Table 1
+        ## Results for a Table on "<table name here>":
+        <write here all the data needed for this table>
 
-        ## Results for Table 2:
-        all the data needed for Table 2
+        ## Results for a Table on "<table name here>":
+        <write here all the data needed for this table>
 
         etc
         ```
@@ -278,7 +279,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         {}
         ```
 
-        Considering the scientific tables we want to create ("The Names of the Tables of the Paper", above), \
+        Considering the scientific tables we want to create ("{tables_names}", above), \
         please follow these two steps:
 
         (1) Check the code output for any issues, and return a bullet-point response addressing these points:
@@ -292,9 +293,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (2) Based on your assessment above, choose one of the following options:
 
-        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The output does not perfectly provides everything we need for the Tables. \
+        b. The output does not perfectly provides everything we need for the Tables. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
@@ -338,29 +339,24 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         LatexReviewBackgroundProductsConverser.__post_init__(self)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        {requesting_code_explanation}
+        Please return a triple-backtick Latex Block explaining what the code above does. 
+        Do not provide a line-by-line explanation, rather provide a \
+        high-level explanation of the code in a language suitable for a Methods section of a research \
+        paper. 
         {actual_requesting_output_explanation}
-        {request_triple_quote_block}
-        {latex_instructions}
 
-        Your response should look like this:
+        Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
+
         ```latex
         \\section{Code Explanation}
         <your code explanation here>
-        ```    
-        """)
-    request_triple_quote_block: Optional[str] = \
-        'Send your entire description as a single triple-backtick "latex" block.\n'
+        ```
 
-    latex_instructions: str = dedent_triple_quote_str("""
-        Within the "latex" block, start with \\section{Code Explanation} command, and then write your explanation.
-        Use tex formatting.
+        Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it!
         """)
 
-    requesting_code_explanation: str = dedent_triple_quote_str("""
-        Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. 
+    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
+        Your code explanation should be enclosed within a triple-backtick "latex" block.
         """)
 
     requesting_output_explanation: str = dedent_triple_quote_str("""

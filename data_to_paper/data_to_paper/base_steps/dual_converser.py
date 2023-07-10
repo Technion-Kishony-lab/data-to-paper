@@ -3,12 +3,13 @@ from enum import Enum
 from typing import Optional, Tuple, Any
 
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
-from data_to_paper.utils.text_extractors import extract_text_between_tags
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.highlighted_text import print_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.env import TEXT_WIDTH
+from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
+    IncompleteBlockFailedExtractingBlock
 
 from .converser import Converser
 from .result_converser import ResultConverser, Rewind
@@ -387,7 +388,6 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     The performer is expected to return the goal as a triple-quoted string, so that it can be extracted.
     """
 
-    flanking_tag_list = [('```', '```'), ('"""', '"""'), ("'''", "'''")]
     quote_request: str = '\n\nPlease return your answer enclosed within triple-backticks ' \
                          '(but send text, not code).'
     flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
@@ -413,16 +413,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         self.returned_result = extracted_result
 
     def _extract_quoted_result_from_self_response(self, response: str) -> str:
-        for flanking_tags in self.flanking_tag_list:
-            try:
-                return extract_text_between_tags(response, *flanking_tags)
-            except ValueError:
-                pass
-        for flanking_tags in self.flanking_tag_list:
-            if response.count(flanking_tags[0]) == 1:
-                # if there is only one tag, we assume that chatgpt got stuck. We bump it up:
-                self._raise_self_response_error(self.quote_request, bump_model=True)
-        self._raise_self_response_error(self.quote_request, rewind=Rewind.REPOST_AS_FRESH)
+        try:
+            return extract_content_of_triple_quote_block(response, self.goal_noun, None)
+        except FailedExtractingBlock as e:
+            self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock))
 
     def _check_flanked_response_is_not_just_header(self, response: str):
         if response.count('\n') < 2 and response.count(' ') < 5:
