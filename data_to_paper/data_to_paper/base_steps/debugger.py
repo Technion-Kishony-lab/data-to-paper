@@ -1,3 +1,4 @@
+import importlib
 import os
 
 from dataclasses import dataclass, field
@@ -23,6 +24,18 @@ from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directo
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import ProductsConverser
+
+
+KNOWN_MIS_IMPORTS = {
+    'Mediation': 'statsmodels.stats.mediation',
+}
+
+# assert imports of KNOWN_MIS_IMPORTS:
+for name, module in KNOWN_MIS_IMPORTS.items():
+    try:
+        importlib.import_module(module, name)
+    except ImportError:
+        raise ImportError(f"Wong imports in KNOWN_MIS_IMPORTS.\nFailed importing {name} from {module}")
 
 
 @dataclass
@@ -81,7 +94,34 @@ class DebuggerConverser(ProductsConverser):
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
-    def _respond_to_allowed_packages(self, error_message: str):
+    def _respond_to_known_mis_imports(self, e: ImportError) -> bool:
+        if not hasattr(e, 'fromlist'):
+            return False
+        if len(e.fromlist) != 1:
+            return False
+        var = e.fromlist[0]
+        if var not in KNOWN_MIS_IMPORTS:
+            return False
+        correct_package = KNOWN_MIS_IMPORTS[var]
+        # extract from correct_package up to the first '.':
+        package_base = correct_package[:correct_package.index('.')] if '.' in correct_package else correct_package
+        if package_base not in self.supported_packages:
+            return False
+        self.apply_append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code and got the following error message:
+            ```
+            {}
+            ```
+            Please rewrite the code using only these packages: {supported_packages}.
+            Note that there is a `{var}` in `{correct_package}`. Is this perhaps what you needed? 
+            """).format(e, supported_packages=self.supported_packages, var=var, correct_package=KNOWN_MIS_IMPORTS[var]),
+            comment=f'{self.iteration_str}: ImportError detected in gpt code.')
+        return True
+
+    def _respond_to_allowed_packages(self, e: ImportError):
+        if self._respond_to_known_mis_imports(e):
+            return
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
@@ -89,7 +129,7 @@ class DebuggerConverser(ProductsConverser):
             {}
             ```
             Please rewrite the code using only these packages: {}. 
-            """).format(error_message, self.supported_packages),
+            """).format(e, self.supported_packages),
             comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
     def _respond_to_file_not_found(self, error_message: str):
@@ -320,7 +360,7 @@ class DebuggerConverser(ProductsConverser):
                 raise e.exception
             except ImportError:
                 # chatgpt tried using a package we do not support
-                self._respond_to_allowed_packages(str(e.exception))
+                self._respond_to_allowed_packages(e.exception)
             except TimeoutError:
                 # code took too long to run
                 self._respond_to_timeout()
