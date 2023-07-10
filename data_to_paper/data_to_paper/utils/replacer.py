@@ -42,9 +42,10 @@ class Replacer:
         text = self.text
         brackets = ListBasedSet(extract_all_external_brackets(self.text, '{'))
         additional_kwargs = {}
+        objs = self.get_objs()
         for bracket in brackets:
             bracketed_text = bracket[1:-1]
-            for obj in self.get_objs():
+            for obj in objs:
                 if hasattr(obj, bracketed_text):
                     attr = getattr(obj, bracketed_text)
                     if not isinstance(attr, Replacer):
@@ -54,6 +55,10 @@ class Replacer:
                     break
             else:
                 pass  # we don't have the attribute in any of the objects, so we don't do anything
+        # add object kwargs:
+        for obj in objs:
+            if hasattr(obj, 'replacer_kwargs'):
+                additional_kwargs.update(obj.replacer_kwargs)
 
         return forgiving_format(text, *self.args, **self.kwargs, **additional_kwargs)
 

@@ -223,22 +223,22 @@ class ScientificProducts(Products):
             # ====
 
             'general_dataset_description': NameDescriptionStageGenerator(
-                'Dataset Description',
+                'Overall Description of the Dataset',
                 'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.general_description,
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
-                'Original Dataset',
+                'Description of the Original Dataset',
                 'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
-                'Dataset',
-                'DESCRIPTION OF THE DATASET:\n\n{}',
+                'Description of the Dataset',
+                'Description of the Dataset:\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.all_file_descriptions,
             ),

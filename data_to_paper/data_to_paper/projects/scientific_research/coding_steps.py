@@ -117,7 +117,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Summary statistics of key variables
         * List of most common values of categorical variables (if any) 
         * Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
-        unknown/undefined (check in the file description above for any).
+        unknown/undefined (check in the "{all_file_descriptions}" above for any).
         * Any other data exploration analysis you deem relevant
 
         The output file should be self-contained; any results you choose to save to this file \
@@ -148,9 +148,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (2) Based on your assessment above, choose one of the following options:
 
-        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The data exploration is not perfect. \
+        b. The data exploration is not perfect. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
@@ -221,7 +221,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         
         The code should:
 
-        (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).\
+        (1) Load the data from the original data files described above ({data_file_descriptions}).\
         {list_additional_data_files_if_any}
 
         (2) Create an output text file named "{output_filename}".
@@ -236,7 +236,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Any other data preprocessing you deem relevant.
 
         (4) Perform the analysis and appropriate statistical tests needed to directly test our specified hypotheses \
-        (see above our Research Goal and our Hypothesis Testing Plan).
+        (see above our "{research_goal}" and our "{hypothesis_testing_plan}").
         Note that the analysis should account for any relevant confounding variables, as applicable. 
 
         (5) Create and output the data analysis results that are needed to produce a scientific paper \
@@ -279,7 +279,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         {}
         ```
 
-        Considering the scientific tables we want to create ("The Names of the Tables of the Paper", above), \
+        Considering the scientific tables we want to create ("{tables_names}", above), \
         please follow these two steps:
 
         (1) Check the code output for any issues, and return a bullet-point response addressing these points:
@@ -293,9 +293,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (2) Based on your assessment above, choose one of the following options:
 
-        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The output does not perfectly provides everything we need for the Tables. \
+        b. The output does not perfectly provides everything we need for the Tables. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.

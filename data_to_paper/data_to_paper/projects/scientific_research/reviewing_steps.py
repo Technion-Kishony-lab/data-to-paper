@@ -53,7 +53,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Make sure that your suggested hypothesis can be studied using only the provided dataset, \
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of our data files \
-        as in the description of the original dataset, above).
+        as in the "{data_file_descriptions}", above).
 
         Avoid goals and hypotheses that involve sociodemographic (Income, Education, etc.) and psychological \
         (Mental Health) variables. Note that you can, and should still use these as confounding variables if needed.
@@ -118,7 +118,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
         - Smith2020TheAB: "A title of a paper most overlapping with our goal and hypothesis"
         - Jones2021AssortedCD: "Another title of a paper that is similar to our goal and hypothesis"
 
-        (2) Given the related papers that your have listed, choose one of the following two options:
+        (2) Given the related papers that you have listed, choose one of the following two options:
         a. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing \
         {'choice': 'OK'}.
         b. Our goal and hypothesis seem too overlapping with existing literature, \
@@ -149,7 +149,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
         Make sure that your suggested hypothesis can be studied using only the provided dataset, \
         without requiring any additional data \
         (pay attention to using only data available based on the provided headers of our data files \
-        as in the description of the original dataset, above).
+        as in the "{data_file_descriptions}", above).
 
         {quote_request}
         """)
@@ -193,7 +193,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         Please follow these two steps:
 
         (1) Create a bullet-point review of relevant statistical issues. 
-        Read the Dataset Description and the Data Exploration Output provided above, \
+        Read the "{data_file_descriptions}" and the "{codes_and_outputs:data_exploration}" provided above, \
         and then for each of the following generic \
         statistical issues determine if they are relevant for our case and whether they should be accounted for: 
         * multiple comparisons.
@@ -247,8 +247,8 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     termination_phrase: str = 'The names of the tables do not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please list captions for Tables that we should prepare for a scientific paper addressing the research goal and \
-        hypothesis testing described above.
+        Please list captions for Tables that we should prepare for a scientific paper addressing the \
+        "{research_goal}" and "{hypothesis_testing_plan}" described above.
 
         The table names that you choose should be returned as a Python Dict[str, str], with the keys \
         in the form of 'Table n' and the values being the actual names of the tables.
@@ -303,7 +303,7 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
     value_type: type = Dict[str, str]
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please list captions for Tables that we can prepare for a scientific paper based on the \
-        Output of our Data Analysis code (provided above).
+        {outputs:data_analysis} (provided above).
 
         The table names that you choose should be returned as a Python Dict[str, str], with the keys \
         in the form of 'Table n' and the values being the actual names of the tables.
@@ -366,7 +366,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         Please build the table "{table_name}".
         Write the table in latex format, centered, in booktabs, multirow format.
 
-        You should build the table using only results provided in the output files above.
+        You should build the table using only results provided in the {outputs:data_analysis} above.
 
         As you build the Table, you should follow these guidelines (as applicable):
 
@@ -377,7 +377,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         or that repeat the same information multiple times. 
 
         (2) What NOT to include in the table:
-        * Do not include any presumed information that is not explicitly provided in the analysis results above.
+        * Do not include any presumed information that is not explicitly provided in the {outputs:data_analysis} above.
         * Do not leave any blank cells, or to-be-filled-later cells.
         
         (3) Table format and organization:
@@ -403,7 +403,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide actionable feedback on the above table, with specific attention to whether the table \
+        Please provide actionable feedback on the above Table, with specific attention to whether the table \
         correctly represent data from our analysis output.
 
         {do_not_repeat_information_from_previous_tables}
@@ -482,7 +482,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         The {goal_noun} you choose should be those that are not presented in the latex tables above but \
         might still be needed for a scientific paper.
         These {goal_noun} should only include information that is explicitly extracted from the output files provided \
-        above.
+        above ("{outputs:data_exploration}", "{outputs:data_analysis}").
         The {goal_noun} that you choose should be returned as a Python Dict[str, Any], where the keys are the names \
         tou choose for the result, and the values are the numeric results themselves.
         For example, if the analysis results provide summary of a some statistical tests, or statistical models, \
@@ -493,7 +493,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
             'AUC ROC of logistic regression for the XXX model': zzz,
         }
         Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
-        results we got in the output and in light of the overall goal of the project as mentioned above.
+        results we got in the output and in light of the {research_goal} of the project as mentioned above.
 
         Return a maximum of 5 {goal_noun}.
         Do not send any free text. All descriptions should be included in the keys of the Python Dict.

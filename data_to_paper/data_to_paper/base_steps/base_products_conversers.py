@@ -76,6 +76,13 @@ class BackgroundProductsConverser(ProductsConverser):
     post_background_comment: str = 'Background messages completed. Requesting "{goal_noun}".'
 
     @property
+    def replacer_kwargs(self):
+        if self.background_product_fields is None:
+            return {}
+        return {field: self.products[field].name for field in self.background_product_fields
+                if self.products.is_product_available(field)}
+
+    @property
     def actual_background_product_fields(self) -> Optional[Tuple[str, ...]]:
         if self.background_product_fields is None:
             return None
