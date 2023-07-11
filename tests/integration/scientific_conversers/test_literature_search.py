@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 from _pytest.fixtures import fixture
 
-from data_to_paper.projects.scientific_research.literature_search import WritingLiteratureSearchReviewGPT
+from data_to_paper.researches_types.scientific_research.literature_search import WritingLiteratureSearchReviewGPT
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.servers.types import Citation

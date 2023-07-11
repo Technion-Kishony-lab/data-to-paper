@@ -66,7 +66,7 @@ def get_output_path(project: str, output_folder: str, save_on_repo: bool = False
 
 def get_input_path(project: str, load_from_repo: bool = False) -> Path:
     if load_from_repo:
-        return THIS_FOLDER / 'projects' / project / 'inputs'
+        return THIS_FOLDER / 'inputs'
     else:
         return get_local_folder_path() / project
 

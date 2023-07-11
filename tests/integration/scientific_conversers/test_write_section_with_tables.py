@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 

@@ -4,8 +4,8 @@ from typing import Optional, Dict, Tuple, Set, List, Union
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex.tables import add_tables_to_paper_section
-from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
+from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
+from data_to_paper.researches_types.scientific_research.scientific_stage import ScientificStages
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \

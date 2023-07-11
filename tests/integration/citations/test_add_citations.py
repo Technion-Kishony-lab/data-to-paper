@@ -1,9 +1,9 @@
 from _pytest.fixtures import fixture
 
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
-from data_to_paper.projects.scientific_research.add_citations import AddCitationReviewGPT
+from data_to_paper.researches_types.scientific_research.add_citations import AddCitationReviewGPT
 
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
 

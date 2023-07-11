@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from data_to_paper.base_steps import BaseLatexToPDFWithAppendix
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.crossref import CrossrefCitation
 
 

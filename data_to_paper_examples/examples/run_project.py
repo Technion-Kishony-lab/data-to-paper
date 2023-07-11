@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
-from data_to_paper.projects.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.researches_types.scientific_research.run_steps import ScientificStepsRunner
 
 
 THIS_FOLDER = Path(__file__).parent

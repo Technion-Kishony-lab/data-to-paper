@@ -5,9 +5,9 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import BaseCodeProductsGPT
-from data_to_paper.projects.scientific_research.coding_steps import ExplainCreatedDataframe, \
+from data_to_paper.researches_types.scientific_research.coding_steps import ExplainCreatedDataframe, \
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
