@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
-from data_to_paper.projects.scientific_research.get_template import get_paper_template_path
-from data_to_paper.projects.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.researches_types.scientific_research.get_template import get_paper_template_path
+from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.servers.crossref import CrossrefCitation
 

@@ -6,8 +6,8 @@ from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
 from data_to_paper.base_steps.literature_search import CITATION_REPR_FIELDS, CITATION_REPR_FIELDS_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
-from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 
