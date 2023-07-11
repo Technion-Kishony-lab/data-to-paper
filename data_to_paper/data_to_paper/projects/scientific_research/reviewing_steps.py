@@ -298,8 +298,7 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 @dataclass
 class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
     max_reviewing_rounds: int = 0
-    background_product_fields: Tuple[str] = ('data_file_descriptions', 'research_goal',
-                                             'hypothesis_testing_plan', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes:data_preprocessing',
                                              'codes:data_analysis', 'outputs:data_analysis')
     conversation_name: str = 'second_table_names'
     value_type: type = Dict[str, str]
