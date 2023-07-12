@@ -112,18 +112,29 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Your code should create an output text file named "{output_filename}", which should \
         contain a summary of the data.
-        Depending on the specifics of the dataset, you might want to include:
-
-        * Measure of the scale of our data (e.g., number of rows, number of columns)
-        * Summary statistics of key variables
-        * List of most common values of categorical variables (if any) 
-        * Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
-        unknown/undefined (check in the "{all_file_descriptions}" above for any).
-        * Any other data exploration analysis you deem relevant
-
+        
         The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
 
+        The output file should be formatted as follows:
+        
+        ```
+        ## Data Summary
+        - Measure of the scale of our data (e.g., number of rows, number of columns)
+        
+        ## Summary statistics
+        - Summary statistics of all or key variables
+        
+        ## Categorical variables
+        - List of most common values of categorical variables (if any)
+        
+        ## Missing values 
+        - Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
+        unknown/undefined (check in the "{all_file_descriptions}" above for any).
+        
+        ## <other summary you deem relevant, if any>
+        - <summary>
+        ```
         If needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -142,8 +153,11 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file, do we have short headers for each result and \
+        * Can results be understood from the output file; do we have short headers for each result and \
         do all values have sensible names, etc.
+        * Do all results have units (if applicable).
+        * Are there any results that are missing. Check that under each header in the output file has a corresponding \
+        meaningful result.
         * Any other issues you find.
 
 

@@ -400,6 +400,17 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+    forbidden_phrases: Tuple[Tuple[str, bool], ...] = \
+        SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + (
+            # (phrase, match_case)
+            ('In conclusions', True),
+            ('Future research', False),
+            ('Future work', False),
+            ('Future studies', False),
+            ('Future directions', False),
+            ('Limitations', False),
+        )
+
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'tables', 'numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
@@ -420,6 +431,13 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
         "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
         ..."; "Finally, to further verify the effect of zzz, we tested whether ...".
+
+        * Conclude with a summary of the results:
+        You can summarize the results at the end, with a sentence like: "In summary, these results show ...", \
+        or "Taken together, these results suggest ...".
+        IMPORTANT NOTE: Your summary SHOULD NOT include a discussion of conclusions, implications, limitations, \
+        or of future work.
+        (These will be added later as part the Discussion section, not the Results section). 
 
         * Numeric values: 
         You can extract and mention numeric values from the Tables as well as from the \
