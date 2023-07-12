@@ -336,26 +336,39 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         return s
 
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        The Methods section should have 3 subsections:
+        The Methods section should be enclosed within triple-backtick "latex" code block \
+        and have 3 subsections, as follows: 
 
-        * "Data Source": Describe the data sources, based on the above "{data_file_descriptions}".
+        ```latex
+        \\section{Methods}
+        
+        \\subsection{Data Source}
+        - Describe our data sources (see above "{data_file_descriptions}")
 
-        * "Data Preprocessing": Describe preprocessing of the data done by the Python code. Do not include \
-        preprocessing steps that were not performed by the code, or that were performed by the code \
-        but were not used as basis for the result output.
+        \\subsection{Data Preprocessing}
+        - Describe preprocessing of the data done by the Python code (see above "{codes:data_analysis}").
+        - Do not include preprocessing steps that were not performed by the code. 
+        - Do not include preprocessing steps that were performed by the code, but were not used as basis \
+        for further analysis affecting the result output.
 
-        * "Data Analysis": Describe the specific analysis steps performed by the Python code to yield the results. \
-        Do not be over technical. \
-        Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
+        \\subsection{Data Analysis}
+        - Describe each of the specific analysis steps performed by the Python code to yield the results.
+        - Do not be over technical.
+        - Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
+        ```
 
-        Do NOT include any of the following:
+        Throughout the Methods section, do NOT include any of the following:
         - Missing steps not done by the code.
-        - Intermediate analysis steps that were performed but that were not used in further downstream steps.
         - Specific version of software packages, file names, column names.
         - Names of package functions (e.g., do not say "We used sklearn.linear_model.LinearRegression", say instead \
         "We used a linear regression model") 
-        - URLs, links or references.
+        - URLs, links or references.""")
+
+    request_triple_quote_block: str = dedent_triple_quote_str("""
+        Remember to enclose the Methods section within triple-backtick "latex" code block.
         """)
+
+    latex_instructions: str = ''
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
 

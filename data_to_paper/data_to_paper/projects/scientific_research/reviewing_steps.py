@@ -44,19 +44,24 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     termination_phrase: str = \
         'The research goal does not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please suggest a research goal and an hypothesis. 
-        The goal and hypothesis should be interesting and novel, testing complex associations and relationships, \
-        including mediation and moderation. 
-        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
+        Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
+        The goal and hypothesis should be interesting and novel.
+        
+        Guidelines:
+        
+        * Try to avoid trivial hypotheses (like just testing for simple linear associations).
+        Instead, you could perhaps explore more complex associations and relationships, like testing for \
+        mediation, or moderation effects, or interactions between variables. 
 
-        Do not suggest methodology. Just the goal and an hypothesis. 
-        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
-        without requiring any additional data \
-        (pay attention to using only data available based on the provided headers of our data files \
-        as in the "{data_file_descriptions}", above).
+        * Make sure that your suggested hypothesis can be studied using only the provided dataset, \
+        without requiring any additional data. In particular, pay attention to using only data available \
+        based on the provided headers of our data files (see "{data_file_descriptions}", above).
 
-        Avoid goals and hypotheses that involve sociodemographic (Income, Education, etc.) and psychological \
-        (Mental Health) variables. Note that you can, and should still use these as confounding variables if needed.
+        * Avoid goals and hypotheses that involve ethic issues like sociodemographic (Income, Education, etc.) \
+        and psychological (Mental Health) variables. 
+        Note though that you can, and should, still use these as confounding variables if needed.
+
+        * Do not suggest methodology. Just the goal and an hypothesis. 
 
         {quote_request}
         """)
@@ -69,7 +74,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
         Hypothesis: 
         <your hypothesis here>
-        ``` 
+        ```
         """)
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
@@ -397,7 +402,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         * Add a caption suitable for inclusion as part of a scientific paper. \
         you can use the table name provided above, or modify it as you see fit.
         Use the format "\\caption{{Your chosen caption here}}".
-        * Choose and add a table label in the format "\\label{{table:xxx}}".
+        * Choose and add a table label in the format "\\label{{table:<your label here>}}".
 
         {do_not_repeat_information_from_previous_tables}
 

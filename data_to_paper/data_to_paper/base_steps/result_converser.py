@@ -92,7 +92,7 @@ class ResultConverser(Converser):
 
     user_initiation_prompt: str = "Please {goal_verb} {goal_noun}."
 
-    max_valid_response_iterations: int = 4
+    max_valid_response_iterations: int = 6
 
     response_to_self_error: str = "{}"
     # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
@@ -172,6 +172,7 @@ class ResultConverser(Converser):
         """
         self._conversation_len_before_first_response = len(self.conversation)
         self_message = None
+        self._self_response_iteration_count = 0
         while self._self_response_iteration_count < self.max_valid_response_iterations:
             self._self_response_iteration_count += 1
             # to allow starting either before or after the first self response:
