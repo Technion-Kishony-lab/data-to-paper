@@ -118,23 +118,25 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         The output file should be formatted as follows:
         
-        ```
+        ```output
         ## Data Summary
-        - Measure of the scale of our data (e.g., number of rows, number of columns)
+        <Measure of the scale of our data (e.g., number of rows, number of columns)>
         
         ## Summary statistics
-        - Summary statistics of all or key variables
+        <Summary statistics of all or key variables>
         
         ## Categorical variables
-        - List of most common values of categorical variables (if any)
+        <As applicable, list here categorical values and their most common values>
         
-        ## Missing values 
-        - Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
-        unknown/undefined (check in the "{all_file_descriptions}" above for any).
+        ## Missing values
+        <Counts of missing, unknown, or undefined values>
+        <As applicable, counts of special numeric values that stand for unknown/undefined if any \
+        (check in the "{all_file_descriptions}" above for any)>
         
         ## <other summary you deem relevant, if any>
-        - <summary>
+        <summary>
         ```
+
         If needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -356,7 +358,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         Please return a triple-backtick Latex Block explaining what the code above does. 
         Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. 
+        paper.
+        Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.  
         {actual_requesting_output_explanation}
 
         Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:

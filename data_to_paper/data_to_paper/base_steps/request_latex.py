@@ -10,7 +10,8 @@ from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.file_utils import get_non_existing_file_name
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
 from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, LatexProblemInCompilation, TooWideTableOrText
-from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock
+from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
+    IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.latex.latex_to_pdf import check_latex_compilation
@@ -118,7 +119,7 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
             try:
                 response = extract_content_of_triple_quote_block(response, 'latex', 'latex')
             except FailedExtractingBlock as e:
-                self._raise_self_response_error(str(e))
+                self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock))
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:
