@@ -22,6 +22,8 @@ class ShowCitationProducts:
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ()
 
+    allow_citations_from_step: str = None
+
     def _pre_populate_background(self):
         for content in self.get_repr_citation_products():
             self.comment(content, web_conversation_name=None)
@@ -36,6 +38,14 @@ class ShowCitationProducts:
                     contents.append(f'{product.name}:\n{product.description}')
         return contents
 
+    def _get_available_citations(self) -> Iterable[Citation]:
+        if self.allow_citations_from_step is None:
+            return []
+        return self.products.literature_search[self.allow_citations_from_step].get_citations()
+
+    def _get_allowed_bibtex_citation_ids(self) -> List[str]:
+        return [citation.bibtex_id for citation in self._get_available_citations()]
+
 
 @dataclass
 class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
@@ -49,7 +59,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
                                                   'codes:data_analysis', 'tables', 'numeric_values', 'results_summary',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
-    allow_citations_from_step: str = None
     should_remove_citations_from_section: bool = True
     un_allowed_commands: Tuple[str, ...] = (r'\verb', r'\begin{figure}')
 
@@ -148,14 +157,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     def __post_init__(self):
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
-
-    def _get_available_citations(self) -> Iterable[Citation]:
-        if self.allow_citations_from_step is None:
-            return []
-        return self.products.literature_search[self.allow_citations_from_step].get_citations()
-
-    def _get_allowed_bibtex_citation_ids(self) -> List[str]:
-        return [citation.bibtex_id for citation in self._get_available_citations()]
 
     def _check_allowed_subsections(self, section: str):
         if not self.allow_subsections:

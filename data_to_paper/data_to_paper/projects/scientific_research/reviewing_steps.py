@@ -11,6 +11,7 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
 from data_to_paper.latex.tables import get_table_label
+from data_to_paper.servers.types import Citation
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -43,10 +44,8 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
         'The research goal does not require any changes'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
-        The goal and hypothesis should be interesting and novel.
-        
+
+    goal_guidelines: str = dedent_triple_quote_str("""\n
         Guidelines:
         
         * Try to avoid trivial hypotheses (like just testing for simple linear associations).
@@ -62,7 +61,11 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         Note though that you can, and should, still use these as confounding variables if needed.
 
         * Do not suggest methodology. Just the goal and an hypothesis. 
-
+        """)
+    user_initiation_prompt: str = dedent_triple_quote_str("""\n
+        Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
+        The goal and hypothesis should be interesting and novel.
+        {goal_guidelines}
         {quote_request}
         """)
     quote_request: str = dedent_triple_quote_str("""
@@ -98,6 +101,57 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
+class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
+    products: ScientificProducts = None
+    allow_citations_from_step: str = 'goal'
+    max_reviewing_rounds: int = 0
+
+    model_engine: ModelEngine = ModelEngine.GPT4
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'most similar papers'
+    goal_verb: str = 'find'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.GoalReviewer
+    conversation_name: str = 'similar_citations'
+    is_new_conversation: bool = None  # this will create "similar_citations_0", etc.
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+                                                  'literature_search:goal:dataset', 'literature_search:goal:questions')
+    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        From the literature search above, list up to 5 key papers whose results are most \
+        similar/overlapping with our research goal and hypothesis.
+
+        Return your response as a Python Dict[str, str], where the keys are bibtex ids of the papers, \
+        and the values are the titles of the papers. For example:
+        
+        ```python
+        {
+            "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",
+            "Jones2021AssortedCD": "Another title of a paper that is similar to our goal and hypothesis",
+        }
+        ```
+    """)
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        available_citations = self._get_available_citations()
+        bibtex_ids_to_citations: Dict[str, Citation] = \
+            {citation.bibtex_id: citation for citation in available_citations}
+        non_matching_ids = [key for key in response_value.keys() if key not in bibtex_ids_to_citations]
+        if non_matching_ids:
+            self._raise_self_response_error(f'Invalid bibtex ids: {non_matching_ids}')
+
+        # replace with correct citation titles
+        response_value = {key: bibtex_ids_to_citations[key].title for key in response_value}
+        return response_value
+
+    def get_overlapping_citations(self) -> List[Citation]:
+        ids_to_titles = self.run_dialog_and_get_valid_result()
+        available_citations = self._get_available_citations()
+        return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
+
+
+@dataclass
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -110,24 +164,25 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'literature_search:goal:dataset', 'literature_search:goal:questions')
+                                                  'literature_search:goal:goal and hypothesis')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please follow these two steps:
-
-        (1) From the literature search above, list up to 3 key papers whose results are most \
-        similar/overlapping with our research goal and hypothesis.
-
-        Your response for this part should be formatted as a bullet point list, like this:
-        - Smith2020TheAB: "A title of a paper most overlapping with our goal and hypothesis"
-        - Jones2021AssortedCD: "Another title of a paper that is similar to our goal and hypothesis"
-
-        (2) Given the related papers that you have listed, choose one of the following two options:
+        Given the related papers listed above, please follow these 3 steps:
+        
+        (1) Provide a bullet-point list of potential similarities between our goal and hypothesis, \
+        and the related papers listed above.
+        
+        (2) Determine in what ways, if any, our stated goal and hypothesis are distinct from the related papers \
+        listed above.
+        
+        (3) Given your assessment above, choose one of the following two options:
+        
         a. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing \
         {'choice': 'OK'}.
+        
         b. Our goal and hypothesis seem too overlapping with existing literature, \
-        and should therefore be revised {'choice': 'REVISE'}.
+        and I think we should refine and improve them {'choice': 'REVISE'}.
 
         Your response for this part should be formatted as a Python dictionary mapping 'choice' to \
         either 'OK' or 'REVISE'. 
@@ -143,20 +198,12 @@ class ReGoalReviewGPT(GoalReviewGPT):
     is_new_conversation: bool = None
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
-                                                  'research_goal', 'literature_search:goal:20:2')
+                                                  'research_goal', 'literature_search:goal:goal and hypothesis')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \
         do not completely overlap existing literature.
-
-        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
-
-        Do not suggest methodology. Just the goal and a single hypothesis. 
-        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
-        without requiring any additional data \
-        (pay attention to using only data available based on the provided headers of our data files \
-        as in the "{data_file_descriptions}", above).
-
+        {goal_guidelines}
         {quote_request}
         """)
 
