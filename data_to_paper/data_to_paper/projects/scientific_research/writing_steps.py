@@ -22,6 +22,8 @@ class ShowCitationProducts:
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ()
 
+    allow_citations_from_step: str = None
+
     def _pre_populate_background(self):
         for content in self.get_repr_citation_products():
             self.comment(content, web_conversation_name=None)
@@ -36,6 +38,14 @@ class ShowCitationProducts:
                     contents.append(f'{product.name}:\n{product.description}')
         return contents
 
+    def _get_available_citations(self) -> Iterable[Citation]:
+        if self.allow_citations_from_step is None:
+            return []
+        return self.products.literature_search[self.allow_citations_from_step].get_citations()
+
+    def _get_allowed_bibtex_citation_ids(self) -> List[str]:
+        return [citation.bibtex_id for citation in self._get_available_citations()]
+
 
 @dataclass
 class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
@@ -49,7 +59,6 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
                                                   'codes:data_analysis', 'tables', 'numeric_values', 'results_summary',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
-    allow_citations_from_step: str = None
     should_remove_citations_from_section: bool = True
     un_allowed_commands: Tuple[str, ...] = (r'\verb', r'\begin{figure}')
 
@@ -132,22 +141,47 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         If you chose to provide bullet-point feedback then DO NOT include "{termination_phrase}".
         """)
 
+    forbidden_phrases: Tuple[Tuple[str, bool], ...] = (
+        # (phrase, match_case)
+        ('Acknowledgments', True, ),
+        ('Data Availability', False, ),
+        ('Author Contributions', False, ),
+        ('Competing Interests', False, ),
+        ('Additional Information', False, ),
+        ('References', True, ),
+        ('Supplementary', False, ),
+    )
+
+    allow_subsections: bool = False
+
     def __post_init__(self):
         self.conversation_name = self.conversation_name or nicely_join(self.section_names, separator='_')
         super().__post_init__()
 
-    def _get_available_citations(self) -> Iterable[Citation]:
-        if self.allow_citations_from_step is None:
-            return []
-        return self.products.literature_search[self.allow_citations_from_step].get_citations()
+    def _check_allowed_subsections(self, section: str):
+        if not self.allow_subsections:
+            if r'\subsection' in section:
+                self._raise_self_response_error('Do not include subsections in the {goal_noun}')
 
-    def _get_allowed_bibtex_citation_ids(self) -> List[str]:
-        return [citation.bibtex_id for citation in self._get_available_citations()]
+    def _check_forbidden_phrases(self, section: str):
+        used_forbidden_phrases = []
+        for phrase, match_case in self.forbidden_phrases:
+            if match_case:
+                if phrase in section:
+                    used_forbidden_phrases.append(phrase)
+            else:
+                if phrase.lower() in section.lower():
+                    used_forbidden_phrases.append(phrase)
+        if used_forbidden_phrases:
+            self._raise_self_response_error('Do not include: {}'.format(
+                nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         section = super()._check_and_refine_section(section, section_name)
         self._check_extracted_numbers(section)
         self._check_url_in_text(section)
+        self._check_forbidden_phrases(section)
+        self._check_allowed_subsections(section)
         return section
 
     def write_sections_with_citations(self) -> List[Tuple[str, Set[Citation]]]:
@@ -291,6 +325,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
                                                   'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     enforced_sub_headers: Tuple[str, ...] = ('Data Source', 'Data Preprocessing', 'Data Analysis')
+    allow_subsections: bool = True
 
     @property
     def enforced_subheader_prompt(self) -> str:
@@ -302,26 +337,39 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         return s
 
     section_specific_instructions: str = dedent_triple_quote_str("""\n
-        The Methods section should have 3 subsections:
+        The Methods section should be enclosed within triple-backtick "latex" code block \
+        and have 3 subsections, as follows: 
 
-        * "Data Source": Describe the data sources, based on the above "{data_file_descriptions}".
+        ```latex
+        \\section{Methods}
 
-        * "Data Preprocessing": Describe preprocessing of the data done by the Python code. Do not include \
-        preprocessing steps that were not performed by the code, or that were performed by the code \
-        but were not used as basis for the result output.
+        \\subsection{Data Source}
+        - Describe our data sources (see above "{data_file_descriptions}")
 
-        * "Data Analysis": Describe the specific analysis steps performed by the Python code to yield the results. \
-        Do not be over technical. \
-        Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
+        \\subsection{Data Preprocessing}
+        - Describe preprocessing of the data done by the Python code (see above "{codes:data_analysis}").
+        - Do not include preprocessing steps that were not performed by the code. 
+        - Do not include preprocessing steps that were performed by the code, but were not used as basis \
+        for further analysis affecting the result output.
 
-        Do NOT include any of the following:
+        \\subsection{Data Analysis}
+        - Describe each of the specific analysis steps performed by the Python code to yield the results.
+        - Do not be over technical.
+        - Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
+        ```
+
+        Throughout the Methods section, do NOT include any of the following:
         - Missing steps not done by the code.
-        - Intermediate analysis steps that were performed but that were not used in further downstream steps.
         - Specific version of software packages, file names, column names.
         - Names of package functions (e.g., do not say "We used sklearn.linear_model.LinearRegression", say instead \
         "We used a linear regression model") 
-        - URLs, links or references.
+        - URLs, links or references.""")
+
+    request_triple_quote_block: str = dedent_triple_quote_str("""
+        Remember to enclose the Methods section within triple-backtick "latex" code block.
         """)
+
+    latex_instructions: str = ''
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
 
@@ -353,6 +401,18 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+    forbidden_phrases: Tuple[Tuple[str, bool], ...] = \
+        SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + \
+        (
+            # (phrase, match_case)
+            ('In conclusions', True),
+            ('Future research', False),
+            ('Future work', False),
+            ('Future studies', False),
+            ('Future directions', False),
+            ('Limitations', False),
+        )
+
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'tables', 'numeric_values')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
@@ -361,26 +421,38 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
 
-        * One paragraph per Table: You should typically have a separate paragraph describing each of the Tables. \
+        * Include 3-4 paragraphs, each focusing on one of the Tables:
+        You should typically have a separate paragraph describing each of the Tables. \
         In each such paragraph, indicate the motivation/question for the analysis, the methodology, \
         and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \
         and explain their content, but do not add the tables themselves (I will add the tables later manually).
 
-        * Story-like flow: It is often nice to have a story-like flow between the paragraphs, so that the reader \
+        * Story-like flow: 
+        It is often nice to have a story-like flow between the paragraphs, so that the reader \
         can follow the analysis process with emphasis on the reasoning/motivation behind each analysis step. 
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
         "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
         ..."; "Finally, to further verify the effect of zzz, we tested whether ...".
 
-        * Numeric values: You can extract and mention numeric values from the Tables as well as from the \
+        * Conclude with a summary of the results:
+        You can summarize the results at the end, with a sentence like: "In summary, these results show ...", \
+        or "Taken together, these results suggest ...".
+        IMPORTANT NOTE: Your summary SHOULD NOT include a discussion of conclusions, implications, limitations, \
+        or of future work.
+        (These will be added later as part the Discussion section, not the Results section). 
+
+        * Numeric values: 
+        You can extract and mention numeric values from the Tables as well as from the \
         "{numeric_values}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
         going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
         explicitly mention any such important numeric value as an integral part of the text.
 
-        * p-values: When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
+        * p-values:
+        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
         relevant value.
 
-        * Accuracy: Make sure that you are only mentioning details that are explicitly found within the Tables and \
+        * Accuracy: 
+        Make sure that you are only mentioning details that are explicitly found within the Tables and \
         Numerical Values.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""

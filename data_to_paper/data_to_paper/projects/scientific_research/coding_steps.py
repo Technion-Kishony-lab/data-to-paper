@@ -64,7 +64,8 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
     @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages)
+        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages,
+                        wrap_with='"', prefix='\n', separator='\n', suffix='\n')
 
     @property
     def list_additional_data_files_if_any(self) -> str:
@@ -111,17 +112,30 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Your code should create an output text file named "{output_filename}", which should \
         contain a summary of the data.
-        Depending on the specifics of the dataset, you might want to include:
-
-        * Measure of the scale of our data (e.g., number of rows, number of columns)
-        * Summary statistics of key variables
-        * List of most common values of categorical variables (if any) 
-        * Counts of missing, unknown, or undefined values, as well as special numeric values that stand for \
-        unknown/undefined (check in the "{all_file_descriptions}" above for any).
-        * Any other data exploration analysis you deem relevant
 
         The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
+
+        The output file should be formatted as follows:
+
+        ```output
+        ## Data Summary
+        <Measure of the scale of our data (e.g., number of rows, number of columns)>
+
+        ## Summary statistics
+        <Summary statistics of all or key variables>
+
+        ## Categorical variables
+        <As applicable, list here categorical values and their most common values>
+
+        ## Missing values
+        <Counts of missing, unknown, or undefined values>
+        <As applicable, counts of special numeric values that stand for unknown/undefined if any \
+        (check in the "{all_file_descriptions}" above for any)>
+
+        ## <other summary you deem relevant, if any>
+        <summary>
+        ```
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
@@ -141,8 +155,11 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file, do we have short headers for each result and \
+        * Can results be understood from the output file; do we have short headers for each result and \
         do all values have sensible names, etc.
+        * Do all results have units (if applicable).
+        * Are there any results that are missing. Check that under each header in the output file has a corresponding \
+        meaningful result.
         * Any other issues you find.
 
 
@@ -245,10 +262,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         ```output                
         ## General results:
-        Report any general numerical values you deem relevant to our research paper.
-        For example:
-            Total number of observations: xxx
-            etc.
+        <Report here any general numerical values you deem relevant to our research paper. For example:>
+        <Total number of observations: xxx>
+        <Number of groups: yyy>
 
         ## Results for a Table on "<table name here>":
         <write here all the data needed for this table>
@@ -342,7 +358,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         Please return a triple-backtick Latex Block explaining what the code above does. 
         Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. 
+        paper.
+        Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.  
         {actual_requesting_output_explanation}
 
         Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:

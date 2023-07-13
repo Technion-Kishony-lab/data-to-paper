@@ -223,12 +223,15 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         but is rather mathematically derived from them, then replace the number with the formula for deriving it, \
         using the \\num command.
 
-        For example, if you would like to specify the difference between two numbers, say "87 km/hr" and "22 km/hr", \
+        For example, if you would like to specify the difference between two numbers, say "8.7e04 cm" and "2.2e04 cm", \
         then instead of the sentence:
-        "The difference is 65 km/hr." 
+        "The difference is 65 meter." 
 
         you should write:
-        "The difference is \\num{87 - 22} km/hr."
+        "The difference is \\num{(8.7e04 - 2.2e04) * 1e-03} meter."
+
+        Note that within the \\num command, you should use the numeric values as they appear in the code outputs 
+        above, with the exponentiation written as "e" (e.g., "8.7e04" instead of "8.7 \\times 10^4").
 
         This will help me understand how you got to the number. 
         """)  # set to None or '' to disable formula-writing option

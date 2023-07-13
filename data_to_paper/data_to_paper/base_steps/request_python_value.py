@@ -100,7 +100,8 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
-                self._raise_self_response_error(f'Your response should contain the keys: {self.requested_keys}')
+                self._raise_self_response_error(
+                    f'Your response should include a single Python dict containing the keys: {self.requested_keys}')
 
         return check_response_value
 

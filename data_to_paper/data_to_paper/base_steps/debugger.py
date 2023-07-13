@@ -294,7 +294,11 @@ class DebuggerConverser(ProductsConverser):
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
                 Your code reads from the file "{}" which is not part of the dataset.
-                Please rewrite the complete code again, noting that we only have {}. 
+                We only have these files:
+                {}
+
+                Note that all input files are located in the same directory as the code. 
+                Please rewrite the complete code again so that it only reads from these files. 
                 """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 

@@ -71,6 +71,7 @@ STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS: Dict[Tuple[str, str], LiteratureSea
 
     ('goal', 'dataset'): LiteratureSearchParams(12, 2, 2.0, False),
     ('goal', 'questions'): LiteratureSearchParams(12, 2, 2.0, False),
+    ('goal', 'goal and hypothesis'): LiteratureSearchParams(10, 0, 1, False),
 
     ('writing', 'background'): LiteratureSearchParams(12, 5, 2.0, True),
     ('writing', 'dataset'): LiteratureSearchParams(12, 2, 2.0, False),

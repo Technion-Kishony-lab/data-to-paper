@@ -14,7 +14,8 @@ from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
-    TablesNamesReviewGPT, SecondTablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT
+    TablesNamesReviewGPT, SecondTablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+    GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -114,9 +115,13 @@ class ScientificStepsRunner(BaseStepsRunner):
                 products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(self).get_literature_search()
                 # self.send_product_to_client('citations')
 
+            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
+                break
+
             # Check if the goal is OK
-            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations or \
-                    IsGoalOK.from_(self).is_goal_ok():
+            products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
+                {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
+            if IsGoalOK.from_(self).is_goal_ok():
                 break
 
             # Goal is not OK, so we need to devise the goal according to the literature search:

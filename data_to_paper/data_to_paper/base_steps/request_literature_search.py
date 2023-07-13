@@ -91,10 +91,22 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         return None
 
     def _check_response_value(self, response_value: dict) -> NiceDict:
+        super()._check_response_value(response_value)
+        self.returned_result = response_value  # The queries are 'valid' even if they have too many words
+        too_long_queries = []
         for queries in response_value.values():
             for query in queries:
                 if word_count(query) > 10:
-                    self._raise_self_response_error('queries should be 5-10 word long')
+                    too_long_queries.append(query)
+        if too_long_queries:
+            self._raise_self_response_error(dedent_triple_quote_str("""
+                Queries should be 5-10 word long.
+
+                The following queries are too long:
+                {}
+
+                Please return your complete response again, with these queries shortened.
+                """).format(NiceList(too_long_queries, wrap_with='"', prefix='', suffix='', separator='\n')))
         return NiceDict({k: NiceList(v, wrap_with='"', prefix='[\n' + ' ' * 8, suffix='\n' + ' ' * 4 + ']',
                                      separator=',\n' + ' ' * 8)
                          for k, v in response_value.items()})
