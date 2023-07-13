@@ -101,10 +101,10 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         if too_long_queries:
             self._raise_self_response_error(dedent_triple_quote_str("""
                 Queries should be 5-10 word long.
-                
+
                 The following queries are too long:
                 {}
-                
+
                 Please return your complete response again, with these queries shortened.
                 """).format(NiceList(too_long_queries, wrap_with='"', prefix='', suffix='', separator='\n')))
         return NiceDict({k: NiceList(v, wrap_with='"', prefix='[\n' + ' ' * 8, suffix='\n' + ' ' * 4 + ']',

@@ -342,7 +342,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
         ```latex
         \\section{Methods}
-        
+
         \\subsection{Data Source}
         - Describe our data sources (see above "{data_file_descriptions}")
 
@@ -402,7 +402,8 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 @dataclass
 class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     forbidden_phrases: Tuple[Tuple[str, bool], ...] = \
-        SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + (
+        SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + \
+        (
             # (phrase, match_case)
             ('In conclusions', True),
             ('Future research', False),

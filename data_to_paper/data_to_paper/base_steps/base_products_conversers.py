@@ -229,10 +229,10 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
         you should write:
         "The difference is \\num{(8.7e04 - 2.2e04) * 1e-03} meter."
-        
+
         Note that within the \\num command, you should use the numeric values as they appear in the code outputs 
         above, with the exponentiation written as "e" (e.g., "8.7e04" instead of "8.7 \\times 10^4").
-        
+
         This will help me understand how you got to the number. 
         """)  # set to None or '' to disable formula-writing option
 

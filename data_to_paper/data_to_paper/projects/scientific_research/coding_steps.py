@@ -112,27 +112,27 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Your code should create an output text file named "{output_filename}", which should \
         contain a summary of the data.
-        
+
         The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
 
         The output file should be formatted as follows:
-        
+
         ```output
         ## Data Summary
         <Measure of the scale of our data (e.g., number of rows, number of columns)>
-        
+
         ## Summary statistics
         <Summary statistics of all or key variables>
-        
+
         ## Categorical variables
         <As applicable, list here categorical values and their most common values>
-        
+
         ## Missing values
         <Counts of missing, unknown, or undefined values>
         <As applicable, counts of special numeric values that stand for unknown/undefined if any \
         (check in the "{all_file_descriptions}" above for any)>
-        
+
         ## <other summary you deem relevant, if any>
         <summary>
         ```

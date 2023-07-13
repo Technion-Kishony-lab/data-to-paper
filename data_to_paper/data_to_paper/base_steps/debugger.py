@@ -296,7 +296,7 @@ class DebuggerConverser(ProductsConverser):
                 Your code reads from the file "{}" which is not part of the dataset.
                 We only have these files:
                 {}
-                
+
                 Note that all input files are located in the same directory as the code. 
                 Please rewrite the complete code again so that it only reads from these files. 
                 """).format(file, self.data_filenames),

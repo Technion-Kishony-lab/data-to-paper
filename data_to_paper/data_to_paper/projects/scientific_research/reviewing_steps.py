@@ -47,7 +47,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
     goal_guidelines: str = dedent_triple_quote_str("""\n
         Guidelines:
-        
+
         * Try to avoid trivial hypotheses (like just testing for simple linear associations).
         Instead, you could perhaps explore more complex associations and relationships, like testing for \
         mediation, or moderation effects, or interactions between variables. 
@@ -124,7 +124,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundP
 
         Return your response as a Python Dict[str, str], where the keys are bibtex ids of the papers, \
         and the values are the titles of the papers. For example:
-        
+
         ```python
         {
             "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",
@@ -169,18 +169,18 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Given the related papers listed above, please follow these 3 steps:
-        
+
         (1) Provide a bullet-point list of potential similarities between our goal and hypothesis, \
         and the related papers listed above.
-        
+
         (2) Determine in what ways, if any, our stated goal and hypothesis are distinct from the related papers \
         listed above.
-        
+
         (3) Given your assessment above, choose one of the following two options:
-        
+
         a. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing \
         {'choice': 'OK'}.
-        
+
         b. Our goal and hypothesis seem too overlapping with existing literature, \
         and I think we should refine and improve them {'choice': 'REVISE'}.
 
@@ -260,7 +260,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         The keys of this dictionary should briefly describe each of our hypotheses.
         The values of this dictionary should specify the most adequate statistical test for each hypothesis, \
         and describe how it should be performed while accounting for any issues you have outlined above as relevant.
-        
+
         For each of our hypotheses, suggest a *single* statistical test.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
@@ -532,18 +532,18 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Return a Python Dict[str, Any] of key numerical results we might need for a scientific paper.
-        
+
         Considering the output files provided above \
         (see above "{outputs:data_exploration}" and "{outputs:data_analysis}"), \
         please identify key numerical results that are not represented in the latex tables above, but \
         that might still be needed for a scientific paper.
-        
+
         These key numerical values should only include information that is explicitly extracted from the \
         output files provided above.
         The numerical results that you choose should be returned as a Python Dict[str, Any], \
         where the keys are the names \
         you choose for the results, and the values are the numerical results themselves.
-        
+
         For example, if the analysis results provides a summary of a some statistical test, \
         you might include: 
         {
