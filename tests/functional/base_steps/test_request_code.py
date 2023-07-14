@@ -103,7 +103,10 @@ df2 = pd.DataFrame([["n", "e", "w"], ["r", "o", "w"]], columns=['col1', 'col2', 
 df2.to_csv('new_df.csv')
 """
 
-code_creating_csv_explanation = "\nThis code creates an amazing new dataframe"
+code_creating_csv_explanation = r"""
+\section{Code Explanation}
+This code creates an amazing new dataframe.
+"""
 
 code_creating_csv_keywords_in_description = ('new_df.csv', 'col1', 'col2', 'col3')
 
@@ -182,8 +185,9 @@ def test_code_request_with_description_of_new_df(code_request_converser, scienti
 def test_code_request_with_description_of_new_df_and_code_description(code_request_converser, scientific_products):
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is the code:\n```python\n{code_creating_csv}\n```\nShould be all good.',
+             f'Code explanation: ```{code_creating_csv_explanation}```',
              f'Here is the description of the new file ```{new_df_explanation}```',
-             f'Code explanation: ```{code_creating_csv_explanation}```',],
+             ],
             record_more_if_needed=False):
         code_request_converser.get_code_and_output_and_descriptions()
     for keyword in code_creating_csv_keywords_in_description:

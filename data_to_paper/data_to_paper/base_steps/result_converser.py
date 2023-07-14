@@ -92,7 +92,7 @@ class ResultConverser(Converser):
 
     user_initiation_prompt: str = "Please {goal_verb} {goal_noun}."
 
-    max_valid_response_iterations: int = 4
+    max_valid_response_iterations: int = 6
 
     response_to_self_error: str = "{}"
     # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
@@ -144,7 +144,7 @@ class ResultConverser(Converser):
         Alter the response from self when posted to web.
         This method also used to alter the response to send to other in dual_conversation.
         """
-        return response
+        return self._get_fresh_looking_response(response)
 
     def _get_fresh_looking_response(self, response) -> str:
         """
@@ -172,6 +172,7 @@ class ResultConverser(Converser):
         """
         self._conversation_len_before_first_response = len(self.conversation)
         self_message = None
+        self._self_response_iteration_count = 0
         while self._self_response_iteration_count < self.max_valid_response_iterations:
             self._self_response_iteration_count += 1
             # to allow starting either before or after the first self response:
@@ -203,7 +204,8 @@ class ResultConverser(Converser):
             if response_error and response_error.rewind == Rewind.REPOST_AS_FRESH \
                     or not response_error and self.rewind_after_getting_a_valid_response == Rewind.REPOST_AS_FRESH:
                 self._rewind_conversation_to_first_response()
-                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response))
+                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response),
+                                                    web_conversation_name=None)
 
             if not response_error:
                 if self.rewind_after_getting_a_valid_response == Rewind.DELETE_ALL:

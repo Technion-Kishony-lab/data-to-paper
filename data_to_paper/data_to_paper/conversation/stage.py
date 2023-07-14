@@ -10,6 +10,7 @@ from data_to_paper.utils import format_text_with_code_blocks
 from .actions_and_conversations import Action
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from data_to_paper.base_steps import Products
 
@@ -57,6 +58,11 @@ class SetProduct(StageAction):
 
     def _pretty_attrs(self) -> str:
         return f'{self.stage}, {self.product_field}'
+
+
+@dataclass(frozen=True)
+class SendFinalProduct(StageAction):
+    product_name: str = None
 
 
 @dataclass(frozen=True)

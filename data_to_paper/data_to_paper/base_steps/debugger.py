@@ -1,3 +1,4 @@
+import importlib
 import os
 
 from dataclasses import dataclass, field
@@ -11,18 +12,30 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.code_utils import FailedExtractingCode, IncompleteBlockFailedExtractingCode
+from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
+from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
+from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import ProductsConverser
-from ..run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
-from ..servers.chatgpt import count_number_of_tokens_in_message
+
+
+KNOWN_MIS_IMPORTS = {
+    'Mediation': 'statsmodels.stats.mediation',
+}
+
+# assert imports of KNOWN_MIS_IMPORTS:
+for name, module in KNOWN_MIS_IMPORTS.items():
+    try:
+        importlib.import_module(module, name)
+    except ImportError:
+        raise ImportError(f"Wong imports in KNOWN_MIS_IMPORTS.\nFailed importing {name} from {module}")
 
 
 @dataclass
@@ -81,7 +94,34 @@ class DebuggerConverser(ProductsConverser):
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
-    def _respond_to_allowed_packages(self, error_message: str):
+    def _respond_to_known_mis_imports(self, e: ImportError) -> bool:
+        if not hasattr(e, 'fromlist'):
+            return False
+        if len(e.fromlist) != 1:
+            return False
+        var = e.fromlist[0]
+        if var not in KNOWN_MIS_IMPORTS:
+            return False
+        correct_package = KNOWN_MIS_IMPORTS[var]
+        # extract from correct_package up to the first '.':
+        package_base = correct_package[:correct_package.index('.')] if '.' in correct_package else correct_package
+        if package_base not in self.supported_packages:
+            return False
+        self.apply_append_user_message(
+            content=dedent_triple_quote_str("""
+            I ran the code and got the following error message:
+            ```
+            {}
+            ```
+            Please rewrite the code using only these packages: {supported_packages}.
+            Note that there is a `{var}` in `{correct_package}`. Is this perhaps what you needed? 
+            """).format(e, supported_packages=self.supported_packages, var=var, correct_package=KNOWN_MIS_IMPORTS[var]),
+            comment=f'{self.iteration_str}: ImportError detected in gpt code.')
+        return True
+
+    def _respond_to_allowed_packages(self, e: ImportError):
+        if self._respond_to_known_mis_imports(e):
+            return
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             I ran the code and got the following error message:
@@ -89,7 +129,7 @@ class DebuggerConverser(ProductsConverser):
             {}
             ```
             Please rewrite the code using only these packages: {}. 
-            """).format(error_message, self.supported_packages),
+            """).format(e, self.supported_packages),
             comment=f'{self.iteration_str}: ImportError detected in gpt code.')
 
     def _respond_to_file_not_found(self, error_message: str):
@@ -157,7 +197,7 @@ class DebuggerConverser(ProductsConverser):
         # delete the last two messages (incomplete code and this just-posted user response):
         self.apply_delete_messages([-2, -1])
 
-    def _respond_to_missing_or_multiple_code(self, e: FailedExtractingCode):
+    def _respond_to_missing_or_multiple_code(self, e: FailedExtractingBlock):
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
@@ -254,7 +294,11 @@ class DebuggerConverser(ProductsConverser):
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
                 Your code reads from the file "{}" which is not part of the dataset.
-                Please rewrite the complete code again, noting that we only have {}. 
+                We only have these files:
+                {}
+
+                Note that all input files are located in the same directory as the code. 
+                Please rewrite the complete code again so that it only reads from these files. 
                 """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
 
@@ -283,7 +327,7 @@ class DebuggerConverser(ProductsConverser):
             I ran the code, it created the output file "{}", but the file is too long!
 
             Here is the beginning of the output:
-            ```
+            ```output
             {}
             ```
 
@@ -302,9 +346,9 @@ class DebuggerConverser(ProductsConverser):
         try:
             code_and_output = code_runner.run_code()
             dataframe_operations = code_and_output.dataframe_operations
-        except IncompleteBlockFailedExtractingCode:
+        except IncompleteBlockFailedExtractingBlock:
             self._respond_to_incomplete_code()
-        except FailedExtractingCode as e:
+        except FailedExtractingBlock as e:
             self._respond_to_missing_or_multiple_code(e)
         except FailedRunningCode as e:
             # We were able to extract the code, but it failed to run
@@ -320,7 +364,7 @@ class DebuggerConverser(ProductsConverser):
                 raise e.exception
             except ImportError:
                 # chatgpt tried using a package we do not support
-                self._respond_to_allowed_packages(str(e.exception))
+                self._respond_to_allowed_packages(e.exception)
             except TimeoutError:
                 # code took too long to run
                 self._respond_to_timeout()
@@ -356,7 +400,7 @@ class DebuggerConverser(ProductsConverser):
             raise
         else:
             # The code ran without raising exceptions
-            output = code_and_output.output
+            output = code_and_output.get_clean_output()
             if output is not None and len(output.strip()) == 0:
                 # The code ran successfully, but the output file is empty.
                 self._respond_to_empty_output()

@@ -51,7 +51,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
-            return extract_text_between_tags(response, *tags, leave_tags=True)
+            return extract_text_between_tags(response, *tags, keep_tags=True)
         except ValueError:
             self._raise_self_response_error(
                 f'Your response should be formatted as a Python {self.parent_type.__name__}, '
@@ -100,7 +100,8 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueRevi
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
-                self._raise_self_response_error(f'Your response should contain the keys: {self.requested_keys}')
+                self._raise_self_response_error(
+                    f'Your response should include a single Python dict containing the keys: {self.requested_keys}')
 
         return check_response_value
 

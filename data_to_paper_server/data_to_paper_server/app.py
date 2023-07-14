@@ -25,7 +25,7 @@ import gipc
 """
 SET RUN PARAMETERS HERE
 """
-PROJECT: Optional[str] = None  # None to get from web ui
+PROJECT: Optional[str] = 'diabetes'  # None to get from web ui
 
 if PROJECT:
     load_from_repo = True  # False to load from local examples folder (outside the repo)
@@ -40,7 +40,7 @@ if PROJECT:
 
     # Choose OUTPUT_DIRECTORY. `None` for TEMP_FOLDER_TO_RUN_IN/output, or set to the local examples output folder:
     OUTPUT_DIRECTORY: Optional[Path] = get_output_path(PROJECT,
-                                                       '2023-05-26 Nice classifiers results', save_on_repo=True)
+                                                       'client_example', save_on_repo=True)
 
     # Choose MOCK_SERVERS.
     # `False` to avoid mocking servers
@@ -67,26 +67,6 @@ THIS_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 PROCESSES = []
 
 PAPER_IDS_TO_SERIALIZED_ACTIONS = {}
-
-
-def _send_output_actions(id_, output_directory):
-    output_paths = list(output_directory.glob("*.*"))
-    for output_path in output_paths:
-        serialized = SerializedAction(
-            data={
-                "name": output_path.name
-            },
-            event="Output",
-        )
-        PAPER_IDS_TO_SERIALIZED_ACTIONS.setdefault(id_, []).append(serialized)
-        socketio.emit(
-            serialized.event,
-            {
-                'eventId': len(PAPER_IDS_TO_SERIALIZED_ACTIONS[id_]),
-                'data': serialized.data
-            },
-            to=id_
-        )
 
 
 def _run(
@@ -128,7 +108,6 @@ def run_scientist_gpt_in_separate_process(id_, step_runner_kwargs):
                 },
                 to=id_
             )
-    _send_output_actions(id_, output_directory)
 
 
 @app.route('/', defaults={'path': ''})

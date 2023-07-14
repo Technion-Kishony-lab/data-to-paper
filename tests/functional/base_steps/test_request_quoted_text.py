@@ -17,29 +17,28 @@ class TestBaseProductsQuotedReviewGPT(TestProductsReviewGPT, BaseProductsQuotedR
 enclosed_text = "\nThis is the enclosed text\n"
 
 
-@pytest.mark.parametrize('quotes', ['"""', "'''", '```'])
-def test_request_quoted_text(quotes):
+def test_request_quoted_text():
     check_wrong_and_right_responses(
-        responses=[f'Here is the text:\n{quotes}{enclosed_text}{quotes}\nShould be all good.'],
+        responses=[f'Here is the text:\n```{enclosed_text}```\nShould be all good.'],
         requester=TestBaseProductsQuotedReviewGPT(),
         correct_value=enclosed_text)
 
 
-@pytest.mark.parametrize('incorrect_quotes', [
-    ('"""', ''),
-    ('', ''),
+@pytest.mark.parametrize('left, right, msg', [
+    ('```', '', "incomplete triple-quoted block"),
+    ('', '', "enclosed within triple-backtick block"),
 ])
-def test_request_quoted_text_with_error(incorrect_quotes):
+def test_request_quoted_text_with_error(left, right, msg):
     check_wrong_and_right_responses(
         responses=[f'Here is some wrongly enclosed test:\n'
-                   f'{incorrect_quotes[0]}{enclosed_text}{incorrect_quotes[1]}\nCheck it.',
+                   f'{left}{enclosed_text}{right}\nCheck it.',
                    f'Now it is good:\n```{enclosed_text}```\n'],
         requester=TestBaseProductsQuotedReviewGPT(
             rewind_after_getting_a_valid_response=None,
             rewind_after_end_of_review=None,
         ),
         correct_value=enclosed_text,
-        error_texts=("enclosed within triple-backticks", ))
+        error_texts=(msg,))
 
 
 def test_request_quoted_text_bumps_model():
@@ -59,7 +58,7 @@ def test_request_quoted_text_bumps_model():
 def test_request_quoted_text_repost_correct_response_as_fresh():
     requester = TestBaseProductsQuotedReviewGPT()
     with OPENAI_SERVER_CALLER.mock([
-            f'I am tell a long long story which is not really needed and only then send:\n"""{enclosed_text}"""\n'],
+            f'I am telling a long long story which is not really needed and only then send:\n```{enclosed_text}```\n'],
             record_more_if_needed=False):
         assert requester.run_dialog_and_get_valid_result() == enclosed_text
     assert len(requester.conversation) == 3

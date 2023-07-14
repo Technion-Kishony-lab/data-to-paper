@@ -16,31 +16,6 @@ def find_citation_ids(latex_string) -> List[str]:
     return citation_ids
 
 
-def remove_citations_from_section(section):
-    """
-    Remove the citations that ChatGPT inserted by mistake.
-    """
-    section = re.sub(r'\s*\\cite[tp]?(\[.*?])?(\[.*?])?\{[^}]*}(?=\s*\.)?', '', section)
-    # also remove \bibliographystyle{} and \bibliography{} commands
-    section = re.sub(r'\s*\\bibliographystyle\{.*?\}', '', section)
-    section = re.sub(r'\s*\\bibliography\{.*?\}', '', section)
-    return section
-
-
-def get_non_latex_citations(section):
-    r"""
-    Get the citations that are not in latex format, i.e., not in the form \cite{citation_id_1, citation_id2}.
-    for example find any APA citation in the form (Author, year) or (Author et al., year) or (Author, year, p. 123).
-    """
-    # find all types of APA citations including without et al. and page number
-    pattern = r'\([^\)]*,[^\)]*\)'
-    matches = re.findall(pattern, section)
-    # check that the matches contains et al. or year (4 digits, starting with 19 or 20)
-    non_latex_citations = [match.strip() for match in matches if 'et al.' in match or
-                           re.search(r'\s19\d\d|20\d\d', match)]
-    return non_latex_citations
-
-
 def choose_first_citation(sentence_citations):
     """
     Choose the first citation for the sentence, if any.

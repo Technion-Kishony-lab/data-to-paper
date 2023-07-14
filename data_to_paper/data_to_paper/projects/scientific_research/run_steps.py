@@ -11,10 +11,11 @@ from .get_template import get_paper_template_path
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
-from .scientific_stage import ScientificStages
+from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
-    TablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT
+    TablesNamesReviewGPT, SecondTablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+    GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -91,10 +92,10 @@ class ScientificStepsRunner(BaseStepsRunner):
         if self.should_do_data_exploration:
             self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
             RequestCodeProducts.from_(self, code_step='data_exploration').get_code_and_output_and_descriptions()
-            self.send_product_to_client('codes_and_outputs:data_exploration')
+            self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
 
         # Goal
-        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL_AND_PLAN, ScientificAgent.Director)
+        self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
             product_field='research_goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
@@ -114,9 +115,13 @@ class ScientificStepsRunner(BaseStepsRunner):
                 products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(self).get_literature_search()
                 # self.send_product_to_client('citations')
 
+            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
+                break
+
             # Check if the goal is OK
-            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations or \
-                    IsGoalOK.from_(self).is_goal_ok():
+            products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
+                {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
+            if IsGoalOK.from_(self).is_goal_ok():
                 break
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
@@ -124,20 +129,26 @@ class ScientificStepsRunner(BaseStepsRunner):
             products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         # TODO: need to decide what and how to send to the client, we need to somehow split between
         #  stages and produces
-        self.send_product_to_client('goal_and_plan')
+        self.send_product_to_client('research_goal')
 
+        # Plan
+        self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
         # Analysis plan
         if self.should_prepare_data_analysis_plan:
-            self.set_active_conversation(ScientificAgent.PlanReviewer)
             products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('analysis_plan')
 
         # Hypotheses testing plan
         if self.should_prepare_hypothesis_testing_plan:
-            self.set_active_conversation(ScientificAgent.PlanReviewer)
             products.hypothesis_testing_plan = \
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
+
+        if not self.should_prepare_data_analysis_plan and not self.should_prepare_hypothesis_testing_plan:
+            raise ValueError("At least one of the following should be True: "
+                             "should_prepare_data_analysis_plan, should_prepare_hypothesis_testing_plan")
+        # TODO: currently sending hypothesis testing plan to the client, need to decide what we really want to send
+        self.send_product_to_client('hypothesis_testing_plan')
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:
@@ -145,7 +156,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
             RequestCodeProducts.from_(self, code_step='data_preprocessing') \
                 .get_code_and_output_and_descriptions(with_file_descriptions=False)
-            self.send_product_to_client('codes_and_outputs:data_preprocessing')
+            self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
 
         # Tables names
         if self.should_add_tables:
@@ -154,10 +165,13 @@ class ScientificStepsRunner(BaseStepsRunner):
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
         RequestCodeProducts.from_(self, code_step='data_analysis').get_code_and_output_and_descriptions()
-        self.send_product_to_client('codes_and_outputs:data_analysis')
+        self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)
+
+        if self.should_add_tables:
+            products.tables_names = SecondTablesNamesReviewGPT.from_(self).run_dialog_and_get_valid_result()
 
         # Tables
         if self.should_add_tables:
@@ -187,18 +201,24 @@ class ScientificStepsRunner(BaseStepsRunner):
             FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
                                                            ).write_sections_with_citations()
         products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(self).get_literature_search()
-        # TODO: create the actual scope and literature review scientific product (currently it is just "hello")
-        self.send_product_to_client('scope_and_literature_review')
+        self.send_product_to_client('scope_and_literature_search')
 
         # Paper sections
-        self.advance_stage_and_set_active_conversation(ScientificStages.WRITING, ScientificAgent.Writer)
         for section_names, writing_class in sections_and_writing_class:
             # writing section
+            if len(section_names) == 2:
+                stage = ScientificStages.WRITING_TITLE_AND_ABSTRACT
+            else:
+                stage = SECTION_NAMES_TO_WRITING_STAGES[section_names[0]]
+            self.advance_stage_and_set_active_conversation(stage, ScientificAgent.Writer)
             sections_with_citations = \
                 writing_class.from_(self, section_names=section_names).write_sections_with_citations()
             for section_name, section_and_citations in zip(section_names, sections_with_citations):
                 products.paper_sections_and_optional_citations[section_name] = section_and_citations
-        self.send_product_to_client('most_updated_paper')
+            if len(section_names) == 2:
+                self.send_product_to_client('title_and_abstract')
+            else:
+                self.send_product_to_client(f'paper_sections:{section_names[0]}')
 
         # Add citations to relevant paper sections
         if self.should_add_citations:

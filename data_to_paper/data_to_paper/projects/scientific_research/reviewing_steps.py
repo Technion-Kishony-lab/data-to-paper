@@ -9,8 +9,9 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
     PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
-from data_to_paper.latex.latex_to_pdf import escape_special_chars_and_symbols_in_table
+from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
 from data_to_paper.latex.tables import get_table_label
+from data_to_paper.servers.types import Citation
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
@@ -42,32 +43,48 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     termination_phrase: str = \
-        'I hereby approve the research goal'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please suggest a research goal and an hypothesis. 
-        The goal and hypothesis should be interesting and novel, testing complex associations and relationships, \
-        including mediation and moderation. 
-        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
+        'The research goal does not require any changes'
 
-        Do not suggest methodology. Just the goal and an hypothesis. 
-        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
-        without requiring any additional data \
-        (pay attention to using only data available based on the provided headers of our data files \
-        as in the description of the original dataset, above).
+    goal_guidelines: str = dedent_triple_quote_str("""\n
+        Guidelines:
 
-        Avoid goals and hypotheses that involve sociodemographic (Income, Education, etc.) and psychological \
-        (Mental Health) variables. Note that you can, and should still use these as confounding variables if needed.
+        * Try to avoid trivial hypotheses (like just testing for simple linear associations).
+        Instead, you could perhaps explore more complex associations and relationships, like testing for \
+        mediation, or moderation effects, or interactions between variables. 
 
+        * Make sure that your suggested hypothesis can be studied using only the provided dataset, \
+        without requiring any additional data. In particular, pay attention to using only data available \
+        based on the provided headers of our data files (see "{data_file_descriptions}", above).
+
+        * Avoid goals and hypotheses that involve ethic issues like sociodemographic (Income, Education, etc.) \
+        and psychological (Mental Health) variables. 
+        Note though that you can, and should, still use these as confounding variables if needed.
+
+        * Do not suggest methodology. Just the goal and an hypothesis. 
+        """)
+    user_initiation_prompt: str = dedent_triple_quote_str("""\n
+        Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
+        The goal and hypothesis should be interesting and novel.
+        {goal_guidelines}
         {quote_request}
         """)
-    quote_request: str = 'Please return the goal and hypothesis enclosed within triple-backticks ' \
-                         '(make sure to flank the entire goal and hypotheses, not just their header).'
+    quote_request: str = dedent_triple_quote_str("""
+        INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
+        Please return the goal and hypothesis enclosed within triple-backticks, like this:
+        ```
+        Research Goal: 
+        <your research goal here>
+
+        Hypothesis: 
+        <your hypothesis here>
+        ```
+        """)
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
 
-        Please provide constructive bullet point feedback on the above {goal_noun}.
+        Please provide constructive bullet-point feedback on the above {goal_noun}.
 
         Specifically: 
         * If the hypothesis cannot be tested using only the provided dataset (without \
@@ -84,6 +101,57 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
+class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
+    products: ScientificProducts = None
+    allow_citations_from_step: str = 'goal'
+    max_reviewing_rounds: int = 0
+
+    model_engine: ModelEngine = ModelEngine.GPT4
+    value_type: type = Dict[str, str]
+    goal_noun: str = 'most similar papers'
+    goal_verb: str = 'find'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.GoalReviewer
+    conversation_name: str = 'similar_citations'
+    is_new_conversation: bool = None  # this will create "similar_citations_0", etc.
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+                                                  'literature_search:goal:dataset', 'literature_search:goal:questions')
+    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        From the literature search above, list up to 5 key papers whose results are most \
+        similar/overlapping with our research goal and hypothesis.
+
+        Return your response as a Python Dict[str, str], where the keys are bibtex ids of the papers, \
+        and the values are the titles of the papers. For example:
+
+        ```python
+        {
+            "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",
+            "Jones2021AssortedCD": "Another title of a paper that is similar to our goal and hypothesis",
+        }
+        ```
+    """)
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        available_citations = self._get_available_citations()
+        bibtex_ids_to_citations: Dict[str, Citation] = \
+            {citation.bibtex_id: citation for citation in available_citations}
+        non_matching_ids = [key for key in response_value.keys() if key not in bibtex_ids_to_citations]
+        if non_matching_ids:
+            self._raise_self_response_error(f'Invalid bibtex ids: {non_matching_ids}')
+
+        # replace with correct citation titles
+        response_value = {key: bibtex_ids_to_citations[key].title for key in response_value}
+        return response_value
+
+    def get_overlapping_citations(self) -> List[Citation]:
+        ids_to_titles = self.run_dialog_and_get_valid_result()
+        available_citations = self._get_available_citations()
+        return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
+
+
+@dataclass
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -96,26 +164,29 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'literature_search:goal:20:2')
+                                                  'literature_search:goal:goal and hypothesis')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please follow these two steps:
+        Given the related papers listed above, please follow these 3 steps:
 
-        (1) From the literature search above, list the key papers whose results are most \
-        similar/overlapping with our research goal and hypothesis (up to a maximum of 3 papers).
+        (1) Provide a bullet-point list of potential similarities between our goal and hypothesis, \
+        and the related papers listed above.
 
-        For example: 
-        "Smith2020TheAB": "A title of a paper most overlapping with our goal and hypothesis",  
-        "Jones2021AssortedCD", "Another title of a paper that is similar to our goal and hypothesis",
+        (2) Determine in what ways, if any, our stated goal and hypothesis are distinct from the related papers \
+        listed above.
 
-        (2) Given these related papers, choose one of the following two options:
-        1. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing ('OK').
-        2. Our goal and hypothesis seem totally overlapping with existing literature, \
-        and should therefore be revised ('REVISE').
+        (3) Given your assessment above, choose one of the following two options:
 
-        Return your response as a Python dictionary mapping 'choice' to either 'OK' or 'REVISE'. Namely, return either:
-        {'choice': 'OK'} or {'choice': 'REVISE'}
+        a. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing \
+        {'choice': 'OK'}.
+
+        b. Our goal and hypothesis seem too overlapping with existing literature, \
+        and I think we should refine and improve them {'choice': 'REVISE'}.
+
+        Your response for this part should be formatted as a Python dictionary mapping 'choice' to \
+        either 'OK' or 'REVISE'. 
+        Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}
         """)
 
     def is_goal_ok(self):
@@ -127,20 +198,12 @@ class ReGoalReviewGPT(GoalReviewGPT):
     is_new_conversation: bool = None
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
-                                                  'research_goal', 'literature_search:goal:20:2')
+                                                  'research_goal', 'literature_search:goal:goal and hypothesis')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \
         do not completely overlap existing literature.
-
-        Try to avoid trivial hypotheses (like just testing for simple linear relationships). 
-
-        Do not suggest methodology. Just the goal and a single hypothesis. 
-        Make sure that your suggested hypothesis can be studied using only the provided dataset, \
-        without requiring any additional data \
-        (pay attention to using only data available based on the provided headers of our data files \
-        as in the description of the original dataset, above).
-
+        {goal_guidelines}
         {quote_request}
         """)
 
@@ -180,25 +243,30 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
     user_initiation_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
 
-        In light of the dataset description and the data exploration output provided above, \
-        for each of the following generic \
-        statistical issues determine if they are relevant for our case and whether they should be accounted for: 
+        Please follow these two steps:
 
+        (1) Return a bullet-point review of relevant statistical issues.
+        Read the "{data_file_descriptions}" and the "{codes_and_outputs:data_exploration}" provided above, \
+        and then for each of the following generic \
+        statistical issues determine if they are relevant for our case and whether they should be accounted for: 
         * multiple comparisons.
         * confounding variables (see available variables in the dataset that we can adjust for).
         * dependencies between data points.
         * missing data points.
         * any other relevant statistical issues.
 
-        Then, for each hypothesis, suggest a *single* statistical test that should be performed to test the hypothesis \
-        and specify how it should be used while accounting for any issues above that you deem relevant.
+        (2) Create a Python dictionary Dict[str, str], mapping each hypothesis to the statistical test that \
+        would be most adequate for testing it.
+        The keys of this dictionary should briefly describe each of our hypotheses.
+        The values of this dictionary should specify the most adequate statistical test for each hypothesis, \
+        and describe how it should be performed while accounting for any issues you have outlined above as relevant.
+
+        For each of our hypotheses, suggest a *single* statistical test.
         If there are several possible ways to test a given hypothesis, specify only *one* statistical test \
         (the simplest one).
 
-        Return your suggested statistical tests as a Python dictionary Dict[str, str], \
-        where the keys briefly specify the hypotheses and the values are the suggested statistical tests. For example:
-
-        { 
+        Your response for this part should be formatted as a Python dictionary, like this:
+        {
         'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
         yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
         'the variance of xxx is different than the variance of yyy': 'F-test for the equality of variances',
@@ -213,7 +281,7 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         """
         new_response_value = {}
         for k in response_value.keys():
-            new_k = re.sub(r'hypothesis \d+:', '', k, flags=re.IGNORECASE).strip()
+            new_k = re.sub(pattern=r'hypothesis \d+:', repl='', string=k, flags=re.IGNORECASE).strip()
             new_response_value[new_k] = response_value[k]
         return NiceDict(new_response_value)
 
@@ -231,10 +299,10 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    termination_phrase: str = 'I hereby approve the names of the tables'
+    termination_phrase: str = 'The names of the tables do not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please list captions for Tables that we should prepare for a scientific paper addressing the research goal and \
-        hypothesis testing described above.
+        Please list captions for Tables that we should prepare for a scientific paper addressing the \
+        "{research_goal}" and "{hypothesis_testing_plan}" described above.
 
         The table names that you choose should be returned as a Python Dict[str, str], with the keys \
         in the form of 'Table n' and the values being the actual names of the tables.
@@ -280,6 +348,55 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
 
 @dataclass
+class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
+    max_reviewing_rounds: int = 0
+    background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes:data_preprocessing',
+                                             'codes:data_analysis', 'outputs:data_analysis')
+    conversation_name: str = 'second_table_names'
+    value_type: type = Dict[str, str]
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please list captions for Tables that we can prepare for a scientific paper based on the \
+        {outputs:data_analysis} (provided above).
+
+        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the actual names of the tables.
+
+        For example, you might return the following:        
+        {
+            'Table 1': 'Summary statistics of the dataset',
+            'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
+            'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
+        }
+
+        Obviously, this is just an example. You should choose table names that suit the information we have in \
+        the output of the analysis code.
+
+        Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
+        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
+        information.
+
+        Don't suggest name of tables that are:
+        * Not completely necessary.
+        * Represent technical information, rather than scientific results.
+        * Irrelevant to the research goal. 
+        * Cannot be created solely from the code output.
+        * Overlapping with other tables in your list. 
+
+        Do not send any free text; Your response should be structured as a Python Dict[str, str].
+        """)
+
+    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
+        Please check the above chosen table names, with specific attention to whether they \
+        can be created solely from the code output above.
+
+        If you find any issues, please provide bullet-point feedback.
+        Or, if you are satisfied, please respond with "{termination_phrase}".
+
+        Note you must either approve the table names or provide feedback but not both.
+        """)
+
+
+@dataclass
 class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConverser,
                                               CheckExtractionReviewBackgroundProductsConverser):
     tolerance_for_too_wide_in_pts: Optional[float] = 25.0  # we allow tables to extend a bit out
@@ -297,37 +414,49 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     goal_verb: str = 'produce'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    termination_phrase: str = 'I hereby approve the table'
+    termination_phrase: str = 'The table does not require any enhancements'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please build the table "{table_name}". 
-        You should build the table using the results provided in the output files above.
-        The table should only include information that is explicitly extracted from these outputs.
+        Please build the table "{table_name}".
+        Write the table in latex format, centered, in booktabs, multirow format.
 
-        Important: You do NOT need to include all the information from the outputs, just include the information that \
-        is relevant and suitable for inclusion in a table of a scientific paper.
+        You should build the table using only results provided in the {outputs:data_analysis} above.
 
-        As appropriate, you should:
+        As you build the Table, you should follow these guidelines (as applicable):
+
+        (1) What to include in the table: 
+        * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
+        * There is absolutely no need to include all the information that is provided in the output.
         * Exclude rows/columns that are not important to the research goal, or that are too technical, \
         or that repeat the same information multiple times. 
+
+        (2) What NOT to include in the table:
+        * Do not include any presumed information that is not explicitly provided in the {outputs:data_analysis} above.
+        * Do not leave any blank cells, or to-be-filled-later cells.
+
+        (3) Table format and organization:
         * Organize the table sensibly, re-ordering rows/columns as appropriate.   
-        * Re-name technical names to scientifically-suitable names.
+        * Rename technical names to scientifically-suitable names.
         * Rename technical values to scientifically-suitable values \
         (like values of 0/1 may be suitable to represent as "No"/"Yes").
+
+        (4) Numeric values:
         * Round numbers to a reasonable number of digits, and present numbers using proper scientific notation.
         * Indicate standard errors using the $\\pm$ symbol, or parentheses.
-        * Add a caption suitable for inclusion as part of a scientific paper \
-        (you can use the table name provided above, or modify it as you see fit).
         * If you indicate p-values, you can use the $<$ symbol to indicate smaller than a given value, \
         (any p-value less than 10^-4 should be indicated as $<$10^{-4}).
-        * Choose and add a table label in the format "\\label{{table:xxx}}". 
+
+        (5) Table caption and label:
+        * Add a caption suitable for inclusion as part of a scientific paper. \
+        you can use the table name provided above, or modify it as you see fit.
+        Use the format "\\caption{{Your chosen caption here}}".
+        * Choose and add a table label in the format "\\label{{table:<your label here>}}".
 
         {do_not_repeat_information_from_previous_tables}
-        Write the table in latex format, centered, in booktabs, multirow format with caption and label.
-        Make sure that the table is not too wide, so that it will fit within document text width.
+
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide actionable feedback on the above table, with specific attention to whether the table \
+        Please provide actionable feedback on the above Table, with specific attention to whether the table \
         correctly represent data from our analysis output.
 
         {do_not_repeat_information_from_previous_tables}
@@ -373,14 +502,17 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         if label in self._get_table_labels():
             self._raise_self_response_error(f'The table label "{label}" is already used in another table.')
 
-    def _check_section(self, section: str, section_name: str):
-        super()._check_section(section, section_name)
+    def _process_non_math_parts(self, section: str) -> str:
+        try:
+            return escape_special_chars_and_symbols_in_table(section)
+        except ValueError as e:
+            self._raise_self_response_error(str(e))
+
+    def _check_and_refine_section(self, section: str, section_name: str) -> str:
+        section = super()._check_and_refine_section(section, section_name)
         self._check_extracted_numbers(section)
         self._check_table_label(section)
-
-    def _get_latex_section_from_response(self, response: str, section_name: str) -> str:
-        section = super()._get_latex_section_from_response(response, section_name)
-        return escape_special_chars_and_symbols_in_table(section)
+        return section
 
 
 @dataclass
@@ -399,26 +531,32 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun} that capture the most important results we got in the output.
-        The {goal_noun} you choose should be those that are not presented in the latex paper tables above but \
-        might still be needed for a scientific paper.
-        These {goal_noun} should only include information that is explicitly extracted from the output files provided \
-        above.
-        The {goal_noun} that you choose should be returned as a Python Dict[str, Any], where the keys are the names \
-        tou choose for the result, and the values are the numeric results themselves.
-        For example, if the analysis results provide summary of a some statistical tests, or statistical models, \
+        Return a Python Dict[str, Any] of key numerical results we might need for a scientific paper.
+
+        Considering the output files provided above \
+        (see above "{outputs:data_exploration}" and "{outputs:data_analysis}"), \
+        please identify key numerical results that are not represented in the latex tables above, but \
+        that might still be needed for a scientific paper.
+
+        These key numerical values should only include information that is explicitly extracted from the \
+        output files provided above.
+        The numerical results that you choose should be returned as a Python Dict[str, Any], \
+        where the keys are the names \
+        you choose for the results, and the values are the numerical results themselves.
+
+        For example, if the analysis results provides a summary of a some statistical test, \
         you might include: 
         {
             'Total number of samples': xxx,
             'Accuracy of logistic regression for the XXX model': yyy,
             'AUC ROC of logistic regression for the XXX model': zzz,
         }
-        Obviously, this is just an example. You should choose the {goal_noun} that are most relevant to the specific \
-        results we got in the output and in light of the overall goal of the project as mentioned above.
+        Obviously, this is just an example. You should choose the numerical results that are most relevant \
+        to the specific \
+        results we got in the outputs and in light of the {research_goal} of the project as mentioned above.
 
-        Return a maximum of 5 {goal_noun}.
-        Do not send any free text. All descriptions should be included in the keys of the Python Dict.
         Be judicious when choosing values; a scientific paper will typically mention 3-10 important values.
+        Do not send any free text! All descriptions should be included in the keys of the Python Dict[str, Any].
         """)
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
         Please provide feedback on the above {goal_noun}, with specific attention to whether they \
@@ -430,9 +568,10 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         """)
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
-        extracted_str = super()._extract_str_of_python_value_from_response(response)
-        self._check_extracted_numbers(extracted_str)
-        return extracted_str
+        # we check the entire response to avoid cases that the response was not correctly formatted, yet included \
+        # the correct flanking tags {} as part of a latex formula, rather than as part of a Python dict.
+        self._check_extracted_numbers(response)
+        return super()._extract_str_of_python_value_from_response(response)
 
     def _check_response_value(self, response_value: Any) -> Any:
         return NiceDict(response_value)
@@ -442,7 +581,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'tables_and_numeric_values')
+                                                  'tables', 'numeric_values')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'

@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.latex.latex_to_pdf import replace_special_chars, wrap_with_lstlisting
+from data_to_paper.latex.clean_latex import wrap_with_lstlisting
 from data_to_paper.run_gpt_code.overrides.dataframes import DataframeOperations
+from data_to_paper.run_gpt_code.overrides.utils import round_floats
 
 
 @dataclass
@@ -17,6 +18,14 @@ class CodeAndOutput:
     code_explanation: Optional[str] = None
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
+
+    def get_clean_output(self, target_precision=4, source_precision=10) -> Optional[str]:
+        """
+        Return the output, after rounding floats to the given precision.
+        """
+        if self.output is None:
+            return None
+        return round_floats(self.output, target_precision, source_precision)
 
     def get_created_files_beside_output_file(self) -> List[str]:
         """
@@ -33,7 +42,7 @@ class CodeAndOutput:
         s += '\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
         if self.code_explanation:
             s += "\\subsection{Code Description}"
-            s += '\n\n' + replace_special_chars(self.code_explanation)
+            s += '\n\n' + self.code_explanation
         if self.output:
             s += '\n\n' + "\\subsection{Code Output}"
             s += '\n\n' + wrap_with_lstlisting(self.output)

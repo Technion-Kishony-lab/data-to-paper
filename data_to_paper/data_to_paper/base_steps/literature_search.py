@@ -1,123 +1,153 @@
-from dataclasses import dataclass
-from typing import Dict, List, Collection, Optional
+from copy import copy
 
-from data_to_paper.utils import dedent_triple_quote_str, word_count
-from data_to_paper.utils.nice_list import NiceDict, NiceList
-from data_to_paper.projects.scientific_research.scientific_products import LiteratureSearch
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
-    SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
+import numpy as np
 
-from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from dataclasses import dataclass, field
+from typing import Optional, Dict, List, Iterable
+
+from data_to_paper.utils.iterators import interleave
+from data_to_paper.utils.nice_list import NiceList
+from data_to_paper.servers.types import Citation
+
+
+def unite_citation_lists(citations_lists: Iterable[Iterable[Citation]], total: int = None) -> List[Citation]:
+    """
+    Unite the two lists maintaining a single bibtex_id for each citation.
+    Citation that appears in both list will have the query as a set of both quereis.
+    """
+    bibtex_ids_to_citations = {}
+    for citation in interleave(*citations_lists):
+        bibtex_id = citation.bibtex_id
+        query = citation.query
+        if isinstance(query, str):
+            query = {query}
+        if bibtex_id not in bibtex_ids_to_citations:
+            citation = copy(citation)
+            citation.query = query
+            bibtex_ids_to_citations[bibtex_id] = citation
+        else:
+            bibtex_ids_to_citations[bibtex_id].query.update(query)
+            bibtex_ids_to_citations[bibtex_id].search_rank = min(bibtex_ids_to_citations[bibtex_id].search_rank,
+                                                                 citation.search_rank)
+        if total is not None:
+            if len(bibtex_ids_to_citations) == total:
+                break
+    return list(bibtex_ids_to_citations.values())
+
+
+CITATION_REPR_FIELDS_FOR_CHATGPT = \
+    ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
+CITATION_REPR_FIELDS_FOR_PRINT = \
+    ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence', 'embedding_similarity')
 
 
 @dataclass
-class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
-    number_of_papers_per_query: int = 100
-    max_reviewing_rounds: int = 0
-    domains_to_definitions_and_examples = {
-        'dataset': {
-            'definition': 'papers that use the same or similar datasets as in our study',
-            'examples': ['The UK-NCD dataset', 'covid-19 vaccine efficacy dataset']
-        },
-        'questions': {
-            'definition': 'papers that ask questions similar to our study',
-            'examples': ['covid-19 vaccine efficacy over time', 'covid-19 vaccine waning']
-        },
-        'background': {
-            'definition': 'papers that provide background on the overall subject of our study',
-            'examples': ["SARS-CoV2 spread", "covid-19 global impact", "covid-19 vaccine"],
-        },
-        'methods': {
-            'definition': 'papers that use the same or similar methods as in our study',
-            'examples': ["covid-19 vaccine efficacy analysis", "kaplan-meier survival analysis"],
-        },
-        'results': {
-            'definition': 'papers that report results similar to our study',
-            'examples': ["covid-19 vaccine efficacy", "covid-19 vaccine efficacy over time", "covid-19 vaccine waning"],
-        }
-    }
-    requested_keys: Collection[str] = ('dataset', 'questions',)
-    value_type: type = Dict[str, List[str]]
-    goal_noun: str = 'literature search queries'
-    goal_verb: str = 'write'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please write literature-search queries that we can use to search for papers related to our study.
+class LiteratureSearch:
+    scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
+    embedding_target: Optional[np.ndarray] = None
 
-        You would need to compose search queries to identify prior papers covering these {num_scopes} areas:
-        {pretty_scopes_to_definitions}
-
-        Return your answer as a `Dict[str, List[str]]`, where the keys are the {num_scopes} areas noted above, \
-        and the values are lists of query string. Each individual query should be a string with up to 5-10 words. 
-
-        For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis \
-        of the "United Kingdom National Core Data (UK-NCD)", the queries could be:  
-        {pretty_scopes_to_examples}  
-        """)
-
-    @property
-    def chosen_domains_to_definitions_and_examples(self) -> Dict[str, Dict[str, str]]:
-        return {key: self.domains_to_definitions_and_examples[key] for key in self.requested_keys}
-
-    @property
-    def pretty_scopes_to_definitions(self) -> str:
-        return '\n'.join([f'"{scope}": {definition_and_examples["definition"]}'
-                          for scope, definition_and_examples
-                          in self.chosen_domains_to_definitions_and_examples.items()])
-
-    @property
-    def pretty_scopes_to_examples(self) -> str:
-        return '\n'.join([f'"{scope}": {definition_and_examples["examples"]}'
-                          for scope, definition_and_examples
-                          in self.chosen_domains_to_definitions_and_examples.items()])
-
-    @property
-    def num_scopes(self) -> int:
-        return len(self.requested_keys)
-
-    def get_title(self) -> Optional[str]:
+    def get_queries(self, scope: Optional[str] = None) -> List[str]:
         """
-        Returns the title of the paper we are writing.
-        None to skip building embedding vector.
+        Return the queries in the given scope.
+        if scope=None, return all queries.
         """
+        if scope is None:
+            queries = sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
+        else:
+            queries = list(self.scopes_to_queries_to_citations[scope].keys())
+        return NiceList(queries, wrap_with='"', separator='\n', prefix='\n', suffix='\n')
+
+    def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
+                      total: int = None, distribution_factor: Optional[float] = None,
+                      sort_by_similarity: bool = False, minimal_influence: int = 0) -> List[Citation]:
+        """
+        Return the citations in the given scope.
+        If embedding_target is not None, sort the citations by embedding similarity.
+        If total is not None, return only the first total citations.
+        If total < 0, return only the last total citations.
+        """
+        if scope is None:
+            assert query is None
+            citations = unite_citation_lists((self.get_citations(
+                    scope=scope,
+                    total=int(total / len(self.scopes_to_queries_to_citations) * distribution_factor) + 1
+                    if distribution_factor and total is not None else None,
+                    minimal_influence=minimal_influence,
+                    distribution_factor=distribution_factor,
+                    sort_by_similarity=sort_by_similarity,
+            ) for scope in self.scopes_to_queries_to_citations))
+        elif query is None:
+            citations = unite_citation_lists((self.get_citations(
+                    scope=scope,
+                    query=query,
+                    total=int(total / len(self.scopes_to_queries_to_citations[scope]) * distribution_factor) + 1
+                    if distribution_factor and total is not None else None,
+                    minimal_influence=minimal_influence,
+                    distribution_factor=distribution_factor,
+                    sort_by_similarity=sort_by_similarity,
+                ) for query in self.scopes_to_queries_to_citations[scope]))
+        else:
+            citations = self.scopes_to_queries_to_citations[scope][query]
+        citations = list(citations)
+
+        if minimal_influence > 0:
+            citations = [citation for citation in citations if citation.influence >= minimal_influence]
+
+        if sort_by_similarity and self.embedding_target is not None:
+            citations = sorted(citations, key=lambda citation: citation.get_embedding_similarity(self.embedding_target),
+                               reverse=True)
+        else:
+            citations = sorted(citations, key=lambda citation: citation.search_rank)
+
+        if total is None:
+            return citations
+        if total < 0:
+            return citations[total:]
+        else:
+            return citations[:total]
+
+    def pretty_repr(self, with_scope_and_queries: bool = False,
+                    total: int = None, distribution_factor: Optional[float] = None,
+                    sort_by_similarity: bool = False,
+                    minimal_influence: int = 0,
+                    style: str = None,
+                    ) -> str:
+        s = ''
+        for scope in self.scopes_to_queries_to_citations:
+            if with_scope_and_queries:
+                s += '\n\n'
+                s += f'Scope: {repr(scope)}\n'
+                s += f'Queries: {repr(self.get_queries(scope))}\n'
+            s += self.pretty_repr_for_scope_and_query(scope=scope,
+                                                      total=total // len(self.scopes_to_queries_to_citations) + 1,
+                                                      distribution_factor=distribution_factor,
+                                                      sort_by_similarity=sort_by_similarity,
+                                                      minimal_influence=minimal_influence,
+                                                      style=style)
+        return s
+
+    def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
+                                        total: int = None, distribution_factor: Optional[float] = None,
+                                        sort_by_similarity: bool = False,
+                                        minimal_influence: int = 0,
+                                        style: str = None) -> str:
+        """
+        style: 'chatgpt', 'print', 'html'
+        """
+        style = style or 'chatgpt'
+        citations = self.get_citations(scope=scope, query=query, total=total,
+                                       distribution_factor=distribution_factor,
+                                       sort_by_similarity=sort_by_similarity,
+                                       minimal_influence=minimal_influence,
+                                       )
+        return '\n'.join(citation.pretty_repr(
+            fields=CITATION_REPR_FIELDS_FOR_CHATGPT if style == 'chatgpt' else CITATION_REPR_FIELDS_FOR_PRINT,
+            is_html=style == 'html',
+            embedding_target=self.embedding_target,
+        ) for citation in citations)
+
+    def get_citation(self, bibtex_id: str) -> Optional[Citation]:
+        for citation in self.get_citations():
+            if citation.bibtex_id == bibtex_id:
+                return citation
         return None
-
-    def get_abstract(self) -> Optional[str]:
-        """
-        Returns the abstract of the paper we are writing.
-        None to skip building embedding vector.
-        """
-        return None
-
-    def _check_response_value(self, response_value: dict) -> NiceDict:
-        for queries in response_value.values():
-            for query in queries:
-                if word_count(query) > 10:
-                    self._raise_self_response_error('queries should be 5-10 word long')
-        return NiceDict({k: NiceList(v, wrap_with='"', prefix='[\n' + ' ' * 8, suffix='\n' + ' ' * 4 + ']',
-                                     separator=',\n' + ' ' * 8)
-                         for k, v in response_value.items()})
-
-    def get_literature_search(self) -> LiteratureSearch:
-        scopes_to_list_of_queries = self.run_dialog_and_get_valid_result()
-        literature_search = LiteratureSearch()
-        for scope, queries in scopes_to_list_of_queries.items():
-            queries_to_citations = {}
-            for query in queries:
-                citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
-                                                                               rows=self.number_of_papers_per_query)
-                self.comment(f'\nQuerying Semantic Scholar. '
-                             f'Found {len(citations)} / {self.number_of_papers_per_query} citations. '
-                             f'Query: "{query}".')
-                queries_to_citations[query] = citations
-
-            literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
-
-        # Calculate embedding vector
-        if self.get_title() is not None and self.get_abstract() is not None:
-            literature_search.embedding_target = \
-                SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER.get_server_response({
-                    "paper_id": "",
-                    "title": self.get_title(),
-                    "abstract": self.get_abstract()})
-
-        return literature_search

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 import pytest
 
@@ -11,6 +12,10 @@ from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 @dataclass
 class TestLatexReviewBackgroundProductsConverser(TestProductsReviewGPT, LatexReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 0
+    allowed_bibtex_citation_ids: list = None
+
+    def _get_allowed_bibtex_citation_ids(self) -> List[str]:
+        return self.allowed_bibtex_citation_ids or []
 
 
 correct_table = r"""\begin{table}[h!]
@@ -86,17 +91,17 @@ def test_request_latex_with_error(correct_latex, section, replaced_value, replac
 def test_request_latex_alter_response_for_reviewer():
     requester = TestLatexReviewBackgroundProductsConverser(section_names=['abstract'],
                                                            max_reviewing_rounds=1)
+    first_draft = correct_abstract.replace('ultimate', 'super ultimate')
     with OPENAI_SERVER_CALLER.mock([
-            f'Here is the abstract:\n{correct_abstract.replace("ultimate", "super ultimate")}\n',
+            f'Here is the abstract:\n{first_draft}\n',
             'I suggest making it short',
             f'Here is the corrected shorter abstract:\n{correct_abstract}\n'],
             record_more_if_needed=False):
         assert requester.run_dialog_and_get_valid_result() == [correct_abstract]
     assert len(requester.conversation) == 3
 
-    # Response is sent to reviewer with latex triple backticks:
     message_to_reviewer = requester.other_conversation[-2].content
-    assert 'Here is the abstract:\n```latex' in message_to_reviewer
+    assert message_to_reviewer.startswith(first_draft)
 
     # Response is reposted as fresh:
     assert requester.conversation[-1].content == correct_abstract
@@ -107,3 +112,71 @@ def test_request_latex_section_names():
     assert requester.section_names == ['abstract']
     assert requester.section_name == 'abstract'
     assert requester.pretty_section_names == ['Abstract']
+
+
+def test_remove_citations_from_section():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['abstract'],
+                                                           un_allowed_commands=(),
+                                                           should_remove_citations_from_section=True)
+    abstract = r'\begin{abstract}The ultimate abstract \cite{some_citation}.\end{abstract}'
+    with OPENAI_SERVER_CALLER.mock([
+            f'Here is the abstract:\n{abstract}\n'],
+            record_more_if_needed=False):
+        assert requester.run_dialog_and_get_valid_result() == [abstract.replace(r' \cite{some_citation}', '')]
+
+
+def test_rename_close_citations():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['introduction'],
+                                                           un_allowed_commands=(),
+                                                           should_remove_citations_from_section=False,
+                                                           allowed_bibtex_citation_ids=['JONES2019AB', 'SMITH2020'],
+                                                           )
+    introduction = r'\section{Introduction}The ultimate introduction \cite{JONES2019, smith2020}.'
+    with OPENAI_SERVER_CALLER.mock([
+            f'Here is the introduction:\n{introduction}'],
+            record_more_if_needed=False):
+
+        assert requester.run_dialog_and_get_valid_result() == \
+               [introduction.replace(r'JONES2019', 'JONES2019AB').replace(r'smith2020', 'SMITH2020')]
+
+
+def test_check_no_additional_sections():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['introduction'])
+    introduction = r'\section{Introduction}The ultimate introduction.'
+    methods = r'\section{Methods}The ultimate methods.'
+    with OPENAI_SERVER_CALLER.mock([
+            f'You requested introduction but i also wrote the methods:\n{introduction}\n{methods}',
+            f'Now only the introduction:\n{introduction}'],
+            record_more_if_needed=False):
+
+        assert requester.run_dialog_and_get_valid_result() == [introduction]
+
+
+def test_check_for_floating_citations():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['introduction'],
+                                                           un_allowed_commands=(),
+                                                           should_remove_citations_from_section=False,
+                                                           allowed_bibtex_citation_ids=['JONES2019AB', 'SMITH2020'],
+                                                           )
+    introduction = r'\section{Introduction}The ultimate introduction JONES2019AB.'
+    correct_introduction = introduction.replace(r'JONES2019AB', r'\cite{JONES2019AB}')
+    with OPENAI_SERVER_CALLER.mock([
+            f'Here is the intro, but with floating citations:\n{introduction}',
+            f'Now the correct introduction:\n{correct_introduction}'],
+            record_more_if_needed=False):
+
+        assert requester.run_dialog_and_get_valid_result() == [correct_introduction]
+
+
+def test_usage_of_un_allowed_commands():
+    requester = TestLatexReviewBackgroundProductsConverser(section_names=['introduction'],
+                                                           un_allowed_commands=(r'\verb', )
+                                                           )
+    introduction = r'\section{Introduction}The ultimate introduction \verb{}.'
+    correct_introduction = introduction.replace(r' \verb{}', '')
+    with OPENAI_SERVER_CALLER.mock([
+            f'Here is the intro, but with un-allowed command:\n{introduction}',
+            f'Now the correct introduction:\n{correct_introduction}'],
+            record_more_if_needed=False):
+
+        assert requester.run_dialog_and_get_valid_result() == [correct_introduction]

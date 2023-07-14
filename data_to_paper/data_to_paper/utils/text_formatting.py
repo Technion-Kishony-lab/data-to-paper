@@ -104,7 +104,7 @@ def forgiving_format(string, *args, **kwargs):
     """
 
     # Regular expression pattern to match placeholders in the string
-    pattern = re.compile(r'\{\{.*?\}\}|\{.*?\}')  # {{var}} or {var}
+    pattern = re.compile(pattern=r'\{\{.*?\}\}|\{.*?\}')  # {{var}} or {var}
 
     def substitute(match):
         nonlocal args

@@ -4,10 +4,11 @@ from functools import partial
 import colorama
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import PythonLexer
+from pygments.lexer import RegexLexer
 from pygments.formatters import Terminal256Formatter
 from pygments.lexers import TextLexer
 from pygments.styles import get_style_by_name
-from pygments import highlight
+from pygments import highlight, token
 
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
@@ -32,8 +33,29 @@ html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highli
 html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
+class CSVLexer(RegexLexer):
+    name = 'CSV'
+    aliases = ['csv']
+    filenames = ['*.csv']
+
+    tokens = {
+        'root': [
+            (r'\b[0-9]+\b', token.Number.Integer),
+            (r'\b[0-9]*\.[0-9]+\b', token.Number.Float),
+            (r'0[oO]?[0-7]+', token.Number.Oct),  # Octal literals
+            (r'0[xX][a-fA-F0-9]+', token.Number.Hex),  # Hexadecimal literals
+            (r'\b[0-9]+[jJ]\b', token.Number),  # Complex numbers
+            (r'.', token.Token.Name),
+        ]
+    }
+
+
 def python_to_highlighted_html(code_str: str) -> str:
     return highlight(code_str, PythonLexer(), html_code_formatter)
+
+
+def output_to_highlighted_html(output_str: str) -> str:
+    return highlight(output_str, CSVLexer(), html_code_formatter)
 
 
 def python_to_highlighted_text(code_str: str, color: str = '') -> str:
@@ -71,7 +93,11 @@ print_red = partial(print_color, color=colorama.Fore.RED)
 print_magenta = partial(print_color, color=colorama.Fore.MAGENTA)
 
 
-def get_pre_html_format(text, color, font_style: str = 'normal', font_size: int = 16, font_weight: str = 'normal',
+def get_pre_html_format(text,
+                        color: str = None,
+                        font_style: str = 'normal',
+                        font_size: int = 16,
+                        font_weight: str = 'normal',
                         font_family: str = None):
     s = '<pre style="'
     if color:
@@ -97,6 +123,8 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     True: BLOCK_FORMATTER,
     'text': REGULAR_FORMATTER,
     'python': (python_to_highlighted_text, python_to_highlighted_html),
+    'output': (light_text, output_to_highlighted_html),
+    'html': (colored_text, get_pre_html_format),
     'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
                                         font_family="'Courier', sans-serif")),
     'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
@@ -106,7 +134,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
 }
 
-NEEDS_NO_WRAPPING = {'python', 'output'}
+NEEDS_NO_WRAPPING = {'python', 'output', 'html'}
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '',
@@ -116,6 +144,8 @@ def format_text_with_code_blocks(text: str, text_color: str = '',
     for formatted_section in formatted_sections:
         label, section, _, = formatted_section.to_tuple()
         formatter = TAGS_TO_FORMATTERS.get(label, BLOCK_FORMATTER)[is_html]
+        if not is_html and label not in ['python', 'header', 'comment', 'system']:
+            section = FormattedSections([formatted_section]).to_text()
         if label not in NEEDS_NO_WRAPPING:
             section = wrap_string(section, width=width)
         if is_html:

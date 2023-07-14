@@ -4,10 +4,11 @@ from typing import Optional, Tuple, Dict, Type
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
-    BackgroundProductsConverser
+    BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
+from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
@@ -63,7 +64,8 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
     @property
     def data_filenames(self) -> NiceList[str]:
-        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages)
+        return NiceList(self.raw_data_filenames + self.files_created_in_prior_stages,
+                        wrap_with='"', prefix='\n', separator='\n', suffix='\n')
 
     @property
     def list_additional_data_files_if_any(self) -> str:
@@ -74,7 +76,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
                f'{self.files_created_in_prior_stages}' \
                f'```\n' \
                f'Important: use the correct version of the data to perform each of the steps. For example, ' \
-               f'for descriptive statistics use the original data, for model building use the processed data.\n'
+               f'for descriptive statistics use the original data, for model building use the processed data.'
 
     @property
     def raw_data_filenames(self) -> NiceList[str]:
@@ -110,17 +112,30 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Your code should create an output text file named "{output_filename}", which should \
         contain a summary of the data.
-        Depending on the specifics of the dataset, you might want to include:
-
-        * Measure of the scale of our data (e.g., number of rows, number of columns)
-        * Summary statistics of key variables
-        * List of most common values of categorical variables (if any) 
-        * Counts of missing, unknown, or undefined values, and for numeric values that stand for \
-        unknown/undefined (check in the file description above for any).
-        * Any other data exploration analysis you deem relevant
 
         The output file should be self-contained; any results you choose to save to this file \
         should be accompanied with a short text header and indication of units (if any).
+
+        The output file should be formatted as follows:
+
+        ```output
+        ## Data Summary
+        <Measure of the scale of our data (e.g., number of rows, number of columns)>
+
+        ## Summary statistics
+        <Summary statistics of all or key variables>
+
+        ## Categorical variables
+        <As applicable, list here categorical values and their most common values>
+
+        ## Missing values
+        <Counts of missing, unknown, or undefined values>
+        <As applicable, counts of special numeric values that stand for unknown/undefined if any \
+        (check in the "{all_file_descriptions}" above for any)>
+
+        ## <other summary you deem relevant, if any>
+        <summary>
+        ```
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
@@ -140,16 +155,19 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file, do we have short headers for each result and \
+        * Can results be understood from the output file; do we have short headers for each result and \
         do all values have sensible names, etc.
+        * Do all results have units (if applicable).
+        * Are there any results that are missing. Check that under each header in the output file has a corresponding \
+        meaningful result.
         * Any other issues you find.
 
 
         (2) Based on your assessment above, choose one of the following options:
 
-        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The data exploration is not perfectly. \
+        b. The data exploration is not perfect. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
@@ -216,10 +234,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to achieve the research goal specified above. 
+        Write a complete Python code to achieve the research goal specified above.
+
         The code should:
 
-        (1) Load the data from the original data files described above (DESCRIPTION OF THE ORIGINAL DATASET).
+        (1) Load the data from the original data files described above ({data_file_descriptions}).\
         {list_additional_data_files_if_any}
 
         (2) Create an output text file named "{output_filename}".
@@ -228,13 +247,13 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (3) Perform any preprocessing steps needed to prepare the data for the analysis.
         For example, as applicable:
-        * Dealing with missing, unknown, or undefined values, and for numeric values that stand for unknown/undefined \
-        (check in the file description above for any).
+        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
+        unknown/undefined (check in the file description above for any).
         * Normalization of numeric values with different units into same-unit values.
         * Any other data preprocessing you deem relevant.
 
         (4) Perform the analysis and appropriate statistical tests needed to directly test our specified hypotheses \
-        (see above our Research Goal and our Hypothesis Testing Plan).
+        (see above our "{research_goal}" and our "{hypothesis_testing_plan}").
         Note that the analysis should account for any relevant confounding variables, as applicable. 
 
         (5) Create and output the data analysis results that are needed to produce a scientific paper \
@@ -243,16 +262,15 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         ```output                
         ## General results:
-        Report any general numerical values you deem relevant to our research paper.
-        For example:
-            Total number of observations: xxx
-            etc.
+        <Report here any general numerical values you deem relevant to our research paper. For example:>
+        <Total number of observations: xxx>
+        <Number of groups: yyy>
 
-        ## Results for Table 1:
-        all the data needed for Table 1
+        ## Results for a Table on "<table name here>":
+        <write here all the data needed for this table>
 
-        ## Results for Table 2:
-        all the data needed for Table 2
+        ## Results for a Table on "<table name here>":
+        <write here all the data needed for this table>
 
         etc
         ```
@@ -277,7 +295,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         {}
         ```
 
-        Considering the scientific tables we want to create ("The Names of the Tables of the Paper", above), \
+        Considering the scientific tables we want to create ("{tables_names}", above), \
         please follow these two steps:
 
         (1) Check the code output for any issues, and return a bullet-point response addressing these points:
@@ -285,16 +303,15 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Missing results needed for any of the tables.
         * Nominal values are reported together with measure of uncertainty (p-value, CI).
         * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
-        * The data for each table is distinct and non-overlapping.
         * Results can be understood from the output file; all values have sensible names, etc.
         * Any other issues you find.
 
 
         (2) Based on your assessment above, choose one of the following options:
 
-        1. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
 
-        2. The output does not perfectly provides everything we need for the Tables. \
+        b. The output does not perfectly provides everything we need for the Tables. \
         We should revise the code to better address the above issues, {'choice': 'revise'}.
 
         Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
@@ -323,34 +340,53 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
 
 
 @dataclass
-class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, ReviewBackgroundProductsConverser):
+class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewBackgroundProductsConverser):
     goal_noun: str = 'explanation of the {code_name} code'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions',)
     max_reviewing_rounds: int = 0
     rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
     rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+    should_remove_citations_from_section: bool = True
+    section_names: Tuple[str, ...] = ('Code Explanation',)
 
     def __post_init__(self):
         self.background_product_fields = self.background_product_fields + ('codes:' + self.code_step,)
         BaseScientificPostCodeProductsHandler.__post_init__(self)
-        ReviewBackgroundProductsConverser.__post_init__(self)
+        LatexReviewBackgroundProductsConverser.__post_init__(self)
 
-    user_initiation_prompt: str = "{requesting_code_explanation}\n" \
-                                  "{actual_requesting_output_explanation}"
-
-    requesting_code_explanation: str = dedent_triple_quote_str("""
-        Please explain what the code does. Do not provide a line-by-line explanation, rather provide a \
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Please return a triple-backtick Latex Block explaining what the code above does. 
+        Do not provide a line-by-line explanation, rather provide a \
         high-level explanation of the code in a language suitable for a Methods section of a research \
-        paper. 
+        paper.
+        Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.  
+        {actual_requesting_output_explanation}
+
+        Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
+
+        ```latex
+        \\section{Code Explanation}
+        <your code explanation here>
+        ```
+
+        Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it!
+        """)
+
+    request_triple_quote_block: Optional[str] = dedent_triple_quote_str("""
+        Your code explanation should be enclosed within a triple-backtick "latex" block.
         """)
 
     requesting_output_explanation: str = dedent_triple_quote_str("""
-        Also explain what does the code writes into the "{output_filename}" file.    
+        Also explain what does the code write into the "{output_filename}" file.    
         """)
 
     @property
     def actual_requesting_output_explanation(self):
         return self.requesting_output_explanation if self.code_and_output.output_file else ''
+
+    def run_dialog_and_get_valid_result(self):
+        result = super().run_dialog_and_get_valid_result()
+        return extract_latex_section_from_response(result[0], 'Code Explanation', keep_tags=False)
 
 
 @dataclass
@@ -487,7 +523,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         return self.code_writing_class.from_(self).get_code_and_output()
 
     def _get_description_of_created_files(self) -> Optional[DataFileDescriptions]:
-        return self.EXPLAIN_CREATED_FILES_CLASS(
+        return self.EXPLAIN_CREATED_FILES_CLASS.from_(
+            self,
             is_new_conversation=None,
             code_step=self.code_step,
             products=self.products,
@@ -495,7 +532,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         ).ask_for_created_files_descriptions()
 
     def _get_code_explanation(self) -> str:
-        return self.EXPLAIN_CODE_CLASS(
+        return self.EXPLAIN_CODE_CLASS.from_(
+            self,
             is_new_conversation=None,
             code_step=self.code_step,
             products=self.products,

@@ -9,7 +9,7 @@ from typing import NamedTuple, Optional, List
 
 from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from data_to_paper.base_cast import Agent
-from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingCode
+from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingBlock
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.servers.openai_models import OpenaiCallParameters, ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks, line_count
@@ -221,7 +221,7 @@ class CodeMessage(Message):
         """
         try:
             return extract_code_from_text(self.content)
-        except FailedExtractingCode:
+        except FailedExtractingBlock:
             return None
 
     def get_code_diff(self) -> str:

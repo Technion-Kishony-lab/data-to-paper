@@ -49,9 +49,12 @@ COALESCE_WEB_CONVERSATIONS = Flag(True)
 
 DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 
+# Products to send to client for the user to download:
+PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
+
 os.environ['CLIENT_SERVER_MODE'] = 'False'
 
 # Debugging switches:
 SHOW_CHATGPT_CONTEXT = Flag(True)
-SAVE_INTERMEDIATE_LATEX = Flag(True)
+SAVE_INTERMEDIATE_LATEX = Flag(False)
 PRINT_CITATIONS = Flag(True)

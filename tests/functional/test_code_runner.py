@@ -3,7 +3,7 @@ import os
 
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, FailedLoadingOutput
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
-from data_to_paper.run_gpt_code.code_utils import FailedExtractingCode
+from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
 
 
 OUTPUT_FILE = "output.txt"
@@ -66,12 +66,12 @@ def test_runner_raises_when_code_writes_to_wrong_file(tmpdir):
 
 
 def test_runner_raises_when_no_code_is_found():
-    with pytest.raises(FailedExtractingCode):
+    with pytest.raises(FailedExtractingBlock):
         CodeRunner(response=no_code_response, output_file='output.txt').run_code()
 
 
 def test_runner_raises_when_multiple_codes_are_found():
-    with pytest.raises(FailedExtractingCode):
+    with pytest.raises(FailedExtractingBlock):
         CodeRunner(response=two_codes_response, output_file='output.txt').run_code()
 
 

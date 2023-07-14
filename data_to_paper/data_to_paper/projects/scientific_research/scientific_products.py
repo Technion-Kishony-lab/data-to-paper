@@ -1,14 +1,13 @@
 from dataclasses import dataclass, field
-from functools import reduce
-from typing import Optional, Dict, Tuple, Set, List, Union
-from operator import or_
+from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 
-import numpy as np
-
+from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages
+from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages, \
+    SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
@@ -58,119 +57,31 @@ def convert_description_of_created_files_to_string(description_of_created_files:
     )
 
 
-def sort_citations_by_embedding_similarity(citations: List[Citation], embedding: np.ndarray) -> List[Citation]:
-    """
-    Sort the citations by embedding similarity.
-    """
-    if not citations:
-        return []
-    embeddings = np.array([citation['embedding'] for citation in citations])
-    similarities = np.dot(embeddings, embedding)
-    indices = np.argsort(similarities)[::-1]
-    return [citations[i] for i in indices]
+class LiteratureSearchParams(NamedTuple):
+    total: int
+    minimal_influence: int
+    distribution_factor: Optional[float]
+    sort_by_similarity: bool
+
+    def to_dict(self) -> dict:
+        return self._asdict()
 
 
-CITATION_REPR_FIELDS_FOR_CHATGPT = ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
-CITATION_REPR_FIELDS_FOR_PRINT = ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'influence')
+STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS: Dict[Tuple[str, str], LiteratureSearchParams] = {
 
-CITATION_REPR_FIELDS = Mutable(CITATION_REPR_FIELDS_FOR_CHATGPT)
+    ('goal', 'dataset'): LiteratureSearchParams(12, 2, 2.0, False),
+    ('goal', 'questions'): LiteratureSearchParams(12, 2, 2.0, False),
+    ('goal', 'goal and hypothesis'): LiteratureSearchParams(10, 0, 1, False),
+
+    ('writing', 'background'): LiteratureSearchParams(12, 5, 2.0, True),
+    ('writing', 'dataset'): LiteratureSearchParams(12, 2, 2.0, False),
+    ('writing', 'methods'): LiteratureSearchParams(6, 10, 1.5, False),
+    ('writing', 'results'): LiteratureSearchParams(12, 1, 2.0, True),
+
+}
 
 
-@dataclass
-class LiteratureSearch:
-    scopes_to_queries_to_citations: Dict[str, Dict[str, List[Citation]]] = field(default_factory=dict)
-    embedding_target: Optional[np.ndarray] = None
-
-    def get_queries(self, scope: Optional[str] = None) -> List[str]:
-        """
-        Return the queries in the given scope.
-        if scope=None, return all queries.
-        """
-        if scope is None:
-            return sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
-        return list(self.scopes_to_queries_to_citations[scope].keys())
-
-    def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
-                      total: int = None, distribute_evenly: bool = True,
-                      sort_by_similarity: bool = False, minimal_influence: int = 0) -> List[Citation]:
-        """
-        Return the citations in the given scope.
-        If embedding_target is not None, sort the citations by embedding similarity.
-        If total is not None, return only the first total citations.
-        """
-        empty = ListBasedSet()
-        if scope is None:
-            assert query is None
-            citations = reduce(
-                or_, [self.get_citations(
-                    scope=scope,
-                    total=total // len(self.scopes_to_queries_to_citations) + 1
-                    if distribute_evenly and total is not None else None,
-                    minimal_influence=minimal_influence,
-                    distribute_evenly=distribute_evenly,
-                ) for scope in self.scopes_to_queries_to_citations], empty)
-        elif query is None:
-            citations = reduce(
-                or_, [self.get_citations(
-                    scope=scope,
-                    query=query,
-                    total=total // len(self.scopes_to_queries_to_citations[scope]) + 1
-                    if distribute_evenly and total is not None else None,
-                    minimal_influence=minimal_influence,
-                    distribute_evenly=distribute_evenly,
-                ) for query in self.scopes_to_queries_to_citations[scope]], empty)
-        else:
-            citations = self.scopes_to_queries_to_citations[scope][query]
-        citations = list(citations)
-
-        if minimal_influence > 0:
-            citations = [citation for citation in citations if citation.influence >= minimal_influence]
-
-        if sort_by_similarity and self.embedding_target is not None:
-            citations = sort_citations_by_embedding_similarity(citations, self.embedding_target)
-        else:
-            citations = sorted(citations, key=lambda citation: citation.search_rank)
-
-        if total is None:
-            return citations
-        if total < 0:
-            return citations[total:]
-        else:
-            return citations[:total]
-
-    def pretty_repr(self, with_scope_and_queries: bool = False,
-                    total: int = None, distribute_evenly: bool = True,
-                    sort_by_similarity: bool = False,
-                    minimal_influence: int = 0
-                    ) -> str:
-        s = ''
-        for scope in self.scopes_to_queries_to_citations:
-            if with_scope_and_queries:
-                s += f'Scope: {repr(scope)}\n'
-                s += f'Queries: {repr(self.get_queries(scope))}\n\n'
-            s += self.pretty_repr_for_scope_and_query(scope=scope,
-                                                      total=total // len(self.scopes_to_queries_to_citations) + 1,
-                                                      distribute_evenly=distribute_evenly,
-                                                      sort_by_similarity=sort_by_similarity,
-                                                      minimal_influence=minimal_influence)
-        return s
-
-    def pretty_repr_for_scope_and_query(self, scope: str, query: Optional[str] = None,
-                                        total: int = None, distribute_evenly: bool = True,
-                                        sort_by_similarity: bool = False,
-                                        minimal_influence: int = 0) -> str:
-        citations = self.get_citations(scope=scope, query=query, total=total,
-                                       distribute_evenly=distribute_evenly,
-                                       sort_by_similarity=sort_by_similarity,
-                                       minimal_influence=minimal_influence,
-                                       )
-        return '\n'.join(citation.pretty_repr(fields=CITATION_REPR_FIELDS.val) for citation in citations)
-
-    def get_citation(self, bibtex_id: str) -> Optional[Citation]:
-        for citation in self.get_citations():
-            if citation.bibtex_id == bibtex_id:
-                return citation
-        return None
+DEFAULT_LITERATURE_SEARCH_STYLE = Mutable('chatgpt')
 
 
 @dataclass
@@ -205,7 +116,8 @@ class ScientificProducts(Products):
         """
         Return the tables names in a pretty way.
         """
-        return '\n'.join(f'{table_num}: {table_name}' for table_num, table_name in self.tables_names.items())
+        return '\n'.join(f'({table_num + 1}) "{table_name}"'
+                         for table_num, table_name in enumerate(self.tables_names.values()))
 
     def get_tables_names_and_content(self) -> str:
         """
@@ -295,39 +207,45 @@ class ScientificProducts(Products):
         Return the title of the paper.
         """
         latex = self.paper_sections_without_citations['title']
-        return latex[latex.find('{') + 1:latex.find('}')]
+        return extract_latex_section_from_response(latex, 'title', keep_tags=False)
 
     def get_abstract(self) -> str:
         """
         Return the abstract of the paper.
         """
         latex = self.paper_sections_without_citations['abstract']
-        return latex[latex.find('{') + 1:latex.find('}')]
+        return extract_latex_section_from_response(latex, 'abstract', keep_tags=False)
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
             **super()._get_generators(),
 
+            # DATA
+            # ====
+
             'general_dataset_description': NameDescriptionStageGenerator(
-                'Dataset Description',
+                'Overall Description of the Dataset',
                 'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.general_description,
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(
-                'Original Dataset',
+                'Description of the Original Dataset',
                 'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
-                'Dataset',
-                'DESCRIPTION OF THE DATASET:\n\n{}',
+                'Description of the Dataset',
+                'Description of the Dataset:\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.all_file_descriptions,
             ),
+
+            # GOAL AND PLAN
+            # ==============
 
             'research_goal': NameDescriptionStageGenerator(
                 'Research Goal',
@@ -350,33 +268,59 @@ class ScientificProducts(Products):
                 lambda: str(self.pretty_hypothesis_testing_plan),
             ),
 
-            'literature_search:{}:{}:{}': NameDescriptionStageGenerator(
-                'Literature Search',
-                'We did a Literature Search and here are the results:\n\n{}',
+            # LITERATURE SEARCH
+            # =================
+
+            'literature_search:{}:{}': NameDescriptionStageGenerator(
+                '{name}',
+                '{description}',
                 ScientificStages.WRITING,
-                lambda step, total, minimal_influence: self.literature_search[step].pretty_repr(
-                    total=int(total),
-                    minimal_influence=int(minimal_influence),
-                    distribute_evenly=True,
-                    sort_by_similarity=False,
-                ),
+                lambda stage, scope: {
+                    'name': self['literature_search:{}:{}:{}'.format(
+                        stage, scope, DEFAULT_LITERATURE_SEARCH_STYLE.val)].name,
+                    'description': self['literature_search:{}:{}:{}'.format(
+                        stage, scope, DEFAULT_LITERATURE_SEARCH_STYLE.val)].description,
+                }
             ),
 
-            'literature_search_by_scope:{}:{}:{}:{}': NameDescriptionStageGenerator(
-                'Literature Search for {scope}',
-                'Here are the results of our Literature Search for {scope}:\n\n{papers}',
+            'literature_search:{}:{}:{}': NameDescriptionStageGenerator(
+                '{scope}-related Literature Search',
+                'Here are citations from our Literature Search for papers related to the {scope} of our study:\n\n'
+                '{papers}',
                 ScientificStages.WRITING,
-                lambda step, scope, total, minimal_influence: {
+                lambda stage, scope, style: {
                     'scope': scope.title(),
-                    'papers': self.literature_search[step].pretty_repr_for_scope_and_query(
+                    'papers': self.literature_search[stage].pretty_repr_for_scope_and_query(
                         scope=scope,
-                        total=int(total),
-                        minimal_influence=int(minimal_influence),
-                        distribute_evenly=True,
-                        sort_by_similarity=False,
+                        style=style,
+                        **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[(stage, scope)].to_dict()
                     ),
+                }
+            ),
+
+            'scope_and_literature_search': NameDescriptionStageGenerator(
+                'Scope and Literature Search',
+                'Here is a draft of the abstract, written as a basis for the literature search below:\n\n'
+                '{title}\n\n{abstract}\n\n'
+                'LITERATURE SEARCH\n\n'
+                'We searched for papers related to the Background, Dataset, Methods, and Results of our paper. \n\n'
+                '```html\n{background}\n```\n\n'
+                '```html\n{dataset}\n```\n\n'
+                '```html\n{methods}\n```\n\n'
+                '```html\n{results}\n```\n\n',
+                ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
+                lambda: {
+                    'title': self.get_title(),
+                    'abstract': self.get_abstract(),
+                    'background': self['literature_search:writing:background:html'].description,
+                    'dataset': self['literature_search:writing:dataset:html'].description,
+                    'methods': self['literature_search:writing:methods:html'].description,
+                    'results': self['literature_search:writing:results:html'].description,
                 },
             ),
+
+            # CODE
+            # ====
 
             'codes:{}': NameDescriptionStageGenerator(
                 '{code_name} Code',
@@ -388,10 +332,19 @@ class ScientificProducts(Products):
 
             'outputs:{}': NameDescriptionStageGenerator(
                 'Output of the {code_name} Code',
-                'Here is the output of our {code_name} code:\n```output\n{output}\n```\n',
+                'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
-                lambda code_step: {'output': self.codes_and_outputs[code_step].output,
+                lambda code_step: {'output': self.codes_and_outputs[code_step].get_clean_output(),
                                    'code_name': self.codes_and_outputs[code_step].name},
+            ),
+
+            'code_explanation:{}': NameDescriptionStageGenerator(
+                '{code_name} Code Description',
+                'Here is an explanation of our {code_name} code:\n\n{code_explanation}',
+                lambda code_step: get_code_stage(code_step),
+                lambda code_step: {
+                    'code_name': self.codes_and_outputs[code_step].name,
+                    'code_explanation': self.codes_and_outputs[code_step].code_explanation},
             ),
 
             'codes_and_outputs:{}': NameDescriptionStageGenerator(
@@ -402,6 +355,17 @@ class ScientificProducts(Products):
                     'code_name': self.codes_and_outputs[code_step].name,
                     'code_description': self.get_description("codes:" + code_step),
                     'output_description': self.get_description("outputs:" + code_step)},
+            ),
+
+            'codes_and_outputs_with_explanations:{}': NameDescriptionStageGenerator(
+                '{code_name} Code and Output',
+                '{code_description}\n\n{output_description}\n\n{code_explanation}',
+                lambda code_step: get_code_stage(code_step),
+                lambda code_step: {
+                    'code_name': self.codes_and_outputs[code_step].name,
+                    'code_description': self.get_description("codes:" + code_step),
+                    'output_description': self.get_description("outputs:" + code_step),
+                    'code_explanation': self.get_description("code_explanation:" + code_step)},
             ),
 
             'created_files:{}': NameDescriptionStageGenerator(
@@ -434,6 +398,9 @@ class ScientificProducts(Products):
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
+            # WRITING
+            # =======
+
             'results_summary': NameDescriptionStageGenerator(
                 'Results Summary',
                 'Here is our Results Summary:\n\n{}',
@@ -444,7 +411,7 @@ class ScientificProducts(Products):
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
-                ScientificStages.WRITING,
+                ScientificStages.WRITING_TITLE_AND_ABSTRACT,
                 lambda: (self.paper_sections_without_citations['title'],
                          self.paper_sections_without_citations['abstract']),
             ),
@@ -459,7 +426,7 @@ class ScientificProducts(Products):
             'paper_sections:{}': NameDescriptionStageGenerator(
                 '{section_name} Section of the Paper',
                 'Here is the {section_name} section of the paper:\n\n{content}',
-                ScientificStages.WRITING,
+                lambda section_name: SECTION_NAMES_TO_WRITING_STAGES[section_name],
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.paper_sections_without_citations[section_name],
                                       },
@@ -497,8 +464,8 @@ class ScientificProducts(Products):
                 lambda: {'tables': self.get_tables_names_and_content()}),
 
             'numeric_values': NameDescriptionStageGenerator(
-                'Numeric Values of the Paper',
-                'Here are some key numeric values we can use to write the results of the paper:\n\n{}',
+                'Other Numeric Values for the Paper',
+                'Here are some other numeric values we can use to write the results of the paper:\n\n{}',
                 ScientificStages.INTERPRETATION,
                 lambda: None if not self.numeric_values else
                 NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"
@@ -513,19 +480,5 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: {'tables': self.get_description('tables'),
                          'numeric_values': self.get_description('numeric_values')},
-            ),
-
-            'scope_and_literature_review': NameDescriptionStageGenerator(
-                'Scope and Literature Review',
-                'Here is the scope and literature review of the paper:\n\n{}',
-                ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
-                lambda: "hello",  # TODO: add scope and literature review
-            ),
-
-            'goal_and_plan': NameDescriptionStageGenerator(
-                'Goal and Plan',
-                'Here is the goal and plan of the paper:\n\n{}',
-                ScientificStages.GOAL_AND_PLAN,
-                lambda: "hello2",  # TODO: add scope and literature review
             ),
         }
