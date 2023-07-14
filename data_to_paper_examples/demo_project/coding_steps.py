@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
-from data_to_paper.projects.demo_project.cast import DemoAgent
-from data_to_paper.projects.demo_project.products import DemoProducts
+from cast import DemoAgent
+from products import DemoProducts
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList

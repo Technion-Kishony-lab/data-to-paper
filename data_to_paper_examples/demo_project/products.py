@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict
 
-from data_to_paper.projects.demo_project.stage import DemoStages
+from stage import DemoStages
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 
 from data_to_paper.base_products import Products, NameDescriptionStageGenerator, DataFileDescriptions

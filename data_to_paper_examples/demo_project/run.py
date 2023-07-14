@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
-from data_to_paper.projects.demo_project.run_steps import DemoStepsRunner
+from run_steps import DemoStepsRunner
 
 THIS_FOLDER = Path(__file__).parent
 

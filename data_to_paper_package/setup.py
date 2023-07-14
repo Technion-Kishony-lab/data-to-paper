@@ -22,13 +22,14 @@ setup(
     ],
     name="data_to_paper",
     version='0.1.0',
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     long_description_content_type='text/markdown',
     packages=find_packages(),
     package_data={
         'data_to_paper': [
-            'data_to_paper/projects/scientific_research/templates/*',
+            'data_to_paper/researches_type/scientific_research/templates/*',
         ],
+        '': ['*.tex']
     },
     install_requires=[
         "requests",

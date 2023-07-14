@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
-from data_to_paper.projects.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.researches_types.scientific_research.run_steps import ScientificStepsRunner
 
 
 THIS_FOLDER = Path(__file__).parent
@@ -66,7 +66,7 @@ def get_output_path(project: str, output_folder: str, save_on_repo: bool = False
 
 def get_input_path(project: str, load_from_repo: bool = False) -> Path:
     if load_from_repo:
-        return THIS_FOLDER / 'projects' / project / 'inputs'
+        return THIS_FOLDER / 'inputs'
     else:
         return get_local_folder_path() / project
 

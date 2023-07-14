@@ -5,9 +5,14 @@ from typing import Tuple, List, Set, Optional, Iterable
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
 from data_to_paper.latex.tables import get_table_label
+<<<<<<< HEAD:data_to_paper/data_to_paper/projects/scientific_research/writing_steps.py
 from data_to_paper.projects.scientific_research.cast import ScientificAgent
 from data_to_paper.projects.scientific_research.scientific_products import ScientificProducts, \
     DEFAULT_LITERATURE_SEARCH_STYLE
+=======
+from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+>>>>>>> ad08922e064fafe7faed8ab33d3844106976860b:data_to_paper_package/data_to_paper/researches_types/scientific_research/writing_steps.py
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.servers.types import Citation
 

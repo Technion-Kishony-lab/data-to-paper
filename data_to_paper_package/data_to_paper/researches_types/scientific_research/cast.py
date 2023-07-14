@@ -6,7 +6,7 @@ from data_to_paper.base_cast.types import Profile
 from .env import THEME_NAME
 
 # load theme:
-theme = importlib.import_module(f'data_to_paper.projects.scientific_research.themes.{THEME_NAME}')
+theme = importlib.import_module(f'data_to_paper.researches_types.scientific_research.themes.{THEME_NAME}')
 
 # User-name will be replaced by the name of the user signing in to the app
 USER_NAME = 'User'
