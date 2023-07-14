@@ -7,7 +7,8 @@ from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
-from data_to_paper.researches_types.scientific_research.scientific_stage import ScientificStages
+from data_to_paper.researches_types.scientific_research.scientific_stage import ScientificStages, \
+    SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList

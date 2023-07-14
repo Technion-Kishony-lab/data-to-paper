@@ -8,6 +8,7 @@ from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedK
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
+from data_to_paper.latex import extract_latex_section_from_response
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name,\
