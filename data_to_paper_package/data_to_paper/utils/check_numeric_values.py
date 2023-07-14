@@ -41,7 +41,7 @@ def is_one_with_zeros(str_number: str) -> bool:
     Check if the given string number is 1 with zeros before or after.
     Like 0.001, 0.1, 1, 10, 100, etc.
     """
-    return str_number.replace(',', '').replace('.', '').lstrip('0').rstrip('0') == '1'
+    return str_number.lstrip('-').replace(',', '').replace('.', '').lstrip('0').rstrip('0') == '1'
 
 
 def is_int_below_max(str_number: str, max_int: int) -> bool:

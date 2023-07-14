@@ -58,6 +58,7 @@ def test_truncate_to_n_digits(str_number, n_digits, expected):
     ('4.72e-05', '4.72 \\times 10^{-5}', []),
     ('0.127', '0.12', []),  # we allow rounding by truncation
     ('0.13', '0.12', ['0.12']),
+    ('-0.0007732', '-0.001', []),
 ])
 def test_find_non_matching_numeric_values(source, target, non_matching):
     assert find_non_matching_numeric_values(source, target)[0] == non_matching
