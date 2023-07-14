@@ -5,14 +5,9 @@ from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section
-<<<<<<< HEAD:data_to_paper/data_to_paper/projects/scientific_research/scientific_products.py
-from data_to_paper.projects.scientific_research.cast import ScientificAgent
-from data_to_paper.projects.scientific_research.scientific_stage import ScientificStages, \
-    SECTION_NAMES_TO_WRITING_STAGES
-=======
+
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_stage import ScientificStages
->>>>>>> ad08922e064fafe7faed8ab33d3844106976860b:data_to_paper_package/data_to_paper/researches_types/scientific_research/scientific_products.py
 from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
