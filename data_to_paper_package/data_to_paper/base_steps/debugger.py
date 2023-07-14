@@ -362,18 +362,18 @@ class DebuggerConverser(ProductsConverser):
             self.previous_code = code_runner.extract_code()
             try:
                 raise e.exception
-            except ImportError:
+            except ImportError as f:
                 # chatgpt tried using a package we do not support
-                self._respond_to_allowed_packages(e.exception)
+                self._respond_to_allowed_packages(f)
             except TimeoutError:
                 # code took too long to run
                 self._respond_to_timeout()
-            except UnAllowedFilesCreated as e:
+            except UnAllowedFilesCreated as f:
                 # code created files that we do not allow
-                self._respond_to_un_allowed_files_created(e.un_allowed_files)
-            except FileNotFoundError:
+                self._respond_to_un_allowed_files_created(f.un_allowed_files)
+            except FileNotFoundError as f:
                 # the code tried to load file that we do not have
-                self._respond_to_file_not_found(str(e.exception))
+                self._respond_to_file_not_found(str(f))
             except CodeUsesForbiddenFunctions as f:
                 self._respond_to_forbidden_functions(f.func)
             except UnAllowedDataframeMethodCall as f:

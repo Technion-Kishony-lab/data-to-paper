@@ -127,8 +127,8 @@ def test_run_code_wrong_import():
         """)
     try:
         run_code_using_module_reload(code)
-    except Exception as e:
-        assert e.fromlist == ['yyy']
+    except FailedRunningCode as e:
+        assert e.exception.fromlist == ('yyy', )
 
 
 code = dedent_triple_quote_str("""
