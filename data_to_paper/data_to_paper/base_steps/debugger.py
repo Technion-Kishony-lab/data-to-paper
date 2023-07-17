@@ -335,6 +335,26 @@ class DebuggerConverser(ProductsConverser):
             """).format(self.output_filename, extract_to_nearest_newline(output, MAX_SENSIBLE_OUTPUT_SIZE.val)),
             comment=f'{self.iteration_str}: Code completed, but output file is too long.')
 
+    def _is_output_ok(self, code_and_output: CodeAndOutput, dataframe_operations) -> bool:
+        output = code_and_output.get_clean_output()
+        if output is not None and len(output.strip()) == 0:
+            # The code ran successfully, but the output file is empty.
+            self._respond_to_empty_output()
+        elif output is not None \
+                and count_number_of_tokens_in_message(output, max(ModelEngine)) > \
+                MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val:
+            # The code ran successfully, but the output file is too large.
+            self._respond_to_large_output(output)
+        elif self.enforce_saving_altered_dataframes \
+                and dataframe_operations.get_read_changed_but_unsaved_ids():
+            # The code ran successfully, but not all changed dataframes were saved to files.
+            read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
+                dataframe_operations.get_read_changed_but_unsaved_ids())
+            self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
+        else:
+            return True
+        return False
+
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
@@ -399,23 +419,9 @@ class DebuggerConverser(ProductsConverser):
         except Exception:
             raise
         else:
-            # The code ran without raising exceptions
-            output = code_and_output.get_clean_output()
-            if output is not None and len(output.strip()) == 0:
-                # The code ran successfully, but the output file is empty.
-                self._respond_to_empty_output()
-            elif output is not None \
-                    and count_number_of_tokens_in_message(output, max(ModelEngine)) > \
-                    MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val:
-                # The code ran successfully, but the output file is too large.
-                self._respond_to_large_output(output)
-            elif self.enforce_saving_altered_dataframes \
-                    and dataframe_operations.get_read_changed_but_unsaved_ids():
-                # The code ran successfully, but not all changed dataframes were saved to files.
-                read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
-                    dataframe_operations.get_read_changed_but_unsaved_ids())
-                self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
-            else:
+            # The code ran without raising exceptions.
+            # We now check if the output is ok:
+            if self._is_output_ok(code_and_output, dataframe_operations):
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
                 self.comment("GPT code completed successfully.")
