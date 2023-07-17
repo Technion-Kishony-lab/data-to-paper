@@ -82,7 +82,6 @@ def _run(
 
 
 def run_scientist_gpt_in_separate_process(id_, step_runner_kwargs):
-    output_directory = step_runner_kwargs['output_directory']
     reader, writer = gipc.pipe()
     process = gipc.start_process(
         _run,
@@ -97,6 +96,8 @@ def run_scientist_gpt_in_separate_process(id_, step_runner_kwargs):
             serialized = reader.get()
         except Empty:
             continue
+        except EOFError:
+            break
 
         if serialized is not None:
             PAPER_IDS_TO_SERIALIZED_ACTIONS.setdefault(id_, []).append(serialized)
