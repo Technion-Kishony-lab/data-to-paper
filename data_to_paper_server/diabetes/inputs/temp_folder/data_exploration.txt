@@ -1,0 +1,52 @@
+Number of rows: 253680
+Number of columns: 22
+
+Summary statistics:
+                      count    mean    std
+Diabetes_binary      253680  0.1393 0.3463
+HighBP               253680   0.429 0.4949
+HighChol             253680  0.4241 0.4942
+CholCheck            253680  0.9627 0.1896
+BMI                  253680   28.38  6.609
+Smoker               253680  0.4432 0.4968
+Stroke               253680 0.04057 0.1973
+HeartDiseaseorAttack 253680 0.09419 0.2921
+PhysActivity         253680  0.7565 0.4292
+Fruits               253680  0.6343 0.4816
+Veggies              253680  0.8114 0.3912
+HvyAlcoholConsump    253680  0.0562 0.2303
+AnyHealthcare        253680  0.9511 0.2158
+NoDocbcCost          253680 0.08418 0.2777
+GenHlth              253680   2.511  1.068
+MentHlth             253680   3.185  7.413
+PhysHlth             253680   4.242  8.718
+DiffWalk             253680  0.1682 0.3741
+Sex                  253680  0.4403 0.4964
+Age                  253680   8.032  3.054
+Education            253680    5.05 0.9858
+Income               253680   6.054  2.071
+
+Most common values of categorical variables:
+Counts of missing, unknown, or undefined values:
+Diabetes_binary - Unknown values: 0, Missing values: 0, Total: 253680
+HighBP - Unknown values: 0, Missing values: 0, Total: 253680
+HighChol - Unknown values: 0, Missing values: 0, Total: 253680
+CholCheck - Unknown values: 0, Missing values: 0, Total: 253680
+BMI - Unknown values: 0, Missing values: 0, Total: 253680
+Smoker - Unknown values: 0, Missing values: 0, Total: 253680
+Stroke - Unknown values: 0, Missing values: 0, Total: 253680
+HeartDiseaseorAttack - Unknown values: 0, Missing values: 0, Total: 253680
+PhysActivity - Unknown values: 0, Missing values: 0, Total: 253680
+Fruits - Unknown values: 0, Missing values: 0, Total: 253680
+Veggies - Unknown values: 0, Missing values: 0, Total: 253680
+HvyAlcoholConsump - Unknown values: 0, Missing values: 0, Total: 253680
+AnyHealthcare - Unknown values: 0, Missing values: 0, Total: 253680
+NoDocbcCost - Unknown values: 0, Missing values: 0, Total: 253680
+GenHlth - Unknown values: 0, Missing values: 0, Total: 253680
+MentHlth - Unknown values: 0, Missing values: 0, Total: 253680
+PhysHlth - Unknown values: 0, Missing values: 0, Total: 253680
+DiffWalk - Unknown values: 0, Missing values: 0, Total: 253680
+Sex - Unknown values: 0, Missing values: 0, Total: 253680
+Age - Unknown values: 0, Missing values: 0, Total: 253680
+Education - Unknown values: 0, Missing values: 0, Total: 253680
+Income - Unknown values: 0, Missing values: 0, Total: 253680

@@ -1,0 +1,46 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    postbreak=\mbox{\textcolor{black}{$\hookrightarrow$}\space},
+    tabsize=2
+}
+
+\title{Hello World}
+\author{data-to-paper}
+
+\begin{document}
+
+\maketitle
+
+\section{Results}
+
+In this section, we present the results of our analysis on the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey.
+
+\subsection{Association between Fruit and Vegetable Consumption and Diabetes Risk}
+
+To understand the relationship between fruit and vegetable consumption and diabetes risk, we conducted logistic regression analysis while controlling for age, sex, BMI, education, and income (Table \ref{table2}). Our findings reveal that higher fruit and vegetable consumption is associated with a reduced risk of diabetes (Coefficient = -0.181, p-value $<10^{-4}$). This suggests that individuals who consume more fruits and vegetables have a lower probability of developing diabetes.
+
+\subsection{Association between Physical Activity, Fruit and Vegetable Consumption, and Diabetes Risk}
+
+To further explore the relationship between fruit and vegetable consumption, physical activity, and diabetes risk, we performed a logistic regression analysis controlling for age, sex, BMI, education, income, and physical activity (Table \ref{table3}). The results demonstrate that physical activity (Coefficient = -0.211, p-value $<10^{-4}$) and fruit and vegetable consumption (Coefficient = -0.052, p-value = 0.016) are independently associated with a reduced risk of diabetes. Moreover, the interaction term between fruit and vegetable consumption and physical activity is also statistically significant (Coefficient = -0.143, p-value $<10^{-4}$). This indicates that the combined effect of engaging in physical activity and consuming fruits and vegetables is even more protective against diabetes.
+
+The inclusion of physical activity and the interaction term in the logistic regression model improves its predictive power, as indicated by a higher pseudo R-squared value of 0.1263 compared to 0.1242 in the model without the interaction term. These results provide insights into potential mechanisms by which lifestyle interventions, such as increasing fruit and vegetable consumption and engaging in physical activity, may contribute to reducing the burden of diabetes among adults.
+
+The negative correlation coefficient of -0.181 between fruit and vegetable consumption and diabetes risk suggests that for every unit increase in fruit and vegetable consumption, the odds of developing diabetes decrease by 0.181 units. Additionally, the pseudo R-squared value of 0.1242 for the logistic regression model in Table \ref{table2} indicates that 12.42\% of the variability in diabetes risk can be explained by the included covariates.
+
+It is important to acknowledge potential limitations associated with self-reported data, including measurement errors and biases. Nevertheless, our findings emphasize the significance of promoting fruit and vegetable intake and regular physical activity as preventive measures for diabetes among adults. These results have implications for public health interventions and policies aimed at reducing the burden of diabetes in the adult population.
+
+In summary, our analysis demonstrates that higher fruit and vegetable consumption, along with engagement in regular physical activity, is associated with a reduced risk of diabetes among adults. These findings underscore the importance of adopting healthy lifestyle behaviors and highlight the potential benefits of targeted interventions to promote fruit and vegetable consumption and physical activity in reducing the burden of diabetes.
+
+\end{document}

@@ -1,0 +1,267 @@
+
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+}
+
+\title{The Impact of Fruit and Vegetable Consumption and Physical Activity on Diabetes Risk among Adults}
+\author{Data to Paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Diabetes is a global health concern, and identifying modifiable risk factors is essential for prevention. We investigated the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults. Using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey, logistic regression analysis was conducted, controlling for age, sex, BMI, education, and income. Our results show that higher fruit and vegetable consumption is associated with a reduced risk of diabetes. Moreover, engaging in regular physical activity strengthens this association. This study addresses a gap in the literature by providing evidence on the protective effects of fruit and vegetable consumption and physical activity in relation to diabetes risk. However, limitations, such as self-reported data and potential confounders, should be considered. Our findings highlight the importance of promoting healthy lifestyle behaviors and have implications for diabetes prevention interventions among adults.
+\end{abstract}
+
+\section*{Introduction}
+
+Diabetes is a major global health concern, affecting nearly half a billion people worldwide, with projections estimating an increase of 25\% in 2030 and 51\% in 2045 \cite{Saeedi2019GlobalAR}. The increasing prevalence of diabetes poses both an economic and a public health burden \cite{Wild2004GlobalPO}. Identification of modifiable risk factors, such as dietary habits and physical activity, is crucial for the prevention and management of diabetes \cite{Uloko2018PrevalenceAR}.
+
+Previous research has demonstrated the beneficial impact of fruit and vegetable consumption and regular physical activity on diabetes risk \cite{Li2016AssociationBA, Herbst2007ImpactOP}, focusing primarily on prevalent diabetes risk factors such as insulin resistance, obesity, and cardiovascular health. However, there is limited evidence on the combined effect of both fruit and vegetable consumption and physical activity on diabetes risk.
+
+In this study, we aim to fill this gap in the literature by examining the relationship between fruit and vegetable consumption, physical activity, and diabetes risk among adults using data from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey \cite{Flores-Hernndez2015QualityOD,Iachan2016NationalWO}. This dataset provides a large and diverse sample of American adults, allowing us to investigate the association of these modifiable lifestyle factors with the risk of developing diabetes.
+
+To assess the impact of fruit and vegetable consumption and physical activity on diabetes risk, we employed logistic regression analysis, controlling for potential confounding factors such as age, sex, BMI, education, and income \cite{Gomes-Neto2019FruitAV}. In addition to examining the independent effects of fruit and vegetable consumption and physical activity on diabetes risk, we also analyzed the interaction between these lifestyle factors to better understand their potential synergistic effect on diabetes risk reduction.
+
+With this comprehensive analysis of the BRFSS 2015 data, we provide evidence on the protective effects of fruit and vegetable consumption and physical activity on diabetes risk among adults. Our findings contribute to the growing body of literature supporting the importance of promoting healthy lifestyle behaviors for the prevention of diabetes and its complications.
+
+\section*{Results}
+
+In this section, we present the results of our analysis on the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey.
+
+\subsection*{Association between Fruit and Vegetable Consumption and Diabetes Risk}
+
+To understand the relationship between fruit and vegetable consumption and diabetes risk, we conducted logistic regression analysis while controlling for age, sex, BMI, education, and income (Table \ref{table2}). Our findings reveal that higher fruit and vegetable consumption is associated with a reduced risk of diabetes (Coefficient = -0.181, p-value $<10^{-4}$). This suggests that individuals who consume more fruits and vegetables have a lower probability of developing diabetes.\begin{table}[!htbp]
+\centering
+\caption{Association between fruit and vegetable consumption and diabetes risk: Logistic regression results}
+\label{table2}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Variable}  & \textbf{Coeff.} & \textbf{Std. Err.} & \textbf{p-value} \\
+\midrule
+Intercept          & $-4.861$        & $\pm 0.050$        & $<10^{-4}$    \\
+Fruit \& Vegetable & $-0.181$        & $\pm 0.012$        & $<10^{-4}$    \\
+Age (years)        & $0.211$         & $\pm 0.002$        & $<10^{-4}$    \\
+Sex (Male)         & $0.329$         & $\pm 0.013$        & $<10^{-4}$    \\
+BMI                & $0.085$         & $\pm 0.001$        & $<10^{-4}$    \\
+Education          & $-0.108$        & $\pm 0.007$        & $<10^{-4}$    \\
+Income             & $-0.147$        & $\pm 0.003$        & $<10^{-4}$    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{Association between Physical Activity, Fruit and Vegetable Consumption, and Diabetes Risk}
+
+To further explore the relationship between fruit and vegetable consumption, physical activity, and diabetes risk, we performed a logistic regression analysis controlling for age, sex, BMI, education, income, and physical activity (Table \ref{table3}). The results demonstrate that physical activity (Coefficient = -0.211, p-value $<10^{-4}$) and fruit and vegetable consumption (Coefficient = -0.052, p-value = 0.016) are independently associated with a reduced risk of diabetes. Moreover, the interaction term between fruit and vegetable consumption and physical activity is also statistically significant (Coefficient = -0.143, p-value $<10^{-4}$). This indicates that the combined effect of engaging in physical activity and consuming fruits and vegetables is even more protective against diabetes.\begin{table}[!htbp]
+\centering
+\caption{Interaction between fruit and vegetable consumption and physical activity on diabetes risk: Logistic regression results}
+\label{table3}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Variable}                        & \textbf{Coeff.} & \textbf{Std. Err.} & \textbf{p-value} \\
+\midrule
+Intercept                                & $-4.719$       & $\pm 0.051$        & $<10^{-4}$    \\
+Fruit \& Vegetable                      & $-0.052$       & $\pm 0.022$        & $0.016$       \\
+Physical Activity (Yes)                  & $-0.211$       & $\pm 0.018$        & $<10^{-4}$    \\
+Fruit \& Vegetable $\times$ Phys. Activity & $-0.143$       & $\pm 0.026$        & $<10^{-4}$    \\
+Age (years)                              & $0.208$        & $\pm 0.002$        & $<10^{-4}$    \\
+Sex (Male)                               & $0.339$        & $\pm 0.013$        & $<10^{-4}$    \\
+BMI                                      & $0.083$        & $\pm 0.001$        & $<10^{-4}$    \\
+Education                                & $-0.095$       & $\pm 0.007$        & $<10^{-4}$    \\
+Income                                   & $-0.141$       & $\pm 0.003$        & $<10^{-4}$    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The inclusion of physical activity and the interaction term in the logistic regression model improves its predictive power, as indicated by a higher pseudo R-squared value of 0.1263 compared to 0.1242 in the model without the interaction term. These results provide insights into potential mechanisms by which lifestyle interventions, such as increasing fruit and vegetable consumption and engaging in physical activity, may contribute to reducing the burden of diabetes among adults.
+
+The negative correlation coefficient of -0.181 between fruit and vegetable consumption and diabetes risk suggests that for every unit increase in fruit and vegetable consumption, the odds of developing diabetes decrease by 0.181 units. Additionally, the pseudo R-squared value of 0.1242 for the logistic regression model in Table \ref{table2} indicates that 12.42\% of the variability in diabetes risk can be explained by the included covariates.
+
+It is important to acknowledge potential limitations associated with self-reported data, including measurement errors and biases. Nevertheless, our findings emphasize the significance of promoting fruit and vegetable intake and regular physical activity as preventive measures for diabetes among adults. These results have implications for public health interventions and policies aimed at reducing the burden of diabetes in the adult population.
+
+In summary, our analysis demonstrates that higher fruit and vegetable consumption, along with engagement in regular physical activity, is associated with a reduced risk of diabetes among adults. These findings underscore the importance of adopting healthy lifestyle behaviors and highlight the potential benefits of targeted interventions to promote fruit and vegetable consumption and physical activity in reducing the burden of diabetes.\begin{table}[!htbp]
+\centering
+\caption{Descriptive statistics of the dataset}
+\label{table1}
+\begin{tabular}{l c c}
+\toprule
+\textbf{Variable}                & \textbf{Mean}       & \textbf{Standard Deviation} \\
+\midrule
+Diabetes                         & 0.139               & 0.346                       \\
+High Blood Pressure              & 0.429               & 0.495                       \\
+High Cholesterol                 & 0.424               & 0.494                       \\
+Cholesterol Check (Yes)          & 0.963               & 0.190                       \\
+BMI                              & 28.38               & 6.61                        \\
+Smoker (Yes)                     & 0.443               & 0.497                       \\
+Stroke (Yes)                     & 0.041               & 0.197                       \\
+Heart Disease or Attack (Yes)    & 0.094               & 0.292                       \\
+Physical Activity (Yes)          & 0.756               & 0.429                       \\
+Fruits Consumption (Yes)         & 0.634               & 0.482                       \\
+Vegetables Consumption (Yes)     & 0.811               & 0.391                       \\
+Heavy Alcohol Consumption (Yes)  & 0.056               & 0.230                       \\
+Healthcare Coverage (Yes)        & 0.951               & 0.216                       \\
+No Doctor due to Cost (Yes)      & 0.084               & 0.278                       \\
+General Health (1$\sim$5 scale)  & 2.51                & 1.07                        \\
+Mental Health (1$\sim$30 days)   & 3.19                & 7.41                        \\
+Physical Health (1$\sim$30 days) & 4.24                & 8.72                        \\
+Difficulty Walking (Yes)         & 0.168               & 0.374                       \\
+Sex (Male)                       & 0.440               & 0.497                       \\
+Age (18$\sim$80+ years)          & 8.03                & 3.05                        \\
+Education (1$\sim$6 scale)       & 5.05                & 0.986                       \\
+Income (1$\sim$8 scale)          & 6.05                & 2.07                        \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Discussion}
+
+The subject of this study focused on the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults. Given the forecasted increase in diabetes prevalence, with estimates projecting a 25\% increase in 2030 and 51\% in 2045 \cite{Saeedi2019GlobalAR}, it is critical to identify modifiable risk factors like dietary habits and physical activity for the prevention and management of diabetes \cite{Uloko2018PrevalenceAR}. 
+
+In examining the association between fruit and vegetable consumption, physical activity, and diabetes risk, our methodology involved logistic regression analysis using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey, controlling for potential confounding factors such as age, sex, BMI, education, and income. Our findings reveal that a higher intake of fruits and vegetables, coupled with regular physical activity, resulted in a reduced risk of diabetes. These results align with previous research that highlighted the benefits of fruit and vegetable consumption and physical activity on diabetes risk \cite{Herbst2007ImpactOP, Carlstrm2018CoffeeCA, Drouin-Chartier2016SystematicRO}.
+
+However, our study has some limitations that should be taken into consideration. Our findings were based on self-reported data, which may be prone to errors and biases in measurement. Moreover, there is a possibility that unmeasured or residual confounding factors could have influenced the observed associations. Additionally, as this study utilized cross-sectional data, we caution against inferring any causal relationships between fruit and vegetable consumption, physical activity, and diabetes risk. 
+
+In conclusion, our study provides evidence that higher fruit and vegetable consumption and regular physical activity are associated with a reduced risk of diabetes among adults. These findings support the importance of promoting healthy lifestyle behaviors for diabetes prevention and management. While the results highlight the potential of fruit and vegetable consumption and regular physical exercise in reducing diabetes risk, future research should investigate the potential causal relationships and further evaluate the long-term effects of these lifestyle interventions in larger and more diverse populations. Moreover, longitudinal and experimental studies could help elucidate the mechanisms through which fruit and vegetable intake, physical activity, and diabetes interact, ultimately contributing to the development of more effective preventive measures and public health policies.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The data for this study was obtained from the CDC's Behavioral Risk Factor Surveillance System (BRFSS), specifically from the year 2015 survey. The BRFSS is an annual health-related telephone survey that collects information on health-related risk behaviors, chronic health conditions, and the use of preventative services from over 400,000 Americans. The dataset used for this study consists of 253,680 responses with 22 features, including diabetes status, fruit and vegetable consumption, physical activity level, and demographic variables. The dataset was provided as a comma-separated values (CSV) file.
+
+\subsection*{Data Preprocessing}
+The pre-processing of the data was performed using Python programming language. First, missing values were removed from the original dataset, resulting in a clean dataset of 253,680 responses. This step ensures that the subsequent analysis is conducted on complete data. Next, a new variable called "FruitVeg" was created by combining the "Fruits" and "Veggies" variables using a logical AND operation. This new variable represents whether an individual consumes at least one fruit and one vegetable each day. These pre-processing steps were performed using the pandas library in Python.
+
+\subsection*{Data Analysis}
+To examine the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults, logistic regression analysis was conducted using the statsmodels library in Python. In the first analysis step, a logistic regression model was fitted with the "Diabetes\_binary" variable as the dependent variable and "FruitVeg," "Age," "Sex," "BMI," "Education," and "Income" as independent variables. This analysis aimed to determine the association between fruit and vegetable consumption and the risk of diabetes, while controlling for demographic and health-related factors.
+
+In the second analysis step, an interaction term between fruit and vegetable consumption ("FruitVeg") and physical activity level ("PhysActivity") was introduced in the logistic regression model. The model included the main effects of "FruitVeg" and "PhysActivity," as well as the interaction term "FruitVeg\_PhysActivity." This analysis aimed to investigate whether the association between fruit and vegetable consumption and diabetes risk is modified by physical activity level.
+
+The results of the logistic regression analyses, including odds ratios and corresponding p-values, were obtained from the fitted models. Additionally, descriptive statistics for the dataset were calculated using the pandas library. The results were written to a text file named "results.txt" for further examination and reporting. 
+
+These analysis steps provide insights into the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults, while controlling for potential confounding factors.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code output outputs, are provided in Supplementary Methods.
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\clearpage
+\appendix
+@@@appendix@@@
+
+\end{document}

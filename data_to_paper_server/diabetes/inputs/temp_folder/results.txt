@@ -1,0 +1,24 @@
+## General results:
+
+Total number of observations: 253680
+
+Mean BMI: 0.19049260008947363
+
+Percentage of subjects with diabetes: 13.933301797540206
+
+## Results for Table 1:
+
+Diabetes_binary       0       1
+count            218334   35346
+mean             0.1838  0.2319
+std             0.07316 0.08562
+min                   0 0.01163
+25%              0.1395  0.1744
+50%              0.1744  0.2209
+75%              0.2209  0.2674
+max                   1       1
+## Results for Table 2:
+
+Chi-squared statistic: 12942.93491586499
+
+p-value: 0.0
