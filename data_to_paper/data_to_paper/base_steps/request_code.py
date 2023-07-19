@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict
 
 from data_to_paper.env import SUPPORTED_PACKAGES
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
+    get_single_content_file_from_requirements
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
@@ -22,9 +23,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
-    allowed_created_files: Tuple[str, ...] = None
-    # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
-
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
 
@@ -38,7 +36,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     goal_verb: str = 'write'
     user_initiation_prompt: str = 'Please write a code to analyze the data.'
 
-    output_filename: str = 'results.txt'
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
@@ -53,17 +51,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     present_code_as_fresh: str = dedent_triple_quote_str("""
         Here is the code to perform the analysis.
-        {code_save_result_to_file_explanation}
+        {created_file_names_explanation}
         ```python
-        {}
+        {code}
         ```
         """)  # set to None to not present code
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
-        ```output
-        {}
-        ```
+        I ran your code. 
+        
+        {created_file_contents_explanation}
 
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
         that may indicate that code improvements are needed), then choose one of the following options:
@@ -76,10 +73,27 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         """)  # set to None to skip option for revision
 
     @property
-    def code_save_result_to_file_explanation(self) -> str:
-        if self.output_filename is None:
+    def output_filename(self) -> str:
+        return get_single_content_file_from_requirements(self.output_file_requirements)
+
+    def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:
+        created_files = code_and_output.get_created_content_files_to_contents()
+        if len(created_files) == 0:
             return ''
-        return 'It saves results to the file "{output_filename}".'
+        elif len(created_files) == 1:
+            created_file = next(iter(created_files))
+            return f'It saves the results to the file "{created_file}".'
+        else:
+            return f'It saves the results to the files {list(created_files)}.'
+
+    def get_created_file_contents_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
+        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        if len(files_to_contents) == 0:
+            return None
+        s = 'Here is the content of the output file(s) that the code created:\n'
+        for filename, content in files_to_contents.items():
+            s += f'"{filename}":\n```output\n{content}\n```'
+        return s
 
     @property
     def data_filenames(self) -> NiceList[str]:
@@ -131,13 +145,12 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             code_and_output = DebuggerConverser.from_(
                 self,
                 is_new_conversation=False,
-                output_filename=self.output_filename,
+                output_file_requirements=self.output_file_requirements,
                 data_filenames=self.data_filenames,
                 data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
                 previous_code=previous_code,
-                allowed_created_files=self.allowed_created_files,
                 allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
                 enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,
                 supported_packages=self.supported_packages,
@@ -149,10 +162,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 continue
 
             if self.present_code_as_fresh:
-                # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
+                # debugging succeeded. we now forge the conversation as if ChatGPT immediately sent the correct code:
                 self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(
-                    content=Replacer(self, self.present_code_as_fresh, args=(code_and_output.code,)),
+                    content=Replacer(
+                        self, self.present_code_as_fresh,
+                        kwargs=dict(
+                            code=code_and_output.code,
+                            created_file_names_explanation=self.get_created_file_names_explanation(code_and_output),
+                        )),
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
@@ -160,7 +178,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return None
 
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
-        if self.offer_revision_prompt is None or self.output_filename is None:
+        created_file_contents_explanation = self.get_created_file_contents_explanation(code_and_output)
+        if self.offer_revision_prompt is None or created_file_contents_explanation is None:
             return False
 
         return PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser.from_(
@@ -168,6 +187,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             value_type=Dict[str, str],
             allowed_values_for_keys={'choice': ['ok', 'revise']},
             is_new_conversation=False,
-            user_initiation_prompt=Replacer(self, self.offer_revision_prompt,
-                                            args=(code_and_output.get_clean_output(),)),
+            user_initiation_prompt=Replacer(
+                self, self.offer_revision_prompt,
+                kwargs=dict(
+                    created_file_contents_explanation=created_file_contents_explanation,
+                )),
         ).run_and_get_valid_result()['choice'] == 'revise'

@@ -8,6 +8,8 @@ from data_to_paper.base_steps import BaseCodeProductsGPT
 from data_to_paper.researches_types.scientific_research.coding_steps import ExplainCreatedDataframe, \
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.run_gpt_code.types import OutputFileRequirement, DataOutputFileRequirement, \
+    ContentOutputFileRequirement
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
@@ -16,11 +18,10 @@ from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProductsGPT):
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
-    allowed_created_files: Tuple[str, ...] = ('*.csv',)
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
     allow_dataframes_to_change_existing_series: bool = False
     enforce_saving_altered_dataframes: bool = True
     offer_revision_prompt: str = None
-    output_filename: str = None
     code_name: str = 'Testing'
     temp_dir: str = None
 
@@ -70,8 +71,8 @@ def code_running_converser(tmpdir_with_csv_file):
         temp_dir=tmpdir_with_csv_file,
         code_name='Testing',
         conversation_name='testing',
-        offer_revision_prompt='Output: "{}"\nRevise?',
-        output_filename='output.txt',
+        offer_revision_prompt='Output:\n{created_file_contents_explanation}\nRevise?',
+        output_file_requirements=(DataOutputFileRequirement('*.csv'), ContentOutputFileRequirement('output.txt')),
     )
 
 
@@ -158,7 +159,7 @@ def test_request_code_with_revisions(code_running_converser):
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()
     assert code_and_output.code == code3
-    assert code_and_output.output == 'Best output'
+    assert code_and_output.get_single_output() == 'Best output'
     assert len(code_running_converser.conversation) == 5
 
 

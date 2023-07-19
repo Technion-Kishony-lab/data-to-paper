@@ -7,7 +7,7 @@ from data_to_paper.base_products import DataFileDescription, DataFileDescription
 from data_to_paper.researches_types.scientific_research.get_template import get_paper_template_path
 from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput, ContentOutputFileRequirement
 from data_to_paper.servers.crossref import CrossrefCitation
 
 
@@ -107,10 +107,16 @@ def products():
                                 \\end{table}
                             """]},
         codes_and_outputs={
-            'data_analysis': CodeAndOutput(code=CODE, output=OUTPUT, output_file='output.txt',
-                                           code_explanation=EXPLANATION),
-            'data_exploration': CodeAndOutput(code=EXPLORATION_CODE, output=EXPLORATION_OUTPUT,
-                                              output_file='', code_explanation=EXPLORATION_EXPLANATION)},
+            'data_analysis': CodeAndOutput(
+                code=CODE,
+                requirements_to_output_files_to_contents={
+                    ContentOutputFileRequirement('output.txt'): {'output.txt': OUTPUT}},
+                code_explanation=EXPLANATION),
+            'data_exploration': CodeAndOutput(code=EXPLORATION_CODE,
+                                              requirements_to_output_files_to_contents={
+                                                  ContentOutputFileRequirement('output.txt'):
+                                                      {'output.txt': EXPLORATION_OUTPUT}},
+                                              code_explanation=EXPLORATION_EXPLANATION)},
     )
 
 

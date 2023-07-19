@@ -1,10 +1,10 @@
 import pytest
 import os
 
-from data_to_paper.run_gpt_code.code_runner import CodeRunner, FailedLoadingOutput
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
-
+from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement
 
 OUTPUT_FILE = "output.txt"
 
@@ -45,39 +45,45 @@ txt = 'hello'
 
 
 def test_runner_correctly_extract_code_to_run():
-    assert CodeRunner(response=valid_response, output_file='output.txt').extract_code() == code_encoded_in_response
+    assert CodeRunner(response=valid_response,
+                      output_file_requirements=(ContentOutputFileRequirement('output.txt'), ),
+                      ).extract_code() == code_encoded_in_response
 
 
 def test_runner_correctly_run_extracted_code(tmpdir):
     os.chdir(tmpdir)
-    assert CodeRunner(response=valid_response, output_file='output.txt').run_code().output == 'hello'
-
-
-def test_runner_raises_when_output_not_found(tmpdir):
-    os.chdir(tmpdir)
-    with pytest.raises(FailedLoadingOutput):
-        CodeRunner(response=code_not_creating_file, output_file='wrong_output.txt').run_code()
+    assert CodeRunner(response=valid_response,
+                      output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                      ).run_code().get_single_output() == 'hello'
 
 
 def test_runner_raises_when_code_writes_to_wrong_file(tmpdir):
     os.chdir(tmpdir)
     with pytest.raises(FailedRunningCode):
-        CodeRunner(response=valid_response, output_file='wrong_output.txt').run_code()
+        CodeRunner(response=valid_response,
+                   output_file_requirements=(ContentOutputFileRequirement('wrong_output.txt'),),
+                   ).run_code()
 
 
 def test_runner_raises_when_no_code_is_found():
     with pytest.raises(FailedExtractingBlock):
-        CodeRunner(response=no_code_response, output_file='output.txt').run_code()
+        CodeRunner(response=no_code_response,
+                   output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                   ).run_code()
 
 
 def test_runner_raises_when_multiple_codes_are_found():
     with pytest.raises(FailedExtractingBlock):
-        CodeRunner(response=two_codes_response, output_file='output.txt').run_code()
+        CodeRunner(response=two_codes_response,
+                   output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                   ).run_code()
 
 
 def test_runner_raises_when_code_use_forbidden_functions():
     try:
-        CodeRunner(response=code_using_print, output_file='output.txt').run_code()
+        CodeRunner(response=code_using_print,
+                   output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                   ).run_code()
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeUsesForbiddenFunctions)
         assert 'print' == e.exception.func

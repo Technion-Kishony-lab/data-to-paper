@@ -5,16 +5,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Set, Tuple
 
-from data_to_paper.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, \
-    MAX_MODEL_ENGINE
+from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE
 from data_to_paper.utils import dedent_triple_quote_str
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
+    get_single_content_file_from_requirements, ContentOutputFileRequirement
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
-from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
+from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
@@ -30,7 +30,7 @@ KNOWN_MIS_IMPORTS = {
     'Mediation': 'statsmodels.stats.mediation',
 }
 
-# assert imports of KNOWN_MIS_IMPORTS:
+# assert KNOWN_MIS_IMPORTS:
 for name, module in KNOWN_MIS_IMPORTS.items():
     try:
         importlib.import_module(module, name)
@@ -54,25 +54,33 @@ class DebuggerConverser(ProductsConverser):
     * too long runs (timeout)
     * output file not created
     """
-    allowed_created_files: Tuple[str, ...] = None
+
+    # input files:
+    data_folder: Path = None
+    data_filenames: Optional[list] = field(default_factory=list)
+
+    # output files:
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+
+    # dataframes:
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
-    supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
     user_initiation_prompt: str = None
-
     assistant_agent: Agent = None
     user_agent: Agent = None
 
-    max_debug_iterations: int = 5
+    supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
+    max_debug_iterations: int = 5
     debug_iteration = 0
 
     previous_code: Optional[str] = None
     gpt_script_filename: str = 'debugger_gpt'
-    data_filenames: Optional[list] = field(default_factory=list)
-    data_folder: Path = None
-    output_filename: str = 'results.txt'
+
+    @property
+    def output_filenames(self) -> Tuple[str, ...]:
+        return tuple(output_file_requirement.filename for output_file_requirement in self.output_file_requirements)
 
     @property
     def iteration_str(self):
@@ -85,8 +93,7 @@ class DebuggerConverser(ProductsConverser):
     def _get_code_runner(self, response: str) -> CodeRunner:
         return CodeRunner(response=response,
                           allowed_read_files=self.data_filenames,
-                          output_file=self.output_filename,
-                          allowed_created_files=self.allowed_created_files,
+                          output_file_requirements=self.output_file_requirements,
                           allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
                           script_file_path=None,
                           data_folder=self.data_folder,
@@ -156,14 +163,25 @@ class DebuggerConverser(ProductsConverser):
             """).format('warning' if is_warning else 'error', error_message),
             comment=f'{self.iteration_str}: Runtime exception in GPT code.')
 
-    def _respond_to_missing_output(self):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code. It ran fine without raising any exception, 
-            but it didn't generate the desired output file ({}).
-            Please rewrite the complete code again so that the output file is correctly created. 
-            """).format(self.output_filename),
-            comment=f'{self.iteration_str}: Code completed, but no output file created.')
+    def _respond_to_missing_output(self, requirement: OutputFileRequirement, filenames: List[str]):
+        if requirement.is_wildcard():
+            self.apply_append_user_message(
+                content=dedent_triple_quote_str(f"""
+                I ran the code. It ran fine without raising any exception.
+                However, the code was supposed to create at least {requirement.minimal_count} files \
+                of "{requirement.filename}", \ 
+                but it created {len(filenames)} files of this type.
+                Please rewrite the complete code again so that these output files are correctly created. 
+                """),
+                comment=f'{self.iteration_str}: Code completed, but not enough output files created.')
+        else:
+            self.apply_append_user_message(
+                content=dedent_triple_quote_str(f"""
+                I ran the code. It ran fine without raising any exception, 
+                but it didn't generate the desired output file ({requirement.filename}).
+                Please rewrite the complete code again so that the output file is correctly created. 
+                """),
+                comment=f'{self.iteration_str}: Code completed, but no output file created.')
 
     def _respond_to_unsaved_dataframes(self, read_but_unsaved_dataframe_files: Set[str]):
         self.apply_append_user_message(
@@ -210,7 +228,7 @@ class DebuggerConverser(ProductsConverser):
 
     def _respond_to_forbidden_functions(self, func: str):
         if func == 'print':
-            if self.output_filename is None:
+            if not self.output_filenames:
                 self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
                     Please do not use the `print` function.
@@ -222,7 +240,7 @@ class DebuggerConverser(ProductsConverser):
                     content=dedent_triple_quote_str("""
                     Please do not use the `print` function. 
                     Anything you want to print must be written to the output file ("{}"). 
-                    """).format(self.output_filename),
+                    """).format(self.output_filenames),
                     comment=f'{self.iteration_str}: Code uses `print`.'
                 )
             return
@@ -235,52 +253,46 @@ class DebuggerConverser(ProductsConverser):
 
     def _respond_to_forbidden_import(self, module: str):
         self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            Your code import the module `{}`, which is not allowed.
+            content=dedent_triple_quote_str(f"""
+            Your code import the module `{module}`, which is not allowed.
             Please rewrite the complete code again without using this module. 
-            """).format(module),
+            """),
             comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
 
     @property
-    def only_write_to_description(self):
-        if self.output_filename is None:
-            if self.allowed_created_files == ('*.csv', ):
-                return 'Your code should only save new or modified dataframes to csv files; ' \
-                       'it should have no other output.'
-            elif self.allowed_created_files:
-                return f'Your code should only write to these files: {self.allowed_created_files}.'
-            else:
-                return 'Your code should not write to any file.'
-        else:
-            if self.allowed_created_files == ('*.csv', ):
-                return f'Your code should save new or modified dataframes to csv files, ' \
-                       f'and save other results to the output file "{self.output_filename}".'
-            elif self.allowed_created_files:
-                return f'Your code should only write to files: {self.allowed_created_files}, ' \
-                       f'and to the output file "{self.output_filename}".'
-            else:
-                return f'Your code should only write to the output file "{self.output_filename}".'
+    def description_of_allowed_output_files(self):
+        requirements = self.output_file_requirements
+        if len(requirements) == 0:
+            return 'Your code should not write to any file.'
+
+        file = get_single_content_file_from_requirements(requirements)
+        if file:
+            return f'Your code should only write to the output file "{file}".'
+
+        return 'Your code should only write to these files: {}.'.format(
+            ', '.join(f'"{r.filename}"' for r in requirements)
+        )
 
     def _respond_to_forbidden_write(self, file: str):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             Your code writes to the file "{}" which is not allowed.
-            {only_write_to_description}
+            {description_of_allowed_output_files}
             Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(file, only_write_to_description=self.only_write_to_description),
+            """).format(file, only_write_to_description=self.description_of_allowed_output_files),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_un_allowed_files_created(self, files: List[str]):
         self.apply_append_user_message(
             content=dedent_triple_quote_str("""
             Your code creates the following files {} which is not allowed.
-            {only_write_to_description}
+            {description_of_allowed_output_files}
             Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(files, self.only_write_to_description),
+            """).format(files, self.description_of_allowed_output_files),
             comment=f'{self.iteration_str}: Code created forbidden files {files}.')
 
     def _respond_to_forbidden_read(self, file: str):
-        if file == self.output_filename:
+        if file == self.output_filenames:
             self.apply_append_user_message(
                 content=dedent_triple_quote_str("""
                 I ran the code, but it tried to read from the output file "{}".
@@ -312,48 +324,58 @@ class DebuggerConverser(ProductsConverser):
             """),
             comment=f'{self.iteration_str}: Code modifies dataframe series "{series}".')
 
-    def _respond_to_empty_output(self):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code, it created the output file "{}", but the file is just empty! 
-            Please rewrite the complete code again to correct this error. 
-            """).format(self.output_filename),
-            comment=f'{self.iteration_str}: Code completed, but output file is empty.')
-
-    def _respond_to_large_output(self, output: str):
-        print(f'ChatGPT code created the following too-long output:\n{output}')
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code, it created the output file "{}", but the file is too long!
-
-            Here is the beginning of the output:
-            ```output
-            {}
-            ```
-
-            Please rewrite the complete code so that only sensible length output is written to the file. 
-            """).format(self.output_filename, extract_to_nearest_newline(output, MAX_SENSIBLE_OUTPUT_SIZE.val)),
-            comment=f'{self.iteration_str}: Code completed, but output file is too long.')
-
-    def _is_output_ok(self, code_and_output: CodeAndOutput, dataframe_operations) -> bool:
-        output = code_and_output.get_clean_output()
-        if output is not None and len(output.strip()) == 0:
+    def _check_and_response_to_file_content(self, requirement: ContentOutputFileRequirement,
+                                            filename: str, content: str) -> bool:
+        if len(content.strip()) == 0:
             # The code ran successfully, but the output file is empty.
-            self._respond_to_empty_output()
-        elif output is not None \
-                and count_number_of_tokens_in_message(output, max(ModelEngine)) > \
-                MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val:
+            self.apply_append_user_message(
+                content=dedent_triple_quote_str(f"""
+                I ran the code, it created the output file "{filename}", but the file is just empty! 
+                Please rewrite the complete code again to correct this error. 
+                """),
+                comment=f'{self.iteration_str}: Code completed, but output file is empty.')
+            return False
+        if count_number_of_tokens_in_message(content, max(ModelEngine)) > requirement.max_tokens:
             # The code ran successfully, but the output file is too large.
-            self._respond_to_large_output(output)
-        elif self.enforce_saving_altered_dataframes \
-                and dataframe_operations.get_read_changed_but_unsaved_ids():
+            print(f'ChatGPT code created "{filename}" with the following too-long output:\n{content}')
+            self.apply_append_user_message(
+                content=dedent_triple_quote_str("""
+                I ran the code, it created the output file "{}", but the file is too long!
+
+                Here is the beginning of the output:
+                ```output
+                {}
+                ```
+
+                Please rewrite the complete code so that only sensible length output is written to the file. 
+                """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
+                comment=f'{self.iteration_str}: Code completed, but output file is too long.')
+            return False
+        return True
+
+    def _is_output_ok(self, code_and_output: CodeAndOutput) -> bool:
+        dataframe_operations = code_and_output.dataframe_operations
+        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        for requirement in self.output_file_requirements:
+            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
+            if len(output_files) < requirement.minimal_count:
+                # Code ran, but the specified number of output files were not created.
+                self._respond_to_missing_output(requirement, output_files)
+                return False
+
+            if isinstance(requirement, ContentOutputFileRequirement):
+                for filename in output_files:
+                    if not self._check_and_response_to_file_content(requirement, filename, files_to_contents[filename]):
+                        return False
+
+        if self.enforce_saving_altered_dataframes and dataframe_operations.get_read_changed_but_unsaved_ids():
             # The code ran successfully, but not all changed dataframes were saved to files.
             read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
                 dataframe_operations.get_read_changed_but_unsaved_ids())
             self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
-        else:
-            return True
-        return False
+            return False
+
+        return True
 
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
@@ -365,7 +387,6 @@ class DebuggerConverser(ProductsConverser):
         code_runner = self._get_code_runner(response)
         try:
             code_and_output = code_runner.run_code()
-            dataframe_operations = code_and_output.dataframe_operations
         except IncompleteBlockFailedExtractingBlock:
             self._respond_to_incomplete_code()
         except FailedExtractingBlock as e:
@@ -413,24 +434,21 @@ class DebuggerConverser(ProductsConverser):
                 # the code failed on other errors
                 # we will indicate to chatgpt the error message that we got
                 self._respond_to_error_message(e.get_traceback_message())
-        except FailedLoadingOutput:
-            # Code ran, but the output file was not created.
-            self._respond_to_missing_output()
         except Exception:
             raise
         else:
             # The code ran without raising exceptions.
             # We now check if the output is ok:
-            if self._is_output_ok(code_and_output, dataframe_operations):
+            if self._is_output_ok(code_and_output):
                 # All good!
                 self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
                 self.comment("GPT code completed successfully.")
                 return code_and_output
 
-        # if the code ran, but output was incorrect, we delete any created output files:
+        # if the code ran, but output was incorrect, we delete any created files:
         if code_and_output is not None:
             with run_in_directory(self.data_folder):
-                for file in code_and_output.created_files:
+                for file in code_and_output.get_created_data_files():
                     os.remove(file)
 
         return None  # code failed

@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from cast import DemoAgent
+from data_to_paper.run_gpt_code.types import OutputFileRequirement, ContentOutputFileRequirement
 from products import DemoProducts
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -30,7 +31,7 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     def data_folder(self) -> Optional[Path]:
         return Path(self.products.data_file_descriptions.data_folder)
 
-    output_filename: str = 'prime_number.txt'
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('prime_number.txt'), )
     allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False

@@ -46,11 +46,6 @@ class FailedRunningCode(RunCodeException):
                f'{type(self.exception).__name__}: {msg}'
 
 
-class FailedLoadingOutput(RunCodeException, FileNotFoundError):
-    def __str__(self):
-        return "Output file not found."
-
-
 class CodeTimeoutException(RunCodeException, TimeoutError):
     def __str__(self):
         return "Code took too long to run."

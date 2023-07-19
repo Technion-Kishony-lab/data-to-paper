@@ -153,7 +153,7 @@ class ScientificProducts(Products):
                 desc += code_and_output.description_of_created_files
             else:
                 desc += [DataFileDescription(file_path=created_file)
-                         for created_file in code_and_output.get_created_files_beside_output_file()]
+                         for created_file in code_and_output.get_created_data_files()]
         desc.data_folder = self.data_file_descriptions.data_folder
         return desc
 
@@ -162,7 +162,7 @@ class ScientificProducts(Products):
         Return the file headers of a given code_step.
         """
         code_and_output = self.codes_and_outputs[code_step]
-        created_files = code_and_output.get_created_files_beside_output_file()
+        created_files = code_and_output.get_created_data_files()
         if not created_files:
             return None
         return DataFileDescriptions(
@@ -335,7 +335,7 @@ class ScientificProducts(Products):
                 'Output of the {code_name} Code',
                 'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
-                lambda code_step: {'output': self.codes_and_outputs[code_step].get_clean_output(),
+                lambda code_step: {'output': self.codes_and_outputs[code_step].get_single_output(is_clean=True),
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -374,7 +374,7 @@ class ScientificProducts(Products):
                 'Here are the files created by the {code_name} code:\n\n{created_files}',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
-                    'created_files': self.codes_and_outputs[code_step].created_files,
+                    'created_files': self.codes_and_outputs[code_step].get_created_data_files(),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 

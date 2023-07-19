@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Union, List, Set, Iterable
-
+from fnmatch import fnmatch
 
 # Get the path of the current folder:
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -18,17 +18,9 @@ def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: It
     The wildcard '*' can be in the beginning or in the end of the filename.
     """
     for wildcard_filename in list_of_filenames:
-        if wildcard_filename.startswith('*'):
-            if file_name.endswith(wildcard_filename[1:]):
-                return True
-        elif wildcard_filename.endswith('*'):
-            if file_name.startswith(wildcard_filename[:-1]):
-                return True
-        else:
-            if wildcard_filename == file_name:
-                return True
+        if fnmatch(file_name, wildcard_filename):
+            return True
     return False
-
 
 @dataclass(frozen=True)
 class UnAllowedFilesCreated(PermissionError):

@@ -14,7 +14,8 @@ from data_to_paper.researches_types.scientific_research.cast import ScientificAg
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name,\
     get_code_agent
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
+    DataOutputFileRequirement
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -61,7 +62,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
             if section is None:
                 continue
             if section in self.products.codes_and_outputs:
-                files += self.products.codes_and_outputs[section].get_created_files_beside_output_file()
+                files += self.products.codes_and_outputs[section].get_created_data_files()
         return files
 
     @property
@@ -101,7 +102,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
 
-    output_filename: str = 'data_exploration.txt'
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
+        (ContentOutputFileRequirement('data_exploration.txt'), )
     allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False
@@ -148,10 +150,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
-        ```output
-        {}
-        ```
+        I ran your code.
+        
+        {created_file_contents_explanation}
 
         Please follow these two steps:
 
@@ -184,8 +185,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
-    output_filename: str = None
-    allowed_created_files: Tuple[str, ...] = ('*.csv',)
+
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
 
@@ -229,8 +230,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    output_filename: str = 'results.txt'
-    allowed_created_files: Tuple[str, ...] = ()
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -292,10 +292,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
-        ```output
-        {}
-        ```
+        I ran your code.
+        
+        {created_file_contents_explanation}
 
         Considering the scientific tables we want to create ("{tables_names}", above), \
         please follow these two steps:
@@ -338,7 +337,7 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
 
     @property
     def output_filename(self):
-        return self.code_and_output.output_file
+        return self.code_and_output.get_single_output_filename()
 
 
 @dataclass
@@ -384,7 +383,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
 
     @property
     def actual_requesting_output_explanation(self):
-        return self.requesting_output_explanation if self.code_and_output.output_file else ''
+        return self.requesting_output_explanation if self.code_and_output.get_single_output_filename() else ''
 
     def run_dialog_and_get_valid_result(self):
         result = super().run_dialog_and_get_valid_result()
@@ -548,6 +547,6 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         self.products.codes_and_outputs[self.code_step] = code_and_output
         if with_code_explanation:
             code_and_output.code_explanation = self._get_code_explanation()
-        if with_file_descriptions and code_and_output.get_created_files_beside_output_file():
+        if with_file_descriptions and code_and_output.get_created_data_files():
             code_and_output.description_of_created_files = self._get_description_of_created_files()
         return code_and_output
