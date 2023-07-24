@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Optional
 
@@ -105,6 +106,10 @@ class TooWideTableOrText(LatexProblemInCompilation):
     Raised when the latex content contains a table or text that is too wide (Overfull hbox).
     """
     problem_starting_term: str = r'Overfull \hbox '
+
+    @property
+    def overflow_in_pt(self):
+        return float(re.search(r'Overfull \\hbox \((.*?)pt too wide\)', self.pdflatex_output).group(1))
 
     def __str__(self):
         return super().__str__() + \

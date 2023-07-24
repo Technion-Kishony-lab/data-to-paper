@@ -30,17 +30,14 @@ def evaluate_latex_num_command(latex_str):
     return latex_str
 
 
-def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None,
-                            tolerance_for_too_wide_in_pts: Optional[float] = None):
+def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None):
     with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
         latex_document = f.read().replace('@@@content@@@', latex_content)
-    save_latex_and_compile_to_pdf(latex_document, file_stem, output_directory,
-                                  tolerance_for_too_wide_in_pts=tolerance_for_too_wide_in_pts)
+    save_latex_and_compile_to_pdf(latex_document, file_stem, output_directory)
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
-                                  references: Set[Citation] = None,
-                                  tolerance_for_too_wide_in_pts: Optional[float] = None):
+                                  references: Set[Citation] = None):
     latex_content = evaluate_latex_num_command(latex_content)
     references = references or set()
     should_compile_with_bib = len(references) > 0
@@ -62,14 +59,11 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
         except subprocess.CalledProcessError as e:
             raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
 
-        output = pdflatex_output.stdout.decode('utf-8')
-        if r'Overfull \hbox' in output:
-            overflow_in_pt = float(re.search(r'Overfull \\hbox \((.*?)pt too wide\)', output).group(1))
-            print('Overflow in pt: ', overflow_in_pt)
-            if tolerance_for_too_wide_in_pts is not None and overflow_in_pt > tolerance_for_too_wide_in_pts:
-                move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
-                raise TooWideTableOrText(latex_content=latex_content,
-                                         pdflatex_output=pdflatex_output.stdout.decode('utf-8'))
+        pdflatex_output = pdflatex_output.stdout.decode('utf-8')
+        if r'Overfull \hbox' in pdflatex_output:
+            move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
+            raise TooWideTableOrText(latex_content=latex_content,
+                                     pdflatex_output=pdflatex_output)
 
         if should_compile_with_bib:
             try:
