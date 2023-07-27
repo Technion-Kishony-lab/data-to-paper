@@ -5,12 +5,9 @@ from typing import Optional, Iterable, Tuple
 
 from data_to_paper.run_gpt_code.dynamic_code import run_code_using_module_reload
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
-from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
+from data_to_paper.utils import line_count
 
 from .types import CodeAndOutput, OutputFileRequirement
-
-LINES_ADDED_BY_MODIFYING_CODE = 0
 
 
 @dataclass
@@ -23,11 +20,16 @@ class CodeRunner:
     """
 
     response: str
+    add_in_front_of_code: str = ''
     allowed_read_files: Iterable[str] = ()
     output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
     allow_dataframes_to_change_existing_series: bool = True
     script_file_path: Optional[Path] = None
     data_folder: Optional[Path] = None
+
+    @property
+    def lines_added_in_front_of_code(self) -> int:
+        return line_count(self.add_in_front_of_code)
 
     @property
     def keep_content_allowed_created_filenames(self) -> Tuple[str, ...]:
@@ -45,7 +47,8 @@ class CodeRunner:
         """
         Modify the extracted code before running it.
         """
-        return code
+        code = code.replace('from my_utils', 'from data_to_paper.run_gpt_code.run_utils')
+        return self.add_in_front_of_code + code
 
     def extract_and_modify_code(self) -> str:
         """
@@ -53,7 +56,7 @@ class CodeRunner:
         """
         code = self.extract_code()
         modified_code = self.modify_extracted_code(code)
-        assert len(code.splitlines()) == len(modified_code.splitlines()) - LINES_ADDED_BY_MODIFYING_CODE
+        assert len(code.splitlines()) == len(modified_code.splitlines()) - self.lines_added_in_front_of_code
         return modified_code
 
     def read_output_file(self, output_file: str, delete_file: bool = False) -> str:

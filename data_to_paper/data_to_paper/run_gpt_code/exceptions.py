@@ -22,13 +22,11 @@ class FailedRunningCode(RunCodeException):
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
 
-    def get_traceback_message(self):
+    def get_traceback_message(self, lines_added_by_modifying_code: int = 0):
         """
         returns a fake traceback message, simulating as if the code ran in a real file.
         the line causing the exception is extracted from the ran `code`.
         """
-        from data_to_paper.run_gpt_code.code_runner import LINES_ADDED_BY_MODIFYING_CODE
-
         if isinstance(self.exception, SyntaxError):
             lineno = self.exception.lineno
             text = self.exception.text
@@ -41,7 +39,7 @@ class FailedRunningCode(RunCodeException):
             filename, lineno, funcname, text = self.tb[index]
             msg = self.exception
 
-        return f'  File "{self.fake_file_name}", line {lineno - LINES_ADDED_BY_MODIFYING_CODE}, in <module>"\n' + \
+        return f'  File "{self.fake_file_name}", line {lineno - lines_added_by_modifying_code}, in <module>"\n' + \
                f'    {text}\n' + \
                f'{type(self.exception).__name__}: {msg}'
 

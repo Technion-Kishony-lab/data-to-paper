@@ -429,11 +429,12 @@ class DebuggerConverser(BackgroundProductsConverser):
                 self._respond_to_dataframe_series_change(f.changed_series)
             except Warning:
                 # the code raised a warning
-                self._respond_to_error_message(e.get_traceback_message(), is_warning=True)
+                self._respond_to_error_message(e.get_traceback_message(code_runner.lines_added_in_front_of_code),
+                                               is_warning=True)
             except Exception:
                 # the code failed on other errors
                 # we will indicate to chatgpt the error message that we got
-                self._respond_to_error_message(e.get_traceback_message())
+                self._respond_to_error_message(e.get_traceback_message(code_runner.lines_added_in_front_of_code))
         except Exception:
             raise
         else:
