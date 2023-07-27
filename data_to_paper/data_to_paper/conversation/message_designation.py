@@ -39,7 +39,7 @@ class SingleMessageDesignation(MessageDesignation):
     off_set: int = 0
 
     def get_message_num(self, conversation: Conversation) -> int:
-        tag = self.tag if isinstance(self.tag, int) else [message.tag for message in conversation].index(self.tag)
+        tag = self.tag if isinstance(self.tag, int) else conversation.get_message_index_by_tag(self.tag)
         if tag < 0:
             tag = len(conversation) + tag
         return tag + self.off_set
@@ -94,6 +94,8 @@ def convert_general_message_designation_to_list(designations: GeneralMessageDesi
         return []
     if isinstance(designations, list):
         return designations
+    if isinstance(designations, tuple):
+        return list(designations)
     return [designations]
 
 

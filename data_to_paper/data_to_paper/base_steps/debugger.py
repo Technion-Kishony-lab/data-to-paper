@@ -23,7 +23,7 @@ from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
-from .base_products_conversers import ProductsConverser
+from .base_products_conversers import BackgroundProductsConverser
 
 
 KNOWN_MIS_IMPORTS = {
@@ -39,12 +39,12 @@ for name, module in KNOWN_MIS_IMPORTS.items():
 
 
 @dataclass
-class DebuggerConverser(ProductsConverser):
+class DebuggerConverser(BackgroundProductsConverser):
     """
-    Interact with chatgpt to debug a code that needs to create an output file.
+    Interact with ChatGPT to debug a code that needs to create an output file.
 
     Starting with a conversation which ends with a code-request from the user, DebuggerConverser interacts
-    with chatgpt to enhance the code until it runs properly and creates a desired output file.
+    with ChatGPT to enhance the code until it runs properly and creates a desired output file.
 
     Interactions with chatgpt include adequate reporting of:
     * missing packages

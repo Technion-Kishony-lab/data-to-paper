@@ -20,7 +20,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_code_revisions: int = 5
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
-
+    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
     allow_dataframes_to_change_existing_series: bool = True
@@ -150,6 +150,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
+                background_product_fields_to_hide=
+                () if self.revision_round == 0 else self.background_product_fields_to_hide_during_code_revision,
                 previous_code=previous_code,
                 allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
                 enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,

@@ -102,6 +102,12 @@ class Conversation(List[Message]):
                 return message.content
         return None
 
+    def get_message_index_by_tag(self, tag):
+        for i, message in enumerate(self):
+            if message.tag == tag:
+                return i
+        return None
+
     def delete_last_response(self):
         assert self[-1].role.is_assistant_or_surrogate()
         self.pop()
