@@ -128,8 +128,12 @@ def to_csv(self, *args, **kwargs):
 
 
 class ModifiedDescribeDF(DataFrame):
-    def _drop_rows(self):
-        return self.drop(['min', '25%', '50%', '75%', 'max'])
+    def _drop_rows(self, drop_count: Optional[bool] = False):
+        to_drop = ['min', '25%', '50%', '75%', 'max']
+        if drop_count or drop_count is None and all(self.loc['count'] == self.loc['count'][0]):
+            # if all counts are the same, we drop the count row
+            to_drop.append('count')
+        return self.drop(to_drop)
 
     def __str__(self):
         return DataFrame.__str__(self._drop_rows())
@@ -137,8 +141,8 @@ class ModifiedDescribeDF(DataFrame):
     def __repr__(self):
         return DataFrame.__repr__(self._drop_rows())
 
-    def to_string(self):
-        return DataFrame.to_string(self._drop_rows())
+    def to_string(self, *args, **kwargs):
+        return DataFrame.to_string(self._drop_rows(), *args, **kwargs)
 
 
 def describe(self, *args, **kwargs):
@@ -149,7 +153,7 @@ def describe(self, *args, **kwargs):
     return ModifiedDescribeDF(result)
 
 
-def is_overriden(self):
+def is_overridden(self):
     return True
 
 
@@ -183,7 +187,7 @@ def override_core_ndframe():
     for func_name in RAISE_ON_CALL_FUNC_NAMES:
         setattr(DataFrame, func_name, partial(raise_on_call, method_name=func_name))
 
-    DataFrame.is_overriden = is_overriden
+    DataFrame.is_overridden = is_overridden
 
     if STR_FLOAT_FORMAT:
         pd.set_option(f'display.float_format', STR_FLOAT_FORMAT)
