@@ -16,6 +16,9 @@ else:
     SYSTEM_FOLDERS = ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
 
 
+SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl']
+
+
 @contextmanager
 def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_files: Iterable[str] = None):
     """
@@ -35,7 +38,7 @@ def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_fi
         if is_opening_for_writing and allowed_write_files is not None \
                 and not is_name_matches_list_of_wildcard_names(file_name, allowed_write_files):
             raise CodeWriteForbiddenFile(file=file_name)
-        if not is_opening_for_writing and not file_in_system_folder(file_name) and \
+        if not is_opening_for_writing and not _is_system_file(file_name) and \
                 (allowed_read_files is not None and file_name not in allowed_read_files
                  and len(IMPORTING_PACKAGES) == 0):  # allow read files when importing packages
             raise CodeReadForbiddenFile(file=file_name)
@@ -48,9 +51,10 @@ def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_fi
         builtins.open = original_open
 
 
-def file_in_system_folder(file_name):
+def _is_system_file(file_name):
     abs_path_to_file = os.path.abspath(file_name)
-    return bool(sum([os.path.commonpath([folder] + [abs_path_to_file]) in SYSTEM_FOLDERS for folder in SYSTEM_FOLDERS]))
+    return any(abs_path_to_file.startswith(folder) for folder in SYSTEM_FOLDERS) or \
+        any(abs_path_to_file.endswith(file) for file in SYSTEM_FILES)
 
 
 @contextmanager
