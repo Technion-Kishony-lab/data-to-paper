@@ -15,6 +15,13 @@ from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 
 
+EXTS_TO_LABELS = {
+    '.tex': 'latex',
+    '.txt': 'output',
+    '.csv': 'csv',
+}
+
+
 @dataclass
 class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_code_revisions: int = 5
@@ -92,7 +99,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             return None
         s = 'Here is the content of the output file(s) that the code created:\n'
         for filename, content in files_to_contents.items():
-            s += f'"{filename}":\n```output\n{content}\n```'
+            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
+            s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
         return s
 
     @property
