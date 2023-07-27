@@ -37,7 +37,7 @@ from .base_products_conversers import CheckExtractionReviewBackgroundProductsCon
 from .request_quoted_text import BaseProductsQuotedReviewGPT
 
 # Requesting LaTeX formatted text (with optional gpt-review):
-from .request_latex import LatexReviewBackgroundProductsConverser
+from .request_latex import LatexReviewBackgroundProductsConverser, CheckLatexCompilation
 
 # Requesting Python values (with optional gpt-review):
 from .request_python_value import PythonValueReviewBackgroundProductsConverser
@@ -46,6 +46,7 @@ from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgr
 
 # Requesting code (with automatic debugging feedback):
 from .request_code import BaseCodeProductsGPT
+from .debugger import DebuggerConverser
 
 # Requesting answer to multiple choice question
 from .request_multi_choice import MultiChoiceBackgroundProductsConverser
