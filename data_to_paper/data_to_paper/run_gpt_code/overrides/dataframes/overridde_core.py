@@ -20,6 +20,7 @@ FUNC_NAMES_TO_FUNCS = {
     '__str__': df_methods.__str__,
     'to_string': df_methods.to_string,
     'to_csv': df_methods.to_csv,
+    'to_latex': df_methods.to_latex,
     'describe': df_methods.describe,
 }
 
