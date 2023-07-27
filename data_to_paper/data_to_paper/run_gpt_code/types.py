@@ -57,15 +57,12 @@ class NumericContentOutputFileRequirement(ContentOutputFileRequirement):
 
 
 def get_single_content_file_from_requirements(requirements: Collection[OutputFileRequirement]) -> Optional[str]:
-    content_file_requirements = [req for req in requirements if isinstance(req, ContentOutputFileRequirement)]
+    content_file_requirements = [
+        req for req in requirements
+        if isinstance(req, ContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
     if len(content_file_requirements) != 1:
         return None
     requirement = next(iter(content_file_requirements))
-    if not isinstance(requirement, ContentOutputFileRequirement):
-        return None
-    if requirement.is_wildcard() or requirement.minimal_count != 1:
-        return None
-
     return requirement.filename
 
 

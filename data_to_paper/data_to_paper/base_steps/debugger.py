@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional, List, Set, Tuple
 
 from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
     get_single_content_file_from_requirements, ContentOutputFileRequirement
@@ -71,16 +71,22 @@ class DebuggerConverser(BackgroundProductsConverser):
     user_agent: Agent = None
 
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
+    runner_cls: CodeRunner = CodeRunner
 
     max_debug_iterations: int = 5
     debug_iteration = 0
 
     previous_code: Optional[str] = None
+    _requesting_modifications: bool = False
     gpt_script_filename: str = 'debugger_gpt'
 
     @property
     def output_filenames(self) -> Tuple[str, ...]:
         return tuple(output_file_requirement.filename for output_file_requirement in self.output_file_requirements)
+
+    @property
+    def output_filename(self) -> Optional[str]:
+        return get_single_content_file_from_requirements(self.output_file_requirements)
 
     @property
     def iteration_str(self):
@@ -91,13 +97,13 @@ class DebuggerConverser(BackgroundProductsConverser):
         return f'{self.gpt_script_filename}_{self.debug_iteration}'
 
     def _get_code_runner(self, response: str) -> CodeRunner:
-        return CodeRunner(response=response,
-                          allowed_read_files=self.data_filenames,
-                          output_file_requirements=self.output_file_requirements,
-                          allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                          script_file_path=None,
-                          data_folder=self.data_folder,
-                          )
+        return self.runner_cls(response=response,
+                               allowed_read_files=self.data_filenames,
+                               output_file_requirements=self.output_file_requirements,
+                               allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
+                               script_file_path=None,
+                               data_folder=self.data_folder,
+                               )
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
@@ -228,7 +234,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _respond_to_forbidden_functions(self, func: str):
         if func == 'print':
-            if not self.output_filenames:
+            if not self.output_filename:
                 self.apply_append_user_message(
                     content=dedent_triple_quote_str("""
                     Please do not use the `print` function.
@@ -237,10 +243,10 @@ class DebuggerConverser(BackgroundProductsConverser):
                 )
             else:
                 self.apply_append_user_message(
-                    content=dedent_triple_quote_str("""
+                    content=dedent_triple_quote_str(f"""
                     Please do not use the `print` function. 
-                    Anything you want to print must be written to the output file ("{}"). 
-                    """).format(self.output_filenames),
+                    Anything you want to print must be written to the output file ("{self.output_filename}"). 
+                    """),
                     comment=f'{self.iteration_str}: Code uses `print`.'
                 )
             return
@@ -259,15 +265,14 @@ class DebuggerConverser(BackgroundProductsConverser):
             """),
             comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
 
+    def _check_code_and_respond(self, code: str):
+        return True
+
     @property
     def description_of_allowed_output_files(self):
         requirements = self.output_file_requirements
         if len(requirements) == 0:
             return 'Your code should not write to any file.'
-
-        file = get_single_content_file_from_requirements(requirements)
-        if file:
-            return f'Your code should only write to the output file "{file}".'
 
         return 'Your code should only write to these files: {}.'.format(
             ', '.join(f'"{r.filename}"' for r in requirements)
@@ -279,7 +284,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             Your code writes to the file "{}" which is not allowed.
             {description_of_allowed_output_files}
             Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(file, only_write_to_description=self.description_of_allowed_output_files),
+            """).format(file, description_of_allowed_output_files=self.description_of_allowed_output_files),
             comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
 
     def _respond_to_un_allowed_files_created(self, files: List[str]):
@@ -292,14 +297,14 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=f'{self.iteration_str}: Code created forbidden files {files}.')
 
     def _respond_to_forbidden_read(self, file: str):
-        if file == self.output_filenames:
+        if file == self.output_filename:
             self.apply_append_user_message(
-                content=dedent_triple_quote_str("""
-                I ran the code, but it tried to read from the output file "{}".
+                content=dedent_triple_quote_str(f"""
+                I ran the code, but it tried to read from the output file "{file}".
                 The code should create and write to this output file, but should not read from it.
                 Please rewrite the complete code again, making sure it does not read from the output file.
-                Note that the input files from which we can read the data are: {}. 
-                """).format(file, self.data_filenames),
+                Note that the input files from which we can read the data are: {self.data_filenames}. 
+                """),
                 comment=f'{self.iteration_str}: Code reads from output file {file}.')
             return
         else:
@@ -309,7 +314,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                 We only have these files:
                 {}
 
-                Note that all input files are located in the same directory as the code. 
+                Note that these input files are located in the same directory as the code. 
                 Please rewrite the complete code again so that it only reads from these files. 
                 """).format(file, self.data_filenames),
                 comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
@@ -325,21 +330,17 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=f'{self.iteration_str}: Code modifies dataframe series "{series}".')
 
     def _check_and_response_to_file_content(self, requirement: ContentOutputFileRequirement,
-                                            filename: str, content: str) -> bool:
+                                            filename: str, content: str) -> Optional[str]:
         if len(content.strip()) == 0:
             # The code ran successfully, but the output file is empty.
-            self.apply_append_user_message(
-                content=dedent_triple_quote_str(f"""
+            return dedent_triple_quote_str(f"""
                 I ran the code, it created the output file "{filename}", but the file is just empty! 
                 Please rewrite the complete code again to correct this error. 
-                """),
-                comment=f'{self.iteration_str}: Code completed, but output file is empty.')
-            return False
+                """)
         if count_number_of_tokens_in_message(content, max(ModelEngine)) > requirement.max_tokens:
             # The code ran successfully, but the output file is too large.
             print(f'ChatGPT code created "{filename}" with the following too-long output:\n{content}')
-            self.apply_append_user_message(
-                content=dedent_triple_quote_str("""
+            return dedent_triple_quote_str("""
                 I ran the code, it created the output file "{}", but the file is too long!
 
                 Here is the beginning of the output:
@@ -348,10 +349,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                 ```
 
                 Please rewrite the complete code so that only sensible length output is written to the file. 
-                """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
-                comment=f'{self.iteration_str}: Code completed, but output file is too long.')
-            return False
-        return True
+                """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens))
 
     def _is_output_ok(self, code_and_output: CodeAndOutput) -> bool:
         dataframe_operations = code_and_output.dataframe_operations
@@ -365,7 +363,11 @@ class DebuggerConverser(BackgroundProductsConverser):
 
             if isinstance(requirement, ContentOutputFileRequirement):
                 for filename in output_files:
-                    if not self._check_and_response_to_file_content(requirement, filename, files_to_contents[filename]):
+                    message = self._check_and_response_to_file_content(
+                        requirement, filename, files_to_contents[filename])
+                    if message:
+                        self.apply_append_user_message(content=message,
+                                                       comment=f'file content failed ({filename}) {self.iteration_str}')
                         return False
 
         if self.enforce_saving_altered_dataframes and dataframe_operations.get_read_changed_but_unsaved_ids():
@@ -377,30 +379,61 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         return True
 
+    def _is_new_code_a_modification_of_old_code(self, new_code: str, old_code: str) -> bool:
+        """
+        Return True if new_code is a modification of old_code.
+        """
+        return line_count(new_code) > line_count(old_code) * 0.9
+
+    def _respond_to_incomplete_modification(self):
+        self.apply_append_user_message(
+            content="Your code does not seem to be a modification of the previous code.",
+            comment=f'{self.iteration_str}: Code is not a modification of previous code.')
+        # delete the last two messages (wrong code and this just-posted user response):
+        self.apply_delete_messages([-2, -1])
+
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
         response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
-        code_and_output = None
         code_runner = self._get_code_runner(response)
+
         try:
-            code_and_output = code_runner.run_code()
+            code = code_runner.extract_code()
         except IncompleteBlockFailedExtractingBlock:
             self._respond_to_incomplete_code()
+            return None
         except FailedExtractingBlock as e:
             self._respond_to_missing_or_multiple_code(e)
+            return None
+
+        # We were able to extract the code. We now check the code before running it.
+        if self._requesting_modifications:
+            if not self._is_new_code_a_modification_of_old_code(code, self.previous_code):
+                # The code is not a modification of the previous code, but we are requesting modifications.
+                self._respond_to_incomplete_modification()
+                return None
+            self._requesting_modifications = False
+
+        if not self._check_code_and_respond(code):
+            # The code is not ok, we cannot run it.
+            return None
+
+        # We can now run the code.
+        # We first clean up, re-reposting the code as if it was the first response
+        self._rewind_conversation_to_first_response()
+        self.apply_append_surrogate_message(
+            'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
+                code_runner.extract_code()),
+            web_conversation_name=None,
+            comment='We are re-posting the code as if it was the immediate response.')
+        self.previous_code = code
+        code_and_output = None
+        try:
+            code_and_output = code_runner.run_code()
         except FailedRunningCode as e:
-            # We were able to extract the code, but it failed to run
-            # We first clean up, re-reposting the code as if it was the immediate response
-            self._rewind_conversation_to_first_response()
-            self.apply_append_surrogate_message(
-                'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
-                    code_runner.extract_code()),
-                web_conversation_name=None,
-                comment='We are re-posting the code as if it was the immediate response.')
-            self.previous_code = code_runner.extract_code()
             try:
                 raise e.exception
             except ImportError as f:
@@ -468,4 +501,6 @@ class DebuggerConverser(BackgroundProductsConverser):
         self.apply_append_user_message(
             "It seems like we are not converging. Let's try again from the start.\n"
             "Please provide a fresh new attempt of the code.", ignore=True)
+        self._rewind_conversation_to_first_response()
+
         return None
