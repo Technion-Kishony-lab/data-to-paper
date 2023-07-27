@@ -26,7 +26,7 @@ LATEX_DEFAULT_KWARGS = dict(
 def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
     """
     Escape strings in a dataframe so that they can be used in latex.
-    Also replace sting in the column names and index.
+    Also replace strings in the column names and index.
     use replace_special_latex_chars
     """
     for col_index in range(len(df.columns)):
@@ -39,7 +39,7 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
 
 def to_latex(self, *args, **kwargs):
     kwargs = {**LATEX_DEFAULT_KWARGS, **kwargs}
-    df = _escape_string_in_dataframe(self)
+    df = _escape_string_in_dataframe(self.copy())
     caption = kwargs.pop('caption', None)
     if caption is not None:
         caption = carefully_replace_special_latex_chars(caption)

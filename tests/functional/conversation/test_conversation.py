@@ -58,12 +58,6 @@ def test_conversation_delete_last_response(conversation):
     assert len(conversation) == original_len - 1
 
 
-def test_conversation_get_message_content_by_tag(conversation):
-    conversation.append(Message(Role.ASSISTANT, 'Hello!', tag='hello'))
-    assert conversation.get_message_content_by_tag('hello') == 'Hello!'
-    assert conversation.get_message_content_by_tag('not-hello') is None
-
-
 def test_conversation_ignores_ignored_messages():
     conversation = Conversation()
     conversation.append(Message(Role.USER,

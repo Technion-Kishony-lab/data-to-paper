@@ -5,7 +5,7 @@ from pandas.core.frame import DataFrame
 
 from data_to_paper.env import PDF_TEXT_WIDTH
 
-from ..override_dataframe import ON_CHANGE
+from ..on_change import notify_on_change
 from ..utils import format_float
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, DataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
@@ -35,16 +35,11 @@ TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
 STR_FLOAT_FORMAT = format_float
 
 
-def _notify_on_change(self, operation: DataframeOperation):
-    if ON_CHANGE.val is not None:
-        ON_CHANGE.val(self, operation)
-
-
 def __init__(self, *args, created_by: str = None, file_path: str = None, **kwargs):
     original_init(self, *args, **kwargs)
     self.created_by = created_by
     self.file_path = file_path
-    _notify_on_change(self, CreationDataframeOperation(
+    notify_on_change(self, CreationDataframeOperation(
         id=id(self), created_by=created_by, file_path=file_path, columns=list(self.columns.values)))
 
 
@@ -67,12 +62,12 @@ def __setitem__(self, key, value):
         else:
             is_changing_existing_columns = key in original_columns
         operation_type = ChangeSeriesDataframeOperation if is_changing_existing_columns else AddSeriesDataframeOperation
-        _notify_on_change(self, operation_type(id=id(self), series_name=key))
+        notify_on_change(self, operation_type(id=id(self), series_name=key))
 
 
 def __delitem__(self, key):
     original_delitem(self, key)
-    _notify_on_change(self, RemoveSeriesDataframeOperation(id=id(self), series_name=key))
+    notify_on_change(self, RemoveSeriesDataframeOperation(id=id(self), series_name=key))
 
 
 def __str__(self):
@@ -105,6 +100,6 @@ def to_csv(self, *args, **kwargs):
     pd.set_option(f'display.float_format', current_float_format)
     file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
-    _notify_on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
+    notify_on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result
 

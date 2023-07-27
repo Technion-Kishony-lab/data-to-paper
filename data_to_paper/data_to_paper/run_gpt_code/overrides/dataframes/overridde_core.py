@@ -6,7 +6,7 @@ from pandas.core.frame import DataFrame
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import STR_FLOAT_FORMAT
 from data_to_paper.utils.singleton import run_once
 
-import df_methods
+from . import df_methods
 
 
 RAISE_ON_CALL_FUNC_NAMES = ['to_html', 'to_json']
@@ -21,7 +21,6 @@ FUNC_NAMES_TO_FUNCS = {
     'to_string': df_methods.to_string,
     'to_csv': df_methods.to_csv,
     'to_latex': df_methods.to_latex,
-    'describe': df_methods.describe,
 }
 
 
