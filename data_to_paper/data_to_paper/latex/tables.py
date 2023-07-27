@@ -1,5 +1,7 @@
 import re
-from typing import List, Optional
+from typing import List, Optional, Dict
+
+from data_to_paper.latex.clean_latex import replace_special_latex_chars
 
 
 def get_table_label(latex_table: str) -> Optional[str]:
@@ -55,3 +57,34 @@ def add_tables_to_paper_section(section_content: str, section_tables: List[str])
             # add the table at the end of the section
             section_content += table
     return section_content
+
+
+BEGIN_THREEPARTTABLE = r"""\begin{table}[htbp]
+\centering
+\begin{threeparttable}
+"""
+
+END_THREEPARTTABLE = r"""\begin{tablenotes}
+<note_and_legend>
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+"""
+
+
+def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str, str] = None) -> str:
+    """
+    Create a threeparttable from a regular latex table.
+    Add a note to the table.
+    """
+    regular_latex_table = re.sub(pattern=r'\\begin{table}.*\n', repl='', string=regular_latex_table)
+    regular_latex_table = re.sub(pattern=r'\\end{table}.*\n', repl='', string=regular_latex_table)
+
+    note_and_legend = ''
+    if note:
+        note_and_legend += r'\item ' + replace_special_latex_chars(note) + '\n'
+    if legend:
+        for key, value in legend.items():
+            note_and_legend += r'\item[' + key + '] ' + replace_special_latex_chars(value) + '\n'
+
+    return BEGIN_THREEPARTTABLE + regular_latex_table + END_THREEPARTTABLE.replace('<note_and_legend>', note_and_legend)

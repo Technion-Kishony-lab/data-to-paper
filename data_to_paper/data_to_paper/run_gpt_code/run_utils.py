@@ -26,9 +26,10 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args, note: str = None,
         filename = filename + '.tex'
 
     latex = df.to_latex(*args, **kwargs)
-    if note:
-        latex = latex.replace(r'\end{tabular}', r'\end{tabular}' + '\n' + r'\begin{minipage}{12cm}' + '\n' +
-                              r'\small  ' + note + '\n' + r'\end{minipage}')
+
+    if note or legend:
+        latex = create_threeparttable(latex, note, legend)
+
     _check_for_errors(latex, df, filename, *args, note=note, **kwargs)
 
     with open(filename, 'w') as f:
