@@ -5,10 +5,12 @@ import pandas as pd
 from contextlib import contextmanager
 from dataclasses import dataclass
 
+from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.singleton import run_once
 from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations
+from .overridde_core import override_core_ndframe
 
-from .overridde_core import override_core_ndframe, ON_CHANGE
+ON_CHANGE = Mutable(None)
 
 
 @dataclass

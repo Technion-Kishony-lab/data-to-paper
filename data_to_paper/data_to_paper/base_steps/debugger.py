@@ -13,7 +13,7 @@ from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequiremen
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
-from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
