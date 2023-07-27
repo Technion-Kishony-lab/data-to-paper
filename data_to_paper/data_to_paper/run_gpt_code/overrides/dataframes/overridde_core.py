@@ -14,6 +14,16 @@ ON_CHANGE = Mutable(None)
 
 
 @dataclass
+class DataframeKeyError(KeyError):
+    original_error: KeyError
+    key: str
+    dataframe: DataFrame
+
+    def __str__(self):
+        return str(self.original_error) + f"\n\nAvailable keys are: {list(self.dataframe.columns)}"
+
+
+@dataclass
 class UnAllowedDataframeMethodCall(Exception):
     method_name: str
 
@@ -27,6 +37,7 @@ original_to_csv = DataFrame.to_csv
 original_describe = DataFrame.describe
 original_str = DataFrame.__str__
 original_setitem = DataFrame.__setitem__
+original_getitem = DataFrame.__getitem__
 original_delitem = DataFrame.__delitem__
 
 
@@ -53,6 +64,13 @@ def __init__(self, *args, created_by: str = None, file_path: str = None, **kwarg
     self.file_path = file_path
     _notify_on_change(self, CreationDataframeOperation(
         id=id(self), created_by=created_by, file_path=file_path, columns=list(self.columns.values)))
+
+
+def __getitem__(self, key):
+    try:
+        return original_getitem(self, key)
+    except KeyError as e:
+        raise DataframeKeyError(original_error=e, key=key, dataframe=self)
 
 
 def __setitem__(self, key, value):
@@ -142,6 +160,7 @@ def raise_on_call(*args, method_name: str, **kwargs):
 FUNC_NAMES_TO_FUNCS = {
     '__init__': __init__,
     '__setitem__': __setitem__,
+    '__getitem__': __getitem__,
     '__delitem__': __delitem__,
     '__str__': __str__,
     'to_string': to_string,
