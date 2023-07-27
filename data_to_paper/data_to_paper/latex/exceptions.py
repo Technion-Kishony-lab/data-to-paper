@@ -108,11 +108,11 @@ class TooWideTableOrText(LatexProblemInCompilation):
     problem_starting_term: str = r'Overfull \hbox '
 
     @property
-    def overflow_in_pt(self):
+    def overflow_in_pts(self):
         return float(re.search(r'Overfull \\hbox \((.*?)pt too wide\)', self.pdflatex_output).group(1))
 
     def __str__(self):
         return super().__str__() + \
-            'The table you wrote is too wide to fit within the text width.\n' \
+            'The table is too wide to fit within the text width.\n' \
             'Try to shorten the text, or drop unnecessary columns, ' \
             'or consider whether completely transposing the table might be better.\n'

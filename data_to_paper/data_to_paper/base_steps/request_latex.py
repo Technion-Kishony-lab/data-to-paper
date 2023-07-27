@@ -45,15 +45,34 @@ def remove_citations_from_section(section: str) -> str:
 
 
 @dataclass
-class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
+class CheckLatexCompilation:
+
+    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
+
+    def _check_latex_compilation(self, section: str, section_name: str) -> Optional[LatexProblemInCompilation]:
+        if SAVE_INTERMEDIATE_LATEX:
+            file_stem = f'{section_name}__{self.conversation_name}'
+            file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
+            file_stem, output_directory = file_path.stem, file_path.parent
+        else:
+            file_stem, output_directory = 'test', None
+        try:
+            check_latex_compilation(section, file_stem, output_directory)
+        except TooWideTableOrText as e:
+            if self.tolerance_for_too_wide_in_pts is None or e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:
+                return e
+        except LatexProblemInCompilation as e:
+            return e
+
+
+@dataclass
+class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write one or more latex sections.
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
     should_remove_citations_from_section: bool = True
-
-    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
 
     section_names: List[str] = field(default_factory=list)
 
@@ -129,18 +148,6 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
                 str(e),
                 bump_model=len(tags_list) == 1 and tags[0] in response and tags[1] not in response
             )
-
-    def _check_latex_compilation(self, section: str, section_name: str) -> Optional[LatexProblemInCompilation]:
-        if SAVE_INTERMEDIATE_LATEX:
-            file_stem = f'{section_name}__{self.conversation_name}'
-            file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
-            file_stem, output_directory = file_path.stem, file_path.parent
-        else:
-            file_stem, output_directory = 'test', None
-        try:
-            check_latex_compilation(section, file_stem, output_directory, self.tolerance_for_too_wide_in_pts)
-        except LatexProblemInCompilation as e:
-            return e
 
     def _process_non_math_parts(self, section: str) -> str:
         return process_non_math_parts(section)
