@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, Type
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
@@ -28,10 +28,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
+    debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
+
+    attrs_to_send_to_debugger: Tuple[str, ...] = \
+        ('output_file_requirements', 'data_filenames', 'data_folder', 'allow_dataframes_to_change_existing_series',
+         'enforce_saving_altered_dataframes', 'supported_packages', 'model_engine', )
 
     revision_round: int = 0
 
@@ -150,21 +155,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_and_output = DebuggerConverser.from_(
+            code_and_output = self.debugger_cls.from_(
                 self,
                 is_new_conversation=False,
-                output_file_requirements=self.output_file_requirements,
-                data_filenames=self.data_filenames,
-                data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
                 background_product_fields_to_hide=
                 () if self.revision_round == 0 else self.background_product_fields_to_hide_during_code_revision,
                 previous_code=previous_code,
-                allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,
-                supported_packages=self.supported_packages,
-                model_engine=self.model_engine,
+                **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
             ).run_debugging()
             if code_and_output is None:
                 # debugging failed
