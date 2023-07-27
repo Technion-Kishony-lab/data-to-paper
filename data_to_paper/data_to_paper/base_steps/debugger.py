@@ -14,6 +14,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChang
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
+from data_to_paper.run_gpt_code.run_utils import RunUtilsError
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
@@ -392,6 +393,11 @@ class DebuggerConverser(BackgroundProductsConverser):
         # delete the last two messages (wrong code and this just-posted user response):
         self.apply_delete_messages([-2, -1])
 
+    def _response_to_run_utils_error(self, error: RunUtilsError):
+        self.apply_append_user_message(
+            content=error.message,
+            comment=f'{self.iteration_str}: Code failed RunUtilsError.')
+
     def _get_and_run_code(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
@@ -460,6 +466,8 @@ class DebuggerConverser(BackgroundProductsConverser):
                 self._respond_to_forbidden_read(f.file)
             except DataFrameSeriesChange as f:
                 self._respond_to_dataframe_series_change(f.changed_series)
+            except RunUtilsError as f:
+                self._response_to_run_utils_error(f)
             except Warning:
                 # the code raised a warning
                 self._respond_to_error_message(e.get_traceback_message(code_runner.lines_added_in_front_of_code),
