@@ -6,6 +6,7 @@ from data_to_paper.servers.crossref import CrossrefCitation
 
 from products import DemoProducts
 
+
 @dataclass
 class ProduceDemoPaperPDF(BaseLatexToPDFWithAppendix):
     products: DemoProducts = None

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from data_to_paper.researches_types.scientific_research.coding_steps import DataAnalysisCodeProductsGPT
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.researches_types.scientific_research.reviewing_steps import GoalReviewGPT, PlanReviewGPT
@@ -44,18 +43,6 @@ def plan_reviewer(data_file_descriptions, actions_and_conversations):
         products=ScientificProducts(
             data_file_descriptions=data_file_descriptions,
             research_goal='to test whether there is a gender bias in the birth records',
-        )
-    )
-
-
-@fixture()
-def code_reviewer(data_file_descriptions, actions_and_conversations):
-    return DataAnalysisCodeProductsGPT(
-        actions_and_conversations=actions_and_conversations,
-        products=ScientificProducts(
-            data_file_descriptions=data_file_descriptions,
-            research_goal='to test whether there is a gender bias in the birth records',
-            analysis_plan='calculate gender ratio and compare to 50%'
         )
     )
 
