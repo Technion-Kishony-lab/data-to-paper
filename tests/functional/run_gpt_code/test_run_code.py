@@ -27,7 +27,6 @@ def test_run_code_correctly_reports_exception():
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'error'
-        assert e.code == code
         assert e.tb[-1].lineno == 3
     else:
         assert False, 'Expected to fail'
@@ -42,7 +41,6 @@ def test_run_code_catches_warning():
         run_code_using_module_reload(code, warnings_to_raise=[UserWarning])
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'be careful'
-        assert e.code == code
         assert e.tb[-1].lineno == 2
     else:
         assert False, 'Expected to fail'
@@ -59,7 +57,6 @@ def test_run_code_timeout():
         run_code_using_module_reload(code, timeout_sec=1)
     except FailedRunningCode as e:
         assert isinstance(e.exception, TimeoutError)
-        assert e.code == code
         assert e.tb is None  # we currently do not get a traceback for timeout
     else:
         assert False, 'Expected to fail'
@@ -75,7 +72,6 @@ def test_run_code_forbidden_function_exit(forbidden_call):
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeUsesForbiddenFunctions)
-        assert e.code == code
         assert e.tb[-1].lineno == 2
     else:
         assert False, 'Expected to fail'
@@ -100,7 +96,6 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeImportForbiddenModule)
-        assert e.code == code
         assert e.exception.module == module_name
         assert e.tb[-1].lineno == 3
     else:
@@ -143,7 +138,6 @@ def test_run_code_raises_on_unallowed_files(tmpdir):
         run_code_using_module_reload(code, allowed_write_files=[])
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeWriteForbiddenFile)
-        assert e.code == code
         assert e.tb[-1].lineno == 1
     else:
         assert False, 'Expected to fail'

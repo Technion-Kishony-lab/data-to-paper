@@ -16,7 +16,6 @@ class RunCodeException(data_to_paperException, metaclass=ABCMeta):
 class FailedRunningCode(RunCodeException):
     exception: Exception
     tb: Optional[List]
-    code: str
     fake_file_name = "my_analysis.py"
 
     def __str__(self):

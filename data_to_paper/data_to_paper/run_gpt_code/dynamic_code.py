@@ -101,16 +101,16 @@ def run_code_using_module_reload(
                 importlib.reload(CODE_MODULE)
         except TimeoutError as e:
             # TODO:  add traceback to TimeoutError
-            raise FailedRunningCode(exception=e, tb=None, code=code)
+            raise FailedRunningCode(exception=e, tb=None)
         except UnAllowedFilesCreated as e:
-            raise FailedRunningCode(exception=e, tb=None, code=code)
+            raise FailedRunningCode(exception=e, tb=None)
         except BaseRunContextException as e:
             tb = traceback.extract_tb(e.__traceback__)
             tb.pop()  # remove the line of the context manager
-            raise FailedRunningCode(exception=e, tb=tb, code=code)
+            raise FailedRunningCode(exception=e, tb=tb)
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
-            raise FailedRunningCode(exception=e, tb=tb, code=code)
+            raise FailedRunningCode(exception=e, tb=tb)
         else:
             completed_successfully = True
         finally:
