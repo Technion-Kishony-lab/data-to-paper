@@ -108,6 +108,14 @@ class DebuggerConverser(BackgroundProductsConverser):
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
+    def _fake_response_and_regenerate(self, content: str, comment: str):
+        self.apply_append_user_message(
+            content=content + '\n\n          REGENERATE!',
+            comment=f'{self.iteration_str}: {comment}'
+        )
+        # REGENERATE: delete the last two messages (incomplete code and this just-posted user response):
+        self.apply_delete_messages([-2, -1])
+
     def _respond_to_known_mis_imports(self, e: ImportError) -> bool:
         if not hasattr(e, 'fromlist'):
             return False
@@ -215,22 +223,16 @@ class DebuggerConverser(BackgroundProductsConverser):
                        f"{self.model_engine.get_next()} and retry!"
         else:
             response = "Your sent incomplete code. Please regenerate response."
-        self.apply_append_user_message(
-            content=response,
-            comment=f'{self.iteration_str}: GPT code is incomplete.')
-
-        # delete the last two messages (incomplete code and this just-posted user response):
-        self.apply_delete_messages([-2, -1])
+        self._fake_response_and_regenerate(response, 'GPT code is incomplete.')
 
     def _respond_to_missing_or_multiple_code(self, e: FailedExtractingBlock):
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
         """
-        self.apply_append_user_message(
+        self._fake_response_and_regenerate(
             content=str(e),
-            tag='failed_extracting_code',
-            comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
+            comment='Failed extracting code from gpt response.'
         )
 
     def _respond_to_forbidden_functions(self, func: str):
@@ -387,11 +389,9 @@ class DebuggerConverser(BackgroundProductsConverser):
         return line_count(new_code) > line_count(old_code) * 0.9
 
     def _respond_to_incomplete_modification(self):
-        self.apply_append_user_message(
+        self._fake_response_and_regenerate(
             content="Your code does not seem to be a modification of the previous code.",
-            comment=f'{self.iteration_str}: Code is not a modification of previous code.')
-        # delete the last two messages (wrong code and this just-posted user response):
-        self.apply_delete_messages([-2, -1])
+            comment='Code is not a modification of previous code.')
 
     def _response_to_run_utils_error(self, error: RunUtilsError):
         self.apply_append_user_message(
