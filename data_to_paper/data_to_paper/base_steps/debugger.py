@@ -3,7 +3,7 @@ import os
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Set, Tuple
+from typing import Optional, List, Set, Tuple, Dict
 
 from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE
 from data_to_paper.utils import dedent_triple_quote_str, line_count
@@ -25,7 +25,7 @@ from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directo
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BackgroundProductsConverser
-
+from ..run_gpt_code.runtime_issues_collector import RuntimeIssueCollector
 
 KNOWN_MIS_IMPORTS = {
     'Mediation': 'statsmodels.stats.mediation',
@@ -355,16 +355,20 @@ class DebuggerConverser(BackgroundProductsConverser):
                 Please rewrite the complete code so that only sensible length output is written to the file. 
                 """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens))
 
+    def _are_all_files_created(self, code_and_output: CodeAndOutput) -> bool:
+        for requirement in self.output_file_requirements:
+            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
+            if len(output_files) < requirement.minimal_count:
+                # The specified number of output files were not created.
+                self._respond_to_missing_output(requirement, output_files)
+                return False
+        return True
+
     def _is_output_ok(self, code_and_output: CodeAndOutput) -> bool:
         dataframe_operations = code_and_output.dataframe_operations
         files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
         for requirement in self.output_file_requirements:
             output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
-            if len(output_files) < requirement.minimal_count:
-                # Code ran, but the specified number of output files were not created.
-                self._respond_to_missing_output(requirement, output_files)
-                return False
-
             if isinstance(requirement, ContentOutputFileRequirement):
                 for filename in output_files:
                     message = self._check_and_response_to_file_content(
@@ -381,6 +385,16 @@ class DebuggerConverser(BackgroundProductsConverser):
             self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
             return False
 
+        return True
+
+    def _response_to_runtime_issues(self, code_and_output: CodeAndOutput,
+                                    issue_collector: RuntimeIssueCollector) -> bool:
+        message = issue_collector.get_message()
+        if message:
+            self.apply_append_user_message(
+                content=message,
+                comment=f'{self.iteration_str}: Code failed runtime issues.')
+            return False
         return True
 
     def _is_new_code_a_modification_of_old_code(self, new_code: str, old_code: str) -> bool:
@@ -438,8 +452,10 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='We are re-posting the code as if it was the immediate response.')
         self.previous_code = code
         code_and_output = None
+        original_code_and_output = None
         try:
-            code_and_output = code_runner.run_code()
+            code_and_output, issue_collector = code_runner.run_code()
+            original_code_and_output = code_and_output
         except FailedRunningCode as e:
             try:
                 raise e.exception
@@ -482,19 +498,20 @@ class DebuggerConverser(BackgroundProductsConverser):
         else:
             # The code ran without raising exceptions.
             # We now check if the output is ok:
-            if self._is_output_ok(code_and_output):
-                # All good!
-                self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
-                self.comment("GPT code completed successfully.")
-                return code_and_output
+            if not self._are_all_files_created(code_and_output):
+                code_and_output = None
+            elif not self._response_to_runtime_issues(code_and_output, issue_collector):
+                code_and_output = None
+            elif not self._is_output_ok(code_and_output):
+                code_and_output = None
 
         # if the code ran, but output was incorrect, we delete any created files:
-        if code_and_output is not None:
+        if original_code_and_output is not None and code_and_output is None:
             with run_in_directory(self.data_folder):
-                for file in code_and_output.get_created_data_files():
+                for file in original_code_and_output.get_created_data_files():
                     os.remove(file)
 
-        return None  # code failed
+        return code_and_output
 
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """

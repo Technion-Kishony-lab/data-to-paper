@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.utils import dedent_triple_quote_str
@@ -13,12 +13,38 @@ from data_to_paper.latex.tables import get_table_label, get_table_caption, get_t
 class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
     num_tables: Optional[int] = None
+    headers_required_in_code: Tuple[str, ...] = (
+        '# IMPORT',
+        '# LOAD DATA',
+        '# PREPROCESSING',
+        '# ANALYSIS',
+        '# PREPARE TABLES',
+        '# OUTPUT TEXT FILE',
+    )
 
     def _check_code_and_respond(self, code: str):
+
         if not super()._check_code_and_respond(code):
             return False
         if self.num_tables is None:
             return True
+
+        required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
+        if len(required_strings_not_found) > 0:
+            self._fake_response_and_regenerate(
+                content=dedent_triple_quote_str("""
+                Your code must contain the following sections: 
+                {headers_required_in_code}.
+                But I could not find these headers:
+                {required_strings_not_found}.
+                Please rewrite the complete code again with all the required sections. 
+                """).format(
+                    headers_required_in_code=self.headers_required_in_code,
+                    required_strings_not_found=required_strings_not_found,
+                ),
+                comment='Required sections not found')
+            return False
+
         for un_allowed_func in ['to_latex', 'as_latex']:
             if un_allowed_func + '(' in code:
                 self.apply_append_user_message(dedent_triple_quote_str(f"""
