@@ -85,6 +85,7 @@ def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str,
         note_and_legend += r'\item ' + replace_special_latex_chars(note) + '\n'
     if legend:
         for key, value in legend.items():
-            note_and_legend += r'\item[' + key + '] ' + replace_special_latex_chars(value) + '\n'
+            note_and_legend += r'\item ' + replace_special_latex_chars(key) + \
+                               ': ' + replace_special_latex_chars(value) + '\n'
 
     return BEGIN_THREEPARTTABLE + regular_latex_table + END_THREEPARTTABLE.replace('<note_and_legend>', note_and_legend)

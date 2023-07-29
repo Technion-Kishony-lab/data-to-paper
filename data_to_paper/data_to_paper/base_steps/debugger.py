@@ -78,7 +78,8 @@ class DebuggerConverser(BackgroundProductsConverser):
     debug_iteration = 0
 
     previous_code: Optional[str] = None
-    _requesting_modifications: bool = False
+    _requesting_modifications: bool = False  # True when USER ask for modifications of an already existing code
+
     gpt_script_filename: str = 'debugger_gpt'
 
     @property
@@ -184,9 +185,9 @@ class DebuggerConverser(BackgroundProductsConverser):
                 content=dedent_triple_quote_str(f"""
                 I ran the code. It ran fine without raising any exception.
                 However, the code was supposed to create at least {requirement.minimal_count} files \
-                of "{requirement.filename}", \ 
+                of "{requirement.filename}", \
                 but it created {len(filenames)} files of this type.
-                Please rewrite the complete code again so that these output files are correctly created. 
+                Please rewrite the complete code again so that all output files are correctly created. 
                 """),
                 comment=f'{self.iteration_str}: Code completed, but not enough output files created.')
         else:
