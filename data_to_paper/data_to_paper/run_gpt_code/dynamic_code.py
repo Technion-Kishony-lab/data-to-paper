@@ -17,6 +17,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
+from .runtime_issues_collector import get_runtime_issue_collector, RuntimeIssueCollector
 
 MODULE_NAME = 'script_to_run'
 
@@ -67,7 +68,7 @@ def run_code_using_module_reload(
         allowed_read_files: Iterable[str] = None,
         allowed_write_files: Iterable[str] = None,
         allow_dataframes_to_change_existing_series: bool = True,
-        run_in_folder: Union[Path, str] = None) -> Tuple[List[str], DataframeOperations]:
+        run_in_folder: Union[Path, str] = None) -> Tuple[List[str], DataframeOperations, RuntimeIssueCollector]:
     """
     Run the provided code and report exceptions or specific warnings.
 
@@ -92,6 +93,7 @@ def run_code_using_module_reload(
         completed_successfully = False
         try:
             with timeout_context(timeout_sec), \
+                    get_runtime_issue_collector() as issue_collector, \
                     prevent_calling(forbidden_modules_and_functions), \
                     PreventImport(FORBIDDEN_IMPORTS), \
                     prevent_file_open(allowed_read_files, allowed_write_files), \
@@ -122,4 +124,4 @@ def run_code_using_module_reload(
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()
-    return sorted(created_files), dataframe_operations
+    return sorted(created_files), dataframe_operations, issue_collector

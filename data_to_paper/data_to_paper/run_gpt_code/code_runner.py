@@ -8,6 +8,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
 from .types import CodeAndOutput, OutputFileRequirement
+from .runtime_issues_collector import RuntimeIssueCollector
 
 
 @dataclass
@@ -70,12 +71,12 @@ class CodeRunner:
             os.remove(filepath)
         return content
 
-    def run_code(self) -> CodeAndOutput:
+    def run_code(self) -> Tuple[CodeAndOutput, RuntimeIssueCollector]:
         """
         Run code from GPT response, and return the output and the code.
         """
         code = self.extract_and_modify_code()
-        created_files, dataframe_operations = run_code_using_module_reload(
+        created_files, dataframe_operations, issue_collector = run_code_using_module_reload(
             code=code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
@@ -90,4 +91,4 @@ class CodeRunner:
                 for output_file in created_files
                 if requirement.matches(output_file)
             } for requirement in self.output_file_requirements},
-            dataframe_operations=dataframe_operations)
+            dataframe_operations=dataframe_operations), issue_collector
