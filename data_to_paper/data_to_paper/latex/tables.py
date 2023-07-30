@@ -77,7 +77,7 @@ THREEPARTTABLE_WIDE = r"""\begin{table}[h]<caption><label>
 \makebox[\linewidth]{%
 <tabular>}
 \begin{tablenotes}
-\small
+\footnotesize
 <note_and_legend>
 \end{tablenotes}
 \end{threeparttable}
@@ -112,8 +112,8 @@ def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str,
         note_and_legend += r'\item ' + replace_special_latex_chars(note) + '\n'
     if legend:
         for key, value in legend.items():
-            note_and_legend += r'\item ' + replace_special_latex_chars(key) + \
-                               ': ' + replace_special_latex_chars(value) + '\n'
+            note_and_legend += r'\item \textbf{' + replace_special_latex_chars(key) + \
+                               '}: ' + replace_special_latex_chars(value) + '\n'
     template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
     return template.replace('<tabular>', tabular_part) \
         .replace('<caption>', caption) \

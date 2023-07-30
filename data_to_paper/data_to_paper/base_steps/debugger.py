@@ -80,8 +80,8 @@ class DebuggerConverser(BackgroundProductsConverser):
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
             Please rewrite the complete code again with these issues corrected.
-            Even if you changed just a few lines, you must return the complete code again, so that I can \
-            just copy-paste and run it.
+            Even if you are changing just a few lines, you must return the complete code again, \
+            including the unchanged parts, so that I can just copy-paste and run it.
             """)
     runner_cls: CodeRunner = CodeRunner
 
