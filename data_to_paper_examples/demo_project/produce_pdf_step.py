@@ -14,7 +14,7 @@ class ProduceDemoPaperPDF(BaseLatexToPDFWithAppendix):
     def _choose_sections_to_add_to_paper_and_collect_references(self) -> (Dict[str, str], List[CrossrefCitation]):
         sections, references = super()._choose_sections_to_add_to_paper_and_collect_references()
         added_sections = {section_name: self.products.paper_sections[section_name]
-                          for section_name in self.get_paper_section_names()}
+                          for section_name in self.paper_section_names}
         return {**sections, **added_sections}, references
 
     def _create_appendix(self):

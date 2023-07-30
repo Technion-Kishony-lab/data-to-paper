@@ -5,13 +5,13 @@ from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
 from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
 from cast import DemoAgent
 from coding_steps import DemoCodeProductsGPT
-from get_template import get_paper_template_path
+from data_to_paper.latex.get_template import get_paper_template_path
 from produce_pdf_step import ProduceDemoPaperPDF
 from products import DemoProducts
 from stage import DemoStages
 from writing_steps import WriteTitleAndAbstract
 
-PAPER_TEMPLATE_FILE: str = get_paper_template_path('abstract_only.tex')
+PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 
 
 @dataclass
@@ -30,6 +30,7 @@ class DemoStepsRunner(BaseStepsRunner):
             self,
             paper_template_filepath=PAPER_TEMPLATE_FILE,
             output_filename='paper.pdf',
+            paper_section_names=['abstract']
         )
 
         # Data file descriptions:

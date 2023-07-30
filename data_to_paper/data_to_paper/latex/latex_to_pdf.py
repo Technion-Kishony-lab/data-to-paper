@@ -9,8 +9,7 @@ from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 
 from .exceptions import LatexCompilationError, TooWideTableOrText
-
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+from .get_template import get_paper_template_path
 
 BIB_FILENAME: str = 'citations.bib'
 
@@ -30,9 +29,11 @@ def evaluate_latex_num_command(latex_str):
     return latex_str
 
 
-def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None):
-    with open(os.path.join(THIS_FOLDER, 'compilation_template.tex'), 'r') as f:
-        latex_document = f.read().replace('@@@content@@@', latex_content)
+def check_latex_compilation(latex_content: str, file_stem: str = 'test', output_directory: Optional[str] = None,
+                            template_file: str = 'standard_paper.tex'):
+    with open(get_paper_template_path(template_file), 'r') as f:
+        latex_document = f.read().replace('@@@content@@@', latex_content) \
+            .replace('@@@title@@@', r'\title{Test latex compilation}')
     save_latex_and_compile_to_pdf(latex_document, file_stem, output_directory)
 
 

@@ -59,23 +59,23 @@ class ScientificStepsRunner(BaseStepsRunner):
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
         flattened_paper_sections_to_write = []
         for sections, _ in sections_to_writing_class:
-            if not isinstance(sections, str):
-                flattened_paper_sections_to_write.extend(sections)
+            flattened_paper_sections_to_write.extend(sections)
         assert set(flattened_paper_sections_to_write) == set(template_sections)
 
     def _run_all_steps(self) -> ScientificProducts:
 
         products = self.products  # Start with empty products
 
-        # Get the paper section names:
+        # Set the paper section names:
+        paper_section_names = ['abstract', 'introduction', 'results', 'discussion', 'methods']
+        sections_and_writing_class = self.get_sections_to_writing_class()
+        self.assert_paper_sections_to_write_matches_template(paper_section_names, sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             paper_template_filepath=PAPER_TEMPLATE_FILE,
             output_filename='paper.pdf',
+            paper_section_names=paper_section_names,
         )
-        paper_section_names = paper_producer.get_paper_section_names()
-        sections_and_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(paper_section_names, sections_and_writing_class)
 
         # Data file descriptions:
         director_converser = DirectorProductGPT.from_(self,

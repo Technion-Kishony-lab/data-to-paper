@@ -33,6 +33,8 @@ class BaseLatexToPDF(BaseFileProducer):
     paper_template_filepath: str = None  # full path to the template file ending in .tex
     "The name of the file that holds the template for the paper."
 
+    paper_section_names: List[str] = None
+
     # output:
     _has_references: bool = False
     latex_paper: str = None
@@ -62,9 +64,10 @@ class BaseLatexToPDF(BaseFileProducer):
         """
         paper = self.get_modified_paper_template()
         paper = self._add_preamble(paper)
+        s = ''
         for section_name, section_content in sections.items():
-            section_content = self._style_section(section_content)
-            paper = paper.replace(f'@@@{section_name}@@@', section_content)
+            s += self._style_section(section_content) + '\n\n'
+        paper = paper.replace(f'@@@content@@@', s)
         return paper
 
     @staticmethod
@@ -77,9 +80,6 @@ class BaseLatexToPDF(BaseFileProducer):
         if not TABLE_TILDE:
             section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
         return section
-
-    def get_paper_section_names(self):
-        return self.get_raw_paper_template().split('@@@')[1::2]
 
     def _choose_sections_to_add_to_paper_and_collect_references(self) -> (Dict[str, str], List[CrossrefCitation]):
         """
