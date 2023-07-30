@@ -7,7 +7,7 @@ from data_to_paper.base_steps.request_products_from_user import DirectorProductG
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts
-from .get_template import get_paper_template_path
+from data_to_paper.latex.get_template import get_paper_template_path
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts

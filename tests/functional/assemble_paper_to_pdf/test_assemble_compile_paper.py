@@ -4,7 +4,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
-from data_to_paper.researches_types.scientific_research.get_template import get_paper_template_path
+from data_to_paper.latex.get_template import get_paper_template_path
 from data_to_paper.servers.crossref import CrossrefCitation
 
 introduction_citation = {CrossrefCitation({
