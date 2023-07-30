@@ -61,4 +61,4 @@ from .literature_search import LiteratureSearch
 from .base_products_to_file import BaseFileProducer
 
 # Base classes for creating PDFs from LaTeX Products:
-from .latex_products_to_pdf import BaseLatexToPDF, BaseLatexToPDFWithAppendix
+from .latex_products_to_pdf import BaseLatexToPDF

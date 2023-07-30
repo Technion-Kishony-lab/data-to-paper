@@ -3,7 +3,7 @@ import re
 import shutil
 import subprocess
 
-from typing import Set, Optional
+from typing import Set, Optional, Collection
 
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
@@ -29,7 +29,7 @@ def evaluate_latex_num_command(latex_str):
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
-                                  references: Set[Citation] = None):
+                                  references: Collection[Citation] = None):
     latex_content = evaluate_latex_num_command(latex_content)
     references = references or set()
     should_compile_with_bib = len(references) > 0

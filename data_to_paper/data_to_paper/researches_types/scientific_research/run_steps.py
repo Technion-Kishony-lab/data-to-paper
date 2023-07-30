@@ -7,7 +7,6 @@ from data_to_paper.base_steps.request_products_from_user import DirectorProductG
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts
-from data_to_paper.latex.get_template import get_paper_template_path
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -22,7 +21,6 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     DiscussionSectionWriterReviewGPT
 
 
-PAPER_TEMPLATE_FILE: str = get_paper_template_path('standard_paper.tex')
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
 SECTIONS_TO_ADD_TABLES_TO = ['results']
 
@@ -67,12 +65,12 @@ class ScientificStepsRunner(BaseStepsRunner):
         products = self.products  # Start with empty products
 
         # Set the paper section names:
-        paper_section_names = ['abstract', 'introduction', 'results', 'discussion', 'methods']
+        paper_section_names = ['introduction', 'results', 'discussion', 'methods']
         sections_and_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(paper_section_names, sections_and_writing_class)
+        self.assert_paper_sections_to_write_matches_template(['title', 'abstract'] + paper_section_names,
+                                                             sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
-            paper_template_filepath=PAPER_TEMPLATE_FILE,
             output_filename='paper.pdf',
             paper_section_names=paper_section_names,
         )

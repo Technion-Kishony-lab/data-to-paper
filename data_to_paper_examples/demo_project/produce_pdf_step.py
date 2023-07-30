@@ -1,23 +1,26 @@
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import Dict
 
-from data_to_paper.base_steps import BaseLatexToPDFWithAppendix
-from data_to_paper.servers.crossref import CrossrefCitation
+from data_to_paper.base_steps import BaseLatexToPDF
 
 from products import DemoProducts
 
 
 @dataclass
-class ProduceDemoPaperPDF(BaseLatexToPDFWithAppendix):
+class ProduceDemoPaperPDF(BaseLatexToPDF):
     products: DemoProducts = None
 
-    def _choose_sections_to_add_to_paper_and_collect_references(self) -> (Dict[str, str], List[CrossrefCitation]):
-        sections, references = super()._choose_sections_to_add_to_paper_and_collect_references()
-        added_sections = {section_name: self.products.paper_sections[section_name]
-                          for section_name in self.paper_section_names}
-        return {**sections, **added_sections}, references
+    def _get_title(self) -> str:
+        return self.products.paper_sections['title']
 
-    def _create_appendix(self):
+    def _get_abstract(self) -> str:
+        return self.products.paper_sections['abstract']
+
+    def _get_sections(self) -> Dict[str, str]:
+        return {section_name: self.products.paper_sections[section_name]
+                for section_name in self.paper_section_names}
+
+    def _get_appendix(self):
         s = self.products.data_file_descriptions.to_latex()
         s += '\n\n' + self.products.code_and_output.to_latex()
         return s
