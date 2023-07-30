@@ -17,7 +17,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_
 from .run_context import prevent_calling, prevent_file_open, PreventImport
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
-from .runtime_issues_collector import get_runtime_issue_collector, RuntimeIssueCollector
+from .runtime_issues_collector import get_runtime_issue_collector, RunIssueCollector
 
 MODULE_NAME = 'script_to_run'
 
@@ -68,7 +68,7 @@ def run_code_using_module_reload(
         allowed_read_files: Iterable[str] = None,
         allowed_write_files: Iterable[str] = None,
         allow_dataframes_to_change_existing_series: bool = True,
-        run_in_folder: Union[Path, str] = None) -> Tuple[List[str], DataframeOperations, RuntimeIssueCollector]:
+        run_in_folder: Union[Path, str] = None) -> Tuple[List[str], DataframeOperations, RunIssueCollector]:
     """
     Run the provided code and report exceptions or specific warnings.
 

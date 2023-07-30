@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from enum import Enum
 from fnmatch import fnmatch
 from typing import Optional, List, Dict, Collection
 
@@ -8,6 +9,31 @@ from data_to_paper.latex.clean_latex import wrap_with_lstlisting
 
 from .overrides.dataframes.dataframe_operations import DataframeOperations
 from .overrides.utils import round_floats
+from ..utils.types import IndexOrderedEnum
+
+
+class CodeProblem(IndexOrderedEnum):
+    NoCode = 0
+    IncompleteBlock = 1
+    NotSingleBlock = 2
+    StaticCheck = 3
+    SyntaxError = 4
+    RuntimeError = 5
+    MissingOutputFiles = 6
+    OutputFileContent = 7
+
+
+@dataclass(frozen=True)
+class RunIssue:
+    category: str = None
+    rank: int = 0
+    item: str = None
+    issue: str = None
+    instructions: str = None
+    comment: str = None
+    end_with: Optional[str] = None
+    requesting_small_change: bool = False
+    forgive_after: int = None  # Forgive after this many times,  None means never forgive
 
 
 @dataclass(frozen=True)

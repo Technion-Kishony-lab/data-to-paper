@@ -34,8 +34,11 @@ def is_name_an_unknown_abbreviated(name: str) -> bool:
     if not any(char.isalpha() for char in name):
         return False
 
+    if len(name) == 1:
+        return True
+
     if '.' in name or ':' in name or '_' in name:
-        return False
+        return True
     if name.islower() or name.istitle() or (name[0].isupper() and name[1:].islower()):
         return False
     return True
@@ -76,24 +79,17 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
     columns = df.columns if columns is None else columns
     legend = {} if legend is None else legend
 
-    return_complete_code = dedent_triple_quote_str("""\n
-        IMPORTANT: Please return the complete revised code, not just the part that was changed.
-        """)
-
     # Check if the table is a df.describe() table
     description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
     if set(description_headers).issubset(columns) or set(description_headers).issubset(df.index):
-        create_and_add_issue(
-            category='Quantiles and min/max values should not be included in scientific tables',
-            order=1,
-            item=filename,
-            issue=f'The table includes mean, std, as well as quantiles and min/max values.',
-            instructions=dedent_triple_quote_str("""
+        create_and_add_issue(category='Quantiles and min/max values should not be included in scientific tables',
+                             rank=1, item=filename,
+                             issue=f'The table includes mean, std, as well as quantiles and min/max values.',
+                             instructions=dedent_triple_quote_str("""
             Note that in scientific tables, it is not customary to include quantiles, or min/max values, \
             especially if the mean and std are also included.
             Please revise the code so that the tables only include scientifically relevant statistics.
-            """) + return_complete_code,
-        )
+            """))
 
     # Check for repetitive values in a column
     for column_header in columns:
@@ -106,32 +102,24 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
             elif round(data0) == data0 and data0 < 10:
                 pass
             else:
-                create_and_add_issue(
-                    category='Repetitive values in a column',
-                    order=2,
-                    item=filename,
-                    issue=f'The column "{column_header}" has the same unique value for all rows.',
-                    instructions=dedent_triple_quote_str("""
+                create_and_add_issue(category='Repetitive values in a column', rank=2, item=filename,
+                                     issue=f'The column "{column_header}" has the same unique value for all rows.',
+                                     instructions=dedent_triple_quote_str("""
                     Please revise the code so that it:
                     * Finds the unique values of the column
                     * Asserts that the len of unique values == 1
                     * Create the table without this column
                     * Add the unique value in the table note (use `note=` in the function `to_latex_with_note`). 
-                    """) + return_complete_code,
-                )
+                    """))
 
     # Check that the rows are labeled:
     if index is False and df.shape[0] > 1:
-        create_and_add_issue(
-            category='Unlabelled rows in a table',
-            order=3,
-            item=filename,
-            issue=f'The table has more than one row, but the rows are not labeled.',
-            instructions=dedent_triple_quote_str("""
+        create_and_add_issue(category='Unlabelled rows in a table', rank=3, item=filename,
+                             issue=f'The table has more than one row, but the rows are not labeled.',
+                             instructions=dedent_triple_quote_str("""
             Please revise the code making sure all tables are created with labeled rows.
             Use `index=True` in the function `to_latex_with_note`.
-            """) + return_complete_code,
-        )
+            """))
 
     # Check caption/label
     instructions = dedent_triple_quote_str("""
@@ -143,32 +131,20 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
     if caption is None or label is None:
         missing = 'caption and label' if caption is None and label is None \
             else 'caption' if caption is None else 'label'
-        create_and_add_issue(
-            category='Problem with table caption/label',
-            order=4,
-            item=filename,
-            issue=f'The table does not have a {missing}',
-            instructions=instructions + return_complete_code,
-        )
+        create_and_add_issue(category='Problem with table caption/label', rank=4, item=filename,
+                             issue=f'The table does not have a {missing}',
+                             instructions=instructions)
 
     if label is not None and not label.startswith('table:'):
-        create_and_add_issue(
-            category='Problem with table caption/label',
-            order=4,
-            item=filename,
-            issue='The label of the table is not in the format `table:<your table label here>`',
-            instructions=instructions + return_complete_code,
-        )
+        create_and_add_issue(category='Problem with table caption/label', rank=4, item=filename,
+                             issue='The label of the table is not in the format `table:<your table label here>`',
+                             instructions=instructions)
 
     # check if the caption starts with "Table <number>"
     if caption is not None and caption.lower().startswith('table'):
-        create_and_add_issue(
-            category='Problem with table caption/label',
-            order=4,
-            item=filename,
-            issue='The caption of the table should not start with "Table ..."',
-            instructions=instructions + return_complete_code,
-        )
+        create_and_add_issue(category='Problem with table caption/label', rank=4, item=filename,
+                             issue='The caption of the table should not start with "Table ..."',
+                             instructions=instructions)
 
     # Check that any abbreviated row/column labels are explained in the legend
     if index:
@@ -185,20 +161,12 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
             function `to_latex_with_note`.
             """)
         if legend:
-            create_and_add_issue(
-                category='Some abbreviated names are not explained in the table legend',
-                order=5,
-                item=filename,
-                issue=f'The legend of the table needs to include also the following abbreviated names:\n' 
-                      f'{un_mentioned_abbr_names}',
-                instructions=instructions + return_complete_code,
-            )
+            create_and_add_issue(category='Some abbreviated names are not explained in the table legend', rank=5,
+                                 item=filename,
+                                 issue=f'The legend of the table needs to include also the following abbreviated names:\n'
+                                       f'{un_mentioned_abbr_names}', instructions=instructions)
         else:
-            create_and_add_issue(
-                category='Some abbreviated names are not explained in the table legend',
-                order=5,
-                item=filename,
-                issue=f'The table needs a legend explaining the following abbreviated names:\n'
-                      f'{un_mentioned_abbr_names}',
-                instructions=instructions + return_complete_code,
-            )
+            create_and_add_issue(category='Some abbreviated names are not explained in the table legend', rank=5,
+                                 item=filename,
+                                 issue=f'The table needs a legend explaining the following abbreviated names:\n'
+                                       f'{un_mentioned_abbr_names}', instructions=instructions)

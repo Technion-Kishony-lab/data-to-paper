@@ -8,7 +8,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
 from .types import CodeAndOutput, OutputFileRequirement
-from .runtime_issues_collector import RuntimeIssueCollector
+from .runtime_issues_collector import RunIssueCollector
 
 
 @dataclass
@@ -48,16 +48,9 @@ class CodeRunner:
         """
         Modify the extracted code before running it.
         """
-        code = code.replace('from my_utils', 'from data_to_paper.run_gpt_code.run_utils')
-        return self.add_in_front_of_code + code
-
-    def extract_and_modify_code(self) -> str:
-        """
-        Extract code from GPT response, and modify it before running it.
-        """
-        code = self.extract_code()
-        modified_code = self.modify_extracted_code(code)
-        assert len(code.splitlines()) == len(modified_code.splitlines()) - self.lines_added_in_front_of_code
+        modified_code = code.replace('from my_utils', 'from data_to_paper.run_gpt_code.run_utils')
+        modified_code = self.add_in_front_of_code + modified_code
+        assert line_count(code) == line_count(modified_code) - self.lines_added_in_front_of_code
         return modified_code
 
     def read_output_file(self, output_file: str, delete_file: bool = False) -> str:
@@ -71,13 +64,14 @@ class CodeRunner:
             os.remove(filepath)
         return content
 
-    def run_code(self) -> Tuple[CodeAndOutput, RuntimeIssueCollector]:
+    def run_code(self) -> Tuple[CodeAndOutput, RunIssueCollector]:
         """
         Run code from GPT response, and return the output and the code.
         """
-        code = self.extract_and_modify_code()
+        code = self.extract_code()
+        modified_code = self.modify_extracted_code(code)
         created_files, dataframe_operations, issue_collector = run_code_using_module_reload(
-            code=code,
+            code=modified_code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
             allowed_write_files=self.all_allowed_created_filenames,

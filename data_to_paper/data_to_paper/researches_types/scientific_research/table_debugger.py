@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.utils import dedent_triple_quote_str
 
-from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement
+from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIssue
 from data_to_paper.latex.exceptions import TooWideTableOrText
 from data_to_paper.latex.tables import get_table_label, get_table_caption, get_table_column_headers, get_table_row_names
 
@@ -22,17 +22,21 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         '# OUTPUT TEXT FILE',
     )
 
-    def _check_code_and_respond(self, code: str):
+    prompt_to_append_at_end_of_response: str = DebuggerConverser.prompt_to_append_at_end_of_response + \
+        dedent_triple_quote_str("""
+            Your code must contain the following sections:
+            {headers_required_in_code}
+        """)
 
-        if not super()._check_code_and_respond(code):
-            return False
+    def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
+        issues = super()._get_issues_for_static_code_check(code)
         if self.num_tables is None:
-            return True
+            return issues
 
         required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
         if len(required_strings_not_found) > 0:
-            self._fake_response_and_regenerate(
-                content=dedent_triple_quote_str("""
+            issues.append(RunIssue(
+                issue=dedent_triple_quote_str("""
                 Your code must contain the following sections: 
                 {headers_required_in_code}.
                 But I could not find these headers:
@@ -42,36 +46,35 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
                     headers_required_in_code=self.headers_required_in_code,
                     required_strings_not_found=required_strings_not_found,
                 ),
-                comment='Required sections not found')
-            return False
+                comment='Required sections not found',
+            ))
 
         for un_allowed_func in ['to_latex', 'as_latex']:
             if un_allowed_func + '(' in code:
-                self.apply_append_user_message(dedent_triple_quote_str(f"""
-                    It seems like you are using the `{un_allowed_func}` method.
-                    Please rewrite the complete code again so that all tables are created using `to_latex_with_note`.
-                    """))
-                return False
-        return True
+                issues.append(RunIssue(
+                    issue=f"It seems like you are using the `{un_allowed_func}` method.",
+                    instructions=f"Please use the `to_latex_with_note` method instead.",
+                    comment='Unallowed method used',
+                ))
 
-    def _check_and_response_to_file_content(self, requirement: ContentOutputFileRequirement,
-                                            filename: str, content: str) -> Optional[str]:
-        message = super()._check_and_response_to_file_content(requirement, filename, content)
-        if message is not None:
-            return message
+        return issues
+
+    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
+                                            filename: str, content: str) -> List[RunIssue]:
+        issues = super()._get_issues_for_output_file_content(requirement, filename, content)
         if not requirement.filename.endswith('.tex'):
-            return None
-        message = self._get_message_on_table_issues(filename, content)
+            return issues
+        message = self._get_message_on_table_compilation(filename, content)
         if message is None:
-            return None
-        self._requesting_modifications = True
-        return message + dedent_triple_quote_str("""\n
-            Please rewrite the complete code again, so that the table is created properly.
-            Please return the full complete code again, not just the part that was modified, \
-            so that I can just copy-paste and run it.
-            """)
+            return issues
+        issues.append(RunIssue(
+            issue=message,
+            comment='Table compilation failed',
+            rank=6,
+        ))
+        return issues
 
-    def _get_message_on_table_issues(self, filename: str, content: str) -> Optional[str]:
+    def _get_message_on_table_compilation(self, filename: str, content: str) -> Optional[str]:
         # We now check that the content of the file compiles to a pdf:
         e = self._check_latex_compilation(content, filename)
         if e is not None:
