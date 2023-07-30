@@ -14,7 +14,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
     IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.latex.latex_to_pdf import check_latex_compilation
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.clean_latex import process_non_math_parts, check_usage_of_un_allowed_commands
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
@@ -57,7 +57,7 @@ class CheckLatexCompilation:
         else:
             file_stem, output_directory = 'test', None
         try:
-            check_latex_compilation(section, file_stem, output_directory)
+            LatexDocument().get_document(section, file_stem=file_stem, output_directory=output_directory)
         except TooWideTableOrText as e:
             if self.tolerance_for_too_wide_in_pts is None or e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:
                 return e

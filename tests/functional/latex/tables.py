@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from _pytest.fixtures import fixture
 
-from data_to_paper.latex.latex_to_pdf import check_latex_compilation
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.run_gpt_code.run_utils import to_latex_with_note
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -21,4 +21,5 @@ def test_to_latex_with_note(df_table):
                        legend={'CV': 'coefficient of variation', 'SD': 'standard deviation'})
     with open('test.tex', 'r') as f:
         latex = f.read()
-    check_latex_compilation(latex, 'test')
+
+    LatexDocument().get_document(latex, file_stem='test.tex')
