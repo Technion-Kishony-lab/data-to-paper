@@ -64,6 +64,10 @@ class TestRequestCodeProducts(TestProductsReviewGPT, RequestCodeProducts):
     def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
         return TestDataframeChangingCodeProductsGPT
 
+    def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
+        cls = self.code_writing_class
+        return cls.from_(self)
+
 
 @fixture()
 def code_running_converser(tmpdir_with_csv_file):

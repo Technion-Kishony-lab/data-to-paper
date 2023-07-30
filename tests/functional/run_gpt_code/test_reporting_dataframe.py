@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
-from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe_creating_funcs, \
     collect_created_and_changed_data_frames, DataFrameSeriesChange
 from data_to_paper.utils.file_utils import run_in_directory

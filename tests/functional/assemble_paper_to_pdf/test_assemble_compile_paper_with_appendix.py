@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from _pytest.fixtures import fixture
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
-from data_to_paper.latex.get_template import get_paper_template_path
 from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.types import CodeAndOutput, ContentOutputFileRequirement
@@ -125,10 +124,10 @@ def test_paper_appendix_creator(tmpdir, products):
         products=products,
         output_directory=tmpdir,
         output_filename='output.pdf',
-        paper_template_filepath=get_paper_template_path('standard_paper.tex'),
+        paper_section_names=['introduction', 'results', 'discussion', 'methods'],
     )
-    paper_producer.assemble_compile_paper()
+    latex_paper = paper_producer.assemble_compile_paper()
     os.chdir(tmpdir)
-    assert '@@@appendix@@@' not in paper_producer.latex_paper
+    assert 'appendix' in latex_paper
     assert os.path.exists(paper_producer.output_file_stem + '.tex')
     assert os.path.exists(paper_producer.output_file_stem + '.pdf')

@@ -674,9 +674,12 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     EXPLAIN_CODE_CLASS = RequestCodeExplanation
     EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
 
+    @property
+    def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
+        return CODE_STEP_TO_CLASS[self.code_step]
+
     def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
-        cls = CODE_STEP_TO_CLASS[self.code_step]
-        assert cls.code_step == self.code_step
+        cls = self.code_writing_class
         if self.code_step == 'data_analysis':
             num_tables = len(self.products.tables_names)
             return cls.from_(

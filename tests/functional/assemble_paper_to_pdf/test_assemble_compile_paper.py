@@ -4,7 +4,6 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
-from data_to_paper.latex.get_template import get_paper_template_path
 from data_to_paper.servers.crossref import CrossrefCitation
 
 introduction_citation = {CrossrefCitation({
@@ -56,10 +55,11 @@ def test_paper_assembler_compiler_gpt(tmpdir, products):
         products=products,
         output_directory=tmpdir,
         output_filename='output.pdf',
-        paper_template_filepath=get_paper_template_path('standard_paper.tex')
+        paper_section_names=['introduction', 'results', 'discussion', 'methods'],
     )
-    paper_assembler_compiler.assemble_compile_paper()
 
-    assert 'content of title' in paper_assembler_compiler.latex_paper
+    latex_paper = paper_assembler_compiler.assemble_compile_paper()
+
+    assert 'content of title' in latex_paper
     assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.tex'))
     assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.pdf'))
