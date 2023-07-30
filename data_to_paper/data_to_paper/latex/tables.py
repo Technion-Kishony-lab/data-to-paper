@@ -59,12 +59,11 @@ def add_tables_to_paper_section(section_content: str, section_tables: List[str])
     return section_content
 
 
-BEGIN_THREEPARTTABLE = r"""\begin{table}[htbp]
+THREEPARTTABLE = r"""\begin{table}[htbp]
 \centering
 \begin{threeparttable}
-"""
-
-END_THREEPARTTABLE = r"""\begin{tablenotes}
+<caption><label><tabular>
+\begin{tablenotes}
 <note_and_legend>
 \end{tablenotes}
 \end{threeparttable}
@@ -72,13 +71,41 @@ END_THREEPARTTABLE = r"""\begin{tablenotes}
 """
 
 
-def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str, str] = None) -> str:
+THREEPARTTABLE_WIDE = r"""\begin{table}[h]<caption><label>
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+<tabular>}
+\begin{tablenotes}
+\small
+<note_and_legend>
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+"""
+
+
+def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str, str] = None,
+                          is_wide: bool = True) -> str:
     """
     Create a threeparttable from a regular latex table.
     Add a note to the table.
     """
-    regular_latex_table = re.sub(pattern=r'\\begin{table}.*\n', repl='', string=regular_latex_table)
-    regular_latex_table = re.sub(pattern=r'\\end{table}.*\n', repl='', string=regular_latex_table)
+
+    # use regex to extract the tabular part of the table from '\begin{tabular}' to '\end{tabular}'
+    tabular_part = re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=regular_latex_table,
+                             flags=re.DOTALL).group(0)
+    caption = get_table_caption(regular_latex_table)
+    if caption is None:
+        caption = ''
+    else:
+        caption = r'\caption{' + caption + '}'
+
+    label = get_table_label(regular_latex_table)
+    if label is None:
+        label = ''
+    else:
+        label = r'\label{' + label + '}'
 
     note_and_legend = ''
     if note:
@@ -87,5 +114,8 @@ def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str,
         for key, value in legend.items():
             note_and_legend += r'\item ' + replace_special_latex_chars(key) + \
                                ': ' + replace_special_latex_chars(value) + '\n'
-
-    return BEGIN_THREEPARTTABLE + regular_latex_table + END_THREEPARTTABLE.replace('<note_and_legend>', note_and_legend)
+    template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
+    return template.replace('<tabular>', tabular_part) \
+        .replace('<caption>', caption) \
+        .replace('<label>', label) \
+        .replace('<note_and_legend>', note_and_legend)
