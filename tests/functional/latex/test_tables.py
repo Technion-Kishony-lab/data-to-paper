@@ -22,4 +22,5 @@ def test_to_latex_with_note(df_table):
     with open('test.tex', 'r') as f:
         latex = f.read()
 
-    LatexDocument().get_document(latex, file_stem='test.tex')
+    width = LatexDocument().compile_table(latex, file_stem='test')
+    assert 0.1 < width < 0.2

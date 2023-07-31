@@ -76,52 +76,53 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
 
     def _get_message_on_table_compilation(self, filename: str, content: str) -> Optional[str]:
         # We now check that the content of the file compiles to a pdf:
-        e = self._check_latex_compilation(content, filename)
-        if e is not None:
-            if isinstance(e, TooWideTableOrText):
-                return dedent_triple_quote_str("""
-                I ran the code. 
-                Here is the table "{filename}" that your code created:
+        e = self._check_latex_compilation(content, filename, is_table=True)
 
-                ```latex
-                {table}
-                ```
+        if not isinstance(e, float):
+            return dedent_triple_quote_str("""
+            I ran the code. 
+            Here is the table "{filename}":
 
-                However, the table is too wide. 
+            ```latex
+            {table}
+            ```
 
-                Please change the code to make the table narrower. Consider any of the following:
+            However, when I tried to compile the table, I got the following error:
 
-                - Drop unnecessary columns. \
-                Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
+            {error}
 
-                - Rename columns to shorter names. \
-                Replace `to_latex_with_note(df, filename, ...)` with \
-                `to_latex_with_note(df.rename(columns=...), filename, ...)`
+            """).format(filename=filename, table=content, error=e)
 
-                - If the table has the dataframe index, you can rename the index to a shorter names.
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
+        if e > 1.1:
+            return dedent_triple_quote_str("""
+            I ran the code. 
+            Here is the table "{filename}" that your code created:
 
-                - Alternatively, consider completely transposing the table. \
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
+            ```latex
+            {table}
+            ```
 
-                IMPORTANT:
-                If you rename the columns or the index, \
-                make sure to use the `note` argument of the `to_latex_with_note` function \
-                to clarify the abbreviations used.
-                """).format(filename=filename, table=content)
-            else:
-                return dedent_triple_quote_str("""
-                I ran the code. 
-                Here is the table "{filename}":
+            However, the table is too wide. 
 
-                ```latex
-                {table}
-                ```
+            Please change the code to make the table narrower. Consider any of the following:
 
-                However, when I tried to compile the table, I got the following error:
+            - Drop unnecessary columns. \
+            Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
 
-                {error}
+            - Rename columns to shorter names. \
+            Replace `to_latex_with_note(df, filename, ...)` with \
+            `to_latex_with_note(df.rename(columns=...), filename, ...)`
 
-                """).format(filename=filename, table=content, error=e)
+            - If the table has the dataframe index, you can rename the index to a shorter names.
+            Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
+
+            - Alternatively, consider completely transposing the table. \
+            Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
+
+            IMPORTANT:
+            If you rename the columns or the index, \
+            make sure to use the `note` argument of the `to_latex_with_note` function \
+            to clarify the abbreviations used.
+            """).format(filename=filename, table=content)
 
         return None

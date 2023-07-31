@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 
@@ -49,14 +49,25 @@ class CheckLatexCompilation:
 
     tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
 
-    def _check_latex_compilation(self, section: str, section_name: str) -> Optional[LatexProblemInCompilation]:
+    def _check_latex_compilation(self, section: str, section_name: str,
+                                 is_table: bool = False) -> Optional[Union[float, LatexProblemInCompilation]]:
+        """
+        Check that the latex compiles.
+        Return a LatexProblemInCompilation if it does not.
+
+        For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
+        """
+
         if SAVE_INTERMEDIATE_LATEX:
-            file_stem = f'{section_name}__{self.conversation_name}'
+            file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
         else:
             file_stem, output_directory = 'test', None
+
         try:
+            if is_table:
+                return LatexDocument().compile_table(section, file_stem=file_stem, output_directory=output_directory)
             LatexDocument().get_document(section, file_stem=file_stem, output_directory=output_directory)
         except TooWideTableOrText as e:
             if self.tolerance_for_too_wide_in_pts is None or e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:

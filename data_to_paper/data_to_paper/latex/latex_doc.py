@@ -1,8 +1,11 @@
+import re
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Set, Union, Iterable, Collection
+from typing import List, Optional, Dict, Union, Iterable, Collection
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
+from data_to_paper.latex.tables import get_tabular_block
 from data_to_paper.servers.types import Citation
+from data_to_paper.utils import dedent_triple_quote_str
 
 DEFAULT_PACKAGES = (
     '[utf8]{inputenc}',
@@ -78,9 +81,11 @@ class LatexDocument:
                      appendix: Optional[str] = None,
                      author: Optional[str] = None,
                      references: Collection[Citation] = None,
+                     add_before_document: Optional[str] = None,
                      file_stem: str = None,
                      output_directory: Optional[str] = None,
-                     ) -> str:
+                     raise_on_too_wide: bool = True,
+                     ) -> (str, str):
         """
         Return the latex document as a string.
 
@@ -115,6 +120,10 @@ class LatexDocument:
         if author is not None:
             s += author + '\n'
 
+        # Add before document:
+        if add_before_document is not None:
+            s += add_before_document + '\n'
+
         # Begin document:
         s += r'\begin{document}' + '\n'
         if title is not None:
@@ -138,6 +147,8 @@ class LatexDocument:
                 all_sections += section_content + '\n\n'
         elif isinstance(content, Iterable):
             all_sections = '\n\n'.join(content) + '\n'
+        elif content is None:
+            all_sections = ''
         else:
             raise TypeError(f'content must be str, Iterable[str] or Dict[str, str], not {type(content)}')
 
@@ -156,5 +167,39 @@ class LatexDocument:
         s += r'\end{document}' + '\n'
 
         # Save and compile:
-        save_latex_and_compile_to_pdf(s, file_stem=file_stem, output_directory=output_directory, references=references)
-        return s
+        pdf_output = save_latex_and_compile_to_pdf(s, file_stem=file_stem, output_directory=output_directory,
+                                                   references=references, raise_on_too_wide=raise_on_too_wide)
+        return s, pdf_output
+
+    def compile_table(self, latex_table: str, file_stem: str = None, output_directory: Optional[str] = None) -> float:
+        """
+        Compile a latex table to pdf and return the width of the tabular part of the table,
+        expressed as fraction of the page margin width.
+        """
+
+        lrbox_table = dedent_triple_quote_str(r"""
+            % Define the save box within the document block
+            \newsavebox{\mytablebox} % Create a box to store the table
+            
+            % Save only the tabular part of table in the \mytablebox without typesetting it:
+            \begin{lrbox}{\mytablebox}
+              <tabular>%
+            \end{lrbox}
+            
+            % Typeset the entire table:
+            <table>
+            
+            % Print the width of the tabular part of the table and the width of the page margin to the log file
+            \typeout{Table width: \the\wd\mytablebox}
+            \typeout{Page margin width: \the\textwidth}
+            """).replace('<tabular>', get_tabular_block(latex_table)).replace('<table>', latex_table)
+
+        _, pdf_output = self.get_document(content=lrbox_table,
+                                          file_stem=file_stem,
+                                          output_directory=output_directory,
+                                          raise_on_too_wide=False,
+                                          )
+
+        table_width = re.findall(pattern=r'Table width: (\d+\.\d+)pt', string=pdf_output)[0]
+        marging_width = re.findall(pattern=r'Page margin width: (\d+\.\d+)pt', string=pdf_output)[0]
+        return float(table_width) / float(marging_width)

@@ -24,6 +24,13 @@ def get_table_caption(latex_table: str) -> Optional[str]:
         return match.group(1)
 
 
+def get_tabular_block(latex_table: str) -> str:
+    """
+    Extract the tabular block of the table.
+    """
+    return re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=latex_table, flags=re.DOTALL).group(0)
+
+
 def get_table_column_headers(latex_table: str) -> Optional[List[str]]:
     """
     Extract the column headers of the table.
@@ -92,9 +99,7 @@ def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str,
     Add a note to the table.
     """
 
-    # use regex to extract the tabular part of the table from '\begin{tabular}' to '\end{tabular}'
-    tabular_part = re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=regular_latex_table,
-                             flags=re.DOTALL).group(0)
+    tabular_part = get_tabular_block(regular_latex_table)
     caption = get_table_caption(regular_latex_table)
     if caption is None:
         caption = ''

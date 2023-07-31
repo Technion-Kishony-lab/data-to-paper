@@ -55,4 +55,4 @@ class BaseLatexToPDF(BaseFileProducer):
             references=self._get_references(),
             file_stem=self.output_file_stem,
             output_directory=str(self.output_directory),
-        )
+        )[0]
