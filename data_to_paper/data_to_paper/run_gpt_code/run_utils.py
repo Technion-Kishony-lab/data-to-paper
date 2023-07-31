@@ -7,14 +7,12 @@ from data_to_paper.latex.tables import create_threeparttable
 from data_to_paper.utils import dedent_triple_quote_str
 
 from .runtime_issues_collector import create_and_add_issue
+from .types import CodeProblem, RunIssue
 
 
 @dataclass
 class RunUtilsError(Exception):
-    message: str
-
-    def __str__(self):
-        return self.message
+    issue: RunIssue
 
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value')
@@ -83,7 +81,8 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
     description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
     if set(description_headers).issubset(columns) or set(description_headers).issubset(df.index):
         create_and_add_issue(category='Quantiles and min/max values should not be included in scientific tables',
-                             rank=1, item=filename,
+                             code_problem=CodeProblem.OutputFileContentLevelA,
+                             item=filename,
                              issue=f'The table includes mean, std, as well as quantiles and min/max values.',
                              instructions=dedent_triple_quote_str("""
             Note that in scientific tables, it is not customary to include quantiles, or min/max values, \
@@ -102,7 +101,9 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
             elif round(data0) == data0 and data0 < 10:
                 pass
             else:
-                create_and_add_issue(category='Repetitive values in a column', rank=2, item=filename,
+                create_and_add_issue(category='Repetitive values in a column',
+                                     code_problem=CodeProblem.OutputFileContentLevelB,
+                                     item=filename,
                                      issue=f'The column "{column_header}" has the same unique value for all rows.',
                                      instructions=dedent_triple_quote_str("""
                     Please revise the code so that it:
@@ -114,7 +115,9 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
 
     # Check that the rows are labeled:
     if index is False and df.shape[0] > 1:
-        create_and_add_issue(category='Unlabelled rows in a table', rank=3, item=filename,
+        create_and_add_issue(category='Unlabelled rows in a table',
+                             code_problem=CodeProblem.OutputFileDesignLevelA,
+                             item=filename,
                              issue=f'The table has more than one row, but the rows are not labeled.',
                              instructions=dedent_triple_quote_str("""
             Please revise the code making sure all tables are created with labeled rows.
@@ -131,18 +134,24 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
     if caption is None or label is None:
         missing = 'caption and label' if caption is None and label is None \
             else 'caption' if caption is None else 'label'
-        create_and_add_issue(category='Problem with table caption/label', rank=4, item=filename,
+        create_and_add_issue(category='Problem with table caption/label',
+                             code_problem=CodeProblem.OutputFileDesignLevelA,
+                             item=filename,
                              issue=f'The table does not have a {missing}',
                              instructions=instructions)
 
     if label is not None and not label.startswith('table:'):
-        create_and_add_issue(category='Problem with table caption/label', rank=4, item=filename,
+        create_and_add_issue(category='Problem with table caption/label',
+                             code_problem=CodeProblem.OutputFileDesignLevelA,
+                             item=filename,
                              issue='The label of the table is not in the format `table:<your table label here>`',
                              instructions=instructions)
 
     # check if the caption starts with "Table <number>"
     if caption is not None and caption.lower().startswith('table'):
-        create_and_add_issue(category='Problem with table caption/label', rank=4, item=filename,
+        create_and_add_issue(category='Problem with table caption/label',
+                             code_problem=CodeProblem.OutputFileDesignLevelA,
+                             item=filename,
                              issue='The caption of the table should not start with "Table ..."',
                              instructions=instructions)
 
@@ -161,12 +170,14 @@ def _check_for_errors(latex: str, df: pd.DataFrame, filename: str, *args,
             function `to_latex_with_note`.
             """)
         if legend:
-            create_and_add_issue(category='Some abbreviated names are not explained in the table legend', rank=5,
+            create_and_add_issue(category='Some abbreviated names are not explained in the table legend',
+                                 code_problem=CodeProblem.OutputFileDesignLevelB,
                                  item=filename,
                                  issue=f'The legend of the table needs to include also the following abbreviated names:\n'
                                        f'{un_mentioned_abbr_names}', instructions=instructions)
         else:
-            create_and_add_issue(category='Some abbreviated names are not explained in the table legend', rank=5,
+            create_and_add_issue(category='Some abbreviated names are not explained in the table legend',
+                                 code_problem=CodeProblem.OutputFileDesignLevelB,
                                  item=filename,
                                  issue=f'The table needs a legend explaining the following abbreviated names:\n'
                                        f'{un_mentioned_abbr_names}', instructions=instructions)

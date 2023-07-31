@@ -4,9 +4,7 @@ from typing import Optional, Tuple, List
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.utils import dedent_triple_quote_str
 
-from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIssue
-from data_to_paper.latex.exceptions import TooWideTableOrText
-from data_to_paper.latex.tables import get_table_label, get_table_caption, get_table_column_headers, get_table_row_names
+from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIssue, CodeProblem
 
 
 @dataclass
@@ -45,7 +43,7 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         issues.append(RunIssue(
             issue=message,
             comment='Table compilation failed',
-            rank=6,
+            code_problem=CodeProblem.OutputFileDesignLevelB,
         ))
         return issues
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import List, Dict, Optional, Tuple
 
-from data_to_paper.run_gpt_code.types import RunIssue
+from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 from data_to_paper.utils.types import ListBasedSet
 
 RUNTIME_ISSUES_COLLECTORS: Dict[int, RunIssueCollector] = {}
@@ -16,12 +16,12 @@ def get_runtime_issue_collector() -> RunIssueCollector:
     return RUNTIME_ISSUES_COLLECTORS[process_id]
 
 
-def create_and_add_issue(category: str, rank: int, item: str, issue: str, instructions: str,
+def create_and_add_issue(category: str, code_problem: CodeProblem, item: str, issue: str, instructions: str,
                          forgive_after: int = None):
     collector = get_runtime_issue_collector()
     collector.add_issue(
         RunIssue(category=category,
-                 rank=rank,
+                 code_problem=code_problem,
                  item=item,
                  issue=issue,
                  instructions=instructions,
@@ -45,20 +45,20 @@ class RunIssueCollector:
     def add_issue(self, issue: RunIssue):
         self.issues.append(issue)
 
-    def get_message_and_comment(self, first_rank_only: bool = True, end_with: str = '') -> Tuple[str, str]:
+    def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = '') -> Tuple[str, str]:
         """
         We compose all the issues into a single message, and a single comment.
         """
-        issues = self._get_issues(first_rank_only)
+        issues = self._get_issues(most_severe_only)
         comments = ListBasedSet()
 
         s = ''
         if len(issues) > 1:
             s += 'There are some issues that need to be corrected:\n\n'
 
-        ranks = sorted(set(issue.rank for issue in issues))
-        for rank in ranks:
-            categories = sorted(set(issue.category for issue in issues if issue.rank == rank))
+        code_problems = sorted(set(issue.code_problem for issue in issues))
+        for code_problem in code_problems:
+            categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
             for category in categories:
                 if category is not None:
                     s += f'# {category}\n'
@@ -89,10 +89,10 @@ class RunIssueCollector:
             s += f'{end_with}'
         return s, comment
 
-    def _get_issues(self, first_rank_only: bool = True) -> List[RunIssue]:
-        if first_rank_only:
-            lowest_order = min(issue.rank for issue in self.issues)
-            return [issue for issue in self.issues if issue.rank == lowest_order]
+    def _get_issues(self, most_severe_only: bool = True) -> List[RunIssue]:
+        if most_severe_only:
+            most_severe_problem = min(issue.code_problem for issue in self.issues)
+            return [issue for issue in self.issues if issue.code_problem == most_severe_problem]
         else:
             return self.issues
 

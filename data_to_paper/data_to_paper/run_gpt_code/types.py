@@ -20,13 +20,16 @@ class CodeProblem(IndexOrderedEnum):
     SyntaxError = 4
     RuntimeError = 5
     MissingOutputFiles = 6
-    OutputFileContent = 7
+    OutputFileContentLevelA = 7
+    OutputFileContentLevelB = 8
+    OutputFileDesignLevelA = 9
+    OutputFileDesignLevelB = 10
 
 
 @dataclass(frozen=True)
 class RunIssue:
     category: str = None
-    rank: int = 0
+    code_problem: CodeProblem = None
     item: str = None
     issue: str = None
     instructions: str = None

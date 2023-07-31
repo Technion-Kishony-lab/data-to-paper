@@ -152,13 +152,16 @@ class DebuggerConverser(BackgroundProductsConverser):
             return
         return RunIssue(
             issue=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
-            ```
-            {}
-            ```
-            Your code should only use these packages: {supported_packages}.
-            Note that there is a `{var}` in `{correct_package}`. Is this perhaps what you needed? 
-            """).format(e, supported_packages=self.supported_packages, var=var, correct_package=KNOWN_MIS_IMPORTS[var]),
+                I ran the code and got the following error message:
+                ```
+                {}
+                ```
+                """).format(e),
+            instructions=dedent_triple_quote_str("""
+                Your code should only use these packages: {supported_packages}.
+                Note that there is a `{var}` in `{known_package}`. Is this perhaps what you needed? 
+                """).format(supported_packages=self.supported_packages, var=var, known_package=KNOWN_MIS_IMPORTS[var]),
+            code_problem=CodeProblem.RuntimeError,
             comment='ImportError detected in gpt code',
         )
 
@@ -168,27 +171,33 @@ class DebuggerConverser(BackgroundProductsConverser):
             return respond_to_known_mis_imports
         return RunIssue(
             issue=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
-            ```
-            {}
-            ```
-            Your code should only use these packages: {supported_packages}.
-            """).format(error, supported_packages=self.supported_packages),
+                I ran the code and got the following error message:
+                ```
+                {}
+                ```
+                """).format(error),
+            instructions=dedent_triple_quote_str("""
+                Your code should only use these packages: {supported_packages}.
+                """).format(supported_packages=self.supported_packages),
+            code_problem=CodeProblem.RuntimeError,
             comment='ImportError detected in gpt code',
         )
 
     def _get_issue_for_file_not_found(self, error: FileNotFoundError) -> RunIssue:
         return RunIssue(
             issue=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
-            ```
-            {}
-            ```
-            As noted in the data description, we only have these files:
-            {}  
-
-            Files are located in the same directory as the code. 
-            """).format(error, self.data_filenames),
+                I ran the code and got the following error message:
+                ```
+                {}
+                ```
+                """).format(error),
+            instructions=dedent_triple_quote_str("""
+                As noted in the data description, we only have these files:
+                {}  
+    
+                Note that all input files are located in the same directory as the code. 
+                """).format(self.data_filenames),
+            code_problem=CodeProblem.RuntimeError,
             comment='FileNotFound detected in code',
         )
 
@@ -202,18 +211,18 @@ class DebuggerConverser(BackgroundProductsConverser):
             {}
             ```
             """).format('warning' if isinstance(error, Warning) else 'error', error_message),
+            code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
             comment='Runtime exception in code',
         )
 
     def _get_issue_for_timeout(self, error: TimeoutError) -> RunIssue:
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-            I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.
-            """),
+            issue="I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.",
+            code_problem=CodeProblem.RuntimeError,
             comment='Code has timed out',
         )
 
-    def _get_issue_for_incomplete_code(self) -> RunIssue:
+    def _get_issue_for_incomplete_code_block(self) -> RunIssue:
         if self.model_engine < MAX_MODEL_ENGINE:
             self.model_engine = self.model_engine.get_next()
             issue = f"Your sent incomplete code. Let's bump you up to {self.model_engine.get_next()} and retry!"
@@ -222,9 +231,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         return RunIssue(
             issue=issue,
             comment='Code is incomplete',
+            code_problem=CodeProblem.IncompleteBlock,
         )
 
-    def _get_issue_for_missing_or_multiple_code(self, e: FailedExtractingBlock) -> RunIssue:
+    def _get_issue_for_missing_or_multiple_code_blocks(self, e: FailedExtractingBlock) -> RunIssue:
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
@@ -232,73 +242,82 @@ class DebuggerConverser(BackgroundProductsConverser):
         return RunIssue(
             issue=str(e),
             comment='Failed extracting code from gpt response',
+            code_problem=CodeProblem.NotSingleBlock,
         )
 
     def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions) -> RunIssue:
         func = error.func
         if func == 'print':
-            if not self.output_filename:
+            if not self.output_file_requirements:
                 return RunIssue(
-                    issue=dedent_triple_quote_str("""
-                    Please do not use the `print` function.
-                    Your code should only save any new or modified dataframes; should have no other output.
-                    """),
+                    issue="Please do not use the `print` function.",
+                    instructions="Your code should only save new or modified dataframes; should have no other output.",
+                    code_problem=CodeProblem.RuntimeError,
                     comment='Code uses `print`'
                 )
             else:
                 return RunIssue(
-                    issue=dedent_triple_quote_str(f"""
-                    Please do not use the `print` function. 
-                    Anything you want to print must be written to the output file ("{self.output_filename}"). 
-                    """),
+                    issue="Please do not use the `print` function.",
+                    instructions="The code outputs should be written to the above described output file(s).",
+                    code_problem=CodeProblem.RuntimeError,
                     comment='Code uses `print`',
                 )
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-            Your code uses the function `{}`, which is not allowed.
-            """).format(func),
+            issue=f"Your code uses the function `{func}`, which is not allowed.",
+            code_problem=CodeProblem.RuntimeError,
             comment=f'Code uses forbidden function {func}',
         )
 
     def _get_issue_for_forbidden_method(self, error: UnAllowedDataframeMethodCall) -> RunIssue:
         func = error.method_name
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-            Your code uses the dataframe method `{}`, which is not allowed.
-            """).format(func),
+            issue=f"Your code uses the dataframe method `{func}`, which is not allowed.",
             comment=f'Code uses forbidden method {func}',
+            code_problem=CodeProblem.RuntimeError,
         )
 
     def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule) -> RunIssue:
         module = error.module
         return RunIssue(
-            issue=dedent_triple_quote_str(f"""
-            Your code import the module `{module}`, which is not allowed.
-            Please rewrite the complete code again without using this module. 
-            """),
-            end_with='',
+            issue=f"Your code import the module `{module}`, which is not allowed.",
+            instructions="Your code can only use these packages: {supported_packages}.",
+            code_problem=CodeProblem.RuntimeError,
             comment='Code imports forbidden module')
 
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
-        return []
+        issues = []
+        required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
+        if len(required_strings_not_found) > 0:
+            issues.append(RunIssue(
+                issue=dedent_triple_quote_str("""
+                Your code must contain the following sections: 
+                {headers_required_in_code}.
+                But I could not find these headers:
+                {required_strings_not_found}.
+                """).format(
+                    headers_required_in_code=self.headers_required_in_code,
+                    required_strings_not_found=required_strings_not_found,
+                ),
+                comment='Required sections not found',
+                code_problem=CodeProblem.StaticCheck,
+                end_with='Please rewrite the complete code again with all the required sections.',
+            ))
+        return issues
 
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile) -> RunIssue:
         file = error.file
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-            Your code writes to the file "{}" which is not allowed.
-            {description_of_allowed_output_files}
-            """).format(file, description_of_allowed_output_files=self.description_of_allowed_output_files),
+            issue=f'Your code writes to the file "{file}" which is not allowed.',
+            instructions=self.description_of_allowed_output_files,
+            code_problem=CodeProblem.RuntimeError,
             comment='Code writes to forbidden file',
         )
 
     def _get_issue_for_un_allowed_files_created(self, error: UnAllowedFilesCreated) -> RunIssue:
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-            Your code creates the following files {} which is not allowed.
-            {description_of_allowed_output_files}
-            Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(error.un_allowed_files, self.description_of_allowed_output_files),
+            issue=f"Your code creates the following files {error.un_allowed_files} which is not allowed.",
+            instructions=self.description_of_allowed_output_files,
+            code_problem=CodeProblem.RuntimeError,
             comment='Code created forbidden files',
         )
 
@@ -306,34 +325,37 @@ class DebuggerConverser(BackgroundProductsConverser):
         file = error.file
         if file == self.output_filename:
             return RunIssue(
-                issue=dedent_triple_quote_str(f"""
-                Your code tries reading from the output file "{file}".
-                The code should create and write to this output file, but should not read from it.
-                The only input files from which we can read the data are: 
-                {self.data_filenames}
-                """),
+                issue=f'Your code tries reading from the output file "{file}".',
+                instructions=dedent_triple_quote_str(f"""
+                    The code should create and write to this output file, but should not read from it.
+                    The only input files from which we can read the data are: 
+                    {self.data_filenames}
+                    """),
+                code_problem=CodeProblem.RuntimeError,
                 comment='Code reads from output file',
             )
         else:
             return RunIssue(
-                issue=dedent_triple_quote_str("""
-                Your code reads from the file "{}" which is not part of the dataset.
-                We only have these files:
-                {}
-
-                Note that these input files are located in the same directory as the code. 
-                """).format(file, self.data_filenames),
+                issue=f'Your code reads from the file "{file}" which is not part of the dataset.',
+                instructions=dedent_triple_quote_str("""
+                    We only have these files:
+                    {}
+    
+                    Note that all input files are located in the same directory as the code. 
+                    """).format(self.data_filenames),
+                code_problem=CodeProblem.RuntimeError,
                 comment='Code reads from forbidden file',
             )
 
     def _get_issue_for_dataframe_series_change(self, error: DataFrameSeriesChange) -> RunIssue:
         series = error.changed_series
         return RunIssue(
-            issue=dedent_triple_quote_str(f"""
-            Your code changes the series "{series}" of your dataframe.
-            Instead of changing an existing dataframe series, please create a new series, and give it a \
-            new sensible name.
-            """),
+            issue=f'Your code changes the series "{series}" of your dataframe.',
+            instructions=dedent_triple_quote_str("""
+                Instead of changing an existing dataframe series, please create a new series, and give it a \
+                new sensible name.
+                """),
+            code_problem=CodeProblem.RuntimeError,
             comment='Code modifies dataframe series')
 
     def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
@@ -342,23 +364,29 @@ class DebuggerConverser(BackgroundProductsConverser):
         issue = None
         if len(content.strip()) == 0:
             # The output file is empty.
-            issue = dedent_triple_quote_str(f"""
-                The code created the output file "{filename}", but the file is just empty! 
-                """)
+            issue = RunIssue(
+                issue=f'The code created the output file "{filename}", but the file is just empty!',
+                instructions="Please revise the code to make sure it correctly writes to the output file.",
+                comment='Output file empty',
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            )
         if count_number_of_tokens_in_message(content, max(ModelEngine)) > requirement.max_tokens:
             # Created output file is too large.
-            issue = dedent_triple_quote_str("""
-                The code created the output file "{}", but the file is too long!
-
-                Here, for context, is the beginning of the output:
-                ```output
-                {}
-                ```
-
-                Please rewrite the complete code so that only sensible length output is written to the file. 
-                """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens))
+            issue = RunIssue(
+                issue=dedent_triple_quote_str("""
+                    The code created the output file "{}", but the file is too long!
+    
+                    Here, for context, is the beginning of the output:
+                    ```output
+                    {}
+                    ```
+                    """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
+                instructions="Only sensible-length output should be written to the file.",
+                comment='Output file too long',
+                code_problem=CodeProblem.OutputFileContentLevelB,
+            )
         if issue is not None:
-            issues.append(RunIssue(issue=issue, comment='Output file content'))
+            issues.append(issue)
         return issues
 
     def _get_issues_for_num_files_created(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
@@ -377,7 +405,12 @@ class DebuggerConverser(BackgroundProductsConverser):
                     issue = dedent_triple_quote_str(f"""
                         The code didn't generate the desired output file ({requirement.filename}).
                         """)
-                issues.append(RunIssue(issue=issue, comment='Code did not create all required files'))
+                issues.append(RunIssue(
+                    category='Not all required files were created',
+                    issue=issue,
+                    code_problem=CodeProblem.MissingOutputFiles,
+                    comment='Code did not create all required files'
+                ))
         return issues
 
     def _get_issues_for_unsaved_dataframes(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
@@ -388,14 +421,17 @@ class DebuggerConverser(BackgroundProductsConverser):
             read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
                 dataframe_operations.get_read_changed_but_unsaved_ids())
             issues.append(RunIssue(
+                category='Any modified dataframe should be saved to a file',
                 issue=dedent_triple_quote_str(f"""
-                Your code modifies some of the dataframes:
-                {read_but_unsaved_filenames}.
-                I would like the code to save any such modified dataframe.  
-                Please rewrite the complete code again adding `to_csv` to save any modified dataframe in a new file \
-                in the same directory as the code.
-                """),
+                    Your code modifies, but doesn't save, some of the dataframes:
+                    {read_but_unsaved_filenames}.
+                    """),
+                instructions=dedent_triple_quote_str("""
+                    The code should use `to_csv` to save any modified dataframe in a new file \
+                    in the same directory as the code.
+                    """),
                 comment='Not all modified dataframes were saved',
+                code_problem=CodeProblem.MissingOutputFiles,
             ))
         return issues
 
@@ -414,19 +450,17 @@ class DebuggerConverser(BackgroundProductsConverser):
                                                                      old_code: str) -> Optional[RunIssue]:
         if line_count(new_code) < line_count(old_code) * 0.9:
             return RunIssue(
-                issue=dedent_triple_quote_str("""
-                Your code does not seem to be a modification of the previous code.
-                Please rewrite the complete code again, making sure that the new code is a modification of the old code.
-                """),
+                issue="Your code does not seem to be a modification of the previous code.",
+                instructions="Please rewrite the complete code again, making sure that the new code is "
+                             "a modification of the old code.",
                 comment='Code is not a modification of previous code.',
+                end_with='',
+                code_problem=CodeProblem.StaticCheck,
             )
         return None
 
     def _get_issue_for_run_utils_error(self, error: RunUtilsError) -> RunIssue:
-        return RunIssue(
-            issue=error.message,
-            comment='Code failed RunUtilsError',
-        )
+        return error.issue
 
     """
     METHODS FOR RUNNING CODE
@@ -503,7 +537,6 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         self._requesting_small_change = issue_collector.do_all_issues_request_small_change()
 
-
     def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
@@ -516,11 +549,11 @@ class DebuggerConverser(BackgroundProductsConverser):
         try:
             code = code_runner.extract_code()
         except IncompleteBlockFailedExtractingBlock:
-            self._respond_to_issues(self._get_issue_for_incomplete_code(),
+            self._respond_to_issues(self._get_issue_for_incomplete_code_block(),
                                     code_problem=CodeProblem.IncompleteBlock)
             return None
         except FailedExtractingBlock as e:
-            self._respond_to_issues(self._get_issue_for_missing_or_multiple_code(e),
+            self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e),
                                     code_problem=CodeProblem.NotSingleBlock)
             return None
 
@@ -565,8 +598,8 @@ class DebuggerConverser(BackgroundProductsConverser):
         # We now check for issues in the output files as well as issues collected during the run:
         output_issues = []
         output_issues.extend(self._get_issues_for_num_files_created(code_and_output))
-        output_issues.extend(issue_collector.issues)
         output_issues.extend(self._get_issues_for_unsaved_dataframes(code_and_output))
+        output_issues.extend(issue_collector.issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
 
         if output_issues:
@@ -574,7 +607,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             with run_in_directory(self.data_folder):
                 for file in code_and_output.get_created_data_files():
                     os.remove(file)
-            self._respond_to_issues(output_issues, code, code_problem=CodeProblem.OutputFileContent)
+            self._respond_to_issues(output_issues, code, code_problem=CodeProblem.OutputFileContentLevelA)
             return None
 
         return code_and_output
