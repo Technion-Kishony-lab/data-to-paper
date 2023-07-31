@@ -70,7 +70,8 @@ class CheckLatexCompilation:
                 return LatexDocument().compile_table(section, file_stem=file_stem, output_directory=output_directory)
             LatexDocument().get_document(section, file_stem=file_stem, output_directory=output_directory)
         except TooWideTableOrText as e:
-            if self.tolerance_for_too_wide_in_pts is None or e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:
+            if self.tolerance_for_too_wide_in_pts is not None and \
+                    e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:
                 return e
         except LatexProblemInCompilation as e:
             return e

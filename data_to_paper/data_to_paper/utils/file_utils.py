@@ -77,12 +77,9 @@ def get_non_existing_file_name(file_path: Union[Path, str]) -> Union[Path, str]:
     If file_path already exists, add a number to the end of the file name.
     """
     file_path = Path(file_path)
-    if not file_path.exists():
-        return file_path
-    else:
-        i = 0
-        while True:
-            new_file_path = file_path.with_name(f'{file_path.stem}_{i}{file_path.suffix}')
-            if not new_file_path.exists():
-                return new_file_path
-            i += 1
+    i = 0
+    while True:
+        new_file_path = file_path.with_name(f'{file_path.stem}_{i}{file_path.suffix}')
+        if not new_file_path.exists():
+            return new_file_path
+        i += 1
