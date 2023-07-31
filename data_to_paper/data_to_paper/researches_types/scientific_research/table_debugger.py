@@ -21,30 +21,8 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         '# OUTPUT TEXT FILE',
     )
 
-    prompt_to_append_at_end_of_response: str = DebuggerConverser.prompt_to_append_at_end_of_response + \
-        dedent_triple_quote_str("""
-            Your code must contain the following sections:
-            {headers_required_in_code}
-        """)
-
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
         issues = super()._get_issues_for_static_code_check(code)
-
-        required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
-        if len(required_strings_not_found) > 0:
-            issues.append(RunIssue(
-                issue=dedent_triple_quote_str("""
-                Your code must contain the following sections: 
-                {headers_required_in_code}.
-                But I could not find these headers:
-                {required_strings_not_found}.
-                Please rewrite the complete code again with all the required sections. 
-                """).format(
-                    headers_required_in_code=self.headers_required_in_code,
-                    required_strings_not_found=required_strings_not_found,
-                ),
-                comment='Required sections not found',
-            ))
 
         for un_allowed_func in ['to_latex', 'as_latex']:
             if un_allowed_func + '(' in code:

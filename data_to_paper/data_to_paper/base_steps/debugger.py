@@ -77,12 +77,15 @@ class DebuggerConverser(BackgroundProductsConverser):
     user_agent: Agent = None
 
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
+    headers_required_in_code: Tuple[str, ...] = ()
+
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
             Please rewrite the complete code again with these issues corrected.
             Even if you are changing just a few lines, you must return the complete code again, \
             including the unchanged parts, so that I can just copy-paste and run it.
-            """)
+            {required_headers_prompt}    
+        """)
     runner_cls: CodeRunner = CodeRunner
 
     max_debug_iterations: int = 5
@@ -96,6 +99,13 @@ class DebuggerConverser(BackgroundProductsConverser):
     """
     PROPERTIES
     """
+
+    @property
+    def required_headers_prompt(self) -> str:
+        if len(self.headers_required_in_code) == 0:
+            return ''
+        return 'Remember, your code must contain the following sections:\n' + \
+               '\n'.join(f'"{header}"' for header in self.headers_required_in_code)
 
     @property
     def output_filenames(self) -> Tuple[str, ...]:

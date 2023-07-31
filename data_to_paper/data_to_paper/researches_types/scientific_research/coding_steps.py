@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type
+from typing import Optional, Tuple, Dict, Type, List
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
@@ -17,7 +17,7 @@ from data_to_paper.researches_types.scientific_research.scientific_products impo
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    DataOutputFileRequirement
+    DataOutputFileRequirement, RunIssue
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -97,7 +97,30 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
 
 @dataclass
+class DataExplorationDebugger(DebuggerConverser):
+    headers_required_in_output: Tuple[str, ...] = \
+        ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
+
+    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
+                                            filename: str, content: str) -> List[RunIssue]:
+        issues = super()._get_issues_for_output_file_content(requirement, filename, content)
+        if issues:
+            return issues
+
+        missing_headers = [header for header in self.headers_required_in_output if header not in content]
+        if missing_headers:
+            issues.append(RunIssue(
+                issue=f'The output file "{filename}" should have the following headers: '
+                      f'{NiceList(missing_headers, wrap_with="`")}.\n'
+                      f'But, these headers are missing: '
+                      f'{NiceList(missing_headers, wrap_with="`")}.',
+            ))
+        return issues
+
+
+@dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
+    debugger_cls: DebuggerConverser = DataExplorationDebugger
 
     code_step: str = 'data_exploration'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
@@ -125,21 +148,21 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         The output file should be formatted as follows:
 
         ```output
-        ## Data Summary
+        # Data Size
         <Measure of the scale of our data (e.g., number of rows, number of columns)>
 
-        ## Summary statistics
+        # Summary Statistics
         <Summary statistics of all or key variables>
 
-        ## Categorical variables
+        # Categorical Variables
         <As applicable, list here categorical values and their most common values>
 
-        ## Missing values
+        # Missing Values
         <Counts of missing, unknown, or undefined values>
         <As applicable, counts of special numeric values that stand for unknown/undefined if any \
         (check in the "{all_file_descriptions}" above for any)>
 
-        ## <other summary you deem relevant, if any>
+        # <other summary you deem relevant, if any>
         <summary>
         ```
 
