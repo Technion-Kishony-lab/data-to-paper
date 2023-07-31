@@ -12,7 +12,6 @@ from data_to_paper.latex.tables import get_table_label, get_table_caption, get_t
 @dataclass
 class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
-    num_tables: Optional[int] = None
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
@@ -30,8 +29,6 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
 
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
         issues = super()._get_issues_for_static_code_check(code)
-        if self.num_tables is None:
-            return issues
 
         required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
         if len(required_strings_not_found) > 0:

@@ -326,10 +326,6 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
 
-    num_tables: Optional[int] = None
-    attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('num_tables', )
-
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
@@ -684,7 +680,6 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             num_tables = len(self.products.tables_names)
             return cls.from_(
                 self,
-                num_tables=num_tables,
                 output_file_requirements=
                 (ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('table_?.tex', num_tables)),
             )
