@@ -28,11 +28,11 @@ class CodeProblem(IndexOrderedEnum):
 
 @dataclass(frozen=True)
 class RunIssue:
-    category: str = None
-    code_problem: CodeProblem = None
-    item: str = None
-    issue: str = None
-    instructions: str = None
+    code_problem: CodeProblem
+    category: str = ''
+    item: str = ''
+    issue: str = ''
+    instructions: str = ''
     comment: str = None
     end_with: Optional[str] = None
     requesting_small_change: bool = False

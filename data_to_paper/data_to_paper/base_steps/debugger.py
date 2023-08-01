@@ -82,7 +82,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
             Please rewrite the complete code again with these issues corrected.
-            Even if you are changing just a few lines, you must return the complete code again, \
+            Even if you are changing just a few lines, you must return the complete code again in a single code block, \
             including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
         """)
@@ -104,7 +104,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def required_headers_prompt(self) -> str:
         if len(self.headers_required_in_code) == 0:
             return ''
-        return 'Remember, your code must contain the following sections:\n' + \
+        return 'Your code must be enclosed in a single code block and must contain the following sections:\n' + \
                '\n'.join(f'"{header}"' for header in self.headers_required_in_code)
 
     @property
@@ -225,12 +225,14 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_incomplete_code_block(self) -> RunIssue:
         if self.model_engine < MAX_MODEL_ENGINE:
             self.model_engine = self.model_engine.get_next()
-            issue = f"Your sent incomplete code. Let's bump you up to {self.model_engine.get_next()} and retry!"
+            instructions = f"Let's bump you up to {self.model_engine.get_next()} and REGENERATE!"
         else:
-            issue = "Your sent incomplete code. Please regenerate response."
+            instructions = "Please REGENERATE!"
         return RunIssue(
-            issue=issue,
+            issue="Your sent incomplete code.",
+            instructions=instructions,
             comment='Code is incomplete',
+            end_with='',
             code_problem=CodeProblem.IncompleteBlock,
         )
 
@@ -242,6 +244,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         return RunIssue(
             issue=str(e),
             comment='Failed extracting code from gpt response',
+            end_with=self.required_headers_prompt,
             code_problem=CodeProblem.NotSingleBlock,
         )
 

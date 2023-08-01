@@ -60,22 +60,22 @@ class RunIssueCollector:
         for code_problem in code_problems:
             categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
             for category in categories:
-                if category is not None:
+                if category:
                     s += f'# {category}\n'
                 issues_in_category = [issue for issue in issues if issue.category == category]
                 unique_instructions = set(issue.instructions for issue in issues_in_category)
                 for issue in issues_in_category:
-                    if issue.item is not None:
+                    if issue.item:
                         s += f'* {issue.item}:\n'
                     s += f'{issue.issue}\n'
                     if len(unique_instructions) > 1 and issue.instructions is not None:
                         s += f'{issue.instructions}\n'
                     s += '\n'
-                    if issue.comment is not None:
+                    if issue.comment:
                         comments.add(issue.comment)
                 if len(unique_instructions) == 1:
                     shared_instructions = unique_instructions.pop()
-                    if shared_instructions is not None:
+                    if shared_instructions:
                         s += f'{shared_instructions}\n'
         comment = '; '.join(comments)
 
@@ -86,7 +86,7 @@ class RunIssueCollector:
         if shared_end_with is not None:
             end_with = shared_end_with
         if end_with:
-            s += f'{end_with}'
+            s += f'\n{end_with}'
         return s, comment
 
     def get_most_severe_problem(self):
