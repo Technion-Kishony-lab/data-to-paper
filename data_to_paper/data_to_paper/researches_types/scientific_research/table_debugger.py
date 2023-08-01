@@ -28,6 +28,7 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
                     issue=f"It seems like you are using the `{un_allowed_func}` method.",
                     instructions=f"Please use the `to_latex_with_note` method instead.",
                     comment='Unallowed method used',
+                    code_problem=CodeProblem.StaticCheck,
                 ))
 
         return issues

@@ -147,3 +147,11 @@ def test_raise_on_call():
         with pytest.raises(UnAllowedDataframeMethodCall) as exc:
             df.to_html()
     assert 'to_html' in str(exc.value)
+
+
+def test_df_to_latex():
+    with collect_created_and_changed_data_frames():
+        df = pd.DataFrame({'a': [7.0, 1.2385]})
+        latex = df.to_latex()
+        assert '7 ' in latex
+        assert '1.24 ' in latex

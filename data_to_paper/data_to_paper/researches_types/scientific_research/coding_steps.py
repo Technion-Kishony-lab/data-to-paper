@@ -366,17 +366,22 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to create the Tables for our scientific paper.
+        Write a complete Python code to analyze the data and create the Tables for our scientific paper.
 
         The code must have the following sections (with these exact capitalized headers):
         
         # IMPORT
         from my_utils import to_latex_with_note
         <import here any other packages you need>
+        
+        As needed, you can use the following packages which are already installed:
+        {supported_packages}
+
 
         # LOAD DATA
         Load the data from the original data files described above (see "{data_file_descriptions}").\
         {list_additional_data_files_if_any}
+
 
         # PREPROCESSING 
         Perform any preprocessing steps needed to prepare the data for the analysis.
@@ -386,18 +391,20 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         consider also the "{outputs:data_exploration}").
         * Normalization of numeric values with different units into same-unit values.
         * Any other data preprocessing you deem relevant.
-        * If no preprocessing is needed, write: "# No preprocessing is needed, because <reasons>."
+        * If no preprocessing is needed, write: "# No preprocessing is needed, because <your reasons here>."
+
 
         # ANALYSIS 
         Perform the analysis and appropriate statistical tests \
         (see above our "{hypothesis_testing_plan}").
         The statistical analysis should account for any relevant confounding variables, as applicable. 
 
+
         # PREPARE TABLES
         For each of the scientific tables listed above, create a .tex file of the table \
         ("table_1.tex", "table_2.tex", etc; in the same directory as the code).
 
-        To create the .tex files, you should use the custom function:
+        To create the tex files, you should use the custom function:
         `to_latex_with_note(df, filename: str, *args, note: str = None, legend: Dict[str, str] = None, **kwargs)`
         
         This function calls pandas `df.to_latex(filename, *args, **kwargs)` method, \
@@ -425,25 +432,30 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         [b] Columns and Row Headers:
         * Rename technical names to scientifically-suitable names.
-        * Indicate any abbreviations used in the table in the table `note` (see `to_latex_with_note`).
         
         [c] Values:
         * Rename technical values to scientifically-suitable values \
-        (like a column with values of 0/1 may be suitable to replace with "No"/"Yes").
+        (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
 
         [d] P-values:
         If P-values are included, convert them using:
         `p_value_replacer = lambda x: "{:.3g}".format(x) if x >= 1e-4 else "<1e-4"`
-        e.g., if you have a p-value column named "p-value", then:
+        For example, if you have a p-value column named "p-value", then:
         `df['p-value'] = df['p-value'].apply(p_value_replacer)`
 
-        [e] Table caption, label and note:
-        * Add a caption suitable for inclusion as part of a scientific paper (`caption=` in `to_latex_with_note`). \
+        [e] Table caption, label, note and legend:
+        * Add a caption suitable for inclusion as part of a scientific paper \
+        (`caption=` in `to_latex_with_note`). \
         You can use the "{tables_names}" provided above, or modify them as you see fit.
-        * Choose and add a table label in the format "table:<your label here>" (`label=` in `to_latex_with_note`).
-        * Add a note at the end of the table, if needed (`note=` in `to_latex_with_note`). \
-        For example, if you have a column "Severity", you can add a note like: \
-        "Severity: 1=Low, 2=Medium, 3=High".
+        * Add a table label (`label="table:<your label here>"` in `to_latex_with_note`).
+        * As needed, add a note at the end of the table, with any additional context \
+        (`note=` in `to_latex_with_note`).
+        For example, note="Total number of observations: <xxx>". 
+        * As needed, add a legend to clarify any abbreviated or technical names in the table \
+        (`legend=` in `to_latex_with_note`).
+        For example, if you have a column "DisSever", you should specify:
+        `legend={'DisSever': 'Severity of the disease, 1=Low, 2=Medium, 3=High'}`.
+
 
         # OUTPUT TEXT FILE 
         At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
@@ -453,11 +465,9 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         ```output                
         Total number of observations: <xxx>
+        Model accuracy: <xxx>
         etc, any other global measures
         ```
-
-        As needed, you can use the following packages which are already installed:
-        {supported_packages}
 
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.

@@ -104,7 +104,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def required_headers_prompt(self) -> str:
         if len(self.headers_required_in_code) == 0:
             return ''
-        return 'Your code must be enclosed in a single code block and must contain the following sections:\n' + \
+        return 'Remember, your code must contain the following sections:\n' + \
                '\n'.join(f'"{header}"' for header in self.headers_required_in_code)
 
     @property
@@ -329,11 +329,11 @@ class DebuggerConverser(BackgroundProductsConverser):
         if file == self.output_filename:
             return RunIssue(
                 issue=f'Your code tries reading from the output file "{file}".',
-                instructions=dedent_triple_quote_str(f"""
+                instructions=dedent_triple_quote_str("""
                     The code should create and write to this output file, but should not read from it.
                     The only input files from which we can read the data are: 
-                    {self.data_filenames}
-                    """),
+                    {}
+                    """).format(self.data_filenames),
                 code_problem=CodeProblem.RuntimeError,
                 comment='Code reads from output file',
             )
@@ -405,9 +405,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                         but it only created {len(output_files)} files of this type.
                         """)
                 else:
-                    issue = dedent_triple_quote_str(f"""
-                        The code didn't generate the desired output file ({requirement.filename}).
-                        """)
+                    issue = f"The code didn't generate the desired output file ({requirement.filename})."
                 issues.append(RunIssue(
                     category='Not all required files were created',
                     issue=issue,

@@ -15,7 +15,7 @@ class RunUtilsError(Exception):
     issue: RunIssue
 
 
-KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value')
+KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
 
 def is_name_an_unknown_abbreviated(name: str) -> bool:
