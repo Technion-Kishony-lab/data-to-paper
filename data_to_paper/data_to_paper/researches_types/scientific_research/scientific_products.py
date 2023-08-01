@@ -443,8 +443,8 @@ class ScientificProducts(Products):
             ),
 
             'tables_names': NameDescriptionStageGenerator(
-                'Names of the Tables of the Paper',
-                'Here are the Names of the Tables of the Paper:\n\n{}',
+                'Captions of the Tables for the Paper',
+                'Here are the Captions of the Tables for the Paper:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.tables_names else self.pretty_tables_names,
             ),

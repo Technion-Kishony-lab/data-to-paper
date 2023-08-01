@@ -295,50 +295,50 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
                                              'hypothesis_testing_plan')
     conversation_name: str = 'table_names'
     value_type: type = Dict[str, str]
-    goal_noun: str = 'names of tables for a research paper'
+    goal_noun: str = 'table captions for a research paper'
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    termination_phrase: str = 'The names of the tables do not require any changes'
+    termination_phrase: str = 'The table captions do not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please list captions for Tables that we should prepare for a scientific paper addressing the \
+        Please list captions for tables that we should prepare for a scientific paper addressing the \
         "{research_goal}" and "{hypothesis_testing_plan}" described above.
 
-        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
-        in the form of 'Table n' and the values being the actual names of the tables.
+        The captions that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the captions of the tables.
 
-        For example, you might return the following:        
+        For example, you might return the following:
         {
             'Table 1': 'Summary statistics of the dataset',
             'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
 
-        Obviously, this is just an example. You should choose table names that suit the dataset, the research goal \
+        Obviously, this is just an example. You should choose table captions that suit the dataset, the research goal \
         and the hypotheses we are testing.
-        The names you choose should accurately describe the tables that will be produced in a later stage.
+        The captions you choose should accurately describe the tables that will be produced in a later stage.
 
         Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
+        You need to choose captions for a maximum of 1-4 tables that will each present distinct non-overlapping \
         information.
 
-        Don't suggest name of tables that are:
-        * Not completely necessary.
+        Do not suggest captions that describe tables that:
+        * Are not completely necessary.
         * Represent technical information, rather than scientific results.
-        * Irrelevant to the research goal, or that cannot be created from the dataset provided.
-        * Overlapping with other tables in your list. 
+        * Are irrelevant to the research goal, or that cannot be created from the dataset provided.
+        * Overlap with other tables in your list. 
 
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
-        Please check the above chosen table names, with specific attention to whether they \
+        Please check the above chosen suggested tables, with specific attention to whether they \
         represent all the hypotheses we are testing, and can be created solely from the dataset provided.
 
         If you find any issues, please provide bullet-point feedback.
         Or, if you are satisfied, please respond with "{termination_phrase}".
 
-        Note you must either approve the table names or provide feedback but not both.
+        Note you must either approve the table captions or provide bullet-point feedback but not both.
         """)
 
     def _check_response_value(self, response_value: Any) -> Any:
@@ -358,8 +358,8 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
         Please list captions for Tables that we can prepare for a scientific paper based on the \
         {outputs:data_analysis} (provided above).
 
-        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
-        in the form of 'Table n' and the values being the actual names of the tables.
+        The captions that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the actual captions of the tables.
 
         For example, you might return the following:        
         {
@@ -368,14 +368,14 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
 
-        Obviously, this is just an example. You should choose table names that suit the information we have in \
+        Obviously, this is just an example. You should choose table captions that suit the information we have in \
         the output of the analysis code.
 
         Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
+        You need to choose captions for a maximum of 1-4 tables that will each present distinct non-overlapping \
         information.
 
-        Don't suggest name of tables that are:
+        Don't suggest captions that correspond to tables that are:
         * Not completely necessary.
         * Represent technical information, rather than scientific results.
         * Irrelevant to the research goal. 
@@ -386,13 +386,13 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
-        Please check the above chosen table names, with specific attention to whether they \
+        Please check the above chosen table captions, with specific attention to whether they \
         can be created solely from the code output above.
 
         If you find any issues, please provide bullet-point feedback.
         Or, if you are satisfied, please respond with "{termination_phrase}".
 
-        Note you must either approve the table names or provide feedback but not both.
+        Note you must either approve the table captions or provide feedback but not both.
         """)
 
 
