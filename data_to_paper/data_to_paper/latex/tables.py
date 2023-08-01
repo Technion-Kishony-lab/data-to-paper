@@ -119,6 +119,9 @@ def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str,
         for key, value in legend.items():
             note_and_legend += r'\item \textbf{' + replace_special_latex_chars(key) + \
                                '}: ' + replace_special_latex_chars(value) + '\n'
+    if len(note_and_legend) == 0:
+        note_and_legend = r'\item '  # add an empty item to avoid an error
+
     template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
     return template.replace('<tabular>', tabular_part) \
         .replace('<caption>', caption) \

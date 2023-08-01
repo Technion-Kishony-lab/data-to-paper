@@ -57,8 +57,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
 
     latex = df.to_latex(*args, **kwargs)
 
-    if note or legend:
-        latex = create_threeparttable(latex, note, legend)
+    latex = create_threeparttable(latex, note, legend)
 
     _check_for_errors(latex, df, filename, *args, note=note, legend=legend, **kwargs)
 
