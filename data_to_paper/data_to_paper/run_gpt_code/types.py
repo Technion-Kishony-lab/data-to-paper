@@ -22,8 +22,9 @@ class CodeProblem(IndexOrderedEnum):
     MissingOutputFiles = 6
     OutputFileContentLevelA = 7
     OutputFileContentLevelB = 8
-    OutputFileDesignLevelA = 9
-    OutputFileDesignLevelB = 10
+    OutputFileContentLevelC = 9
+    OutputFileDesignLevelA = 10
+    OutputFileDesignLevelB = 11
 
 
 @dataclass(frozen=True)

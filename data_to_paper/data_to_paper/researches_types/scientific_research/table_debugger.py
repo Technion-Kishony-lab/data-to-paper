@@ -34,68 +34,71 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
 
     def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
                                             filename: str, content: str) -> List[RunIssue]:
-        issues = super()._get_issues_for_output_file_content(requirement, filename, content)
+        """
+        We try to compile the table, and if it fails, we return an issue.
+        """
         if not requirement.filename.endswith('.tex'):
-            return issues
-        message = self._get_message_on_table_compilation(filename, content)
-        if message is None:
-            return issues
-        issues.append(RunIssue(
-            issue=message,
-            comment='Table compilation failed',
-            code_problem=CodeProblem.OutputFileDesignLevelB,
-        ))
-        return issues
+            return super()._get_issues_for_output_file_content(requirement, filename, content)
 
-    def _get_message_on_table_compilation(self, filename: str, content: str) -> Optional[str]:
         # We now check that the content of the file compiles to a pdf:
         e = self._check_latex_compilation(content, filename, is_table=True)
 
         if not isinstance(e, float):
-            return dedent_triple_quote_str("""
-            I ran the code. 
-            Here is the table "{filename}":
+            issue = RunIssue(
+                category='Table pdflatex compilation failure',
+                item=filename,
+                issue=dedent_triple_quote_str("""
+                    Here is the created table:
+        
+                    ```latex
+                    {table}
+                    ```
+        
+                    When trying to compile it using pdflatex, I got the following error:
+        
+                    {error}
+        
+                    """).format(filename=filename, table=content, error=e),
+                comment='Table compilation failed',
+                code_problem=CodeProblem.OutputFileDesignLevelB,
+            )
+        elif e > 1.1:
+            issue = RunIssue(
+                category='Table too wide',
+                comment='Table too wide',
+                item=filename,
+                issue=dedent_triple_quote_str("""
+                    Here is the created table:
+        
+                    ```latex
+                    {table}
+                    ```
+                    I tried to compile it, but the table is too wide. 
+                    """).format(filename=filename, table=content),
+                instructions=dedent_triple_quote_str("""                
+                    Please change the code to make the table narrower. Consider any of the following options:
+        
+                    - Drop unnecessary columns. \
+                    Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
+        
+                    - Rename columns to shorter names. \
+                    Replace `to_latex_with_note(df, filename, ...)` with \
+                    `to_latex_with_note(df.rename(columns=...), filename, ...)`
+        
+                    - If the table has the dataframe index, you can rename the index to a shorter names.
+                    Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
+        
+                    - Alternatively, consider completely transposing the table. \
+                    Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
+        
+                    IMPORTANT:
+                    If you rename the columns or the index, \
+                    make sure to use the `note` argument of the `to_latex_with_note` function \
+                    to clarify the abbreviations used.
+                    """),
+                code_problem=CodeProblem.OutputFileContentLevelC,
+            )
+        else:
+            issue = None
 
-            ```latex
-            {table}
-            ```
-
-            However, when I tried to compile the table, I got the following error:
-
-            {error}
-
-            """).format(filename=filename, table=content, error=e)
-
-        if e > 1.1:
-            return dedent_triple_quote_str("""
-            I ran the code. 
-            Here is the table "{filename}" that your code created:
-
-            ```latex
-            {table}
-            ```
-
-            However, the table is too wide. 
-
-            Please change the code to make the table narrower. Consider any of the following:
-
-            - Drop unnecessary columns. \
-            Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
-
-            - Rename columns to shorter names. \
-            Replace `to_latex_with_note(df, filename, ...)` with \
-            `to_latex_with_note(df.rename(columns=...), filename, ...)`
-
-            - If the table has the dataframe index, you can rename the index to a shorter names.
-            Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
-
-            - Alternatively, consider completely transposing the table. \
-            Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
-
-            IMPORTANT:
-            If you rename the columns or the index, \
-            make sure to use the `note` argument of the `to_latex_with_note` function \
-            to clarify the abbreviations used.
-            """).format(filename=filename, table=content)
-
-        return None
+        return [issue] if issue is not None else []

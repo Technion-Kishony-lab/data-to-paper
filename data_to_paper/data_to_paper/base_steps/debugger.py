@@ -386,7 +386,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                     """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
                 instructions="Only sensible-length output should be written to the file.",
                 comment='Output file too long',
-                code_problem=CodeProblem.OutputFileContentLevelB,
+                code_problem=CodeProblem.OutputFileContentLevelC,
             )
         if issue is not None:
             issues.append(issue)

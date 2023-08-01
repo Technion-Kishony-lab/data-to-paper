@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Iterable
 
 from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 from data_to_paper.utils.types import ListBasedSet
@@ -44,6 +44,9 @@ class RunIssueCollector:
 
     def add_issue(self, issue: RunIssue):
         self.issues.append(issue)
+
+    def add_issues(self, issues: Iterable[RunIssue]):
+        self.issues.extend(issues)
 
     def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = '') -> Tuple[str, str]:
         """
