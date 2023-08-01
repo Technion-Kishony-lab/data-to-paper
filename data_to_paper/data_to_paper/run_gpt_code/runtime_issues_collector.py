@@ -89,10 +89,12 @@ class RunIssueCollector:
             s += f'{end_with}'
         return s, comment
 
+    def get_most_severe_problem(self):
+        return min(issue.code_problem for issue in self.issues)
+
     def _get_issues(self, most_severe_only: bool = True) -> List[RunIssue]:
         if most_severe_only:
-            most_severe_problem = min(issue.code_problem for issue in self.issues)
-            return [issue for issue in self.issues if issue.code_problem == most_severe_problem]
+            return [issue for issue in self.issues if issue.code_problem == self.get_most_severe_problem()]
         else:
             return self.issues
 

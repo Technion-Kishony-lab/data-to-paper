@@ -496,17 +496,21 @@ class DebuggerConverser(BackgroundProductsConverser):
         self.previous_code = code
         self._previous_code_problem = code_problem
 
-    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue]], code: Optional[str] = None,
-                           code_problem: Optional[CodeProblem] = None):
+    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue]], code: Optional[str] = None):
         """
         We need to decide on the action:
         - Re-post the code as fresh ("repost")
         - Leave the response as is ("leave")
         - Regenerate the response ("regenerate")
         """
+        if isinstance(issues, RunIssue):
+            issues = [issues]
+        issue_collector = RunIssueCollector(issues)
+        code_problem = issue_collector.get_most_severe_problem()
+
         response_count = self._get_response_count()
         if response_count == 0:
-            if code_problem == CodeProblem.IncompleteBlock:
+            if code_problem <= CodeProblem.IncompleteBlock:
                 action = "regenerate"
             elif code_problem == CodeProblem.NotSingleBlock:
                 action = "leave"
@@ -520,10 +524,6 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         if action == "repost":
             self._post_code_as_fresh(code, code_problem)
-
-        if isinstance(issues, RunIssue):
-            issues = [issues]
-        issue_collector = RunIssueCollector(issues)
 
         message, comment = issue_collector.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
         self.apply_append_user_message(
@@ -549,12 +549,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         try:
             code = code_runner.extract_code()
         except IncompleteBlockFailedExtractingBlock:
-            self._respond_to_issues(self._get_issue_for_incomplete_code_block(),
-                                    code_problem=CodeProblem.IncompleteBlock)
+            self._respond_to_issues(self._get_issue_for_incomplete_code_block())
             return None
         except FailedExtractingBlock as e:
-            self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e),
-                                    code_problem=CodeProblem.NotSingleBlock)
+            self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
             return None
 
         # We were able to extract the code. We now statically check the code before running it.
@@ -565,7 +563,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         static_code_check_issues.extend(self._get_issues_for_static_code_check(code))
 
         if static_code_check_issues:
-            self._respond_to_issues(static_code_check_issues, code, code_problem=CodeProblem.StaticCheck)
+            self._respond_to_issues(static_code_check_issues, code)
             return None
 
         # Code passes static checks. We can now run the code.
@@ -591,7 +589,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                     break
             else:
                 run_time_issue = self._get_issue_for_regular_exception_or_warning(e, code_runner)
-            self._respond_to_issues(run_time_issue, code, code_problem=CodeProblem.RuntimeError)
+            self._respond_to_issues(run_time_issue, code)
             return None
 
         # The code ran without raising exceptions.
@@ -607,7 +605,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             with run_in_directory(self.data_folder):
                 for file in code_and_output.get_created_data_files():
                     os.remove(file)
-            self._respond_to_issues(output_issues, code, code_problem=CodeProblem.OutputFileContentLevelA)
+            self._respond_to_issues(output_issues, code)
             return None
 
         return code_and_output
