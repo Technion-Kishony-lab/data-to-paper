@@ -71,7 +71,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
         I ran your code. 
-        
+
         {created_file_contents_explanation}
 
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
@@ -160,8 +160,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 is_new_conversation=False,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
-                background_product_fields_to_hide=
-                () if self.revision_round == 0 else self.background_product_fields_to_hide_during_code_revision,
+                background_product_fields_to_hide=(() if self.revision_round == 0
+                                                   else self.background_product_fields_to_hide_during_code_revision),
                 previous_code=previous_code,
                 **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
             ).run_debugging()

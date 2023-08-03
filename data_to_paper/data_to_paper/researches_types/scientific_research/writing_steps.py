@@ -404,14 +404,14 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     forbidden_phrases: Tuple[Tuple[str, bool], ...] = \
         SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + \
         (
-            # (phrase, match_case)
             ('In conclusions', True),
             ('Future research', False),
             ('Future work', False),
             ('Future studies', False),
             ('Future directions', False),
             ('Limitations', False),
-        )
+    )
+    # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'tables', 'numeric_values')

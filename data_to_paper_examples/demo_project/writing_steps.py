@@ -8,6 +8,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from cast import DemoAgent
 from products import DemoProducts
 
+
 @dataclass
 class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
     """

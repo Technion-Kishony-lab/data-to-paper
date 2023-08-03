@@ -180,15 +180,15 @@ class LatexDocument:
         lrbox_table = dedent_triple_quote_str(r"""
             % Define the save box within the document block
             \newsavebox{\mytablebox} % Create a box to store the table
-            
+
             % Save only the tabular part of table in the \mytablebox without typesetting it:
             \begin{lrbox}{\mytablebox}
               <tabular>%
             \end{lrbox}
-            
+
             % Typeset the entire table:
             <table>
-            
+
             % Print the width of the tabular part of the table and the width of the page margin to the log file
             \typeout{Table width: \the\wd\mytablebox}
             \typeout{Page margin width: \the\textwidth}

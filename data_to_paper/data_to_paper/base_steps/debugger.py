@@ -3,7 +3,7 @@ import os
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Set, Tuple, Union
+from typing import Optional, List, Tuple, Union
 
 import numpy as np
 
@@ -85,7 +85,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
             Please rewrite the complete code again with these issues corrected.
-            
+
             GENERAL FORMATTING INSTRUCTIONS:
             Even if you are changing just a few lines, you must return the complete code again in a single code block, \
             including the unchanged parts, so that I can just copy-paste and run it.
@@ -199,7 +199,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             instructions=dedent_triple_quote_str("""
                 As noted in the data description, we only have these files:
                 {}  
-    
+
                 Note that all input files are located in the same directory as the code. 
                 """).format(self.data_filenames),
             code_problem=CodeProblem.RuntimeError,
@@ -348,7 +348,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                 instructions=dedent_triple_quote_str("""
                     We only have these files:
                     {}
-    
+
                     Note that all input files are located in the same directory as the code. 
                     """).format(self.data_filenames),
                 code_problem=CodeProblem.RuntimeError,
@@ -383,7 +383,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             issue = RunIssue(
                 issue=dedent_triple_quote_str("""
                     The code created the output file "{}", but the file is too long!
-    
+
                     Here, for context, is the beginning of the output:
                     ```output
                     {}
@@ -473,13 +473,14 @@ class DebuggerConverser(BackgroundProductsConverser):
     """
 
     def _get_code_runner(self, response: str) -> CodeRunner:
-        return self.runner_cls(response=response,
-                               allowed_read_files=self.data_filenames,
-                               output_file_requirements=self.output_file_requirements,
-                               allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                               script_file_path=None,
-                               data_folder=self.data_folder,
-                               )
+        return self.runner_cls(
+            response=response,
+            allowed_read_files=self.data_filenames,
+            output_file_requirements=self.output_file_requirements,
+            allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
+            script_file_path=None,
+            data_folder=self.data_folder,
+        )
 
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
@@ -546,13 +547,13 @@ class DebuggerConverser(BackgroundProductsConverser):
         # So run_failed is the only time we allow going from stage 1 to 2.
         # Namely, if we are in stage 2, we had definitely has a run_failed on stage 1.
         plan = np.array((
-            # 0              1                   2      <- stage    # Problem
-            ('regen0',      'regen1',           'regen1'),          # incomplete
-            ('leave',       'regen1',           'regen2'),          # not_single_block
-            ('repost0',     'repost0/regen1',   'regen2'),          # static_check
-            ('repost0',     'repost0/leave',    'repost1'),         # run_failed
-            ('repost0',     'repost0/regen1',   'repost0/regen1'),  # missing_files
-            ('repost0',     'repost0',          'repost0'),         # run_completed
+            # 0              1                   2      <- stage    # Problem           # noqa
+            ('regen0',      'regen1',           'regen1'),          # incomplete        # noqa
+            ('leave',       'regen1',           'regen2'),          # not_single_block  # noqa
+            ('repost0',     'repost0/regen1',   'regen2'),          # static_check      # noqa
+            ('repost0',     'repost0/leave',    'repost1'),         # run_failed        # noqa
+            ('repost0',     'repost0/regen1',   'repost0/regen1'),  # missing_files     # noqa
+            ('repost0',     'repost0',          'repost0'),         # run_completed     # noqa
         ))
         #  xxx/yyy: xxx if problem >= self._previous_code_problem else yyy
 

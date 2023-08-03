@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import List, Dict, Optional, Tuple, Iterable
+from typing import List, Dict, Tuple, Iterable
 
 from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 from data_to_paper.utils.types import ListBasedSet

@@ -11,5 +11,3 @@ if TYPE_CHECKING:
 def notify_on_change(self, operation: DataframeOperation):
     if ON_CHANGE.val is not None:
         ON_CHANGE.val(self, operation)
-
-

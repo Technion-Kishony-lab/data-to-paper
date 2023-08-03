@@ -1,5 +1,3 @@
-import importlib
-
 from data_to_paper.base_cast import Agent
 from data_to_paper.base_cast.types import Profile
 

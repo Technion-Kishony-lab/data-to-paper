@@ -45,5 +45,3 @@ def to_latex(self, *args, **kwargs):
         caption = carefully_replace_special_latex_chars(caption)
     result = original_to_latex(df, *args, caption=caption, **kwargs)
     return result
-
-

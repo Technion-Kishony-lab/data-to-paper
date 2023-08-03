@@ -7,7 +7,7 @@ from data_to_paper.env import PDF_TEXT_WIDTH
 
 from ..on_change import notify_on_change
 from ..utils import format_float
-from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, DataframeOperation, \
+from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
 
@@ -102,4 +102,3 @@ def to_csv(self, *args, **kwargs):
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
     notify_on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result
-

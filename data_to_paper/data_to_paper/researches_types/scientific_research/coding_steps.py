@@ -12,7 +12,7 @@ from data_to_paper.conversation.actions_and_conversations import ActionsAndConve
 from data_to_paper.latex import extract_latex_section_from_response
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
-from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name,\
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
 
@@ -176,7 +176,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
         I ran your code.
-        
+
         {created_file_contents_explanation}
 
         Please follow these two steps:
@@ -318,7 +318,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
         I ran your code.
-        
+
         {created_file_contents_explanation}
 
         Considering the scientific tables we want to create ("{tables_names}", above), \
@@ -369,11 +369,11 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         Write a complete Python code to analyze the data and create the Tables for our scientific paper.
 
         The code must have the following sections (with these exact capitalized headers):
-        
+
         # IMPORT
         from my_utils import to_latex_with_note
         <import here any other packages you need>
-        
+
         As needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -406,18 +406,18 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         To create the tex files, you should use the custom function:
         `to_latex_with_note(df, filename: str, *args, note: str = None, legend: Dict[str, str] = None, **kwargs)`
-        
+
         This function calls pandas `df.to_latex(filename, *args, **kwargs)` method, \
         then adds at the end of the table a text note (if `note` is provided) as well as a legend which maps \
         any abbreviated column or row names to their full names (if `legend` is provided).
-        
+
         Overall, the section should have the following structure:
         ## Table 1: <table name here>
         <write here the code to create table_1.tex, using `to_latex_with_note(<dataframe>, 'table_1.tex', ...)`>
-        
+
         ## Table 2: <table name here>
         <write here the code to create table_2.tex, using `to_latex_with_note(<dataframe>, 'table_2.tex', ...)`>
-        
+
         etc
 
         When writing the code for each Table, consider these guidelines (as applicable):
@@ -432,7 +432,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         [b] Columns and Row Headers:
         * Rename technical names to scientifically-suitable names.
-        
+
         [c] Values:
         * Rename technical values to scientifically-suitable values \
         (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
@@ -460,7 +460,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         # OUTPUT TEXT FILE 
         At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
         and write to this file any important data that was not included in the tables.
-        
+
         For example: 
 
         ```output                
@@ -481,14 +481,14 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         {created_file_contents_explanation}
 
         Please follow these three steps:
-        
+
         (1) Check the code and return a bullet-point response addressing these points:
         * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
         * Some data preprocessing steps are not needed.
         * Some data preprocessing steps are missing.
         * Analysis that should be performed on the raw data is performed on the preprocessed data, or vice versa.
         * The code creates all the tables that are needed for the research paper.
-        
+
         (2) Check the created tables and, for each of the created tables, \
         return a bullet-point response addressing these points:
         * Unexpected NaN or Inf values.
@@ -713,8 +713,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             num_tables = len(self.products.tables_names)
             return cls.from_(
                 self,
-                output_file_requirements=
-                (ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('table_?.tex', num_tables)),
+                output_file_requirements=(ContentOutputFileRequirement('results.txt'),
+                                          ContentOutputFileRequirement('table_?.tex', num_tables)),
             )
         return cls.from_(self)
 

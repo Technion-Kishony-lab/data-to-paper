@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from enum import Enum
+
 from fnmatch import fnmatch
 from typing import Optional, List, Dict, Collection
 
@@ -64,8 +64,6 @@ class CodeProblem(IndexOrderedEnum):
             return 5
         else:
             raise NotImplementedError(f'Unknown problem stage for {self}')
-
-
 
 
 @dataclass(frozen=True)

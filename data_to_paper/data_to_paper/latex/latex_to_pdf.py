@@ -3,7 +3,7 @@ import re
 import shutil
 import subprocess
 
-from typing import Set, Optional, Collection
+from typing import Optional, Collection
 
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory

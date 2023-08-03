@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Iterable, Collection
+from typing import Dict, List, Optional, Collection
 
 from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.latex.latex_doc import LatexDocument
