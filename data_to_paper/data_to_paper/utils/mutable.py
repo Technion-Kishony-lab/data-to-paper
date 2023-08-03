@@ -40,6 +40,7 @@ class Mutable:
 
 @dataclass
 class Flag(Mutable):
+    val: bool = False
 
     def __bool__(self):
         return self.val

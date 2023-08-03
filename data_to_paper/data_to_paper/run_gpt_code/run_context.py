@@ -2,22 +2,20 @@ import builtins
 import os
 import traceback
 from contextlib import contextmanager
+from dataclasses import dataclass, field
 from typing import Tuple, Any, Iterable, Callable
 
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 from data_to_paper.run_gpt_code.types import CodeProblem
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
-
+from data_to_paper.utils.mutable import Flag
 
 IMPORTING_PACKAGES = []
 if os.name == 'nt':
     SYSTEM_FOLDERS = [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)']
 else:
     SYSTEM_FOLDERS = ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
-
-
-SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl']
 
 
 PROCESSES_TO_NAMES_TO_OBJECTS = {}
@@ -49,42 +47,52 @@ def get_runtime_object(name: str) -> Any:
     return names_to_objects[name]
 
 
-@contextmanager
-def prevent_file_open(allowed_read_files: Iterable[str] = None, allowed_write_files: Iterable[str] = None):
-    """
-    Context manager for restricting the code from opening un-allowed files.
-
-    allowed_read_files: list of files that the code is allowed to read from. If None, all files are allowed.
-    allowed_write_files: list of files that the code is allowed to write to. If None, all files are allowed.
-        can also be a wildcard filename, e.g. '*.csv'.
-    """
+@dataclass
+class PreventFileOpen:
+    SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl']
 
     original_open = builtins.open
 
-    def open_wrapper(*args, **kwargs):
+    allowed_read_files: Iterable[str] = None  # list of wildcard names,  None means allow all
+    allowed_write_files: Iterable[str] = None  # list of wildcard names,  None means allow all
+
+    disable_prevention: Flag = field(default_factory=Flag)
+
+    def __enter__(self):
+        builtins.open = self.open_wrapper
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        builtins.open = self.original_open
+        return False
+
+    def is_allowed_read_file(self, file_name: str) -> bool:
+        return self.allowed_read_files is None or \
+            is_name_matches_list_of_wildcard_names(file_name, self.allowed_read_files) or \
+            self._is_system_file(file_name)
+
+    def is_allowed_write_file(self, file_name: str) -> bool:
+        return self.allowed_write_files is None or \
+            is_name_matches_list_of_wildcard_names(file_name, self.allowed_write_files)
+
+    def open_wrapper(self, *args, **kwargs):
+        if self.disable_prevention:
+            return self.original_open(*args, **kwargs)
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
         open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
         is_opening_for_writing = open_mode in ['w', 'a', 'x']
-        if is_opening_for_writing and allowed_write_files is not None \
-                and not is_name_matches_list_of_wildcard_names(file_name, allowed_write_files):
-            raise CodeWriteForbiddenFile(file=file_name)
-        if not is_opening_for_writing and not _is_system_file(file_name) and \
-                (allowed_read_files is not None and file_name not in allowed_read_files
-                 and len(IMPORTING_PACKAGES) == 0):  # allow read files when importing packages
-            raise CodeReadForbiddenFile(file=file_name)
-        return original_open(*args, **kwargs)
+        if is_opening_for_writing:
+            if not self.is_allowed_write_file(file_name):
+                raise CodeWriteForbiddenFile(file=file_name)
+        else:
+            if not self.is_allowed_read_file(file_name) \
+                    and len(IMPORTING_PACKAGES) == 0:  # allow read files when importing packages
+                raise CodeReadForbiddenFile(file=file_name)
+        return self.original_open(*args, **kwargs)
 
-    builtins.open = open_wrapper
-    try:
-        yield
-    finally:
-        builtins.open = original_open
-
-
-def _is_system_file(file_name):
-    abs_path_to_file = os.path.abspath(file_name)
-    return any(abs_path_to_file.startswith(folder) for folder in SYSTEM_FOLDERS) or \
-        any(abs_path_to_file.endswith(file) for file in SYSTEM_FILES)
+    def _is_system_file(self, file_name):
+        abs_path_to_file = os.path.abspath(file_name)
+        return any(abs_path_to_file.startswith(folder) for folder in SYSTEM_FOLDERS) or \
+            any(abs_path_to_file.endswith(file) for file in self.SYSTEM_FILES)
 
 
 @contextmanager

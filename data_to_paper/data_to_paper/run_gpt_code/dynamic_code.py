@@ -14,7 +14,7 @@ from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_changed_data_frames, DataframeOperations
 
-from .run_context import prevent_calling, prevent_file_open, PreventImport, runtime_access_to
+from .run_context import prevent_calling, PreventFileOpen, PreventImport, runtime_access_to, get_runtime_object
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 from .runtime_issues_collector import IssueCollector
@@ -60,6 +60,14 @@ save_code_to_module_file()
 CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
+def get_prevent_calling_context():
+    return get_runtime_object('prevent_calling_context')
+
+
+def get_prevent_file_open_context() -> PreventFileOpen:
+    return get_runtime_object('prevent_file_open_context')
+
+
 def run_code_using_module_reload(
         code: str, save_as: Optional[str] = None,
         timeout_sec: int = None,
@@ -86,7 +94,13 @@ def run_code_using_module_reload(
     warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
     forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
 
+    prevent_calling_context = prevent_calling(forbidden_modules_and_functions)
+    prevent_file_open_context = PreventFileOpen(allowed_read_files=allowed_read_files,
+                                                allowed_write_files=allowed_write_files)
+
     runtime_available_objects = runtime_available_objects or {}
+    runtime_available_objects['prevent_calling_context'] = prevent_calling_context
+    runtime_available_objects['prevent_file_open_context'] = prevent_file_open_context
 
     save_code_to_module_file(code)
     with warnings.catch_warnings():
@@ -98,9 +112,9 @@ def run_code_using_module_reload(
         try:
             with timeout_context(timeout_sec), \
                     runtime_access_to(runtime_available_objects), \
-                    prevent_calling(forbidden_modules_and_functions), \
+                    prevent_calling_context, \
                     PreventImport(FORBIDDEN_IMPORTS), \
-                    prevent_file_open(allowed_read_files, allowed_write_files), \
+                    prevent_file_open_context, \
                     collect_created_and_changed_data_frames(
                         allow_dataframes_to_change_existing_series) as dataframe_operations, \
                     run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
