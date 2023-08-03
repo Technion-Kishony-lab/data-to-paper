@@ -2,10 +2,12 @@ import builtins
 import os
 import traceback
 from contextlib import contextmanager
-from typing import Tuple, Any, Iterable
+from typing import Tuple, Any, Iterable, Callable
 
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+from data_to_paper.run_gpt_code.runtime_issues_collector import create_and_add_issue
+from data_to_paper.run_gpt_code.types import CodeProblem
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 
 
@@ -58,7 +60,7 @@ def _is_system_file(file_name):
 
 
 @contextmanager
-def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str]] = None):
+def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str, bool]] = None):
     """
     Context manager for catching when the code tries to use certain forbidden functions.
 
@@ -66,7 +68,7 @@ def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str]] = None):
     """
     modules_and_functions = modules_and_functions or []
 
-    def get_upon_called(func_name, original_func):
+    def get_upon_called(func_name: str, original_func: Callable, should_only_create_issue: bool):
         from data_to_paper.run_gpt_code.dynamic_code import module_filename
 
         def upon_called(*args, **kwargs):
@@ -74,22 +76,29 @@ def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str]] = None):
             # (functions like print are also called from pytest)
             frame = traceback.extract_stack()[-2]
             if frame.filename.endswith(module_filename):
-                raise CodeUsesForbiddenFunctions(func_name)
+                if should_only_create_issue:
+                    create_and_add_issue(
+                        issue=f'Code uses forbidden function: "{func_name}".',
+                        code_problem=CodeProblem.NonBreakingRuntimeIssue,
+                    )
+                else:
+                    raise CodeUsesForbiddenFunctions(func_name)
             return original_func(*args, **kwargs)
         return upon_called
 
     original_functions = []
 
-    for module, function_name in modules_and_functions:
+    for module, function_name, issue_only in modules_and_functions:
         original_function = getattr(module, function_name)
         original_functions.append(original_function)
-        setattr(module, function_name, get_upon_called(function_name, original_function))
+        setattr(module, function_name, get_upon_called(function_name, original_function,
+                                                       should_only_create_issue=issue_only))
 
     try:
         yield
     finally:
         # we restore the original functions
-        for module, function_name in modules_and_functions:
+        for module, function_name, _ in modules_and_functions:
             setattr(module, function_name, original_functions.pop(0))
 
 

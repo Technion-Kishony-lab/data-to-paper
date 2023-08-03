@@ -25,13 +25,14 @@ WARNINGS_TO_RAISE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
 WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning,
                                            FutureWarning]
 FORBIDDEN_MODULES_AND_FUNCTIONS = [
-    (builtins, 'print'),
-    (builtins, 'input'),
-    # (builtins, 'exec'),
-    (builtins, 'eval'),
-    (builtins, 'exit'),
-    (builtins, 'quit'),
-    (plt, 'savefig'),
+    # Module, function, create RunIssue (True) or raise exception (False)
+    (builtins, 'print', True),
+    (builtins, 'input', False),
+    # (builtins, 'exec', False),
+    (builtins, 'eval', False),
+    (builtins, 'exit', False),
+    (builtins, 'quit', False),
+    (plt, 'savefig', False),
 ]
 
 FORBIDDEN_IMPORTS = [
@@ -64,7 +65,7 @@ def run_code_using_module_reload(
         timeout_sec: int = None,
         warnings_to_raise: Iterable[Type[Warning]] = None,
         warnings_to_ignore: Iterable[Type[Warning]] = None,
-        forbidden_modules_and_functions: Iterable[Tuple[Any, str]] = None,
+        forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = None,
         allowed_read_files: Iterable[str] = None,
         allowed_write_files: Iterable[str] = None,
         allow_dataframes_to_change_existing_series: bool = True,
