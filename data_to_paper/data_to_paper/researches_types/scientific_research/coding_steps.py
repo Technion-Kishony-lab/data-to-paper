@@ -10,6 +10,7 @@ from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.latex import extract_latex_section_from_response
+from data_to_paper.latex.latex_doc import LatexDocument
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
@@ -348,6 +349,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
+    attrs_to_send_to_debugger: Tuple[str, ...] = \
+        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', )
 
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
@@ -702,6 +706,7 @@ CODE_STEP_TO_CLASS = {
 class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     EXPLAIN_CODE_CLASS = RequestCodeExplanation
     EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
+    latex_document: LatexDocument = None
 
     @property
     def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
@@ -713,6 +718,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             num_tables = len(self.products.tables_names)
             return cls.from_(
                 self,
+                latex_document=self.latex_document,
                 output_file_requirements=(ContentOutputFileRequirement('results.txt'),
                                           ContentOutputFileRequirement('table_?.tex', num_tables)),
             )

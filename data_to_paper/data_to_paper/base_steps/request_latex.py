@@ -48,9 +48,12 @@ def remove_citations_from_section(section: str) -> str:
 class CheckLatexCompilation:
 
     tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
+    latex_document: Optional[LatexDocument] = field(default_factory=LatexDocument)
 
     def _check_latex_compilation(self, section: str, section_name: str,
-                                 is_table: bool = False) -> Optional[Union[float, LatexProblemInCompilation]]:
+                                 is_table: bool = False,
+                                 should_save: bool = True,
+                                 ) -> Optional[Union[float, LatexProblemInCompilation]]:
         """
         Check that the latex compiles.
         Return a LatexProblemInCompilation if it does not.
@@ -58,7 +61,7 @@ class CheckLatexCompilation:
         For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
         """
 
-        if SAVE_INTERMEDIATE_LATEX:
+        if SAVE_INTERMEDIATE_LATEX and should_save:
             file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
@@ -67,8 +70,8 @@ class CheckLatexCompilation:
 
         try:
             if is_table:
-                return LatexDocument().compile_table(section, file_stem=file_stem, output_directory=output_directory)
-            LatexDocument().get_document(section, file_stem=file_stem, output_directory=output_directory)
+                return self.latex_document.compile_table(section, file_stem=file_stem, output_directory=output_directory)
+            self.latex_document.get_document(section, file_stem=file_stem, output_directory=output_directory)
         except TooWideTableOrText as e:
             if self.tolerance_for_too_wide_in_pts is not None and \
                     e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:

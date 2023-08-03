@@ -75,9 +75,6 @@ class DebuggerConverser(BackgroundProductsConverser):
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
 
-    runtime_available_objects: dict = field(default_factory=dict)
-    # objects that are made available for access during gpt-code runtime
-
     user_initiation_prompt: str = None
     assistant_agent: Agent = None
     user_agent: Agent = None
@@ -140,6 +137,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         return 'Your code should only write to these files: {}.'.format(
             ', '.join(f'"{r.filename}"' for r in requirements)
         )
+
+    def _get_runtime_available_objects(self) -> dict:
+        """
+        Return objects to be made available for access during gpt-code runtime
+        """
+        return {}
 
     """
     ISSUES
@@ -483,7 +486,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
             script_file_path=None,
             data_folder=self.data_folder,
-            runtime_available_objects=self.runtime_available_objects,
+            runtime_available_objects=self._get_runtime_available_objects(),
         )
 
     # to save the script file:

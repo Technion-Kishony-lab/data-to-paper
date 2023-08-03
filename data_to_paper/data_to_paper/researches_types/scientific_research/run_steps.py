@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, Type, List, Union
 
-from data_to_paper.base_steps.base_steps_runner import BaseStepsRunner
-from data_to_paper.base_steps.request_products_from_user import DirectorProductGPT
+from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation
+
+from data_to_paper.latex.latex_doc import LatexDocument
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
@@ -20,13 +21,12 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 
-
 SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
 SECTIONS_TO_ADD_TABLES_TO = ['results']
 
 
 @dataclass
-class ScientificStepsRunner(BaseStepsRunner):
+class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
     cast = ScientificAgent
     products: ScientificProducts = field(default_factory=ScientificProducts)
@@ -71,6 +71,7 @@ class ScientificStepsRunner(BaseStepsRunner):
                                                              sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
+            latex_document=self.latex_document,
             output_filename='paper.pdf',
             paper_section_names=paper_section_names,
         )
@@ -162,7 +163,11 @@ class ScientificStepsRunner(BaseStepsRunner):
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
-        RequestCodeProducts.from_(self, code_step='data_analysis').get_code_and_output_and_descriptions()
+        RequestCodeProducts.from_(
+            self,
+            code_step='data_analysis',
+            latex_document=self.latex_document,
+        ).get_code_and_output_and_descriptions()
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,

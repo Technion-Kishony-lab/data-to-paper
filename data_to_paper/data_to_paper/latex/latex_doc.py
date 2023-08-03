@@ -47,7 +47,7 @@ class LatexDocument:
     """
 
     kind: str = 'article'
-    fontsize: str = 11
+    fontsize: int = 11
 
     section_heading_fontsize: str = 'Large'
     subsection_heading_fontsize: str = 'normalsize'

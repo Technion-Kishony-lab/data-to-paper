@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.researches_types.scientific_research.run_steps import ScientificStepsRunner
 
 
@@ -85,4 +86,5 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
         output_directory=get_output_path(project, output_folder, save_on_repo),
         mock_servers=should_mock_servers,
         should_do_data_exploration=should_do_data_exploration,
+        latex_document=LatexDocument(fontsize=11),
     ).run_all_steps()
