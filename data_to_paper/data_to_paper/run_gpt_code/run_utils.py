@@ -37,7 +37,7 @@ def is_name_an_unknown_abbreviated(name: str) -> bool:
     if len(name) == 1:
         return True
 
-    if '.' in name or ':' in name or '_' in name:
+    if '.' in name or ':' in name:
         return True
     if name.islower() or name.istitle() or (name[0].isupper() and name[1:].islower()):
         return False
@@ -315,23 +315,35 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
             Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \
             function `to_latex_with_note`.
             """)
+        if e < 0.9:
+            instructions += dedent_triple_quote_str("""
+                Alternatively, you cna replace the abbreviated names with their full names in the table itself.
+                """)
         if legend:
-            issues.append(RunIssue(
-                category='Some abbreviated names are not explained in the table legend',
-                code_problem=CodeProblem.OutputFileDesignLevelB,
-                item=filename,
-                issue=f'The legend of the table needs to include also the following abbreviated names:\n'
-                      f'{un_mentioned_abbr_names}',
-                instructions=instructions,
-            ))
+            issue = f'The legend of the table needs to include also the following abbreviated names:\n' \
+                    f'{un_mentioned_abbr_names}'
         else:
+            issue = f'The table needs a legend explaining the following abbreviated names:\n' \
+                    f'{un_mentioned_abbr_names}'
+        issues.append(RunIssue(
+            category='Some abbreviated names are not explained in the table legend',
+            code_problem=CodeProblem.OutputFileDesignLevelB,
+            item=filename,
+            issue=issue,
+            instructions=instructions,
+        ))
+
+    # Check that the legend does not include any names that are not in the table
+    if legend:
+        un_mentioned_names = [name for name in legend if name not in headers]
+        if un_mentioned_names:
             issues.append(RunIssue(
-                category='Some abbreviated names are not explained in the table legend',
+                category='The table legend include some keys that are not part of the table row or column headers.',
                 code_problem=CodeProblem.OutputFileDesignLevelB,
                 item=filename,
-                issue=f'The table needs a legend explaining the following abbreviated names:\n'
-                      f'{un_mentioned_abbr_names}',
-                instructions=instructions,
+                issue=f'The legend of the table includes the following names that are not in the table:\n'
+                      f'{un_mentioned_names}',
+                instructions="Please revise the code making sure the legend includes only names that are in the table."
             ))
 
     return issues

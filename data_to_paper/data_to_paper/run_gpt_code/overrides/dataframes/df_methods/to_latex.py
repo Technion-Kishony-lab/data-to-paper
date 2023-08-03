@@ -10,6 +10,7 @@ original_to_latex = DataFrame.to_latex
 
 def carefully_replace_special_latex_chars(s: str) -> str:
     if isinstance(s, str):
+        s = s.replace('_', ' ')
         return replace_special_latex_chars(s)
     return s
 
