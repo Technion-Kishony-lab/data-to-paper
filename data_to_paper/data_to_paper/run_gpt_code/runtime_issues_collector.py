@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-import os
 from typing import List, Dict, Tuple, Iterable
 
+from data_to_paper.run_gpt_code.run_context import get_runtime_object
 from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 from data_to_paper.utils.types import ListBasedSet
 
-RUNTIME_ISSUES_COLLECTORS: Dict[int, RunIssueCollector] = {}
+RUNTIME_ISSUES_COLLECTORS: Dict[int, IssueCollector] = {}
 
 
-def get_runtime_issue_collector() -> RunIssueCollector:
-    process_id = os.getpid()
-    if process_id not in RUNTIME_ISSUES_COLLECTORS:
-        RUNTIME_ISSUES_COLLECTORS[process_id] = RunIssueCollector()
-    return RUNTIME_ISSUES_COLLECTORS[process_id]
+def get_runtime_issue_collector() -> IssueCollector:
+    return get_runtime_object('issue_collector')
 
 
 def create_and_add_issue(code_problem: CodeProblem, category: str = '', item: str = '', issue: str = '',
@@ -29,18 +26,11 @@ def create_and_add_issue(code_problem: CodeProblem, category: str = '', item: st
     )
 
 
-class RunIssueCollector:
+class IssueCollector:
     def __init__(self, issues: List[RunIssue] = None):
         if issues is None:
             issues = []
         self.issues: List[RunIssue] = issues
-
-    def __enter__(self):
-        self.issues = []
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return
 
     def add_issue(self, issue: RunIssue):
         self.issues.append(issue)

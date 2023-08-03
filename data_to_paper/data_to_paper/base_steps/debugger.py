@@ -18,7 +18,7 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.run_utils import RunUtilsError
-from data_to_paper.run_gpt_code.runtime_issues_collector import RunIssueCollector
+from data_to_paper.run_gpt_code.runtime_issues_collector import IssueCollector
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
@@ -74,6 +74,9 @@ class DebuggerConverser(BackgroundProductsConverser):
     # dataframes:
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
+
+    runtime_available_objects: dict = field(default_factory=dict)
+    # objects that are made available for access during gpt-code runtime
 
     user_initiation_prompt: str = None
     assistant_agent: Agent = None
@@ -480,6 +483,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
             script_file_path=None,
             data_folder=self.data_folder,
+            runtime_available_objects=self.runtime_available_objects,
         )
 
     # to save the script file:
@@ -538,7 +542,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
-        issue_collector = RunIssueCollector(issues)
+        issue_collector = IssueCollector(issues)
         problem = issue_collector.get_most_severe_problem()
 
         # Get Action

@@ -6,7 +6,6 @@ from typing import Tuple, Any, Iterable, Callable
 
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
-from data_to_paper.run_gpt_code.runtime_issues_collector import create_and_add_issue
 from data_to_paper.run_gpt_code.types import CodeProblem
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 
@@ -19,6 +18,35 @@ else:
 
 
 SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl']
+
+
+PROCESSES_TO_NAMES_TO_OBJECTS = {}
+
+
+@contextmanager
+def runtime_access_to(names_to_objects: dict):
+    """
+    Context manager for allowing the code to access the given objects.
+    """
+    process_id = os.getpid()
+    PROCESSES_TO_NAMES_TO_OBJECTS[process_id] = names_to_objects
+    try:
+        yield
+    finally:
+        del PROCESSES_TO_NAMES_TO_OBJECTS[process_id]
+
+
+def get_runtime_object(name: str) -> Any:
+    """
+    Get the object that was allowed to be accessed by the code.
+    """
+    process_id = os.getpid()
+    if process_id not in PROCESSES_TO_NAMES_TO_OBJECTS:
+        raise RuntimeError('No runtime access was given to the code.')
+    names_to_objects = PROCESSES_TO_NAMES_TO_OBJECTS[process_id]
+    if name not in names_to_objects:
+        raise RuntimeError(f'No runtime access was given to the code for {name}.')
+    return names_to_objects[name]
 
 
 @contextmanager
@@ -77,6 +105,7 @@ def prevent_calling(modules_and_functions: Iterable[Tuple[Any, str, bool]] = Non
             frame = traceback.extract_stack()[-2]
             if frame.filename.endswith(module_filename):
                 if should_only_create_issue:
+                    from data_to_paper.run_gpt_code.runtime_issues_collector import create_and_add_issue
                     create_and_add_issue(
                         issue=f'Code uses forbidden function: "{func_name}".',
                         code_problem=CodeProblem.NonBreakingRuntimeIssue,

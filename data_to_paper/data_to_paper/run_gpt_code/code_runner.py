@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Iterable, Tuple
 
@@ -8,7 +8,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
 from .types import CodeAndOutput, OutputFileRequirement
-from .runtime_issues_collector import RunIssueCollector
+from .runtime_issues_collector import IssueCollector
 
 
 @dataclass
@@ -27,6 +27,8 @@ class CodeRunner:
     allow_dataframes_to_change_existing_series: bool = True
     script_file_path: Optional[Path] = None
     data_folder: Optional[Path] = None
+
+    runtime_available_objects: dict = field(default_factory=dict)
 
     @property
     def lines_added_in_front_of_code(self) -> int:
@@ -64,19 +66,26 @@ class CodeRunner:
             os.remove(filepath)
         return content
 
-    def run_code(self) -> Tuple[CodeAndOutput, RunIssueCollector]:
+    def run_code(self) -> Tuple[CodeAndOutput, IssueCollector]:
         """
         Run code from GPT response, and return the output and the code.
         """
         code = self.extract_code()
         modified_code = self.modify_extracted_code(code)
-        created_files, dataframe_operations, issue_collector = run_code_using_module_reload(
+
+        issue_collector = IssueCollector()
+        runtime_available_objects = self.runtime_available_objects.copy()
+        runtime_available_objects['issue_collector'] = issue_collector
+
+        created_files, dataframe_operations = run_code_using_module_reload(
             code=modified_code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
             allowed_write_files=self.all_allowed_created_filenames,
             allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-            run_in_folder=self.data_folder)
+            run_in_folder=self.data_folder,
+            runtime_available_objects=runtime_available_objects,
+        )
         return CodeAndOutput(
             code=code,
             requirements_to_output_files_to_contents={requirement: {
