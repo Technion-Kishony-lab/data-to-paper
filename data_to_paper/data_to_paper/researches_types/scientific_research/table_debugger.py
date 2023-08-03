@@ -91,11 +91,6 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         
                     - Alternatively, consider completely transposing the table. \
                     Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
-        
-                    IMPORTANT:
-                    If you rename the columns or the index, \
-                    make sure to use the `note` argument of the `to_latex_with_note` function \
-                    to clarify the abbreviations used.
                     """),
                 code_problem=CodeProblem.OutputFileContentLevelC,
             )

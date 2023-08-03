@@ -491,7 +491,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         
         (2) Check the created tables and, for each of the created tables, \
         return a bullet-point response addressing these points:
-        * Unexpected NaN values.
+        * Unexpected NaN or Inf values.
         * Missing measures of uncertainty (p-value, CI, or STD).
         * All columns and row headers have sensible scientifically-suitable names.
         * P-values lower than 1e-4 are converted to "<1e-4". Check also that this conversion is done only for p-values.
