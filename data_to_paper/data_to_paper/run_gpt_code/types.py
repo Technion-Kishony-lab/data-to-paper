@@ -13,18 +13,59 @@ from ..utils.types import IndexOrderedEnum
 
 
 class CodeProblem(IndexOrderedEnum):
-    NoCode = 0
-    IncompleteBlock = 1
-    NotSingleBlock = 2
-    StaticCheck = 3
-    SyntaxError = 4
-    RuntimeError = 5
-    MissingOutputFiles = 6
-    OutputFileContentLevelA = 7
-    OutputFileContentLevelB = 8
-    OutputFileContentLevelC = 9
-    OutputFileDesignLevelA = 10
-    OutputFileDesignLevelB = 11
+    """
+    Code problems are sorted by severity, in the sense of progressively closer to a final fully working code.
+    """
+    NoCode = 'No code'
+    IncompleteBlock = 'Incomplete block'
+    NotSingleBlock = 'Not single block'
+    StaticCheck = 'Static check'
+    TimeoutError = 'Timeout error'
+    RuntimeError = 'Runtime error'
+    SyntaxError = 'Syntax error'
+    MissingOutputFiles = 'Missing output files'
+    NonBreakingRuntimeIssue = 'Non-breaking runtime issue'
+    OutputFileContentLevelA = 'Output file content level A (specific)'
+    OutputFileContentLevelB = 'Output file content level B (less specific)'
+    OutputFileContentLevelC = 'Output file content level C (general)'
+    OutputFileDesignLevelA = 'Output file design level A (specific)'
+    OutputFileDesignLevelB = 'Output file design level B (general)'
+
+    def is_incomplete(self) -> bool:
+        return self <= CodeProblem.IncompleteBlock
+
+    def is_not_single_block(self) -> bool:
+        return self == CodeProblem.NotSingleBlock
+
+    def is_static_check(self) -> bool:
+        return self == CodeProblem.StaticCheck
+
+    def is_run_failed(self) -> bool:
+        return CodeProblem.TimeoutError <= self <= CodeProblem.SyntaxError
+
+    def is_missing_output_files(self) -> bool:
+        return self == CodeProblem.MissingOutputFiles
+
+    def is_run_completed_and_files_created(self) -> bool:
+        return self >= CodeProblem.NonBreakingRuntimeIssue
+
+    def get_stage(self) -> int:
+        if self.is_incomplete():
+            return 0
+        elif self.is_not_single_block():
+            return 1
+        elif self.is_static_check():
+            return 2
+        elif self.is_run_failed():
+            return 3
+        elif self.is_missing_output_files():
+            return 4
+        elif self.is_run_completed_and_files_created():
+            return 5
+        else:
+            raise NotImplementedError(f'Unknown problem stage for {self}')
+
+
 
 
 @dataclass(frozen=True)

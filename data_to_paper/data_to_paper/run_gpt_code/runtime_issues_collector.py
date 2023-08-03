@@ -16,8 +16,8 @@ def get_runtime_issue_collector() -> RunIssueCollector:
     return RUNTIME_ISSUES_COLLECTORS[process_id]
 
 
-def create_and_add_issue(category: str, code_problem: CodeProblem, item: str, issue: str, instructions: str,
-                         forgive_after: int = None):
+def create_and_add_issue(code_problem: CodeProblem, category: str = '', item: str = '', issue: str = '',
+                         instructions: str = '', forgive_after: int = None):
     collector = get_runtime_issue_collector()
     collector.add_issue(
         RunIssue(category=category,

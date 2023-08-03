@@ -5,9 +5,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, List, Set, Tuple, Union
 
+import numpy as np
+
 from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 
+from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
     get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
@@ -218,7 +221,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_timeout(self, error: TimeoutError) -> RunIssue:
         return RunIssue(
             issue="I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.",
-            code_problem=CodeProblem.RuntimeError,
+            code_problem=CodeProblem.TimeoutError,
             comment='Code has timed out',
         )
 
@@ -488,43 +491,83 @@ class DebuggerConverser(BackgroundProductsConverser):
         """
         return (len(self.conversation) - self._conversation_len_before_first_response - 1) // 2
 
-    def _post_code_as_fresh(self, code: str, code_problem: Optional[CodeProblem] = None):
-        self._rewind_conversation_to_first_response()
-        self.apply_append_surrogate_message(
-            'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(code),
-            web_conversation_name=None,
-            comment='Code is freshly re-posted, as if it was the immediate response.')
+    def _post_code_as_fresh(self, code: str, code_problem: Optional[CodeProblem] = None, action_stage: int = 0):
+        self._rewind_conversation_to_first_response(offset=action_stage * 2)
+        if action_stage == 0:
+            self._previous_code_problem = code_problem
+            message = 'Here is the code to perform the requested analysis:'
+            comment = 'Code is freshly re-posted, as if it was the FIRST response.'
+        elif action_stage == 1:
+            message = 'Here is the revised code to perform the requested analysis:'
+            comment = 'Code is freshly re-posted, as if it was the SECOND response.'
+        else:
+            raise ValueError(f'Invalid action_stage: {action_stage}')
         self.previous_code = code
-        self._previous_code_problem = code_problem
+
+        self.apply_append_surrogate_message(
+            content=message + '\n```python\n{}\n```'.format(code),
+            web_conversation_name=None,
+            comment=comment,
+        )
 
     def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue]], code: Optional[str] = None):
         """
-        We need to decide on the action:
-        - Re-post the code as fresh ("repost")
+        We post a response to the assistant code, based on the issues.
+        We also need to delete (some) of the previous exchange.
+
+        The conversation may have a max of 3 exchanges:
+
+        User: Please write code ... [preexisting request prompt]
+
+        Assistant: <code>   # stage 0
+        User: We have a problem ... Please fix.
+
+        Assistant: <code>   # stage 1
+        User: You have a bug ...
+
+        Assistant: <code>   # stage 2  [We continue here only if stage 2 was a run-time error]
+
+        In each stage, we need to decide on the action based on the problem in the code:
+        - Re-post the code ["repost0" as the original response; "repost1" as the second response]
         - Leave the response as is ("leave")
-        - Regenerate the response ("regenerate")
+        - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
+        # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
         issue_collector = RunIssueCollector(issues)
-        code_problem = issue_collector.get_most_severe_problem()
+        problem = issue_collector.get_most_severe_problem()
 
-        response_count = self._get_response_count()
-        if response_count == 0:
-            if code_problem <= CodeProblem.IncompleteBlock:
-                action = "regenerate"
-            elif code_problem == CodeProblem.NotSingleBlock:
-                action = "leave"
-            else:
-                action = "repost"
+        # Get Action
+        # When we have run_failed, we essentially don't know the quality of the code (e.g. it can be the
+        # perfect code with just syntax error, or it can be a code doesn't even create any output files).
+        # So run_failed is the only time we allow going from stage 1 to 2.
+        # Namely, if we are in stage 2, we had definitely has a run_failed on stage 1.
+        plan = np.array((
+            # 0              1                   2      <- stage    # Problem
+            ('regen0',      'regen1',           'regen1'),          # incomplete
+            ('leave',       'regen1',           'regen2'),          # not_single_block
+            ('repost0',     'repost0/regen1',   'regen2'),          # static_check
+            ('repost0',     'repost0/leave',    'repost1'),         # run_failed
+            ('repost0',     'repost0/regen1',   'repost0/regen1'),  # missing_files
+            ('repost0',     'repost0',          'repost0'),         # run_completed
+        ))
+        #  xxx/yyy: xxx if problem >= self._previous_code_problem else yyy
+
+        current_stage = self._get_response_count()
+        action = plan[problem.get_stage(), current_stage]
+        if '/' in action:
+            action1, action2 = action.split('/')
+            action = action1 if problem >= self._previous_code_problem else action2
+        if action.startswith("repost") or action.startswith("regen"):
+            action_stage = int(action[-1])
+            action = action[:-1]
         else:
-            if code_problem > CodeProblem.StaticCheck:
-                action = "repost"
-            else:
-                action = "regenerate"
+            action_stage = current_stage
 
+        # Apply Action
         if action == "repost":
-            self._post_code_as_fresh(code, code_problem)
+            self._post_code_as_fresh(code, problem, action_stage)
 
         message, comment = issue_collector.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
         self.apply_append_user_message(
@@ -532,11 +575,16 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=self.iteration_str + ': ' + comment,
         )
 
-        if action == "regenerate":
-            # To regenerate, we delete the last two messages (assistant message and this just-posted user response):
-            self.apply_delete_messages([-2, -1])
-
-        self._requesting_small_change = issue_collector.do_all_issues_request_small_change()
+        if action == "regen":
+            # To regenerate, we delete the required pairs of assistant+user messages
+            # (including the last message which is the just-posted user response to current issue).
+            self.apply_delete_messages(
+                RangeMessageDesignation.from_(start=(action_stage - current_stage - 1) * 2, end=-1),
+                comment=f'REGENERATE (back to stage {action_stage})',
+            )
+            self._requesting_small_change = False
+        else:
+            self._requesting_small_change = issue_collector.do_all_issues_request_small_change()
 
     def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
         """
