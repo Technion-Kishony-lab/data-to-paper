@@ -42,6 +42,17 @@ def is_name_an_unknown_abbreviation(name: str) -> bool:
     return True
 
 
+def _is_non_integer_numeric(value) -> bool:
+    """
+    Check if the value is a non-integer numeric.
+    """
+    if not isinstance(value, float):
+        return False
+    if value.is_integer():
+        return False
+    return True
+
+
 def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
                        note: str = None,
                        legend: Dict[str, str] = None,
@@ -70,6 +81,10 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
             raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
     elif legend is not None:
         raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
+
+    columns = kwargs.pop('columns', None)
+    if columns is not None:
+        df = df[columns]
 
     latex = _to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
 
@@ -120,10 +135,13 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     label = kwargs.get('label', None)
     index = kwargs.get('index', True)
     columns = kwargs.get('columns', None)
+    assert columns is None,  "columns should be None, the df should be sliced before calling this function"
     columns = df.columns if columns is None else columns
     legend = {} if legend is None else legend
 
     issues = []
+    prior_tables: Dict[str, pd.DataFrame] = ProvideData.get_or_create_item('prior_tables', {})
+    prior_tables[filename] = df
 
     """
     TABLE CONTENT
@@ -134,6 +152,25 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     file_stem, _ = filename.split('.')
     with BaseRunContext.disable_all():
         e = compilation_func(latex, file_stem)
+
+    # Check if the table numeric values overlap with values in prior tables
+    for prior_name, prior_table in prior_tables.items():
+        if prior_table is df:
+            continue
+        prior_table_values = [v for v in prior_table.values.flatten() if _is_non_integer_numeric(v)]
+        df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
+        if any(value in prior_table_values for value in df_values):
+            issues.append(RunIssue(
+                category='Table contents should not overlap',
+                code_problem=CodeProblem.OutputFileContentLevelC,
+                issue=f'Table "{filename}" includes values that overlap with values in table "{prior_name}".',
+                instructions=dedent_triple_quote_str("""
+                    In scientific tables, it is not customary to include the same values in multiple tables.
+                    Please revise the code so that each table include its own unique data.
+                    """),
+            ))
+    if issues:
+        return issues
 
     # Check if the table is a df.describe() table
     description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
@@ -198,7 +235,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many.',
             instructions=f"Please revise the code so that created tables "
-                         f"with a maximum of {MAX_ROWS} rows.",
+                         f"have a maximum of {MAX_ROWS} rows.",
         ))
     if issues:
         return issues

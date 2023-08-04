@@ -95,6 +95,18 @@ class ProvideData(BaseRunContext):
         self = cls.get_runtime_object()
         return self.data[key]
 
+    @classmethod
+    def set_item(cls, key: str, value: Any):
+        self = cls.get_runtime_object()
+        self.data[key] = value
+
+    @classmethod
+    def get_or_create_item(cls, key: str, value: Any):
+        self = cls.get_runtime_object()
+        if key not in self.data:
+            self.data[key] = value
+        return self.data[key]
+
 
 class IssueCollector(BaseRunContext):
 
