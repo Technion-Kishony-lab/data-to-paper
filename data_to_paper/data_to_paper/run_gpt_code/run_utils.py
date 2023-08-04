@@ -5,10 +5,8 @@ import pandas as pd
 
 from data_to_paper.latex.tables import create_threeparttable
 from data_to_paper.utils import dedent_triple_quote_str
-from .dynamic_code import get_prevent_file_open_context
-from .run_context import get_runtime_object
+from .run_context import BaseRunContext, ProvideData, IssueCollector
 
-from .runtime_issues_collector import get_runtime_issue_collector
 from .types import CodeProblem, RunIssue
 
 
@@ -20,7 +18,7 @@ class RunUtilsError(Exception):
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
 
-def is_name_an_unknown_abbreviated(name: str) -> bool:
+def is_name_an_unknown_abbreviation(name: str) -> bool:
     """
     Check if the name is abbreviated.
     """
@@ -62,7 +60,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
     latex = create_threeparttable(latex, note, legend)
 
     issues = _check_for_issues(latex, df, filename, *args, note=note, legend=legend, **kwargs)
-    get_runtime_issue_collector().add_issues(issues)
+    IssueCollector.get_runtime_object().add_issues(issues)
 
     with open(filename, 'w') as f:
         f.write(latex)
@@ -104,9 +102,9 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     """
 
     # Check table compilation
-    compilation_func = get_runtime_object('compile_to_pdf_func')
+    compilation_func = ProvideData.get_item('compile_to_pdf_func')
     file_stem, _ = filename.split('.')
-    with get_prevent_file_open_context().disable_prevention.temporary_set(True):
+    with BaseRunContext.disable_all():
         e = compilation_func(latex, file_stem)
 
     # Check if the table is a df.describe() table
@@ -199,7 +197,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     elif e > 1.1:
         # Try to compile the transposed table:
         latex_transpose = _to_latex_with_note_traspose(df, None, *args, note=note, legend=legend, **kwargs)
-        with get_prevent_file_open_context().disable_prevention.temporary_set(True):
+        with BaseRunContext.disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:
             transpose_message = dedent_triple_quote_str("""
@@ -307,7 +305,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     else:
         headers = []
     headers += [name for name in columns]
-    abbr_names = [name for name in headers if is_name_an_unknown_abbreviated(name)]
+    abbr_names = [name for name in headers if is_name_an_unknown_abbreviation(name)]
     un_mentioned_abbr_names = [name for name in abbr_names if name not in legend]
     if un_mentioned_abbr_names:
         instructions = dedent_triple_quote_str("""

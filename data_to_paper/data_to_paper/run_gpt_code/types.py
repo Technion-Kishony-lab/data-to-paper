@@ -6,10 +6,14 @@ from typing import Optional, List, Dict, Collection
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting
+from data_to_paper.utils.types import IndexOrderedEnum
 
 from .overrides.dataframes.dataframe_operations import DataframeOperations
 from .overrides.utils import round_floats
-from ..utils.types import IndexOrderedEnum
+
+
+MODULE_NAME = 'script_to_run'
+module_filename = MODULE_NAME + ".py"
 
 
 class CodeProblem(IndexOrderedEnum):

@@ -6,9 +6,9 @@ from typing import Optional, Iterable, Tuple
 from data_to_paper.run_gpt_code.dynamic_code import run_code_using_module_reload
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
+from .run_context import IssueCollector
 
 from .types import CodeAndOutput, OutputFileRequirement
-from .runtime_issues_collector import IssueCollector
 
 
 @dataclass
@@ -73,18 +73,14 @@ class CodeRunner:
         code = self.extract_code()
         modified_code = self.modify_extracted_code(code)
 
-        issue_collector = IssueCollector()
-        runtime_available_objects = self.runtime_available_objects.copy()
-        runtime_available_objects['issue_collector'] = issue_collector
-
-        created_files, dataframe_operations = run_code_using_module_reload(
+        created_files, dataframe_operations, issue_collector = run_code_using_module_reload(
             code=modified_code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
             allowed_write_files=self.all_allowed_created_filenames,
             allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
             run_in_folder=self.data_folder,
-            runtime_available_objects=runtime_available_objects,
+            runtime_available_objects=self.runtime_available_objects,
         )
         return CodeAndOutput(
             code=code,

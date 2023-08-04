@@ -19,7 +19,8 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.run_utils import RunUtilsError
-from data_to_paper.run_gpt_code.runtime_issues_collector import IssueCollector
+from data_to_paper.run_gpt_code.run_context import IssueCollector
+
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
