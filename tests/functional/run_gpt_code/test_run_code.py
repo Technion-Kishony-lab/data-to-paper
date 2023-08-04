@@ -38,7 +38,7 @@ def test_run_code_catches_warning():
         warnings.warn('be careful', UserWarning)
         """)
     try:
-        run_code_using_module_reload(code, warnings_to_raise=[UserWarning])
+        run_code_using_module_reload(code, warnings_to_issue=[UserWarning])
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'be careful'
         assert e.tb[-1].lineno == 2

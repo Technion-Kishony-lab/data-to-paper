@@ -1,9 +1,11 @@
 import builtins
 import os
 import traceback
+import warnings
+
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Tuple, Any, Iterable, Callable
+from typing import Tuple, Any, Iterable, Callable, List, Type
 
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
@@ -176,3 +178,36 @@ class PreventImport:
             except Exception as e:
                 e.fromlist = fromlist
                 raise e
+
+
+@dataclass
+class WarningHandler:
+    categories_to_issue: List[Type[Warning]] = field(default_factory=list)
+    categories_to_raise: List[Type[Warning]] = field(default_factory=list)
+    categories_to_ignore: List[Type[Warning]] = field(default_factory=list)
+
+    disable_handling: Flag = field(default_factory=Flag)
+
+    def __enter__(self):
+        self.original_showwarning = warnings.showwarning
+        warnings.showwarning = self._warning_handler
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        warnings.showwarning = self.original_showwarning
+
+    def _warning_handler(self, message, category, filename, lineno, file=None, line=None):
+        if self.disable_handling:
+            return self.original_showwarning(message, category, filename, lineno, file, line)
+        if any(issubclass(category, cls) for cls in self.categories_to_issue):
+            from data_to_paper.run_gpt_code.runtime_issues_collector import create_and_add_issue
+            create_and_add_issue(
+                issue=f'Code produced an undesired warning:\n```\n{message.strip()}\n```',
+                code_problem=CodeProblem.NonBreakingRuntimeIssue,
+            )
+        elif any(issubclass(category, cls) for cls in self.categories_to_raise):
+            raise category(message)
+        elif any(issubclass(category, cls) for cls in self.categories_to_ignore):
+            pass
+        else:
+            return self.original_showwarning(message, category, filename, lineno, file, line)

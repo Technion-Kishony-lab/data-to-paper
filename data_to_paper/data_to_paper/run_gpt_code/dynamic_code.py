@@ -14,14 +14,15 @@ from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_changed_data_frames, DataframeOperations
 
-from .run_context import prevent_calling, PreventFileOpen, PreventImport, runtime_access_to, get_runtime_object
+from .run_context import prevent_calling, PreventFileOpen, PreventImport, runtime_access_to, get_runtime_object, \
+    WarningHandler
 from .runtime_decorators import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 from .runtime_issues_collector import IssueCollector
 
 MODULE_NAME = 'script_to_run'
 
-WARNINGS_TO_RAISE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
+WARNINGS_TO_ISSUE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
 WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning,
                                            FutureWarning]
 FORBIDDEN_MODULES_AND_FUNCTIONS = [
@@ -71,7 +72,7 @@ def get_prevent_file_open_context() -> PreventFileOpen:
 def run_code_using_module_reload(
         code: str, save_as: Optional[str] = None,
         timeout_sec: int = None,
-        warnings_to_raise: Iterable[Type[Warning]] = None,
+        warnings_to_issue: Iterable[Type[Warning]] = None,
         warnings_to_ignore: Iterable[Type[Warning]] = None,
         forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = None,
         allowed_read_files: Iterable[str] = None,
@@ -90,56 +91,60 @@ def run_code_using_module_reload(
     save_as: name of file to save the code.  None to skip saving.
     """
     timeout_sec = timeout_sec or MAX_EXEC_TIME.val
-    warnings_to_raise = warnings_to_raise or WARNINGS_TO_RAISE
+    warnings_to_issue = warnings_to_issue or WARNINGS_TO_ISSUE
     warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
     forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
 
     prevent_calling_context = prevent_calling(forbidden_modules_and_functions)
     prevent_file_open_context = PreventFileOpen(allowed_read_files=allowed_read_files,
                                                 allowed_write_files=allowed_write_files)
+    warning_handler_context = WarningHandler(
+        categories_to_issue=warnings_to_issue,
+        categories_to_ignore=warnings_to_ignore,
+        categories_to_raise=[],
+    )
+
+    collect_dataframe_context = collect_created_and_changed_data_frames(allow_dataframes_to_change_existing_series)
 
     runtime_available_objects = runtime_available_objects or {}
     runtime_available_objects['prevent_calling_context'] = prevent_calling_context
     runtime_available_objects['prevent_file_open_context'] = prevent_file_open_context
+    runtime_available_objects['warning_handler_context'] = warning_handler_context
 
     save_code_to_module_file(code)
-    with warnings.catch_warnings():
-        for warning in warnings_to_ignore:
-            warnings.filterwarnings("ignore", category=warning)
-        for warning in warnings_to_raise:
-            warnings.filterwarnings("error", category=warning)
-        completed_successfully = False
-        try:
-            with timeout_context(timeout_sec), \
-                    runtime_access_to(runtime_available_objects), \
-                    prevent_calling_context, \
-                    PreventImport(FORBIDDEN_IMPORTS), \
-                    prevent_file_open_context, \
-                    collect_created_and_changed_data_frames(
-                        allow_dataframes_to_change_existing_series) as dataframe_operations, \
-                    run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
-                importlib.reload(CODE_MODULE)
-        except TimeoutError as e:
-            # TODO:  add traceback to TimeoutError
-            raise FailedRunningCode(exception=e, tb=None)
-        except UnAllowedFilesCreated as e:
-            raise FailedRunningCode(exception=e, tb=None)
-        except BaseRunContextException as e:
-            tb = traceback.extract_tb(e.__traceback__)
-            tb.pop()  # remove the line of the context manager
-            raise FailedRunningCode(exception=e, tb=tb)
-        except Exception as e:
-            tb = traceback.extract_tb(e.__traceback__)
-            raise FailedRunningCode(exception=e, tb=tb)
-        else:
-            completed_successfully = True
-        finally:
-            if not completed_successfully:
-                with run_in_directory(run_in_folder):
-                    # remove all the files that were created
-                    for file in created_files:
-                        os.remove(file)
-            if save_as:
-                os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
-            save_code_to_module_file()
+    completed_successfully = False
+    try:
+        with \
+                runtime_access_to(runtime_available_objects), \
+                timeout_context(timeout_sec), \
+                prevent_calling_context, \
+                PreventImport(FORBIDDEN_IMPORTS), \
+                prevent_file_open_context, \
+                warning_handler_context, \
+                collect_dataframe_context as dataframe_operations, \
+                run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
+            importlib.reload(CODE_MODULE)
+    except TimeoutError as e:
+        # TODO:  add traceback to TimeoutError
+        raise FailedRunningCode(exception=e, tb=None)
+    except UnAllowedFilesCreated as e:
+        raise FailedRunningCode(exception=e, tb=None)
+    except BaseRunContextException as e:
+        tb = traceback.extract_tb(e.__traceback__)
+        tb.pop()  # remove the line of the context manager
+        raise FailedRunningCode(exception=e, tb=tb)
+    except Exception as e:
+        tb = traceback.extract_tb(e.__traceback__)
+        raise FailedRunningCode(exception=e, tb=tb)
+    else:
+        completed_successfully = True
+    finally:
+        if not completed_successfully:
+            with run_in_directory(run_in_folder):
+                # remove all the files that were created
+                for file in created_files:
+                    os.remove(file)
+        if save_as:
+            os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
+        save_code_to_module_file()
     return sorted(created_files), dataframe_operations
