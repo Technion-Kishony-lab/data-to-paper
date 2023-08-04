@@ -1,5 +1,6 @@
 import importlib
 import os
+import re
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -262,20 +263,15 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions) -> RunIssue:
         func = error.func
         if func == 'print':
-            if not self.output_file_requirements:
-                return RunIssue(
-                    issue="Please do not use the `print` function.",
-                    instructions="Your code should only save new or modified dataframes; should have no other output.",
-                    code_problem=CodeProblem.RuntimeError,
-                    comment='Code uses `print`'
-                )
-            else:
-                return RunIssue(
-                    issue="Please do not use the `print` function.",
-                    instructions="The code outputs should be written to the above described output file(s).",
-                    code_problem=CodeProblem.RuntimeError,
-                    comment='Code uses `print`',
-                )
+            return RunIssue(
+                issue="Your code uses the `print` function.",
+                instructions="Do not use `print` in your code.\n"
+                             "If you print conditional warning messages, please use `assert` or `raise` instead.\n" +
+                             "Otherwise, outputs should only be written to the above described output file(s).\n"
+                             if self.output_file_requirements else "",
+                code_problem=CodeProblem.RuntimeError,
+                comment='Code uses `print`'
+        )
         return RunIssue(
             issue=f"Your code uses the function `{func}`, which is not allowed.",
             code_problem=CodeProblem.RuntimeError,
@@ -316,6 +312,10 @@ class DebuggerConverser(BackgroundProductsConverser):
                 code_problem=CodeProblem.StaticCheck,
                 end_with='Please rewrite the complete code again with all the required sections.',
             ))
+
+        # check if code uses `print`:
+        if re.search(pattern=r'\bprint\s*\(', string=code):
+            issues.append(self._get_issue_for_forbidden_functions(error=CodeUsesForbiddenFunctions(func='print')))
         return issues
 
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile) -> RunIssue:
