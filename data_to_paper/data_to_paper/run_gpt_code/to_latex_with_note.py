@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -8,11 +7,6 @@ from data_to_paper.utils import dedent_triple_quote_str
 from .run_context import BaseRunContext, ProvideData, IssueCollector
 
 from .types import CodeProblem, RunIssue
-
-
-@dataclass
-class RunUtilsError(Exception):
-    issue: RunIssue
 
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')

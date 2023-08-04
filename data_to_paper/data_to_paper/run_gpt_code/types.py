@@ -85,6 +85,11 @@ class RunIssue:
 
 
 @dataclass(frozen=True)
+class RunUtilsError(Exception):
+    issue: RunIssue
+
+
+@dataclass(frozen=True)
 class OutputFileRequirement:
     filename: str
     minimal_count: int
