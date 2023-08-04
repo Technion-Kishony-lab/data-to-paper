@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import partial
 from typing import Optional, Tuple, List
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
@@ -18,6 +19,9 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         '# PREPARE TABLES',
         '# OUTPUT TEXT FILE',
     )
+
+    def _get_runtime_available_objects(self) -> dict:
+        return {'compile_to_pdf_func': partial(self._check_latex_compilation, is_table=True)}
 
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
         issues = super()._get_issues_for_static_code_check(code)
@@ -41,60 +45,5 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         if not requirement.filename.endswith('.tex'):
             return super()._get_issues_for_output_file_content(requirement, filename, content)
 
-        # We now check that the content of the file compiles to a pdf:
-        e = self._check_latex_compilation(content, filename, is_table=True)
+        return []
 
-        if not isinstance(e, float):
-            issue = RunIssue(
-                category='Table pdflatex compilation failure',
-                item=filename,
-                issue=dedent_triple_quote_str("""
-                    Here is the created table:
-        
-                    ```latex
-                    {table}
-                    ```
-        
-                    When trying to compile it using pdflatex, I got the following error:
-        
-                    {error}
-        
-                    """).format(filename=filename, table=content, error=e),
-                comment='Table compilation failed',
-                code_problem=CodeProblem.OutputFileDesignLevelB,
-            )
-        elif e > 1.1:
-            issue = RunIssue(
-                category='Table too wide',
-                comment='Table too wide',
-                item=filename,
-                issue=dedent_triple_quote_str("""
-                    Here is the created table:
-        
-                    ```latex
-                    {table}
-                    ```
-                    I tried to compile it, but the table is too wide. 
-                    """).format(filename=filename, table=content),
-                instructions=dedent_triple_quote_str("""                
-                    Please change the code to make the table narrower. Consider any of the following options:
-        
-                    - Drop unnecessary columns. \
-                    Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
-        
-                    - Rename columns to shorter names. \
-                    Replace `to_latex_with_note(df, filename, ...)` with \
-                    `to_latex_with_note(df.rename(columns=...), filename, ...)`
-        
-                    - If the table has the dataframe index, you can rename the index to a shorter names.
-                    Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
-        
-                    - Alternatively, consider completely transposing the table. \
-                    Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
-                    """),
-                code_problem=CodeProblem.OutputFileContentLevelC,
-            )
-        else:
-            issue = None
-
-        return [issue] if issue is not None else []

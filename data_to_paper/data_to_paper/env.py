@@ -58,3 +58,4 @@ os.environ['CLIENT_SERVER_MODE'] = 'False'
 SHOW_CHATGPT_CONTEXT = Flag(True)
 SAVE_INTERMEDIATE_LATEX = Flag(False)
 PRINT_CITATIONS = Flag(True)
+PRINT_COMMENTS = Flag(True)

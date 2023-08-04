@@ -5,6 +5,8 @@ import pandas as pd
 
 from data_to_paper.latex.tables import create_threeparttable
 from data_to_paper.utils import dedent_triple_quote_str
+from .dynamic_code import get_prevent_file_open_context
+from .run_context import get_runtime_object
 
 from .runtime_issues_collector import get_runtime_issue_collector
 from .types import CodeProblem, RunIssue
@@ -66,6 +68,24 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
         f.write(latex)
 
 
+def _to_latex_with_note_traspose(df: pd.DataFrame, filename: str, *args,
+                                 note: str = None,
+                                 legend: Dict[str, str] = None,
+                                 **kwargs):
+    columns = kwargs.pop('columns', None)
+    columns = df.columns if columns is None else columns
+    index = kwargs.pop('index', True)
+    df = df.copy()
+    if index:
+        df = df.reset_index()
+        index = False
+    df = df[columns]
+    df_transpose = df.T
+    latex = df_transpose.to_latex(*args, **kwargs)
+    latex = create_threeparttable(latex, note, legend)
+    return latex
+
+
 def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
                       note: str = None,
                       legend: Dict[str, str] = None,
@@ -82,6 +102,12 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     """
     TABLE CONTENT
     """
+
+    # Check table compilation
+    compilation_func = get_runtime_object('compile_to_pdf_func')
+    file_stem, _ = filename.split('.')
+    with get_prevent_file_open_context().disable_prevention.temporary_set(True):
+        e = compilation_func(latex, file_stem)
 
     # Check if the table is a df.describe() table
     description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
@@ -148,6 +174,69 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
             instructions=f"Please revise the code so that created tables "
                          f"with a maximin of {MAX_ROWS} rows.",
         ))
+    if issues:
+        return issues
+
+    if not isinstance(e, float):
+        issues.append(RunIssue(
+            category='Table pdflatex compilation failure',
+            item=filename,
+            issue=dedent_triple_quote_str("""
+                Here is the created table:
+
+                ```latex
+                {table}
+                ```
+
+                When trying to compile it using pdflatex, I got the following error:
+
+                {error}
+
+                """).format(filename=filename, table=latex, error=e),
+            comment='Table compilation failed',
+            code_problem=CodeProblem.OutputFileDesignLevelB,
+        ))
+    elif e > 1.1:
+        # Try to compile the transposed table:
+        latex_transpose = _to_latex_with_note_traspose(df, None, *args, note=note, legend=legend, **kwargs)
+        with get_prevent_file_open_context().disable_prevention.temporary_set(True):
+            e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
+        if isinstance(e_transpose, float) and e_transpose < 1.1:
+            transpose_message = dedent_triple_quote_str("""
+                - Alternatively, consider completely transposing the table. \
+                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
+                """)
+        else:
+            transpose_message = ''
+
+        issues.append(RunIssue(
+            category='Table too wide',
+            comment='Table too wide',
+            item=filename,
+            issue=dedent_triple_quote_str("""
+                Here is the created table:
+
+                ```latex
+                {table}
+                ```
+                I tried to compile it, but the table is too wide. 
+                """).format(filename=filename, table=latex),
+            instructions=dedent_triple_quote_str("""                
+                Please change the code to make the table narrower. Consider any of the following options:
+
+                - Drop unnecessary columns. \
+                Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
+
+                - Rename columns to shorter names. \
+                Replace `to_latex_with_note(df, filename, ...)` with \
+                `to_latex_with_note(df.rename(columns=...), filename, ...)`
+
+                - If the table has the dataframe index, you can rename the index to a shorter names.
+                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
+                """) + transpose_message,
+            code_problem=CodeProblem.OutputFileContentLevelC,
+        ))
+
     if issues:
         return issues
 

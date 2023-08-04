@@ -7,7 +7,7 @@ from typing import Optional, List, Tuple, Union
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE
+from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMENTS
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
@@ -559,7 +559,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             ('leave',       'regen1',           'regen2'),          # not_single_block  # noqa
             ('repost0',     'repost0/regen1',   'regen2'),          # static_check      # noqa
             ('repost0',     'repost0/leave',    'repost1'),         # run_failed        # noqa
-            ('repost0',     'repost0/regen1',   'repost0/regen1'),  # missing_files     # noqa
+            ('repost0',     'repost0/leave',    'repost0/regen1'),  # missing_files     # noqa
             ('repost0',     'repost0',          'repost0'),         # run_completed     # noqa
         ))
         #  xxx/yyy: xxx if problem >= self._previous_code_problem else yyy
@@ -569,6 +569,15 @@ class DebuggerConverser(BackgroundProductsConverser):
         if '/' in action:
             action1, action2 = action.split('/')
             action = action1 if problem >= self._previous_code_problem else action2
+
+        if PRINT_COMMENTS:
+            print(f'=====================\n'
+                  f'current_stage={current_stage}\n'
+                  f'      problem={problem}\n'
+                  f'prev. problem={self._previous_code_problem}\n'
+                  f'       action={action}\n'
+                  f'=====================\n')
+
         if action.startswith("repost") or action.startswith("regen"):
             action_stage = int(action[-1])
             action = action[:-1]
