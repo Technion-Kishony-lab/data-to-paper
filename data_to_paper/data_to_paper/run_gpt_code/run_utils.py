@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -46,30 +46,60 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
                        note: str = None,
                        legend: Dict[str, str] = None,
                        **kwargs):
+    """
+    Create a latex table with a note.
+    Same as df.to_latex, but with a note and legend.
+    Checks for argument values and issues.
+    """
     if not isinstance(df, pd.DataFrame):
-        raise ValueError(f'Expected df to be a pandas.DataFrame, got {type(df)}')
+        raise ValueError(f'Expected `df` to be a pandas.DataFrame, got {type(df)}')
 
     if not isinstance(filename, str):
-        raise ValueError(f'Expected filename to be a string, got {type(filename)}')
+        raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
 
     if not filename.endswith('.tex'):
-        filename = filename + '.tex'
+        raise ValueError(f'Expected `filename` to end with .tex, got {filename}')
 
-    latex = df.to_latex(*args, **kwargs)
+    if not isinstance(note, str) and note is not None:
+        raise ValueError(f'Expected `note` to be a string or None, got {type(note)}')
 
-    latex = create_threeparttable(latex, note, legend)
+    if isinstance(legend, dict):
+        if not all(isinstance(key, str) for key in legend.keys()):
+            raise ValueError(f'Expected `legend` keys to be strings, got {legend.keys()}')
+        if not all(isinstance(value, str) for value in legend.values()):
+            raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
+    elif legend is not None:
+        raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
+
+    latex = _to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
 
     issues = _check_for_issues(latex, df, filename, *args, note=note, legend=legend, **kwargs)
     IssueCollector.get_runtime_object().add_issues(issues)
 
-    with open(filename, 'w') as f:
-        f.write(latex)
+    return latex
 
 
-def _to_latex_with_note_traspose(df: pd.DataFrame, filename: str, *args,
-                                 note: str = None,
-                                 legend: Dict[str, str] = None,
-                                 **kwargs):
+def _to_latex_with_note(df: pd.DataFrame, filename: Optional[str], *args,
+                        note: str = None,
+                        legend: Dict[str, str] = None,
+                        **kwargs):
+    """
+    Create a latex table with a note.
+    Same as df.to_latex, but with a note and legend.
+    No check for argument values or issues.
+    """
+    latex = df.to_latex(*args, **kwargs)
+    latex = create_threeparttable(latex, note, legend)
+    if filename is not None:
+        with open(filename, 'w') as f:
+            f.write(latex)
+    return latex
+
+
+def _to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
+                                  note: str = None,
+                                  legend: Dict[str, str] = None,
+                                  **kwargs):
     columns = kwargs.pop('columns', None)
     columns = df.columns if columns is None else columns
     index = kwargs.pop('index', True)
@@ -79,9 +109,7 @@ def _to_latex_with_note_traspose(df: pd.DataFrame, filename: str, *args,
         index = False
     df = df[columns]
     df_transpose = df.T
-    latex = df_transpose.to_latex(*args, **kwargs)
-    latex = create_threeparttable(latex, note, legend)
-    return latex
+    return _to_latex_with_note(df_transpose, filename, *args, note=note, legend=legend, index=index, **kwargs)
 
 
 def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
@@ -196,7 +224,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
         ))
     elif e > 1.1:
         # Try to compile the transposed table:
-        latex_transpose = _to_latex_with_note_traspose(df, None, *args, note=note, legend=legend, **kwargs)
+        latex_transpose = _to_latex_with_note_transpose(df, None, *args, note=note, legend=legend, **kwargs)
         with BaseRunContext.disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:

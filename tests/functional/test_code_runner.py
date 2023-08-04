@@ -36,6 +36,13 @@ print('hello')
 ```
 """
 
+code_using_input = f"""
+Here is a code that does what you want:
+```python
+a = input('choose: ')
+```
+"""
+
 code_not_creating_file = f"""
 This code calculates, but does not write to file:
 ```python
@@ -81,11 +88,18 @@ def test_runner_raises_when_multiple_codes_are_found():
 
 def test_runner_raises_when_code_use_forbidden_functions():
     try:
-        CodeRunner(response=code_using_print,
+        CodeRunner(response=code_using_input,
                    output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
                    ).run_code()
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeUsesForbiddenFunctions)
-        assert 'print' == e.exception.func
+        assert 'input' == e.exception.func
     else:
         assert False, "FailedRunningCode was not raised"
+
+
+def test_runner_create_issue_on_print():
+    _, issue_collector = CodeRunner(response=code_using_print,
+                                    output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                                    ).run_code()
+    assert 'print' in issue_collector.issues[0].issue
