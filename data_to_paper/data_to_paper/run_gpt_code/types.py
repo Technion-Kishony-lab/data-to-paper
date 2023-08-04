@@ -30,6 +30,7 @@ class CodeProblem(IndexOrderedEnum):
     OutputFileContentLevelC = 'Output file content level C (general)'
     OutputFileDesignLevelA = 'Output file design level A (specific)'
     OutputFileDesignLevelB = 'Output file design level B (general)'
+    AllOK = 'All OK'
 
     def is_incomplete(self) -> bool:
         return self <= CodeProblem.IncompleteBlock

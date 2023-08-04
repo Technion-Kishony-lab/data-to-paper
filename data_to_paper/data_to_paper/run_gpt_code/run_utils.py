@@ -172,7 +172,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many.',
             instructions=f"Please revise the code so that created tables "
-                         f"with a maximin of {MAX_ROWS} rows.",
+                         f"with a maximum of {MAX_ROWS} rows.",
         ))
     if issues:
         return issues

@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Dict, Type
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    get_single_content_file_from_requirements
+    get_single_content_file_from_requirements, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
@@ -163,6 +163,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 background_product_fields_to_hide=(() if self.revision_round == 0
                                                    else self.background_product_fields_to_hide_during_code_revision),
                 previous_code=previous_code,
+                previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
                 **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
             ).run_debugging()
             if code_and_output is None:

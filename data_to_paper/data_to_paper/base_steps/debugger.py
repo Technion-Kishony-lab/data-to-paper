@@ -98,7 +98,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     previous_code: Optional[str] = None
     _requesting_small_change: bool = False  # True when USER ask for modifications of an already existing code
-    _previous_code_problem: CodeProblem = CodeProblem.NoCode
+    previous_code_problem: CodeProblem = CodeProblem.NoCode
     gpt_script_filename: str = 'debugger_gpt'
 
     """
@@ -504,7 +504,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _post_code_as_fresh(self, code: str, code_problem: Optional[CodeProblem] = None, action_stage: int = 0):
         self._rewind_conversation_to_first_response(offset=action_stage * 2)
         if action_stage == 0:
-            self._previous_code_problem = code_problem
+            self.previous_code_problem = code_problem
             message = 'Here is the code to perform the requested analysis:'
             comment = 'Code is freshly re-posted, as if it was the FIRST response.'
         elif action_stage == 1:
@@ -562,19 +562,19 @@ class DebuggerConverser(BackgroundProductsConverser):
             ('repost0',     'repost0/leave',    'repost0/regen1'),  # missing_files     # noqa
             ('repost0',     'repost0',          'repost0'),         # run_completed     # noqa
         ))
-        #  xxx/yyy: xxx if problem >= self._previous_code_problem else yyy
+        #  xxx/yyy: xxx if current problem difficulty is equal or easier to previous_code_problem / else yyy
 
         current_stage = self._get_response_count()
         action = plan[problem.get_stage(), current_stage]
         if '/' in action:
             action1, action2 = action.split('/')
-            action = action1 if problem >= self._previous_code_problem else action2
+            action = action1 if problem.get_stage() >= self.previous_code_problem.get_stage() else action2
 
         if PRINT_COMMENTS:
             print(f'=====================\n'
                   f'current_stage={current_stage}\n'
                   f'      problem={problem}\n'
-                  f'prev. problem={self._previous_code_problem}\n'
+                  f'prev. problem={self.previous_code_problem}\n'
                   f'       action={action}\n'
                   f'=====================\n')
 

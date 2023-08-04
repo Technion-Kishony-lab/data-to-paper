@@ -488,7 +488,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and return a bullet-point response addressing these points:
         * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
-        * Some data preprocessing steps are not needed.
+        * Some of the performed data preprocessing steps are not needed.
         * Some data preprocessing steps are missing.
         * Analysis that should be performed on the raw data is performed on the preprocessed data, or vice versa.
         * The code creates all the tables that are needed for the research paper.
