@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 
 from data_to_paper.latex.tables import create_threeparttable
@@ -50,6 +51,7 @@ def _is_non_integer_numeric(value) -> bool:
 def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
                        note: str = None,
                        legend: Dict[str, str] = None,
+                       columns: List[str] = None,
                        **kwargs):
     """
     Create a latex table with a note.
@@ -76,7 +78,6 @@ def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
     elif legend is not None:
         raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
 
-    columns = kwargs.pop('columns', None)
     if columns is not None:
         df = df[columns]
 
@@ -97,6 +98,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: Optional[str], *args,
     Same as df.to_latex, but with a note and legend.
     No check for argument values or issues.
     """
+    assert 'columns' not in kwargs, "assumes columns is None"
     latex = df.to_latex(*args, **kwargs)
     latex = create_threeparttable(latex, note, legend)
     if filename is not None:
@@ -109,28 +111,22 @@ def _to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *ar
                                   note: str = None,
                                   legend: Dict[str, str] = None,
                                   **kwargs):
-    columns = kwargs.pop('columns', None)
-    columns = df.columns if columns is None else columns
+    assert 'columns' not in kwargs, "assumes columns is None"
     index = kwargs.pop('index', True)
-    df = df.copy()
-    if index:
-        df = df.reset_index()
-        index = False
-    df = df[columns]
-    df_transpose = df.T
-    return _to_latex_with_note(df_transpose, filename, *args, note=note, legend=legend, index=index, **kwargs)
+    header = kwargs.pop('header', True)
+    header, index = index, header
+    return _to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
 
 def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
                       note: str = None,
                       legend: Dict[str, str] = None,
                       **kwargs) -> List[RunIssue]:
+    assert 'columns' not in kwargs, "assumes columns is None"
+    columns = df.columns
     caption = kwargs.get('caption', None)
     label = kwargs.get('label', None)
     index = kwargs.get('index', True)
-    columns = kwargs.get('columns', None)
-    assert columns is None,  "columns should be None, the df should be sliced before calling this function"
-    columns = df.columns if columns is None else columns
     legend = {} if legend is None else legend
 
     issues = []
@@ -182,6 +178,23 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
         ))
     if issues:
         return issues
+
+    # Check if the table has NaN or Inf values:
+    if index:
+        entire_df = df.reset_index(inplace=False)
+    else:
+        entire_df = df
+    isnull = pd.isnull(entire_df).values
+    isinf = np.isinf(df.apply(pd.to_numeric, errors='coerce')).values
+    if np.any(isinf) or np.any(isnull):
+        issues.append(RunIssue(
+            category='NaN or Inf values were found in created tables',
+            code_problem=CodeProblem.OutputFileContentLevelA,
+            issue=f'Here is table {filename}:\n```latex\n{latex}\n```\n\nNote that the table has NaN/Inf values.',
+            instructions=dedent_triple_quote_str("""
+                Please revise the code so that the tables only include scientifically relevant statistics.
+                """),
+        ))
 
     # Check for repetitive values in a column
     for column_header in columns:
