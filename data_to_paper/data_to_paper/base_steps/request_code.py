@@ -8,12 +8,12 @@ from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequiremen
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
+from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
-from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
-
+from .request_python_value import PythonDictReviewBackgroundProductsConverser
 
 EXTS_TO_LABELS = {
     '.tex': 'latex',
@@ -56,11 +56,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     gpt_script_filename: str = 'gpt_code'
     # The base name of the python file in which the code written by gpt is saved.
 
-    code_revision_requesting_prompt: str = dedent_triple_quote_str("""
-        Revise the code as needed to correct the above issues.
-        Do not just point to what needs to be changed; send the full complete revised code.
-        """)
-
     present_code_as_fresh: str = dedent_triple_quote_str("""
         Here is the code to perform the analysis.
         {created_file_names_explanation}
@@ -75,13 +70,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         {created_file_contents_explanation}
 
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
-        that may indicate that code improvements are needed), then choose one of the following options:
-
-        1. The results seem reasonable, I am happy with the code and the results, {'choice': 'ok'}.  
-
-        2. Something is wrong. I need to go back and change/improve the code, {'choice': 'revise'}.
-
-        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
+        that may indicate that code improvements are needed).
+        
+        Return your choice as a Python Dict[str, str], mapping possible issues to suggested changes in the code.
+        
+        If you have no suggestions for improvement, return an empty dict `{}`. 
         """)  # set to None to skip option for revision
 
     @property
@@ -134,12 +127,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         self.initialize_conversation_if_needed()
         code_and_output = CodeAndOutput()
         while self.revision_round < self.max_code_revisions:
-            if self.revision_round > 0:
-                self.apply_append_user_message(self.code_revision_requesting_prompt)
-            code_and_output = self._run_debugger(code_and_output.code)
+            code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException()
-            if not self._are_further_code_revisions_needed(code_and_output):
+            if not self._are_further_code_revisions_needed(code_and_output, debugger):
                 break
             self.revision_round += 1
         else:
@@ -147,7 +138,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         code_and_output.name = self.code_name
         return code_and_output
 
-    def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
+    def _run_debugger(self, previous_code: Optional[str] = None
+                      ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
         for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
@@ -155,7 +147,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_and_output = self.debugger_cls.from_(
+            debugger = self.debugger_cls.from_(
                 self,
                 is_new_conversation=False,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
@@ -165,7 +157,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 previous_code=previous_code,
                 previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
                 **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
-            ).run_debugging()
+            )
+            code_and_output = debugger.run_debugging()
             if code_and_output is None:
                 # debugging failed
                 self.comment(f'Debugging failed, {revision_and_attempt}.')
@@ -184,22 +177,44 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
-            return code_and_output
-        return None
+            return code_and_output, debugger
+        return None, None
 
-    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
+    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
+        """
+        Return True/False indicating if ChatGPT wants to revise the code.
+        If true, set the conversation to the state where the user ask ChatGPT to revise the code.
+        """
         created_file_contents_explanation = self.get_created_file_contents_explanation(code_and_output)
         if self.offer_revision_prompt is None or created_file_contents_explanation is None:
             return False
-
-        return PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser.from_(
+        conversation_len = len(self.conversation)
+        issues_to_solutions = PythonDictReviewBackgroundProductsConverser.from_(
             self,
             value_type=Dict[str, str],
-            allowed_values_for_keys={'choice': ['ok', 'revise']},
             is_new_conversation=False,
             user_initiation_prompt=Replacer(
                 self, self.offer_revision_prompt,
                 kwargs=dict(
                     created_file_contents_explanation=created_file_contents_explanation,
                 )),
-        ).run_and_get_valid_result()['choice'] == 'revise'
+        ).run_and_get_valid_result()
+
+        if not issues_to_solutions:
+            return False
+
+        prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)
+
+        # rewind the conversation to the point where the user asked for a revision:
+        self.apply_delete_messages(RangeMessageDesignation.from_(start=conversation_len, end=-1))
+        self.apply_append_user_message(dedent_triple_quote_str("""
+            The code has some issues that need to be fixed:
+            
+            {issues_to_solutions}
+            
+            {prompt_to_append_at_end_of_response}
+            """).format(issues_to_solutions='\n\n'.join(f'{issue}:\n{solution}'
+                                                        for issue, solution in issues_to_solutions.items()),
+                        prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+
+        return True

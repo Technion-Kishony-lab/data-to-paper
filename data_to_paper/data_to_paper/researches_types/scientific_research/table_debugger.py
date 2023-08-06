@@ -16,7 +16,7 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         '# LOAD DATA',
         '# PREPROCESSING',
         '# ANALYSIS',
-        '# PREPARE TABLES',
+        '# CREATE TABLES',
         '# OUTPUT TEXT FILE',
     )
 

@@ -186,20 +186,31 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file; do we have short headers for each result and \
         do all values have sensible names, etc.
-        * Do all results have units (if applicable).
-        * Are there any results that are missing. Check that under each header in the output file has a corresponding \
+        * Do all numeric values have units (if applicable).
+        * Are there any results that are missing. Check that under each header the output file has a corresponding \
         meaningful result.
         * Any other issues you find.
 
-
-        (2) Based on your assessment above, choose one of the following options:
-
-        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
-
-        b. The data exploration is not perfect. \
-        We should revise the code to better address the above issues, {'choice': 'revise'}.
-
-        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+        
+        For example:
+        {
+            "The output file is missing a header for the number of rows": "Add a header for the number of rows",
+            "The average age is printed without units": "Based on the data description, the age is in years, \
+            so add 'years' to the header",
+        }
+        
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If there are no issues, and the code and tables need no revision, then return an empty dict: `{}`.
+        
+        Important:
+        * Do not return the revised code, only the issues and suggested fixes.
+        * If there are no issues, and the code and tables need no revision, then return an empty dict: `{}`.
+        * Do not create positive issues that require no change in the code. In particular, do not write \
+        {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
+         
         """)  # set to None to skip option for revision
 
 
@@ -356,7 +367,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
-         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan', 'tables_names')
+         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan')
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
         ('outputs:data_exploration', 'research_goal')
     user_agent: ScientificAgent = ScientificAgent.Debugger
@@ -370,7 +381,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to analyze the data and create the Tables for our scientific paper.
+        Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
 
         The code must have the following sections (with these exact capitalized headers):
 
@@ -404,11 +415,12 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         The statistical analysis should account for any relevant confounding variables, as applicable. 
 
 
-        # PREPARE TABLES
-        For each of the scientific tables listed above, create a .tex file of the table \
-        ("table_1.tex", "table_2.tex", etc; in the same directory as the code).
-
-        To create the tex files, you should use the custom function:
+        # CREATE TABLES
+        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        " "{hypothesis_testing_plan}"), create 2-4 tables for our scientific paper, summarizing \
+        the results of the statistical analysis.
+        
+        For each such scientific table, create a dataframe and save it to a tex file using my custom function:
         `to_latex_with_note(df, filename: str, *args, note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
         This function calls pandas `df.to_latex(filename, *args, **kwargs)` method, \
@@ -416,17 +428,24 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         any abbreviated column or row names to their full names (if `legend` is provided).
 
         Overall, the section should have the following structure:
-        ## Table 1: <table name here>
-        <write here the code to create table_1.tex, using `to_latex_with_note(<dataframe>, 'table_1.tex', ...)`>
+        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ...">
+        <write here the code to create a dataframe of table 1 and save it using \
+        `to_latex_with_note(<dataframe>, 'table_1.tex', ...)`>
 
-        ## Table 2: <table name here>
-        <write here the code to create table_2.tex, using `to_latex_with_note(<dataframe>, 'table_2.tex', ...)`>
+        ## Table 2: <your chosen table name here. e.g "Model xxx ...">
+        <write here the code to create a dateframe of table 2 and save it using \
+        `to_latex_with_note(<dataframe>, 'table_2.tex', ...)`>
 
-        etc
+        etc, up to 4 tables.
 
         When writing the code for each Table, consider these guidelines (as applicable):
-
-        [a] What to include in the table:
+        
+        [a] List of tables to create:
+        * Create 2-4 tables relevant to our research goal and hypothesis testing plan.  
+        * Think of tables commonly used in scientific papers, such as: descriptive statistics, \
+        model coefficients, model performance metrics, the association between variables, etc.
+        
+        [b] What to include in the table:
         * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
         * Nominal values should be accompanied by a measure of uncertainty (p-value, CI, STD, etc).
         * Exclude data not important to the research goal, or that are too technical. \
@@ -434,32 +453,11 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         quartile or min/max values. 
         * Make sure you do not repeat the same data in multiple tables.
 
-        [b] Columns and Row Headers:
-        * Rename technical names to scientifically-suitable names.
-
-        [c] Values:
-        * Rename technical values to scientifically-suitable values \
-        (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
-
-        [d] P-values:
+        [c] P-values:
         If P-values are included, convert them using:
         `p_value_replacer = lambda x: "{:.3g}".format(x) if x >= 1e-4 else "<1e-4"`
         For example, if you have a p-value column named "p-value", then:
         `df['p-value'] = df['p-value'].apply(p_value_replacer)`
-
-        [e] Table caption, label, note and legend:
-        * Add a caption suitable for inclusion as part of a scientific paper \
-        (`caption=` in `to_latex_with_note`). \
-        You can use the "{tables_names}" provided above, or modify them as you see fit.
-        * Add a table label (`label="table:<your label here>"` in `to_latex_with_note`).
-        * As needed, add a note at the end of the table, with any additional context \
-        (`note=` in `to_latex_with_note`).
-        For example, note="Total number of observations: <xxx>". 
-        * As needed, add a legend to clarify any abbreviated or technical names in the table \
-        (`legend=` in `to_latex_with_note`).
-        For example, if you have a column "DisSever", you should specify:
-        `legend={'DisSever': 'Severity of the disease, 1=Low, 2=Medium, 3=High'}`.
-
 
         # OUTPUT TEXT FILE 
         At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
@@ -484,31 +482,47 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         {created_file_contents_explanation}
 
-        Please follow these three steps:
+        Considering our research goal and hypothesis testing plan (see above "{research_goal}" and \
+        "{hypothesis_testing_plan}"), please do the following:
 
         (1) Check the code and return a bullet-point response addressing these points:
-        * Imperfect implementation of statistical tests, like not accounting for confounding variables, etc.
-        * Some of the performed data preprocessing steps are not needed.
-        * Some data preprocessing steps are missing.
-        * Analysis that should be performed on the raw data is performed on the preprocessed data, or vice versa.
-        * The code creates all the tables that are needed for the research paper.
+        * Statistical analysis: Check for any imperfect implementation of statistical tests, \
+        like not accounting for confounding variables, etc.
+        * Preprocessing: Review the description of the data files (see above "{data_file_descriptions}") \
+        and the data exploration (see above "{outputs:data_exploration}"), then check the code for any \
+        data preprocessing steps are either performed and not needed, or needed but not performed.
+        * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
+        raw data is performed on the preprocessed data, or vice versa.
+        * New tables: Considering our research goal and hypothesis testing plan are all relevant tables created? \
+        If not, can you suggest any additional tables?
 
-        (2) Check the created tables and, for each of the created tables, \
+        (2) Check the created tables (latex code blocks above) and \
         return a bullet-point response addressing these points:
-        * Unexpected NaN or Inf values.
-        * Missing measures of uncertainty (p-value, CI, or STD).
-        * All columns and row headers have sensible scientifically-suitable names.
-        * P-values lower than 1e-4 are converted to "<1e-4". Check also that this conversion is done only for p-values.
+        * Measures of uncertainty: Are all nominal values accompanied by a measure of uncertainty \
+        (p-value and either CI, or STD, as applicable)?
+        * P-values: Are all lower than 1e-4 p-values correctly converted to "<1e-4". \
+        Check also that this conversion is not mistakenly applied to other, non p-value, variables.
         * Any other issues you find.
 
-        (3) Based on your assessment above, choose one of the following options:
-
-        a. I didn't find any issues with the code or the tables that require correction, {'choice': 'ok'}.
-
-        b. There are some problem with the code or the Tables. \
-        We should revise the code to better address the above issues and recreate the tables, {'choice': 'revise'}.
-
-        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
+        (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+        
+        For example:
+        {
+            "The <model name> model does not adequately account for confounding variables": \
+            "revise the code to add the following confounding variables ...",
+            
+            "A table is missing": \
+            "revise the code to add a new table '<your suggested table caption>'",
+            
+            "Table <n> reports nominal values without measures of uncertainty": \
+            "revise the code to add STD and p-value.", 
+        }
+        
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If you are sure that there are no issues, and the code and tables need no revision,
+        then return an empty dict: {}. 
         """)  # set to None to skip option for revision
 
 
@@ -715,7 +729,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
         cls = self.code_writing_class
         if self.code_step == 'data_analysis':
-            num_tables = len(self.products.tables_names)
+            num_tables = 2
             return cls.from_(
                 self,
                 latex_document=self.latex_document,
