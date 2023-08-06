@@ -31,7 +31,7 @@ def is_name_an_unknown_abbreviation(name: str) -> bool:
     if len(name) == 1:
         return True
 
-    if '.' in name or ':' in name:
+    if '.' in name or ':' in name or '_' in name:
         return True
     if name.islower() or name.istitle() or (name[0].isupper() and name[1:].islower()):
         return False
