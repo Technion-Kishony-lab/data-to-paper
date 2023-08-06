@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Collection
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
-from data_to_paper.latex.clean_latex import wrap_with_lstlisting
+from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
 from data_to_paper.utils.types import IndexOrderedEnum
 
 from .overrides.dataframes.dataframe_operations import DataframeOperations
@@ -192,8 +192,10 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "\\subsection{Code Description}"
             s += '\n\n' + self.code_explanation
-        output = self.get_single_output(is_clean=True)
-        if output:
+        outputs = self.get_created_content_files_to_contents()
+        if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
-            s += '\n\n' + wrap_with_lstlisting(output)
+            for filename, output in outputs.items():
+                s += f'\n\n\\subsubsection*{{{replace_special_latex_chars(filename)}}}'
+                s += '\n\n' + wrap_with_lstlisting(output)
         return s

@@ -187,8 +187,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Can results be understood from the output file; do we have short headers for each result and \
         do all values have sensible names, etc.
         * Do all numeric values have units (if applicable).
-        * Are there any results that are missing. Check that under each header the output file has a corresponding \
-        meaningful result.
+        * Are there any results that are missing. Check that under each header in the output file there is \
+        a corresponding meaningful result.
         * Any other issues you find.
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
@@ -438,14 +438,14 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         etc, up to 4 tables.
 
-        When writing the code for each Table, consider these guidelines (as applicable):
+        When writing the code for the Tables, consider these guidelines (as applicable):
         
         [a] List of tables to create:
         * Create 2-4 tables relevant to our research goal and hypothesis testing plan.  
         * Think of tables commonly used in scientific papers, such as: descriptive statistics, \
         model coefficients, model performance metrics, the association between variables, etc.
         
-        [b] What to include in the table:
+        [b] What to include in each table:
         * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
         * Nominal values should be accompanied by a measure of uncertainty (p-value, CI, STD, etc).
         * Exclude data not important to the research goal, or that are too technical. \
@@ -489,18 +489,18 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Statistical analysis: Check for any imperfect implementation of statistical tests, \
         like not accounting for confounding variables, etc.
         * Preprocessing: Review the description of the data files (see above "{data_file_descriptions}") \
-        and the data exploration (see above "{outputs:data_exploration}"), then check the code for any \
-        data preprocessing steps are either performed and not needed, or needed but not performed.
+        and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
+        data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
         * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
         raw data is performed on the preprocessed data, or vice versa.
-        * New tables: Considering our research goal and hypothesis testing plan are all relevant tables created? \
+        * New tables: Considering our research goal and hypothesis testing plan, are all relevant tables created? \
         If not, can you suggest any additional tables?
 
         (2) Check the created tables (latex code blocks above) and \
         return a bullet-point response addressing these points:
         * Measures of uncertainty: Are all nominal values accompanied by a measure of uncertainty \
-        (p-value and either CI, or STD, as applicable)?
-        * P-values: Are all lower than 1e-4 p-values correctly converted to "<1e-4". \
+        (like p-value, CI, or STD, as applicable)?
+        * P-values: If p-values are presented, are all lower than 1e-4 p-values correctly converted to "<1e-4". \
         Check also that this conversion is not mistakenly applied to other, non p-value, variables.
         * Any other issues you find.
 
@@ -513,7 +513,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             "revise the code to add the following confounding variables ...",
             
             "A table is missing": \
-            "revise the code to add a new table '<your suggested table caption>'",
+            "revise the code to add the following new table '<your suggested table caption>'",
             
             "Table <n> reports nominal values without measures of uncertainty": \
             "revise the code to add STD and p-value.", 

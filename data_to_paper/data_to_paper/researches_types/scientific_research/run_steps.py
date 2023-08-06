@@ -157,10 +157,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 .get_code_and_output_and_descriptions(with_file_descriptions=False)
             self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
 
-        # Tables names
-        if self.should_add_tables:
-            products.tables_names = TablesNamesReviewGPT.from_(self).run_dialog_and_get_valid_result()
-
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
         RequestCodeProducts.from_(
@@ -172,22 +168,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)
-
-        if self.should_add_tables:
-            products.tables_names = SecondTablesNamesReviewGPT.from_(self).run_dialog_and_get_valid_result()
-
-        # Tables
-        if self.should_add_tables:
-            products.tables['results'] = []
-            for table_num, table_name in products.tables_names.items():
-                table = TablesReviewBackgroundProductsConverser.from_(
-                    self, section_names=['table'], table_name=table_name, conversation_name=table_num,
-                ).run_dialog_and_get_valid_result()[0]
-                products.tables['results'].append(table)
-
-        # Numerical results
-        products.numeric_values = KeyNumericalResultsExtractorReviewGPT.from_(self).run_dialog_and_get_valid_result()
-        self.send_product_to_client('tables_and_numeric_values')
 
         # Results interpretation
         if self.should_interpret_results:

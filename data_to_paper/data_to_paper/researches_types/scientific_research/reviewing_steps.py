@@ -255,8 +255,8 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         * missing data points.
         * any other relevant statistical issues.
 
-        (2) Create a Python dictionary Dict[str, str], mapping each hypothesis to the statistical test that \
-        would be most adequate for testing it.
+        (2) Create a Python dictionary Dict[str, str], mapping each hypothesis (dict key) to the statistical test that \
+        would be most adequate for testing it (dict value).
         The keys of this dictionary should briefly describe each of our hypotheses.
         The values of this dictionary should specify the most adequate statistical test for each hypothesis, \
         and describe how it should be performed while accounting for any issues you have outlined above as relevant.
@@ -267,10 +267,12 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
 
         Your response for this part should be formatted as a Python dictionary, like this:
         {
-        'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
-        yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
-        'the variance of xxx is different than the variance of yyy': 'F-test for the equality of variances',
+        "xxx is associated with yyy": "linear regression with xxx as the independent variable and \
+        yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3",
+        "the variance of xxx is different than the variance of yyy": "F-test for the equality of variances",
         }
+        
+        Remember to return a valid Python dictionary Dict[str, str].
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
@@ -477,10 +479,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         return self.num_of_existing_tables + 1
 
     @property
-    def total_number_of_tables(self) -> int:
-        return len(self.products.tables_names)
-
-    @property
     def do_not_repeat_information_from_previous_tables(self) -> str:
         if self.num_of_existing_tables > 0:
             return dedent_triple_quote_str("""
@@ -578,7 +576,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'tables', 'numeric_values')
+                                                  'tables', 'results_file')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'

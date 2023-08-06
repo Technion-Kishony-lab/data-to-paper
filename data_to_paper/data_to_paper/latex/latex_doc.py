@@ -51,10 +51,12 @@ class LatexDocument:
 
     section_heading_fontsize: str = 'Large'
     subsection_heading_fontsize: str = 'normalsize'
+    subsubsection_heading_fontsize: str = 'normalsize'
     initiation_commands: List[str] = field(default_factory=lambda: list(DEFAULT_INITIATION_COMMANDS))
 
     section_numbering: bool = False
     subsection_numbering: bool = False
+    subsubsection_numbering: bool = False
 
     author: str = 'Data to Paper'
     packages: List[str] = field(default_factory=lambda: list(DEFAULT_PACKAGES))
@@ -70,6 +72,10 @@ class LatexDocument:
             section = section.replace(r'\subsection{', r'\subsection*{')
         else:
             section = section.replace(r'\subsection*{', r'\subsection{')
+        if not self.subsubsection_numbering:
+            section = section.replace(r'\subsubsection{', r'\subsubsection*{')
+        else:
+            section = section.replace(r'\subsubsection*{', r'\subsubsection{')
         if not self.allow_table_tilde:
             section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
         return section
@@ -105,6 +111,7 @@ class LatexDocument:
 
         s += '\\sectionfont{\\' + self.section_heading_fontsize + '}\n'
         s += '\\subsectionfont{\\' + self.subsection_heading_fontsize + '}\n'
+        s += '\\subsubsectionfont{\\' + self.subsubsection_heading_fontsize + '}\n'
 
         s += '\n'.join(self.initiation_commands) + '\n'
 
@@ -130,8 +137,8 @@ class LatexDocument:
             s += r'\maketitle' + '\n'
 
         # Abstract:
-        if abstract is not None and not abstract.startswith(r'\abstract'):
-            abstract = r'\abstract{' + abstract + '}'
+        if abstract is not None and not (abstract.startswith(r'\abstract') or abstract.startswith(r'\begin{abstract}')):
+            abstract = r'\begin{abstract}' + abstract + r'\end{abstract}'
         if abstract is not None:
             s += abstract + '\n'
 
