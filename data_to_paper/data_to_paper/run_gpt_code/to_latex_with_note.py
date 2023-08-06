@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -335,42 +336,50 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check caption/label
-    category = 'Problem with table caption/label'
-    instructions = dedent_triple_quote_str("""
-        Please revise the code making sure all tables are created with a caption and a label.
-        Use the arguments `caption` and `label` of the function `to_latex_with_note`.
-        Captions should be suitable for a table in a scientific paper.
-        Labels should be in the format `table:<your table label here>`.
-        """)
-    code_problem = CodeProblem.OutputFileDesignLevelA
-    if caption is None or label is None:
-        missing = 'caption and label' if caption is None and label is None \
-            else 'caption' if caption is None else 'label'
-        issues.append(RunIssue(
-            category=category,
-            code_problem=code_problem,
-            item=filename,
-            issue=f'The table does not have a {missing}.',
-            instructions=instructions,
-        ))
-
-    if label is not None and not label.startswith('table:'):
-        issues.append(RunIssue(
-            category=category,
-            code_problem=code_problem,
-            item=filename,
-            issue='The label of the table is not in the format `table:<your table label here>`',
-            instructions=instructions,
-        ))
+    messages = []
+    if label is not None:
+        if not label.startswith('table:'):
+            messages.append('The label of the table is not in the format `table:<your table label here>`')
+    else:
+        messages.append(f'The table does not have a label.')
 
     # check if the caption starts with "Table <number>"
-    if caption is not None and caption.lower().startswith('table'):
+    if caption is not None:
+        if caption.lower().startswith('table'):
+            messages.append('The caption of the table should not start with "Table ..."')
+
+        if '...' in caption:
+            messages.append('The caption of the table should not contain "..."')
+
+        if re.search(pattern=r'<.*\>', string=caption):
+            messages.append('The caption of the table should not contain "<...>"')
+    else:
+        messages.append(f'The table does not have a caption.')
+
+    if note is not None:
+        if '...' in note:
+            messages.append('The note of the table should not contain "..."')
+
+        if re.search(pattern=r'<.*\>', string=note):
+            messages.append('The note of the table should not contain "<...>"')
+
+    if note is not None and caption is not None:
+        if note.lower() == caption.lower():
+            messages.append('The note of the table should not be the same as the caption.\n'
+                            'Notes are meant to provide additional information, not to repeat the caption.')
+
+    for message in messages:
         issues.append(RunIssue(
-            category=category,
-            code_problem=code_problem,
+            category='Problem with table caption/label',
+            code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
-            issue='The caption of the table should not start with "Table ..."',
-            instructions=instructions,
+            issue=message,
+            instructions=dedent_triple_quote_str("""
+                Please revise the code making sure all tables are created with a caption and a label.
+                Use the arguments `caption` and `label` of the function `to_latex_with_note`.
+                Captions should be suitable for a table in a scientific paper.
+                Labels should be in the format `table:<your table label here>`.
+                """),
         ))
 
     if issues:
@@ -418,7 +427,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
                 item=filename,
                 issue=f'The legend of the table includes the following names that are not in the table:\n'
                       f'{un_mentioned_names}',
-                instructions="Please revise the code making sure the legend includes only names that are in the table."
+                instructions="Please revise the code making sure the legend keys and the table headers match.",
             ))
 
     return issues
