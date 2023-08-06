@@ -56,6 +56,6 @@ os.environ['CLIENT_SERVER_MODE'] = 'False'
 
 # Debugging switches:
 SHOW_CHATGPT_CONTEXT = Flag(True)
-SAVE_INTERMEDIATE_LATEX = Flag(False)
+SAVE_INTERMEDIATE_LATEX = Flag(True)
 PRINT_CITATIONS = Flag(True)
 PRINT_COMMENTS = Flag(True)

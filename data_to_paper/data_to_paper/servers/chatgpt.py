@@ -83,7 +83,7 @@ class OpenaiSeverCaller(ListServerCaller):
         pricing_in, pricing_out = model_engine.pricing
         print_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
                   f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.')
-        time.sleep(6)
+        # time.sleep(6)
 
     @staticmethod
     def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
