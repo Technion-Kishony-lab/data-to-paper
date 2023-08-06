@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.utils import extract_text_between_tags
+from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 
@@ -23,7 +24,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     A base class for agents requesting chatgpt to write a python value (like a list of str, or dict).
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
-    value_type: type = None  # Only supports Dict[str, str] and List[str] for now.
+    value_type: type = None
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     @property
@@ -85,7 +86,19 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
 
 
 @dataclass
-class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
+class PythonDictReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
+    """
+    A base class for agents requesting chatgpt to write a python dict.
+    """
+    value_type: type = Dict[Any, Any]
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        value = super()._check_response_value(response_value)
+        return NiceDict(value)
+
+
+@dataclass
+class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """

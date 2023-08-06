@@ -4,9 +4,8 @@ from typing import Tuple, Dict, Any, Optional, Iterable, List
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
-    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
+    PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
@@ -101,7 +100,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
+class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
@@ -134,6 +133,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundP
     """)
 
     def _check_response_value(self, response_value: Any) -> Any:
+        response_value = super()._check_response_value(response_value)
         available_citations = self._get_available_citations()
         bibtex_ids_to_citations: Dict[str, Citation] = \
             {citation.bibtex_id: citation for citation in available_citations}
@@ -142,7 +142,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundP
             self._raise_self_response_error(f'Invalid bibtex ids: {non_matching_ids}')
 
         # replace with correct citation titles
-        response_value = {key: bibtex_ids_to_citations[key].title for key in response_value}
+        response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
         return response_value
 
     def get_overlapping_citations(self) -> List[Citation]:
@@ -230,7 +230,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverser):
+class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser):
     value_type: type = Dict[str, str]
     max_valid_response_iterations: int = 4
     max_reviewing_rounds: int = 0  # 0 for no review cycles
@@ -279,15 +279,14 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         """
         Strip "hypothesis x" from the keys of the response value.
         """
-        new_response_value = {}
-        for k in response_value.keys():
-            new_k = re.sub(pattern=r'hypothesis \d+:', repl='', string=k, flags=re.IGNORECASE).strip()
-            new_response_value[new_k] = response_value[k]
-        return NiceDict(new_response_value)
+        response_value = super()._check_response_value(response_value)
+        return type(response_value)(
+            {re.sub(pattern=r'hypothesis \d+:', repl='', string=k, flags=re.IGNORECASE).strip(): v
+             for k, v in response_value.items()})
 
 
 @dataclass
-class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
+class TablesNamesReviewGPT(PythonDictReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes:data_preprocessing',
@@ -342,9 +341,10 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
         """)
 
     def _check_response_value(self, response_value: Any) -> Any:
+        response_value = super()._check_response_value(response_value)
         if len(response_value) > 4:
             self._raise_self_response_error(f'Please choose a maximum of 4 tables.')
-        return NiceDict(response_value)
+        return response_value
 
 
 @dataclass
@@ -516,7 +516,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 
 
 @dataclass
-class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser,
+class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsConverser,
                                             CheckExtractionReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
@@ -572,9 +572,6 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         # the correct flanking tags {} as part of a latex formula, rather than as part of a Python dict.
         self._check_extracted_numbers(response)
         return super()._extract_str_of_python_value_from_response(response)
-
-    def _check_response_value(self, response_value: Any) -> Any:
-        return NiceDict(response_value)
 
 
 @dataclass
