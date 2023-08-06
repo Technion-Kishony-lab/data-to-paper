@@ -272,12 +272,20 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
         with BaseRunContext.disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:
-            transpose_message = dedent_triple_quote_str("""
+            transpose_message = dedent_triple_quote_str("""\n
                 - Alternatively, consider completely transposing the table. \
                 Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
                 """)
         else:
             transpose_message = ''
+
+        if index:
+            index_note = dedent_triple_quote_str("""\n
+                - Rename the index to a shorter names. \
+                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.reset_index(inplace=False), ...)` \
+                """)
+        else:
+            index_note = ''
 
         issues.append(RunIssue(
             category='Table too wide',
@@ -300,10 +308,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
                 - Rename columns to shorter names. \
                 Replace `to_latex_with_note(df, filename, ...)` with \
                 `to_latex_with_note(df.rename(columns=...), filename, ...)`
-
-                - If the table has the dataframe index, you can rename the index to a shorter names.
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.rename(index=...), ...)`
-                """) + transpose_message,
+                """) + index_note + transpose_message,
             code_problem=CodeProblem.OutputFileContentLevelC,
         ))
 
