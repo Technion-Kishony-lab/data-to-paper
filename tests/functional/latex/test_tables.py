@@ -17,7 +17,7 @@ def df_table():
 
 
 def test_to_latex_with_note(df_table):
-    latex = _to_latex_with_note(df_table, 'test.tex', note='this is a note', caption='test caption', label='table:test',
+    latex = _to_latex_with_note(df_table, None, note='this is a note', caption='test caption', label='table:test',
                                 legend={'CV': 'coefficient of variation', 'SD': 'standard deviation'})
     width = LatexDocument().compile_table(latex, file_stem='test')
     assert 0.1 < width < 0.2
