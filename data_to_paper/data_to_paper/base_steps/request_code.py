@@ -7,19 +7,36 @@ from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequiremen
     get_single_content_file_from_requirements, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer
+from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
+from .result_converser import Rewind, SelfResponseError
 
 EXTS_TO_LABELS = {
     '.tex': 'latex',
     '.txt': 'output',
     '.csv': 'csv',
 }
+
+
+@dataclass
+class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
+    value_type = Dict[str, str],
+
+    def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
+                                   add_iterations: int = 0,
+                                   bump_model: bool = False):
+        msg = dedent_triple_quote_str("""
+                Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
+                to suggested solutions (values).
+                If you sure that there are no issues, you should respond with an empty dictionary, `{}`.
+            """)
+        raise SelfResponseError(msg, rewind=Rewind.REPOST_AS_FRESH, bump_model=bump_model,
+                                add_iterations=add_iterations)
 
 
 @dataclass
@@ -189,9 +206,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         if self.offer_revision_prompt is None or created_file_contents_explanation is None:
             return False
         conversation_len = len(self.conversation)
-        issues_to_solutions = PythonDictReviewBackgroundProductsConverser.from_(
+        issues_to_solutions = RequestIssuesToSolutions.from_(
             self,
-            value_type=Dict[str, str],
             is_new_conversation=False,
             user_initiation_prompt=Replacer(
                 self, self.offer_revision_prompt,
@@ -213,7 +229,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             {issues_to_solutions}
             
             {prompt_to_append_at_end_of_response}
-            """).format(issues_to_solutions='\n\n'.join(f'{issue}:\n{solution}'
+            """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
                                                         for issue, solution in issues_to_solutions.items()),
                         prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
 

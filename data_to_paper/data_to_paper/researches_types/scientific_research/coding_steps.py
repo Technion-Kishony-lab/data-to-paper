@@ -18,7 +18,7 @@ from data_to_paper.researches_types.scientific_research.scientific_products impo
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    DataOutputFileRequirement, RunIssue
+    DataOutputFileRequirement, RunIssue, CodeProblem
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -112,9 +112,10 @@ class DataExplorationDebugger(DebuggerConverser):
         if missing_headers:
             issues.append(RunIssue(
                 issue=f'The output file "{filename}" should have the following headers: '
-                      f'{NiceList(missing_headers, wrap_with="`")}.\n'
+                      f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
                       f'But, these headers are missing: '
                       f'{NiceList(missing_headers, wrap_with="`")}.',
+                code_problem=CodeProblem.OutputFileContentLevelA,
             ))
         return issues
 
@@ -144,7 +145,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         contain a summary of the data.
 
         The output file should be self-contained; any results you choose to save to this file \
-        should be accompanied with a short text header and indication of units (if any).
+        should be accompanied with a header or a short label and indication of units (if any).
 
         The output file should be formatted as follows:
 
@@ -184,7 +185,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file; do we have short headers for each result and \
+        * Can results be understood from the output file; do we have short labels for each result and \
         do all values have sensible names, etc.
         * Do all numeric values have units (if applicable).
         * Are there any results that are missing. Check that under each header in the output file there is \
@@ -203,11 +204,12 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
-        If there are no issues, and the code and tables need no revision, then return an empty dict: `{}`.
+        If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \
+        then return an empty dict: `{}`.
         
         Important:
         * Do not return the revised code, only the issues and suggested fixes.
-        * If there are no issues, and the code and tables need no revision, then return an empty dict: `{}`.
+        * If there are no issues, then return an empty dict: `{}`.
         * Do not create positive issues that require no change in the code. In particular, do not write \
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
          
@@ -421,9 +423,10 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         the results of the statistical analysis.
         
         For each such scientific table, create a dataframe and save it to a tex file using my custom function:
-        `to_latex_with_note(df, filename: str, *args, note: str = None, legend: Dict[str, str] = None, **kwargs)`
+        `to_latex_with_note(df, filename: str, *args, \
+        caption=str, note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
-        This function calls pandas `df.to_latex(filename, *args, **kwargs)` method, \
+        This function calls pandas `df.to_latex(filename, *args, caption=caption, **kwargs)` method, \
         then adds at the end of the table a text note (if `note` is provided) as well as a legend which maps \
         any abbreviated column or row names to their full names (if `legend` is provided).
 

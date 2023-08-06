@@ -401,7 +401,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
             """)
         if e < 0.9:
             instructions += dedent_triple_quote_str("""
-                Alternatively, you cna replace the abbreviated names with their full names in the table itself.
+                Alternatively, you can replace the abbreviated names with their full names in the table itself.
                 """)
         if legend:
             issue = f'The legend of the table needs to include also the following abbreviated names:\n' \
