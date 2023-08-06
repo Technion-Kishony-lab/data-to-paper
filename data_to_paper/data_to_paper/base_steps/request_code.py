@@ -143,15 +143,15 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         code_and_output = CodeAndOutput()
-        while self.revision_round < self.max_code_revisions:
+        while True:
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException()
+            if self.revision_round == self.max_code_revisions:
+                break
             if not self._are_further_code_revisions_needed(code_and_output, debugger):
                 break
             self.revision_round += 1
-        else:
-            raise FailedCreatingProductException()
         code_and_output.name = self.code_name
         return code_and_output
 
