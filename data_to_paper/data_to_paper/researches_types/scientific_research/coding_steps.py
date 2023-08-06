@@ -192,7 +192,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         a corresponding meaningful result.
         * Any other issues you find.
 
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
         
         For example:

@@ -33,9 +33,9 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
         msg = dedent_triple_quote_str("""
                 Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
                 to suggested solutions (values).
-                If you sure that there are no issues, you should respond with an empty dictionary, `{}`.
+                If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
             """)
-        raise SelfResponseError(msg, rewind=Rewind.REPOST_AS_FRESH, bump_model=bump_model,
+        raise SelfResponseError(msg, rewind=Rewind.AS_FIRST_CORRECTION, bump_model=bump_model,
                                 add_iterations=add_iterations)
 
 
