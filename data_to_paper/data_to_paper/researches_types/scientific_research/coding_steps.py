@@ -185,8 +185,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file; do we have short labels for each result and \
-        do all values have sensible names, etc.
+        * Can results be understood from the output file? In particular, do we have a short label for each result? \
+        Do we have labels clarifying the meaning of any abbreviated variable names?
         * Do all numeric values have units (if applicable).
         * Are there any results that are missing. Check that under each header in the output file there is \
         a corresponding meaningful result.
@@ -442,12 +442,12 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         etc, up to 4 tables.
 
         When writing the code for the Tables, consider these guidelines (as applicable):
-        
+
         [a] List of tables to create:
-        * Create 2-4 tables relevant to our research goal and hypothesis testing plan.  
-        * Think of tables commonly used in scientific papers, such as: descriptive statistics, \
-        model coefficients, model performance metrics, the association between variables, etc.
-        
+        * Create 2-4 tables relevant to our {research_goal} and {hypothesis_testing_plan}.
+        * Typically, the first table could be descriptive statistics of the data, \
+        and then we should have at least one table for each of the hypothesis tests.
+
         [b] What to include in each table:
         * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
         * Nominal values should be accompanied by a measure of uncertainty (p-value, CI, STD, etc).

@@ -283,7 +283,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         """
         response_value = super()._check_response_value(response_value)
         return type(response_value)(
-            {re.sub(pattern=r'hypothesis \d+:', repl='', string=k, flags=re.IGNORECASE).strip(): v
+            {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :', repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
 
 
