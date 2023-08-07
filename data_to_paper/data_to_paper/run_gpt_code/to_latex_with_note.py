@@ -13,6 +13,8 @@ from .types import CodeProblem, RunIssue
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
+P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
+
 
 def is_name_an_unknown_abbreviation(name: str) -> bool:
     """
@@ -315,6 +317,31 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
 
     if issues:
         return issues
+
+    # Check P-value formatting
+    for column_header in columns:
+        if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):
+            # Column header is a p-value column
+            data = df[column_header]
+            for value in data:
+                if isinstance(value, str) and '<' not in value:
+                    try:
+                        v = float(value)
+                    except ValueError:
+                        pass
+                    else:
+                        if v < 1e-4:
+                            issues.append(RunIssue(
+                                category='P-value formatting',
+                                code_problem=CodeProblem.OutputFileContentLevelB,
+                                item=filename,
+                                issue='P-values smaller than 1e-4 should be shown as "<1e-4"',
+                                instructions=dedent_triple_quote_str(r"""
+                                    For example, if you have a p-value column named "p-value", then use:
+                                    `p_value_replacer = lambda x: "{:.3g}".format(x) if x >= 1e-4 else "<1e-4"`
+                                    `df['p-value'] = df['p-value'].apply(p_value_replacer)`
+                                    """),
+                            ))
 
     """
     TABLE DESIGN
