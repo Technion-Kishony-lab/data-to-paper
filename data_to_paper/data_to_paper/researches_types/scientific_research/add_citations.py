@@ -46,8 +46,11 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         {citations}
 
         Send your reply formatted as a Python list of str, representing the ids of the citations you choose. 
-        For example, write: 
-        `["AuthorX2022", "AuthorY2009"]`
+        For example, write:
+        ```python
+        ["AuthorX2022", "AuthorY2009"]
+        ```
+        
         where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
         Choose only citations that are relevant to the sentence.
         You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
@@ -137,26 +140,26 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
         Return a Python Dict[str, str] mapping each chosen sentence to a short literature search query \
         (up to a maximum of 5 words), like this:
-
+        
+        ```python
         {
          "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
          "This is another important claim": "Some important keywords for this sentence", 
          "This is the another factual sentence that needs a source": "This is the best query for this sentence",
         }
+        ```
 
         Identify *all* the sentences that you think we need to add citations to - you should include any sentence 
         that can benefit from a reference.
 
         However, be cautious to avoid choosing sentences that do not refer to existing knowledge, but rather \
         describe the finding of the current paper.
-
-        Return only a dict of {"sentence": "query"} pairs, without any other text.
     """)
 
     response_to_self_error: str = dedent_triple_quote_str("""
         {}
         Please try again making sure you return the results with the correct format, like this:
-        ``` 
+        ```python
         {"sentence extracted from the section": "query of the key sentence", 
         "another sentence extracted from the section": "the query of this sentence"}
         ```

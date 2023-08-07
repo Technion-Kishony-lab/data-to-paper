@@ -91,7 +91,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         
         Return your choice as a Python Dict[str, str], mapping possible issues to suggested changes in the code.
         
-        If you have no suggestions for improvement, return an empty dict `{}`. 
+        If you have no suggestions for improvement, return an empty dict:
+        ```python
+        {}
+        ```` 
         """)  # set to None to skip option for revision
 
     @property

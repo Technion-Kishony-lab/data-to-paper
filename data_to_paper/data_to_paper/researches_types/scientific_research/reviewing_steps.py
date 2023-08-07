@@ -255,7 +255,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         * missing data points.
         * any other relevant statistical issues.
 
-        (2) Create a Python dictionary Dict[str, str], mapping each hypothesis (dict key) to the statistical test that \
+        (2) Create a Python Dict[str, str], mapping each hypothesis (dict key) to the statistical test that \
         would be most adequate for testing it (dict value).
         The keys of this dictionary should briefly describe each of our hypotheses.
         The values of this dictionary should specify the most adequate statistical test for each hypothesis, \
@@ -266,11 +266,13 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         (the simplest one).
 
         Your response for this part should be formatted as a Python dictionary, like this:
+        ```python
         {
         "xxx is associated with yyy": "linear regression with xxx as the independent variable and \
         yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3",
         "the variance of xxx is different than the variance of yyy": "F-test for the equality of variances",
         }
+        ```
         
         Remember to return a valid Python dictionary Dict[str, str].
         """)
@@ -309,11 +311,14 @@ class TablesNamesReviewGPT(PythonDictReviewBackgroundProductsConverser):
         in the form of 'Table n' and the values being the captions of the tables.
 
         For example, you might return the following:
+        
+        ```python
         {
             'Table 1': 'Summary statistics of the dataset',
             'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
+        ```
 
         Obviously, this is just an example. You should choose table captions that suit the dataset, the research goal \
         and the hypotheses we are testing.
@@ -363,12 +368,14 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
         The captions that you choose should be returned as a Python Dict[str, str], with the keys \
         in the form of 'Table n' and the values being the actual captions of the tables.
 
-        For example, you might return the following:        
+        For example, you might return the following:
+        ```python
         {
             'Table 1': 'Summary statistics of the dataset',
             'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
+        ```
 
         Obviously, this is just an example. You should choose table captions that suit the information we have in \
         the output of the analysis code.
@@ -543,12 +550,16 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
         you choose for the results, and the values are the numerical results themselves.
 
         For example, if the analysis results provides a summary of a some statistical test, \
-        you might include: 
+        you might include:
+        
+        ```python
         {
             'Total number of samples': xxx,
             'Accuracy of logistic regression for the XXX model': yyy,
             'AUC ROC of logistic regression for the XXX model': zzz,
         }
+        ```
+        
         Obviously, this is just an example. You should choose the numerical results that are most relevant \
         to the specific \
         results we got in the outputs and in light of the {research_goal} of the project as mentioned above.

@@ -186,7 +186,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file? In particular, do we have a short label for each result? \
-        Do we have labels clarifying the meaning of any abbreviated variable names?
+        Do we have a mapping from any abbreviated variable names to their full names/definitions?
         * Do all numeric values have units (if applicable).
         * Are there any results that are missing. Check that under each header in the output file there is \
         a corresponding meaningful result.
@@ -196,16 +196,21 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
         
         For example:
+        ```python
         {
             "The output file is missing a header for the number of rows": "Add a header for the number of rows",
             "The average age is printed without units": "Based on the data description, the age is in years, \
             so add 'years' to the header",
         }
+        ```
         
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
         If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \
-        then return an empty dict: `{}`.
+        then return an empty dict: 
+        ```python
+        {}
+        ```
         
         Important:
         * Do not return the revised code, only the issues and suggested fixes.
@@ -511,6 +516,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
         
         For example:
+        ```python
         {
             "The <model name> model does not adequately account for confounding variables": \
             "revise the code to add the following confounding variables ...",
@@ -521,6 +527,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             "Table <n> reports nominal values without measures of uncertainty": \
             "revise the code to add STD and p-value.", 
         }
+        ```
         
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
