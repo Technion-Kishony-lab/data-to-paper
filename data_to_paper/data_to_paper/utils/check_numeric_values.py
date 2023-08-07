@@ -219,6 +219,8 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
     non_matching_str_numbers = []
     matching_str_numbers = []
     for str_target_number in str_target_numbers:
+        original_str_target_number = str_target_number
+
         str_target_number = str_target_number.lower()
 
         str_target_number, power = split_number_and_power(str_target_number)
@@ -267,9 +269,9 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
             else:  # not percentage
                 is_match = is_match_as_is
             if is_match:
-                matching_str_numbers.append(str_target_number)
+                matching_str_numbers.append(original_str_target_number)
                 break
         else:
-            non_matching_str_numbers.append(str_target_number)
+            non_matching_str_numbers.append(original_str_target_number)
 
     return non_matching_str_numbers, matching_str_numbers
