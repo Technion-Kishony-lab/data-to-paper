@@ -18,7 +18,7 @@ from data_to_paper.researches_types.scientific_research.scientific_products impo
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    DataOutputFileRequirement, RunIssue, CodeProblem
+    DataOutputFileRequirement, RunIssue, CodeProblem, NumericContentOutputFileRequirement
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -185,8 +185,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file? In particular, do we have a short label for each result? \
-        Do we have a mapping from any abbreviated variable names to their full names/definitions?
+        * Can results be understood from the output file? In particular, do we have a short label for each result?
         * Do all numeric values have units (if applicable).
         * Are there any results that are missing. Check that under each header in the output file there is \
         a corresponding meaningful result.
@@ -198,9 +197,10 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         For example:
         ```python
         {
-            "The output file is missing a header for the number of rows": "Add a header for the number of rows",
-            "The average age is printed without units": "Based on the data description, the age is in years, \
-            so add 'years' to the header",
+            "The result of the average of variable ... is missing": \
+            "Add the missing calculation of to the code.",
+            "The average of the variable ... is printed without units": \
+            "Based on the data description, the units should be ...",
         }
         ```
         
@@ -214,7 +214,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         
         Important:
         * Do not return the revised code, only the issues and suggested fixes.
-        * If there are no issues, then return an empty dict: `{}`.
+        * If there are no critical issues, then return an empty dict: `{}`.
         * Do not create positive issues that require no change in the code. In particular, do not write \
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
          
@@ -366,6 +366,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 @dataclass
 class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
+    max_code_revisions: int = 3
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     attrs_to_send_to_debugger: Tuple[str, ...] = \
@@ -490,26 +491,28 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         {created_file_contents_explanation}
 
-        Considering our research goal and hypothesis testing plan (see above "{research_goal}" and \
-        "{hypothesis_testing_plan}"), please do the following:
-
-        (1) Check the code and return a bullet-point response addressing these points:
-        * Statistical analysis: Check for any imperfect implementation of statistical tests, \
-        like not accounting for confounding variables, etc.
+        (1) Check your Python code and return a bullet-point response addressing these points:
+        
+        * Statistical analysis: Check the part of the code that performs the statistical analysis, \
+        and identify any imperfect implementation of statistical tests, like:
+        - Incorrect choice of statistical test.
+        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
+        
         * Preprocessing: Review the description of the data files (see above "{data_file_descriptions}") \
         and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
         data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
+        
         * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
         raw data is performed on the preprocessed data, or vice versa.
-        * New tables: Considering our research goal and hypothesis testing plan, are all relevant tables created? \
-        If not, can you suggest any additional tables?
 
         (2) Check the created tables (latex code blocks above) and \
         return a bullet-point response addressing these points:
-        * Measures of uncertainty: Are all nominal values accompanied by a measure of uncertainty \
-        (like p-value, CI, or STD, as applicable)?
-        * P-values: If p-values are presented, are all lower than 1e-4 p-values correctly converted to "<1e-4". \
-        Check also that this conversion is not mistakenly applied to other, non p-value, variables.
+        * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
+        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+        * Missing data in a table: Are we missing key variables in a given table?
+        {comment_on_missing_table}* P-values: If p-values are presented, \
+        are all lower than 1e-4 p-values correctly converted to "<1e-4". \
+        Check also that this conversion is correctly applied to the right variables (the P-value variables).
         * Any other issues you find.
 
         (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
@@ -518,7 +521,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         For example:
         ```python
         {
-            "The <model name> model does not adequately account for confounding variables": \
+            "The model does not adequately account for confounding variables": \
             "revise the code to add the following confounding variables ...",
             
             "A table is missing": \
@@ -535,6 +538,25 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         then return an empty dict: {}. 
         """)  # set to None to skip option for revision
 
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        comments = {}
+        s = []
+        code = code_and_output.code
+        s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
+        if 'ols(' in code or 'OLS(' in code:
+            s.append('- In linear regression, if interactions terms are included, '
+                     'did we remember to include the main effects?')
+
+        comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
+
+        num_tables = len(code_and_output.get_created_content_files_to_contents()) - 1  # -1 for result.txt
+        if num_tables < 3:
+            s = '* Missing tables: Considering our research goal and hypothesis testing plan, ' \
+                'are all relevant tables created? If not, can you suggest any additional tables?\n'
+        else:
+            s = ''
+        comments['comment_on_missing_table'] = s
+        return comments
 
 @dataclass
 class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
@@ -743,7 +765,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             return cls.from_(
                 self,
                 latex_document=self.latex_document,
-                output_file_requirements=(ContentOutputFileRequirement('results.txt'),
+                output_file_requirements=(NumericContentOutputFileRequirement('results.txt'),
                                           ContentOutputFileRequirement('table_?.tex', num_tables)),
             )
         return cls.from_(self)

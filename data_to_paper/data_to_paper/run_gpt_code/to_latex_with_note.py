@@ -406,6 +406,11 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
                 Use the arguments `caption` and `label` of the function `to_latex_with_note`.
                 Captions should be suitable for a table in a scientific paper.
                 Labels should be in the format `table:<your table label here>`.
+                In addition, you can add:
+                - an optional note for further explanations \
+                (use the argument `note` of the function `to_latex_with_note`)
+                - a legend mapping any abbreviated row/column labels to their definitions \
+                (use the argument `legend` of the function `to_latex_with_note`) 
                 """),
         ))
 

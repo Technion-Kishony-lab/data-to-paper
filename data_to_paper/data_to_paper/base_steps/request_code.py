@@ -121,6 +121,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
         return s
 
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        return {}
+
     @property
     def data_filenames(self) -> NiceList[str]:
         """
@@ -208,6 +211,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         created_file_contents_explanation = self.get_created_file_contents_explanation(code_and_output)
         if self.offer_revision_prompt is None or created_file_contents_explanation is None:
             return False
+        specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
         conversation_len = len(self.conversation)
         issues_to_solutions = RequestIssuesToSolutions.from_(
             self,
@@ -216,6 +220,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 self, self.offer_revision_prompt,
                 kwargs=dict(
                     created_file_contents_explanation=created_file_contents_explanation,
+                    **{k: Replacer(self, v).format_text() for k, v in specific_attrs_for_code_and_output.items()},
                 )),
         ).run_and_get_valid_result()
 
