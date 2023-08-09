@@ -429,12 +429,12 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         the results of the statistical analysis.
         
         For each such scientific table, create a dataframe and save it to a tex file using my custom function:
-        `to_latex_with_note(df, filename: str, *args, \
+        `to_latex_with_note(df, filename: str, \
         caption=str, note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
-        This function calls pandas `df.to_latex(filename, *args, caption=caption, **kwargs)` method, \
-        then adds at the end of the table a text note (if `note` is provided) as well as a legend which maps \
-        any abbreviated column or row names to their full names (if `legend` is provided).
+        This function calls pandas `df.to_latex(filename, caption=caption, **kwargs)` method, \
+        and allows adding below the table an optional note (if `note` is provided) as well as an optional \
+        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
 
         Overall, the section should have the following structure:
         ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ...">
@@ -456,7 +456,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         [b] What to include in each table:
         * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
-        * Nominal values should be accompanied by a measure of uncertainty (p-value, CI, STD, etc).
+        * Nominal values should be accompanied by a measure of uncertainty (p-value and either CI or STD).
         * Exclude data not important to the research goal, or that are too technical. \
         For example, when reporting descriptive statistics it is typically not necessary to include \
         quartile or min/max values. 

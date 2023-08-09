@@ -442,7 +442,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         (These will be added later as part the Discussion section, not the Results section). 
 
         * Numeric values: 
-        You can extract and mention numeric values from the Tables as well as from the \
+        You can extract and mention numeric values from the latex Tables as well as from the \
         "{results_file}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
         going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
         explicitly mention any such important numeric value as an integral part of the text.
