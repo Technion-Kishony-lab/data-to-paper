@@ -1,5 +1,6 @@
 from functools import partial
 
+from pandas import MultiIndex
 from pandas.core.frame import DataFrame
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
 
@@ -32,6 +33,12 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
     for col_index in range(len(df.columns)):
         if df.iloc[:, col_index].dtype == object:
             df.iloc[:, col_index] = df.iloc[:, col_index].apply(carefully_replace_special_latex_chars)
+    if isinstance(df.index, MultiIndex):
+        for level in range(len(df.index.levels)):
+            df.index = df.index.set_levels(df.index.levels[level].map(carefully_replace_special_latex_chars),
+                                           level=level)
+            df.index.names = type(df.index.names)([carefully_replace_special_latex_chars(name)
+                                                   for name in df.index.names])
     df.index = df.index.map(carefully_replace_special_latex_chars)
     df.columns = df.columns.map(carefully_replace_special_latex_chars)
     return df
