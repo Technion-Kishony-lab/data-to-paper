@@ -394,7 +394,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         The code must have the following sections (with these exact capitalized headers):
 
         # IMPORT
-        from my_utils import to_latex_with_note
+        from my_utils import to_latex_with_note, format_p_value
         <import here any other packages you need>
 
         As needed, you can use the following packages which are already installed:
@@ -463,10 +463,10 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Make sure you do not repeat the same data in multiple tables.
 
         [c] P-values:
-        If P-values are included, convert them using:
-        `p_value_replacer = lambda x: "{:.3g}".format(x) if x >= 1e-4 else "<1e-4"`
+        If P-values are included, convert them using the provided `format_p_value` func.
+        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
         For example, if you have a p-value column named "p-value", then:
-        `df['p-value'] = df['p-value'].apply(p_value_replacer)`
+        `df['p-value'] = df['p-value'].apply(format_p_value)`
 
         # OUTPUT TEXT FILE 
         At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
@@ -510,10 +510,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
         * Missing data in a table: Are we missing key variables in a given table?
-        {comment_on_missing_table}* P-values: If p-values are presented, \
-        are all lower than 1e-4 p-values correctly converted to "<1e-4". \
-        Check also that this conversion is correctly applied to the right variables (the P-value variables).
-        * Any other issues you find.
+        {comment_on_missing_table}* Any other issues you find.
 
         (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).

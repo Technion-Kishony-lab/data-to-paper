@@ -6,6 +6,8 @@ import pandas as pd
 
 from data_to_paper.latex.tables import create_threeparttable
 from data_to_paper.utils import dedent_triple_quote_str
+from .overrides.statsmodels.pvalue_dtype import PValueFloat, PValueDtype
+
 from .run_context import BaseRunContext, ProvideData, IssueCollector
 
 from .types import CodeProblem, RunIssue
@@ -14,6 +16,20 @@ from .types import CodeProblem, RunIssue
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
 P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
+
+
+P_VALUE_MIN = 1e-6
+
+
+def format_p_value(x):
+    if not isinstance(x, PValueFloat):
+        IssueCollector.get_runtime_object().add_issue_if_does_not_exist(
+            RunIssue(
+                code_problem=CodeProblem.NonBreakingRuntimeIssue,
+                issue=f"format_p_value should only be applied to P-values",
+            )
+        )
+    return "{:.3g}".format(x) if x >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
 
 
 def is_name_an_unknown_abbreviation(name: str) -> bool:
@@ -320,28 +336,21 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
 
     # Check P-value formatting
     for column_header in columns:
-        if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):
-            # Column header is a p-value column
-            data = df[column_header]
-            for value in data:
-                if isinstance(value, str) and '<' not in value:
-                    try:
-                        v = float(value)
-                    except ValueError:
-                        pass
-                    else:
-                        if v < 1e-4:
-                            issues.append(RunIssue(
-                                category='P-value formatting',
-                                code_problem=CodeProblem.OutputFileContentLevelB,
-                                item=filename,
-                                issue='P-values smaller than 1e-4 should be shown as "<1e-4"',
-                                instructions=dedent_triple_quote_str(r"""
-                                    For example, if you have a p-value column named "p-value", then use:
-                                    `p_value_replacer = lambda x: "{:.3g}".format(x) if x >= 1e-4 else "<1e-4"`
-                                    `df['p-value'] = df['p-value'].apply(p_value_replacer)`
-                                    """),
-                            ))
+        data = df[column_header]
+        # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
+        if isinstance(data.dtype, PValueDtype):
+            for v in data:
+                if v < P_VALUE_MIN:
+                    issues.append(RunIssue(
+                        category='P-value formatting',
+                        code_problem=CodeProblem.OutputFileContentLevelB,
+                        item=filename,
+                        issue='P-values should be formatted with `format_p_value`',
+                        instructions=dedent_triple_quote_str(f"""
+                            In particular, the p-value column "{column_header}" should be formatted as:
+                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                            """),
+                    ))
 
     """
     TABLE DESIGN

@@ -118,6 +118,10 @@ class IssueCollector(BaseRunContext):
     def add_issue(self, issue: RunIssue):
         self.issues.append(issue)
 
+    def add_issue_if_does_not_exist(self, issue: RunIssue):
+        if issue not in self.issues:
+            self.add_issue(issue)
+
     def add_issues(self, issues: Iterable[RunIssue]):
         self.issues.extend(issues)
 
