@@ -421,7 +421,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         Perform the analysis and appropriate statistical tests \
         (see above our "{hypothesis_testing_plan}").
         The statistical analysis should account for any relevant confounding variables, as applicable. 
-
+        Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
+        Note that you may need to perform more than one test for each hypothesis.
 
         # CREATE TABLES
         Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
@@ -437,7 +438,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
 
         Overall, the section should have the following structure:
-        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ...">
+        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ... stratified by ...">
         <write here the code to create a dataframe of table 1 and save it using \
         `to_latex_with_note(<dataframe>, 'table_1.tex', ...)`>
 
