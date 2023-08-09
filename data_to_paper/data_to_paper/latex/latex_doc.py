@@ -40,6 +40,22 @@ CITATION_TEMPLATE = r"""
 """
 
 
+def replace_scientific_exponent_with_latex(s):
+    def replace(match):
+        base, exponent = match.groups()
+        exponent = int(exponent)  # to remove leading zeros
+        if base.startswith('-') or base.startswith('+'):
+            sign = base[0]
+            base = base[1:]
+        else:
+            sign = ''
+        if base == '1':
+            return r'${}10^{{{}}}$'.format(sign, exponent)
+        return r'${}{}\ 10^{{{}}}$'.format(sign, base, exponent)
+
+    return re.sub(pattern=r'([+-]?[\d.]+)e([+-]?\d+)', repl=replace, string=s)
+
+
 @dataclass
 class LatexDocument:
     """
@@ -58,6 +74,8 @@ class LatexDocument:
     subsection_numbering: bool = False
     subsubsection_numbering: bool = False
 
+    replace_scientific_exponents: bool = True
+
     author: str = 'Data to Paper'
     packages: List[str] = field(default_factory=lambda: list(DEFAULT_PACKAGES))
 
@@ -68,16 +86,23 @@ class LatexDocument:
             section = section.replace(r'\section{', r'\section*{')
         else:
             section = section.replace(r'\section*{', r'\section{')
+
         if not self.subsection_numbering:
             section = section.replace(r'\subsection{', r'\subsection*{')
         else:
             section = section.replace(r'\subsection*{', r'\subsection{')
+
         if not self.subsubsection_numbering:
             section = section.replace(r'\subsubsection{', r'\subsubsection*{')
         else:
             section = section.replace(r'\subsubsection*{', r'\subsubsection{')
+
         if not self.allow_table_tilde:
             section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
+
+        if self.replace_scientific_exponents:
+            section = replace_scientific_exponent_with_latex(section)
+
         return section
 
     def get_document(self,
