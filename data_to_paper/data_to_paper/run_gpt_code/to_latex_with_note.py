@@ -29,6 +29,13 @@ def format_p_value(x):
                 issue=f"format_p_value should only be applied to P-values",
             )
         )
+    if x >= 1 or x < 0:
+        IssueCollector.get_runtime_object().add_issue_if_does_not_exist(
+            RunIssue(
+                code_problem=CodeProblem.NonBreakingRuntimeIssue,
+                issue=f"format_p_value encountered a P-value of {x}",
+            )
+        )
     return "{:.3g}".format(x) if x >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
 
 
@@ -231,12 +238,17 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
                     code_problem=CodeProblem.OutputFileContentLevelA,
                     item=filename,
                     issue=f'The column "{column_header}" has the same unique value for all rows.',
-                    instructions=dedent_triple_quote_str("""
+                    instructions=dedent_triple_quote_str(f"""
                         Please revise the code so that it:
-                        * Finds the unique values of the column
-                        * Asserts that the len of unique values == 1
-                        * Create the table without this column
-                        * Add the unique value in the table note (use `note=` in the function `to_latex_with_note`). 
+                        * Finds the unique values \
+                        (use `{column_header}_unique = df["{column_header}"].unique()`)
+                        * Asserts that there is only one value. \
+                        (use `assert len({column_header}_unique) == 1`)
+                        * Creates the table without this column (use `df.drop(columns=["{column_header}"])`)
+                        * Adds the unique value, {column_header}_unique[0], \
+                        in the table note (use `note=` in the function `to_latex_with_note`).
+                        
+                        There is no need to add corresponding comments to the code. 
                         """),
                 ))
 

@@ -13,7 +13,7 @@ from data_to_paper import chatgpt_created_scripts
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_changed_data_frames, DataframeOperations
-from .overrides.statsmodels.override_statsmodels_fit import label_pvalues
+from .overrides.contexts import label_pvalues
 
 from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector
 from .runtime_decorators import timeout_context

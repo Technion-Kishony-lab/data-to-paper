@@ -456,14 +456,14 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         [b] What to include in each table:
         * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
-        * Nominal values should be accompanied by a measure of uncertainty (p-value and either CI or STD).
+        * Nominal values should be accompanied by a measure of uncertainty (CI or STD).
         * Exclude data not important to the research goal, or that are too technical. \
         For example, when reporting descriptive statistics it is typically not necessary to include \
         quartile or min/max values. 
         * Make sure you do not repeat the same data in multiple tables.
 
         [c] P-values:
-        If P-values are included, convert them using the provided `format_p_value` func.
+        If you are reporting P-values of statistical tests, convert them using the provided `format_p_value` func.
         This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
         For example, if you have a p-value column named "p-value", then:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
@@ -507,6 +507,13 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (2) Check the created tables (latex code blocks above) and \
         return a bullet-point response addressing these points:
+        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
+        For example: 
+        - If the table reports the mean of a variable, is the mean value sensible?
+        - If the table reports CI, are the CI values flanking the mean?
+        - Do values have correct signs?
+        - Do you see any values that are not sensible?
+
         * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
         * Missing data in a table: Are we missing key variables in a given table?
