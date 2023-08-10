@@ -3,9 +3,10 @@ import functools
 import scipy
 
 from data_to_paper.run_gpt_code.overrides.attr_replacers import func_replacer
-from data_to_paper.run_gpt_code.overrides.statsmodels.pvalue_dtype import PValueDtype, PValueFloat
 
 import inspect
+
+from ..types import PValue
 
 
 def scipy_label_pvalues():
@@ -29,7 +30,7 @@ def scipy_label_pvalues():
             try:
                 asdict = {k.strip('_'): v for k, v in result._asdict().items()}
                 if 'pvalue' in asdict:
-                    asdict['pvalue'] = PValueFloat(asdict['pvalue'])
+                    asdict['pvalue'] = PValue(asdict['pvalue'], created_by=original_func.__name__)
                     result = type(result)(**asdict)
             except (AttributeError, TypeError, ValueError):
                 pass

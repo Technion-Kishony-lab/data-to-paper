@@ -2,8 +2,9 @@ import functools
 
 import statsmodels.api
 
-from .pvalue_dtype import PValueDtype
+# from .pvalue_dtype import PValueDtype
 from ..attr_replacers import method_replacer
+from ..types import PValue
 
 
 def get_summary2_func(self, original_func):
@@ -23,7 +24,8 @@ def get_summary2_func(self, original_func):
 
         pval_names = [name for name in table1.columns if name.startswith('P>')]
         for pval_name in pval_names:
-            table1[pval_name] = table1[pval_name].astype(PValueDtype(self.__class__.__name__))
+            # table1[pval_name] = table1[pval_name].astype(PValueDtype(self.__class__.__name__))
+            table1[pval_name] = table1[pval_name].apply(functools.partial(PValue, created_by=self.__class__.__name__))
         return result
 
     return custom_summary2
@@ -43,8 +45,14 @@ def statsmodels_label_pvalues():
             result = original_func(self, *args, **kwargs)
 
             # Replace the pvalues attribute if it exists
+            created_by = self.__class__.__name__
             try:
-                result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
+                # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
+                if hasattr(result, 'pvalues'):
+                    result.pvalues = result.pvalues.apply(functools.partial(PValue, created_by=created_by))
+                for p_val_name in ['f_pvalue', 'pvalue']:
+                    if hasattr(result, p_val_name):
+                        setattr(result, p_val_name, PValue(getattr(result, p_val_name), created_by=created_by))
             except (AttributeError, TypeError, ValueError):
                 pass
             if hasattr(result, 'summary2'):

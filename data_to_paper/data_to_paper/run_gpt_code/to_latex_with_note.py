@@ -6,7 +6,7 @@ import pandas as pd
 
 from data_to_paper.latex.tables import create_threeparttable
 from data_to_paper.utils import dedent_triple_quote_str
-from .overrides.statsmodels.pvalue_dtype import PValueFloat, PValueDtype
+from .overrides.types import PValue
 
 from .run_context import BaseRunContext, ProvideData, IssueCollector
 
@@ -22,21 +22,23 @@ P_VALUE_MIN = 1e-6
 
 
 def format_p_value(x):
-    if not isinstance(x, PValueFloat):
+    if not isinstance(x, PValue) and not isinstance(x, float):
+        raise ValueError(f"format_p_value should only be applied to P-value float. But got: {type(x)}.")
+    if not isinstance(x, PValue):
         IssueCollector.get_runtime_object().add_issue_if_does_not_exist(
             RunIssue(
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 issue=f"format_p_value should only be applied to P-values",
             )
         )
-    if x >= 1 or x < 0:
-        IssueCollector.get_runtime_object().add_issue_if_does_not_exist(
+    if x.value >= 1 or x.value < 0:
+        raise RunUtilsError(
             RunIssue(
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 issue=f"format_p_value encountered a P-value of {x}",
             )
         )
-    return "{:.3g}".format(x) if x >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
+    return "{:.3g}".format(x) if x.value >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
 
 
 def is_name_an_unknown_abbreviation(name: str) -> bool:
@@ -350,19 +352,19 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     for column_header in columns:
         data = df[column_header]
         # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-        if isinstance(data.dtype, PValueDtype):
-            for v in data:
-                if v < P_VALUE_MIN:
-                    issues.append(RunIssue(
-                        category='P-value formatting',
-                        code_problem=CodeProblem.OutputFileContentLevelB,
-                        item=filename,
-                        issue='P-values should be formatted with `format_p_value`',
-                        instructions=dedent_triple_quote_str(f"""
-                            In particular, the p-value column "{column_header}" should be formatted as:
-                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
-                            """),
-                    ))
+        for v in data:
+            if isinstance(v, PValue) and v.value < P_VALUE_MIN:
+                issues.append(RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.OutputFileContentLevelB,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=dedent_triple_quote_str(f"""
+                        In particular, the p-value column "{column_header}" should be formatted as:
+                        `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                        """),
+                ))
+                break
 
     """
     TABLE DESIGN

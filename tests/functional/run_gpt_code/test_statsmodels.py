@@ -2,12 +2,14 @@ import pytest
 import statsmodels.api as sm
 import pandas as pd
 from scipy.stats import stats
+from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 
-from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import statsmodels_label_pvalues, PValueDtype
+from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import statsmodels_label_pvalues
 from data_to_paper.run_gpt_code.overrides.statsmodels.pvalue_dtype import PValueFloat
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import scipy_label_pvalues
-
+from data_to_paper.run_gpt_code.overrides.types import PValue
+from statsmodels.formula.api import ols
 
 @pytest.mark.parametrize('func', [
     sm.OLS,
@@ -23,12 +25,25 @@ def test_statsmodels_label_pvalues(func):
         y = data.endog
         model = func(y, X)
         results = model.fit()
-        assert results.pvalues.dtype == PValueDtype(func.__name__)
+        pval = results.pvalues[0]
+        assert isinstance(pval, PValue)
+        assert pval.created_by == func.__name__
         if hasattr(results, 'summary2'):
             s2 = results.summary2()
             table1 = s2.tables[1]
             attr = 'P>|t|' if 't' in table1.columns else 'P>|z|'
-            assert s2.tables[1][attr].dtype == PValueDtype(func.__name__)
+            pval = s2.tables[1][attr][0]
+            assert isinstance(pval, PValue)
+            assert pval.created_by == func.__name__
+
+
+def test_statsmodels_ols():
+    with statsmodels_label_pvalues():
+        # Example of using the ols function, not the class
+        data = sm.datasets.longley.load().data
+        results = ols('TOTEMP ~ GNPDEFL', data=data).fit()
+        pval = results.pvalues[0]
+        assert isinstance(pval, PValue)
 
 
 def test_df_describe_under_label_pvalues():
@@ -43,5 +58,13 @@ def test_scipy_label_pvalues():
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0
         t_statistic, p_value = stats.ttest_1samp(data, popmean)
-        assert type(p_value) == PValueFloat
+        assert type(p_value) == PValue
+        assert p_value.created_by == 'ttest_1samp'
 
+
+def test_pvalue_from_dict():
+    ttest_results = {'HighBP': TtestResult(statistic=5., pvalue=PValue(0.7), df=3534,
+                                           estimate=1, standard_error=1, alternative=1)}
+    df = pd.DataFrame.from_dict(ttest_results, orient='index')
+    pvalue = df['pvalue'][0]
+    assert isinstance(pvalue, PValue)
