@@ -170,12 +170,26 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     with BaseRunContext.disable_all():
         e = compilation_func(latex, file_stem)
 
+    # Check if the table contains the same values in multiple cells
+    df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
+    if len(df_values) != len(set(df_values)):
+        issues.append(RunIssue(
+            category='Table contents should not overlap',
+            code_problem=CodeProblem.OutputFileContentLevelC,
+            item=filename,
+            issue=f'Here is the table {filename}:\n{latex}\n'
+                  f'Note that the Table includes the same values in multiple cells.',
+            instructions=dedent_triple_quote_str("""
+                This is likely a mistake and is surely confusing to the reader.
+                Please revise the code so that the table does not repeat the same values in multiple cells.
+                """),
+        ))
+
     # Check if the table numeric values overlap with values in prior tables
     for prior_name, prior_table in prior_tables.items():
         if prior_table is df:
             continue
         prior_table_values = [v for v in prior_table.values.flatten() if _is_non_integer_numeric(v)]
-        df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
         if any(value in prior_table_values for value in df_values):
             issues.append(RunIssue(
                 category='Table contents should not overlap',
