@@ -25,6 +25,7 @@ EXTS_TO_LABELS = {
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
+    CHATGPT_PARAMETERS = {'temperature': 0.0}
     value_type = Dict[str, str],
 
     def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
