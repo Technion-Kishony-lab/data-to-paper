@@ -5,9 +5,9 @@ from scipy.stats import stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 
-from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import statsmodels_label_pvalues
+from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import statsmodels_override
 from data_to_paper.run_gpt_code.overrides.statsmodels.pvalue_dtype import PValueFloat
-from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import scipy_label_pvalues
+from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import scipy_override
 from data_to_paper.run_gpt_code.overrides.types import PValue
 from statsmodels.formula.api import ols
 
@@ -18,7 +18,7 @@ from statsmodels.formula.api import ols
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with statsmodels_label_pvalues():
+    with statsmodels_override():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -38,7 +38,7 @@ def test_statsmodels_label_pvalues(func):
 
 
 def test_statsmodels_ols():
-    with statsmodels_label_pvalues():
+    with statsmodels_override():
         # Example of using the ols function, not the class
         data = sm.datasets.longley.load().data
         results = ols('TOTEMP ~ GNPDEFL', data=data).fit()
@@ -48,12 +48,12 @@ def test_statsmodels_ols():
 
 def test_df_describe_under_label_pvalues():
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    with statsmodels_label_pvalues():
+    with statsmodels_override():
         df.describe()
 
 
 def test_scipy_label_pvalues():
-    with scipy_label_pvalues():
+    with scipy_override():
         # Example data
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0

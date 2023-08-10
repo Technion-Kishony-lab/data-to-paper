@@ -1,4 +1,5 @@
 import functools
+import warnings
 
 import statsmodels.api
 
@@ -7,7 +8,7 @@ from ..attr_replacers import method_replacer
 from ..types import PValue
 
 
-def get_summary2_func(self, original_func):
+def _get_summary2_func(self, original_func):
     """
     Get the summary2 function of a statsmodels class.
     """
@@ -31,7 +32,7 @@ def get_summary2_func(self, original_func):
     return custom_summary2
 
 
-def statsmodels_label_pvalues():
+def statsmodels_override():
     """
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValueDtype.
@@ -42,6 +43,9 @@ def statsmodels_label_pvalues():
     def fit_wrapper(original_func):
         @functools.wraps(original_func)
         def wrapped(self, *args, **kwargs):
+            if getattr(self, '_fit_was_called', False):
+                raise RuntimeWarning("The fit function was already called on this object.")
+            self._fit_was_called = True
             result = original_func(self, *args, **kwargs)
 
             # Replace the pvalues attribute if it exists
@@ -57,7 +61,7 @@ def statsmodels_label_pvalues():
                 pass
             if hasattr(result, 'summary2'):
                 original_summary2 = result.summary2
-                result.summary2 = get_summary2_func(self, original_summary2)
+                result.summary2 = _get_summary2_func(self, original_summary2)
             return result
         wrapped.is_wrapped = True
         return wrapped

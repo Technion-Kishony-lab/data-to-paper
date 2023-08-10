@@ -9,7 +9,7 @@ import inspect
 from ..types import PValue
 
 
-def scipy_label_pvalues():
+def scipy_override():
     """
     A context manager that replaces the pvalues attribute of all scipy hypothesis test functions with a
     PValueDtype.

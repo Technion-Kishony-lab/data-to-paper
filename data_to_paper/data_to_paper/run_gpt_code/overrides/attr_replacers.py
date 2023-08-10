@@ -51,7 +51,8 @@ def method_replacer(module, custom_func_wrapper: Callable, should_replace_func: 
                     if attr_name in obj.__dict__ and inspect.isfunction(attr_obj) \
                             and should_replace_func(obj, attr_name):
                         original_func = getattr(obj, attr_name)
-                        assert not getattr(original_func, 'is_wrapped', False)
+                        if getattr(original_func, 'is_wrapped', False):
+                            continue
                         originals[(obj, attr_name)] = original_func
                         setattr(obj, attr_name, custom_func_wrapper(original_func))
     try:

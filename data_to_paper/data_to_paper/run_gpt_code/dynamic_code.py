@@ -13,7 +13,7 @@ from data_to_paper import chatgpt_created_scripts
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_changed_data_frames, DataframeOperations
-from .overrides.contexts import label_pvalues
+from .overrides.contexts import override_statistics_packages
 
 from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector
 from .runtime_decorators import timeout_context
@@ -99,7 +99,7 @@ def run_code_using_module_reload(
                 collect_created_and_changed_data_frames(
                     allow_dataframes_to_change_existing_series) as dataframe_operations, \
                 timeout_context(seconds=timeout_sec), \
-                label_pvalues(), \
+                override_statistics_packages(), \
                 run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
 
             importlib.reload(CODE_MODULE)
