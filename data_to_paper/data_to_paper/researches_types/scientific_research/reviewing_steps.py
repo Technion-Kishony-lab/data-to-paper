@@ -233,6 +233,7 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser):
     value_type: type = Dict[str, str]
     max_valid_response_iterations: int = 4
+    max_hypothesis_count: int = 3
     max_reviewing_rounds: int = 0  # 0 for no review cycles
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
@@ -268,11 +269,32 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         Your response for this part should be formatted as a Python dictionary, like this:
         ```python
         {
-        "xxx is associated with yyy": "linear regression with xxx as the independent variable and \
-        yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3",
-        "the variance of xxx is different than the variance of yyy": "F-test for the equality of variances",
+            "xxx is associated with yyy": 
+                "linear regression with xxx as the independent variable and  yyy as the dependent variable while \
+        adjusting for aaa, bbb, ccc",
+            "the above association between xxx and yyy is mediated by zzz":
+                "mediation analysis with xxx as the independent \
+        variable, yyy as the dependent variable, and zzz as the mediator, while adjusting for aaa, bbb, ccc",
         }
         ```
+        
+        Or, here is another example:
+        ```python
+        {
+            "xxx is associated with yyy and zzz":
+                "linear regression with xxx as the independent variable and \
+        yyy and zzz as the dependent variables while adjusting for aaa, bbb, ccc",
+            "the association between xxx and yyy is moderated by zzz": 
+                "repeat the above linear regression, \
+        while adding the interaction term between yyy and zzz",
+        }
+        ```
+        
+        These of course are just examples. Your actual response should be based on the goal and hypotheses that \
+        we have specified above (see the "{research_goal}" above).
+        
+        Note how in both cases the the different hypotheses are connected to each other, building towards a single
+        study goal.
         
         Remember to return a valid Python dictionary Dict[str, str].
         """)
@@ -284,6 +306,11 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         Strip "hypothesis x" from the keys of the response value.
         """
         response_value = super()._check_response_value(response_value)
+        if len(response_value) > self.max_hypothesis_count:
+            self._raise_self_response_error(
+                f'Please do not specify more than {self.max_hypothesis_count} hypotheses. '
+                f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
+                f'which should all build towards a single study goal.')
         return type(response_value)(
             {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :', repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
