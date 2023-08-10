@@ -10,8 +10,7 @@ from .overrides.types import PValue
 
 from .run_context import BaseRunContext, ProvideData, IssueCollector
 
-from .types import CodeProblem, RunIssue
-
+from .types import CodeProblem, RunIssue, RunUtilsError
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
@@ -25,7 +24,7 @@ def format_p_value(x):
     if not isinstance(x, PValue) and not isinstance(x, float):
         raise ValueError(f"format_p_value should only be applied to P-value float. But got: {type(x)}.")
     if not isinstance(x, PValue):
-        IssueCollector.get_runtime_object().add_issue_if_does_not_exist(
+        raise RunUtilsError(
             RunIssue(
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 issue=f"format_p_value should only be applied to P-values",

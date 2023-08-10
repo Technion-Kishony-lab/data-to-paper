@@ -21,10 +21,9 @@ class FailedRunningCode(RunCodeException):
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
 
-    def get_traceback_message(self, lines_added_by_modifying_code: int = 0):
+    def get_lineno_line_message(self, lines_added_by_modifying_code: int = 0):
         """
-        returns a fake traceback message, simulating as if the code ran in a real file.
-        the line causing the exception is extracted from the ran `code`.
+        returns the line of code that caused the exception.
         """
         if isinstance(self.exception, SyntaxError):
             lineno = self.exception.lineno
@@ -37,8 +36,16 @@ class FailedRunningCode(RunCodeException):
                 return ''
             filename, lineno, funcname, text = self.tb[index]
             msg = self.exception
+        return lineno - lines_added_by_modifying_code, text, msg
 
-        return f'  File "{self.fake_file_name}", line {lineno - lines_added_by_modifying_code}, in <module>"\n' + \
+    def get_traceback_message(self, lines_added_by_modifying_code: int = 0):
+        """
+        returns a fake traceback message, simulating as if the code ran in a real file.
+        the line causing the exception is extracted from the ran `code`.
+        """
+        lineno, text, msg = self.get_lineno_line_message(lines_added_by_modifying_code)
+
+        return f'  File "{self.fake_file_name}", line {lineno}, in <module>"\n' + \
                f'    {text}\n' + \
                f'{type(self.exception).__name__}: {msg}'
 

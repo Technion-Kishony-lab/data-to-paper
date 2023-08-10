@@ -148,12 +148,12 @@ class DebuggerConverser(BackgroundProductsConverser):
     ISSUES
     """
 
-    def _get_issue_for_known_mis_imports(self, e: ImportError) -> Optional[RunIssue]:
-        if not hasattr(e, 'fromlist'):
+    def _get_issue_for_known_mis_imports(self, error: ImportError) -> Optional[RunIssue]:
+        if not hasattr(error, 'fromlist'):
             return
-        if len(e.fromlist) != 1:
+        if len(error.fromlist) != 1:
             return
-        var = e.fromlist[0]
+        var = error.fromlist[0]
         if var not in KNOWN_MIS_IMPORTS:
             return
         correct_package = KNOWN_MIS_IMPORTS[var]
@@ -167,7 +167,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                 ```
                 {}
                 ```
-                """).format(e),
+                """).format(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
                 Note that there is a `{var}` in `{known_package}`. Is this perhaps what you needed? 
@@ -176,7 +176,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='ImportError detected in gpt code',
         )
 
-    def _get_issue_for_allowed_packages(self, error: ImportError) -> Optional[RunIssue]:
+    def _get_issue_for_allowed_packages(self, error: ImportError, e: FailedRunningCode = None) -> Optional[RunIssue]:
         respond_to_known_mis_imports = self._get_issue_for_known_mis_imports(error)
         if respond_to_known_mis_imports:
             return respond_to_known_mis_imports
@@ -194,7 +194,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='ImportError detected in gpt code',
         )
 
-    def _get_issue_for_file_not_found(self, error: FileNotFoundError) -> RunIssue:
+    def _get_issue_for_file_not_found(self, error: FileNotFoundError, e: FailedRunningCode = None) -> RunIssue:
         return RunIssue(
             issue=dedent_triple_quote_str("""
                 I ran the code and got the following error message:
@@ -226,7 +226,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='Runtime exception in code',
         )
 
-    def _get_issue_for_timeout(self, error: TimeoutError) -> RunIssue:
+    def _get_issue_for_timeout(self, error: TimeoutError, e: FailedRunningCode = None) -> RunIssue:
         return RunIssue(
             issue="I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.",
             code_problem=CodeProblem.TimeoutError,
@@ -259,7 +259,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_problem=CodeProblem.NotSingleBlock,
         )
 
-    def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions) -> RunIssue:
+    def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions, e: FailedRunningCode = None
+                                           ) -> RunIssue:
         func = error.func
         if func == 'print':
             return RunIssue(
@@ -277,7 +278,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=f'Code uses forbidden function {func}',
         )
 
-    def _get_issue_for_forbidden_method(self, error: UnAllowedDataframeMethodCall) -> RunIssue:
+    def _get_issue_for_forbidden_method(self, error: UnAllowedDataframeMethodCall, e: FailedRunningCode) -> RunIssue:
         func = error.method_name
         return RunIssue(
             issue=f"Your code uses the dataframe method `{func}`, which is not allowed.",
@@ -285,7 +286,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_problem=CodeProblem.RuntimeError,
         )
 
-    def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule) -> RunIssue:
+    def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule, e: FailedRunningCode) -> RunIssue:
         module = error.module
         return RunIssue(
             issue=f"Your code import the module `{module}`, which is not allowed.",
@@ -317,7 +318,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             issues.append(self._get_issue_for_forbidden_functions(error=CodeUsesForbiddenFunctions(func='print')))
         return issues
 
-    def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile) -> RunIssue:
+    def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
         return RunIssue(
             issue=f'Your code writes to the file "{file}" which is not allowed.',
@@ -326,7 +327,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='Code writes to forbidden file',
         )
 
-    def _get_issue_for_un_allowed_files_created(self, error: UnAllowedFilesCreated) -> RunIssue:
+    def _get_issue_for_un_allowed_files_created(self, error: UnAllowedFilesCreated, e: FailedRunningCode) -> RunIssue:
         return RunIssue(
             issue=f"Your code creates the following files {error.un_allowed_files} which is not allowed.",
             instructions=self.description_of_allowed_output_files,
@@ -334,7 +335,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment='Code created forbidden files',
         )
 
-    def _get_issue_for_forbidden_read(self, error: CodeReadForbiddenFile) -> RunIssue:
+    def _get_issue_for_forbidden_read(self, error: CodeReadForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
         if file == self.output_filename:
             return RunIssue(
@@ -360,7 +361,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                 comment='Code reads from forbidden file',
             )
 
-    def _get_issue_for_dataframe_series_change(self, error: DataFrameSeriesChange) -> RunIssue:
+    def _get_issue_for_dataframe_series_change(self, error: DataFrameSeriesChange, e: FailedRunningCode) -> RunIssue:
         series = error.changed_series
         return RunIssue(
             issue=f'Your code changes the series "{series}" of your dataframe.',
@@ -470,8 +471,15 @@ class DebuggerConverser(BackgroundProductsConverser):
             )
         return None
 
-    def _get_issue_for_run_utils_error(self, error: RunUtilsError) -> RunIssue:
-        return error.issue
+    def _get_issue_for_run_utils_error(self, error: RunUtilsError, e: FailedRunningCode) -> RunIssue:
+        lineno, line, msg = e.get_lineno_line_message()
+        return RunIssue(
+            category=error.issue.category,
+            issue=f'{error.issue.issue}\nOn line:\n`{line}`',
+            instructions=error.issue.instructions,
+            comment=error.issue.comment,
+            code_problem=error.issue.code_problem,
+        )
 
     """
     METHODS FOR RUNNING CODE
@@ -652,7 +660,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             }
             for e_type, func in exceptions_to_funcs.items():
                 if isinstance(e.exception, e_type):
-                    run_time_issue = func(e.exception)
+                    run_time_issue = func(e.exception, e)
                     break
             else:
                 run_time_issue = self._get_issue_for_regular_exception_or_warning(e, code_runner)
