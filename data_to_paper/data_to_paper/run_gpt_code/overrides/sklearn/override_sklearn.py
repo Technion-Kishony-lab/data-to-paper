@@ -18,8 +18,8 @@ def sklearn_override():
         def wrapped(self, *args, **kwargs):
             if getattr(self, '_fit_was_called', False):
                 raise RuntimeWarning("The fit function was already called on this object.")
-            self._fit_was_called = True
             result = original_func(self, *args, **kwargs)
+            self._fit_was_called = True
             return result
         wrapped.is_wrapped = True
         return wrapped

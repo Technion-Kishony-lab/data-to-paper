@@ -30,7 +30,7 @@ def scipy_override():
             try:
                 asdict = {k.strip('_'): v for k, v in result._asdict().items()}
                 if 'pvalue' in asdict:
-                    asdict['pvalue'] = PValue(asdict['pvalue'], created_by=original_func.__name__)
+                    asdict['pvalue'] = PValue.from_value(asdict['pvalue'], created_by=original_func.__name__)
                     result = type(result)(**asdict)
             except (AttributeError, TypeError, ValueError):
                 pass
