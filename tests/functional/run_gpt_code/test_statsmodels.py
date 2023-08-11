@@ -37,6 +37,31 @@ def test_statsmodels_label_pvalues(func):
             assert pval.created_by == func.__name__
 
 
+def test_statsmodels_logit():
+    with statsmodels_override():
+        # Example data
+        data = {
+            'X': [1, 2, 3, 4, 5],
+            'Y': [0, 0, 1, 1, 1]
+        }
+        df = pd.DataFrame(data)
+
+        # Split into features and target
+        X = df['X']
+        y = df['Y']
+
+        # Add a constant to the predictor variables (it's a requirement for statsmodels)
+        X = sm.add_constant(X)
+
+        # Fit the logistic regression model
+        model = sm.Logit(y, X)
+        results = model.fit()
+
+        pval = results.pvalues[0]
+        assert isinstance(pval, PValue)
+        assert pval.created_by == 'Logit'
+
+
 def test_statsmodels_ols():
     with statsmodels_override():
         # Example of using the ols function, not the class

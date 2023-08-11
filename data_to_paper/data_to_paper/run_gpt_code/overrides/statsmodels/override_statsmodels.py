@@ -1,11 +1,13 @@
 import functools
 import warnings
 
+import numpy as np
+import pandas as pd
 import statsmodels.api
 
 # from .pvalue_dtype import PValueDtype
 from ..attr_replacers import method_replacer
-from ..types import PValue
+from ..types import PValue, convert_to_p_value
 
 
 def _get_summary2_func(self, original_func):
@@ -50,17 +52,18 @@ def statsmodels_override():
             self._fit_was_called = True
 
             # Replace the pvalues attribute if it exists
-            created_by = self.__class__.__name__
-            try:
-                # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
-                if hasattr(result, 'pvalues'):
-                    result.pvalues = result.pvalues.apply(functools.partial(PValue.from_value, created_by=created_by))
-                for p_val_name in ['f_pvalue', 'pvalue']:
-                    if hasattr(result, p_val_name):
-                        setattr(result, p_val_name, PValue.from_value(getattr(result, p_val_name),
-                                                                      created_by=created_by))
-            except (AttributeError, TypeError, ValueError):
-                pass
+            # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
+            for attr in ['pvalues', 'f_pvalue', 'pvalue']:
+                if not hasattr(result, attr):
+                    continue
+                pvalues = getattr(result, attr)
+                pvalues = convert_to_p_value(pvalues, created_by=self.__class__.__name__)
+                try:
+                    setattr(result, attr, pvalues)
+                except AttributeError:
+                    if attr in getattr(result, '_cache', {}):
+                        result._cache[attr] = pvalues
+                        
             if hasattr(result, 'summary2'):
                 original_summary2 = result.summary2
                 result.summary2 = _get_summary2_func(self, original_summary2)

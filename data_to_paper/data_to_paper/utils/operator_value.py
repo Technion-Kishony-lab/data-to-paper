@@ -51,9 +51,6 @@ class OperatorValue:
     def __init__(self, value):
         self.value = value
 
-    def __repr__(self):
-        return f'PValueFloat({self.value})'
-
     def __eq__(self, other):
         return self.value == other.value
 
