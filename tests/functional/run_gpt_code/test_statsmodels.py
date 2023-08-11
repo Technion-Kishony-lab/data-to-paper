@@ -5,11 +5,12 @@ from scipy.stats import stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 
-from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import statsmodels_override
-from data_to_paper.run_gpt_code.overrides.statsmodels.pvalue_dtype import PValueFloat
-from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import scipy_override
+from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
+from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsOverride
+from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
 from data_to_paper.run_gpt_code.overrides.types import PValue
 from statsmodels.formula.api import ols
+
 
 @pytest.mark.parametrize('func', [
     sm.OLS,
@@ -18,7 +19,7 @@ from statsmodels.formula.api import ols
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with statsmodels_override():
+    with StatsmodelsOverride():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -38,22 +39,12 @@ def test_statsmodels_label_pvalues(func):
 
 
 def test_statsmodels_logit():
-    with statsmodels_override():
+    with StatsmodelsOverride():
         # Example data
-        data = {
-            'X': [1, 2, 3, 4, 5],
-            'Y': [0, 0, 1, 1, 1]
-        }
-        df = pd.DataFrame(data)
-
-        # Split into features and target
-        X = df['X']
-        y = df['Y']
-
-        # Add a constant to the predictor variables (it's a requirement for statsmodels)
+        X = [1, 2, 3, 4, 5]
+        y = [0, 0, 1, 1, 1]
         X = sm.add_constant(X)
 
-        # Fit the logistic regression model
         model = sm.Logit(y, X)
         results = model.fit()
 
@@ -63,7 +54,7 @@ def test_statsmodels_logit():
 
 
 def test_statsmodels_ols():
-    with statsmodels_override():
+    with StatsmodelsOverride():
         # Example of using the ols function, not the class
         data = sm.datasets.longley.load().data
         results = ols('TOTEMP ~ GNPDEFL', data=data).fit()
@@ -71,14 +62,39 @@ def test_statsmodels_ols():
         assert isinstance(pval, PValue)
 
 
+def test_statsmodels_raise_on_multiple_fit_calls():
+    with StatsmodelsOverride():
+        # Example data
+        data = sm.datasets.longley.load()
+        X = sm.add_constant(data.exog)
+        y = data.endog
+        model = sm.OLS(y, X)
+        model.fit()
+        with pytest.raises(RuntimeWarning):
+            model.fit()
+
+
+def test_sklean_raise_on_multiple_fit_calls():
+    from sklearn.linear_model import LinearRegression
+    with SklearnOverride():
+        # Example data
+        data = sm.datasets.longley.load()
+        X = sm.add_constant(data.exog)
+        y = data.endog
+        model = LinearRegression()
+        model.fit(X, y)
+        with pytest.raises(RuntimeWarning):
+            model.fit(X, y)
+
+
 def test_df_describe_under_label_pvalues():
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    with statsmodels_override():
+    with StatsmodelsOverride():
         df.describe()
 
 
 def test_scipy_label_pvalues():
-    with scipy_override():
+    with ScipyOverride():
         # Example data
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0

@@ -1,27 +1,27 @@
 import functools
+import inspect
+from dataclasses import dataclass
 
 import scipy
 
-from data_to_paper.run_gpt_code.overrides.attr_replacers import func_replacer
-
-import inspect
+from data_to_paper.run_gpt_code.overrides.attr_replacers import FuncReplacerContext
 
 from ..types import PValue
 
 
-def scipy_override():
-    """
-    A context manager that replaces the pvalues attribute of all scipy hypothesis test functions with a
-    PValueDtype.
-    """
-    def should_replace_func(module, func_name):
-        obj = getattr(module, func_name)
-        doc = inspect.getdoc(obj)
+@dataclass
+class ScipyOverride(FuncReplacerContext):
+    base_module: object = scipy
+
+    @staticmethod
+    def _should_replace(module, func_name, func) -> bool:
+        doc = inspect.getdoc(func)
         if doc and "p-value" in doc:
             return True
         return False
 
-    def fit_wrapper(original_func):
+    def custom_wrapper(self, original_func):
+
         @functools.wraps(original_func)
         def wrapped(*args, **kwargs):
             result = original_func(*args, **kwargs)
@@ -35,7 +35,5 @@ def scipy_override():
             except (AttributeError, TypeError, ValueError):
                 pass
             return result
-        wrapped.is_wrapped = True
-        return wrapped
 
-    return func_replacer(scipy, fit_wrapper, should_replace_func)
+        return wrapped

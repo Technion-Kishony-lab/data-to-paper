@@ -22,6 +22,7 @@ T = TypeVar('T', bound='MyClass')
 
 @dataclass
 class BaseRunContext:
+    calling_module_name = 'data-to-paper'
     PROCESS_AND_NAME_TO_OBJECT = {}
     _is_enabled: bool = True
 
@@ -46,6 +47,11 @@ class BaseRunContext:
         tb = traceback.extract_stack()
         filename = tb[-3].filename
         return filename.endswith(module_filename)
+
+    def _is_called_from_data_to_paper(self) -> bool:
+        tb = traceback.extract_stack()
+        filename = tb[-3].filename
+        return self.calling_module_name in filename
 
     @classmethod
     def get_runtime_object(cls: Type[T]) -> T:
@@ -108,6 +114,7 @@ class ProvideData(BaseRunContext):
         return self.data[key]
 
 
+@dataclass
 class IssueCollector(BaseRunContext):
 
     def __init__(self, issues: List[RunIssue] = None):

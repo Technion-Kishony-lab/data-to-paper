@@ -1,13 +1,10 @@
 import functools
-import warnings
+from dataclasses import dataclass
 
-import numpy as np
-import pandas as pd
 import statsmodels.api
 
-# from .pvalue_dtype import PValueDtype
-from ..attr_replacers import method_replacer
-from ..types import PValue, convert_to_p_value
+from ..attr_replacers import MethodReplacerContext
+from ..types import convert_to_p_value
 
 
 def _get_summary2_func(self, original_func):
@@ -27,29 +24,33 @@ def _get_summary2_func(self, original_func):
 
         pval_names = [name for name in table1.columns if name.startswith('P>')]
         for pval_name in pval_names:
-            # table1[pval_name] = table1[pval_name].astype(PValueDtype(self.__class__.__name__))
-            table1[pval_name] = table1[pval_name].apply(functools.partial(PValue.from_value,
-                                                                          created_by=self.__class__.__name__))
+            table1[pval_name] = convert_to_p_value(table1[pval_name], created_by=self.__class__.__name__)
         return result
 
     return custom_summary2
 
 
-def statsmodels_override():
+@dataclass
+class StatsmodelsOverride(MethodReplacerContext):
     """
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
-    PValueDtype.
+    PValue.
     """
-    def should_replace_func(obj, attr_name):
+    base_module: object = statsmodels
+
+    @staticmethod
+    def _should_replace(parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
 
-    def fit_wrapper(original_func):
+    def custom_wrapper(self, original_func):
+
         @functools.wraps(original_func)
-        def wrapped(self, *args, **kwargs):
-            if getattr(self, '_fit_was_called', False):
-                raise RuntimeWarning("The fit function was already called on this object.")
-            result = original_func(self, *args, **kwargs)
-            self._fit_was_called = True
+        def wrapped(obj, *args, **kwargs):
+            if self._is_called_from_data_to_paper():
+                if getattr(obj, '_fit_was_called', False):
+                    raise RuntimeWarning(f"The `{original_func.__name__}` function was already called on this object.")
+                obj._fit_was_called = True
+            result = original_func(obj, *args, **kwargs)
 
             # Replace the pvalues attribute if it exists
             # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
@@ -57,18 +58,16 @@ def statsmodels_override():
                 if not hasattr(result, attr):
                     continue
                 pvalues = getattr(result, attr)
-                pvalues = convert_to_p_value(pvalues, created_by=self.__class__.__name__)
+                pvalues = convert_to_p_value(pvalues, created_by=obj.__class__.__name__)
                 try:
                     setattr(result, attr, pvalues)
                 except AttributeError:
                     if attr in getattr(result, '_cache', {}):
                         result._cache[attr] = pvalues
-                        
+
             if hasattr(result, 'summary2'):
                 original_summary2 = result.summary2
-                result.summary2 = _get_summary2_func(self, original_summary2)
+                result.summary2 = _get_summary2_func(obj, original_summary2)
             return result
-        wrapped.is_wrapped = True
-        return wrapped
 
-    return method_replacer(statsmodels, fit_wrapper, should_replace_func)
+        return wrapped

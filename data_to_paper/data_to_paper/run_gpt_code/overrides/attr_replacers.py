@@ -1,7 +1,12 @@
+import functools
+import traceback
+from dataclasses import dataclass
 from typing import Callable
 
 import inspect
 from contextlib import contextmanager
+
+from data_to_paper.run_gpt_code.run_context import BaseRunContext
 
 
 def _carefully_get_members(module):
@@ -27,65 +32,67 @@ def get_all_submodules(module, visited=None):
     return all_submodules
 
 
-@contextmanager
-def method_replacer(module, custom_func_wrapper: Callable, should_replace_func: Callable, recursive: bool = True):
-    """
-    Replace specific methods in a module and all its submodules with a custom wrapper function.
-    `custom_func_wrapper` should be a function that takes the original function as its only argument.
-    `should_replace_func` should be a function that takes the class and attribute name of the function
-    and returns True if the function should be replaced.
-    `recursive` determines whether to replace functions in submodules as well.
-    """
-    originals = {}
+@dataclass
+class AttrReplacerContext(BaseRunContext):
+    base_module: object = None
+    recursive: bool = True
 
-    all_modules = [module]
-    if recursive:
-        all_modules += get_all_submodules(module)
+    _originals: dict = None
 
-    visited_classes = set()
-    for mod in all_modules:
-        for name, obj in _carefully_get_members(mod):
-            if inspect.isclass(obj) and obj not in visited_classes:
-                visited_classes.add(obj)
-                for attr_name, attr_obj in _carefully_get_members(obj):
-                    if attr_name in obj.__dict__ and inspect.isfunction(attr_obj) \
-                            and should_replace_func(obj, attr_name):
-                        original_func = getattr(obj, attr_name)
-                        if getattr(original_func, 'is_wrapped', False):
-                            continue
-                        originals[(obj, attr_name)] = original_func
-                        setattr(obj, attr_name, custom_func_wrapper(original_func))
-    try:
-        yield
-    finally:
-        for (obj, attr_name), original_func in originals.items():
-            setattr(obj, attr_name, original_func)
+    def _get_all_modules(self) -> list:
+        all_modules = [self.base_module]
+        if self.recursive:
+            all_modules += get_all_submodules(self.base_module)
+        return all_modules
+
+    def _get_all_parents(self) -> set:
+        return NotImplemented
+
+    def _is_right_type(self, obj) -> bool:
+        return NotImplemented
+
+    @staticmethod
+    def _should_replace(parent, attr_name, attr) -> bool:
+        return NotImplemented
+
+    def custom_wrapper(self, original_func):
+        return NotImplemented
+
+    def __enter__(self):
+        self._originals = {}
+
+        for parent in self._get_all_parents():
+            for attr_name, attr_obj in parent.__dict__.items():
+                if (parent, attr_name) not in self._originals \
+                        and self._is_right_type(attr_obj) \
+                        and self._should_replace(parent, attr_name, attr_obj):
+                    original = getattr(parent, attr_name)
+                    assert original is attr_obj
+                    self._originals[(parent, attr_name)] = original
+                    setattr(parent, attr_name, self.custom_wrapper(original))
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for (parent, attr_name), original in self._originals.items():
+            setattr(parent, attr_name, original)
 
 
-@contextmanager
-def func_replacer(module, custom_func_wrapper: Callable, should_replace_func: Callable, recursive: bool = True):
-    """
-    Replace specific funcs in a module and all its submodules with a custom wrapper function.
-    `custom_func_wrapper` should be a function that takes the original function as its only argument.
-    `should_replace_func` should be a function that takes the class and attribute name of the function
-    and returns True if the function should be replaced.
-    `recursive` determines whether to replace functions in submodules as well.
-    """
-    originals = {}
+class MethodReplacerContext(AttrReplacerContext):
+    def _get_all_parents(self) -> list:
+        classes = []
+        for mod in self._get_all_modules():
+            for name, obj in _carefully_get_members(mod):
+                if inspect.isclass(obj) and obj not in classes:
+                    classes.append(obj)
+        return classes
 
-    all_modules = [module]
-    if recursive:
-        all_modules += get_all_submodules(module)
+    def _is_right_type(self, obj) -> bool:
+        return inspect.isfunction(obj) or inspect.ismethod(obj)
 
-    for mod in all_modules:
-        for func_name, func in _carefully_get_members(mod):
-            if inspect.isfunction(func) and should_replace_func(mod, func_name):
-                if getattr(func, 'is_wrapped', False):
-                    continue
-                originals[(mod, func_name)] = func
-                setattr(mod, func_name, custom_func_wrapper(func))
-    try:
-        yield
-    finally:
-        for (mod, func_name), original_func in originals.items():
-            setattr(mod, func_name, original_func)
+
+class FuncReplacerContext(AttrReplacerContext):
+    def _get_all_parents(self) -> list:
+        return self._get_all_modules()
+
+    def _is_right_type(self, obj) -> bool:
+        return inspect.isfunction(obj)
+
