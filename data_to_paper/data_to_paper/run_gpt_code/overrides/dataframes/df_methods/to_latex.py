@@ -40,6 +40,7 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
             df.index.names = type(df.index.names)([carefully_replace_special_latex_chars(name)
                                                    for name in df.index.names])
     df.index = df.index.map(carefully_replace_special_latex_chars)
+    df.index.name = carefully_replace_special_latex_chars(df.index.name)
     df.columns = df.columns.map(carefully_replace_special_latex_chars)
     return df
 

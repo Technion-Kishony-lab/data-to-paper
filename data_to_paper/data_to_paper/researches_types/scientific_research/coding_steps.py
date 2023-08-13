@@ -430,10 +430,10 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         the results of the statistical analysis.
         
         For each such scientific table, create a dataframe and save it to a tex file using my custom function:
-        `to_latex_with_note(df, filename: str, \
-        caption=str, note: str = None, legend: Dict[str, str] = None, **kwargs)`
+        `to_latex_with_note(df, filename: str, caption: str, label: str, \
+        note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
-        This function calls pandas `df.to_latex(filename, caption=caption, **kwargs)` method, \
+        This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
         and allows adding below the table an optional note (if `note` is provided) as well as an optional \
         legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
 

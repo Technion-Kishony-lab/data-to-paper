@@ -9,7 +9,7 @@ from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import Sklear
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
 from data_to_paper.run_gpt_code.overrides.types import PValue
-from statsmodels.formula.api import ols
+from statsmodels.formula.api import ols, logit
 
 
 @pytest.mark.parametrize('func', [
@@ -51,6 +51,19 @@ def test_statsmodels_logit():
         pval = results.pvalues[0]
         assert isinstance(pval, PValue)
         assert pval.created_by == 'Logit'
+
+
+def test_statsmodels_logit_func():
+    with StatsmodelsOverride():
+        # Example data
+        X = [1, 2, 3, 4, 5]
+        y = [0, 0, 1, 1, 1]
+
+        results = logit('y ~ X', data=pd.DataFrame({'y': y, 'X': X})).fit()
+        table2 = results.summary2().tables[1].iloc[:, 0:4]
+        table2.columns = ['coef', 'std err', 'z', 'P>|z|']
+        P = table2['P>|z|']
+        as_float = P.astype(float)
 
 
 def test_statsmodels_ols():

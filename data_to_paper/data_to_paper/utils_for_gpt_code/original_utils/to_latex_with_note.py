@@ -31,7 +31,7 @@ THREEPARTTABLE_WIDE = r"""\begin{table}[h]<caption><label>
 """
 
 
-def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], *args,
+def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str = None, label: str = None,
                        note: str = None,
                        legend: Dict[str, str] = None,
                        is_wide: bool = True,
@@ -40,14 +40,11 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], *args,
     Create a latex table with a note.
     Same as df.to_latex, but with a note and legend.
     """
-    regular_latex_table = df.to_latex(*args, **kwargs)
+    regular_latex_table = df.to_latex(None, caption=None, label=None, **kwargs)
 
     tabular_part = get_tabular_block(regular_latex_table)
-    caption = kwargs.get('caption', None)
-    caption = r'\caption{' + caption + '}' if caption is not None else ''
-
-    label = kwargs.get('label', None)
-    label = r'\label{' + label + '}' if label is not None else ''
+    caption = r'\caption{' + caption + '}' if caption else ''
+    label = r'\label{' + label + '}' if label else ''
 
     note_and_legend = ''
     if note:

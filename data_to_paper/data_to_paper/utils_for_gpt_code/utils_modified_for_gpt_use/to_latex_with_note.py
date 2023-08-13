@@ -20,7 +20,7 @@ KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.'
 P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
 
 
-def _to_latex_with_note(df: pd.DataFrame, filename: str, *args,
+def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, label: str = None,
                         note: str = None,
                         legend: Dict[str, str] = None,
                         columns: List[str] = None,
@@ -52,23 +52,23 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, *args,
     if columns is not None:
         df = df[columns]
 
-    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
+    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
 
-    issues = _check_for_issues(latex, df, filename, *args, note=note, legend=legend, **kwargs)
+    issues = _check_for_issues(latex, df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
     IssueCollector.get_runtime_object().add_issues(issues)
 
     return latex
 
 
-def _to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
-                                  note: str = None,
-                                  legend: Dict[str, str] = None,
-                                  **kwargs):
+def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
+                                 note: str = None,
+                                 legend: Dict[str, str] = None,
+                                 **kwargs):
     assert 'columns' not in kwargs, "assumes columns is None"
     index = kwargs.pop('index', True)
     header = kwargs.pop('header', True)
     header, index = index, header
-    return _to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
+    return to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
 
 def is_name_an_unknown_abbreviation(name: str) -> bool:
@@ -278,7 +278,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
         ))
     elif e > 1.1:
         # Try to compile the transposed table:
-        latex_transpose = _to_latex_with_note_transpose(df, None, *args, note=note, legend=legend, **kwargs)
+        latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend, **kwargs)
         with BaseRunContext.disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:

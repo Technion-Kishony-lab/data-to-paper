@@ -6,11 +6,12 @@ import statsmodels.api
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import MethodReplacerContext
 from ..types import convert_to_p_value
+from ...types import RunIssue, RunUtilsError, CodeProblem
 
 
 def _get_summary2_func(self, original_func):
     """
-    Get the summary2 function of a statsmodels class.
+    Get the overridden summary2 function of a statsmodels class.
     """
 
     def custom_summary2(*args, **kwargs):
@@ -29,6 +30,24 @@ def _get_summary2_func(self, original_func):
         return result
 
     return custom_summary2
+
+
+def _get_summary_func(self, original_func):
+    """
+    Get the overridden summary function of a statsmodels class.
+    """
+
+    def custom_summary(*args, **kwargs):
+        """
+        Prevents the use of the summary function.
+        """
+        raise RunUtilsError(RunIssue(
+            issue=f"Do not use the `summary` function of statsmodels.",
+            instructions=f"Use the `summary2` function instead.",
+            code_problem=CodeProblem.NonBreakingRuntimeIssue,
+        ))
+
+    return custom_summary
 
 
 @dataclass
@@ -70,6 +89,10 @@ class StatsmodelsOverride(MethodReplacerContext):
                 if hasattr(result, 'summary2'):
                     original_summary2 = result.summary2
                     result.summary2 = _get_summary2_func(obj, original_summary2)
+
+                if hasattr(result, 'summary'):
+                    original_summary = result.summary
+                    result.summary = _get_summary_func(obj, original_summary)
             return result
 
         return wrapped

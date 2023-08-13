@@ -1,8 +1,10 @@
 import functools
+import inspect
 
 import numpy as np
 import pandas as pd
 
+from data_to_paper.run_gpt_code.types import RunUtilsError, RunIssue, CodeProblem
 from data_to_paper.utils.operator_value import OperatorValue
 
 
@@ -15,11 +17,21 @@ class PValue(OperatorValue):
         super().__init__(value)
         self.created_by = created_by
 
+    def _forbidden_func(self, func):
+        raise ValueError(
+            f"Note that `{self.created_by}` now returns a P-Value object.\n"
+            f"Calling `{func.__name__}` on it is forbidden.\n"
+            f"Use `format_p_value` instead.\n"
+        )
+
     def __str__(self):
-        return f'PValue({self.value})'
+        return self._forbidden_func(str)
 
     def __repr__(self):
-        return str(self)
+        return self._forbidden_func(repr)
+
+    def __float__(self):
+        return self._forbidden_func(float)
 
     @classmethod
     def from_value(cls, value, created_by: str = None):
