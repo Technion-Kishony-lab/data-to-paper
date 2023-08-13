@@ -266,7 +266,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         I especially want you to:
         (1) Make sure that the abstract clearly states the main results of the paper \
         (see above the {paper_sections:results}).
-        (2) Make sure that the abstract correctly defines the literature gap \
+        (2) Make sure that the abstract correctly defines the literature gap/question/motivation \
         (see above Literature Searches for list of related papers).
 
         {latex_instructions}
@@ -297,7 +297,9 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         (cite relevant papers from the above "{literature_search:writing:background}"). 
 
         * Explain what was already done and known on the topic, and what is then the research gap/question \
-        (cite relevant papers from the above "{literature_search:writing:results}"). 
+        (cite relevant papers from the above "{literature_search:writing:results}"). If there is only a minor gap, \
+        you can use language such as "Yet, it is still unclear ...", "However, less is known about ...", \
+        etc.
 
         * State how the current paper addresses this gap/question \
         (cite relevant papers from the above "{literature_search:writing:dataset}" and \
