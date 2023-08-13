@@ -23,7 +23,8 @@ def _check_argument_for_format_p_value(x):
     if not isinstance(x, PValue):
         raise RunUtilsError(
             RunIssue(
-                code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                issue=f"format_p_value should only be applied to P-values",
+                code_problem=CodeProblem.RuntimeError,
+                issue=f"It seems like you are applying format_p_value to some values that are not P-values.",
+                instructions=f"No need to apply format_p_value to these values.",
             )
         )

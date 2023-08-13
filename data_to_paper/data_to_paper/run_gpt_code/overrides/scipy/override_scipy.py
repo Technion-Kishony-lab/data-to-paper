@@ -14,14 +14,13 @@ from ..types import PValue
 class ScipyOverride(FuncReplacerContext):
     base_module: object = scipy
 
-    @staticmethod
-    def _should_replace(module, func_name, func) -> bool:
+    def _should_replace(self, module, func_name, func) -> bool:
         doc = inspect.getdoc(func)
         if doc and "p-value" in doc:
             return True
         return False
 
-    def custom_wrapper(self, original_func):
+    def custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(*args, **kwargs):

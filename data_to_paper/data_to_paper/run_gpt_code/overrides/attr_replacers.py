@@ -51,11 +51,10 @@ class AttrReplacerContext(BaseRunContext):
     def _is_right_type(self, obj) -> bool:
         return NotImplemented
 
-    @staticmethod
-    def _should_replace(parent, attr_name, attr) -> bool:
+    def _should_replace(self, parent, attr_name, attr) -> bool:
         return NotImplemented
 
-    def custom_wrapper(self, original_func):
+    def custom_wrapper(self, parent, attr_name, original_func):
         return NotImplemented
 
     def __enter__(self):
@@ -69,7 +68,7 @@ class AttrReplacerContext(BaseRunContext):
                     original = getattr(parent, attr_name)
                     assert original is attr_obj
                     self._originals[(parent, attr_name)] = original
-                    setattr(parent, attr_name, self.custom_wrapper(original))
+                    setattr(parent, attr_name, self.custom_wrapper(parent, attr_name, original))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for (parent, attr_name), original in self._originals.items():

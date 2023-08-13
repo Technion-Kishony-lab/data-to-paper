@@ -19,7 +19,7 @@ class PValue(OperatorValue):
 
     def _forbidden_func(self, func):
         raise ValueError(
-            f"Note that `{self.created_by}` now returns a P-Value object.\n"
+            f"Note that `{self.created_by}` now returns a PValue object.\n"
             f"Calling `{func.__name__}` on it is forbidden.\n"
             f"Use `format_p_value` instead.\n"
         )

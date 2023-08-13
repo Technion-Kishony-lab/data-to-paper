@@ -44,7 +44,7 @@ def _get_summary_func(self, original_func):
         raise RunUtilsError(RunIssue(
             issue=f"Do not use the `summary` function of statsmodels.",
             instructions=f"Use the `summary2` function instead.",
-            code_problem=CodeProblem.NonBreakingRuntimeIssue,
+            code_problem=CodeProblem.RuntimeError,
         ))
 
     return custom_summary
@@ -58,11 +58,10 @@ class StatsmodelsOverride(MethodReplacerContext):
     """
     base_module: object = statsmodels
 
-    @staticmethod
-    def _should_replace(parent, attr_name, attr) -> bool:
+    def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
 
-    def custom_wrapper(self, original_func):
+    def custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):

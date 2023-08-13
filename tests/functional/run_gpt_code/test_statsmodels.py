@@ -2,6 +2,7 @@ import pytest
 import statsmodels.api as sm
 import pandas as pd
 from scipy.stats import stats
+from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 
@@ -114,6 +115,17 @@ def test_scipy_label_pvalues():
         t_statistic, p_value = stats.ttest_1samp(data, popmean)
         assert type(p_value) == PValue
         assert p_value.created_by == 'ttest_1samp'
+
+
+@pytest.mark.skip()
+def test_scipy_stats_t_sf():
+    # test stats.t.sf
+    with ScipyOverride():
+        # Example data
+        t_statistic = 3.0
+        df = 10
+        p_value = scipy_stats.t.sf(t_statistic, df)
+        assert type(p_value) == PValue
 
 
 def test_pvalue_from_dict():

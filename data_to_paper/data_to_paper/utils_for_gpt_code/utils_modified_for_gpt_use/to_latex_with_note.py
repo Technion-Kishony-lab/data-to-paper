@@ -10,7 +10,7 @@ from data_to_paper.env import TRACK_P_VALUES
 
 from data_to_paper.run_gpt_code.run_context import BaseRunContext, ProvideData, IssueCollector
 
-from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
 
 from ..original_utils import to_latex_with_note
 from ..original_utils.format_p_value import P_VALUE_MIN
@@ -52,10 +52,10 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     if columns is not None:
         df = df[columns]
 
-    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
-
-    issues = _check_for_issues(latex, df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
+    issues = _check_for_issues(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
     IssueCollector.get_runtime_object().add_issues(issues)
+
+    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
 
     return latex
 
@@ -71,7 +71,7 @@ def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *arg
     return to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
 
-def is_name_an_unknown_abbreviation(name: str) -> bool:
+def is_unknown_abbreviation(name: str) -> bool:
     """
     Check if the name is abbreviated.
     """
@@ -88,9 +88,12 @@ def is_name_an_unknown_abbreviation(name: str) -> bool:
     if len(name) == 1:
         return True
 
+    if len(re.split(r' ', name)) >= 3:
+        return False
     if '.' in name or ':' in name or '_' in name:
         return True
-    if name.islower() or name.istitle() or (name[0].isupper() and name[1:].islower()):
+    words = re.split(r'[-_ ]', name)
+    if all((word.islower() or word.istitle()) for word in words):
         return False
     return True
 
@@ -109,7 +112,7 @@ def _is_non_integer_numeric(value) -> bool:
     return True
 
 
-def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
+def _check_for_issues(df: pd.DataFrame, filename: str, *args,
                       note: str = None,
                       legend: Dict[str, str] = None,
                       **kwargs) -> List[RunIssue]:
@@ -127,6 +130,27 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     """
     TABLE CONTENT
     """
+
+    # Check P-value formatting
+    if TRACK_P_VALUES:
+        for column_header in columns:
+            data = df[column_header]
+            # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
+            for v in data:
+                if isinstance(v, PValue) and v.value < P_VALUE_MIN:
+                    raise RunUtilsError(
+                        RunIssue(
+                            category='P-value formatting',
+                            code_problem=CodeProblem.RuntimeError,
+                            item=filename,
+                            issue='P-values should be formatted with `format_p_value`',
+                            instructions=dedent_triple_quote_str(f"""
+                                In particular, the p-value column "{column_header}" should be formatted as:
+                                `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                                """),
+                        ))
+
+    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
 
     # Check table compilation
     compilation_func = ProvideData.get_item('compile_to_pdf_func')
@@ -325,25 +349,6 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
-    # Check P-value formatting
-    if TRACK_P_VALUES:
-        for column_header in columns:
-            data = df[column_header]
-            # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-            for v in data:
-                if isinstance(v, PValue) and v.value < P_VALUE_MIN:
-                    issues.append(RunIssue(
-                        category='P-value formatting',
-                        code_problem=CodeProblem.OutputFileContentLevelB,
-                        item=filename,
-                        issue='P-values should be formatted with `format_p_value`',
-                        instructions=dedent_triple_quote_str(f"""
-                            In particular, the p-value column "{column_header}" should be formatted as:
-                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
-                            """),
-                    ))
-                    break
-
     """
     TABLE DESIGN
     """
@@ -424,7 +429,7 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
     else:
         headers = []
     headers += [name for name in columns]
-    abbr_names = [name for name in headers if is_name_an_unknown_abbreviation(name)]
+    abbr_names = [name for name in headers if is_unknown_abbreviation(name)]
     un_mentioned_abbr_names = [name for name in abbr_names if name not in legend]
     if un_mentioned_abbr_names:
         instructions = dedent_triple_quote_str("""
