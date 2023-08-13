@@ -1,3 +1,10 @@
+"""
+This file is obsolete. It was used to create a custom p-value dtype for statsmodels to be used with
+PValueFloat which inherits from float.
+We now use a PValue object class instead of the PValueFloat(float) class.
+"""
+
+
 from __future__ import annotations
 
 import operator

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import statsmodels.api
 
+from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import MethodReplacerContext
 from ..types import convert_to_p_value
 
@@ -14,8 +15,8 @@ def _get_summary2_func(self, original_func):
 
     def custom_summary2(*args, **kwargs):
         """
-        A custom summary2 function that replaces the pvalues attribute of the summary tables with a PValueDtype.
-        Replaces "P>|t|" and "P>|z|" with PValueDtype.
+        A custom summary2 function that replaces the pvalues attribute of the summary tables with a PValue objects.
+        Replaces "P>|t|" and "P>|z|" with PValue objects.
         """
         result = original_func(self, *args, **kwargs)
 
@@ -52,22 +53,23 @@ class StatsmodelsOverride(MethodReplacerContext):
                 obj._fit_was_called = True
             result = original_func(obj, *args, **kwargs)
 
-            # Replace the pvalues attribute if it exists
-            # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
-            for attr in ['pvalues', 'f_pvalue', 'pvalue']:
-                if not hasattr(result, attr):
-                    continue
-                pvalues = getattr(result, attr)
-                pvalues = convert_to_p_value(pvalues, created_by=obj.__class__.__name__)
-                try:
-                    setattr(result, attr, pvalues)
-                except AttributeError:
-                    if attr in getattr(result, '_cache', {}):
-                        result._cache[attr] = pvalues
+            if TRACK_P_VALUES:
+                # Replace the pvalues attribute if it exists
+                # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
+                for attr in ['pvalues', 'f_pvalue', 'pvalue']:
+                    if not hasattr(result, attr):
+                        continue
+                    pvalues = getattr(result, attr)
+                    pvalues = convert_to_p_value(pvalues, created_by=obj.__class__.__name__)
+                    try:
+                        setattr(result, attr, pvalues)
+                    except AttributeError:
+                        if attr in getattr(result, '_cache', {}):
+                            result._cache[attr] = pvalues
 
-            if hasattr(result, 'summary2'):
-                original_summary2 = result.summary2
-                result.summary2 = _get_summary2_func(obj, original_summary2)
+                if hasattr(result, 'summary2'):
+                    original_summary2 = result.summary2
+                    result.summary2 = _get_summary2_func(obj, original_summary2)
             return result
 
         return wrapped

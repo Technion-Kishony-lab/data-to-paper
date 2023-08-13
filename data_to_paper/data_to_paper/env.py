@@ -54,6 +54,10 @@ PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
 
 os.environ['CLIENT_SERVER_MODE'] = 'False'
 
+
+# GPT code environment:
+TRACK_P_VALUES = Flag(True)
+
 # Debugging switches:
 SHOW_CHATGPT_CONTEXT = Flag(True)
 SAVE_INTERMEDIATE_LATEX = Flag(True)

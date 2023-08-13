@@ -7,6 +7,9 @@ from data_to_paper.utils.operator_value import OperatorValue
 
 
 class PValue(OperatorValue):
+    """
+    An object that represents a p-value float.
+    """
 
     def __init__(self, value, created_by: str = None):
         super().__init__(value)

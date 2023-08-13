@@ -6,12 +6,14 @@ import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.env import TRACK_P_VALUES
 
 from data_to_paper.run_gpt_code.run_context import BaseRunContext, ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 
 from ..original_utils import to_latex_with_note
+from ..original_utils.format_p_value import P_VALUE_MIN
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
@@ -324,22 +326,23 @@ def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check P-value formatting
-    for column_header in columns:
-        data = df[column_header]
-        # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-        for v in data:
-            if isinstance(v, PValue) and v.value < P_VALUE_MIN:
-                issues.append(RunIssue(
-                    category='P-value formatting',
-                    code_problem=CodeProblem.OutputFileContentLevelB,
-                    item=filename,
-                    issue='P-values should be formatted with `format_p_value`',
-                    instructions=dedent_triple_quote_str(f"""
-                        In particular, the p-value column "{column_header}" should be formatted as:
-                        `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
-                        """),
-                ))
-                break
+    if TRACK_P_VALUES:
+        for column_header in columns:
+            data = df[column_header]
+            # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
+            for v in data:
+                if isinstance(v, PValue) and v.value < P_VALUE_MIN:
+                    issues.append(RunIssue(
+                        category='P-value formatting',
+                        code_problem=CodeProblem.OutputFileContentLevelB,
+                        item=filename,
+                        issue='P-values should be formatted with `format_p_value`',
+                        instructions=dedent_triple_quote_str(f"""
+                            In particular, the p-value column "{column_header}" should be formatted as:
+                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                            """),
+                    ))
+                    break
 
     """
     TABLE DESIGN
