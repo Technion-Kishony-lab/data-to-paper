@@ -16,7 +16,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_
 from .overrides.contexts import override_statistics_packages
 
 from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector
-from .runtime_decorators import timeout_context
+from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 from .types import module_filename, MODULE_NAME
 

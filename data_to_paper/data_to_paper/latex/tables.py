@@ -1,7 +1,5 @@
 import re
-from typing import List, Optional, Dict
-
-from data_to_paper.latex.clean_latex import replace_special_latex_chars
+from typing import List, Optional
 
 
 def get_table_label(latex_table: str) -> Optional[str]:
@@ -24,30 +22,6 @@ def get_table_caption(latex_table: str) -> Optional[str]:
         return match.group(1)
 
 
-def get_tabular_block(latex_table: str) -> str:
-    """
-    Extract the tabular block of the table.
-    """
-    return re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=latex_table, flags=re.DOTALL).group(0)
-
-
-def get_table_column_headers(latex_table: str) -> Optional[List[str]]:
-    """
-    Extract the column headers of the table.
-    """
-    pattern = r'\\toprule\n(.+?) \\\\\n\\midrule'
-    header_rows = re.findall(pattern, latex_table, re.DOTALL)
-    if not header_rows:
-        return None
-    return header_rows[0].split(' & ')[1:]
-
-
-def get_table_row_names(latex_table):
-    row_pattern = r'\\textbf{([^}]+)}'
-    row_names = re.findall(row_pattern, latex_table)
-    return row_names
-
-
 def add_tables_to_paper_section(section_content: str, section_tables: List[str]) -> str:
     """
     Insert the tables into the ready_to_be_tabled_paper_sections.
@@ -64,66 +38,3 @@ def add_tables_to_paper_section(section_content: str, section_tables: List[str])
             # add the table at the end of the section
             section_content += table
     return section_content
-
-
-THREEPARTTABLE = r"""\begin{table}[htbp]
-\centering
-\begin{threeparttable}
-<caption><label><tabular>
-\begin{tablenotes}
-<note_and_legend>
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
-"""
-
-
-THREEPARTTABLE_WIDE = r"""\begin{table}[h]<caption><label>
-\begin{threeparttable}
-\renewcommand{\TPTminimum}{\linewidth}
-\makebox[\linewidth]{%
-<tabular>}
-\begin{tablenotes}
-\footnotesize
-<note_and_legend>
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
-"""
-
-
-def create_threeparttable(regular_latex_table: str, note: str, legend: Dict[str, str] = None,
-                          is_wide: bool = True) -> str:
-    """
-    Create a threeparttable from a regular latex table.
-    Add a note to the table.
-    """
-
-    tabular_part = get_tabular_block(regular_latex_table)
-    caption = get_table_caption(regular_latex_table)
-    if caption is None:
-        caption = ''
-    else:
-        caption = r'\caption{' + caption + '}'
-
-    label = get_table_label(regular_latex_table)
-    if label is None:
-        label = ''
-    else:
-        label = r'\label{' + label + '}'
-
-    note_and_legend = ''
-    if note:
-        note_and_legend += r'\item ' + replace_special_latex_chars(note) + '\n'
-    if legend:
-        for key, value in legend.items():
-            note_and_legend += r'\item \textbf{' + replace_special_latex_chars(key) + \
-                               '}: ' + replace_special_latex_chars(value) + '\n'
-    if len(note_and_legend) == 0:
-        note_and_legend = r'\item '  # add an empty item to avoid an error
-
-    template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
-    return template.replace('<tabular>', tabular_part) \
-        .replace('<caption>', caption) \
-        .replace('<label>', label) \
-        .replace('<note_and_legend>', note_and_legend)

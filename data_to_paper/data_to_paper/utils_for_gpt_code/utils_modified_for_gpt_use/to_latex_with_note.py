@@ -4,40 +4,69 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from data_to_paper.latex.tables import create_threeparttable
 from data_to_paper.utils import dedent_triple_quote_str
-from .overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue
 
-from .run_context import BaseRunContext, ProvideData, IssueCollector
+from data_to_paper.run_gpt_code.run_context import BaseRunContext, ProvideData, IssueCollector
 
-from .types import CodeProblem, RunIssue, RunUtilsError
+from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
+
+from ..original_utils import to_latex_with_note
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
 
 P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
 
 
-P_VALUE_MIN = 1e-6
+def _to_latex_with_note(df: pd.DataFrame, filename: str, *args,
+                        note: str = None,
+                        legend: Dict[str, str] = None,
+                        columns: List[str] = None,
+                        **kwargs):
+    """
+    Replacement of to_latex_with_note tp be used by ChatGPT code.
+    Same as to_latex_with_note, but also checks for issues.
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError(f'Expected `df` to be a pandas.DataFrame, got {type(df)}')
+
+    if not isinstance(filename, str):
+        raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
+
+    if not filename.endswith('.tex'):
+        raise ValueError(f'Expected `filename` to end with .tex, got {filename}')
+
+    if not isinstance(note, str) and note is not None:
+        raise ValueError(f'Expected `note` to be a string or None, got {type(note)}')
+
+    if isinstance(legend, dict):
+        if not all(isinstance(key, str) for key in legend.keys()):
+            raise ValueError(f'Expected `legend` keys to be strings, got {legend.keys()}')
+        if not all(isinstance(value, str) for value in legend.values()):
+            raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
+    elif legend is not None:
+        raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
+
+    if columns is not None:
+        df = df[columns]
+
+    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
+
+    issues = _check_for_issues(latex, df, filename, *args, note=note, legend=legend, **kwargs)
+    IssueCollector.get_runtime_object().add_issues(issues)
+
+    return latex
 
 
-def format_p_value(x):
-    if not isinstance(x, PValue) and not isinstance(x, float):
-        raise ValueError(f"format_p_value should only be applied to P-value float. But got: {type(x)}.")
-    if not isinstance(x, PValue):
-        raise RunUtilsError(
-            RunIssue(
-                code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                issue=f"format_p_value should only be applied to P-values",
-            )
-        )
-    if x.value >= 1 or x.value < 0:
-        raise RunUtilsError(
-            RunIssue(
-                code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                issue=f"format_p_value encountered a P-value of {x}",
-            )
-        )
-    return "{:.3g}".format(x) if x.value >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
+def _to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
+                                  note: str = None,
+                                  legend: Dict[str, str] = None,
+                                  **kwargs):
+    assert 'columns' not in kwargs, "assumes columns is None"
+    index = kwargs.pop('index', True)
+    header = kwargs.pop('header', True)
+    header, index = index, header
+    return _to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
 
 def is_name_an_unknown_abbreviation(name: str) -> bool:
@@ -72,77 +101,10 @@ def _is_non_integer_numeric(value) -> bool:
         return False
     if value.is_integer():
         return False
+    # check if the value is nan or inf
+    if np.isfinite(value) or np.isnan(value):
+        return False
     return True
-
-
-def to_latex_with_note(df: pd.DataFrame, filename: str, *args,
-                       note: str = None,
-                       legend: Dict[str, str] = None,
-                       columns: List[str] = None,
-                       **kwargs):
-    """
-    Create a latex table with a note.
-    Same as df.to_latex, but with a note and legend.
-    Checks for argument values and issues.
-    """
-    if not isinstance(df, pd.DataFrame):
-        raise ValueError(f'Expected `df` to be a pandas.DataFrame, got {type(df)}')
-
-    if not isinstance(filename, str):
-        raise ValueError(f'Expected `filename` to be a string, got {type(filename)}')
-
-    if not filename.endswith('.tex'):
-        raise ValueError(f'Expected `filename` to end with .tex, got {filename}')
-
-    if not isinstance(note, str) and note is not None:
-        raise ValueError(f'Expected `note` to be a string or None, got {type(note)}')
-
-    if isinstance(legend, dict):
-        if not all(isinstance(key, str) for key in legend.keys()):
-            raise ValueError(f'Expected `legend` keys to be strings, got {legend.keys()}')
-        if not all(isinstance(value, str) for value in legend.values()):
-            raise ValueError(f'Expected `legend` values to be strings, got {legend.values()}')
-    elif legend is not None:
-        raise ValueError(f'Expected legend to be a dict or None, got {type(legend)}')
-
-    if columns is not None:
-        df = df[columns]
-
-    latex = _to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
-
-    issues = _check_for_issues(latex, df, filename, *args, note=note, legend=legend, **kwargs)
-    IssueCollector.get_runtime_object().add_issues(issues)
-
-    return latex
-
-
-def _to_latex_with_note(df: pd.DataFrame, filename: Optional[str], *args,
-                        note: str = None,
-                        legend: Dict[str, str] = None,
-                        **kwargs):
-    """
-    Create a latex table with a note.
-    Same as df.to_latex, but with a note and legend.
-    No check for argument values or issues.
-    """
-    assert 'columns' not in kwargs, "assumes columns is None"
-    latex = df.to_latex(*args, **kwargs)
-    latex = create_threeparttable(latex, note, legend)
-    if filename is not None:
-        with open(filename, 'w') as f:
-            f.write(latex)
-    return latex
-
-
-def _to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
-                                  note: str = None,
-                                  legend: Dict[str, str] = None,
-                                  **kwargs):
-    assert 'columns' not in kwargs, "assumes columns is None"
-    index = kwargs.pop('index', True)
-    header = kwargs.pop('header', True)
-    header, index = index, header
-    return _to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
 
 def _check_for_issues(latex: str, df: pd.DataFrame, filename: str, *args,

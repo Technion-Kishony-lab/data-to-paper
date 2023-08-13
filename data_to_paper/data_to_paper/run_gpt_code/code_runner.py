@@ -50,7 +50,8 @@ class CodeRunner:
         """
         Modify the extracted code before running it.
         """
-        modified_code = code.replace('from my_utils', 'from data_to_paper.run_gpt_code.to_latex_with_note')
+        modified_code = code.replace('from my_utils',
+                                     'from data_to_paper.utils_for_gpt_code.utils_modified_for_gpt_use')
         modified_code = self.add_in_front_of_code + modified_code
         assert line_count(code) == line_count(modified_code) - self.lines_added_in_front_of_code
         return modified_code

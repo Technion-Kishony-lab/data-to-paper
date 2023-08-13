@@ -154,11 +154,11 @@ with open('output.txt', 'w') as f:
 def test_request_code_with_revisions(code_running_converser):
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is my first attempt:\n```python{code1}```\n',
-             '{"choice": "revise"}',
+             '{"key issue is ...": "you must make this change ..."}',
              f'Here is the improved code:\n```python{code2}```\n',
-             '{"choice": "revise"}',
+             '{"some remaining issue ...": "we need to ..."}',
              f'Here is the best code:\n```python{code3}```\n',
-             '{"choice": "ok"}',
+             'No issues now. {}',
              ],
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()

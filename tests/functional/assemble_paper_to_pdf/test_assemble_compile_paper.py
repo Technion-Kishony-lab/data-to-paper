@@ -1,9 +1,11 @@
 import os
+from unittest import mock
 
 from _pytest.fixtures import fixture
 
 from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.run_gpt_code.types import CodeAndOutput
 from data_to_paper.servers.crossref import CrossrefCitation
 
 introduction_citation = {CrossrefCitation({
@@ -20,8 +22,32 @@ introduction_citation = {CrossrefCitation({
 introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 
 
-@fixture
-def products():
+@fixture()
+def code_and_output():
+    code_and_output = mock.Mock()
+    # return value for function get_created_content_files_to_contents:
+    code_and_output.get_created_content_files_to_contents.return_value = {
+        'table_1.tex': """\\begin{table}
+\\centering
+\\begin{tabular}{ *{3}{c} }
+\\toprule
+Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
+\\midrule
+130 & 38.75 & (28.54, 48.96) \\\\
+140 & 21.31 & (9.94, 32.69)  \\\\
+150 & 15.36 & (3.61, 27.11)  \\\\
+\\bottomrule
+\\end{tabular}
+\\caption{The means and 95\\% confidence intervals for each temperature.}
+\\end{table}
+"""
+    }
+    code_and_output.to_latex.return_value = "Nice code here"
+    return code_and_output
+
+
+@fixture()
+def products(code_and_output):
     return ScientificProducts(
         paper_sections_and_optional_citations={'title': ('\\title{content of title}', set()),
                                                'abstract': (
@@ -33,20 +59,7 @@ def products():
                                                'results': ('\\section{Results}{content of results}', set()),
                                                'discussion': ('\\section{Discussion}{content of discussion}', set()),
                                                'conclusion': ('\\section{Conclusion}{content of conclusion}', set()), },
-        tables={'results': ["""\\begin{table}
-                                \\centering
-                                \\begin{tabular}{ *{3}{c} }
-                                \\toprule
-                                Temperature ($^{\\circ}$F) & Average melting time (s) & 95\\% CI \\\\
-                                \\midrule
-                                130 & 38.75 & (28.54, 48.96) \\\\
-                                140 & 21.31 & (9.94, 32.69)  \\\\
-                                150 & 15.36 & (3.61, 27.11)  \\\\
-                                \\bottomrule
-                                \\end{tabular}
-                                \\caption{The means and 95\\% confidence intervals for each temperature.}
-                                \\end{table}
-                            """]},
+        codes_and_outputs={'data_analysis': code_and_output},
     )
 
 
