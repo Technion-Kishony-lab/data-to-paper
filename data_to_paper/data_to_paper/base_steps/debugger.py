@@ -47,6 +47,15 @@ def _assert_known_mis_imports():
 _assert_known_mis_imports()
 
 
+def _get_description_of_run_error(error: Exception):
+    return dedent_triple_quote_str("""
+        I ran the code and got the following error message:
+        ```
+        {}
+        ```
+        """).format(error)
+
+
 @dataclass
 class DebuggerConverser(BackgroundProductsConverser):
     """
@@ -162,12 +171,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if package_base not in self.supported_packages:
             return
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-                I ran the code and got the following error message:
-                ```
-                {}
-                ```
-                """).format(error),
+            issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
                 Note that there is a `{var}` in `{known_package}`. Is this perhaps what you needed? 
@@ -181,12 +185,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if respond_to_known_mis_imports:
             return respond_to_known_mis_imports
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-                I ran the code and got the following error message:
-                ```
-                {}
-                ```
-                """).format(error),
+            issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
                 """).format(supported_packages=self.supported_packages),
@@ -196,12 +195,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_file_not_found(self, error: FileNotFoundError, e: FailedRunningCode = None) -> RunIssue:
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-                I ran the code and got the following error message:
-                ```
-                {}
-                ```
-                """).format(error),
+            issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 As noted in the data description, we only have these files:
                 {}  
@@ -214,14 +208,8 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode,
                                                     code_runner: CodeRunner) -> RunIssue:
-        error_message = error.get_traceback_message(code_runner.lines_added_in_front_of_code)
         return RunIssue(
-            issue=dedent_triple_quote_str("""
-            I ran the code and got the following {} message:
-            ```
-            {}
-            ```
-            """).format('warning' if isinstance(error, Warning) else 'error', error_message),
+            issue=_get_description_of_run_error(error.get_traceback_message(code_runner.lines_added_in_front_of_code)),
             code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
             comment='Runtime exception in code',
         )
