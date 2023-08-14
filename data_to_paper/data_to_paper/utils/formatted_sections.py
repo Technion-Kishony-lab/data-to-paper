@@ -53,11 +53,11 @@ class FormattedSections(List[FormattedSection]):
                 text_in_quote_line = section.split('\n')[0]
                 if strip_label:
                     text_in_quote_line = text_in_quote_line.strip()
-                if not is_single_line and ' ' not in text_in_quote_line:
+                if not is_single_line and (text_in_quote_line == '' or text_in_quote_line.isalpha()):
                     label = text_in_quote_line
                     section = '\n' + '\n'.join(section.split('\n')[1:])
                 else:
-                    label = True
+                    label = ''
             else:
                 label = False
             is_last = i == len(sections) - 1

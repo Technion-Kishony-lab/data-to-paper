@@ -1,5 +1,6 @@
 import pytest
 
+from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 from data_to_paper.run_gpt_code.overrides.utils import round_floats
 
 
@@ -14,3 +15,11 @@ from data_to_paper.run_gpt_code.overrides.utils import round_floats
 ])
 def test_replace_floats(text, expected):
     assert round_floats(text) == expected
+
+
+@pytest.mark.parametrize('text, expected', [
+    ('my code: ```python\nprint("hello")\n```', 'my code: ```python\nprint("hello")\n```'),
+    ('my code: ```\nprint("hello")\n```', 'my code: ```python\nprint("hello")\n```'),
+])
+def test_add_label_to_first_triple_quotes_if_missing(text, expected):
+    assert add_label_to_first_triple_quotes_if_missing(text, 'python') == expected

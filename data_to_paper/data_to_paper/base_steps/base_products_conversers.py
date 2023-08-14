@@ -8,9 +8,12 @@ from .dual_converser import ReviewDialogDualConverserGPT
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer
+from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values
+from data_to_paper.conversation import Message, GeneralMessageDesignation
+
+from data_to_paper.servers.openai_models import ModelEngine
 
 
 @dataclass
@@ -57,6 +60,7 @@ class BackgroundProductsConverser(ProductsConverser):
     # If empty tuple, do not provide background information.
     # if None, this instance was called into an already running conversation by another converser
     # and should not add any new background information.
+    background_product_fields_to_hide: Tuple[str, ...] = None
 
     product_acknowledgement: str = "Thank you for the {}. \n"
     goal_noun: str = None
@@ -111,14 +115,17 @@ class BackgroundProductsConverser(ProductsConverser):
         return NiceList([name for name in self.actual_background_product_names],
                         wrap_with='', separator='\n', empty_str='NO BACKGROUND PRODUCTS')
 
+    def _get_product_tags(self, product_field: str) -> Tuple[str, str]:
+        return f'background_{product_field}', f'background_thanks_{product_field}',
+
     def _get_acknowledgement_and_tag(self, product_field: str) -> Tuple[str, str]:
         thank_you_message = self.product_acknowledgement.format(self.products.get_name(product_field))
-        tag = f'background_thanks_{product_field}'
+        _, tag = self._get_product_tags(product_field)
         return thank_you_message, tag
 
     def get_product_description_and_tag(self, product_field: str) -> Tuple[str, str]:
         product_description = self.products.get_description(product_field)
-        tag = f'background_{product_field}'
+        tag, _ = self._get_product_tags(product_field)
         return product_description, tag
 
     def _add_acknowledgement(self, product_field: str, is_last: bool = False):
@@ -155,6 +162,31 @@ class BackgroundProductsConverser(ProductsConverser):
             if self.post_background_comment:
                 self.comment(self.post_background_comment, tag='after_background', web_conversation_name=None)
         return super()._pre_populate_background()
+
+    def apply_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
+                                               comment: Optional[StrOrReplacer] = None,
+                                               is_code: bool = False, previous_code: Optional[str] = None,
+                                               model_engine: Optional[ModelEngine] = None,
+                                               hidden_messages: GeneralMessageDesignation = None,
+                                               expected_tokens_in_response: int = None,
+                                               background_product_fields_to_hide: Optional[Tuple[str, ...]] = None,
+                                               **kwargs) -> Message:
+        """
+        Apply get and append assistant message.
+        Allows hiding specific background product fields.
+        """
+        background_product_fields_to_hide = background_product_fields_to_hide or self.background_product_fields_to_hide
+        if hidden_messages is None and background_product_fields_to_hide:
+            hidden_messages = []
+            for product_field in background_product_fields_to_hide:
+                product_tag, thanks_tag = self._get_product_tags(product_field)
+                hidden_messages.append(product_tag)
+                hidden_messages.append(thanks_tag)
+
+        return super().apply_get_and_append_assistant_message(
+            tag=tag, comment=comment, is_code=is_code, previous_code=previous_code,
+            model_engine=model_engine, hidden_messages=hidden_messages,
+            expected_tokens_in_response=expected_tokens_in_response, **kwargs)
 
 
 @dataclass

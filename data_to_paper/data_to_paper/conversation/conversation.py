@@ -96,11 +96,11 @@ class Conversation(List[Message]):
                 return self[i]
         raise ValueError('No non-commenter message found.')
 
-    def get_message_content_by_tag(self, tag):
-        for message in self:
+    def get_message_index_by_tag(self, tag):
+        for i, message in enumerate(self):
             if message.tag == tag:
-                return message.content
-        return None
+                return i
+        raise ValueError(f'Tag {tag} not found.')
 
     def delete_last_response(self):
         assert self[-1].role.is_assistant_or_surrogate()

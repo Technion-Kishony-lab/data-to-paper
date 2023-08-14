@@ -1,20 +1,24 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type
+from typing import Optional, Tuple, Dict, Type, List
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
+from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.latex import extract_latex_section_from_response
+from data_to_paper.latex.latex_doc import LatexDocument
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
-from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name,\
+from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
+from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
+    DataOutputFileRequirement, RunIssue, CodeProblem, NumericContentOutputFileRequirement
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -61,7 +65,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
             if section is None:
                 continue
             if section in self.products.codes_and_outputs:
-                files += self.products.codes_and_outputs[section].get_created_files_beside_output_file()
+                files += self.products.codes_and_outputs[section].get_created_data_files()
         return files
 
     @property
@@ -94,14 +98,39 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
 
 @dataclass
+class DataExplorationDebugger(DebuggerConverser):
+    headers_required_in_output: Tuple[str, ...] = \
+        ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
+
+    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
+                                            filename: str, content: str) -> List[RunIssue]:
+        issues = super()._get_issues_for_output_file_content(requirement, filename, content)
+        if issues:
+            return issues
+
+        missing_headers = [header for header in self.headers_required_in_output if header not in content]
+        if missing_headers:
+            issues.append(RunIssue(
+                issue=f'The output file "{filename}" should have the following headers: '
+                      f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
+                      f'But, these headers are missing: '
+                      f'{NiceList(missing_headers, wrap_with="`")}.',
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+        return issues
+
+
+@dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
+    debugger_cls: DebuggerConverser = DataExplorationDebugger
 
     code_step: str = 'data_exploration'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
 
-    output_filename: str = 'data_exploration.txt'
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
+        (ContentOutputFileRequirement('data_exploration.txt'), )
     allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False
@@ -116,26 +145,26 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         contain a summary of the data.
 
         The output file should be self-contained; any results you choose to save to this file \
-        should be accompanied with a short text header and indication of units (if any).
+        should be accompanied with a header or a short label and indication of units (if any).
 
         The output file should be formatted as follows:
 
         ```output
-        ## Data Summary
+        # Data Size
         <Measure of the scale of our data (e.g., number of rows, number of columns)>
 
-        ## Summary statistics
+        # Summary Statistics
         <Summary statistics of all or key variables>
 
-        ## Categorical variables
+        # Categorical Variables
         <As applicable, list here categorical values and their most common values>
 
-        ## Missing values
+        # Missing Values
         <Counts of missing, unknown, or undefined values>
         <As applicable, counts of special numeric values that stand for unknown/undefined if any \
         (check in the "{all_file_descriptions}" above for any)>
 
-        ## <other summary you deem relevant, if any>
+        # <other summary you deem relevant, if any>
         <summary>
         ```
 
@@ -148,31 +177,47 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
-        ```output
-        {}
-        ```
+        I ran your code.
+
+        {created_file_contents_explanation}
 
         Please follow these two steps:
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
-        * Can results be understood from the output file; do we have short headers for each result and \
-        do all values have sensible names, etc.
-        * Do all results have units (if applicable).
-        * Are there any results that are missing. Check that under each header in the output file has a corresponding \
-        meaningful result.
+        * Can results be understood from the output file? In particular, do we have a short label for each result?
+        * Do all numeric values have units (if applicable).
+        * Are there any results that are missing. Check that under each header in the output file there is \
+        a corresponding meaningful result.
         * Any other issues you find.
 
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
 
-        (2) Based on your assessment above, choose one of the following options:
+        For example:
+        ```python
+        {
+            "The result of the average of variable ... is missing": \
+            "Add the missing calculation of to the code.",
+            "The average of the variable ... is printed without units": \
+            "Based on the data description, the units should be ...",
+        }
+        ```
 
-        a. I didn't find any issues with the output that require correcting the code, {'choice': 'ok'}.
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \
+        then return an empty dict: 
+        ```python
+        {}
+        ```
 
-        b. The data exploration is not perfect. \
-        We should revise the code to better address the above issues, {'choice': 'revise'}.
+        Important:
+        * Do not return the revised code, only the issues and suggested fixes.
+        * If there are no critical issues, then return an empty dict: `{}`.
+        * Do not create positive issues that require no change in the code. In particular, do not write \
+        {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
 
-        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
         """)  # set to None to skip option for revision
 
 
@@ -184,8 +229,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
-    output_filename: str = None
-    allowed_created_files: Tuple[str, ...] = ('*.csv',)
+
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
 
@@ -229,8 +274,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    output_filename: str = 'results.txt'
-    allowed_created_files: Tuple[str, ...] = ()
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -292,10 +336,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
-        ```output
-        {}
-        ```
+        I ran your code.
+
+        {created_file_contents_explanation}
 
         Considering the scientific tables we want to create ("{tables_names}", above), \
         please follow these two steps:
@@ -321,6 +364,207 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 @dataclass
+class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
+    max_debug_iterations_per_attempt: int = 20
+    max_code_revisions: int = 3
+    debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
+    attrs_to_send_to_debugger: Tuple[str, ...] = \
+        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', )
+
+    code_step: str = 'data_analysis'
+    background_product_fields: Tuple[str, ...] = \
+        ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
+         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan')
+    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
+        ('outputs:data_exploration', 'research_goal')
+    user_agent: ScientificAgent = ScientificAgent.Debugger
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
+
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
+        (ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('*.tex', minimal_count=1))
+    allow_dataframes_to_change_existing_series: bool = True
+    enforce_saving_altered_dataframes: bool = False
+    model_engine: ModelEngine = ModelEngine.GPT4
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
+
+        The code must have the following sections (with these exact capitalized headers):
+
+        # IMPORT
+        from my_utils import to_latex_with_note, format_p_value
+        <import here any other packages you need>
+
+        As needed, you can use the following packages which are already installed:
+        {supported_packages}
+
+
+        # LOAD DATA
+        Load the data from the original data files described above (see "{data_file_descriptions}").\
+        {list_additional_data_files_if_any}
+
+
+        # PREPROCESSING 
+        Perform any preprocessing steps needed to prepare the data for the analysis.
+        For example, as applicable:
+        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
+        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
+        consider also the "{outputs:data_exploration}").
+        * Normalization of numeric values with different units into same-unit values.
+        * Any other data preprocessing you deem relevant.
+        * If no preprocessing is needed, write: "# No preprocessing is needed, because <your reasons here>."
+
+
+        # ANALYSIS 
+        Perform the analysis and appropriate statistical tests \
+        (see above our "{hypothesis_testing_plan}").
+        The statistical analysis should account for any relevant confounding variables, as applicable. 
+        Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
+        Note that you may need to perform more than one test for each hypothesis.
+
+        # CREATE TABLES
+        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        " "{hypothesis_testing_plan}"), create 2-4 tables for our scientific paper, summarizing \
+        the results of the statistical analysis.
+
+        For each such scientific table, create a dataframe and save it to a tex file using my custom function:
+        `to_latex_with_note(df, filename: str, caption: str, label: str, \
+        note: str = None, legend: Dict[str, str] = None, **kwargs)`
+
+        This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
+        and allows adding below the table an optional note (if `note` is provided) as well as an optional \
+        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
+
+        Overall, the section should have the following structure:
+        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ... stratified by ...">
+        <write here the code to create a dataframe of table 1 and save it using \
+        `to_latex_with_note(<dataframe>, 'table_1.tex', ...)`>
+
+        ## Table 2: <your chosen table name here. e.g "Model xxx ...">
+        <write here the code to create a dateframe of table 2 and save it using \
+        `to_latex_with_note(<dataframe>, 'table_2.tex', ...)`>
+
+        etc, up to 4 tables.
+
+        When writing the code for the Tables, consider these guidelines (as applicable):
+
+        [a] List of tables to create:
+        * Create 2-4 tables relevant to our {research_goal} and {hypothesis_testing_plan}.
+        * Typically, the first table could be descriptive statistics of the data, \
+        and then we should have at least one table for each of the hypothesis tests.
+
+        [b] What to include in each table:
+        * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
+        * Nominal values should be accompanied by a measure of uncertainty (CI or STD).
+        * Exclude data not important to the research goal, or that are too technical. \
+        For example, when reporting descriptive statistics it is typically not necessary to include \
+        quartile or min/max values. 
+        * Make sure you do not repeat the same data in multiple tables.
+
+        [c] P-values:
+        If you are reporting P-values of statistical tests, convert them using the provided `format_p_value` func.
+        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
+        For example, if you have a p-value column named "p-value", then:
+        `df['p-value'] = df['p-value'].apply(format_p_value)`
+
+        # OUTPUT TEXT FILE 
+        At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
+        and write to this file any important data that was not included in the tables.
+
+        For example: 
+
+        ```output                
+        Total number of observations: <xxx>
+        Model accuracy: <xxx>
+        etc, any other global measures
+        ```
+
+        Avoid the following:
+        Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
+        Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
+        """)
+
+    offer_revision_prompt: str = dedent_triple_quote_str("""
+        I ran your code.
+
+        {created_file_contents_explanation}
+
+        (1) Check your Python code and return a bullet-point response addressing these points:
+
+        * Statistical analysis: Check the part of the code that performs the statistical analysis, \
+        and identify any imperfect implementation of statistical tests, like:
+        - Incorrect choice of statistical test.
+        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
+
+        * Preprocessing: Review the description of the data files (see above "{data_file_descriptions}") \
+        and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
+        data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
+
+        * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
+        raw data is performed on the preprocessed data, or vice versa.
+
+        (2) Check the created tables (latex code blocks above) and \
+        return a bullet-point response addressing these points:
+        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
+        For example: 
+        - If the table reports the mean of a variable, is the mean value sensible?
+        - If the table reports CI, are the CI values flanking the mean?
+        - Do values have correct signs?
+        - Do you see any values that are not sensible?
+
+        * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
+        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+        * Missing data in a table: Are we missing key variables in a given table?
+        {comment_on_missing_table}* Any other issues you find.
+
+        (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+
+        For example:
+        ```python
+        {
+            "The model does not adequately account for confounding variables": \
+            "revise the code to add the following confounding variables ...",
+
+            "A table is missing": \
+            "revise the code to add the following new table '<your suggested table caption>'",
+
+            "Table <n> reports nominal values without measures of uncertainty": \
+            "revise the code to add STD and p-value.", 
+        }
+        ```
+
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If you are sure that there are no issues, and the code and tables need no revision,
+        then return an empty dict: {}. 
+        """)  # set to None to skip option for revision
+
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        comments = {}
+        s = []
+        code = code_and_output.code
+        s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
+        if 'ols(' in code or 'OLS(' in code:
+            s.append('- In linear regression, if interactions terms are included, '
+                     'did we remember to include the main effects?')
+
+        comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
+
+        num_tables = len(code_and_output.get_created_content_files_to_contents()) - 1  # -1 for result.txt
+        if num_tables < 3:
+            s = '* Missing tables: Considering our research goal and hypothesis testing plan, ' \
+                'are all relevant tables created? If not, can you suggest any additional tables?\n'
+        else:
+            s = ''
+        comments['comment_on_missing_table'] = s
+        return comments
+
+
+@dataclass
 class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
     background_product_fields: Tuple[str, ...] = None
     goal_noun: str = '{code_name} code'
@@ -338,7 +582,7 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
 
     @property
     def output_filename(self):
-        return self.code_and_output.output_file
+        return self.code_and_output.get_single_output_filename()
 
 
 @dataclass
@@ -384,7 +628,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
 
     @property
     def actual_requesting_output_explanation(self):
-        return self.requesting_output_explanation if self.code_and_output.output_file else ''
+        return self.requesting_output_explanation if self.code_and_output.get_single_output_filename() else ''
 
     def run_dialog_and_get_valid_result(self):
         result = super().run_dialog_and_get_valid_result()
@@ -506,7 +750,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
 CODE_STEP_TO_CLASS = {
     'data_exploration': DataExplorationCodeProductsGPT,
     'data_preprocessing': DataPreprocessingCodeProductsGPT,
-    'data_analysis': DataAnalysisCodeProductsGPT,
+    'data_analysis': CreateTablesCodeProductsGPT,
 }
 
 
@@ -514,15 +758,26 @@ CODE_STEP_TO_CLASS = {
 class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     EXPLAIN_CODE_CLASS = RequestCodeExplanation
     EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
+    latex_document: LatexDocument = None
 
     @property
     def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
-        cls = CODE_STEP_TO_CLASS[self.code_step]
-        assert cls.code_step == self.code_step
-        return cls
+        return CODE_STEP_TO_CLASS[self.code_step]
+
+    def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
+        cls = self.code_writing_class
+        if self.code_step == 'data_analysis':
+            num_tables = 2
+            return cls.from_(
+                self,
+                latex_document=self.latex_document,
+                output_file_requirements=(NumericContentOutputFileRequirement('results.txt'),
+                                          ContentOutputFileRequirement('table_?.tex', num_tables)),
+            )
+        return cls.from_(self)
 
     def get_code_and_output(self) -> CodeAndOutput:
-        return self.code_writing_class.from_(self).get_code_and_output()
+        return self.get_code_writing_instance().get_code_and_output()
 
     def _get_description_of_created_files(self) -> Optional[DataFileDescriptions]:
         return self.EXPLAIN_CREATED_FILES_CLASS.from_(
@@ -548,6 +803,6 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
         self.products.codes_and_outputs[self.code_step] = code_and_output
         if with_code_explanation:
             code_and_output.code_explanation = self._get_code_explanation()
-        if with_file_descriptions and code_and_output.get_created_files_beside_output_file():
+        if with_file_descriptions and code_and_output.get_created_data_files():
             code_and_output.description_of_created_files = self._get_description_of_created_files()
         return code_and_output

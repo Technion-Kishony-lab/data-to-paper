@@ -1,16 +1,14 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Iterable, Tuple
 
 from data_to_paper.run_gpt_code.dynamic_code import run_code_using_module_reload
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
-from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.utils import line_count
+from .run_context import IssueCollector
 
-from .types import CodeAndOutput
-from .exceptions import FailedLoadingOutput
-
-LINES_ADDED_BY_MODIFYING_CODE = 0
+from .types import CodeAndOutput, OutputFileRequirement
 
 
 @dataclass
@@ -23,18 +21,27 @@ class CodeRunner:
     """
 
     response: str
+    add_in_front_of_code: str = ''
     allowed_read_files: Iterable[str] = ()
-    allowed_created_files: Tuple[str, ...] = ()
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
     allow_dataframes_to_change_existing_series: bool = True
-    output_file: Optional[str] = None
     script_file_path: Optional[Path] = None
     data_folder: Optional[Path] = None
 
+    runtime_available_objects: dict = field(default_factory=dict)
+
     @property
-    def output_file_path(self) -> Optional[Path]:
-        if self.data_folder is None:
-            return self.output_file
-        return self.data_folder / self.output_file
+    def lines_added_in_front_of_code(self) -> int:
+        return line_count(self.add_in_front_of_code)
+
+    @property
+    def keep_content_allowed_created_filenames(self) -> Tuple[str, ...]:
+        return tuple(requirement.filename for requirement in self.output_file_requirements
+                     if requirement.should_keep_content)
+
+    @property
+    def all_allowed_created_filenames(self) -> Tuple[str, ...]:
+        return tuple(requirement.filename for requirement in self.output_file_requirements)
 
     def extract_code(self) -> str:
         return extract_code_from_text(self.response)
@@ -43,55 +50,45 @@ class CodeRunner:
         """
         Modify the extracted code before running it.
         """
-        return code
-
-    def extract_and_modify_code(self) -> str:
-        """
-        Extract code from GPT response, and modify it before running it.
-        """
-        code = self.extract_code()
-        modified_code = self.modify_extracted_code(code)
-        assert len(code.splitlines()) == len(modified_code.splitlines()) - LINES_ADDED_BY_MODIFYING_CODE
+        modified_code = code.replace('from my_utils',
+                                     'from data_to_paper.utils_for_gpt_code.utils_modified_for_gpt_use')
+        modified_code = self.add_in_front_of_code + modified_code
+        assert line_count(code) == line_count(modified_code) - self.lines_added_in_front_of_code
         return modified_code
 
-    def read_output_file(self) -> Optional[str]:
+    def read_output_file(self, output_file: str, delete_file: bool = False) -> str:
         """
         Return the content of the output file created by the run if successful.
         """
-        if self.output_file is None:
-            return None
-        try:
-            with open(self.output_file_path, 'r') as file:
-                return file.read()
-        except FileNotFoundError:
-            raise FailedLoadingOutput()
+        filepath = self.data_folder / output_file if self.data_folder else output_file
+        with open(filepath, 'r') as file:
+            content = file.read()
+        if delete_file:
+            os.remove(filepath)
+        return content
 
-    def delete_output_file(self):
-        if self.output_file is None:
-            return
-        try:
-            os.remove(self.output_file)
-        except FileNotFoundError:
-            pass
-
-    def run_code(self) -> CodeAndOutput:
+    def run_code(self) -> Tuple[CodeAndOutput, IssueCollector]:
         """
         Run code from GPT response, and return the output and the code.
         """
-        code = self.extract_and_modify_code()
-        self.delete_output_file()
-        created_files, dataframe_operations = run_code_using_module_reload(
-            code=code,
+        code = self.extract_code()
+        modified_code = self.modify_extracted_code(code)
+
+        created_files, dataframe_operations, issue_collector = run_code_using_module_reload(
+            code=modified_code,
             save_as=self.script_file_path,
             allowed_read_files=self.allowed_read_files,
-            allowed_write_files=None if self.allowed_created_files is None  # allow all files to be created
-            else (self.allowed_created_files if self.output_file is None
-                  else ListBasedSet(self.allowed_created_files) | {self.output_file}),
+            allowed_write_files=self.all_allowed_created_filenames,
             allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-            run_in_folder=self.data_folder)
+            run_in_folder=self.data_folder,
+            runtime_available_objects=self.runtime_available_objects,
+        )
         return CodeAndOutput(
             code=code,
-            output=self.read_output_file(),
-            output_file=self.output_file,
-            created_files=created_files,
-            dataframe_operations=dataframe_operations)
+            requirements_to_output_files_to_contents={requirement: {
+                output_file: (self.read_output_file(output_file, delete_file=True)
+                              if requirement.should_keep_content else None)
+                for output_file in created_files
+                if requirement.matches(output_file)
+            } for requirement in self.output_file_requirements},
+            dataframe_operations=dataframe_operations), issue_collector

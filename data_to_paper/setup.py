@@ -45,7 +45,10 @@ setup(
         "regex",
         "scipy",
         "imblearn",
+        "tabulate",
+        "pylatex",
         "tiktoken",
+        "lxml",
     ],
     extras_require={
         'dev': [

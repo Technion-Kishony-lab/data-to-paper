@@ -27,7 +27,6 @@ def test_run_code_correctly_reports_exception():
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'error'
-        assert e.code == code
         assert e.tb[-1].lineno == 3
     else:
         assert False, 'Expected to fail'
@@ -38,14 +37,12 @@ def test_run_code_catches_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    try:
+    with pytest.raises(FailedRunningCode) as e:
         run_code_using_module_reload(code, warnings_to_raise=[UserWarning])
-    except FailedRunningCode as e:
-        assert e.exception.args[0] == 'be careful'
-        assert e.code == code
-        assert e.tb[-1].lineno == 2
-    else:
-        assert False, 'Expected to fail'
+    error = e.value
+    lineno, line, msg = error.get_lineno_line_message()
+    assert msg == 'be careful'
+    assert lineno == 2
 
 
 def test_run_code_timeout():
@@ -59,26 +56,31 @@ def test_run_code_timeout():
         run_code_using_module_reload(code, timeout_sec=1)
     except FailedRunningCode as e:
         assert isinstance(e.exception, TimeoutError)
-        assert e.code == code
         assert e.tb is None  # we currently do not get a traceback for timeout
     else:
         assert False, 'Expected to fail'
 
 
-@pytest.mark.parametrize("forbidden_call", ['input', 'print', 'exit', 'quit', 'eval'])
-def test_run_code_forbidden_function_exit(forbidden_call):
+@pytest.mark.parametrize("forbidden_call", ['input', 'exit', 'quit', 'eval'])
+def test_run_code_forbidden_functions(forbidden_call):
     code = dedent_triple_quote_str("""
         a = 1
         {}()
         """).format(forbidden_call)
-    try:
+    with pytest.raises(FailedRunningCode) as e:
         run_code_using_module_reload(code)
-    except FailedRunningCode as e:
-        assert isinstance(e.exception, CodeUsesForbiddenFunctions)
-        assert e.code == code
-        assert e.tb[-1].lineno == 2
-    else:
-        assert False, 'Expected to fail'
+    assert isinstance(e.value.exception, CodeUsesForbiddenFunctions)
+    assert e.value.tb[-1].lineno == 2
+
+
+def test_run_code_forbidden_function_print():
+    code = dedent_triple_quote_str("""
+        a = 1
+        print(a)
+        a = 2
+        """)
+    _, _, issues = run_code_using_module_reload(code)
+    assert 'print' in issues.issues[0].issue
 
 
 @pytest.mark.parametrize("forbidden_import,module_name", [
@@ -100,7 +102,6 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeImportForbiddenModule)
-        assert e.code == code
         assert e.exception.module == module_name
         assert e.tb[-1].lineno == 3
     else:
@@ -143,7 +144,6 @@ def test_run_code_raises_on_unallowed_files(tmpdir):
         run_code_using_module_reload(code, allowed_write_files=[])
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeWriteForbiddenFile)
-        assert e.code == code
         assert e.tb[-1].lineno == 1
     else:
         assert False, 'Expected to fail'

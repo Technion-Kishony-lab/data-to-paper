@@ -4,9 +4,8 @@ from typing import Tuple, Dict, Any, Optional, Iterable, List
 
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
-    PythonValueReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
+    PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
@@ -101,7 +100,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundProductsConverser):
+class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
@@ -134,6 +133,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundP
     """)
 
     def _check_response_value(self, response_value: Any) -> Any:
+        response_value = super()._check_response_value(response_value)
         available_citations = self._get_available_citations()
         bibtex_ids_to_citations: Dict[str, Citation] = \
             {citation.bibtex_id: citation for citation in available_citations}
@@ -142,7 +142,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonValueReviewBackgroundP
             self._raise_self_response_error(f'Invalid bibtex ids: {non_matching_ids}')
 
         # replace with correct citation titles
-        response_value = {key: bibtex_ids_to_citations[key].title for key in response_value}
+        response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
         return response_value
 
     def get_overlapping_citations(self) -> List[Citation]:
@@ -230,9 +230,10 @@ class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
 
 
 @dataclass
-class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverser):
+class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser):
     value_type: type = Dict[str, str]
     max_valid_response_iterations: int = 4
+    max_hypothesis_count: int = 3
     max_reviewing_rounds: int = 0  # 0 for no review cycles
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
@@ -255,8 +256,8 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         * missing data points.
         * any other relevant statistical issues.
 
-        (2) Create a Python dictionary Dict[str, str], mapping each hypothesis to the statistical test that \
-        would be most adequate for testing it.
+        (2) Create a Python Dict[str, str], mapping each hypothesis (dict key) to the statistical test that \
+        would be most adequate for testing it (dict value).
         The keys of this dictionary should briefly describe each of our hypotheses.
         The values of this dictionary should specify the most adequate statistical test for each hypothesis, \
         and describe how it should be performed while accounting for any issues you have outlined above as relevant.
@@ -266,11 +267,36 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         (the simplest one).
 
         Your response for this part should be formatted as a Python dictionary, like this:
+        ```python
         {
-        'xxx is associated with yyy': 'linear regression with xxx as the independent variable and \
-        yyy as the dependent variable while adjusting for zzz1, zzz2, zzz3',
-        'the variance of xxx is different than the variance of yyy': 'F-test for the equality of variances',
+            "xxx is associated with yyy": 
+                "linear regression with xxx as the independent variable and  yyy as the dependent variable while \
+        adjusting for aaa, bbb, ccc",
+            "the above association between xxx and yyy is mediated by zzz":
+                "mediation analysis with xxx as the independent \
+        variable, yyy as the dependent variable, and zzz as the mediator, while adjusting for aaa, bbb, ccc",
         }
+        ```
+
+        Or, here is another example:
+        ```python
+        {
+            "xxx is associated with yyy and zzz":
+                "linear regression with xxx as the independent variable and \
+        yyy and zzz as the dependent variables while adjusting for aaa, bbb, ccc",
+            "the association between xxx and yyy is moderated by zzz": 
+                "repeat the above linear regression, \
+        while adding the interaction term between yyy and zzz",
+        }
+        ```
+
+        These of course are just examples. Your actual response should be based on the goal and hypotheses that \
+        we have specified above (see the "{research_goal}" above).
+
+        Note how in both cases the the different hypotheses are connected to each other, building towards a single
+        study goal.
+
+        Remember to return a valid Python dictionary Dict[str, str].
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.PlanReviewer
@@ -279,15 +305,20 @@ class HypothesesTestingPlanReviewGPT(PythonValueReviewBackgroundProductsConverse
         """
         Strip "hypothesis x" from the keys of the response value.
         """
-        new_response_value = {}
-        for k in response_value.keys():
-            new_k = re.sub(pattern=r'hypothesis \d+:', repl='', string=k, flags=re.IGNORECASE).strip()
-            new_response_value[new_k] = response_value[k]
-        return NiceDict(new_response_value)
+        response_value = super()._check_response_value(response_value)
+        if len(response_value) > self.max_hypothesis_count:
+            self._raise_self_response_error(
+                f'Please do not specify more than {self.max_hypothesis_count} hypotheses. '
+                f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
+                f'which should all build towards a single study goal.')
+        return type(response_value)(
+            {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
+                    repl='', string=k, flags=re.IGNORECASE).strip(): v
+             for k, v in response_value.items()})
 
 
 @dataclass
-class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
+class TablesNamesReviewGPT(PythonDictReviewBackgroundProductsConverser):
     products: ScientificProducts = None
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str] = ('data_file_descriptions', 'codes:data_preprocessing',
@@ -295,56 +326,60 @@ class TablesNamesReviewGPT(PythonValueReviewBackgroundProductsConverser):
                                              'hypothesis_testing_plan')
     conversation_name: str = 'table_names'
     value_type: type = Dict[str, str]
-    goal_noun: str = 'names of tables for a research paper'
+    goal_noun: str = 'table captions for a research paper'
     goal_verb: str = 'suggest'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
-    termination_phrase: str = 'The names of the tables do not require any changes'
+    termination_phrase: str = 'The table captions do not require any changes'
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please list captions for Tables that we should prepare for a scientific paper addressing the \
+        Please list captions for tables that we should prepare for a scientific paper addressing the \
         "{research_goal}" and "{hypothesis_testing_plan}" described above.
 
-        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
-        in the form of 'Table n' and the values being the actual names of the tables.
+        The captions that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the captions of the tables.
 
-        For example, you might return the following:        
+        For example, you might return the following:
+
+        ```python
         {
             'Table 1': 'Summary statistics of the dataset',
             'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
+        ```
 
-        Obviously, this is just an example. You should choose table names that suit the dataset, the research goal \
+        Obviously, this is just an example. You should choose table captions that suit the dataset, the research goal \
         and the hypotheses we are testing.
-        The names you choose should accurately describe the tables that will be produced in a later stage.
+        The captions you choose should accurately describe the tables that will be produced in a later stage.
 
         Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
+        You need to choose captions for a maximum of 1-4 tables that will each present distinct non-overlapping \
         information.
 
-        Don't suggest name of tables that are:
-        * Not completely necessary.
+        Do not suggest captions that describe tables that:
+        * Are not completely necessary.
         * Represent technical information, rather than scientific results.
-        * Irrelevant to the research goal, or that cannot be created from the dataset provided.
-        * Overlapping with other tables in your list. 
+        * Are irrelevant to the research goal, or that cannot be created from the dataset provided.
+        * Overlap with other tables in your list. 
 
         Do not send any free text; Your response should be structured as a Python Dict[str, str].
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
-        Please check the above chosen table names, with specific attention to whether they \
+        Please check the above chosen suggested tables, with specific attention to whether they \
         represent all the hypotheses we are testing, and can be created solely from the dataset provided.
 
         If you find any issues, please provide bullet-point feedback.
         Or, if you are satisfied, please respond with "{termination_phrase}".
 
-        Note you must either approve the table names or provide feedback but not both.
+        Note you must either approve the table captions or provide bullet-point feedback but not both.
         """)
 
     def _check_response_value(self, response_value: Any) -> Any:
+        response_value = super()._check_response_value(response_value)
         if len(response_value) > 4:
             self._raise_self_response_error(f'Please choose a maximum of 4 tables.')
-        return NiceDict(response_value)
+        return response_value
 
 
 @dataclass
@@ -358,24 +393,26 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
         Please list captions for Tables that we can prepare for a scientific paper based on the \
         {outputs:data_analysis} (provided above).
 
-        The table names that you choose should be returned as a Python Dict[str, str], with the keys \
-        in the form of 'Table n' and the values being the actual names of the tables.
+        The captions that you choose should be returned as a Python Dict[str, str], with the keys \
+        in the form of 'Table n' and the values being the actual captions of the tables.
 
-        For example, you might return the following:        
+        For example, you might return the following:
+        ```python
         {
             'Table 1': 'Summary statistics of the dataset',
             'Table 2': 'Test for association of xxx with yyy (Linear Regression)',
             'Table 3': 'Factors affecting zzz and their interactions (Two Way ANOVA)',
         }
+        ```
 
-        Obviously, this is just an example. You should choose table names that suit the information we have in \
+        Obviously, this is just an example. You should choose table captions that suit the information we have in \
         the output of the analysis code.
 
         Typically, a scientific paper has 2-3 tables, each containing completely unique and different results.
-        You need to choose names for a maximum of 1-4 tables that will each present distinct non-overlapping \
+        You need to choose captions for a maximum of 1-4 tables that will each present distinct non-overlapping \
         information.
 
-        Don't suggest name of tables that are:
+        Don't suggest captions that correspond to tables that are:
         * Not completely necessary.
         * Represent technical information, rather than scientific results.
         * Irrelevant to the research goal. 
@@ -386,13 +423,13 @@ class SecondTablesNamesReviewGPT(TablesNamesReviewGPT):
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""\n
-        Please check the above chosen table names, with specific attention to whether they \
+        Please check the above chosen table captions, with specific attention to whether they \
         can be created solely from the code output above.
 
         If you find any issues, please provide bullet-point feedback.
         Or, if you are satisfied, please respond with "{termination_phrase}".
 
-        Note you must either approve the table names or provide feedback but not both.
+        Note you must either approve the table captions or provide feedback but not both.
         """)
 
 
@@ -477,10 +514,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
         return self.num_of_existing_tables + 1
 
     @property
-    def total_number_of_tables(self) -> int:
-        return len(self.products.tables_names)
-
-    @property
     def do_not_repeat_information_from_previous_tables(self) -> str:
         if self.num_of_existing_tables > 0:
             return dedent_triple_quote_str("""
@@ -516,7 +549,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
 
 
 @dataclass
-class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsConverser,
+class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsConverser,
                                             CheckExtractionReviewBackgroundProductsConverser):
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('research_goal', 'outputs:data_exploration', 'outputs:data_analysis',
@@ -545,12 +578,16 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         you choose for the results, and the values are the numerical results themselves.
 
         For example, if the analysis results provides a summary of a some statistical test, \
-        you might include: 
+        you might include:
+
+        ```python
         {
             'Total number of samples': xxx,
             'Accuracy of logistic regression for the XXX model': yyy,
             'AUC ROC of logistic regression for the XXX model': zzz,
         }
+        ```
+
         Obviously, this is just an example. You should choose the numerical results that are most relevant \
         to the specific \
         results we got in the outputs and in light of the {research_goal} of the project as mentioned above.
@@ -573,15 +610,12 @@ class KeyNumericalResultsExtractorReviewGPT(PythonValueReviewBackgroundProductsC
         self._check_extracted_numbers(response)
         return super()._extract_str_of_python_value_from_response(response)
 
-    def _check_response_value(self, response_value: Any) -> Any:
-        return NiceDict(response_value)
-
 
 @dataclass
 class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'tables', 'numeric_values')
+                                                  'tables', 'results_file')
     conversation_name: str = 'results_interpretation'
     goal_noun: str = '"description and interpretation" of data analysis results'
     goal_verb: str = 'write'

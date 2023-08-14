@@ -50,8 +50,10 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         and the values are lists of query string. Each individual query should be a string with up to 5-10 words. 
 
         For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis \
-        of the "United Kingdom National Core Data (UK-NCD)", the queries could be:  
-        {pretty_scopes_to_examples}  
+        of the "United Kingdom National Core Data (UK-NCD)", the queries could be:
+        ```python
+        {pretty_scopes_to_examples}
+        ```  
         """)
 
     @property

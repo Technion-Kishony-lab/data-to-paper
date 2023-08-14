@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 
@@ -14,7 +14,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
     IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.latex.latex_to_pdf import check_latex_compilation
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.clean_latex import process_non_math_parts, check_usage_of_un_allowed_commands
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
@@ -45,15 +45,51 @@ def remove_citations_from_section(section: str) -> str:
 
 
 @dataclass
-class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
+class CheckLatexCompilation:
+
+    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
+    latex_document: Optional[LatexDocument] = field(default_factory=LatexDocument)
+
+    def _check_latex_compilation(self, section: str, section_name: str,
+                                 is_table: bool = False,
+                                 should_save: bool = True,
+                                 ) -> Optional[Union[float, LatexProblemInCompilation]]:
+        """
+        Check that the latex compiles.
+        Return a LatexProblemInCompilation if it does not.
+
+        For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
+        """
+
+        if SAVE_INTERMEDIATE_LATEX and should_save:
+            file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
+            file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
+            file_stem, output_directory = file_path.stem, file_path.parent
+        else:
+            file_stem, output_directory = 'test', None
+
+        try:
+            if is_table:
+                return self.latex_document.compile_table(section, file_stem=file_stem,
+                                                         output_directory=output_directory)
+            self.latex_document.get_document(section, file_stem=file_stem,
+                                             output_directory=output_directory)
+        except TooWideTableOrText as e:
+            if self.tolerance_for_too_wide_in_pts is not None and \
+                    e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:
+                return e
+        except LatexProblemInCompilation as e:
+            return e
+
+
+@dataclass
+class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write one or more latex sections.
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
     should_remove_citations_from_section: bool = True
-
-    tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
 
     section_names: List[str] = field(default_factory=list)
 
@@ -129,18 +165,6 @@ class LatexReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
                 str(e),
                 bump_model=len(tags_list) == 1 and tags[0] in response and tags[1] not in response
             )
-
-    def _check_latex_compilation(self, section: str, section_name: str) -> Optional[LatexProblemInCompilation]:
-        if SAVE_INTERMEDIATE_LATEX:
-            file_stem = f'{section_name}__{self.conversation_name}'
-            file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
-            file_stem, output_directory = file_path.stem, file_path.parent
-        else:
-            file_stem, output_directory = 'test', None
-        try:
-            check_latex_compilation(section, file_stem, output_directory, self.tolerance_for_too_wide_in_pts)
-        except LatexProblemInCompilation as e:
-            return e
 
     def _process_non_math_parts(self, section: str) -> str:
         return process_non_math_parts(section)

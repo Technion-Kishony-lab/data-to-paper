@@ -94,6 +94,8 @@ class NiceDict(dict):
     }
     """
     def __str__(self):
+        if len(self) == 0:
+            return '{}'
         return '{\n' + '\n'.join([f'    {repr(key)}: {repr(value)},' for key, value in self.items()]) + '\n}'
 
     def __repr__(self):

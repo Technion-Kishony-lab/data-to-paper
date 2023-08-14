@@ -1,20 +1,25 @@
 import importlib
 import os
+import re
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Set, Tuple
+from typing import Optional, List, Tuple, Union
 
-from data_to_paper.env import SUPPORTED_PACKAGES, MAX_SENSIBLE_OUTPUT_SIZE, MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, \
-    MAX_MODEL_ENGINE
-from data_to_paper.utils import dedent_triple_quote_str
+import numpy as np
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMENTS
+from data_to_paper.utils import dedent_triple_quote_str, line_count
+
+from data_to_paper.conversation.message_designation import RangeMessageDesignation
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
+    get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue, RunUtilsError
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
-from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
-from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, FailedLoadingOutput, \
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
+from data_to_paper.run_gpt_code.run_context import IssueCollector
+from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
@@ -23,28 +28,41 @@ from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directory
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
-from .base_products_conversers import ProductsConverser
-
+from .base_products_conversers import BackgroundProductsConverser
 
 KNOWN_MIS_IMPORTS = {
     'Mediation': 'statsmodels.stats.mediation',
 }
 
-# assert imports of KNOWN_MIS_IMPORTS:
-for name, module in KNOWN_MIS_IMPORTS.items():
-    try:
-        importlib.import_module(module, name)
-    except ImportError:
-        raise ImportError(f"Wong imports in KNOWN_MIS_IMPORTS.\nFailed importing {name} from {module}")
+
+# assert KNOWN_MIS_IMPORTS:
+def _assert_known_mis_imports():
+    for name, module in KNOWN_MIS_IMPORTS.items():
+        try:
+            importlib.import_module(module, name)
+        except ImportError:
+            raise ImportError(f"Wrong imports in KNOWN_MIS_IMPORTS.\nFailed importing {name} from {module}")
+
+
+_assert_known_mis_imports()
+
+
+def _get_description_of_run_error(error: Exception):
+    return dedent_triple_quote_str("""
+        I ran the code and got the following error message:
+        ```
+        {}
+        ```
+        """).format(error)
 
 
 @dataclass
-class DebuggerConverser(ProductsConverser):
+class DebuggerConverser(BackgroundProductsConverser):
     """
-    Interact with chatgpt to debug a code that needs to create an output file.
+    Interact with ChatGPT to debug a code that needs to create an output file.
 
     Starting with a conversation which ends with a code-request from the user, DebuggerConverser interacts
-    with chatgpt to enhance the code until it runs properly and creates a desired output file.
+    with ChatGPT to enhance the code until it runs properly and creates a desired output file.
 
     Interactions with chatgpt include adequate reporting of:
     * missing packages
@@ -54,25 +72,62 @@ class DebuggerConverser(ProductsConverser):
     * too long runs (timeout)
     * output file not created
     """
-    allowed_created_files: Tuple[str, ...] = None
+
+    # input files:
+    data_folder: Path = None
+    data_filenames: Optional[list] = field(default_factory=list)
+
+    # output files:
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+
+    # dataframes:
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
-    supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
 
     user_initiation_prompt: str = None
-
     assistant_agent: Agent = None
     user_agent: Agent = None
 
-    max_debug_iterations: int = 5
+    supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
+    headers_required_in_code: Tuple[str, ...] = ()
 
+    prompt_to_append_at_end_of_response: str = \
+        dedent_triple_quote_str("""
+            Please rewrite the complete code again with these issues corrected.
+
+            GENERAL FORMATTING INSTRUCTIONS:
+            Even if you are changing just a few lines, you must return the complete code again in a single code block, \
+            including the unchanged parts, so that I can just copy-paste and run it.
+            {required_headers_prompt}    
+        """)
+    runner_cls: CodeRunner = CodeRunner
+
+    max_debug_iterations: int = 5
     debug_iteration = 0
 
     previous_code: Optional[str] = None
+    _requesting_small_change: bool = False  # True when USER ask for modifications of an already existing code
+    previous_code_problem: CodeProblem = CodeProblem.NoCode
     gpt_script_filename: str = 'debugger_gpt'
-    data_filenames: Optional[list] = field(default_factory=list)
-    data_folder: Path = None
-    output_filename: str = 'results.txt'
+
+    """
+    PROPERTIES
+    """
+
+    @property
+    def required_headers_prompt(self) -> str:
+        if len(self.headers_required_in_code) == 0:
+            return ''
+        return 'Remember, your code must contain the following sections:\n' + \
+               '\n'.join(f'"{header}"' for header in self.headers_required_in_code)
+
+    @property
+    def output_filenames(self) -> Tuple[str, ...]:
+        return tuple(output_file_requirement.filename for output_file_requirement in self.output_file_requirements)
+
+    @property
+    def output_filename(self) -> Optional[str]:
+        return get_single_content_file_from_requirements(self.output_file_requirements)
 
     @property
     def iteration_str(self):
@@ -82,352 +137,541 @@ class DebuggerConverser(ProductsConverser):
     def script_filename(self):
         return f'{self.gpt_script_filename}_{self.debug_iteration}'
 
-    def _get_code_runner(self, response: str) -> CodeRunner:
-        return CodeRunner(response=response,
-                          allowed_read_files=self.data_filenames,
-                          output_file=self.output_filename,
-                          allowed_created_files=self.allowed_created_files,
-                          allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                          script_file_path=None,
-                          data_folder=self.data_folder,
-                          )
-    # to save the script file:
-    # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
+    @property
+    def description_of_allowed_output_files(self):
+        requirements = self.output_file_requirements
+        if len(requirements) == 0:
+            return 'Your code should not write to any file.'
 
-    def _respond_to_known_mis_imports(self, e: ImportError) -> bool:
-        if not hasattr(e, 'fromlist'):
-            return False
-        if len(e.fromlist) != 1:
-            return False
-        var = e.fromlist[0]
+        return 'Your code should only write to these files: {}.'.format(
+            ', '.join(f'"{r.filename}"' for r in requirements)
+        )
+
+    def _get_runtime_available_objects(self) -> dict:
+        """
+        Return objects to be made available for access during gpt-code runtime
+        """
+        return {}
+
+    """
+    ISSUES
+    """
+
+    def _get_issue_for_known_mis_imports(self, error: ImportError) -> Optional[RunIssue]:
+        if not hasattr(error, 'fromlist'):
+            return
+        if len(error.fromlist) != 1:
+            return
+        var = error.fromlist[0]
         if var not in KNOWN_MIS_IMPORTS:
-            return False
+            return
         correct_package = KNOWN_MIS_IMPORTS[var]
         # extract from correct_package up to the first '.':
         package_base = correct_package[:correct_package.index('.')] if '.' in correct_package else correct_package
         if package_base not in self.supported_packages:
-            return False
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
-            ```
-            {}
-            ```
-            Please rewrite the code using only these packages: {supported_packages}.
-            Note that there is a `{var}` in `{correct_package}`. Is this perhaps what you needed? 
-            """).format(e, supported_packages=self.supported_packages, var=var, correct_package=KNOWN_MIS_IMPORTS[var]),
-            comment=f'{self.iteration_str}: ImportError detected in gpt code.')
-        return True
-
-    def _respond_to_allowed_packages(self, e: ImportError):
-        if self._respond_to_known_mis_imports(e):
             return
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
-            ```
-            {}
-            ```
-            Please rewrite the code using only these packages: {}. 
-            """).format(e, self.supported_packages),
-            comment=f'{self.iteration_str}: ImportError detected in gpt code.')
+        return RunIssue(
+            issue=_get_description_of_run_error(error),
+            instructions=dedent_triple_quote_str("""
+                Your code should only use these packages: {supported_packages}.
+                Note that there is a `{var}` in `{known_package}`. Is this perhaps what you needed? 
+                """).format(supported_packages=self.supported_packages, var=var, known_package=KNOWN_MIS_IMPORTS[var]),
+            code_problem=CodeProblem.RuntimeError,
+            comment='ImportError detected in gpt code',
+        )
 
-    def _respond_to_file_not_found(self, error_message: str):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code and got the following error message:
-            ```
-            {}
-            ```
-            As noted in the data description, we only have {}.  
+    def _get_issue_for_allowed_packages(self, error: ImportError, e: FailedRunningCode = None) -> Optional[RunIssue]:
+        respond_to_known_mis_imports = self._get_issue_for_known_mis_imports(error)
+        if respond_to_known_mis_imports:
+            return respond_to_known_mis_imports
+        return RunIssue(
+            issue=_get_description_of_run_error(error),
+            instructions=dedent_triple_quote_str("""
+                Your code should only use these packages: {supported_packages}.
+                """).format(supported_packages=self.supported_packages),
+            code_problem=CodeProblem.RuntimeError,
+            comment='ImportError detected in gpt code',
+        )
 
-            Files are located in the same directory as the code. 
-            """).format(error_message, self.data_filenames),
-            comment=f'{self.iteration_str}: FileNotFound detected in gpt code.')
+    def _get_issue_for_file_not_found(self, error: FileNotFoundError, e: FailedRunningCode = None) -> RunIssue:
+        return RunIssue(
+            issue=_get_description_of_run_error(error),
+            instructions=dedent_triple_quote_str("""
+                As noted in the data description, we only have these files:
+                {}  
 
-    def _respond_to_error_message(self, error_message: str, is_warning: bool = False):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code and got the following {} message:
-            ```
-            {}
-            ```
-            Please rewrite the complete code again with this error corrected. 
-            """).format('warning' if is_warning else 'error', error_message),
-            comment=f'{self.iteration_str}: Runtime exception in GPT code.')
+                Note that all input files are located in the same directory as the code. 
+                """).format(self.data_filenames),
+            code_problem=CodeProblem.RuntimeError,
+            comment='FileNotFound detected in code',
+        )
 
-    def _respond_to_missing_output(self):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code. It ran fine without raising any exception, 
-            but it didn't generate the desired output file ({}).
-            Please rewrite the complete code again so that the output file is correctly created. 
-            """).format(self.output_filename),
-            comment=f'{self.iteration_str}: Code completed, but no output file created.')
+    def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode,
+                                                    code_runner: CodeRunner) -> RunIssue:
+        return RunIssue(
+            issue=_get_description_of_run_error(error.get_traceback_message(code_runner.lines_added_in_front_of_code)),
+            code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
+            comment='Runtime exception in code',
+        )
 
-    def _respond_to_unsaved_dataframes(self, read_but_unsaved_dataframe_files: Set[str]):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str(f"""
-            I see that your code modifies some of the dataframes {read_but_unsaved_dataframe_files}. \
-            I would like the code to save any such modified dataframe.  
-            Please rewrite the complete code again adding `to_csv` to save any modified dataframe in a new file \
-            in the same directory as the code.
-            """),
-            comment=f'{self.iteration_str}: Code completed, but not all modified dataframes were saved.')
+    def _get_issue_for_timeout(self, error: TimeoutError, e: FailedRunningCode = None) -> RunIssue:
+        return RunIssue(
+            issue="I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.",
+            code_problem=CodeProblem.TimeoutError,
+            comment='Code has timed out',
+        )
 
-    def _respond_to_timeout(self):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code, but it just ran forever...
-            Please fix and rewrite the complete code again so that it doesn't get stuck. 
-            """),
-            comment=f'{self.iteration_str}: GPT code has timed out.')
-
-    def _respond_to_incomplete_code(self):
+    def _get_issue_for_incomplete_code_block(self) -> RunIssue:
         if self.model_engine < MAX_MODEL_ENGINE:
             self.model_engine = self.model_engine.get_next()
-            response = f"Your sent incomplete code. Let's bump you up to " \
-                       f"{self.model_engine.get_next()} and retry!"
+            instructions = f"Let's bump you up to {self.model_engine.get_next()} and REGENERATE!"
         else:
-            response = "Your sent incomplete code. Please regenerate response."
-        self.apply_append_user_message(
-            content=response,
-            comment=f'{self.iteration_str}: GPT code is incomplete.')
+            instructions = "Please REGENERATE!"
+        return RunIssue(
+            issue="Your sent incomplete code.",
+            instructions=instructions,
+            comment='Code is incomplete',
+            end_with='',
+            code_problem=CodeProblem.IncompleteBlock,
+        )
 
-        # delete the last two messages (incomplete code and this just-posted user response):
-        self.apply_delete_messages([-2, -1])
-
-    def _respond_to_missing_or_multiple_code(self, e: FailedExtractingBlock):
+    def _get_issue_for_missing_or_multiple_code_blocks(self, e: FailedExtractingBlock) -> RunIssue:
         """
         We notify missing or incomplete code to chatgpt.
         If the conversation already has this notification, we regenerate gpt response instead.
         """
-        self.apply_append_user_message(
-            content=str(e),
-            tag='failed_extracting_code',
-            comment=f'{self.iteration_str}: Failed extracting code from gpt response. Notifying.'
+        return RunIssue(
+            issue=str(e),
+            comment='Failed extracting code from gpt response',
+            end_with=self.required_headers_prompt,
+            code_problem=CodeProblem.NotSingleBlock,
         )
 
-    def _respond_to_forbidden_functions(self, func: str):
+    def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions, e: FailedRunningCode = None
+                                           ) -> RunIssue:
+        func = error.func
         if func == 'print':
-            if self.output_filename is None:
-                self.apply_append_user_message(
-                    content=dedent_triple_quote_str("""
-                    Please do not use the `print` function.
-                    Your code should only save any new or modified dataframes; should have no other output.
-                    """)
-                )
-            else:
-                self.apply_append_user_message(
-                    content=dedent_triple_quote_str("""
-                    Please do not use the `print` function. 
-                    Anything you want to print must be written to the output file ("{}"). 
-                    """).format(self.output_filename),
-                    comment=f'{self.iteration_str}: Code uses `print`.'
-                )
-            return
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            Your code uses the function `{}`, which is not allowed.
-            Please rewrite the complete code again without using this function. 
-            """).format(func),
-            comment=f'{self.iteration_str}: Code uses forbidden function {func}.')
+            return RunIssue(
+                issue="Your code uses the `print` function.",
+                instructions="Do not use `print` in your code.\n"
+                             "If you print conditional warning messages, please use `assert` or `raise` instead.\n" +
+                             "Otherwise, outputs should only be written to the above described output file(s).\n"
+                             if self.output_file_requirements else "",
+                code_problem=CodeProblem.RuntimeError,
+                comment='Code uses `print`'
+            )
+        return RunIssue(
+            issue=f"Your code uses the function `{func}`, which is not allowed.",
+            code_problem=CodeProblem.RuntimeError,
+            comment=f'Code uses forbidden function {func}',
+        )
 
-    def _respond_to_forbidden_import(self, module: str):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            Your code import the module `{}`, which is not allowed.
-            Please rewrite the complete code again without using this module. 
-            """).format(module),
-            comment=f'{self.iteration_str}: Code imports forbidden module {module}.')
+    def _get_issue_for_forbidden_method(self, error: UnAllowedDataframeMethodCall, e: FailedRunningCode) -> RunIssue:
+        func = error.method_name
+        return RunIssue(
+            issue=f"Your code uses the dataframe method `{func}`, which is not allowed.",
+            comment=f'Code uses forbidden method {func}',
+            code_problem=CodeProblem.RuntimeError,
+        )
 
-    @property
-    def only_write_to_description(self):
-        if self.output_filename is None:
-            if self.allowed_created_files == ('*.csv', ):
-                return 'Your code should only save new or modified dataframes to csv files; ' \
-                       'it should have no other output.'
-            elif self.allowed_created_files:
-                return f'Your code should only write to these files: {self.allowed_created_files}.'
-            else:
-                return 'Your code should not write to any file.'
-        else:
-            if self.allowed_created_files == ('*.csv', ):
-                return f'Your code should save new or modified dataframes to csv files, ' \
-                       f'and save other results to the output file "{self.output_filename}".'
-            elif self.allowed_created_files:
-                return f'Your code should only write to files: {self.allowed_created_files}, ' \
-                       f'and to the output file "{self.output_filename}".'
-            else:
-                return f'Your code should only write to the output file "{self.output_filename}".'
+    def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule, e: FailedRunningCode) -> RunIssue:
+        module = error.module
+        return RunIssue(
+            issue=f"Your code import the module `{module}`, which is not allowed.",
+            instructions="Your code can only use these packages: {supported_packages}.",
+            code_problem=CodeProblem.RuntimeError,
+            comment='Code imports forbidden module')
 
-    def _respond_to_forbidden_write(self, file: str):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            Your code writes to the file "{}" which is not allowed.
-            {only_write_to_description}
-            Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(file, only_write_to_description=self.only_write_to_description),
-            comment=f'{self.iteration_str}: Code writes to forbidden file {file}.')
+    def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
+        issues = []
+        required_strings_not_found = [s for s in self.headers_required_in_code if s.lower() not in code.lower()]
+        if len(required_strings_not_found) > 0:
+            issues.append(RunIssue(
+                issue=dedent_triple_quote_str("""
+                Your code must contain the following sections: 
+                {headers_required_in_code}.
+                But I could not find these headers:
+                {required_strings_not_found}.
+                """).format(
+                    headers_required_in_code=self.headers_required_in_code,
+                    required_strings_not_found=required_strings_not_found,
+                ),
+                comment='Required sections not found',
+                code_problem=CodeProblem.StaticCheck,
+                end_with='Please rewrite the complete code again with all the required sections.',
+            ))
 
-    def _respond_to_un_allowed_files_created(self, files: List[str]):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            Your code creates the following files {} which is not allowed.
-            {only_write_to_description}
-            Please rewrite the complete code again so that it does not create un-allowed files.
-            """).format(files, self.only_write_to_description),
-            comment=f'{self.iteration_str}: Code created forbidden files {files}.')
+        # check if code uses `print`:
+        if re.search(pattern=r'\bprint\s*\(', string=code):
+            issues.append(self._get_issue_for_forbidden_functions(error=CodeUsesForbiddenFunctions(func='print')))
+        return issues
 
-    def _respond_to_forbidden_read(self, file: str):
+    def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
+        file = error.file
+        return RunIssue(
+            issue=f'Your code writes to the file "{file}" which is not allowed.',
+            instructions=self.description_of_allowed_output_files,
+            code_problem=CodeProblem.RuntimeError,
+            comment='Code writes to forbidden file',
+        )
+
+    def _get_issue_for_un_allowed_files_created(self, error: UnAllowedFilesCreated, e: FailedRunningCode) -> RunIssue:
+        return RunIssue(
+            issue=f"Your code creates the following files {error.un_allowed_files} which is not allowed.",
+            instructions=self.description_of_allowed_output_files,
+            code_problem=CodeProblem.RuntimeError,
+            comment='Code created forbidden files',
+        )
+
+    def _get_issue_for_forbidden_read(self, error: CodeReadForbiddenFile, e: FailedRunningCode) -> RunIssue:
+        file = error.file
         if file == self.output_filename:
-            self.apply_append_user_message(
-                content=dedent_triple_quote_str("""
-                I ran the code, but it tried to read from the output file "{}".
-                The code should create and write to this output file, but should not read from it.
-                Please rewrite the complete code again, making sure it does not read from the output file.
-                Note that the input files from which we can read the data are: {}. 
-                """).format(file, self.data_filenames),
-                comment=f'{self.iteration_str}: Code reads from output file {file}.')
-            return
+            return RunIssue(
+                issue=f'Your code tries reading from the output file "{file}".',
+                instructions=dedent_triple_quote_str("""
+                    The code should create and write to this output file, but should not read from it.
+                    The only input files from which we can read the data are: 
+                    {}
+                    """).format(self.data_filenames),
+                code_problem=CodeProblem.RuntimeError,
+                comment='Code reads from output file',
+            )
         else:
-            self.apply_append_user_message(
-                content=dedent_triple_quote_str("""
-                Your code reads from the file "{}" which is not part of the dataset.
-                We only have these files:
-                {}
+            return RunIssue(
+                issue=f'Your code reads from the file "{file}" which is not part of the dataset.',
+                instructions=dedent_triple_quote_str("""
+                    We only have these files:
+                    {}
 
-                Note that all input files are located in the same directory as the code. 
-                Please rewrite the complete code again so that it only reads from these files. 
-                """).format(file, self.data_filenames),
-                comment=f'{self.iteration_str}: Code reads from forbidden file {file}.')
+                    Note that all input files are located in the same directory as the code. 
+                    """).format(self.data_filenames),
+                code_problem=CodeProblem.RuntimeError,
+                comment='Code reads from forbidden file',
+            )
 
-    def _respond_to_dataframe_series_change(self, series: str):
+    def _get_issue_for_dataframe_series_change(self, error: DataFrameSeriesChange, e: FailedRunningCode) -> RunIssue:
+        series = error.changed_series
+        return RunIssue(
+            issue=f'Your code changes the series "{series}" of your dataframe.',
+            instructions=dedent_triple_quote_str("""
+                Instead of changing an existing dataframe series, please create a new series, and give it a \
+                new sensible name.
+                """),
+            code_problem=CodeProblem.RuntimeError,
+            comment='Code modifies dataframe series')
+
+    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
+                                            filename: str, content: str) -> List[RunIssue]:
+        issues = []
+        issue = None
+        if len(content.strip()) == 0:
+            # The output file is empty.
+            issue = RunIssue(
+                issue=f'The code created the output file "{filename}", but the file is just empty!',
+                instructions="Please revise the code to make sure it correctly writes to the output file.",
+                comment='Output file empty',
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            )
+        if count_number_of_tokens_in_message(content, max(ModelEngine)) > requirement.max_tokens:
+            # Created output file is too large.
+            issue = RunIssue(
+                issue=dedent_triple_quote_str("""
+                    The code created the output file "{}", but the file is too long!
+
+                    Here, for context, is the beginning of the output:
+                    ```output
+                    {}
+                    ```
+                    """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
+                instructions="Only sensible-length output should be written to the file.",
+                comment='Output file too long',
+                code_problem=CodeProblem.OutputFileContentLevelC,
+            )
+        if issue is not None:
+            issues.append(issue)
+        return issues
+
+    def _get_issues_for_num_files_created(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+        issues = []
+        for requirement in self.output_file_requirements:
+            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
+            if len(output_files) < requirement.minimal_count:
+                # The specified number of output files were not created.
+                if requirement.is_wildcard():
+                    issue = dedent_triple_quote_str(f"""
+                        The code was supposed to create at least {requirement.minimal_count} files \
+                        of "{requirement.filename}", \
+                        but it only created {len(output_files)} files of this type.
+                        """)
+                else:
+                    issue = f"The code didn't generate the desired output file ({requirement.filename})."
+                issues.append(RunIssue(
+                    category='Not all required files were created',
+                    issue=issue,
+                    code_problem=CodeProblem.MissingOutputFiles,
+                    comment='Code did not create all required files'
+                ))
+        return issues
+
+    def _get_issues_for_unsaved_dataframes(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+        dataframe_operations = code_and_output.dataframe_operations
+        issues = []
+        if self.enforce_saving_altered_dataframes and dataframe_operations.get_read_changed_but_unsaved_ids():
+            # Not all changed dataframes were saved to files.
+            read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
+                dataframe_operations.get_read_changed_but_unsaved_ids())
+            issues.append(RunIssue(
+                category='Any modified dataframe should be saved to a file',
+                issue=dedent_triple_quote_str(f"""
+                    Your code modifies, but doesn't save, some of the dataframes:
+                    {read_but_unsaved_filenames}.
+                    """),
+                instructions=dedent_triple_quote_str("""
+                    The code should use `to_csv` to save any modified dataframe in a new file \
+                    in the same directory as the code.
+                    """),
+                comment='Not all modified dataframes were saved',
+                code_problem=CodeProblem.MissingOutputFiles,
+            ))
+        return issues
+
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+        issues = []
+        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        for requirement in self.output_file_requirements:
+            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
+            if isinstance(requirement, ContentOutputFileRequirement):
+                for filename in output_files:
+                    issues.extend(
+                        self._get_issues_for_output_file_content(requirement, filename, files_to_contents[filename]))
+        return issues
+
+    def _get_issue_for_new_code_not_being_a_modification_of_old_code(self, new_code: str,
+                                                                     old_code: str) -> Optional[RunIssue]:
+        if line_count(new_code) < line_count(old_code) * 0.9:
+            return RunIssue(
+                issue="Your code does not seem to be a modification of the previous code.",
+                instructions="Please rewrite the complete code again, making sure that the new code is "
+                             "a modification of the old code.",
+                comment='Code is not a modification of previous code.',
+                end_with='',
+                code_problem=CodeProblem.StaticCheck,
+            )
+        return None
+
+    def _get_issue_for_run_utils_error(self, error: RunUtilsError, e: FailedRunningCode) -> RunIssue:
+        lineno, line, msg = e.get_lineno_line_message()
+        return RunIssue(
+            category=error.issue.category,
+            issue=f'{error.issue.issue}\nOn line:\n`{line}`',
+            instructions=error.issue.instructions,
+            comment=error.issue.comment,
+            code_problem=error.issue.code_problem,
+        )
+
+    """
+    METHODS FOR RUNNING CODE
+    """
+
+    def _get_code_runner(self, response: str) -> CodeRunner:
+        return self.runner_cls(
+            response=response,
+            allowed_read_files=self.data_filenames,
+            output_file_requirements=self.output_file_requirements,
+            allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
+            script_file_path=None,
+            data_folder=self.data_folder,
+            runtime_available_objects=self._get_runtime_available_objects(),
+        )
+
+    # to save the script file:
+    # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
+
+    def _get_response_count(self) -> int:
+        """
+        USER: Please write code ...
+        ASSISTANT: <code>   # 0
+        USER: You have a bug ...
+        ASSISTANT: <code>   # 1
+        """
+        return (len(self.conversation) - self._conversation_len_before_first_response - 1) // 2
+
+    def _post_code_as_fresh(self, code: str, code_problem: Optional[CodeProblem] = None, action_stage: int = 0):
+        self._rewind_conversation_to_first_response(offset=action_stage * 2)
+        if action_stage == 0:
+            self.previous_code_problem = code_problem
+            message = 'Here is the code to perform the requested analysis:'
+            comment = 'Code is freshly re-posted, as if it was the FIRST response.'
+        elif action_stage == 1:
+            message = 'Here is the revised code to perform the requested analysis:'
+            comment = 'Code is freshly re-posted, as if it was the SECOND response.'
+        else:
+            raise ValueError(f'Invalid action_stage: {action_stage}')
+        self.previous_code = code
+
+        self.apply_append_surrogate_message(
+            content=message + '\n```python\n{}\n```'.format(code),
+            web_conversation_name=None,
+            comment=comment,
+        )
+
+    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue]], code: Optional[str] = None):
+        """
+        We post a response to the assistant code, based on the issues.
+        We also need to delete (some) of the previous exchange.
+
+        The conversation may have a max of 3 exchanges:
+
+        User: Please write code ... [preexisting request prompt]
+
+        Assistant: <code>   # stage 0
+        User: We have a problem ... Please fix.
+
+        Assistant: <code>   # stage 1
+        User: You have a bug ...
+
+        Assistant: <code>   # stage 2  [We continue here only if stage 2 was a run-time error]
+
+        In each stage, we need to decide on the action based on the problem in the code:
+        - Re-post the code ["repost0" as the original response; "repost1" as the second response]
+        - Leave the response as is ("leave")
+        - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
+        """
+        # Get Problem
+        if isinstance(issues, RunIssue):
+            issues = [issues]
+        issue_collector = IssueCollector(issues)
+        problem = issue_collector.get_most_severe_problem()
+
+        # Get Action
+        # When we have run_failed, we essentially don't know the quality of the code (e.g. it can be the
+        # perfect code with just syntax error, or it can be a code doesn't even create any output files).
+        # So run_failed is the only time we allow going from stage 1 to 2.
+        # Namely, if we are in stage 2, we had definitely has a run_failed on stage 1.
+        plan = np.array((
+            # 0              1                   2      <- stage    # Problem           # noqa
+            ('regen0',      'regen1',           'regen1'),          # incomplete        # noqa
+            ('leave',       'regen1',           'regen2'),          # not_single_block  # noqa
+            ('repost0',     'repost0/regen1',   'regen2'),          # static_check      # noqa
+            ('repost0',     'repost0/leave',    'repost1'),         # run_failed        # noqa
+            ('repost0',     'repost0/leave',    'repost0/regen1'),  # missing_files     # noqa
+            ('repost0',     'repost0',          'repost0'),         # run_completed     # noqa
+        ))
+        #  xxx/yyy: xxx if current problem difficulty is equal or easier to previous_code_problem / else yyy
+
+        current_stage = self._get_response_count()
+        action = plan[problem.get_stage(), current_stage]
+        if '/' in action:
+            action1, action2 = action.split('/')
+            action = action1 if problem.get_stage() >= self.previous_code_problem.get_stage() else action2
+
+        if PRINT_COMMENTS:
+            print(f'=====================\n'
+                  f'current_stage={current_stage}\n'
+                  f'      problem={problem}\n'
+                  f'prev. problem={self.previous_code_problem}\n'
+                  f'       action={action}\n'
+                  f'=====================\n')
+
+        if action.startswith("repost") or action.startswith("regen"):
+            action_stage = int(action[-1])
+            action = action[:-1]
+        else:
+            action_stage = current_stage
+
+        # Apply Action
+        if action == "repost":
+            self._post_code_as_fresh(code, problem, action_stage)
+
+        message, comment = issue_collector.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
         self.apply_append_user_message(
-            content=dedent_triple_quote_str(f"""
-            Your code changes the series "{series}" of your dataframe.
-            Instead of changing an existing dataframe series, please create a new series, and give it a \
-            new sensible name.
-            Please rewrite the complete code again, making sure you create new series instead of changing existing ones. 
-            """),
-            comment=f'{self.iteration_str}: Code modifies dataframe series "{series}".')
+            content=message + ('\n\nREGENERATE' if action == "regenerate" else ''),
+            comment=self.iteration_str + ': ' + comment,
+        )
 
-    def _respond_to_empty_output(self):
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code, it created the output file "{}", but the file is just empty! 
-            Please rewrite the complete code again to correct this error. 
-            """).format(self.output_filename),
-            comment=f'{self.iteration_str}: Code completed, but output file is empty.')
+        if action == "regen":
+            # To regenerate, we delete the required pairs of assistant+user messages
+            # (including the last message which is the just-posted user response to current issue).
+            self.apply_delete_messages(
+                RangeMessageDesignation.from_(start=(action_stage - current_stage - 1) * 2, end=-1),
+                comment=f'REGENERATE (back to stage {action_stage})',
+            )
+            self._requesting_small_change = False
+        else:
+            self._requesting_small_change = issue_collector.do_all_issues_request_small_change()
 
-    def _respond_to_large_output(self, output: str):
-        print(f'ChatGPT code created the following too-long output:\n{output}')
-        self.apply_append_user_message(
-            content=dedent_triple_quote_str("""
-            I ran the code, it created the output file "{}", but the file is too long!
-
-            Here is the beginning of the output:
-            ```output
-            {}
-            ```
-
-            Please rewrite the complete code so that only sensible length output is written to the file. 
-            """).format(self.output_filename, extract_to_nearest_newline(output, MAX_SENSIBLE_OUTPUT_SIZE.val)),
-            comment=f'{self.iteration_str}: Code completed, but output file is too long.')
-
-    def _get_and_run_code(self) -> Optional[CodeAndOutput]:
+    def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
         """
         Get a code from chatgpt, run it and return code and result.
         If the code fails, notify chatgpt and return None.
         """
         response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
-        code_and_output = None
         code_runner = self._get_code_runner(response)
+
+        # Try to extract the code:
         try:
-            code_and_output = code_runner.run_code()
-            dataframe_operations = code_and_output.dataframe_operations
+            code = code_runner.extract_code()
         except IncompleteBlockFailedExtractingBlock:
-            self._respond_to_incomplete_code()
+            self._respond_to_issues(self._get_issue_for_incomplete_code_block())
+            return None
         except FailedExtractingBlock as e:
-            self._respond_to_missing_or_multiple_code(e)
+            self._respond_to_issues(self._get_issue_for_missing_or_multiple_code_blocks(e))
+            return None
+
+        # We were able to extract the code. We now statically check the code before running it.
+        static_code_check_issues = []
+        if self._requesting_small_change:
+            static_code_check_issues.append(
+                self._get_issue_for_new_code_not_being_a_modification_of_old_code(code, self.previous_code))
+        static_code_check_issues.extend(self._get_issues_for_static_code_check(code))
+
+        if static_code_check_issues:
+            self._respond_to_issues(static_code_check_issues, code)
+            return None
+
+        # Code passes static checks. We can now run the code.
+        try:
+            code_and_output, issue_collector = code_runner.run_code()
         except FailedRunningCode as e:
-            # We were able to extract the code, but it failed to run
-            # We first clean up, re-reposting the code as if it was the immediate response
-            self._rewind_conversation_to_first_response()
-            self.apply_append_surrogate_message(
-                'Here is the code to perform the requested analysis:\n```python\n{}\n```'.format(
-                    code_runner.extract_code()),
-                web_conversation_name=None,
-                comment='We are re-posting the code as if it was the immediate response.')
-            self.previous_code = code_runner.extract_code()
-            try:
-                raise e.exception
-            except ImportError as f:
-                # chatgpt tried using a package we do not support
-                self._respond_to_allowed_packages(f)
-            except TimeoutError:
-                # code took too long to run
-                self._respond_to_timeout()
-            except UnAllowedFilesCreated as f:
-                # code created files that we do not allow
-                self._respond_to_un_allowed_files_created(f.un_allowed_files)
-            except FileNotFoundError as f:
-                # the code tried to load file that we do not have
-                self._respond_to_file_not_found(str(f))
-            except CodeUsesForbiddenFunctions as f:
-                self._respond_to_forbidden_functions(f.func)
-            except UnAllowedDataframeMethodCall as f:
-                self._respond_to_forbidden_functions(f.method_name)
-            except CodeImportForbiddenModule as f:
-                self._respond_to_forbidden_import(f.module)
-            except CodeWriteForbiddenFile as f:
-                self._respond_to_forbidden_write(f.file)
-            except CodeReadForbiddenFile as f:
-                self._respond_to_forbidden_read(f.file)
-            except DataFrameSeriesChange as f:
-                self._respond_to_dataframe_series_change(f.changed_series)
-            except Warning:
-                # the code raised a warning
-                self._respond_to_error_message(e.get_traceback_message(), is_warning=True)
-            except Exception:
-                # the code failed on other errors
-                # we will indicate to chatgpt the error message that we got
-                self._respond_to_error_message(e.get_traceback_message())
-        except FailedLoadingOutput:
-            # Code ran, but the output file was not created.
-            self._respond_to_missing_output()
-        except Exception:
-            raise
-        else:
-            # The code ran without raising exceptions
-            output = code_and_output.get_clean_output()
-            if output is not None and len(output.strip()) == 0:
-                # The code ran successfully, but the output file is empty.
-                self._respond_to_empty_output()
-            elif output is not None \
-                    and count_number_of_tokens_in_message(output, max(ModelEngine)) > \
-                    MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val:
-                # The code ran successfully, but the output file is too large.
-                self._respond_to_large_output(output)
-            elif self.enforce_saving_altered_dataframes \
-                    and dataframe_operations.get_read_changed_but_unsaved_ids():
-                # The code ran successfully, but not all changed dataframes were saved to files.
-                read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
-                    dataframe_operations.get_read_changed_but_unsaved_ids())
-                self._respond_to_unsaved_dataframes(read_but_unsaved_filenames)
+            exceptions_to_funcs = {
+                ImportError: self._get_issue_for_allowed_packages,
+                TimeoutError: self._get_issue_for_timeout,
+                UnAllowedFilesCreated: self._get_issue_for_un_allowed_files_created,
+                FileNotFoundError: self._get_issue_for_file_not_found,
+                CodeUsesForbiddenFunctions: self._get_issue_for_forbidden_functions,
+                UnAllowedDataframeMethodCall: self._get_issue_for_forbidden_method,
+                CodeImportForbiddenModule: self._get_issue_for_forbidden_import,
+                CodeWriteForbiddenFile: self._get_issue_for_forbidden_write,
+                CodeReadForbiddenFile: self._get_issue_for_forbidden_read,
+                DataFrameSeriesChange: self._get_issue_for_dataframe_series_change,
+                RunUtilsError: self._get_issue_for_run_utils_error,
+            }
+            for e_type, func in exceptions_to_funcs.items():
+                if isinstance(e.exception, e_type):
+                    run_time_issue = func(e.exception, e)
+                    break
             else:
-                # All good!
-                self.apply_append_user_message('Well done - your code runs successfully!', ignore=True)
-                self.comment("GPT code completed successfully.")
-                return code_and_output
+                run_time_issue = self._get_issue_for_regular_exception_or_warning(e, code_runner)
+            self._respond_to_issues(run_time_issue, code)
+            return None
 
-        # if the code ran, but output was incorrect, we delete any created output files:
-        if code_and_output is not None:
+        # The code ran without raising exceptions.
+        # We now check for issues in the output files as well as issues collected during the run:
+        output_issues = []
+        output_issues.extend(self._get_issues_for_num_files_created(code_and_output))
+        output_issues.extend(self._get_issues_for_unsaved_dataframes(code_and_output))
+        output_issues.extend(issue_collector.issues)
+        output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
+
+        if output_issues:
+            # if the code ran, but output was incorrect, we delete any created files:
             with run_in_directory(self.data_folder):
-                for file in code_and_output.created_files:
+                for file in code_and_output.get_created_data_files():
                     os.remove(file)
+            self._respond_to_issues(output_issues, code)
+            return None
 
-        return None  # code failed
+        return code_and_output
 
     def run_debugging(self) -> Optional[CodeAndOutput]:
         """
@@ -437,10 +681,12 @@ class DebuggerConverser(ProductsConverser):
         """
         self.initialize_conversation_if_needed()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
-            code_and_output = self._get_and_run_code()
+            code_and_output = self._get_code_and_respond_to_issues()
             if code_and_output is not None:
                 return code_and_output
         self.apply_append_user_message(
             "It seems like we are not converging. Let's try again from the start.\n"
             "Please provide a fresh new attempt of the code.", ignore=True)
+        self._rewind_conversation_to_first_response()
+
         return None

@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
-from data_to_paper.run_gpt_code.overrides.dataframes.overridde_core import UnAllowedDataframeMethodCall
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.overrides.dataframes.override_dataframe import hook_dataframe_creating_funcs, \
     collect_created_and_changed_data_frames, DataFrameSeriesChange
 from data_to_paper.utils.file_utils import run_in_directory
@@ -147,3 +147,11 @@ def test_raise_on_call():
         with pytest.raises(UnAllowedDataframeMethodCall) as exc:
             df.to_html()
     assert 'to_html' in str(exc.value)
+
+
+def test_df_to_latex():
+    with collect_created_and_changed_data_frames():
+        df = pd.DataFrame({'a': [7.0, 1.2385]})
+        latex = df.to_latex()
+        assert '7 ' in latex
+        assert '1.24 ' in latex

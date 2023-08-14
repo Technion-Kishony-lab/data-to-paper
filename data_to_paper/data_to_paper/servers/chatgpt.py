@@ -12,7 +12,7 @@ import tiktoken
 
 from data_to_paper.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 from data_to_paper.utils.highlighted_text import print_red
-from data_to_paper.run_gpt_code.runtime_decorators import timeout_context, CodeTimeoutException
+from data_to_paper.run_gpt_code.timeout_context import timeout_context, CodeTimeoutException
 
 from .base_server import ListServerCaller
 from .openai_models import ModelEngine
@@ -83,7 +83,7 @@ class OpenaiSeverCaller(ListServerCaller):
         pricing_in, pricing_out = model_engine.pricing
         print_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
                   f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.')
-        time.sleep(6)
+        # time.sleep(6)
 
     @staticmethod
     def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:

@@ -1,17 +1,43 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, Type
 
 from data_to_paper.env import SUPPORTED_PACKAGES
-from data_to_paper.run_gpt_code.types import CodeAndOutput
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
+    get_single_content_file_from_requirements, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer
+from data_to_paper.utils.replacer import Replacer, StrOrReplacer
+from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
-from .request_python_value import PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
+from .request_python_value import PythonDictReviewBackgroundProductsConverser
+from .result_converser import Rewind, SelfResponseError
+
+EXTS_TO_LABELS = {
+    '.tex': 'latex',
+    '.txt': 'output',
+    '.csv': 'csv',
+}
+
+
+@dataclass
+class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
+    CHATGPT_PARAMETERS = {'temperature': 0.0}
+    value_type = Dict[str, str],
+
+    def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
+                                   add_iterations: int = 0,
+                                   bump_model: bool = False):
+        msg = dedent_triple_quote_str("""
+                Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
+                to suggested solutions (values).
+                If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
+            """)
+        raise SelfResponseError(msg, rewind=Rewind.AS_FIRST_CORRECTION, bump_model=bump_model,
+                                add_iterations=add_iterations)
 
 
 @dataclass
@@ -19,14 +45,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_code_revisions: int = 5
     max_code_writing_attempts: int = 2
     max_debug_iterations_per_attempt: int = 12
-
+    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
+    debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
-
-    allowed_created_files: Tuple[str, ...] = None
-    # e.g. ('*.csv', '*.txt'), or `None` for any file.  No need to include the output file, it is added automatically.
 
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
+
+    attrs_to_send_to_debugger: Tuple[str, ...] = \
+        ('output_file_requirements', 'data_filenames', 'data_folder', 'allow_dataframes_to_change_existing_series',
+         'enforce_saving_altered_dataframes', 'supported_packages', 'model_engine', )
 
     revision_round: int = 0
 
@@ -38,7 +66,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     goal_verb: str = 'write'
     user_initiation_prompt: str = 'Please write a code to analyze the data.'
 
-    output_filename: str = 'results.txt'
+    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
@@ -46,40 +74,56 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     gpt_script_filename: str = 'gpt_code'
     # The base name of the python file in which the code written by gpt is saved.
 
-    code_revision_requesting_prompt: str = dedent_triple_quote_str("""
-        Revise the code as needed to correct the above issues.
-        Do not just point to what needs to be changed; send the full complete revised code.
-        """)
-
     present_code_as_fresh: str = dedent_triple_quote_str("""
         Here is the code to perform the analysis.
-        {code_save_result_to_file_explanation}
+        {created_file_names_explanation}
         ```python
-        {}
+        {code}
         ```
         """)  # set to None to not present code
 
     offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code. Here is the content of the output file that it created ("{output_filename}"):
-        ```output
-        {}
-        ```
+        I ran your code. 
+
+        {created_file_contents_explanation}
 
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
-        that may indicate that code improvements are needed), then choose one of the following options:
+        that may indicate that code improvements are needed).
 
-        1. The results seem reasonable, I am happy with the code and the results, {'choice': 'ok'}.  
+        Return your choice as a Python Dict[str, str], mapping possible issues to suggested changes in the code.
 
-        2. Something is wrong. I need to go back and change/improve the code, {'choice': 'revise'}.
-
-        Return your choice as a Python Dict[str, str], with either: {'choice': 'ok'} or {'choice': 'revise'}.
+        If you have no suggestions for improvement, return an empty dict:
+        ```python
+        {}
+        ```` 
         """)  # set to None to skip option for revision
 
     @property
-    def code_save_result_to_file_explanation(self) -> str:
-        if self.output_filename is None:
+    def output_filename(self) -> str:
+        return get_single_content_file_from_requirements(self.output_file_requirements)
+
+    def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:
+        created_files = code_and_output.get_created_content_files_to_contents()
+        if len(created_files) == 0:
             return ''
-        return 'It saves results to the file "{output_filename}".'
+        elif len(created_files) == 1:
+            created_file = next(iter(created_files))
+            return f'It saves the results to the file "{created_file}".'
+        else:
+            return f'It saves the results to the files {list(created_files)}.'
+
+    def get_created_file_contents_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
+        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        if len(files_to_contents) == 0:
+            return None
+        s = 'Here is the content of the output file(s) that the code created:\n'
+        for filename, content in files_to_contents.items():
+            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
+            s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
+        return s
+
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        return {}
 
     @property
     def data_filenames(self) -> NiceList[str]:
@@ -106,21 +150,20 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
         code_and_output = CodeAndOutput()
-        while self.revision_round < self.max_code_revisions:
-            if self.revision_round > 0:
-                self.apply_append_user_message(self.code_revision_requesting_prompt)
-            code_and_output = self._run_debugger(code_and_output.code)
+        while True:
+            code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
                 raise FailedCreatingProductException()
-            if not self._are_further_code_revisions_needed(code_and_output):
+            if self.revision_round == self.max_code_revisions:
+                break
+            if not self._are_further_code_revisions_needed(code_and_output, debugger):
                 break
             self.revision_round += 1
-        else:
-            raise FailedCreatingProductException()
         code_and_output.name = self.code_name
         return code_and_output
 
-    def _run_debugger(self, previous_code: Optional[str] = None) -> Optional[CodeAndOutput]:
+    def _run_debugger(self, previous_code: Optional[str] = None
+                      ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
         for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
             revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
@@ -128,46 +171,75 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
 
             # we now call the debugger that will try to run and provide feedback in multiple iterations:
-            code_and_output = DebuggerConverser.from_(
+            debugger = self.debugger_cls.from_(
                 self,
                 is_new_conversation=False,
-                output_filename=self.output_filename,
-                data_filenames=self.data_filenames,
-                data_folder=self.data_folder,
                 max_debug_iterations=self.max_debug_iterations_per_attempt,
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
+                background_product_fields_to_hide=(() if self.revision_round == 0
+                                                   else self.background_product_fields_to_hide_during_code_revision),
                 previous_code=previous_code,
-                allowed_created_files=self.allowed_created_files,
-                allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
-                enforce_saving_altered_dataframes=self.enforce_saving_altered_dataframes,
-                supported_packages=self.supported_packages,
-                model_engine=self.model_engine,
-            ).run_debugging()
+                previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
+                **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
+            )
+            code_and_output = debugger.run_debugging()
             if code_and_output is None:
                 # debugging failed
                 self.comment(f'Debugging failed, {revision_and_attempt}.')
                 continue
 
             if self.present_code_as_fresh:
-                # debugging succeeded. we now forge the conversation as if chatgpt immediately sent the correct code:
+                # debugging succeeded. we now forge the conversation as if ChatGPT immediately sent the correct code:
                 self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(
-                    content=Replacer(self, self.present_code_as_fresh, args=(code_and_output.code,)),
+                    content=Replacer(
+                        self, self.present_code_as_fresh,
+                        kwargs=dict(
+                            code=code_and_output.code,
+                            created_file_names_explanation=self.get_created_file_names_explanation(code_and_output),
+                        )),
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
-            return code_and_output
-        return None
+            return code_and_output, debugger
+        return None, None
 
-    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput) -> bool:
-        if self.offer_revision_prompt is None or self.output_filename is None:
+    def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
+        """
+        Return True/False indicating if ChatGPT wants to revise the code.
+        If true, set the conversation to the state where the user ask ChatGPT to revise the code.
+        """
+        created_file_contents_explanation = self.get_created_file_contents_explanation(code_and_output)
+        if self.offer_revision_prompt is None or created_file_contents_explanation is None:
+            return False
+        specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
+        conversation_len = len(self.conversation)
+        issues_to_solutions = RequestIssuesToSolutions.from_(
+            self,
+            is_new_conversation=False,
+            user_initiation_prompt=Replacer(
+                self, self.offer_revision_prompt,
+                kwargs=dict(
+                    created_file_contents_explanation=created_file_contents_explanation,
+                    **{k: Replacer(self, v).format_text() for k, v in specific_attrs_for_code_and_output.items()},
+                )),
+        ).run_and_get_valid_result()
+
+        if not issues_to_solutions:
             return False
 
-        return PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser.from_(
-            self,
-            value_type=Dict[str, str],
-            allowed_values_for_keys={'choice': ['ok', 'revise']},
-            is_new_conversation=False,
-            user_initiation_prompt=Replacer(self, self.offer_revision_prompt,
-                                            args=(code_and_output.get_clean_output(),)),
-        ).run_and_get_valid_result()['choice'] == 'revise'
+        prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)
+
+        # rewind the conversation to the point where the user asked for a revision:
+        self.apply_delete_messages(RangeMessageDesignation.from_(start=conversation_len, end=-1))
+        self.apply_append_user_message(dedent_triple_quote_str("""
+            The code has some issues that need to be fixed:
+
+            {issues_to_solutions}
+
+            {prompt_to_append_at_end_of_response}
+            """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
+                                                        for issue, solution in issues_to_solutions.items()),
+                        prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+
+        return True

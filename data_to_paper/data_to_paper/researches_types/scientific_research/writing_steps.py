@@ -56,7 +56,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     """
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'codes:data_analysis', 'tables', 'numeric_values', 'results_summary',
+                                                  'codes:data_analysis', 'tables', 'results_file', 'results_summary',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     should_remove_citations_from_section: bool = True
@@ -199,7 +199,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
-                                             'codes:data_analysis', 'tables', 'numeric_values', 'results_summary')
+                                             'codes:data_analysis', 'tables', 'results_file', 'results_summary')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
 
@@ -266,7 +266,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
         I especially want you to:
         (1) Make sure that the abstract clearly states the main results of the paper \
         (see above the {paper_sections:results}).
-        (2) Make sure that the abstract correctly defines the literature gap \
+        (2) Make sure that the abstract correctly defines the literature gap/question/motivation \
         (see above Literature Searches for list of related papers).
 
         {latex_instructions}
@@ -297,7 +297,9 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         (cite relevant papers from the above "{literature_search:writing:background}"). 
 
         * Explain what was already done and known on the topic, and what is then the research gap/question \
-        (cite relevant papers from the above "{literature_search:writing:results}"). 
+        (cite relevant papers from the above "{literature_search:writing:results}"). If there is only a minor gap, \
+        you can use language such as "Yet, it is still unclear ...", "However, less is known about ...", \
+        etc.
 
         * State how the current paper addresses this gap/question \
         (cite relevant papers from the above "{literature_search:writing:dataset}" and \
@@ -404,19 +406,19 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     forbidden_phrases: Tuple[Tuple[str, bool], ...] = \
         SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + \
         (
-            # (phrase, match_case)
             ('In conclusions', True),
             ('Future research', False),
             ('Future work', False),
             ('Future studies', False),
             ('Future directions', False),
             ('Limitations', False),
-        )
+    )
+    # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'tables', 'numeric_values')
+        ('title_and_abstract', 'codes:data_analysis', 'tables', 'results_file')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'tables', 'numeric_values')
+        ('title_and_abstract', 'codes:data_analysis', 'tables', 'results_file')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
@@ -442,8 +444,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         (These will be added later as part the Discussion section, not the Results section). 
 
         * Numeric values: 
-        You can extract and mention numeric values from the Tables as well as from the \
-        "{numeric_values}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
+        You can extract and mention numeric values from the latex Tables as well as from the \
+        "{results_file}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
         going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
         explicitly mention any such important numeric value as an integral part of the text.
 
@@ -458,7 +460,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
         whether the {goal_noun} contains only information that is explicitly extracted from the \
-        {tables} and {numeric_values} provided above. \
+        "{tables}" and "{results_file}" provided above. \
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.

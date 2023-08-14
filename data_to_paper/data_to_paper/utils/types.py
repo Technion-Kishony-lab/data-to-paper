@@ -44,6 +44,9 @@ class IndexOrderedEnum(Enum):
             return self._get_index() >= other._get_index()
         return NotImplemented
 
+    def __hash__(self):
+        return hash(self._get_index())
+
 
 T = TypeVar('T')
 

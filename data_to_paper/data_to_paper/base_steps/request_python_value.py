@@ -5,7 +5,10 @@ from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundPr
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
 from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
+    NoBlocksFailedExtractingBlock
 from data_to_paper.utils import extract_text_between_tags
+from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 
@@ -23,7 +26,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     A base class for agents requesting chatgpt to write a python value (like a list of str, or dict).
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
-    value_type: type = None  # Only supports Dict[str, str] and List[str] for now.
+    value_type: type = None
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
     @property
@@ -49,6 +52,18 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         Extracts the string of the python value from chatgpt response.
         If there is an error extracting the value, _raise_self_response_error is called.
         """
+        try:
+            return extract_content_of_triple_quote_block(response, self.goal_noun, 'python')
+        except NoBlocksFailedExtractingBlock:
+            pass
+        except FailedExtractingBlock as e:
+            self._raise_self_response_error(
+                f'{e}\n'
+                f'Your response should be formatted as a Python {self.parent_type.__name__}, '
+                f'within a triple backtick code block.',
+                rewind=Rewind.ACCUMULATE,
+                bump_model=True)
+
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
             return extract_text_between_tags(response, *tags, keep_tags=True)
@@ -85,7 +100,19 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
 
 
 @dataclass
-class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
+class PythonDictReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
+    """
+    A base class for agents requesting chatgpt to write a python dict.
+    """
+    value_type: type = Dict[Any, Any]
+
+    def _check_response_value(self, response_value: Any) -> Any:
+        value = super()._check_response_value(response_value)
+        return NiceDict(value)
+
+
+@dataclass
+class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictReviewBackgroundProductsConverser):
     """
     A base class for agents requesting chatgpt to write a python dict, with specified keys.
     """

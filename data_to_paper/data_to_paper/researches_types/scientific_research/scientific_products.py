@@ -4,7 +4,7 @@ from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
-from data_to_paper.latex.tables import add_tables_to_paper_section
+from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_stage import ScientificStages, \
@@ -98,11 +98,19 @@ class ScientificProducts(Products):
     analysis_plan: Optional[str] = None
     hypothesis_testing_plan: Optional[Dict[str, str]] = None
     tables_names: Dict[str, str] = field(default_factory=dict)
-    tables: Dict[str, List[str]] = field(default_factory=dict)
     numeric_values: Dict[str, str] = field(default_factory=dict)
     results_summary: Optional[str] = None
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
+
+    @property
+    def tables(self) -> Dict[str, List[str]]:
+        """
+        Return the tables.
+        """
+        return {'results': [content for file, content
+                            in self.codes_and_outputs['data_analysis'].get_created_content_files_to_contents().items()
+                            if file.endswith('.tex')]}
 
     @property
     def pretty_hypothesis_testing_plan(self) -> str:
@@ -153,7 +161,7 @@ class ScientificProducts(Products):
                 desc += code_and_output.description_of_created_files
             else:
                 desc += [DataFileDescription(file_path=created_file)
-                         for created_file in code_and_output.get_created_files_beside_output_file()]
+                         for created_file in code_and_output.get_created_data_files()]
         desc.data_folder = self.data_file_descriptions.data_folder
         return desc
 
@@ -162,7 +170,7 @@ class ScientificProducts(Products):
         Return the file headers of a given code_step.
         """
         code_and_output = self.codes_and_outputs[code_step]
-        created_files = code_and_output.get_created_files_beside_output_file()
+        created_files = code_and_output.get_created_data_files()
         if not created_files:
             return None
         return DataFileDescriptions(
@@ -335,7 +343,7 @@ class ScientificProducts(Products):
                 'Output of the {code_name} Code',
                 'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
-                lambda code_step: {'output': self.codes_and_outputs[code_step].get_clean_output(),
+                lambda code_step: {'output': self.codes_and_outputs[code_step].get_single_output(is_clean=True),
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -374,7 +382,7 @@ class ScientificProducts(Products):
                 'Here are the files created by the {code_name} code:\n\n{created_files}',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
-                    'created_files': self.codes_and_outputs[code_step].created_files,
+                    'created_files': self.codes_and_outputs[code_step].get_created_data_files(),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -443,19 +451,19 @@ class ScientificProducts(Products):
             ),
 
             'tables_names': NameDescriptionStageGenerator(
-                'Names of the Tables of the Paper',
-                'Here are the Names of the Tables of the Paper:\n\n{}',
+                'Captions of the Tables for the Paper',
+                'Here are the Captions of the Tables for the Paper:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.tables_names else self.pretty_tables_names,
             ),
 
             'tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
-                'Here are the tables we have for the paper:\n\n{}',
+                'Here are the tables created by our data analysis code:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.all_tables else
-                NiceList([f"Table {i + 1}:\n\n {table}" for i, table in enumerate(self.all_tables)],
-                         separator='\n\n'),
+                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
+                             f'```latex\n{table}\n```' for table in self.all_tables]),
             ),
 
             'tables_and_tables_names': NameDescriptionStageGenerator(
@@ -463,6 +471,14 @@ class ScientificProducts(Products):
                 '{tables}',
                 ScientificStages.TABLES,
                 lambda: {'tables': self.get_tables_names_and_content()}),
+
+            'results_file': NameDescriptionStageGenerator(
+                'Other Numeric Values for the Paper',
+                'Here is the content of the "results.txt" file providing some additional numeric values '
+                'we can use to write the results of the paper:\n\n{}',
+                ScientificStages.CODE,
+                lambda: self.codes_and_outputs['data_analysis'].get_created_content_files_to_contents()['results.txt']
+            ),
 
             'numeric_values': NameDescriptionStageGenerator(
                 'Other Numeric Values for the Paper',
