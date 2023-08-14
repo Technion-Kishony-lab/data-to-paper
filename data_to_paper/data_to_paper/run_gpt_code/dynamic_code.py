@@ -63,6 +63,7 @@ def run_code_using_module_reload(
         timeout_sec: int = None,
         warnings_to_issue: Iterable[Type[Warning]] = None,
         warnings_to_ignore: Iterable[Type[Warning]] = None,
+        warnings_to_raise: Iterable[Type[Warning]] = None,
         forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = None,
         allowed_read_files: Iterable[str] = None,
         allowed_write_files: Iterable[str] = None,
@@ -82,6 +83,7 @@ def run_code_using_module_reload(
     timeout_sec = timeout_sec or MAX_EXEC_TIME.val
     warnings_to_issue = warnings_to_issue or WARNINGS_TO_ISSUE
     warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
+    warnings_to_raise = warnings_to_raise or []
     forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
 
     runtime_available_objects = runtime_available_objects or {}
@@ -94,7 +96,8 @@ def run_code_using_module_reload(
                 PreventCalling(modules_and_functions=forbidden_modules_and_functions), \
                 PreventImport(modules=FORBIDDEN_IMPORTS), \
                 PreventFileOpen(allowed_read_files=allowed_read_files, allowed_write_files=allowed_write_files), \
-                WarningHandler(categories_to_issue=warnings_to_issue, categories_to_ignore=warnings_to_ignore), \
+                WarningHandler(categories_to_raise=warnings_to_raise,
+                               categories_to_issue=warnings_to_issue, categories_to_ignore=warnings_to_ignore), \
                 IssueCollector() as issue_collector, \
                 collect_created_and_changed_data_frames(
                     allow_dataframes_to_change_existing_series) as dataframe_operations, \

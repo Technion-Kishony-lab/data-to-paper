@@ -64,7 +64,8 @@ def test_statsmodels_logit_func():
         table2 = results.summary2().tables[1].iloc[:, 0:4]
         table2.columns = ['coef', 'std err', 'z', 'P>|z|']
         P = table2['P>|z|']
-        P.astype(float)
+        with pytest.raises(ValueError):
+            P.astype(float)
 
 
 def test_statsmodels_ols():

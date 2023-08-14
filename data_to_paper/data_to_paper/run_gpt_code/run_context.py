@@ -337,11 +337,11 @@ class WarningHandler(BaseRunContext):
             return self.original_showwarning(message, category, filename, lineno, file, line)
         if any(issubclass(category, cls) for cls in self.categories_to_issue):
             IssueCollector.get_runtime_object().add_issue(RunIssue(
-                issue=f'Code produced an undesired warning:\n```\n{message.strip()}\n```',
+                issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
             ))
         elif any(issubclass(category, cls) for cls in self.categories_to_raise):
-            raise category(message)
+            raise message
         elif any(issubclass(category, cls) for cls in self.categories_to_ignore):
             pass
         else:

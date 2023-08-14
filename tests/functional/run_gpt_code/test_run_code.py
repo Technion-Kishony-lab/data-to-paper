@@ -37,13 +37,12 @@ def test_run_code_catches_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    try:
-        run_code_using_module_reload(code, warnings_to_issue=[UserWarning])
-    except FailedRunningCode as e:
-        assert e.exception.args[0] == 'be careful'
-        assert e.tb[-1].lineno == 2
-    else:
-        assert False, 'Expected to fail'
+    with pytest.raises(FailedRunningCode) as e:
+        run_code_using_module_reload(code, warnings_to_raise=[UserWarning])
+    error = e.value
+    lineno, line, msg = error.get_lineno_line_message()
+    assert msg == 'be careful'
+    assert lineno == 2
 
 
 def test_run_code_timeout():
@@ -62,19 +61,26 @@ def test_run_code_timeout():
         assert False, 'Expected to fail'
 
 
-@pytest.mark.parametrize("forbidden_call", ['input', 'print', 'exit', 'quit', 'eval'])
-def test_run_code_forbidden_function_exit(forbidden_call):
+@pytest.mark.parametrize("forbidden_call", ['input', 'exit', 'quit', 'eval'])
+def test_run_code_forbidden_functions(forbidden_call):
     code = dedent_triple_quote_str("""
         a = 1
         {}()
         """).format(forbidden_call)
-    try:
+    with pytest.raises(FailedRunningCode) as e:
         run_code_using_module_reload(code)
-    except FailedRunningCode as e:
-        assert isinstance(e.exception, CodeUsesForbiddenFunctions)
-        assert e.tb[-1].lineno == 2
-    else:
-        assert False, 'Expected to fail'
+    assert isinstance(e.value.exception, CodeUsesForbiddenFunctions)
+    assert e.value.tb[-1].lineno == 2
+
+
+def test_run_code_forbidden_function_print():
+    code = dedent_triple_quote_str("""
+        a = 1
+        print(a)
+        a = 2
+        """)
+    _, _, issues = run_code_using_module_reload(code)
+    assert 'print' in issues.issues[0].issue
 
 
 @pytest.mark.parametrize("forbidden_import,module_name", [
