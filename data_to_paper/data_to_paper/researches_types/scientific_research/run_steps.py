@@ -3,8 +3,6 @@ from typing import Optional, Tuple, Type, List, Union
 
 from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation
 
-from data_to_paper.latex.latex_doc import LatexDocument
-
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts
@@ -13,8 +11,7 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, TablesReviewBackgroundProductsConverser, KeyNumericalResultsExtractorReviewGPT, \
-    TablesNamesReviewGPT, SecondTablesNamesReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+    ResultsInterpretationReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \

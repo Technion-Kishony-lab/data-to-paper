@@ -64,7 +64,7 @@ def test_statsmodels_logit_func():
         table2 = results.summary2().tables[1].iloc[:, 0:4]
         table2.columns = ['coef', 'std err', 'z', 'P>|z|']
         P = table2['P>|z|']
-        as_float = P.astype(float)
+        P.astype(float)
 
 
 def test_statsmodels_ols():
@@ -113,7 +113,7 @@ def test_scipy_label_pvalues():
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0
         t_statistic, p_value = stats.ttest_1samp(data, popmean)
-        assert type(p_value) == PValue
+        assert isinstance(p_value, PValue)
         assert p_value.created_by == 'ttest_1samp'
 
 
@@ -125,7 +125,7 @@ def test_scipy_stats_t_sf():
         t_statistic = 3.0
         df = 10
         p_value = scipy_stats.t.sf(t_statistic, df)
-        assert type(p_value) == PValue
+        assert isinstance(p_value, PValue)
 
 
 def test_pvalue_from_dict():

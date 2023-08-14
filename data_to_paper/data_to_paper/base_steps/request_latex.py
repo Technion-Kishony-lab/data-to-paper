@@ -70,8 +70,10 @@ class CheckLatexCompilation:
 
         try:
             if is_table:
-                return self.latex_document.compile_table(section, file_stem=file_stem, output_directory=output_directory)
-            self.latex_document.get_document(section, file_stem=file_stem, output_directory=output_directory)
+                return self.latex_document.compile_table(section, file_stem=file_stem,
+                                                         output_directory=output_directory)
+            self.latex_document.get_document(section, file_stem=file_stem,
+                                             output_directory=output_directory)
         except TooWideTableOrText as e:
             if self.tolerance_for_too_wide_in_pts is not None and \
                     e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:

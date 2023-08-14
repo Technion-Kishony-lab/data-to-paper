@@ -250,7 +250,7 @@ def _check_for_issues(df: pd.DataFrame, filename: str, *args,
                         * Creates the table without this column (use `df.drop(columns=["{column_header}"])`)
                         * Adds the unique value, {column_header}_unique[0], \
                         in the table note (use `note=` in the function `to_latex_with_note`).
-                        
+
                         There is no need to add corresponding comments to the code. 
                         """),
                 ))

@@ -17,7 +17,7 @@ from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, Code
 from .types import CodeProblem, RunIssue, module_filename
 
 
-T = TypeVar('T', bound='MyClass')
+T = TypeVar('T', bound='BaseRunContext')
 
 
 @dataclass

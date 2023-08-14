@@ -7,7 +7,7 @@ from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequiremen
     get_single_content_file_from_requirements, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
+from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 from .debugger import DebuggerConverser
@@ -89,9 +89,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
         Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
         that may indicate that code improvements are needed).
-        
+
         Return your choice as a Python Dict[str, str], mapping possible issues to suggested changes in the code.
-        
+
         If you have no suggestions for improvement, return an empty dict:
         ```python
         {}
@@ -234,9 +234,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         self.apply_delete_messages(RangeMessageDesignation.from_(start=conversation_len, end=-1))
         self.apply_append_user_message(dedent_triple_quote_str("""
             The code has some issues that need to be fixed:
-            
+
             {issues_to_solutions}
-            
+
             {prompt_to_append_at_end_of_response}
             """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
                                                         for issue, solution in issues_to_solutions.items()),

@@ -277,7 +277,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         variable, yyy as the dependent variable, and zzz as the mediator, while adjusting for aaa, bbb, ccc",
         }
         ```
-        
+
         Or, here is another example:
         ```python
         {
@@ -289,13 +289,13 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         while adding the interaction term between yyy and zzz",
         }
         ```
-        
+
         These of course are just examples. Your actual response should be based on the goal and hypotheses that \
         we have specified above (see the "{research_goal}" above).
-        
+
         Note how in both cases the the different hypotheses are connected to each other, building towards a single
         study goal.
-        
+
         Remember to return a valid Python dictionary Dict[str, str].
         """)
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -312,7 +312,8 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
                 f'Revise your response to return a maximum of {self.max_hypothesis_count} hypotheses, '
                 f'which should all build towards a single study goal.')
         return type(response_value)(
-            {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :', repl='', string=k, flags=re.IGNORECASE).strip(): v
+            {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
+                    repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
 
 
@@ -338,7 +339,7 @@ class TablesNamesReviewGPT(PythonDictReviewBackgroundProductsConverser):
         in the form of 'Table n' and the values being the captions of the tables.
 
         For example, you might return the following:
-        
+
         ```python
         {
             'Table 1': 'Summary statistics of the dataset',
@@ -578,7 +579,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
 
         For example, if the analysis results provides a summary of a some statistical test, \
         you might include:
-        
+
         ```python
         {
             'Total number of samples': xxx,
@@ -586,7 +587,7 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
             'AUC ROC of logistic regression for the XXX model': zzz,
         }
         ```
-        
+
         Obviously, this is just an example. You should choose the numerical results that are most relevant \
         to the specific \
         results we got in the outputs and in light of the {research_goal} of the project as mentioned above.

@@ -193,7 +193,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-        
+
         For example:
         ```python
         {
@@ -203,7 +203,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
             "Based on the data description, the units should be ...",
         }
         ```
-        
+
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
         If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \
@@ -211,13 +211,13 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         ```python
         {}
         ```
-        
+
         Important:
         * Do not return the revised code, only the issues and suggested fixes.
         * If there are no critical issues, then return an empty dict: `{}`.
         * Do not create positive issues that require no change in the code. In particular, do not write \
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
-         
+
         """)  # set to None to skip option for revision
 
 
@@ -428,7 +428,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         " "{hypothesis_testing_plan}"), create 2-4 tables for our scientific paper, summarizing \
         the results of the statistical analysis.
-        
+
         For each such scientific table, create a dataframe and save it to a tex file using my custom function:
         `to_latex_with_note(df, filename: str, caption: str, label: str, \
         note: str = None, legend: Dict[str, str] = None, **kwargs)`
@@ -493,16 +493,16 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         {created_file_contents_explanation}
 
         (1) Check your Python code and return a bullet-point response addressing these points:
-        
+
         * Statistical analysis: Check the part of the code that performs the statistical analysis, \
         and identify any imperfect implementation of statistical tests, like:
         - Incorrect choice of statistical test.
         {specific_comments_for_code_and_output}- Any other statistical analysis issues.
-        
+
         * Preprocessing: Review the description of the data files (see above "{data_file_descriptions}") \
         and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
         data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
-        
+
         * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
         raw data is performed on the preprocessed data, or vice versa.
 
@@ -522,21 +522,21 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-        
+
         For example:
         ```python
         {
             "The model does not adequately account for confounding variables": \
             "revise the code to add the following confounding variables ...",
-            
+
             "A table is missing": \
             "revise the code to add the following new table '<your suggested table caption>'",
-            
+
             "Table <n> reports nominal values without measures of uncertainty": \
             "revise the code to add STD and p-value.", 
         }
         ```
-        
+
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
         If you are sure that there are no issues, and the code and tables need no revision,
@@ -562,6 +562,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             s = ''
         comments['comment_on_missing_table'] = s
         return comments
+
 
 @dataclass
 class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):

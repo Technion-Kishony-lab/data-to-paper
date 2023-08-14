@@ -462,7 +462,8 @@ class ScientificProducts(Products):
                 'Here are the tables created by our data analysis code:\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.all_tables else
-                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n```latex\n{table}\n```' for table in self.all_tables]),
+                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
+                             f'```latex\n{table}\n```' for table in self.all_tables]),
             ),
 
             'tables_and_tables_names': NameDescriptionStageGenerator(

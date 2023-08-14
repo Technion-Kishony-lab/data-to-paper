@@ -3,7 +3,6 @@ from functools import partial
 from typing import Optional, Tuple, List
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
-from data_to_paper.utils import dedent_triple_quote_str
 
 from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIssue, CodeProblem
 
@@ -46,4 +45,3 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
             return super()._get_issues_for_output_file_content(requirement, filename, content)
 
         return []
-

@@ -1,10 +1,6 @@
-import functools
-import traceback
 from dataclasses import dataclass
-from typing import Callable
 
 import inspect
-from contextlib import contextmanager
 
 from data_to_paper.run_gpt_code.run_context import BaseRunContext
 
@@ -94,4 +90,3 @@ class FuncReplacerContext(AttrReplacerContext):
 
     def _is_right_type(self, obj) -> bool:
         return inspect.isfunction(obj)
-

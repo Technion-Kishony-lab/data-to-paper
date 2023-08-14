@@ -259,7 +259,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                              if self.output_file_requirements else "",
                 code_problem=CodeProblem.RuntimeError,
                 comment='Code uses `print`'
-        )
+            )
         return RunIssue(
             issue=f"Your code uses the function `{func}`, which is not allowed.",
             code_problem=CodeProblem.RuntimeError,

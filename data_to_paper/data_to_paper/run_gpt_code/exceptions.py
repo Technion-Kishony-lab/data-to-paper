@@ -53,7 +53,6 @@ class FailedRunningCode(RunCodeException):
             text = self.exception.text
             msg = self.exception.msg
         else:
-            from data_to_paper.run_gpt_code.dynamic_code import module_filename
             msg = str(self.exception)
             frame = self._get_gpt_module_frame()
             if frame is None:

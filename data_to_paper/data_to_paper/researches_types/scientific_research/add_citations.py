@@ -50,7 +50,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         ```python
         ["AuthorX2022", "AuthorY2009"]
         ```
-        
+
         where AuthorX2022 and AuthorY2009 are the ids of the citations you think are making a good fit for the sentence.
         Choose only citations that are relevant to the sentence.
         You can choose one or more citations, or you can choose not adding citations to this sentence by replying `[]`.
@@ -140,7 +140,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
 
         Return a Python Dict[str, str] mapping each chosen sentence to a short literature search query \
         (up to a maximum of 5 words), like this:
-        
+
         ```python
         {
          "This is a sentence that needs to have references": "Query for searching citations for this sentence", 
