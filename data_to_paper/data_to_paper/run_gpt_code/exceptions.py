@@ -89,6 +89,14 @@ class BaseRunContextException(RunCodeException, metaclass=ABCMeta):
 
 
 @dataclass
+class UnAllowedFilesCreated(BaseRunContextException, PermissionError):
+    un_allowed_files: List[str]
+
+    def __str__(self):
+        return f'UnAllowedFilesCreated: {self.un_allowed_files}'
+
+
+@dataclass
 class CodeUsesForbiddenFunctions(BaseRunContextException):
     func: str
 

@@ -20,12 +20,13 @@ from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, Incompl
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.run_context import IssueCollector
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, \
-    CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+    CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule, \
+    UnAllowedFilesCreated
 
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.openai_models import ModelEngine
-from data_to_paper.utils.file_utils import UnAllowedFilesCreated, run_in_directory
+from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BackgroundProductsConverser

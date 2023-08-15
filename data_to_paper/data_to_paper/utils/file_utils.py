@@ -23,16 +23,12 @@ def is_name_matches_list_of_wildcard_names(file_name: str, list_of_filenames: It
     return False
 
 
-@dataclass(frozen=True)
-class UnAllowedFilesCreated(PermissionError):
-    un_allowed_files: List[str]
-
-    def __str__(self):
-        return f'UnAllowedFilesCreated: {self.un_allowed_files}'
-
-
 @contextmanager
 def run_in_temp_directory():
+    """
+    Run code in a temporary folder.
+    The folder is deleted after the code is done running.
+    """
     cwd = os.getcwd()
     folder = os.path.join(THIS_FOLDER, str(uuid.uuid4()))
     if not os.path.exists(folder):
@@ -45,31 +41,19 @@ def run_in_temp_directory():
         shutil.rmtree(folder)
 
 
+# context manager to run in a given directory:
 @contextmanager
-def run_in_directory(folder: Union[Path, str] = None, allowed_create_files: Set[str] = None) -> Set[str]:
+def run_in_directory(folder: Union[Path, str] = None) -> Union[Path, str]:
     """
     Run code in a specific folder.
-    allowed_create_files is a set of file names that are allowed to be created in the folder.
-    can also be a wildcard filename, e.g. '*.csv'.
+    If folder is None, run in the current folder.
     """
     cwd = os.getcwd()
     if folder is not None:
         os.chdir(folder)
-    pre_existing_files = set(os.listdir())
-    created_files = set()
     try:
-        yield created_files
+        yield folder
     finally:
-        created_files.update(set(os.listdir()) - pre_existing_files)
-        if allowed_create_files is not None:
-            un_allowed_created_files = \
-                [file for file in created_files
-                 if not is_name_matches_list_of_wildcard_names(file, allowed_create_files)]
-            if un_allowed_created_files:
-                # delete created files:
-                for file in un_allowed_created_files:
-                    os.remove(file)
-                raise UnAllowedFilesCreated(un_allowed_files=list(un_allowed_created_files))
         os.chdir(cwd)
 
 
