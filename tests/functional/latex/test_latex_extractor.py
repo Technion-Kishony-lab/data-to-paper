@@ -50,9 +50,9 @@ def test_extract_latex_fail_to_extract_title_from_response():
 
 def test_extract_latex_section_from_response_as_plan_text():
     assert extract_latex_section_from_response(response_with_latex_section, 'introduction', keep_tags=False) == \
-           'This is the introduction\n'
+           'This is the introduction'
 
 
 def test_extract_latex_starred_section_from_response_as_plan_text():
     assert extract_latex_section_from_response(response_with_starred_latex_section, 'introduction', keep_tags=False) \
-           == 'This is the introduction\n'
+           == 'This is the introduction'
