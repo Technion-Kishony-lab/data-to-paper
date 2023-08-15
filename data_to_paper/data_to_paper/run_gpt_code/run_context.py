@@ -244,19 +244,19 @@ class PreventFileOpen(BaseRunContext):
 @dataclass
 class PreventCalling(BaseRunContext):
     modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
-    _original_functions: List[Callable] = None
+    _original_functions: Dict[str, Callable] = None
 
     def __enter__(self):
-        self._original_functions = []
+        self._original_functions = {}
         for module, function_name, should_only_create_issue in self.modules_and_functions:
             original_func = getattr(module, function_name)
             setattr(module, function_name, self.get_upon_called(function_name, original_func, should_only_create_issue))
-            self._original_functions.append(original_func)
+            self._original_functions[function_name] = original_func
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for module, function_name, _ in self.modules_and_functions:
-            setattr(module, function_name, self._original_functions.pop(0))
+            setattr(module, function_name, self._original_functions.pop(function_name))
         return super().__exit__(exc_type, exc_val, exc_tb)
 
     def get_upon_called(self, func_name: str, original_func: Callable, should_only_create_issue: bool):

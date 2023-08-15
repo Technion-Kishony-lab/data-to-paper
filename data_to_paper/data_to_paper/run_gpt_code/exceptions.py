@@ -1,3 +1,4 @@
+import traceback
 from abc import ABCMeta
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -17,6 +18,10 @@ class FailedRunningCode(RunCodeException):
     exception: Exception
     tb: Optional[List]
     fake_file_name = "my_analysis.py"
+
+    @classmethod
+    def from_exception(cls, e: Exception):
+        return cls(exception=e, tb=traceback.extract_tb(e.__traceback__))
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
@@ -88,7 +93,7 @@ class CodeUsesForbiddenFunctions(BaseRunContextException):
     func: str
 
     def __str__(self):
-        return f"Code uses a forbidden function {self.func}."
+        return f"Code uses a forbidden function `{self.func}`."
 
 
 @dataclass

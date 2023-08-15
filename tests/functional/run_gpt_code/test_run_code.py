@@ -1,4 +1,6 @@
 import os
+import time
+
 import pytest
 
 from data_to_paper.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, FailedRunningCode
@@ -27,7 +29,9 @@ def test_run_code_correctly_reports_exception():
         run_code_using_module_reload(code)
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'error'
-        assert e.tb[-1].lineno == 3
+        lineno, line, msg = e.get_lineno_line_message()
+        assert lineno == 3
+        assert line == "raise Exception('error')"
     else:
         assert False, 'Expected to fail'
 
@@ -56,21 +60,29 @@ def test_run_code_timeout():
         run_code_using_module_reload(code, timeout_sec=1)
     except FailedRunningCode as e:
         assert isinstance(e.exception, TimeoutError)
-        assert e.tb is None  # we currently do not get a traceback for timeout
+        lineno, line, msg = e.get_lineno_line_message()
+        assert lineno == 3
+        assert line == "time.sleep(2)"
     else:
         assert False, 'Expected to fail'
 
 
 @pytest.mark.parametrize("forbidden_call", ['input', 'exit', 'quit', 'eval'])
 def test_run_code_forbidden_functions(forbidden_call):
+    time.sleep(0.1)
     code = dedent_triple_quote_str("""
         a = 1
         {}()
         """).format(forbidden_call)
     with pytest.raises(FailedRunningCode) as e:
         run_code_using_module_reload(code)
-    assert isinstance(e.value.exception, CodeUsesForbiddenFunctions)
-    assert e.value.tb[-1].lineno == 2
+    error = e.value
+    assert isinstance(error.exception, CodeUsesForbiddenFunctions)
+    lineno, line, msg = error.get_lineno_line_message()
+    assert lineno == 2
+    assert line == '{}()'.format(forbidden_call)
+    # TODO: some wierd bug - the message is not always the same:
+    # assert forbidden_call in msg
 
 
 def test_run_code_forbidden_function_print():
@@ -103,7 +115,9 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeImportForbiddenModule)
         assert e.exception.module == module_name
-        assert e.tb[-1].lineno == 3
+        lineno, line, msg = e.get_lineno_line_message()
+        assert lineno == 3
+        assert line == forbidden_import
     else:
         assert False, 'Expected to fail'
 
@@ -139,14 +153,14 @@ code = dedent_triple_quote_str("""
 
 
 def test_run_code_raises_on_unallowed_files(tmpdir):
-    try:
-        os.chdir(tmpdir)
+    os.chdir(tmpdir)
+    with pytest.raises(FailedRunningCode) as e:
         run_code_using_module_reload(code, allowed_write_files=[])
-    except FailedRunningCode as e:
-        assert isinstance(e.exception, CodeWriteForbiddenFile)
-        assert e.tb[-1].lineno == 1
-    else:
-        assert False, 'Expected to fail'
+    error = e.value
+    assert isinstance(error.exception, CodeWriteForbiddenFile)
+    lineno, line, msg = error.get_lineno_line_message()
+    assert lineno == 1
+    assert line == "with open('test.txt', 'w') as f:"
 
 
 def test_run_code_allows_allowed_files(tmpdir):

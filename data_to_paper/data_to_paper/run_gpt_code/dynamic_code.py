@@ -104,21 +104,13 @@ def run_code_using_module_reload(
                 timeout_context(seconds=timeout_sec), \
                 override_statistics_packages(), \
                 run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
+            try:
+                importlib.reload(CODE_MODULE)
+            except Exception as e:
+                raise FailedRunningCode.from_exception(e)
 
-            importlib.reload(CODE_MODULE)
-
-    except TimeoutError as e:
-        # TODO:  add traceback to TimeoutError
-        raise FailedRunningCode(exception=e, tb=None)
-    except UnAllowedFilesCreated as e:
-        raise FailedRunningCode(exception=e, tb=None)
-    except BaseRunContextException as e:
-        tb = traceback.extract_tb(e.__traceback__)
-        tb.pop()  # remove the line of the context manager
-        raise FailedRunningCode(exception=e, tb=tb)
-    except Exception as e:
-        tb = traceback.extract_tb(e.__traceback__)
-        raise FailedRunningCode(exception=e, tb=tb)
+    except (TimeoutError, UnAllowedFilesCreated, BaseRunContextException) as e:
+        raise FailedRunningCode.from_exception(e)
     else:
         completed_successfully = True
     finally:
