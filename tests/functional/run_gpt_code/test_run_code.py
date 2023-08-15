@@ -2,10 +2,11 @@ import os
 import time
 
 import pytest
+from _pytest.fixtures import fixture
 
-from data_to_paper.run_gpt_code.dynamic_code import run_code_using_module_reload, CODE_MODULE, FailedRunningCode
+from data_to_paper.run_gpt_code.dynamic_code import RunCode, CODE_MODULE, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
-    CodeWriteForbiddenFile, CodeImportForbiddenModule
+    CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.utils import dedent_triple_quote_str
 
 
@@ -14,7 +15,7 @@ def test_run_code_on_legit_code():
         def f():
             return 'hello'
         """)
-    run_code_using_module_reload(code)
+    RunCode().run(code)
     assert CODE_MODULE.f() == 'hello'
 
 
@@ -26,7 +27,7 @@ def test_run_code_correctly_reports_exception():
         # line 4
         """)
     try:
-        run_code_using_module_reload(code)
+        RunCode().run(code)
     except FailedRunningCode as e:
         assert e.exception.args[0] == 'error'
         lineno, line, msg = e.get_lineno_line_message()
@@ -42,7 +43,7 @@ def test_run_code_catches_warning():
         warnings.warn('be careful', UserWarning)
         """)
     with pytest.raises(FailedRunningCode) as e:
-        run_code_using_module_reload(code, warnings_to_raise=[UserWarning])
+        RunCode(warnings_to_raise=[UserWarning]).run(code)
     error = e.value
     lineno, line, msg = error.get_lineno_line_message()
     assert msg == 'be careful'
@@ -57,7 +58,7 @@ def test_run_code_timeout():
         # line 4
         """)
     try:
-        run_code_using_module_reload(code, timeout_sec=1)
+        RunCode(timeout_sec=1).run(code)
     except FailedRunningCode as e:
         assert isinstance(e.exception, TimeoutError)
         lineno, line, msg = e.get_lineno_line_message()
@@ -75,7 +76,7 @@ def test_run_code_forbidden_functions(forbidden_call):
         {}()
         """).format(forbidden_call)
     with pytest.raises(FailedRunningCode) as e:
-        run_code_using_module_reload(code)
+        RunCode().run(code)
     error = e.value
     assert isinstance(error.exception, CodeUsesForbiddenFunctions)
     lineno, line, msg = error.get_lineno_line_message()
@@ -91,8 +92,9 @@ def test_run_code_forbidden_function_print():
         print(a)
         a = 2
         """)
-    _, _, issues = run_code_using_module_reload(code)
-    assert 'print' in issues.issues[0].issue
+    contexts = RunCode().run(code)
+    issue_collector = contexts['IssueCollector']
+    assert 'print' in issue_collector.issues[0].issue
 
 
 @pytest.mark.parametrize("forbidden_import,module_name", [
@@ -111,7 +113,7 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         {}
         """).format(forbidden_import)
     try:
-        run_code_using_module_reload(code)
+        RunCode().run(code)
     except FailedRunningCode as e:
         assert isinstance(e.exception, CodeImportForbiddenModule)
         assert e.exception.module == module_name
@@ -129,7 +131,7 @@ def test_run_code_forbidden_import_should_not_raise_on_allowed_packages():
         from scipy.stats import chi2_contingency
         """)
     try:
-        run_code_using_module_reload(code)
+        RunCode().run(code)
     except Exception as e:
         assert False, 'Should not raise, got {}'.format(e)
     else:
@@ -141,7 +143,7 @@ def test_run_code_wrong_import():
         from xxx import yyy
         """)
     try:
-        run_code_using_module_reload(code)
+        RunCode().run(code)
     except FailedRunningCode as e:
         assert e.exception.fromlist == ('yyy', )
 
@@ -152,10 +154,9 @@ code = dedent_triple_quote_str("""
     """)
 
 
-def test_run_code_raises_on_unallowed_files(tmpdir):
-    os.chdir(tmpdir)
+def test_run_code_raises_on_unallowed_open_files(tmpdir):
     with pytest.raises(FailedRunningCode) as e:
-        run_code_using_module_reload(code, allowed_write_files=[])
+        RunCode(allowed_open_write_files=[], run_in_folder=tmpdir).run(code)
     error = e.value
     assert isinstance(error.exception, CodeWriteForbiddenFile)
     lineno, line, msg = error.get_lineno_line_message()
@@ -163,6 +164,15 @@ def test_run_code_raises_on_unallowed_files(tmpdir):
     assert line == "with open('test.txt', 'w') as f:"
 
 
+def test_run_code_raises_on_unallowed_created_files(tmpdir):
+    with pytest.raises(FailedRunningCode) as e:
+        RunCode(allowed_open_write_files=None, allowed_create_files=(), run_in_folder=tmpdir).run(code)
+    error = e.value
+    assert isinstance(error.exception, UnAllowedFilesCreated)
+    lineno, line, msg = error.get_lineno_line_message()
+    assert lineno is None
+
+
 def test_run_code_allows_allowed_files(tmpdir):
     os.chdir(tmpdir)
-    run_code_using_module_reload(code, allowed_write_files=['test.txt'])
+    RunCode(allowed_open_write_files=['test.txt']).run(code)

@@ -1,47 +1,28 @@
 import builtins
+from contextlib import ExitStack
+from dataclasses import dataclass, field
 from pathlib import Path
+from types import ModuleType
 
 import matplotlib.pyplot as plt
 import os
 import importlib
-import traceback
 
-from typing import Optional, List, Type, Tuple, Any, Union, Iterable
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
 
 from data_to_paper import chatgpt_created_scripts
 
 from data_to_paper.env import MAX_EXEC_TIME
-from data_to_paper.utils.file_utils import run_in_directory, UnAllowedFilesCreated
-from data_to_paper.run_gpt_code.overrides.dataframes import collect_created_and_changed_data_frames, DataframeOperations
+from data_to_paper.utils.file_utils import run_in_directory
+from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from .overrides.contexts import override_statistics_packages
 
-from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector
+from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
+    TrackCreatedFiles
 from .timeout_context import timeout_context
-from .exceptions import FailedRunningCode, BaseRunContextException
+from .exceptions import FailedRunningCode, BaseRunContextException, UnAllowedFilesCreated
 from .types import module_filename, MODULE_NAME
 
-WARNINGS_TO_ISSUE: List[Type[Warning]] = [RuntimeWarning, SyntaxWarning]
-WARNINGS_TO_IGNORE: List[Type[Warning]] = [DeprecationWarning, ResourceWarning, PendingDeprecationWarning,
-                                           FutureWarning]
-FORBIDDEN_MODULES_AND_FUNCTIONS = [
-    # Module, function, create RunIssue (True) or raise exception (False)
-    (builtins, 'print', True),
-    (builtins, 'input', False),
-    # (builtins, 'exec', False),
-    (builtins, 'eval', False),
-    (builtins, 'exit', False),
-    (builtins, 'quit', False),
-    (plt, 'savefig', False),
-]
-
-FORBIDDEN_IMPORTS = [
-    'os',
-    'sys',
-    'subprocess',
-    'shutil',
-    'pickle',
-    'matplotlib',
-]
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filepath = os.path.join(module_dir, module_filename)
@@ -58,68 +39,114 @@ save_code_to_module_file()
 CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
-def run_code_using_module_reload(
-        code: str, save_as: Optional[str] = None,
-        timeout_sec: int = None,
-        warnings_to_issue: Iterable[Type[Warning]] = None,
-        warnings_to_ignore: Iterable[Type[Warning]] = None,
-        warnings_to_raise: Iterable[Type[Warning]] = None,
-        forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = None,
-        allowed_read_files: Iterable[str] = None,
-        allowed_write_files: Iterable[str] = None,
-        allow_dataframes_to_change_existing_series: bool = True,
-        runtime_available_objects: dict = None,
-        run_in_folder: Union[Path, str] = None) -> Tuple[List[str], DataframeOperations, IssueCollector]:
+@dataclass
+class RunCode:
     """
     Run the provided code and report exceptions or specific warnings.
-
-    Raises a TimeoutError exception if runs too long.
-
-    To run the code, we save it to a .py file and use the importlib to import it.
-    If the file was already imported before, we use importlib.reload.
-
-    save_as: name of file to save the code.  None to skip saving.
     """
-    timeout_sec = timeout_sec or MAX_EXEC_TIME.val
-    warnings_to_issue = warnings_to_issue or WARNINGS_TO_ISSUE
-    warnings_to_ignore = warnings_to_ignore or WARNINGS_TO_IGNORE
-    warnings_to_raise = warnings_to_raise or []
-    forbidden_modules_and_functions = forbidden_modules_and_functions or FORBIDDEN_MODULES_AND_FUNCTIONS
+    timeout_sec: int = MAX_EXEC_TIME.val
+    warnings_to_issue: Iterable[Type[Warning]] = (RuntimeWarning, SyntaxWarning)
+    warnings_to_ignore: Iterable[Type[Warning]] = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning,
+                                                   FutureWarning)
+    warnings_to_raise: Iterable[Type[Warning]] = ()
+    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = (
+        # Module, function, create RunIssue (True) or raise exception (False)
+        (builtins, 'print', True),
+        (builtins, 'input', False),
+        (builtins, 'eval', False),
+        (builtins, 'exit', False),
+        (builtins, 'quit', False),
+        (plt, 'savefig', False),
+        # (builtins, 'exec', False),
+    )
+    forbidden_imports: Optional[Iterable[str]] = ('os', 'sys', 'subprocess', 'shutil', 'pickle', 'matplotlib')
 
-    runtime_available_objects = runtime_available_objects or {}
+    # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
-    save_code_to_module_file(code)
-    completed_successfully = False
-    try:
-        with \
-                ProvideData(data=runtime_available_objects), \
-                PreventCalling(modules_and_functions=forbidden_modules_and_functions), \
-                PreventImport(modules=FORBIDDEN_IMPORTS), \
-                PreventFileOpen(allowed_read_files=allowed_read_files, allowed_write_files=allowed_write_files), \
-                WarningHandler(categories_to_raise=warnings_to_raise,
-                               categories_to_issue=warnings_to_issue, categories_to_ignore=warnings_to_ignore), \
-                IssueCollector() as issue_collector, \
-                collect_created_and_changed_data_frames(
-                    allow_dataframes_to_change_existing_series) as dataframe_operations, \
-                timeout_context(seconds=timeout_sec), \
-                override_statistics_packages(), \
-                run_in_directory(run_in_folder, allowed_create_files=allowed_write_files) as created_files:
-            try:
-                importlib.reload(CODE_MODULE)
-            except Exception as e:
-                raise FailedRunningCode.from_exception(e)
+    # Allowed in `open` for reading/writing
+    allowed_open_read_files: Optional[Iterable[str]] = ()
+    allowed_open_write_files: Optional[Iterable[str]] = ()
 
-    except (TimeoutError, UnAllowedFilesCreated, BaseRunContextException) as e:
-        raise FailedRunningCode.from_exception(e)
-    else:
-        completed_successfully = True
-    finally:
-        if not completed_successfully:
-            with run_in_directory(run_in_folder):
-                # remove all the files that were created
-                for file in created_files:
-                    os.remove(file)
-        if save_as:
-            os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
-        save_code_to_module_file()
-    return sorted(created_files), dataframe_operations, issue_collector
+    # Allowed new files. Assessed at end of run. If 'auto', then allowed_open_write_files is used.
+    allowed_create_files: Union[str, Optional[Iterable[str]]] = 'auto'  # None means all files
+
+    allow_dataframes_to_change_existing_series: bool = True
+    runtime_available_objects: Optional[Dict] = None
+    run_in_folder: Union[Path, str] = field(default_factory=Path)
+
+    def __post_init__(self):
+        if self.allowed_create_files == 'auto':
+            self.allowed_create_files = self.allowed_open_write_files
+
+    def _create_and_get_all_contexts(self) -> Dict[str, Any]:
+        contexts = {}
+        contexts['run_in_directory'] = run_in_directory(self.run_in_folder)
+        contexts['IssueCollector'] = IssueCollector()
+        if self.runtime_available_objects is not None:
+            contexts['ProvideData'] = ProvideData(data=self.runtime_available_objects)
+        if self.forbidden_modules_and_functions is not None:
+            contexts['PreventCalling'] = PreventCalling(modules_and_functions=self.forbidden_modules_and_functions)
+        if self.forbidden_imports is not None:
+            contexts['PreventImport'] = PreventImport(modules=self.forbidden_imports)
+        if not (self.allowed_open_read_files is None and self.allowed_open_write_files is None):
+            contexts['PreventFileOpen'] = PreventFileOpen(allowed_read_files=self.allowed_open_read_files,
+                                                          allowed_write_files=self.allowed_open_write_files)
+        if not (self.warnings_to_raise is None and self.warnings_to_issue is None and self.warnings_to_ignore is None):
+            contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
+                                                        categories_to_issue=self.warnings_to_issue,
+                                                        categories_to_ignore=self.warnings_to_ignore)
+        if self.timeout_sec is not None:
+            contexts['timeout_context'] = timeout_context(seconds=self.timeout_sec)
+        if self.allowed_create_files is not None:
+            contexts['TrackCreatedFiles'] = TrackCreatedFiles(allowed_create_files=self.allowed_create_files)
+        contexts['TrackDataFrames'] = TrackDataFrames(allow_changing_existing_series=
+                                                      self.allow_dataframes_to_change_existing_series)
+        contexts['override_statistics_packages'] = override_statistics_packages()
+        return contexts
+
+    def run(self, code: str, save_as: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Run the provided code and report exceptions or specific warnings.
+
+        Raises a TimeoutError exception if runs too long.
+
+        To run the code, we save it to a .py file and use the importlib to import it.
+        If the file was already imported before, we use importlib.reload.
+
+        save_as: name of file to save the code.  None to skip saving.
+        """
+        contexts = self._create_and_get_all_contexts()
+        save_code_to_module_file(code)
+        completed_successfully = False
+        try:
+            with ExitStack() as stack:
+                for context in contexts.values():
+                    stack.enter_context(context)
+                try:
+                    module = importlib.reload(CODE_MODULE)
+                    self._run_functions_in_module(module)
+                except Exception as e:
+                    raise FailedRunningCode.from_exception(e)
+
+        except BaseRunContextException as e:
+            raise FailedRunningCode.from_exception(e)
+        except Exception:
+            raise
+        else:
+            completed_successfully = True
+        finally:
+            created_files = contexts['TrackCreatedFiles'].created_files
+            if not completed_successfully:
+                with run_in_directory(self.run_in_folder):
+                    # remove all the files that were created
+                    for file in created_files:
+                        os.remove(file)
+            if save_as:
+                os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
+            save_code_to_module_file()
+
+        return contexts
+
+    def _run_functions_in_module(self, module: ModuleType):
+        pass
+

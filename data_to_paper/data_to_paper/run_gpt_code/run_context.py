@@ -344,9 +344,9 @@ class PreventImport(BaseRunContext):
 
 @dataclass
 class WarningHandler(BaseRunContext):
-    categories_to_issue: List[Type[Warning]] = field(default_factory=list)
-    categories_to_raise: List[Type[Warning]] = field(default_factory=list)
-    categories_to_ignore: List[Type[Warning]] = field(default_factory=list)
+    categories_to_issue: Iterable[Type[Warning]] = field(default_factory=list)
+    categories_to_raise: Iterable[Type[Warning]] = field(default_factory=list)
+    categories_to_ignore: Iterable[Type[Warning]] = field(default_factory=list)
 
     original_showwarning: Callable = None
 
