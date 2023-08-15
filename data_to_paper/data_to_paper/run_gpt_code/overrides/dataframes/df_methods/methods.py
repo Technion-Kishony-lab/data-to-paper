@@ -5,7 +5,6 @@ from pandas.core.frame import DataFrame
 
 from data_to_paper.env import PDF_TEXT_WIDTH
 
-from ..on_change import notify_on_change
 from ..utils import format_float
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
@@ -21,68 +20,62 @@ class DataframeKeyError(KeyError):
         return str(self.original_error) + f"\n\nAvailable keys are: {list(self.dataframe.columns)}"
 
 
-original_init = DataFrame.__init__
-original_to_string = DataFrame.to_string
-original_to_csv = DataFrame.to_csv
-original_str = DataFrame.__str__
-original_setitem = DataFrame.__setitem__
-original_getitem = DataFrame.__getitem__
-original_delitem = DataFrame.__delitem__
-
-
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
 TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
 STR_FLOAT_FORMAT = format_float
 
 
-def __init__(self, *args, created_by: str = None, file_path: str = None, **kwargs):
-    original_init(self, *args, **kwargs)
+def __init__(self, *args, created_by: str = None, file_path: str = None,
+             original_method=None, on_change=None, **kwargs):
+    original_method(self, *args, **kwargs)
     self.created_by = created_by
     self.file_path = file_path
-    notify_on_change(self, CreationDataframeOperation(
+    on_change(self, CreationDataframeOperation(
         id=id(self), created_by=created_by, file_path=file_path, columns=list(self.columns.values)))
 
 
-def __getitem__(self, key):
+def __getitem__(self, key, original_method=None, on_change=None):
     try:
-        return original_getitem(self, key)
+        return original_method(self, key)
     except KeyError as e:
         raise DataframeKeyError(original_error=e, key=key, dataframe=self)
 
 
-def __setitem__(self, key, value):
+def __setitem__(self, key, value, original_method=None, on_change=None):
     if hasattr(self, 'columns'):
         original_columns = self.columns
     else:
         original_columns = None
-    original_setitem(self, key, value)
+    result = original_method(self, key, value)
     if original_columns is not None:
         if isinstance(key, (list, tuple)):
             is_changing_existing_columns = any(k in original_columns for k in key)
         else:
             is_changing_existing_columns = key in original_columns
         operation_type = ChangeSeriesDataframeOperation if is_changing_existing_columns else AddSeriesDataframeOperation
-        notify_on_change(self, operation_type(id=id(self), series_name=key))
+        on_change(self, operation_type(id=id(self), series_name=key))
+    return result
 
 
-def __delitem__(self, key):
-    original_delitem(self, key)
-    notify_on_change(self, RemoveSeriesDataframeOperation(id=id(self), series_name=key))
+def __delitem__(self, key, original_method=None, on_change=None):
+    result = original_method(self, key)
+    on_change(self, RemoveSeriesDataframeOperation(id=id(self), series_name=key))
+    return result
 
 
-def __str__(self):
+def __str__(self, original_method=None, on_change=None):
     # to avoid printing with [...] skipping columns
     return self.to_string()
 
 
-def to_string(self, *args, **kwargs):
+def to_string(self, *args, original_method=None, on_change=None, **kwargs):
     """
     We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
     """
     current_float_format = pd.get_option('display.float_format')
     pd.set_option(f'display.float_format', STR_FLOAT_FORMAT)
-    result1 = original_to_string(self, *args, **kwargs)
-    result2 = original_to_string(self.T, *args, **kwargs)
+    result1 = original_method(self, *args, **kwargs)
+    result2 = original_method(self.T, *args, **kwargs)
     longest_line1 = max(len(line) for line in result1.split('\n'))
     longest_line2 = max(len(line) for line in result2.split('\n'))
     if longest_line1 > PDF_TEXT_WIDTH > longest_line2:
@@ -93,12 +86,12 @@ def to_string(self, *args, **kwargs):
     return result
 
 
-def to_csv(self, *args, **kwargs):
+def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
     current_float_format = pd.get_option('display.float_format')
     pd.set_option(f'display.float_format', TO_CSV_FLOAT_FORMAT)
-    result = original_to_csv(self, *args, **kwargs)
+    result = original_method(self, *args, **kwargs)
     pd.set_option(f'display.float_format', current_float_format)
     file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
-    notify_on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
+    on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result

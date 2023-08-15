@@ -1,14 +1,29 @@
 from functools import partial
+from typing import Iterable, Dict, Callable, Optional
 
 import pandas as pd
+from pandas.core.frame import DataFrame
 
-from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from data_to_paper.utils.singleton import run_once
+from data_to_paper.utils.mutable import Flag
+from ...run_context import BaseRunContext
 from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations
-from .on_change import ON_CHANGE
-from .overridde_core import override_core_ndframe
+from . import df_methods
+
+
+METHOD_NAMES_TO_FUNCS = {
+    '__init__': df_methods.__init__,
+    '__setitem__': df_methods.__setitem__,
+    '__getitem__': df_methods.__getitem__,
+    '__delitem__': df_methods.__delitem__,
+    '__str__': df_methods.__str__,
+    'to_string': df_methods.to_string,
+    'to_csv': df_methods.to_csv,
+    'to_latex': df_methods.to_latex,
+    'to_html': df_methods.raise_on_call,
+    'to_json': df_methods.raise_on_call,
+}
 
 
 @dataclass
@@ -22,50 +37,131 @@ class DataFrameSeriesChange(Exception):
         return f'Changed series: {self.changed_series}'
 
 
-DF_CREATING_FUNCTIONS = [
-    'read_csv',
-    'read_excel',
-    'read_json',
-]
-
-
-def hook_func(*args, original_func=None, **kwargs):
-    with ON_CHANGE.temporary_set(None):
-        df = original_func(*args, **kwargs)
-    file_path = args[0] if len(args) > 0 else kwargs.get('filepath_or_buffer')
-    reporting_df = pd.DataFrame(df, created_by=original_func.__name__, file_path=file_path)
-    return reporting_df
-
-
-@run_once
-def hook_dataframe_creating_funcs():
+@dataclass
+class TrackDataFrames(BaseRunContext):
     """
-    Hook all the dataframe creating functions so that they return a ReportingDataFrame instance.
+    Context manager that tracks all the data frames that are created and their changes during the context.
     """
-    for func_name in DF_CREATING_FUNCTIONS:
-        original_func = getattr(pd, func_name)
-        setattr(pd, func_name, partial(hook_func, original_func=original_func))
+    data_frame_operations: DataframeOperations = None
+    allow_changing_existing_series: Optional[bool] = True
+    # True: allow changing existing series for all df
+    # False: raise an exception when trying to change an existing series for all df
+    # None: allow changing existing series for all df except for the ones that are created from a file
+
+    str_float_format: str = field(default_factory=lambda: df_methods.STR_FLOAT_FORMAT)
+
+    df_creating_func_names_and_is_file: Iterable[str] = (
+        ('read_csv', True),
+        ('read_excel', True),
+        ('read_json', True),
+    )
+    df_method_names_to_funcs: Dict[str, Callable] = field(default_factory=lambda: METHOD_NAMES_TO_FUNCS)
+
+    _original_float_format: Optional[str] = None
+    _df_creating_func_names_to_original_funcs: Optional[Dict[str, Callable]] = None
+    _df_method_names_to_original_methods: Optional[Dict[str, Callable]] = None
+    _prevent_recording_changes: Flag = field(default_factory=Flag)
+
+    def _df_creating_func_override(self, *args, original_func=None, is_file=False, **kwargs):
+        """
+        Override for a dataframe creating function.
+        Adds a `file_path` and a `created_by` attribute to the created dataframe.
+        """
+        with self._prevent_recording_changes.temporary_set(True):
+            df = original_func(*args, **kwargs)
+        if not isinstance(df, pd.DataFrame):
+            return df
+        if is_file:
+            file_path = args[0] if len(args) > 0 else kwargs.get('filepath_or_buffer')
+        else:
+            file_path = None
+        return pd.DataFrame(df, created_by=original_func.__name__, file_path=file_path)
+
+    def _override_df_creating_funcs(self):
+        """
+        Hook all the dataframe creating functions so that they return a DataFrame with a `file_path` and a
+        `created_by` attributes.
+        """
+        self._df_creating_func_names_to_original_funcs = {}
+        for func_name, is_file in self.df_creating_func_names_and_is_file:
+            original_func = getattr(pd, func_name)
+            setattr(pd, func_name,
+                    partial(self._df_creating_func_override, original_func=original_func, is_file=is_file))
+            self._df_creating_func_names_to_original_funcs[func_name] = original_func
+
+    def _de_override_df_creating_funcs(self):
+        """
+        De-hook all the dataframe creating functions.
+        """
+        for func_name, original_func in self._df_creating_func_names_to_original_funcs.items():
+            setattr(pd, func_name, original_func)
+        self._df_creating_func_names_to_original_funcs = None
 
 
-@contextmanager
-def collect_created_and_changed_data_frames(allow_changing_existing_series=True) -> DataframeOperations:
-    """
-    Context manager that collects all the data frames that are created and their changes during the context.
-    """
-    hook_dataframe_creating_funcs()
-    override_core_ndframe()
-    dataframe_operations = DataframeOperations()
+    def _get_wrapped_method(self, new_method, original_method):
+        """
+        Wrap a method so that it has the original method as an argument and the `on_change` callback.
+        """
+        def wrapped_method(*args, **kwargs):
+            return new_method(*args, original_method=original_method, on_change=self._on_change, **kwargs)
+        return wrapped_method
 
-    def on_change(df, series_operation: DataframeOperation):
-        if isinstance(series_operation, ChangeSeriesDataframeOperation) \
-                and not allow_changing_existing_series \
-                and df.file_path is not None:
-            raise DataFrameSeriesChange(changed_series=series_operation.series_name)
-        dataframe_operations.append(series_operation)
+    def _override_df_methods(self):
+        """
+        Override specified dataframe methods so that they report changes to the dataframe.
+        As well as other enhancements.
+        """
+        self._df_method_names_to_original_methods = {}
+        for method_name, new_method in self.df_method_names_to_funcs.items():
+            original_method = getattr(DataFrame, method_name)
+            wrapped_new_method = self._get_wrapped_method(new_method, original_method)
+            setattr(DataFrame, method_name, wrapped_new_method)
+            self._df_method_names_to_original_methods[method_name] = original_method
 
-    with ON_CHANGE.temporary_set(on_change):
-        yield dataframe_operations
+    def _de_override_df_methods(self):
+        """
+        De-hook all the dataframe methods.
+        """
+        for func_name, original_func in self._df_method_names_to_original_methods.items():
+            setattr(DataFrame, func_name, original_func)
+        self._df_method_names_to_original_methods = None
 
-    #
-    # if not self.ALLOW_CHANGING_EXISTING_SERIES and operation_type is ChangeSeriesDataframeOperation:
-    #     raise DataFrameSeriesChange(changed_series=key)
+    def _override_float_format(self):
+        """
+        Override the float format.
+        """
+        if self.str_float_format:
+            pd.set_option(f'display.float_format', self.str_float_format)
+            self._original_float_format = pd.get_option('display.float_format')
+        else:
+            self._original_float_format = None
+
+    def _de_override_float_format(self):
+        """
+        De-hook the float format.
+        """
+        if self._original_float_format:
+            pd.set_option(f'display.float_format', self._original_float_format)
+            self._original_float_format = None
+
+    def _on_change(self, df, series_operation: DataframeOperation):
+        if self._prevent_recording_changes:
+            return
+        if isinstance(series_operation, ChangeSeriesDataframeOperation):
+            if self.allow_changing_existing_series is False \
+                    or (self.allow_changing_existing_series is None and df.file_path is not None):
+                raise DataFrameSeriesChange(changed_series=series_operation.series_name)
+        self.dataframe_operations.append(series_operation)
+
+    def __enter__(self):
+        self._override_df_creating_funcs()
+        self._override_df_methods()
+        self._override_float_format()
+        self.dataframe_operations = DataframeOperations()
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._de_override_float_format()
+        self._de_override_df_methods()
+        self._de_override_df_creating_funcs()
+        super().__exit__(exc_type, exc_val, exc_tb)

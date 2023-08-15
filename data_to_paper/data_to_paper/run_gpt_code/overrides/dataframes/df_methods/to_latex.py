@@ -6,8 +6,6 @@ from data_to_paper.latex.clean_latex import replace_special_latex_chars
 
 from data_to_paper.run_gpt_code.overrides.dataframes.utils import format_float
 
-original_to_latex = DataFrame.to_latex
-
 
 def carefully_replace_special_latex_chars(s: str) -> str:
     if isinstance(s, str):
@@ -45,11 +43,11 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
     return df
 
 
-def to_latex(self, *args, **kwargs):
+def to_latex(self, *args, original_method=None, on_change=None, **kwargs):
     kwargs = {**LATEX_DEFAULT_KWARGS, **kwargs}
     df = _escape_string_in_dataframe(self.copy())
     caption = kwargs.pop('caption', None)
     if caption is not None:
         caption = carefully_replace_special_latex_chars(caption)
-    result = original_to_latex(df, *args, caption=caption, **kwargs)
+    result = original_method(df, *args, caption=caption, **kwargs)
     return result
