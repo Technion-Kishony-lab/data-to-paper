@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, List
 
 from data_to_paper import chatgpt_created_scripts
 
@@ -21,8 +21,8 @@ from .run_context import PreventCalling, PreventFileOpen, PreventImport, Warning
     TrackCreatedFiles
 from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException, UnAllowedFilesCreated
-from .types import module_filename, MODULE_NAME
-
+from .types import module_filename, MODULE_NAME, RunIssue
+from ..utils.types import ListBasedSet
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filepath = os.path.join(module_dir, module_filename)
@@ -70,18 +70,25 @@ class RunCode:
     # Allowed new files. Assessed at end of run. If 'auto', then allowed_open_write_files is used.
     allowed_create_files: Union[str, Optional[Iterable[str]]] = 'auto'  # None means all files
 
-    allow_dataframes_to_change_existing_series: bool = True
     runtime_available_objects: Optional[Dict] = None
-    run_in_folder: Union[Path, str] = field(default_factory=Path)
+    run_folder: Union[Path, str] = field(default_factory=Path)
+
+    additional_contexts: Optional[Dict[str, Any]] = field(default_factory=dict)
 
     def __post_init__(self):
         if self.allowed_create_files == 'auto':
             self.allowed_create_files = self.allowed_open_write_files
 
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:
-        contexts = {}
-        contexts['run_in_directory'] = run_in_directory(self.run_in_folder)
-        contexts['IssueCollector'] = IssueCollector()
+
+        # Mandatory contexts:
+        contexts = {
+            'run_in_directory': run_in_directory(self.run_folder),
+            'TrackCreatedFiles': TrackCreatedFiles(allowed_create_files=self.allowed_create_files),
+            'IssueCollector': IssueCollector(),
+        }
+
+        # Optional builtin contexts:
         if self.runtime_available_objects is not None:
             contexts['ProvideData'] = ProvideData(data=self.runtime_available_objects)
         if self.forbidden_modules_and_functions is not None:
@@ -97,23 +104,27 @@ class RunCode:
                                                         categories_to_ignore=self.warnings_to_ignore)
         if self.timeout_sec is not None:
             contexts['timeout_context'] = timeout_context(seconds=self.timeout_sec)
-        if self.allowed_create_files is not None:
-            contexts['TrackCreatedFiles'] = TrackCreatedFiles(allowed_create_files=self.allowed_create_files)
-        contexts['TrackDataFrames'] = TrackDataFrames(allow_changing_existing_series=
-                                                      self.allow_dataframes_to_change_existing_series)
-        contexts['override_statistics_packages'] = override_statistics_packages()
+
+        # Additional custom contexts:
+        for context_name, context in self.additional_contexts.items():
+            contexts[context_name] = context
         return contexts
 
-    def run(self, code: str, save_as: Optional[str] = None) -> Tuple[Dict[str, Any], Any]:
+    def run(self, code: str, save_as: Optional[str] = None
+            ) -> Tuple[Any, ListBasedSet[str], List[RunIssue], Dict[str, Any]]:
         """
         Run the provided code and report exceptions or specific warnings.
-
-        Raises a TimeoutError exception if runs too long.
 
         To run the code, we save it to a .py file and use the importlib to import it.
         If the file was already imported before, we use importlib.reload.
 
         save_as: name of file to save the code.  None to skip saving.
+
+        Returns:
+            result: the result of a call to a function in the code, None if no function was called.
+            created_files: the files that were created during the run.
+            issues: the issues that were found during the run.
+            contexts: a dict of all the contexts within which the code was run.
         """
         contexts = self._create_and_get_all_contexts()
         save_code_to_module_file(code)
@@ -125,7 +136,7 @@ class RunCode:
                     stack.enter_context(context)
                 try:
                     module = importlib.reload(CODE_MODULE)
-                    result = self._run_functions_in_module(module)
+                    result = self._run_function_in_module(module)
                 except Exception as e:
                     raise FailedRunningCode.from_exception(e)
 
@@ -138,16 +149,15 @@ class RunCode:
         finally:
             created_files = contexts['TrackCreatedFiles'].created_files
             if not completed_successfully:
-                with run_in_directory(self.run_in_folder):
+                with run_in_directory(self.run_folder):
                     # remove all the files that were created
                     for file in created_files:
                         os.remove(file)
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
-            save_code_to_module_file()
+            save_code_to_module_file()  # leave the module empty
+        issues = contexts['IssueCollector'].issues
+        return result, created_files, issues, contexts
 
-        return contexts, result
-
-    def _run_functions_in_module(self, module: ModuleType):
+    def _run_function_in_module(self, module: ModuleType):
         pass
-

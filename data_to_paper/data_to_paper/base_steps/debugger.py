@@ -4,7 +4,7 @@ import re
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple, Union, Type
 
 import numpy as np
 
@@ -14,8 +14,9 @@ from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
     get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue, RunUtilsError
-from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
-from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, TrackDataFrames
+from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.run_context import IssueCollector
@@ -100,7 +101,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
         """)
-    runner_cls: CodeRunner = CodeRunner
+    runner_cls: Type[BaseCodeRunner] = CodeRunner
 
     max_debug_iterations: int = 5
     debug_iteration = 0
@@ -109,6 +110,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     _requesting_small_change: bool = False  # True when USER ask for modifications of an already existing code
     previous_code_problem: CodeProblem = CodeProblem.NoCode
     gpt_script_filename: str = 'debugger_gpt'
+    code_runner_cls: Type[BaseCodeRunner] = CodeRunner
 
     """
     PROPERTIES
@@ -207,7 +209,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         )
 
     def _get_issue_for_regular_exception_or_warning(self, error: FailedRunningCode,
-                                                    code_runner: CodeRunner) -> RunIssue:
+                                                    code_runner: BaseCodeRunner) -> RunIssue:
         return RunIssue(
             issue=_get_description_of_run_error(error.get_traceback_message(code_runner.lines_added_in_front_of_code)),
             code_problem=CodeProblem.SyntaxError if isinstance(error, SyntaxError) else CodeProblem.RuntimeError,
@@ -473,16 +475,25 @@ class DebuggerConverser(BackgroundProductsConverser):
     METHODS FOR RUNNING CODE
     """
 
-    def _get_code_runner(self, response: str) -> CodeRunner:
-        return self.runner_cls(
+    def _get_code_runner(self, response: str) -> BaseCodeRunner:
+        return self.code_runner_cls(
             response=response,
             allowed_read_files=self.data_filenames,
             output_file_requirements=self.output_file_requirements,
-            allow_dataframes_to_change_existing_series=self.allow_dataframes_to_change_existing_series,
             script_file_path=None,
-            data_folder=self.data_folder,
+            run_folder=self.data_folder,
             runtime_available_objects=self._get_runtime_available_objects(),
+            additional_contexts={'TrackDataFrames': TrackDataFrames(allow_changing_existing_series=
+                                                                    self.allow_dataframes_to_change_existing_series),
+                                 'override_statistics_packages': override_statistics_packages()}
         )
+
+    def _run_code_runner_and_get_code_and_output(self, code_runner: BaseCodeRunner
+                                                 ) -> Tuple[CodeAndOutput, List[RunIssue]]:
+        code_and_output, issues, contexts = code_runner.run_code()
+        track_df: TrackDataFrames = contexts['TrackDataFrames']
+        code_and_output.dataframe_operations = track_df.dataframe_operations
+        return code_and_output, issues
 
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
@@ -610,7 +621,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         # Try to extract the code:
         try:
-            code = code_runner.extract_code()
+            code = code_runner.get_raw_code()
         except IncompleteBlockFailedExtractingBlock:
             self._respond_to_issues(self._get_issue_for_incomplete_code_block())
             return None
@@ -631,7 +642,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         # Code passes static checks. We can now run the code.
         try:
-            code_and_output, issue_collector = code_runner.run_code()
+            code_and_output, issues = self._run_code_runner_and_get_code_and_output(code_runner)
         except FailedRunningCode as e:
             exceptions_to_funcs = {
                 ImportError: self._get_issue_for_allowed_packages,
@@ -660,7 +671,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         output_issues = []
         output_issues.extend(self._get_issues_for_num_files_created(code_and_output))
         output_issues.extend(self._get_issues_for_unsaved_dataframes(code_and_output))
-        output_issues.extend(issue_collector.issues)
+        output_issues.extend(issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
 
         if output_issues:

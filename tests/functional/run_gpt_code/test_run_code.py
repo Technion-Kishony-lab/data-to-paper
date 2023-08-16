@@ -91,9 +91,8 @@ def test_run_code_forbidden_function_print():
         print(a)
         a = 2
         """)
-    contexts, _ = RunCode().run(code)
-    issue_collector = contexts['IssueCollector']
-    assert 'print' in issue_collector.issues[0].issue
+    result, created_files, issues, contexts = RunCode().run(code)
+    assert 'print' in issues[0].issue
 
 
 @pytest.mark.parametrize("forbidden_import,module_name", [
@@ -155,7 +154,7 @@ code = dedent_triple_quote_str("""
 
 def test_run_code_raises_on_unallowed_open_files(tmpdir):
     with pytest.raises(FailedRunningCode) as e:
-        RunCode(allowed_open_write_files=[], run_in_folder=tmpdir).run(code)
+        RunCode(allowed_open_write_files=[], run_folder=tmpdir).run(code)
     error = e.value
     assert isinstance(error.exception, CodeWriteForbiddenFile)
     lineno, line, msg = error.get_lineno_line_message()
@@ -165,7 +164,7 @@ def test_run_code_raises_on_unallowed_open_files(tmpdir):
 
 def test_run_code_raises_on_unallowed_created_files(tmpdir):
     with pytest.raises(FailedRunningCode) as e:
-        RunCode(allowed_open_write_files=None, allowed_create_files=(), run_in_folder=tmpdir).run(code)
+        RunCode(allowed_open_write_files=None, allowed_create_files=(), run_folder=tmpdir).run(code)
     error = e.value
     assert isinstance(error.exception, UnAllowedFilesCreated)
     lineno, line, msg = error.get_lineno_line_message()

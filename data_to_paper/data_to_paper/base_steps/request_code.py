@@ -147,9 +147,12 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def _request_code_tag(self):
         return f'code_revision_{self.revision_round}'
 
+    def _get_initial_code_and_output(self) -> CodeAndOutput:
+        return CodeAndOutput()
+
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
         self.initialize_conversation_if_needed()
-        code_and_output = CodeAndOutput()
+        code_and_output = self._get_initial_code_and_output()
         while True:
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
