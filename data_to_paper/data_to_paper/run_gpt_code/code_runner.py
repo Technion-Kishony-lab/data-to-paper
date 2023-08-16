@@ -75,7 +75,7 @@ class CodeRunner:
         code = self.extract_code()
         modified_code = self.modify_extracted_code(code)
 
-        contexts = RunCode(
+        contexts, result = RunCode(
             allowed_open_read_files=self.allowed_read_files,
             allowed_open_write_files=self.all_allowed_created_filenames,
             allowed_create_files=self.all_allowed_created_filenames,
@@ -90,6 +90,7 @@ class CodeRunner:
         track_created_files = contexts['TrackCreatedFiles']
         return CodeAndOutput(
             code=code,
+            result=result,
             requirements_to_output_files_to_contents={requirement: {
                 output_file: (self.read_output_file(output_file, delete_file=True)
                               if requirement.should_keep_content else None)

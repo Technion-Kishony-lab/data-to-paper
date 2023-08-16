@@ -104,7 +104,7 @@ class RunCode:
         contexts['override_statistics_packages'] = override_statistics_packages()
         return contexts
 
-    def run(self, code: str, save_as: Optional[str] = None) -> Dict[str, Any]:
+    def run(self, code: str, save_as: Optional[str] = None) -> Tuple[Dict[str, Any], Any]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -118,13 +118,14 @@ class RunCode:
         contexts = self._create_and_get_all_contexts()
         save_code_to_module_file(code)
         completed_successfully = False
+        result = None
         try:
             with ExitStack() as stack:
                 for context in contexts.values():
                     stack.enter_context(context)
                 try:
                     module = importlib.reload(CODE_MODULE)
-                    self._run_functions_in_module(module)
+                    result = self._run_functions_in_module(module)
                 except Exception as e:
                     raise FailedRunningCode.from_exception(e)
 
@@ -145,7 +146,7 @@ class RunCode:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()
 
-        return contexts
+        return contexts, result
 
     def _run_functions_in_module(self, module: ModuleType):
         pass

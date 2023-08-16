@@ -2,7 +2,6 @@ import os
 import time
 
 import pytest
-from _pytest.fixtures import fixture
 
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, CODE_MODULE, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
@@ -92,7 +91,7 @@ def test_run_code_forbidden_function_print():
         print(a)
         a = 2
         """)
-    contexts = RunCode().run(code)
+    contexts, _ = RunCode().run(code)
     issue_collector = contexts['IssueCollector']
     assert 'print' in issue_collector.issues[0].issue
 
