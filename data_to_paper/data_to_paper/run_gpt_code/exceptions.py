@@ -1,3 +1,4 @@
+import traceback
 from abc import ABCMeta
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -5,18 +6,15 @@ from typing import List, Optional, Tuple
 from data_to_paper.exceptions import data_to_paperException
 
 
-class RunCodeException(data_to_paperException, metaclass=ABCMeta):
-    """
-    Base class for all exceptions related to running gpt provided code.
-    """
-    pass
-
-
 @dataclass
-class FailedRunningCode(RunCodeException):
+class FailedRunningCode(data_to_paperException):
     exception: Exception
     tb: Optional[List]
     fake_file_name = "my_analysis.py"
+
+    @classmethod
+    def from_exception(cls, e: Exception):
+        return cls(exception=e, tb=traceback.extract_tb(e.__traceback__))
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
@@ -74,13 +72,24 @@ class FailedRunningCode(RunCodeException):
         return s + f'{type(self.exception).__name__}: {msg}'
 
 
-class CodeTimeoutException(RunCodeException, TimeoutError):
-    def __str__(self):
-        return "Code took too long to run."
-
-
-class BaseRunContextException(RunCodeException, metaclass=ABCMeta):
+class BaseRunContextException(data_to_paperException, metaclass=ABCMeta):
     pass
+
+
+@dataclass
+class CodeTimeoutException(BaseRunContextException, TimeoutError):
+    time: int
+
+    def __str__(self):
+        return f"Code timeout after {self.time} seconds."
+
+
+@dataclass
+class UnAllowedFilesCreated(BaseRunContextException, PermissionError):
+    un_allowed_files: List[str]
+
+    def __str__(self):
+        return f'UnAllowedFilesCreated: {self.un_allowed_files}'
 
 
 @dataclass
@@ -88,7 +97,7 @@ class CodeUsesForbiddenFunctions(BaseRunContextException):
     func: str
 
     def __str__(self):
-        return f"Code uses a forbidden function {self.func}."
+        return f"Code uses a forbidden function `{self.func}`."
 
 
 @dataclass

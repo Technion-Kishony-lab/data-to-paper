@@ -12,7 +12,7 @@ import tiktoken
 
 from data_to_paper.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
 from data_to_paper.utils.highlighted_text import print_red
-from data_to_paper.run_gpt_code.timeout_context import timeout_context, CodeTimeoutException
+from data_to_paper.run_gpt_code.timeout_context import timeout_context
 
 from .base_server import ListServerCaller
 from .openai_models import ModelEngine
@@ -109,7 +109,7 @@ class OpenaiSeverCaller(ListServerCaller):
                 break
             except openai.error.InvalidRequestError:
                 raise
-            except (openai.error.OpenAIError, CodeTimeoutException) as e:
+            except (openai.error.OpenAIError, TimeoutError) as e:
                 print_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
                 sleep_time = 1.0 * 2 ** attempt
                 print_red(f'Going to sleep for {sleep_time} seconds before trying again.')

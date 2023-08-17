@@ -1,16 +1,19 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
-from typing import Optional, List, Dict, Collection
+from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
 from data_to_paper.utils.types import IndexOrderedEnum
 
-from .overrides.dataframes.dataframe_operations import DataframeOperations
 from .overrides.utils import round_floats
 
+if TYPE_CHECKING:
+    from .overrides.dataframes.dataframe_operations import DataframeOperations
 
 MODULE_NAME = 'script_to_run'
 module_filename = MODULE_NAME + ".py"
@@ -150,6 +153,7 @@ def get_single_content_file_from_requirements(requirements: Collection[OutputFil
 class CodeAndOutput:
     name: str = None
     code: str = None
+    result: Any = None
     requirements_to_output_files_to_contents: Dict[OutputFileRequirement, Dict[str, str]] = field(default_factory=dict)
     code_name: str = None
     code_explanation: Optional[str] = None

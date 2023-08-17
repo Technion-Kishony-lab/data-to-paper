@@ -53,8 +53,8 @@ txt = 'hello'
 
 def test_runner_correctly_extract_code_to_run():
     assert CodeRunner(response=valid_response,
-                      output_file_requirements=(ContentOutputFileRequirement('output.txt'), ),
-                      ).extract_code() == code_encoded_in_response
+                      output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                      ).get_raw_code() == code_encoded_in_response
 
 
 def test_runner_correctly_run_extracted_code(tmpdir):
@@ -99,7 +99,7 @@ def test_runner_raises_when_code_use_forbidden_functions():
 
 
 def test_runner_create_issue_on_print():
-    _, issue_collector = CodeRunner(response=code_using_print,
-                                    output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
-                                    ).run_code()
-    assert 'print' in issue_collector.issues[0].issue
+    _, issues, _ = CodeRunner(response=code_using_print,
+                              output_file_requirements=(ContentOutputFileRequirement('output.txt'),),
+                              ).run_code()
+    assert 'print' in issues[0].issue

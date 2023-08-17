@@ -122,7 +122,7 @@ class DataExplorationDebugger(DebuggerConverser):
 
 @dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
-    debugger_cls: DebuggerConverser = DataExplorationDebugger
+    debugger_cls: Type[DebuggerConverser] = DataExplorationDebugger
 
     code_step: str = 'data_exploration'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )

@@ -13,7 +13,7 @@ from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_name
 from data_to_paper.utils.types import ListBasedSet
 
 from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
-    CodeImportForbiddenModule
+    CodeImportForbiddenModule, UnAllowedFilesCreated
 from .types import CodeProblem, RunIssue, module_filename
 
 
@@ -196,8 +196,8 @@ class PreventFileOpen(BaseRunContext):
         [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)'] if os.name == 'nt' \
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
 
-    allowed_read_files: Iterable[str] = None  # list of wildcard names,  None means allow all
-    allowed_write_files: Iterable[str] = None  # list of wildcard names,  None means allow all
+    allowed_read_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
+    allowed_write_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
 
     original_open: Callable = None
 
@@ -244,19 +244,19 @@ class PreventFileOpen(BaseRunContext):
 @dataclass
 class PreventCalling(BaseRunContext):
     modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
-    _original_functions: List[Callable] = None
+    _original_functions: Dict[str, Callable] = None
 
     def __enter__(self):
-        self._original_functions = []
+        self._original_functions = {}
         for module, function_name, should_only_create_issue in self.modules_and_functions:
             original_func = getattr(module, function_name)
             setattr(module, function_name, self.get_upon_called(function_name, original_func, should_only_create_issue))
-            self._original_functions.append(original_func)
+            self._original_functions[function_name] = original_func
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for module, function_name, _ in self.modules_and_functions:
-            setattr(module, function_name, self._original_functions.pop(0))
+            setattr(module, function_name, self._original_functions.pop(function_name))
         return super().__exit__(exc_type, exc_val, exc_tb)
 
     def get_upon_called(self, func_name: str, original_func: Callable, should_only_create_issue: bool):
@@ -272,6 +272,33 @@ class PreventCalling(BaseRunContext):
                 raise CodeUsesForbiddenFunctions(func_name)
             return original_func(*args, **kwargs)
         return upon_called
+
+
+@dataclass
+class TrackCreatedFiles(BaseRunContext):
+    allowed_create_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
+
+    created_files: ListBasedSet[str] = None
+    un_allowed_created_files: List[str] = None
+
+    def __enter__(self):
+        self._preexisting_files = ListBasedSet(os.listdir())
+        return super().__enter__()
+
+    def _get_created_files(self) -> ListBasedSet[str]:
+        return ListBasedSet(os.listdir()) - self._preexisting_files
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.created_files = self._get_created_files()
+        self.un_allowed_created_files = []
+        if self.allowed_create_files is not None:
+            for file in self.created_files:
+                if not is_name_matches_list_of_wildcard_names(file, self.allowed_create_files):
+                    self.un_allowed_created_files.append(file)
+        if self.un_allowed_created_files:
+            raise UnAllowedFilesCreated(un_allowed_files=list(self.un_allowed_created_files))
+
+        return super().__exit__(exc_type, exc_val, exc_tb)
 
 
 @dataclass
@@ -317,9 +344,9 @@ class PreventImport(BaseRunContext):
 
 @dataclass
 class WarningHandler(BaseRunContext):
-    categories_to_issue: List[Type[Warning]] = field(default_factory=list)
-    categories_to_raise: List[Type[Warning]] = field(default_factory=list)
-    categories_to_ignore: List[Type[Warning]] = field(default_factory=list)
+    categories_to_issue: Iterable[Type[Warning]] = field(default_factory=list)
+    categories_to_raise: Iterable[Type[Warning]] = field(default_factory=list)
+    categories_to_ignore: Iterable[Type[Warning]] = field(default_factory=list)
 
     original_showwarning: Callable = None
 
