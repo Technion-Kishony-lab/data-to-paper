@@ -6,6 +6,7 @@ import pytest
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, CODE_MODULE, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
+from data_to_paper.run_gpt_code.types import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 
 
@@ -164,7 +165,7 @@ def test_run_code_raises_on_unallowed_open_files(tmpdir):
 
 def test_run_code_raises_on_unallowed_created_files(tmpdir):
     with pytest.raises(FailedRunningCode) as e:
-        RunCode(allowed_open_write_files=None, allowed_create_files=(), run_folder=tmpdir).run(code)
+        RunCode(allowed_open_write_files=None, run_folder=tmpdir).run(code)
     error = e.value
     assert isinstance(error.exception, UnAllowedFilesCreated)
     lineno, line, msg = error.get_lineno_line_message()
@@ -173,4 +174,4 @@ def test_run_code_raises_on_unallowed_created_files(tmpdir):
 
 def test_run_code_allows_allowed_files(tmpdir):
     os.chdir(tmpdir)
-    RunCode(allowed_open_write_files=['test.txt']).run(code)
+    RunCode(allowed_open_write_files=['test.txt'], output_file_requirements=None).run(code)

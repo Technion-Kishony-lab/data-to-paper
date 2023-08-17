@@ -9,7 +9,7 @@ from data_to_paper.researches_types.scientific_research.coding_steps import Expl
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.types import OutputFileRequirement, DataOutputFileRequirement, \
-    ContentOutputFileRequirement
+    ContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
@@ -18,7 +18,7 @@ from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProductsGPT):
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
     allow_dataframes_to_change_existing_series: bool = False
     enforce_saving_altered_dataframes: bool = True
     offer_revision_prompt: str = None
@@ -76,7 +76,8 @@ def code_running_converser(tmpdir_with_csv_file):
         code_name='Testing',
         conversation_name='testing',
         offer_revision_prompt='Output:\n{created_file_contents_explanation}\nRevise?',
-        output_file_requirements=(DataOutputFileRequirement('*.csv'), ContentOutputFileRequirement('output.txt')),
+        output_file_requirements=
+        OutputFileRequirements([DataOutputFileRequirement('*.csv'), ContentOutputFileRequirement('output.txt')]),
     )
 
 

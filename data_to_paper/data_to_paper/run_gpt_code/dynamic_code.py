@@ -14,13 +14,13 @@ from data_to_paper import chatgpt_created_scripts
 
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory
+from data_to_paper.utils.types import ListBasedSet
 
 from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
     TrackCreatedFiles, BaseRunContext
 from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
-from .types import module_filename, MODULE_NAME, RunIssue, RunIssues
-from ..utils.types import ListBasedSet
+from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filepath = os.path.join(module_dir, module_filename)
@@ -65,25 +65,21 @@ class RunCode:
     allowed_open_read_files: Optional[Iterable[str]] = ()
     allowed_open_write_files: Optional[Iterable[str]] = ()
 
-    # Allowed new files. Assessed at end of run. If 'auto', then allowed_open_write_files is used.
-    allowed_create_files: Union[str, Optional[Iterable[str]]] = 'auto'  # None means all files
+    # Allowed new files. Assessed at end of run. If None then all files are allowed.
+    output_file_requirements: Optional[OutputFileRequirements] = field(default_factory=OutputFileRequirements)
 
     runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
 
     additional_contexts: Optional[Dict[str, Any]] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if self.allowed_create_files == 'auto':
-            self.allowed_create_files = self.allowed_open_write_files
-
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:
 
         # Mandatory contexts:
         contexts = {
             'run_in_directory': run_in_directory(self.run_folder),
-            'TrackCreatedFiles': TrackCreatedFiles(allowed_create_files=self.allowed_create_files),
             'IssueCollector': IssueCollector(),
+            'TrackCreatedFiles': TrackCreatedFiles(output_file_requirements=self.output_file_requirements),
         }
 
         # Optional builtin contexts:

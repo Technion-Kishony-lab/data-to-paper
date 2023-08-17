@@ -18,7 +18,7 @@ from data_to_paper.researches_types.scientific_research.scientific_products impo
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    DataOutputFileRequirement, RunIssue, CodeProblem, NumericContentOutputFileRequirement
+    DataOutputFileRequirement, RunIssue, CodeProblem, NumericContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -129,8 +129,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
-        (ContentOutputFileRequirement('data_exploration.txt'), )
+    output_file_requirements: OutputFileRequirements = \
+        OutputFileRequirements([ContentOutputFileRequirement('data_exploration.txt')])
     allowed_created_files: Tuple[str, ...] = ()
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = False
@@ -230,7 +230,7 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
     allow_dataframes_to_change_existing_series = False
     enforce_saving_altered_dataframes: bool = True
 
@@ -274,7 +274,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
+    output_file_requirements: OutputFileRequirements = \
+        OutputFileRequirements([ContentOutputFileRequirement('results.txt')])
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -390,8 +391,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
-        (ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('*.tex', minimal_count=1))
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
+        [ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('*.tex', minimal_count=1)])
     allow_dataframes_to_change_existing_series: bool = True
     enforce_saving_altered_dataframes: bool = False
     model_engine: ModelEngine = ModelEngine.GPT4
@@ -780,8 +781,9 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             return cls.from_(
                 self,
                 latex_document=self.latex_document,
-                output_file_requirements=(NumericContentOutputFileRequirement('results.txt'),
-                                          ContentOutputFileRequirement('table_?.tex', num_tables)),
+                output_file_requirements=OutputFileRequirements(
+                    [NumericContentOutputFileRequirement('results.txt'),
+                     ContentOutputFileRequirement('table_?.tex', num_tables)]),
             )
         return cls.from_(self)
 

@@ -8,7 +8,7 @@ from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
-from .types import CodeAndOutput, OutputFileRequirement, RunIssue
+from .types import CodeAndOutput, RunIssue, OutputFileRequirements
 
 
 @dataclass
@@ -16,7 +16,7 @@ class BaseCodeRunner(ABC):
     response: str = None  # response from ChatGPT (with code)
     script_file_path: Optional[Path] = None  # where to save the script after running. If None, don't save.
     run_folder: Optional[Path] = None
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+    output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
     allowed_read_files: Iterable[str] = ()
     additional_contexts: Dict[str, Any] = field(default_factory=dict)  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
@@ -33,15 +33,6 @@ class BaseCodeRunner(ABC):
         Extract the raw code from the response.
         """
         return NotImplementedError
-
-    @property
-    def keep_content_allowed_created_filenames(self) -> Tuple[str, ...]:
-        return tuple(requirement.filename for requirement in self.output_file_requirements
-                     if requirement.should_keep_content)
-
-    @property
-    def all_allowed_created_filenames(self) -> Tuple[str, ...]:
-        return tuple(requirement.filename for requirement in self.output_file_requirements)
 
     def _modify_code(self, code: str) -> Tuple[str, int]:
         """
@@ -64,8 +55,8 @@ class BaseCodeRunner(ABC):
         """
         return self.run_code_cls(
             allowed_open_read_files=self.allowed_read_files,
-            allowed_open_write_files=self.all_allowed_created_filenames,
-            allowed_create_files=self.all_allowed_created_filenames,
+            allowed_open_write_files=self.output_file_requirements.get_all_allowed_created_filenames(),
+            output_file_requirements=self.output_file_requirements,
             run_folder=self.run_folder,
             runtime_available_objects=self.runtime_available_objects,
             additional_contexts=self.additional_contexts,

@@ -12,9 +12,8 @@ from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMEN
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
-    get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue, RunUtilsError, \
-    RunIssues
+from data_to_paper.run_gpt_code.types import CodeAndOutput, ContentOutputFileRequirement, CodeProblem, \
+    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, TrackDataFrames
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
@@ -80,7 +79,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     data_filenames: Optional[list] = field(default_factory=list)
 
     # output files:
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+    output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
 
     # dataframes:
     allow_dataframes_to_change_existing_series: bool = True
@@ -126,11 +125,11 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     @property
     def output_filenames(self) -> Tuple[str, ...]:
-        return tuple(output_file_requirement.filename for output_file_requirement in self.output_file_requirements)
+        return self.output_file_requirements.get_all_allowed_created_filenames()
 
     @property
     def output_filename(self) -> Optional[str]:
-        return get_single_content_file_from_requirements(self.output_file_requirements)
+        return self.output_file_requirements.get_single_content_file()
 
     @property
     def iteration_str(self):
@@ -394,28 +393,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             issues.append(issue)
         return issues
 
-    def _get_issues_for_num_files_created(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
-        issues = []
-        for requirement in self.output_file_requirements:
-            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
-            if len(output_files) < requirement.minimal_count:
-                # The specified number of output files were not created.
-                if requirement.is_wildcard():
-                    issue = dedent_triple_quote_str(f"""
-                        The code was supposed to create at least {requirement.minimal_count} files \
-                        of "{requirement.filename}", \
-                        but it only created {len(output_files)} files of this type.
-                        """)
-                else:
-                    issue = f"The code didn't generate the desired output file ({requirement.filename})."
-                issues.append(RunIssue(
-                    category='Not all required files were created',
-                    issue=issue,
-                    code_problem=CodeProblem.MissingOutputFiles,
-                    comment='Code did not create all required files'
-                ))
-        return issues
-
     def _get_issues_for_unsaved_dataframes(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         dataframe_operations = code_and_output.dataframe_operations
         issues = []
@@ -673,7 +650,6 @@ class DebuggerConverser(BackgroundProductsConverser):
         # The code ran without raising exceptions.
         # We now check for issues in the output files as well as issues collected during the run:
         output_issues = []
-        output_issues.extend(self._get_issues_for_num_files_created(code_and_output))
         output_issues.extend(self._get_issues_for_unsaved_dataframes(code_and_output))
         output_issues.extend(issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output))

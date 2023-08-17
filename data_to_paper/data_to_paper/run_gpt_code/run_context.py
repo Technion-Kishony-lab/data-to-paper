@@ -11,10 +11,11 @@ from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, TypeVar, Op
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.utils import dedent_triple_quote_str
 
 from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
     CodeImportForbiddenModule, UnAllowedFilesCreated
-from .types import CodeProblem, RunIssue, module_filename, RunIssues
+from .types import CodeProblem, RunIssue, module_filename, RunIssues, OutputFileRequirement, OutputFileRequirements
 
 T = TypeVar('T', bound='BaseRunContext')
 
@@ -211,25 +212,48 @@ class PreventCalling(BaseRunContext):
 
 @dataclass
 class TrackCreatedFiles(BaseRunContext):
-    allowed_create_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
+    output_file_requirements: Optional[OutputFileRequirements] = None  # None means allow all
 
-    created_files: ListBasedSet[str] = None
-    un_allowed_created_files: List[str] = None
+    created_files: Optional[ListBasedSet[str]] = None  # None - unknown, context is not yet exited
+    un_allowed_created_files: Optional[List[str]] = None  # None - unknown, context is not yet exited
+    _preexisting_files: ListBasedSet[str] = None
 
     def __enter__(self):
         self._preexisting_files = ListBasedSet(os.listdir())
+        self.created_files = None
+        self.un_allowed_created_files = None
         return super().__enter__()
 
     def _get_created_files(self) -> ListBasedSet[str]:
         return ListBasedSet(os.listdir()) - self._preexisting_files
 
+    def _create_issues_for_num_files(self):
+        for requirement, output_files \
+                in self.output_file_requirements.get_requirements_to_output_files(self.created_files).items():
+            if len(output_files) < requirement.minimal_count:
+                # The specified number of output files were not created.
+                if requirement.is_wildcard():
+                    issue = dedent_triple_quote_str(f"""
+                        The code was supposed to create at least {requirement.minimal_count} files \
+                        of "{requirement.filename}", \
+                        but it only created {len(output_files)} files of this type.
+                        """)
+                else:
+                    issue = f"The code didn't generate the desired output file ({requirement.filename})."
+                self.issues.append(RunIssue(
+                    category='Not all required files were created',
+                    issue=issue,
+                    code_problem=CodeProblem.MissingOutputFiles,
+                    comment='Code did not create all required files'
+                ))
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.created_files = self._get_created_files()
-        self.un_allowed_created_files = []
-        if self.allowed_create_files is not None:
-            for file in self.created_files:
-                if not is_name_matches_list_of_wildcard_names(file, self.allowed_create_files):
-                    self.un_allowed_created_files.append(file)
+        if self.output_file_requirements is not None:
+            self._create_issues_for_num_files()
+            self.un_allowed_created_files = self.output_file_requirements.get_unmatched_files(self.created_files)
+        else:
+            self.un_allowed_created_files = []
         if self.un_allowed_created_files:
             raise UnAllowedFilesCreated(un_allowed_files=list(self.un_allowed_created_files))
 

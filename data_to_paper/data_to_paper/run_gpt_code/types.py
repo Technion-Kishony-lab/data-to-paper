@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
-from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING, Tuple
+from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING, Iterable, Tuple
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
@@ -202,14 +202,46 @@ class NumericContentOutputFileRequirement(ContentOutputFileRequirement):
         return round_floats(content, self.target_precision, self.source_precision)
 
 
-def get_single_content_file_from_requirements(requirements: Collection[OutputFileRequirement]) -> Optional[str]:
-    content_file_requirements = [
-        req for req in requirements
-        if isinstance(req, ContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
-    if len(content_file_requirements) != 1:
-        return None
-    requirement = next(iter(content_file_requirements))
-    return requirement.filename
+class OutputFileRequirements(Tuple[OutputFileRequirement]):
+
+    def get_all_allowed_created_filenames(self) -> Tuple[str]:
+        return tuple(requirement.filename for requirement in self)
+
+    def get_keep_content_allowed_created_filenames(self) -> Tuple[str]:
+        return tuple(requirement.filename for requirement in self if requirement.should_keep_content)
+
+    def get_single_content_file(self) -> Optional[str]:
+        content_file_requirements = [
+            req for req in self
+            if isinstance(req, ContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
+        if len(content_file_requirements) != 1:
+            return None
+        return content_file_requirements[0].filename
+
+    def _get_requirements_to_output_files_and_unmatched_files(
+            self, created_files: Iterable[str]) -> Tuple[Dict[OutputFileRequirement, List[str]], List[str]]:
+        """
+        Return:
+            - a dictionary mapping each requirement to a dictionary mapping each output file to its content.
+            - a list of files that were not matched to any requirement.
+        """
+        requirements_to_output_files = {requirement: [] for requirement in self}
+        unmatched_files = []
+        for created_file in created_files:
+            for requirement in self:
+                if requirement.matches(created_file):
+                    requirements_to_output_files[requirement].append(created_file)
+                    break
+            else:
+                unmatched_files.append(created_file)
+        return requirements_to_output_files, unmatched_files
+
+    def get_requirements_to_output_files(
+            self, created_files: Iterable[str]) -> Dict[OutputFileRequirement, List[str]]:
+        return self._get_requirements_to_output_files_and_unmatched_files(created_files)[0]
+
+    def get_unmatched_files(self, created_files: Iterable[str]) -> List[str]:
+        return self._get_requirements_to_output_files_and_unmatched_files(created_files)[1]
 
 
 @dataclass
@@ -224,7 +256,7 @@ class CodeAndOutput:
     description_of_created_files: DataFileDescriptions = None
 
     def get_single_output_filename(self) -> Optional[str]:
-        return get_single_content_file_from_requirements(self.requirements_to_output_files_to_contents.keys())
+        return OutputFileRequirements(self.requirements_to_output_files_to_contents.keys()).get_single_content_file()
 
     def get_single_output(self, is_clean: bool = True) -> Optional[str]:
         """

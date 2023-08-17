@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Dict, Type
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    get_single_content_file_from_requirements, CodeProblem
+    CodeProblem, OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer
@@ -66,7 +66,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     goal_verb: str = 'write'
     user_initiation_prompt: str = 'Please write a code to analyze the data.'
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
+    output_file_requirements: OutputFileRequirements = \
+        OutputFileRequirements((ContentOutputFileRequirement('results.txt'), ))
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
@@ -100,7 +101,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     @property
     def output_filename(self) -> str:
-        return get_single_content_file_from_requirements(self.output_file_requirements)
+        return self.output_file_requirements.get_single_content_file()
 
     def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:
         created_files = code_and_output.get_created_content_files_to_contents()
