@@ -3,12 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
-from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING
+from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING, Tuple
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
-from data_to_paper.utils.types import IndexOrderedEnum
+from data_to_paper.utils.types import IndexOrderedEnum, ListBasedSet
 
 from .overrides.utils import round_floats
 
@@ -90,6 +90,69 @@ class RunIssue:
 @dataclass(frozen=True)
 class RunUtilsError(Exception):
     issue: RunIssue
+
+
+class RunIssues(List[RunIssue]):
+
+    def append_if_does_not_exist(self, issue: RunIssue):
+        if issue not in self:
+            self.append(issue)
+
+    def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = '') -> Tuple[str, str]:
+        """
+        We compose all the issues into a single message, and a single comment.
+        """
+        issues = self._get_issues(most_severe_only)
+        comments = ListBasedSet()
+
+        s = ''
+        if len(issues) > 1:
+            s += 'There are some issues that need to be corrected:\n\n'
+
+        code_problems = sorted(set(issue.code_problem for issue in issues))
+        for code_problem in code_problems:
+            categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
+            for category in categories:
+                if category:
+                    s += f'# {category}\n'
+                issues_in_category = [issue for issue in issues if issue.category == category]
+                unique_instructions = set(issue.instructions for issue in issues_in_category)
+                for issue in issues_in_category:
+                    if issue.item:
+                        s += f'* {issue.item}:\n'
+                    s += f'{issue.issue}\n'
+                    if len(unique_instructions) > 1 and issue.instructions is not None:
+                        s += f'{issue.instructions}\n'
+                    s += '\n'
+                    if issue.comment:
+                        comments.add(issue.comment)
+                if len(unique_instructions) == 1:
+                    shared_instructions = unique_instructions.pop()
+                    if shared_instructions:
+                        s += f'{shared_instructions}\n'
+        comment = '; '.join(comments)
+
+        # Add the end_with message at the end:
+        unique_end_with = set(issue.end_with for issue in issues)
+        assert len(unique_end_with) == 1
+        shared_end_with = unique_end_with.pop()
+        if shared_end_with is not None:
+            end_with = shared_end_with
+        if end_with:
+            s += f'\n{end_with}'
+        return s, comment
+
+    def get_most_severe_problem(self):
+        return min(issue.code_problem for issue in self)
+
+    def _get_issues(self, most_severe_only: bool = True) -> List[RunIssue]:
+        if most_severe_only:
+            return [issue for issue in self if issue.code_problem == self.get_most_severe_problem()]
+        else:
+            return list(self)
+
+    def do_all_issues_request_small_change(self, highest_priority: bool = True) -> bool:
+        return all(issue.requesting_small_change for issue in self._get_issues(highest_priority))
 
 
 @dataclass(frozen=True)

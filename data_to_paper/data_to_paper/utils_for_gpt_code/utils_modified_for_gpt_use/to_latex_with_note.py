@@ -53,7 +53,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
         df = df[columns]
 
     issues = _check_for_issues(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
-    IssueCollector.get_runtime_object().add_issues(issues)
+    IssueCollector.get_runtime_instance().issues.extend(issues)
 
     latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
 

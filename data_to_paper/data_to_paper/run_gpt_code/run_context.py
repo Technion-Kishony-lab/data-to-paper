@@ -7,15 +7,14 @@ import warnings
 
 from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass, field
-from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, TypeVar
+from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, TypeVar, Optional
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
 
 from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
     CodeImportForbiddenModule, UnAllowedFilesCreated
-from .types import CodeProblem, RunIssue, module_filename
-
+from .types import CodeProblem, RunIssue, module_filename, RunIssues
 
 T = TypeVar('T', bound='BaseRunContext')
 
@@ -24,18 +23,23 @@ T = TypeVar('T', bound='BaseRunContext')
 class BaseRunContext:
     calling_module_name = 'data-to-paper'
     PROCESS_AND_NAME_TO_OBJECT = {}
-    _is_enabled: bool = True
+    _is_enabled: Optional[bool] = None  # None means that the context is not initialized yet
+
+    issues: Optional[RunIssues] = None
 
     @property
     def _name(self) -> str:
         return self.__class__.__name__
 
     def __enter__(self):
+        self._is_enabled = True
+        self.issues = RunIssues()
         process_id = os.getpid()
         self.PROCESS_AND_NAME_TO_OBJECT[(process_id, self._name)] = self
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self._is_enabled = None
         process_id = os.getpid()
         del self.PROCESS_AND_NAME_TO_OBJECT[(process_id, self._name)]
         return False  # do not suppress exceptions
@@ -54,7 +58,7 @@ class BaseRunContext:
         return self.calling_module_name in filename
 
     @classmethod
-    def get_runtime_object(cls: Type[T]) -> T:
+    def get_runtime_instance(cls: Type[T]) -> T:
         process_id = os.getpid()
         if (process_id, cls.__name__) not in cls.PROCESS_AND_NAME_TO_OBJECT:
             raise RuntimeError(f'No runtime access was given to the code for {cls.__name__}.')
@@ -66,7 +70,8 @@ class BaseRunContext:
         """
         Context manager for temporarily disabling the runtime context.
         """
-        self = cls.get_runtime_object()
+        self = cls.get_runtime_instance()
+        assert self._is_enabled is not None, 'The context is not initialized yet.'
         current_is_enabled = self._is_enabled
         self._is_enabled = False
         try:
@@ -75,7 +80,7 @@ class BaseRunContext:
             self._is_enabled = current_is_enabled
 
     @classmethod
-    def get_all_runtime_objects(cls) -> List[BaseRunContext]:
+    def get_all_runtime_instances(cls) -> List[BaseRunContext]:
         process_id = os.getpid()
         return [obj for (pid, _), obj in cls.PROCESS_AND_NAME_TO_OBJECT.items() if pid == process_id]
 
@@ -85,7 +90,7 @@ class BaseRunContext:
         """
         Context manager for temporarily disabling all runtime contexts.
         """
-        objs = BaseRunContext.get_all_runtime_objects()
+        objs = BaseRunContext.get_all_runtime_instances()
         with ExitStack() as stack:
             for obj in objs:
                 stack.enter_context(obj.disable())
@@ -98,17 +103,17 @@ class ProvideData(BaseRunContext):
 
     @classmethod
     def get_item(cls, key: str) -> Any:
-        self = cls.get_runtime_object()
+        self = cls.get_runtime_instance()
         return self.data[key]
 
     @classmethod
     def set_item(cls, key: str, value: Any):
-        self = cls.get_runtime_object()
+        self = cls.get_runtime_instance()
         self.data[key] = value
 
     @classmethod
     def get_or_create_item(cls, key: str, value: Any):
-        self = cls.get_runtime_object()
+        self = cls.get_runtime_instance()
         if key not in self.data:
             self.data[key] = value
         return self.data[key]
@@ -116,77 +121,7 @@ class ProvideData(BaseRunContext):
 
 @dataclass
 class IssueCollector(BaseRunContext):
-
-    def __init__(self, issues: List[RunIssue] = None):
-        if issues is None:
-            issues = []
-        self.issues: List[RunIssue] = issues
-
-    def add_issue(self, issue: RunIssue):
-        self.issues.append(issue)
-
-    def add_issue_if_does_not_exist(self, issue: RunIssue):
-        if issue not in self.issues:
-            self.add_issue(issue)
-
-    def add_issues(self, issues: Iterable[RunIssue]):
-        self.issues.extend(issues)
-
-    def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = '') -> Tuple[str, str]:
-        """
-        We compose all the issues into a single message, and a single comment.
-        """
-        issues = self._get_issues(most_severe_only)
-        comments = ListBasedSet()
-
-        s = ''
-        if len(issues) > 1:
-            s += 'There are some issues that need to be corrected:\n\n'
-
-        code_problems = sorted(set(issue.code_problem for issue in issues))
-        for code_problem in code_problems:
-            categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
-            for category in categories:
-                if category:
-                    s += f'# {category}\n'
-                issues_in_category = [issue for issue in issues if issue.category == category]
-                unique_instructions = set(issue.instructions for issue in issues_in_category)
-                for issue in issues_in_category:
-                    if issue.item:
-                        s += f'* {issue.item}:\n'
-                    s += f'{issue.issue}\n'
-                    if len(unique_instructions) > 1 and issue.instructions is not None:
-                        s += f'{issue.instructions}\n'
-                    s += '\n'
-                    if issue.comment:
-                        comments.add(issue.comment)
-                if len(unique_instructions) == 1:
-                    shared_instructions = unique_instructions.pop()
-                    if shared_instructions:
-                        s += f'{shared_instructions}\n'
-        comment = '; '.join(comments)
-
-        # Add the end_with message at the end:
-        unique_end_with = set(issue.end_with for issue in issues)
-        assert len(unique_end_with) == 1
-        shared_end_with = unique_end_with.pop()
-        if shared_end_with is not None:
-            end_with = shared_end_with
-        if end_with:
-            s += f'\n{end_with}'
-        return s, comment
-
-    def get_most_severe_problem(self):
-        return min(issue.code_problem for issue in self.issues)
-
-    def _get_issues(self, most_severe_only: bool = True) -> List[RunIssue]:
-        if most_severe_only:
-            return [issue for issue in self.issues if issue.code_problem == self.get_most_severe_problem()]
-        else:
-            return self.issues
-
-    def do_all_issues_request_small_change(self, highest_priority: bool = True) -> bool:
-        return all(issue.requesting_small_change for issue in self._get_issues(highest_priority))
+    pass
 
 
 @dataclass
@@ -230,7 +165,7 @@ class PreventFileOpen(BaseRunContext):
                 raise CodeWriteForbiddenFile(file=file_name)
         else:
             if not self.is_allowed_read_file(file_name) \
-                    and not PreventImport.get_runtime_object(). \
+                    and not PreventImport.get_runtime_instance(). \
                     is_currently_importing():  # allow read files when importing packages
                 raise CodeReadForbiddenFile(file=file_name)
         return self.original_open(*args, **kwargs)
@@ -264,7 +199,7 @@ class PreventCalling(BaseRunContext):
             if not self._is_enabled or not self._is_called_from_user_script():
                 return original_func(*args, **kwargs)
             if should_only_create_issue:
-                IssueCollector.get_runtime_object().add_issue(RunIssue(
+                self.issues.append(RunIssue(
                     issue=f'Code uses forbidden function: "{func_name}".',
                     code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 ))
@@ -363,7 +298,7 @@ class WarningHandler(BaseRunContext):
         if not self._is_enabled:
             return self.original_showwarning(message, category, filename, lineno, file, line)
         if any(issubclass(category, cls) for cls in self.categories_to_issue):
-            IssueCollector.get_runtime_object().add_issue(RunIssue(
+            self.issues.append(RunIssue(
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
             ))

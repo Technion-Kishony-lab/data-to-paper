@@ -13,13 +13,14 @@ from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
-    get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue, RunUtilsError
+    get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue, RunUtilsError, \
+    RunIssues
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, TrackDataFrames
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
-from data_to_paper.run_gpt_code.run_context import IssueCollector
+
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
@@ -527,7 +528,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=comment,
         )
 
-    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue]], code: Optional[str] = None):
+    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue], RunIssues], code: Optional[str] = None):
         """
         We post a response to the assistant code, based on the issues.
         We also need to delete (some) of the previous exchange.
@@ -552,8 +553,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
-        issue_collector = IssueCollector(issues)
-        problem = issue_collector.get_most_severe_problem()
+        if not isinstance(issues, RunIssues):
+            issues = RunIssues(issues)
+
+        problem = issues.get_most_severe_problem()
 
         # Get Action
         # When we have run_failed, we essentially don't know the quality of the code (e.g. it can be the
@@ -595,7 +598,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "repost":
             self._post_code_as_fresh(code, problem, action_stage)
 
-        message, comment = issue_collector.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
+        message, comment = issues.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
         self.apply_append_user_message(
             content=message + ('\n\nREGENERATE' if action == "regenerate" else ''),
             comment=self.iteration_str + ': ' + comment,
@@ -610,7 +613,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             )
             self._requesting_small_change = False
         else:
-            self._requesting_small_change = issue_collector.do_all_issues_request_small_change()
+            self._requesting_small_change = issues.do_all_issues_request_small_change()
 
     def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
         """

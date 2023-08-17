@@ -16,10 +16,10 @@ from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory
 
 from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
-    TrackCreatedFiles
+    TrackCreatedFiles, BaseRunContext
 from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
-from .types import module_filename, MODULE_NAME, RunIssue
+from .types import module_filename, MODULE_NAME, RunIssue, RunIssues
 from ..utils.types import ListBasedSet
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
@@ -109,7 +109,7 @@ class RunCode:
         return contexts
 
     def run(self, code: str, save_as: Optional[str] = None
-            ) -> Tuple[Any, ListBasedSet[str], List[RunIssue], Dict[str, Any]]:
+            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -154,7 +154,13 @@ class RunCode:
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()  # leave the module empty
-        issues = contexts['IssueCollector'].issues
+
+        # Collect issues from all contexts
+        issues = RunIssues()
+        for context in contexts.values():
+            if isinstance(context, BaseRunContext):
+                issues.extend(context.issues)
+
         return result, created_files, issues, contexts
 
     def _run_function_in_module(self, module: ModuleType):
