@@ -10,14 +10,6 @@ from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIs
 @dataclass
 class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
-    headers_required_in_code: Tuple[str, ...] = (
-        '# IMPORT',
-        '# LOAD DATA',
-        '# PREPROCESSING',
-        '# ANALYSIS',
-        '# CREATE TABLES',
-        '# OUTPUT TEXT FILE',
-    )
 
     def _get_runtime_available_objects(self) -> dict:
         return {'compile_to_pdf_func': partial(self._check_latex_compilation, is_table=True)}

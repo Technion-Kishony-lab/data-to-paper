@@ -368,9 +368,17 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
     max_code_revisions: int = 3
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    headers_required_in_code: Tuple[str, ...] = (
+        '# IMPORT',
+        '# LOAD DATA',
+        '# PREPROCESSING',
+        '# ANALYSIS',
+        '# CREATE TABLES',
+        '# OUTPUT TEXT FILE',
+    )
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', )
+        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'headers_required_in_code')
 
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
@@ -544,11 +552,12 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)  # set to None to skip option for revision
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        linear_regression_funcs = ['ols', 'OLS', 'logit', 'Logit', 'glm', 'GLM']
         comments = {}
         s = []
         code = code_and_output.code
         s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
-        if 'ols(' in code or 'OLS(' in code:
+        if any(func in code for func in linear_regression_funcs):
             s.append('- In linear regression, if interactions terms are included, '
                      'did we remember to include the main effects?')
 
