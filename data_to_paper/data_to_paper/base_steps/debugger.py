@@ -483,9 +483,10 @@ class DebuggerConverser(BackgroundProductsConverser):
             script_file_path=None,
             run_folder=self.data_folder,
             runtime_available_objects=self._get_runtime_available_objects(),
-            additional_contexts={'TrackDataFrames': TrackDataFrames(allow_changing_existing_series=
-                                                                    self.allow_dataframes_to_change_existing_series),
-                                 'override_statistics_packages': override_statistics_packages()}
+            additional_contexts={
+                'TrackDataFrames': TrackDataFrames(
+                    allow_changing_existing_series=self.allow_dataframes_to_change_existing_series),
+                'override_statistics_packages': override_statistics_packages()}
         )
 
     def _run_code_runner_and_get_code_and_output(self, code_runner: BaseCodeRunner

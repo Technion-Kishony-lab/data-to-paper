@@ -2,9 +2,8 @@ import os
 import shutil
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Union, List, Set, Iterable
+from typing import Union, Iterable
 from fnmatch import fnmatch
 
 # Get the path of the current folder:

@@ -7,7 +7,7 @@ import warnings
 
 from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass, field
-from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, TypeVar, Set
+from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, TypeVar
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet

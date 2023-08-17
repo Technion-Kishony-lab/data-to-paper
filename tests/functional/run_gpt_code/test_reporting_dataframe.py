@@ -1,6 +1,5 @@
 import pandas as pd
 import pytest
-from _pytest.fixtures import fixture
 
 from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall

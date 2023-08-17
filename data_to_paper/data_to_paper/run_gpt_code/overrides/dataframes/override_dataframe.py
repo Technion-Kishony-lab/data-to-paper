@@ -97,7 +97,6 @@ class TrackDataFrames(BaseRunContext):
             setattr(pd, func_name, original_func)
         self._df_creating_func_names_to_original_funcs = None
 
-
     def _get_wrapped_method(self, new_method, original_method):
         """
         Wrap a method so that it has the original method as an argument and the `on_change` callback.
