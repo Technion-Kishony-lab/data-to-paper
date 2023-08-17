@@ -4,7 +4,7 @@ import re
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Tuple, Union, Type
+from typing import Optional, List, Tuple, Union, Type, Dict, Any
 
 import numpy as np
 
@@ -82,8 +82,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
 
     # dataframes:
-    allow_dataframes_to_change_existing_series: bool = True
-    enforce_saving_altered_dataframes: bool = False
+    additional_contexts: Dict[str, Any] = field(default_factory=dict)
 
     user_initiation_prompt: str = None
     assistant_agent: Agent = None
@@ -393,28 +392,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             issues.append(issue)
         return issues
 
-    def _get_issues_for_unsaved_dataframes(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
-        dataframe_operations = code_and_output.dataframe_operations
-        issues = []
-        if self.enforce_saving_altered_dataframes and dataframe_operations.get_read_changed_but_unsaved_ids():
-            # Not all changed dataframes were saved to files.
-            read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
-                dataframe_operations.get_read_changed_but_unsaved_ids())
-            issues.append(RunIssue(
-                category='Any modified dataframe should be saved to a file',
-                issue=dedent_triple_quote_str(f"""
-                    Your code modifies, but doesn't save, some of the dataframes:
-                    {read_but_unsaved_filenames}.
-                    """),
-                instructions=dedent_triple_quote_str("""
-                    The code should use `to_csv` to save any modified dataframe in a new file \
-                    in the same directory as the code.
-                    """),
-                comment='Not all modified dataframes were saved',
-                code_problem=CodeProblem.MissingOutputFiles,
-            ))
-        return issues
-
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         issues = []
         files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
@@ -461,19 +438,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             script_file_path=None,
             run_folder=self.data_folder,
             runtime_available_objects=self._get_runtime_available_objects(),
-            additional_contexts={
-                'TrackDataFrames': TrackDataFrames(
-                    allow_changing_existing_series=self.allow_dataframes_to_change_existing_series),
-                'override_statistics_packages': override_statistics_packages()}
+            additional_contexts=self.additional_contexts,
         )
-
-    def _run_code_runner_and_get_code_and_output(self, code_runner: BaseCodeRunner
-                                                 ) -> Tuple[CodeAndOutput, List[RunIssue]]:
-        code_and_output, issues, contexts = code_runner.run_code()
-        track_df: TrackDataFrames = contexts['TrackDataFrames']
-        code_and_output.dataframe_operations = track_df.dataframe_operations
-        return code_and_output, issues
-
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
@@ -623,7 +589,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         # Code passes static checks. We can now run the code.
         try:
-            code_and_output, issues = self._run_code_runner_and_get_code_and_output(code_runner)
+            code_and_output, issues, contexts = code_runner.run_code()
         except FailedRunningCode as e:
             exceptions_to_funcs = {
                 ImportError: self._get_issue_for_allowed_packages,
@@ -650,7 +616,6 @@ class DebuggerConverser(BackgroundProductsConverser):
         # The code ran without raising exceptions.
         # We now check for issues in the output files as well as issues collected during the run:
         output_issues = []
-        output_issues.extend(self._get_issues_for_unsaved_dataframes(code_and_output))
         output_issues.extend(issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
 

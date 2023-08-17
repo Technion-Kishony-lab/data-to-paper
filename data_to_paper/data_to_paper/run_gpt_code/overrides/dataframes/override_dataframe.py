@@ -6,11 +6,12 @@ from pandas.core.frame import DataFrame
 
 from dataclasses import dataclass, field
 
+from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
 from ...run_context import BaseRunContext
 from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations
 from . import df_methods
-
+from ...types import RunIssue, CodeProblem
 
 METHOD_NAMES_TO_FUNCS = {
     '__init__': df_methods.__init__,
@@ -43,10 +44,13 @@ class TrackDataFrames(BaseRunContext):
     Context manager that tracks all the data frames that are created and their changes during the context.
     """
     data_frame_operations: DataframeOperations = None
-    allow_changing_existing_series: Optional[bool] = True
+
+    allow_dataframes_to_change_existing_series: Optional[bool] = True
     # True: allow changing existing series for all df
     # False: raise an exception when trying to change an existing series for all df
     # None: allow changing existing series for all df except for the ones that are created from a file
+
+    enforce_saving_altered_dataframes: bool = False
 
     str_float_format: str = field(default_factory=lambda: df_methods.STR_FLOAT_FORMAT)
 
@@ -147,10 +151,32 @@ class TrackDataFrames(BaseRunContext):
         if self._prevent_recording_changes:
             return
         if isinstance(series_operation, ChangeSeriesDataframeOperation):
-            if self.allow_changing_existing_series is False \
-                    or (self.allow_changing_existing_series is None and df.file_path is not None):
+            if self.allow_dataframes_to_change_existing_series is False \
+                    or (self.allow_dataframes_to_change_existing_series is None and df.file_path is not None):
                 raise DataFrameSeriesChange(changed_series=series_operation.series_name)
         self.dataframe_operations.append(series_operation)
+
+    def _create_issues_for_unsaved_dataframes(self):
+        if not self.enforce_saving_altered_dataframes:
+            return
+        dataframe_operations = self.dataframe_operations
+        if dataframe_operations.get_read_changed_but_unsaved_ids():
+            # Not all changed dataframes were saved to files.
+            read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
+                dataframe_operations.get_read_changed_but_unsaved_ids())
+            self.issues.append(RunIssue(
+                category='Any modified dataframe should be saved to a file',
+                issue=dedent_triple_quote_str(f"""
+                    Your code modifies, but doesn't save, some of the dataframes:
+                    {read_but_unsaved_filenames}.
+                    """),
+                instructions=dedent_triple_quote_str("""
+                    The code should use `to_csv` to save any modified dataframe in a new file \
+                    in the same directory as the code.
+                    """),
+                comment='Not all modified dataframes were saved',
+                code_problem=CodeProblem.MissingOutputFiles,
+            ))
 
     def __enter__(self):
         self._override_df_creating_funcs()
@@ -163,4 +189,5 @@ class TrackDataFrames(BaseRunContext):
         self._de_override_float_format()
         self._de_override_df_methods()
         self._de_override_df_creating_funcs()
+        self._create_issues_for_unsaved_dataframes()
         super().__exit__(exc_type, exc_val, exc_tb)

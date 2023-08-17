@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Tuple, Type
+from dataclasses import dataclass, field
+from typing import Tuple, Type, Any, Dict
 
 from _pytest.fixtures import fixture
 
@@ -8,6 +8,7 @@ from data_to_paper.base_steps import BaseCodeProductsGPT
 from data_to_paper.researches_types.scientific_research.coding_steps import ExplainCreatedDataframe, \
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.types import OutputFileRequirement, DataOutputFileRequirement, \
     ContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
@@ -19,7 +20,8 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-    allow_dataframes_to_change_existing_series: bool = False
+    additional_contexts: Dict[str, Any] = field(
+        default_factory=lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)})
     enforce_saving_altered_dataframes: bool = True
     offer_revision_prompt: str = None
     code_name: str = 'Testing'

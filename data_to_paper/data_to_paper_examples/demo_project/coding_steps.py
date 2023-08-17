@@ -34,8 +34,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([ContentOutputFileRequirement('prime_number.txt')])
     allowed_created_files: Tuple[str, ...] = ()
-    allow_dataframes_to_change_existing_series = False
-    enforce_saving_altered_dataframes: bool = False
 
     supported_packages: Tuple[str, ...] = ('numpy', )
 

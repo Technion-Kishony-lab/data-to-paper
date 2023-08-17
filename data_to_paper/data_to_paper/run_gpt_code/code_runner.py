@@ -93,6 +93,8 @@ class BaseCodeRunner(ABC):
             code=code,
             result=result,
             requirements_to_output_files_to_contents=self._get_requirements_to_output_files_to_contents(created_files),
+            dataframe_operations=
+            contexts['TrackDataFrames'].dataframe_operations if 'TrackDataFrames' in contexts else None,
         )
 
     def run_code(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any]]:
