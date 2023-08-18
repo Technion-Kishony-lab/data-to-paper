@@ -128,7 +128,5 @@ class CodeRunner(BaseCodeRunner):
         """
         Modify the extracted code before running it.
         """
-        modified_code = code.replace('from my_utils',
-                                     'from data_to_paper.utils_for_gpt_code.utils_modified_for_gpt_use')
-        modified_code = self.add_in_front_of_code + modified_code
+        modified_code = self.add_in_front_of_code + code
         return modified_code, line_count(self.add_in_front_of_code)

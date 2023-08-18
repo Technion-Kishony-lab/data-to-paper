@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Union, Iterable, Collection
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
-from data_to_paper.utils_for_gpt_code.original_utils.to_latex_with_note import get_tabular_block
 
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
@@ -55,6 +54,13 @@ def replace_scientific_exponent_with_latex(s):
         return r'${}{}\ 10^{{{}}}$'.format(sign, base, exponent)
 
     return re.sub(pattern=r'([+-]?[\d.]+)e([+-]?\d+)', repl=replace, string=s)
+
+
+def get_tabular_block(latex_table: str) -> str:
+    """
+    Extract the tabular block of the table.
+    """
+    return re.search(pattern=r'\\begin{tabular}.*\n(.*)\\end{tabular}', string=latex_table, flags=re.DOTALL).group(0)
 
 
 @dataclass

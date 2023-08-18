@@ -1,14 +1,30 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Type
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
 
 from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIssue, CodeProblem
 
 
 @dataclass
+class UtilsCodeRunner(CodeRunner):
+    def _modify_code(self, code: str) -> Tuple[str, int]:
+        """
+        Modify the extracted code before running it.
+        """
+        modified_code, lines_added = super()._modify_code(code)
+        modified_code = code.replace(
+            'from my_utils',
+            'from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use')
+        return modified_code, lines_added
+
+
+@dataclass
 class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
+    code_runner_cls: Type[CodeRunner] = UtilsCodeRunner
+
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
 
     def _get_runtime_available_objects(self) -> dict:
