@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import inspect
+from typing import Iterable, Callable
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
@@ -29,7 +30,7 @@ def get_all_submodules(module, visited=None):
 
 
 @dataclass
-class AttrReplacerContext(RunContext):
+class SystematicAttrReplacerContext(RunContext):
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     base_module: object = None
     recursive: bool = True
@@ -51,7 +52,7 @@ class AttrReplacerContext(RunContext):
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return NotImplemented
 
-    def custom_wrapper(self, parent, attr_name, original_func):
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
         return NotImplemented
 
     def __enter__(self):
@@ -65,14 +66,14 @@ class AttrReplacerContext(RunContext):
                     original = getattr(parent, attr_name)
                     assert original is attr_obj
                     self._originals[(parent, attr_name)] = original
-                    setattr(parent, attr_name, self.custom_wrapper(parent, attr_name, original))
+                    setattr(parent, attr_name, self._get_custom_wrapper(parent, attr_name, original))
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for (parent, attr_name), original in self._originals.items():
             setattr(parent, attr_name, original)
 
 
-class MethodReplacerContext(AttrReplacerContext):
+class SystematicMethodReplacerContext(SystematicAttrReplacerContext):
     def _get_all_parents(self) -> list:
         classes = []
         for mod in self._get_all_modules():
@@ -85,9 +86,40 @@ class MethodReplacerContext(AttrReplacerContext):
         return inspect.isfunction(obj) or inspect.ismethod(obj)
 
 
-class FuncReplacerContext(AttrReplacerContext):
+class SystematicFuncReplacerContext(SystematicAttrReplacerContext):
     def _get_all_parents(self) -> list:
         return self._get_all_modules()
 
     def _is_right_type(self, obj) -> bool:
         return inspect.isfunction(obj)
+
+
+@dataclass
+class AttrReplacer(RunContext):
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
+    # This means that the attrs are swapped back in temporarily_disable mode
+
+    attr: str = None
+    cls: type = None
+    wrapper: Callable = None
+
+    send_context_to_wrapper: bool = False
+    send_original_to_wrapper: bool = False
+
+    _original: Callable = None
+
+    def _get_wrapped_wrapper(self):
+        def wrapped_wrapper(*args, **kwargs):
+            if self.send_context_to_wrapper:
+                kwargs['context_manager'] = self
+            if self.send_original_to_wrapper:
+                kwargs['original_func'] = self._original
+            return self.wrapper(*args, **kwargs)
+        return wrapped_wrapper
+
+    def _reversible_enter(self):
+        self._original = getattr(self.cls, self.attr)
+        setattr(self.cls, self.attr, self._get_wrapped_wrapper())
+
+    def _reversible_exit(self):
+        setattr(self.cls, self.attr, self._original)

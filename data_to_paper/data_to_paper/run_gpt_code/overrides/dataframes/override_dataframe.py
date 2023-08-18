@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, wraps
 from typing import Iterable, Dict, Callable, Optional
 
 import pandas as pd
@@ -36,6 +36,16 @@ class DataFrameSeriesChange(Exception):
 
     def __str__(self):
         return f'Changed series: {self.changed_series}'
+
+
+def get_original_df_method(method_name):
+    """
+    Get the original DataFrame method.
+    """
+    method = getattr(DataFrame, method_name)
+    while hasattr(method, 'wrapper_of'):
+        method = method.wrapper_of
+    return method
 
 
 @dataclass
@@ -101,13 +111,15 @@ class TrackDataFrames(RunContext):
             setattr(pd, func_name, original_func)
         self._df_creating_func_names_to_original_funcs = None
 
-    def _get_wrapped_method(self, new_method, original_method):
+    def _get_wrapped_new_method(self, new_method, original_method):
         """
         Wrap a method so that it has the original method as an argument and the `on_change` callback.
         """
-        def wrapped_method(*args, **kwargs):
+        @wraps(original_method)
+        def wrapped_new_method(*args, **kwargs):
             return new_method(*args, original_method=original_method, on_change=self._on_change, **kwargs)
-        return wrapped_method
+        wrapped_new_method.wrapper_of = original_method
+        return wrapped_new_method
 
     def _override_df_methods(self):
         """
@@ -117,7 +129,7 @@ class TrackDataFrames(RunContext):
         self._df_method_names_to_original_methods = {}
         for method_name, new_method in self.df_method_names_to_funcs.items():
             original_method = getattr(DataFrame, method_name)
-            wrapped_new_method = self._get_wrapped_method(new_method, original_method)
+            wrapped_new_method = self._get_wrapped_new_method(new_method, original_method)
             setattr(DataFrame, method_name, wrapped_new_method)
             self._df_method_names_to_original_methods[method_name] = original_method
 
