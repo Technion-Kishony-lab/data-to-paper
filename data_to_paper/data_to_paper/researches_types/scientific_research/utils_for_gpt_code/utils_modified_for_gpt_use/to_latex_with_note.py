@@ -1,7 +1,6 @@
 import re
 from typing import Dict, List, Optional
 
-import numpy as np
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -12,6 +11,7 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
+from .check_df_of_table import check_df_of_table_for_content_issues
 
 from ..original_utils import to_latex_with_note
 from ..original_utils.format_p_value import P_VALUE_MIN
@@ -89,26 +89,12 @@ def is_unknown_abbreviation(name: str) -> bool:
     if len(name) == 1:
         return True
 
-    if len(re.split(r' ', name)) >= 3:
+    if len(re.split(pattern=r' ', string=name)) >= 3:
         return False
     if '.' in name or ':' in name or '_' in name:
         return True
-    words = re.split(r'[-_ ]', name)
+    words = re.split(pattern=r'[-_ ]', string=name)
     if all((word.islower() or word.istitle()) for word in words):
-        return False
-    return True
-
-
-def _is_non_integer_numeric(value) -> bool:
-    """
-    Check if the value is a non-integer numeric.
-    """
-    if not isinstance(value, float):
-        return False
-    if value.is_integer():
-        return False
-    # check if the value is nan or inf
-    if np.isfinite(value) or np.isnan(value):
         return False
     return True
 
@@ -117,6 +103,15 @@ def _check_for_issues(df: pd.DataFrame, filename: str, *args,
                       note: str = None,
                       legend: Dict[str, str] = None,
                       **kwargs) -> List[RunIssue]:
+    issues = check_df_of_table_for_content_issues(df, filename)
+    issues += _check_for_table_style_issues(df, filename, *args, note=note, legend=legend, **kwargs)
+    return issues
+
+
+def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
+                                  note: str = None,
+                                  legend: Dict[str, str] = None,
+                                  **kwargs) -> List[RunIssue]:
     assert 'columns' not in kwargs, "assumes columns is None"
     columns = df.columns
     caption = kwargs.get('caption', None)
@@ -125,106 +120,10 @@ def _check_for_issues(df: pd.DataFrame, filename: str, *args,
     legend = {} if legend is None else legend
 
     issues = []
-    prior_tables: Dict[str, pd.DataFrame] = ProvideData.get_or_create_item('prior_tables', {})
-    prior_tables[filename] = df
 
     """
     TABLE CONTENT
     """
-
-    # Check P-value formatting
-    if TRACK_P_VALUES:
-        for column_header in columns:
-            data = df[column_header]
-            # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-            for v in data:
-                if isinstance(v, PValue) and v.value < P_VALUE_MIN:
-                    raise RunUtilsError(
-                        RunIssue(
-                            category='P-value formatting',
-                            code_problem=CodeProblem.RuntimeError,
-                            item=filename,
-                            issue='P-values should be formatted with `format_p_value`',
-                            instructions=dedent_triple_quote_str(f"""
-                                In particular, the p-value column "{column_header}" should be formatted as:
-                                `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
-                                """),
-                        ))
-
-    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
-
-    # Check table compilation
-    compilation_func = ProvideData.get_item('compile_to_pdf_func')
-    file_stem, _ = filename.split('.')
-    with RegisteredRunContext.temporarily_disable_all():
-        e = compilation_func(latex, file_stem)
-
-    # Check if the table contains the same values in multiple cells
-    df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
-    if len(df_values) != len(set(df_values)):
-        issues.append(RunIssue(
-            category='Table contents should not overlap',
-            code_problem=CodeProblem.OutputFileContentLevelC,
-            item=filename,
-            issue=f'Here is the table {filename}:\n{latex}\n'
-                  f'Note that the Table includes the same values in multiple cells.',
-            instructions=dedent_triple_quote_str("""
-                This is likely a mistake and is surely confusing to the reader.
-                Please revise the code so that the table does not repeat the same values in multiple cells.
-                """),
-        ))
-
-    # Check if the table numeric values overlap with values in prior tables
-    for prior_name, prior_table in prior_tables.items():
-        if prior_table is df:
-            continue
-        prior_table_values = [v for v in prior_table.values.flatten() if _is_non_integer_numeric(v)]
-        if any(value in prior_table_values for value in df_values):
-            issues.append(RunIssue(
-                category='Table contents should not overlap',
-                code_problem=CodeProblem.OutputFileContentLevelC,
-                issue=f'Table "{filename}" includes values that overlap with values in table "{prior_name}".',
-                instructions=dedent_triple_quote_str("""
-                    In scientific tables, it is not customary to include the same values in multiple tables.
-                    Please revise the code so that each table include its own unique data.
-                    """),
-            ))
-    if issues:
-        return issues
-
-    # Check if the table is a df.describe() table
-    description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
-    if set(description_headers).issubset(columns) or set(description_headers).issubset(df.index):
-        issues.append(RunIssue(
-            category='Quantiles and min/max values should not be included in scientific tables',
-            code_problem=CodeProblem.OutputFileContentLevelA,
-            item=filename,
-            issue=f'The table includes mean, std, as well as quantiles and min/max values.',
-            instructions=dedent_triple_quote_str("""
-                Note that in scientific tables, it is not customary to include quantiles, or min/max values, \
-                especially if the mean and std are also included.
-                Please revise the code so that the tables only include scientifically relevant statistics.
-                """),
-        ))
-    if issues:
-        return issues
-
-    # Check if the table has NaN or Inf values:
-    if index:
-        entire_df = df.reset_index(inplace=False)
-    else:
-        entire_df = df
-    isnull = pd.isnull(entire_df).values
-    isinf = np.isinf(df.apply(pd.to_numeric, errors='coerce')).values
-    if np.any(isinf) or np.any(isnull):
-        issues.append(RunIssue(
-            category='NaN or Inf values were found in created tables',
-            code_problem=CodeProblem.OutputFileContentLevelA,
-            issue=f'Here is table {filename}:\n```latex\n{latex}\n```\n\nNote that the table has NaN/Inf values.',
-            instructions=dedent_triple_quote_str("""
-                Please revise the code so that the tables only include scientifically relevant statistics.
-                """),
-        ))
 
     # Check for repetitive values in a column
     for column_header in columns:
@@ -256,31 +155,33 @@ def _check_for_issues(df: pd.DataFrame, filename: str, *args,
                         """),
                 ))
 
-    # Check if the table has too many columns
-    MAX_COLUMNS = 10
-    if len(columns) > MAX_COLUMNS:
-        issues.append(RunIssue(
-            category='Too many columns in a table',
-            code_problem=CodeProblem.OutputFileContentLevelB,
-            item=filename,
-            issue=f'The table has {len(columns)} columns, which is way too many.',
-            instructions=f"Please revise the code so that created tables have just 2-5 columns "
-                         f"and definitely not more than {MAX_COLUMNS}.",
-        ))
+    # Check P-value formatting
+    if TRACK_P_VALUES:
+        for column_header in columns:
+            data = df[column_header]
+            # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
+            for v in data:
+                if isinstance(v, PValue) and v.value < P_VALUE_MIN:
+                    raise RunUtilsError(
+                        RunIssue(
+                            category='P-value formatting',
+                            code_problem=CodeProblem.RuntimeError,
+                            item=filename,
+                            issue='P-values should be formatted with `format_p_value`',
+                            instructions=dedent_triple_quote_str(f"""
+                                In particular, the p-value column "{column_header}" should be formatted as:
+                                `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                                """),
+                        ))
 
-    # Check if the table has too many rows
-    MAX_ROWS = 20
-    if df.shape[0] > MAX_ROWS:
-        issues.append(RunIssue(
-            category='Too many rows in a table',
-            code_problem=CodeProblem.OutputFileContentLevelB,
-            item=filename,
-            issue=f'The table has {df.shape[0]} rows, which is way too many.',
-            instructions=f"Please revise the code so that created tables "
-                         f"have a maximum of {MAX_ROWS} rows.",
-        ))
-    if issues:
-        return issues
+    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
+
+    # Check table compilation
+    compilation_func = ProvideData.get_item('compile_to_pdf_func')
+    file_stem, _ = filename.split('.')
+    with RegisteredRunContext.temporarily_disable_all():
+        e = compilation_func(latex, file_stem)
+
 
     if not isinstance(e, float):
         issues.append(RunIssue(

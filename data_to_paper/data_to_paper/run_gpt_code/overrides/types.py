@@ -3,6 +3,7 @@ import functools
 import numpy as np
 import pandas as pd
 
+from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.operator_value import OperatorValue
 
 
@@ -10,12 +11,15 @@ class PValue(OperatorValue):
     """
     An object that represents a p-value float.
     """
+    allow_str = Flag(False)
 
     def __init__(self, value, created_by: str = None):
         super().__init__(value)
         self.created_by = created_by
 
     def _forbidden_func(self, func):
+        if self.allow_str:
+            return func(self.value)
         raise ValueError(
             f"Note that `{self.created_by}` now returns a PValue object.\n"
             f"Calling `{func.__name__}` on it is forbidden.\n"
