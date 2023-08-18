@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
-from ...run_context import BaseRunContext
+from ...base_run_contexts import RunContext
 from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations
 from . import df_methods
 from ...types import RunIssue, CodeProblem
@@ -39,7 +39,7 @@ class DataFrameSeriesChange(Exception):
 
 
 @dataclass
-class TrackDataFrames(BaseRunContext):
+class TrackDataFrames(RunContext):
     """
     Context manager that tracks all the data frames that are created and their changes during the context.
     """

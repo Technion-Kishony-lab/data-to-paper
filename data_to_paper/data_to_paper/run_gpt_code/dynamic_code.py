@@ -16,8 +16,9 @@ from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 
-from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
-    TrackCreatedFiles, BaseRunContext
+from .base_run_contexts import RunContext
+from .run_contexts import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
+    TrackCreatedFiles
 from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
@@ -154,7 +155,7 @@ class RunCode:
         # Collect issues from all contexts
         issues = RunIssues()
         for context in contexts.values():
-            if isinstance(context, BaseRunContext):
+            if isinstance(context, RunContext):
                 issues.extend(context.issues)
 
         return result, created_files, issues, contexts

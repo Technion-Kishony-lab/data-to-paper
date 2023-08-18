@@ -3,7 +3,7 @@ import warnings
 from _pytest.python_api import raises
 from joblib.testing import fixture
 
-from data_to_paper.run_gpt_code.run_context import WarningHandler
+from data_to_paper.run_gpt_code.run_contexts import WarningHandler
 
 
 @fixture()

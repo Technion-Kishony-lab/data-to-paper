@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import inspect
 
-from data_to_paper.run_gpt_code.run_context import BaseRunContext
+from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
 
 def _carefully_get_members(module):
@@ -29,7 +29,8 @@ def get_all_submodules(module, visited=None):
 
 
 @dataclass
-class AttrReplacerContext(BaseRunContext):
+class AttrReplacerContext(RunContext):
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     base_module: object = None
     recursive: bool = True
 

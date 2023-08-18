@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import builtins
 import os
-import traceback
 import warnings
 
-from contextlib import contextmanager, ExitStack
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, TypeVar, Optional
+from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, Optional
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
@@ -15,91 +14,12 @@ from data_to_paper.utils import dedent_triple_quote_str
 
 from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
     CodeImportForbiddenModule, UnAllowedFilesCreated
-from .types import CodeProblem, RunIssue, module_filename, RunIssues, OutputFileRequirement, OutputFileRequirements
-
-T = TypeVar('T', bound='BaseRunContext')
-
-
-@dataclass
-class BaseRunContext:
-    calling_module_name = 'data-to-paper'
-    PROCESS_AND_NAME_TO_OBJECT = {}
-    _is_enabled: Optional[bool] = None  # None means that the context is not initialized yet
-
-    issues: Optional[RunIssues] = None
-
-    @property
-    def _name(self) -> str:
-        return self.__class__.__name__
-
-    def __enter__(self):
-        self._is_enabled = True
-        self.issues = RunIssues()
-        process_id = os.getpid()
-        self.PROCESS_AND_NAME_TO_OBJECT[(process_id, self._name)] = self
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._is_enabled = None
-        process_id = os.getpid()
-        del self.PROCESS_AND_NAME_TO_OBJECT[(process_id, self._name)]
-        return False  # do not suppress exceptions
-
-    def _is_called_from_user_script(self) -> bool:
-        """
-        Check if the code is called from user script.
-        """
-        tb = traceback.extract_stack()
-        filename = tb[-3].filename
-        return filename.endswith(module_filename)
-
-    def _is_called_from_data_to_paper(self) -> bool:
-        tb = traceback.extract_stack()
-        filename = tb[-3].filename
-        return self.calling_module_name in filename
-
-    @classmethod
-    def get_runtime_instance(cls: Type[T]) -> T:
-        process_id = os.getpid()
-        if (process_id, cls.__name__) not in cls.PROCESS_AND_NAME_TO_OBJECT:
-            raise RuntimeError(f'No runtime access was given to the code for {cls.__name__}.')
-        return cls.PROCESS_AND_NAME_TO_OBJECT[(process_id, cls.__name__)]
-
-    @classmethod
-    @contextmanager
-    def disable(cls):
-        """
-        Context manager for temporarily disabling the runtime context.
-        """
-        self = cls.get_runtime_instance()
-        assert self._is_enabled is not None, 'The context is not initialized yet.'
-        current_is_enabled = self._is_enabled
-        self._is_enabled = False
-        try:
-            yield
-        finally:
-            self._is_enabled = current_is_enabled
-
-    @classmethod
-    def get_all_runtime_instances(cls) -> List[BaseRunContext]:
-        process_id = os.getpid()
-        return [obj for (pid, _), obj in cls.PROCESS_AND_NAME_TO_OBJECT.items() if pid == process_id]
-
-    @staticmethod
-    @contextmanager
-    def disable_all():
-        """
-        Context manager for temporarily disabling all runtime contexts.
-        """
-        objs = BaseRunContext.get_all_runtime_instances()
-        with ExitStack() as stack:
-            for obj in objs:
-                stack.enter_context(obj.disable())
-            yield
+from .types import CodeProblem, RunIssue, OutputFileRequirements
+from .base_run_contexts import RegisteredRunContext, SingletonRegisteredRunContext
 
 
 @dataclass
-class ProvideData(BaseRunContext):
+class ProvideData(SingletonRegisteredRunContext):
     data: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
@@ -121,30 +41,30 @@ class ProvideData(BaseRunContext):
 
 
 @dataclass
-class IssueCollector(BaseRunContext):
+class IssueCollector(SingletonRegisteredRunContext):
     pass
 
 
 @dataclass
-class PreventFileOpen(BaseRunContext):
+class PreventFileOpen(SingletonRegisteredRunContext):
     SYSTEM_FILES = ['templates/latex_table.tpl', 'templates/latex_longtable.tpl']
     SYSTEM_FOLDERS = \
         [r'C:\Windows', r'C:\Program Files', r'C:\Program Files (x86)'] if os.name == 'nt' \
         else ['/usr', '/etc', '/bin', '/sbin', '/sys', '/dev', '/var', '/opt', '/proc']
-
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
     allowed_read_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
     allowed_write_files: Iterable[str] = None  # list of wildcard names,  None means allow all, [] means allow none
 
     original_open: Callable = None
 
-    def __enter__(self):
+    def _reversible_enter(self):
         self.original_open = builtins.open
         builtins.open = self.open_wrapper
-        return super().__enter__()
+        return super()._reversible_enter()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def _reversible_exit(self):
         builtins.open = self.original_open
-        return super().__exit__(exc_type, exc_val, exc_tb)
+        return super()._reversible_exit()
 
     def is_allowed_read_file(self, file_name: str) -> bool:
         return self.allowed_read_files is None or \
@@ -156,8 +76,6 @@ class PreventFileOpen(BaseRunContext):
             is_name_matches_list_of_wildcard_names(file_name, self.allowed_write_files)
 
     def open_wrapper(self, *args, **kwargs):
-        if not self._is_enabled:
-            return self.original_open(*args, **kwargs)
         file_name = args[0] if len(args) > 0 else kwargs.get('file', None)
         open_mode = args[1] if len(args) > 1 else kwargs.get('mode', 'r')
         is_opening_for_writing = open_mode in ['w', 'a', 'x']
@@ -178,9 +96,10 @@ class PreventFileOpen(BaseRunContext):
 
 
 @dataclass
-class PreventCalling(BaseRunContext):
+class PreventCalling(RegisteredRunContext):
     modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
     _original_functions: Dict[str, Callable] = None
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
 
     def __enter__(self):
         self._original_functions = {}
@@ -211,7 +130,7 @@ class PreventCalling(BaseRunContext):
 
 
 @dataclass
-class TrackCreatedFiles(BaseRunContext):
+class TrackCreatedFiles(SingletonRegisteredRunContext):
     output_file_requirements: Optional[OutputFileRequirements] = None  # None means allow all
 
     created_files: Optional[ListBasedSet[str]] = None  # None - unknown, context is not yet exited
@@ -261,25 +180,26 @@ class TrackCreatedFiles(BaseRunContext):
 
 
 @dataclass
-class PreventImport(BaseRunContext):
+class PreventImport(SingletonRegisteredRunContext):
     modules: Iterable[str] = None
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
 
     _currently_importing: list = field(default_factory=list)
 
-    def __enter__(self):
+    def _reversible_enter(self):
         self.original_import = builtins.__import__
         builtins.__import__ = self.custom_import
-        return super().__enter__()
+        return super()._reversible_enter()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def _reversible_exit(self):
         builtins.__import__ = self.original_import
-        return super().__exit__(exc_type, exc_val, exc_tb)
+        return super()._reversible_exit()
 
     def is_currently_importing(self) -> bool:
         return len(self._currently_importing) > 0
 
     def custom_import(self, name, globals=None, locals=None, fromlist=(), level=0):
-        if self._is_enabled and self._is_called_from_user_script() and \
+        if self._is_called_from_user_script() and \
                 (any(name.startswith(module + '.') for module in self.modules) or name in self.modules):
             raise CodeImportForbiddenModule(module=name)
         with self.within_import(name):
@@ -302,25 +222,23 @@ class PreventImport(BaseRunContext):
 
 
 @dataclass
-class WarningHandler(BaseRunContext):
+class WarningHandler(SingletonRegisteredRunContext):
     categories_to_issue: Iterable[Type[Warning]] = field(default_factory=list)
     categories_to_raise: Iterable[Type[Warning]] = field(default_factory=list)
     categories_to_ignore: Iterable[Type[Warning]] = field(default_factory=list)
-
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
     original_showwarning: Callable = None
 
-    def __enter__(self):
+    def _reversible_enter(self):
         self.original_showwarning = warnings.showwarning
         warnings.showwarning = self._warning_handler
-        return super().__enter__()
+        return super()._reversible_enter()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def _reversible_exit(self):
         warnings.showwarning = self.original_showwarning
-        return super().__exit__(exc_type, exc_value, traceback)
+        return super()._reversible_exit()
 
     def _warning_handler(self, message, category, filename, lineno, file=None, line=None):
-        if not self._is_enabled:
-            return self.original_showwarning(message, category, filename, lineno, file, line)
         if any(issubclass(category, cls) for cls in self.categories_to_issue):
             self.issues.append(RunIssue(
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',

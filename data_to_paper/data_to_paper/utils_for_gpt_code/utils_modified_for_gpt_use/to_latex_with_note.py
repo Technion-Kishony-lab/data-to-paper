@@ -8,7 +8,8 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.overrides.types import PValue
 from data_to_paper.env import TRACK_P_VALUES
 
-from data_to_paper.run_gpt_code.run_context import BaseRunContext, ProvideData, IssueCollector
+from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
+from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
 
@@ -155,7 +156,7 @@ def _check_for_issues(df: pd.DataFrame, filename: str, *args,
     # Check table compilation
     compilation_func = ProvideData.get_item('compile_to_pdf_func')
     file_stem, _ = filename.split('.')
-    with BaseRunContext.disable_all():
+    with RegisteredRunContext.temporarily_disable_all():
         e = compilation_func(latex, file_stem)
 
     # Check if the table contains the same values in multiple cells
@@ -303,7 +304,7 @@ def _check_for_issues(df: pd.DataFrame, filename: str, *args,
     elif e > 1.1:
         # Try to compile the transposed table:
         latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend, **kwargs)
-        with BaseRunContext.disable_all():
+        with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:
             transpose_message = dedent_triple_quote_str("""\n
