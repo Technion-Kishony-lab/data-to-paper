@@ -2,7 +2,7 @@ import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
+from typing import Optional, Iterable, Tuple, List, Dict, Any, Type, Callable
 
 from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
@@ -18,7 +18,7 @@ class BaseCodeRunner(ABC):
     run_folder: Optional[Path] = None
     output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
     allowed_read_files: Iterable[str] = ()
-    additional_contexts: Dict[str, Any] = field(default_factory=dict)  # additional contexts to use when running code
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     _lines_added_in_front_of_code: int = None

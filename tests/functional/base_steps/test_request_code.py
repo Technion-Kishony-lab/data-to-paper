@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Type, Any, Dict
+from typing import Tuple, Type, Any, Dict, Callable, Optional
 
 from _pytest.fixtures import fixture
 
@@ -20,8 +20,8 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-    additional_contexts: Dict[str, Any] = field(
-        default_factory=lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)})
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)}
     enforce_saving_altered_dataframes: bool = True
     offer_revision_prompt: str = None
     code_name: str = 'Testing'

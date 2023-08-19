@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, List
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, List, Callable
 
 from data_to_paper import chatgpt_created_scripts
 
@@ -72,7 +72,7 @@ class RunCode:
     runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
 
-    additional_contexts: Optional[Dict[str, Any]] = field(default_factory=dict)
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:
 
@@ -101,8 +101,10 @@ class RunCode:
             contexts['timeout_context'] = timeout_context(seconds=self.timeout_sec)
 
         # Additional custom contexts:
-        for context_name, context in self.additional_contexts.items():
-            contexts[context_name] = context
+        if self.additional_contexts is not None:
+            for context_name, context in self.additional_contexts().items():
+                assert context_name not in contexts, f"Context name {context_name} already exists."
+                contexts[context_name] = context
         return contexts
 
     def run(self, code: str, save_as: Optional[str] = None

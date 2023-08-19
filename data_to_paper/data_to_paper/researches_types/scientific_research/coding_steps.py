@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, List, Any
+from typing import Optional, Tuple, Dict, Type, List, Any, Callable
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
@@ -145,8 +145,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([ContentOutputFileRequirement('data_exploration.txt')])
     allowed_created_files: Tuple[str, ...] = ()
-    additional_contexts: Dict[str, Any] = field(default_factory=lambda: _get_additional_contexts(
-        allow_dataframes_to_change_existing_series=False, enforce_saving_altered_dataframes=False))
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                     enforce_saving_altered_dataframes=False)
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
@@ -244,8 +245,9 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-    additional_contexts: Dict[str, Any] = field(default_factory=lambda: _get_additional_contexts(
-        allow_dataframes_to_change_existing_series=False, enforce_saving_altered_dataframes=True))
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                         enforce_saving_altered_dataframes=True)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
@@ -289,8 +291,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([ContentOutputFileRequirement('results.txt')])
-    additional_contexts: Dict[str, Any] = field(default_factory=lambda: _get_additional_contexts(
-        allow_dataframes_to_change_existing_series=True, enforce_saving_altered_dataframes=False))
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False)
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -406,8 +409,9 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('*.tex', minimal_count=1)])
-    additional_contexts: Dict[str, Any] = field(default_factory=lambda: _get_additional_contexts(
-        allow_dataframes_to_change_existing_series=True, enforce_saving_altered_dataframes=False))
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False)
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any
+from typing import Optional, Tuple, Dict, Type, Any, Callable
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
@@ -48,7 +48,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
-    additional_contexts: Dict[str, Any] = field(default_factory=dict)
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine',

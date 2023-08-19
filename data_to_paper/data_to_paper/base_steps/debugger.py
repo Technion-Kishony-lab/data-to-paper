@@ -4,7 +4,7 @@ import re
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Tuple, Union, Type, Dict, Any
+from typing import Optional, List, Tuple, Union, Type, Dict, Any, Callable
 
 import numpy as np
 
@@ -82,7 +82,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
 
     # dataframes:
-    additional_contexts: Dict[str, Any] = field(default_factory=dict)
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     user_initiation_prompt: str = None
     assistant_agent: Agent = None

@@ -61,7 +61,7 @@ class CheckLatexCompilation:
         For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
         """
 
-        if SAVE_INTERMEDIATE_LATEX and should_save:
+        if SAVE_INTERMEDIATE_LATEX and should_save and self.output_directory is not None:
             file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
