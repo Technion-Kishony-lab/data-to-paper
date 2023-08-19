@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
 import inspect
-from typing import Iterable, Callable
+from types import ModuleType
+from typing import Iterable, Callable, Union, Type
 
-from data_to_paper.run_gpt_code.base_run_contexts import RunContext
+from data_to_paper.run_gpt_code.base_run_contexts import RunContext, RegisteredRunContext
 
 
 def _carefully_get_members(module):
@@ -95,12 +96,12 @@ class SystematicFuncReplacerContext(SystematicAttrReplacerContext):
 
 
 @dataclass
-class AttrReplacer(RunContext):
+class AttrReplacer(RegisteredRunContext):
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
     # This means that the attrs are swapped back in temporarily_disable mode
 
     attr: str = None
-    cls: type = None
+    cls: Union[Type, ModuleType] = None
     wrapper: Callable = None
 
     send_context_to_wrapper: bool = False

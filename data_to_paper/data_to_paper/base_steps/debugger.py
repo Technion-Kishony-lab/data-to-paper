@@ -216,8 +216,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         )
 
     def _get_issue_for_timeout(self, error: TimeoutError, e: FailedRunningCode = None) -> RunIssue:
+        lineno, line, msg = e.get_lineno_line_message()
         return RunIssue(
-            issue="I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.",
+            issue=f"I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.\n"
+                  f"When I stopped it, it was running on line {lineno}:\n```python\n{line}\n```\n",
+            instructions="Anything we can do to make it run faster? Perhaps use a smaller subset "
+                         "of the data for this part?",
             code_problem=CodeProblem.TimeoutError,
             comment='Code has timed out',
         )

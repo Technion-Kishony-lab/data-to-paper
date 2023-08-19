@@ -15,6 +15,13 @@ class DataFileDescription:
     description: Optional[str] = None  # a user provided description of the file
     originated_from: Optional[str] = None  # None for raw file
 
+    def is_binary(self):
+        """
+        Return True if the file is binary.
+        """
+        text_exts = ['.txt', '.md', '.csv', '.json']
+        return Path(self.file_path).suffix not in text_exts
+
     def get_file_header(self, num_lines: int = 4):
         """
         Return the first `num_lines` lines of the file (if they exist).
@@ -26,13 +33,15 @@ class DataFileDescription:
                     head.append(next(f))
                 except StopIteration:
                     break
+                except UnicodeDecodeError:
+                    head.append('UnicodeDecodeError\n')
             return ''.join(head)
 
     def pretty_repr(self, num_lines: int = 4):
         s = f'"{self.file_path}"\n'
         if self.description is not None:
             s += f'{self.description}\n\n'
-        if num_lines > 0:
+        if num_lines > 0 and not self.is_binary():
             s += f'Here are the first few lines of the file:\n' \
                  f'```output\n{self.get_file_header(num_lines)}\n```\n'
         return s

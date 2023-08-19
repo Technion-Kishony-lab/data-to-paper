@@ -58,7 +58,7 @@ class RunCode:
         (plt, 'savefig', False),
         # (builtins, 'exec', False),
     )
-    forbidden_imports: Optional[Iterable[str]] = ('os', 'sys', 'subprocess', 'shutil', 'pickle', 'matplotlib')
+    forbidden_imports: Optional[Iterable[str]] = ('os', 'sys', 'subprocess', 'shutil', 'matplotlib')
 
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
