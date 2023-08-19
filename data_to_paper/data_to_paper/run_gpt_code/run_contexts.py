@@ -158,7 +158,7 @@ class TrackCreatedFiles(SingletonRegisteredRunContext):
                         but it only created {len(output_files)} files of this type.
                         """)
                 else:
-                    issue = f"The code didn't generate the desired output file ({requirement.filename})."
+                    issue = f"The code didn't generate the desired output file, '{requirement.filename}'."
                 self.issues.append(RunIssue(
                     category='Not all required files were created',
                     issue=issue,

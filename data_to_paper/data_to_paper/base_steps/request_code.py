@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Callable
 
 from data_to_paper.env import SUPPORTED_PACKAGES
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    CodeProblem, OutputFileRequirements
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
+    CodeProblem, OutputFileRequirements, TextContentOutputFileRequirement
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer
@@ -65,7 +65,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     user_initiation_prompt: str = 'Please write a code to analyze the data.'
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements((ContentOutputFileRequirement('results.txt'), ))
+        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'), ))
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"

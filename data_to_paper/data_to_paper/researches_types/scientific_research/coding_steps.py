@@ -19,13 +19,15 @@ from data_to_paper.researches_types.scientific_research.table_debugger import Ta
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    DataOutputFileRequirement, RunIssue, CodeProblem, NumericContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, TextContentOutputFileRequirement, \
+    DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
+    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
 
 
 def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = False,
@@ -110,14 +112,13 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
         return Path(self.products.data_file_descriptions.data_folder)
 
 
-@dataclass
-class DataExplorationDebugger(DebuggerConverser):
+@dataclass(frozen=True)
+class EnforceContentOutputFileRequirement(NumericTextContentOutputFileRequirement):
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
 
-    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
-                                            filename: str, content: str) -> List[RunIssue]:
-        issues = super()._get_issues_for_output_file_content(requirement, filename, content)
+    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+        issues = super().get_issues_for_output_file_content(filename, content)
         if issues:
             return issues
 
@@ -130,20 +131,19 @@ class DataExplorationDebugger(DebuggerConverser):
                       f'{NiceList(missing_headers, wrap_with="`")}.',
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
+
         return issues
 
 
 @dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
-    debugger_cls: Type[DebuggerConverser] = DataExplorationDebugger
-
     code_step: str = 'data_exploration'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([ContentOutputFileRequirement('data_exploration.txt')])
+        OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
     allowed_created_files: Tuple[str, ...] = ()
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
     lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
@@ -290,7 +290,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([ContentOutputFileRequirement('results.txt')])
+        OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
@@ -408,7 +408,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('*.tex', minimal_count=1)])
+        [NumericTextContentOutputFileRequirement('results.txt'),
+         TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
@@ -799,8 +800,8 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
                 self,
                 latex_document=self.latex_document,
                 output_file_requirements=OutputFileRequirements(
-                    [NumericContentOutputFileRequirement('results.txt'),
-                     ContentOutputFileRequirement('table_?.tex', num_tables)]),
+                    [DataOutputFileRequirement('additional_results.pkl'),
+                     DataOutputFileRequirement('table_?.pkl', num_tables)]),
             )
         return cls.from_(self)
 

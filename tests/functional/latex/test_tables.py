@@ -3,7 +3,7 @@ import pandas as pd
 from _pytest.fixtures import fixture
 
 from data_to_paper.latex.latex_doc import LatexDocument
-from data_to_paper.researches_types.scientific_research.utils_for_gpt_code import to_latex_with_note
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.original_utils import to_latex_with_note
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 

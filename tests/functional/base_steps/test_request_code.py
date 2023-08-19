@@ -10,7 +10,7 @@ from data_to_paper.researches_types.scientific_research.coding_steps import Expl
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.types import OutputFileRequirement, DataOutputFileRequirement, \
-    ContentOutputFileRequirement, OutputFileRequirements
+    TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
@@ -79,7 +79,7 @@ def code_running_converser(tmpdir_with_csv_file):
         conversation_name='testing',
         offer_revision_prompt='Output:\n{created_file_contents_explanation}\nRevise?',
         output_file_requirements=
-        OutputFileRequirements([DataOutputFileRequirement('*.csv'), ContentOutputFileRequirement('output.txt')]),
+        OutputFileRequirements([DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
     )
 
 

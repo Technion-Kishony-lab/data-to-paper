@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from cast import DemoAgent
-from data_to_paper.run_gpt_code.types import OutputFileRequirement, ContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
 from products import DemoProducts
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -32,7 +32,7 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
         return Path(self.products.data_file_descriptions.data_folder)
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([ContentOutputFileRequirement('prime_number.txt')])
+        OutputFileRequirements([TextContentOutputFileRequirement('prime_number.txt')])
     allowed_created_files: Tuple[str, ...] = ()
 
     supported_packages: Tuple[str, ...] = ('numpy', )

@@ -8,7 +8,7 @@ from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
-from .types import CodeAndOutput, RunIssue, OutputFileRequirements
+from .types import CodeAndOutput, RunIssue, OutputFileRequirements, BaseContentOutputFileRequirement
 
 
 @dataclass
@@ -62,24 +62,14 @@ class BaseCodeRunner(ABC):
             additional_contexts=self.additional_contexts,
         )
 
-    def read_output_file(self, output_file: str, delete_file: bool = False) -> str:
-        """
-        Return the content of the output file created by the run if successful.
-        """
-        filepath = self.run_folder / output_file if self.run_folder else output_file
-        with open(filepath, 'r') as file:
-            content = file.read()
-        if delete_file:
-            os.remove(filepath)
-        return content
-
     def _get_requirements_to_output_files_to_contents(self, created_files: Iterable[str]) -> dict:
         """
         Return a dictionary mapping each requirement to a dictionary mapping each output file to its content.
         """
         return {requirement: {
-            output_file: (self.read_output_file(output_file, delete_file=True)
-                          if requirement.should_keep_content else None)
+            output_file: (requirement.get_content_and_delete_if_needed(
+                file_path=self.run_folder / output_file if self.run_folder else output_file)
+                          if isinstance(requirement, BaseContentOutputFileRequirement) else None)
             for output_file in created_files
             if requirement.matches(output_file)
         } for requirement in self.output_file_requirements}

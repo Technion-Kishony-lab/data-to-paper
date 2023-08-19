@@ -12,10 +12,10 @@ from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMEN
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.run_gpt_code.types import CodeAndOutput, ContentOutputFileRequirement, CodeProblem, \
-    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements
-from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
-from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, TrackDataFrames
+from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
+    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements, OutputFileRequirement, BaseContentOutputFileRequirement
+
+from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
@@ -23,11 +23,8 @@ from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call im
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
-from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.file_utils import run_in_directory
-from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BackgroundProductsConverser
 
@@ -121,14 +118,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             return ''
         return 'Remember, your code must contain the following sections:\n' + \
                '\n'.join(f'"{header}"' for header in self.headers_required_in_code)
-
-    @property
-    def output_filenames(self) -> Tuple[str, ...]:
-        return self.output_file_requirements.get_all_allowed_created_filenames()
-
-    @property
-    def output_filename(self) -> Optional[str]:
-        return self.output_file_requirements.get_single_content_file()
 
     @property
     def iteration_str(self):
@@ -330,11 +319,12 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_forbidden_read(self, error: CodeReadForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
-        if file == self.output_filename:
+        is_read_file_in_output_file_requirements = len(self.output_file_requirements.get_unmatched_files([file])) == 0
+        if is_read_file_in_output_file_requirements:
             return RunIssue(
                 issue=f'Your code tries reading from the output file "{file}".',
                 instructions=dedent_triple_quote_str("""
-                    The code should create and write to this output file, but should not read from it.
+                    The code can create and write to this output file, but should not read from it.
                     The only input files from which we can read the data are: 
                     {}
                     """).format(self.data_filenames),
@@ -365,43 +355,16 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_problem=CodeProblem.RuntimeError,
             comment='Code modifies dataframe series')
 
-    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
+    def _get_issues_for_output_file_content(self, requirement: BaseContentOutputFileRequirement,
                                             filename: str, content: str) -> List[RunIssue]:
-        issues = []
-        issue = None
-        if len(content.strip()) == 0:
-            # The output file is empty.
-            issue = RunIssue(
-                issue=f'The code created the output file "{filename}", but the file is just empty!',
-                instructions="Please revise the code to make sure it correctly writes to the output file.",
-                comment='Output file empty',
-                code_problem=CodeProblem.OutputFileContentLevelA,
-            )
-        if count_number_of_tokens_in_message(content, max(ModelEngine)) > requirement.max_tokens:
-            # Created output file is too large.
-            issue = RunIssue(
-                issue=dedent_triple_quote_str("""
-                    The code created the output file "{}", but the file is too long!
-
-                    Here, for context, is the beginning of the output:
-                    ```output
-                    {}
-                    ```
-                    """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
-                instructions="Only sensible-length output should be written to the file.",
-                comment='Output file too long',
-                code_problem=CodeProblem.OutputFileContentLevelC,
-            )
-        if issue is not None:
-            issues.append(issue)
-        return issues
+        return requirement.get_issues_for_output_file_content(filename, content)
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         issues = []
         files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
         for requirement in self.output_file_requirements:
             output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
-            if isinstance(requirement, ContentOutputFileRequirement):
+            if isinstance(requirement, BaseContentOutputFileRequirement):
                 for filename in output_files:
                     issues.extend(
                         self._get_issues_for_output_file_content(requirement, filename, files_to_contents[filename]))

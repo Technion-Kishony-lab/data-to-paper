@@ -5,7 +5,7 @@ from typing import Optional, Tuple, List, Type
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 
-from data_to_paper.run_gpt_code.types import ContentOutputFileRequirement, RunIssue, CodeProblem
+from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 
 
 @dataclass
@@ -43,13 +43,3 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
                 ))
 
         return issues
-
-    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
-                                            filename: str, content: str) -> List[RunIssue]:
-        """
-        We try to compile the table, and if it fails, we return an issue.
-        """
-        if not requirement.filename.endswith('.tex'):
-            return super()._get_issues_for_output_file_content(requirement, filename, content)
-
-        return []

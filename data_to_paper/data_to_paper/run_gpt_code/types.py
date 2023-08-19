@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+import os
+import pickle
 from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
-from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING, Iterable, Tuple
+from typing import Optional, List, Dict, Any, TYPE_CHECKING, Iterable, Tuple
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
 from data_to_paper.utils.types import IndexOrderedEnum, ListBasedSet
+from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
+from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .overrides.utils import round_floats
 
@@ -159,6 +165,7 @@ class RunIssues(List[RunIssue]):
 class OutputFileRequirement:
     filename: str
     minimal_count: int
+    should_keep_file: bool = NotImplemented
 
     def is_wildcard(self):
         return '*' in self.filename or '?' in self.filename
@@ -166,39 +173,105 @@ class OutputFileRequirement:
     def matches(self, filename: str):
         return fnmatch(filename, self.filename)
 
-    @property
-    def should_keep_content(self) -> bool:
-        return NotImplemented
+    def delete_if_needed(self, file_path: str):
+        """
+        Delete the file if needed.
+        """
+        if not self.should_keep_file:
+            os.remove(file_path)
 
 
 @dataclass(frozen=True)
 class DataOutputFileRequirement(OutputFileRequirement):
     minimal_count: int = 0
-
-    @property
-    def should_keep_content(self) -> bool:
-        return False
+    should_keep_file: bool = True
 
 
 @dataclass(frozen=True)
-class ContentOutputFileRequirement(OutputFileRequirement):
+class BaseContentOutputFileRequirement(OutputFileRequirement):
+    should_keep_file: bool = NotImplemented
     minimal_count: int = 1
-    max_tokens: int = MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val
 
-    @property
-    def should_keep_content(self) -> bool:
-        return True
+    def get_content(self, file_path: str) -> str:
+        """
+        Return the content of the file.
+        """
+        with open(file_path, 'r') as file:
+            return file.read()
 
-    def clean_content(self, content: str) -> str:
+    def get_content_and_delete_if_needed(self, file_path: str) -> str:
+        """
+        Return the content of the file, and delete it if needed.
+        """
+        content = self.get_content(file_path)
+        self.delete_if_needed(file_path)
         return content
 
+    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+        """
+        Check the output and return a list of issues.
+        """
+        return []
+
+    def get_pretty_content(self, content: Any) -> str:
+        return str(content)
+
 
 @dataclass(frozen=True)
-class NumericContentOutputFileRequirement(ContentOutputFileRequirement):
+class PickleContentOutputFileRequirement(BaseContentOutputFileRequirement):
+    should_keep_file: bool = True
+
+    def get_content(self, file_path: str) -> Any:
+        """
+        Return the content of the file.
+        """
+        with open(file_path, 'rb') as file:
+            return pickle.load(file)
+
+
+@dataclass(frozen=True)
+class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
+    should_keep_file: bool = False
+    max_tokens: Optional[int] = MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val
+
+    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+        issues = super().get_issues_for_output_file_content(filename, content)
+
+        if len(content.strip()) == 0:
+            # The output file is empty.
+            issues.append(RunIssue(
+                item=filename,
+                issue=f'The code created the output file "{filename}", but the file is just empty!',
+                instructions="Please revise the code to make sure it correctly writes to the output file.",
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+
+        if self.max_tokens is not None \
+                and count_number_of_tokens_in_message(content, max(ModelEngine)) > self.max_tokens:
+            # Created output file is too large.
+            issues.append(RunIssue(
+                issue=dedent_triple_quote_str("""
+                    The code created the output file "{}", but the file is too long!
+
+                    Here, for context, is the beginning of the output:
+                    ```output
+                    {}
+                    ```
+                    """).format(filename, extract_to_nearest_newline(content, self.max_tokens)),
+                instructions="Only sensible-length output should be written to the file.",
+                code_problem=CodeProblem.OutputFileContentLevelC,
+            ))
+
+        return issues
+
+
+@dataclass(frozen=True)
+class NumericTextContentOutputFileRequirement(TextContentOutputFileRequirement):
     target_precision: int = 4
     source_precision: int = 10
 
-    def clean_content(self, content: str) -> str:
+    def get_pretty_content(self, content: str) -> str:
+        content = super().get_pretty_content(content)
         return round_floats(content, self.target_precision, self.source_precision)
 
 
@@ -213,7 +286,7 @@ class OutputFileRequirements(Tuple[OutputFileRequirement]):
     def get_single_content_file(self) -> Optional[str]:
         content_file_requirements = [
             req for req in self
-            if isinstance(req, ContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
+            if isinstance(req, BaseContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
         if len(content_file_requirements) != 1:
             return None
         return content_file_requirements[0].filename
@@ -271,17 +344,17 @@ class CodeAndOutput:
         """
         Return the names of the files created by the run, and their content.
         """
-        return {filename: requirement.clean_content(content) if is_clean else content
+        return {filename: requirement.get_pretty_content(content) if is_clean else content
                 for requirement, files_to_contents in self.requirements_to_output_files_to_contents.items()
                 for filename, content in files_to_contents.items()
-                if isinstance(requirement, ContentOutputFileRequirement)}
+                if isinstance(requirement, BaseContentOutputFileRequirement)}
 
     def get_created_data_files(self) -> List[str]:
         """
-        Return the names of the files created by the run, and whose content is None.
+        Return the names of the files created by the run, and which were kept, not deleted.
         """
-        return [filename for files_to_contents in self.requirements_to_output_files_to_contents.values()
-                for filename, content in files_to_contents.items() if content is None]
+        return [filename for requirement, files_to_contents in self.requirements_to_output_files_to_contents.items()
+                for filename, content in files_to_contents.items() if requirement.should_keep_file]
 
     def to_latex(self):
         s = f"\\section{{{self.name}}} \\subsection{{Code}}" \

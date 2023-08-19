@@ -6,7 +6,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.run_gpt_code.types import OutputFileRequirement, ContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 
 from .utils import TestAgent
@@ -19,7 +19,7 @@ class TestDebuggerGPT(DebuggerConverser):
     assistant_agent: TestAgent = TestAgent.REVIEWER
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements([ContentOutputFileRequirement('test_output.txt')])
+        OutputFileRequirements([TextContentOutputFileRequirement('test_output.txt')])
     data_filenames: tuple = ('test.csv',)
     enforce_saving_altered_dataframes: bool = True
 
