@@ -1,4 +1,3 @@
-import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -8,7 +7,7 @@ from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
-from .types import CodeAndOutput, RunIssue, OutputFileRequirements, BaseContentOutputFileRequirement
+from .types import CodeAndOutput, RunIssue, OutputFileRequirements
 
 
 @dataclass
@@ -72,8 +71,8 @@ class BaseCodeRunner(ABC):
             result=result,
             created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(
                 created_files=created_files, run_folder=self.run_folder),
-            dataframe_operations=
-            contexts['TrackDataFrames'].dataframe_operations if 'TrackDataFrames' in contexts else None,
+            dataframe_operations=contexts['TrackDataFrames'].dataframe_operations
+            if 'TrackDataFrames' in contexts else None,
         )
 
     def run_code(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any]]:

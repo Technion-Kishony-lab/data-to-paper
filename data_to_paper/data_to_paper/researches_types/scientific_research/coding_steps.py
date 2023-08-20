@@ -148,8 +148,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
     allowed_created_files: Tuple[str, ...] = ()
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
-    lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                     enforce_saving_altered_dataframes=False)
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                         enforce_saving_altered_dataframes=False)
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
@@ -681,7 +681,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         "{hypothesis_testing_plan}"), decide on 2-4 tables we can create for our scientific paper, \
         summarizing the results of the statistical analysis. 
-        
+
         For each such scientific table, create a dedicated corresponding dataframe and save it to a pkl file \
         using pandas `df.to_pickle(filename)` method (at the same directory as the code).
 
@@ -715,7 +715,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         'additional_results.pkl'. 
 
         For example:
-        
+
         `additional_results = {
             'Total number of observations': <xxx>,         
             'model_accuracy': <xxx>,
@@ -750,9 +750,9 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         I would like to create latex tables for our scientific paper, from the dataframes created \
         in the code above ("table_?.pkl" files). 
-    
+
         I would like to convert these dataframes to latex tables, using a custom function I wrote: 
-        
+
         `to_latex_with_note(df, filename: str, caption: str, label: str, \
         note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
@@ -760,7 +760,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         and allows adding below the table an optional note (if `note` is provided) as well as an optional \
         legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
 
-    
+
         Please write a complete Python code that uses the above function to convert our dataframe Tables \
         to latex tables suitable for our scientific paper.
 
@@ -776,10 +776,10 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
         # Table 1:
         df = pd.read_pickle('table_1.pkl')
-        
+
         # Styling the dataframe:
         Re-style the dataframe to make it suitable for a scientific paper: 
-        
+
         - Columns and Row Headers:
         Rename technical names to scientifically-suitable names.
         For example:
@@ -794,7 +794,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
         For example, if you have a p-value column named "p-value", then use:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
-        
+
         # Save as latex:
         `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
 

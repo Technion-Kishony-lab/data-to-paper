@@ -11,10 +11,8 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
-from .check_df_of_table import check_df_of_table_for_content_issues
 
 from ..original_utils import to_latex_with_note
-from ..original_utils.format_p_value import P_VALUE_MIN
 
 KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.', 'Std', 'Err.', 'Avg.', 'Coef.', 'SD', 'SE', 'CI')
 
@@ -205,7 +203,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                                 `df.loc["{row_header}", "{column_header}"] = format_p_value({v})`
                                 """),
                         ))
-
 
     latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
 

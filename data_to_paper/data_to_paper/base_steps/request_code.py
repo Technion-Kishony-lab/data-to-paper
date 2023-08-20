@@ -1,10 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Callable
 
 from data_to_paper.env import SUPPORTED_PACKAGES
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
-    CodeProblem, OutputFileRequirements, TextContentOutputFileRequirement
+from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, OutputFileRequirements, \
+    TextContentOutputFileRequirement
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer

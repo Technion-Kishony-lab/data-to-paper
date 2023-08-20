@@ -1,5 +1,4 @@
 import importlib
-import os
 import re
 
 from dataclasses import dataclass, field
@@ -13,7 +12,7 @@ from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
-    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements, OutputFileRequirement, BaseContentOutputFileRequirement
+    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements, BaseContentOutputFileRequirement
 
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
@@ -24,7 +23,6 @@ from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFi
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
 from data_to_paper.base_cast import Agent
-from data_to_paper.utils.file_utils import run_in_directory
 
 from .base_products_conversers import BackgroundProductsConverser
 

@@ -144,4 +144,3 @@ class SingletonRegisteredRunContext(RegisteredRunContext):
         if process_and_identifier not in cls.PROCESS_AND_NAME_TO_OBJECT:
             raise RuntimeError(f'SingletonRegisteredRunContext {cls.__name__} was not created yet.')
         return cls.PROCESS_AND_NAME_TO_OBJECT[process_and_identifier]
-

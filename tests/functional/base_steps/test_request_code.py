@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Tuple, Type, Any, Dict, Callable, Optional
+from dataclasses import dataclass
+from typing import Type, Any, Dict, Callable, Optional
 
 from _pytest.fixtures import fixture
 
@@ -9,7 +9,7 @@ from data_to_paper.researches_types.scientific_research.coding_steps import Expl
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
-from data_to_paper.run_gpt_code.types import OutputFileRequirement, DataOutputFileRequirement, \
+from data_to_paper.run_gpt_code.types import DataOutputFileRequirement, \
     TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
@@ -75,8 +75,8 @@ def code_running_converser(tmpdir_with_csv_file):
         code_name='Testing',
         conversation_name='testing',
         offer_revision_prompt='Output:\n{created_file_contents_explanation}\nRevise?',
-        output_file_requirements=
-        OutputFileRequirements([DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
+        output_file_requirements=OutputFileRequirements(
+            [DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
     )
 
 

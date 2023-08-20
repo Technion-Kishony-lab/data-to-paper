@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, List, Callable
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
 
 from data_to_paper import chatgpt_created_scripts
 

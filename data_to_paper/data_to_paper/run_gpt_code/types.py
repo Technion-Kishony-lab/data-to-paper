@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Optional, List, Dict, Any, TYPE_CHECKING, Iterable, Tuple, Iterator
+from typing import Optional, List, Dict, Any, TYPE_CHECKING, Iterable, Tuple
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS

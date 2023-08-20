@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import inspect
 from types import ModuleType
-from typing import Iterable, Callable, Union, Type
+from typing import Callable, Union, Type
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext, RegisteredRunContext
 

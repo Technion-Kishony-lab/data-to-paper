@@ -7,7 +7,6 @@ from _pytest.python_api import raises
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, CODE_MODULE, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
-from data_to_paper.run_gpt_code.types import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 
 
