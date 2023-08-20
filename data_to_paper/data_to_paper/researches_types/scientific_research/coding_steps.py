@@ -733,6 +733,96 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
 
 @dataclass
+class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
+    code_step: str = 'data_to_latex'
+    headers_required_in_code: Tuple[str, ...] = ()
+
+    background_product_fields: Tuple[str, ...] = \
+        ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis')
+    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
+        ('research_goal', 'codes:data_preprocessing')
+    allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
+
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
+        [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        I would like to create latex tables for our scientific paper, from the dataframes created \
+        in the code above ("table_?.pkl" files). 
+    
+        I would like to convert these dataframes to latex tables, using a custom function I wrote: 
+        
+        `to_latex_with_note(df, filename: str, caption: str, label: str, \
+        note: str = None, legend: Dict[str, str] = None, **kwargs)`
+
+        This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
+        and allows adding below the table an optional note (if `note` is provided) as well as an optional \
+        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
+
+    
+        Please write a complete Python code that uses the above function to convert our dataframe Tables \
+        to latex tables suitable for our scientific paper.
+
+        The code should follow this structure:
+
+        # IMPORT
+        import pandas as pd
+        from my_utils import to_latex_with_note, format_p_value
+
+        # CREATE LATEX TABLES
+        For each of the table dataframe files created above (table_?.pkl), \
+        create a latex table and save it to a tex following this structure:
+
+        # Table 1:
+        df = pd.read_pickle('table_1.pkl')
+        
+        # Styling the dataframe:
+        Re-style the dataframe to make it suitable for a scientific paper: 
+        
+        - Columns and Row Headers:
+        Rename technical names to scientifically-suitable names.
+        For example:
+        `df = df.rename(columns={'<technical column name>': '<scientific column name>'})`
+
+        - Values:
+        Rename technical values to scientifically-suitable values \
+        (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
+
+        - P-values:
+        If the table includes P-values of statistical tests, convert them using the provided `format_p_value` func.
+        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
+        For example, if you have a p-value column named "p-value", then use:
+        `df['p-value'] = df['p-value'].apply(format_p_value)`
+        
+        # Save as latex:
+        `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
+
+        - Add a caption suitable for inclusion as part of a scientific paper \
+        (`caption=` in `to_latex_with_note`). \
+        - Add a table label (`label="table:<your label here>"` in `to_latex_with_note`).
+        - As needed, add a note at the end of the table, with any additional context \
+        (`note=` in `to_latex_with_note`).
+        For example, note="Total number of observations: <xxx>". 
+        - As needed, add a legend to clarify any abbreviated or technical names in the table \
+        (`legend=` in `to_latex_with_note`).
+        For example, if you have a column "DisSever", you should specify:
+        `legend={'DisSever': 'Severity of the disease, 1=Low, 2=Medium, 3=High'}`.
+
+        # Table 2:
+        etc, for all 'table_?.pkl' files.
+
+
+        Avoid the following:
+        Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
+        Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
+        """)
+
+    offer_revision_prompt: str = None
+
+
+@dataclass
 class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
     background_product_fields: Tuple[str, ...] = None
     goal_noun: str = '{code_name} code'

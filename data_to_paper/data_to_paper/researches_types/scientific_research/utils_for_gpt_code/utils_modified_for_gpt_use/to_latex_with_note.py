@@ -16,7 +16,7 @@ from .check_df_of_table import check_df_of_table_for_content_issues
 from ..original_utils import to_latex_with_note
 from ..original_utils.format_p_value import P_VALUE_MIN
 
-KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.Err.', 'Std. Err.')
+KNOWN_ABBREVIATIONS = ('std', 'BMI', 'P>|z|', 'P-value', 'Std.', 'Std', 'Err.', 'Avg.', 'Coef.', 'SD', 'SE', 'CI')
 
 P_VALUE_STRINGS = ('P>|z|', 'P-value', 'P>|t|', 'P>|F|')
 
@@ -53,7 +53,8 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     if columns is not None:
         df = df[columns]
 
-    issues = _check_for_issues(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
+    issues = _check_for_table_style_issues(df, filename, caption=caption, label=label, note=note, legend=legend,
+                                           **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
 
     latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
@@ -78,34 +79,35 @@ def is_unknown_abbreviation(name: str) -> bool:
     """
     if not isinstance(name, str):
         return False
-    if len(name) == 0:
-        return False
-    if name in KNOWN_ABBREVIATIONS:
-        return False
 
-    if not any(char.isalpha() for char in name):
+    if len(name) == 0:
         return False
 
     if len(name) == 1:
         return True
 
+    for abbreviation in KNOWN_ABBREVIATIONS:
+        if abbreviation.endswith('.'):
+            pattern = r'\b' + re.escape(abbreviation)
+        else:
+            pattern = r'\b' + re.escape(abbreviation) + r'\b'
+        name = re.sub(pattern, '', name)
+
+    # if there are no letters left, it is not an abbreviation
+    if not any(char.isalpha() for char in name):
+        return False
+
+    # if there are over 3 words, it is not an abbreviation:
     if len(re.split(pattern=r' ', string=name)) >= 3:
         return False
+
     if '.' in name or ':' in name or '_' in name:
         return True
     words = re.split(pattern=r'[-_ ]', string=name)
+    words = [word for word in words if word != '']
     if all((word.islower() or word.istitle()) for word in words):
         return False
     return True
-
-
-def _check_for_issues(df: pd.DataFrame, filename: str, *args,
-                      note: str = None,
-                      legend: Dict[str, str] = None,
-                      **kwargs) -> List[RunIssue]:
-    issues = check_df_of_table_for_content_issues(df, filename)
-    issues += _check_for_table_style_issues(df, filename, *args, note=note, legend=legend, **kwargs)
-    return issues
 
 
 def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
@@ -157,11 +159,41 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     # Check P-value formatting
     if TRACK_P_VALUES:
+        # Check if there is a column which is all p-values:
         for column_header in columns:
-            data = df[column_header]
             # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-            for v in data:
-                if isinstance(v, PValue) and v.value < P_VALUE_MIN:
+            if all(isinstance(v, PValue) for v in df[column_header]):
+                raise RunUtilsError(
+                    RunIssue(
+                        category='P-value formatting',
+                        code_problem=CodeProblem.RuntimeError,
+                        item=filename,
+                        issue='P-values should be formatted with `format_p_value`',
+                        instructions=dedent_triple_quote_str(f"""
+                            In particular, the p-value column "{column_header}" should be formatted as:
+                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                            """),
+                    ))
+        # Check if there is a row which is all p-values:
+        for row_header in df.index:
+            if all(isinstance(v, PValue) for v in df.loc[row_header]):
+                raise RunUtilsError(
+                    RunIssue(
+                        category='P-value formatting',
+                        code_problem=CodeProblem.RuntimeError,
+                        item=filename,
+                        issue='P-values should be formatted with `format_p_value`',
+                        instructions=dedent_triple_quote_str(f"""
+                            In particular, the p-value row "{row_header}" should be formatted as:
+                            `df.loc["{row_header}"] = df.loc["{row_header}"].apply(format_p_value)`
+                            """),
+                    ))
+
+        # Check if there is a p-value that is not formatted:
+        for column_header in columns:
+            for row_header in df.index:
+                v = df.loc[row_header, column_header]
+                if isinstance(v, PValue):
                     raise RunUtilsError(
                         RunIssue(
                             category='P-value formatting',
@@ -169,10 +201,11 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                             item=filename,
                             issue='P-values should be formatted with `format_p_value`',
                             instructions=dedent_triple_quote_str(f"""
-                                In particular, the p-value column "{column_header}" should be formatted as:
-                                `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
+                                In particular, the dataframe should be formatted as:
+                                `df.loc["{row_header}", "{column_header}"] = format_p_value({v})`
                                 """),
                         ))
+
 
     latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
 
@@ -181,7 +214,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     file_stem, _ = filename.split('.')
     with RegisteredRunContext.temporarily_disable_all():
         e = compilation_func(latex, file_stem)
-
 
     if not isinstance(e, float):
         issues.append(RunIssue(
@@ -367,7 +399,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 item=filename,
                 issue=f'The legend of the table includes the following names that are not in the table:\n'
                       f'{un_mentioned_names}',
-                instructions="Please revise the code making sure the legend keys and the table headers match.",
+                instructions=f"Here are the table headers:\n{headers}\n"
+                             f"Please revise the code making sure the legend keys and the table headers match.",
             ))
 
     return issues

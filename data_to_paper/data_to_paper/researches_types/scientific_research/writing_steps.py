@@ -56,7 +56,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     """
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'codes:data_analysis', 'tables', 'results_file', 'results_summary',
+                                                  'codes:data_analysis', 'tables', 'additional_results',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     should_remove_citations_from_section: bool = True
@@ -199,7 +199,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
-                                             'codes:data_analysis', 'tables', 'results_file', 'results_summary')
+                                             'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
 
@@ -416,9 +416,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'codes:data_analysis', 'tables', 'results_file')
+        ('title_and_abstract', 'codes:data_analysis', 'tables', 'additional_results')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'codes:data_analysis', 'tables', 'results_file')
+        ('title_and_abstract', 'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:

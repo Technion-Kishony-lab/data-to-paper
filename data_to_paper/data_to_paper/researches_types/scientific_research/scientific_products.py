@@ -22,6 +22,7 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
     'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
+    'data_to_latex': (ScientificStages.CODE, 'LaTeX Table Design', ScientificAgent.Debugger),
 }
 
 
@@ -103,6 +104,11 @@ class ScientificProducts(Products):
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
+    def get_number_of_created_df_tables(self) -> int:
+        files = [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
+                 if file.startswith('table_')]
+        return len(files)
+
     @property
     def tables(self) -> Dict[str, List[str]]:
         """
@@ -110,7 +116,7 @@ class ScientificProducts(Products):
         """
         return {'results': [
             content for file, content
-            in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents().items()
+            in self.codes_and_outputs['data_to_latex'].created_files.get_created_content_files_to_contents().items()
             if file.endswith('.tex')]}
 
     @property
@@ -461,11 +467,21 @@ class ScientificProducts(Products):
 
             'tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
-                'Here are the tables created by our data analysis code:\n\n{}',
+                'Here are the tables created by our data analysis code '
+                '(a latex representation of the table_?.pkl dataframes):\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.all_tables else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
                              f'```latex\n{table}\n```' for table in self.all_tables]),
+            ),
+
+            'additional_results': NameDescriptionStageGenerator(
+                'Additional Results (additional_results.pkl)',
+                'Here are some additional numeric values that may be helpful in writing the paper '
+                '(as saved to "additional_results.pkl"):\n\n{}',
+                ScientificStages.INTERPRETATION,
+                lambda: self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents()[
+                    'additional_results.pkl'],
             ),
 
             'tables_and_tables_names': NameDescriptionStageGenerator(
