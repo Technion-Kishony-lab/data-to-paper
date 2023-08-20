@@ -383,10 +383,11 @@ class DebuggerConverser(BackgroundProductsConverser):
         return None
 
     def _get_issue_for_run_utils_error(self, error: RunUtilsError, e: FailedRunningCode) -> RunIssue:
-        lineno, line, msg = e.get_lineno_line_message()
+        linenos_lines, msg = e.get_lineno_line_message()
+        on_line = '\n'.join(f'On line {lineno}: {line}' for lineno, line in linenos_lines)
         return RunIssue(
             category=error.issue.category,
-            issue=f'{error.issue.issue}\nOn line:\n`{line}`',
+            issue=f'{error.issue.issue}\n{on_line}',
             instructions=error.issue.instructions,
             comment=error.issue.comment,
             code_problem=error.issue.code_problem,
