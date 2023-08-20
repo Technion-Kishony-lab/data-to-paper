@@ -16,7 +16,7 @@ class BaseCodeRunner(ABC):
     response: str = None  # response from ChatGPT (with code)
     script_file_path: Optional[Path] = None  # where to save the script after running. If None, don't save.
     run_folder: Optional[Path] = None
-    output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements()
     allowed_read_files: Iterable[str] = ()
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
@@ -62,18 +62,6 @@ class BaseCodeRunner(ABC):
             additional_contexts=self.additional_contexts,
         )
 
-    def _get_requirements_to_output_files_to_contents(self, created_files: Iterable[str]) -> dict:
-        """
-        Return a dictionary mapping each requirement to a dictionary mapping each output file to its content.
-        """
-        return {requirement: {
-            output_file: (requirement.get_content_and_delete_if_needed(
-                file_path=self.run_folder / output_file if self.run_folder else output_file)
-                          if isinstance(requirement, BaseContentOutputFileRequirement) else None)
-            for output_file in created_files
-            if requirement.matches(output_file)
-        } for requirement in self.output_file_requirements}
-
     def _get_code_and_output(self, code: str, result: str, created_files: Iterable[str],
                              contexts: Dict[str, Any] = None) -> CodeAndOutput:
         """
@@ -82,7 +70,8 @@ class BaseCodeRunner(ABC):
         return CodeAndOutput(
             code=code,
             result=result,
-            requirements_to_output_files_to_contents=self._get_requirements_to_output_files_to_contents(created_files),
+            created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(
+                created_files=created_files, run_folder=self.run_folder),
             dataframe_operations=
             contexts['TrackDataFrames'].dataframe_operations if 'TrackDataFrames' in contexts else None,
         )

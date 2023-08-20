@@ -104,5 +104,6 @@ def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
 
     file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
-    on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
+    if file_path is not None:
+        on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result

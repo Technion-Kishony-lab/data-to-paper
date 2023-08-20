@@ -48,7 +48,7 @@ with open('test_output.txt', 'w') as f:
 def test_debugger_run_and_get_outputs(debugger):
     with OPENAI_SERVER_CALLER.mock([f'Here is the correct code:\n{code_creating_file_correctly}\nShould be all good.'],
                                    record_more_if_needed=False):
-        assert debugger.run_debugging().get_single_output() == 'The answer is 42'
+        assert debugger.run_debugging().created_files.get_single_output() == 'The answer is 42'
 
 
 @pytest.mark.parametrize('correct_code, replaced_value, replace_with, error_includes', [
@@ -61,7 +61,7 @@ def test_request_code_with_error(correct_code, replaced_value, replace_with, err
                                     ],
                                    record_more_if_needed=False):
         code_and_output = debugger.run_debugging()
-        assert code_and_output.get_single_output() == 'The answer is 42'
+        assert code_and_output.created_files.get_single_output() == 'The answer is 42'
         error_message = debugger.conversation[2]
         for error_include in error_includes:
             assert error_include in error_message.content

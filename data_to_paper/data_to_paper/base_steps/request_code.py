@@ -102,17 +102,17 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         return self.output_file_requirements.get_single_content_file()
 
     def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:
-        created_files = code_and_output.get_created_content_files_to_contents()
+        created_files = code_and_output.created_files.get_all_created_files()
         if len(created_files) == 0:
             return ''
         elif len(created_files) == 1:
             created_file = next(iter(created_files))
-            return f'It saves the results to the file "{created_file}".'
+            return f'It creates the file "{created_file}".'
         else:
-            return f'It saves the results to the files {list(created_files)}.'
+            return f'It creates the files: {list(created_files)}.'
 
     def get_created_file_contents_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
-        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=True)
         if len(files_to_contents) == 0:
             return None
         s = 'Here is the content of the output file(s) that the code created:\n'
@@ -160,6 +160,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 break
             if not self._are_further_code_revisions_needed(code_and_output, debugger):
                 break
+            # delete created files:
+            code_and_output.created_files.delete_all_created_files(self.data_folder)
             self.revision_round += 1
         code_and_output.name = self.code_name
         return code_and_output

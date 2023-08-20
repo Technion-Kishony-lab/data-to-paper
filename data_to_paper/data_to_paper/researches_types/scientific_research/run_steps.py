@@ -160,7 +160,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             self,
             code_step='data_analysis',
             latex_document=self.latex_document,
-        ).get_code_and_output_and_descriptions()
+        ).get_code_and_output_and_descriptions(with_file_descriptions=False)
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,

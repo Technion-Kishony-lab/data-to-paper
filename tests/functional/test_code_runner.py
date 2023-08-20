@@ -61,7 +61,7 @@ def test_runner_correctly_run_extracted_code(tmpdir):
     os.chdir(tmpdir)
     assert CodeRunner(response=valid_response,
                       output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('output.txt')]),
-                      ).run_code()[0].get_single_output() == 'hello'
+                      ).run_code()[0].created_files.get_single_output() == 'hello'
 
 
 def test_runner_raises_when_code_writes_to_wrong_file(tmpdir):

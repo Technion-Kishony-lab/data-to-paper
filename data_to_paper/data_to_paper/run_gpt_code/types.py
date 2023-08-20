@@ -5,7 +5,8 @@ import pickle
 from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
-from typing import Optional, List, Dict, Any, TYPE_CHECKING, Iterable, Tuple
+from pathlib import Path
+from typing import Optional, List, Dict, Any, TYPE_CHECKING, Iterable, Tuple, Iterator
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
@@ -180,6 +181,21 @@ class OutputFileRequirement:
         if not self.should_keep_file:
             os.remove(file_path)
 
+    def get_content(self, file_path: str) -> Optional[str]:
+        """
+        Return the content of the file.
+        If data file, return None.
+        """
+        return None
+
+    def get_content_and_delete_if_needed(self, file_path: str) -> str:
+        """
+        Return the content of the file, and delete it if needed.
+        """
+        content = self.get_content(file_path)
+        self.delete_if_needed(file_path)
+        return content
+
 
 @dataclass(frozen=True)
 class DataOutputFileRequirement(OutputFileRequirement):
@@ -199,15 +215,7 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         with open(file_path, 'r') as file:
             return file.read()
 
-    def get_content_and_delete_if_needed(self, file_path: str) -> str:
-        """
-        Return the content of the file, and delete it if needed.
-        """
-        content = self.get_content(file_path)
-        self.delete_if_needed(file_path)
-        return content
-
-    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+    def get_issues_for_output_file_content(self, filename: str, content: Any) -> List[RunIssue]:
         """
         Check the output and return a list of issues.
         """
@@ -266,7 +274,7 @@ class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
 
 
 @dataclass(frozen=True)
-class NumericTextContentOutputFileRequirement(TextContentOutputFileRequirement):
+class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
     target_precision: int = 4
     source_precision: int = 10
 
@@ -279,9 +287,6 @@ class OutputFileRequirements(Tuple[OutputFileRequirement]):
 
     def get_all_allowed_created_filenames(self) -> Tuple[str]:
         return tuple(requirement.filename for requirement in self)
-
-    def get_keep_content_allowed_created_filenames(self) -> Tuple[str]:
-        return tuple(requirement.filename for requirement in self if requirement.should_keep_content)
 
     def get_single_content_file(self) -> Optional[str]:
         content_file_requirements = [
@@ -316,45 +321,91 @@ class OutputFileRequirements(Tuple[OutputFileRequirement]):
     def get_unmatched_files(self, created_files: Iterable[str]) -> List[str]:
         return self._get_requirements_to_output_files_and_unmatched_files(created_files)[1]
 
-
-@dataclass
-class CodeAndOutput:
-    name: str = None
-    code: str = None
-    result: Any = None
-    requirements_to_output_files_to_contents: Dict[OutputFileRequirement, Dict[str, str]] = field(default_factory=dict)
-    code_name: str = None
-    code_explanation: Optional[str] = None
-    dataframe_operations: Optional[DataframeOperations] = None
-    description_of_created_files: DataFileDescriptions = None
-
-    def get_single_output_filename(self) -> Optional[str]:
-        return OutputFileRequirements(self.requirements_to_output_files_to_contents.keys()).get_single_content_file()
-
-    def get_single_output(self, is_clean: bool = True) -> Optional[str]:
+    def convert_to_output_file_requirements_with_content(self, created_files: Iterable[str],
+                                                         run_folder) -> OutputFileRequirementsWithContent:
         """
-        Return the output of the run, if it is a single content file.
+        Returns an OutputFileRequirementsWithContent, which is a dictionary mapping each requirement to
+        a dictionary mapping each output file to its content.
         """
-        single_content_filename = self.get_single_output_filename()
-        if single_content_filename is None:
-            return None
-        return self.get_created_content_files_to_contents(is_clean)[single_content_filename]
+        requirements_to_files = self.get_requirements_to_output_files(sorted(created_files))
+        requirements_to_files_to_content = \
+            {requirement: {
+                output_file: requirement.get_content_and_delete_if_needed(
+                    file_path=run_folder / output_file if run_folder else output_file)
+                for output_file in files
+            } for requirement, files in requirements_to_files.items()}
+        return OutputFileRequirementsWithContent(requirements_to_files_to_content)
+
+
+class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, Any]]):
+    """
+    Should behave like a dictionary mapping each requirement to a dictionary mapping each output file to its content.
+    """
+
+    def convert_to_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements(self.keys())
+
+    def get_single_content_file(self) -> Optional[str]:
+        return self.convert_to_output_file_requirements().get_single_content_file()
+
+    def get_all_created_files(self) -> List[str]:
+        """
+        Return the names of all the files created by the run.
+        """
+        return [filename for filenames_to_contents in self.values() for filename in filenames_to_contents.keys()]
+
+    def get_created_content_files(self) -> List[str]:
+        """
+        Return the names of the files created by the run, for which we collected the content.
+        """
+        return [filename for requirement, files_to_contents in self.items()
+                for filename in files_to_contents.keys()
+                if isinstance(requirement, BaseContentOutputFileRequirement)]
 
     def get_created_content_files_to_contents(self, is_clean: bool = True) -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content.
         """
         return {filename: requirement.get_pretty_content(content) if is_clean else content
-                for requirement, files_to_contents in self.requirements_to_output_files_to_contents.items()
+                for requirement, files_to_contents in self.items()
                 for filename, content in files_to_contents.items()
                 if isinstance(requirement, BaseContentOutputFileRequirement)}
+
+    def get_single_output(self, is_clean: bool = True) -> Optional[str]:
+        """
+        Return the output of the run, if it is a single content file.
+        """
+        single_content_filename = self.get_single_content_file()
+        if single_content_filename is None:
+            return None
+        return self.get_created_content_files_to_contents(is_clean)[single_content_filename]
 
     def get_created_data_files(self) -> List[str]:
         """
         Return the names of the files created by the run, and which were kept, not deleted.
         """
-        return [filename for requirement, files_to_contents in self.requirements_to_output_files_to_contents.items()
-                for filename, content in files_to_contents.items() if requirement.should_keep_file]
+        return [filename for requirement, files_to_contents in self.items()
+                for filename in files_to_contents.keys() if requirement.should_keep_file]
+
+    def delete_all_created_files(self, run_folder: Optional[Path] = None):
+        """
+        Delete all the files that were created by the run, and which were kept, not deleted.
+        """
+        for filename in self.get_created_data_files():
+            os.remove(run_folder / filename if run_folder else filename)
+
+
+@dataclass
+class CodeAndOutput:
+    name: str = None
+    code: str = None
+    result: Any = None
+    created_files: \
+        OutputFileRequirementsWithContent = field(default_factory=OutputFileRequirementsWithContent)
+    code_name: str = None
+    code_explanation: Optional[str] = None
+    dataframe_operations: Optional[DataframeOperations] = None
+    description_of_created_files: DataFileDescriptions = None
 
     def to_latex(self):
         s = f"\\section{{{self.name}}} \\subsection{{Code}}" \
@@ -364,7 +415,7 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "\\subsection{Code Description}"
             s += '\n\n' + self.code_explanation
-        outputs = self.get_created_content_files_to_contents()
+        outputs = self.created_files.get_created_content_files_to_contents()
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, output in outputs.items():

@@ -76,7 +76,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     data_filenames: Optional[list] = field(default_factory=list)
 
     # output files:
-    output_file_requirements: OutputFileRequirements = field(default_factory=OutputFileRequirements)
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements()
 
     # dataframes:
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
@@ -361,11 +361,10 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         issues = []
-        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=False)
         for requirement in self.output_file_requirements:
-            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
             if isinstance(requirement, BaseContentOutputFileRequirement):
-                for filename in output_files:
+                for filename in code_and_output.created_files[requirement]:
                     issues.extend(
                         self._get_issues_for_output_file_content(requirement, filename, files_to_contents[filename]))
         return issues
@@ -588,9 +587,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:
-            with run_in_directory(self.data_folder):
-                for file in code_and_output.get_created_data_files():
-                    os.remove(file)
+            code_and_output.created_files.delete_all_created_files(self.data_folder)
             self._respond_to_issues(output_issues, code)
             return None
 

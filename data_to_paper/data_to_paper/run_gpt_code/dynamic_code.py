@@ -67,7 +67,7 @@ class RunCode:
     allowed_open_write_files: Optional[Iterable[str]] = ()
 
     # Allowed new files. Assessed at end of run. If None then all files are allowed.
-    output_file_requirements: Optional[OutputFileRequirements] = field(default_factory=OutputFileRequirements)
+    output_file_requirements: Optional[OutputFileRequirements] = OutputFileRequirements()
 
     runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
