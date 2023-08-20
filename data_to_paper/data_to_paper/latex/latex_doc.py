@@ -136,6 +136,12 @@ class LatexDocument:
             `LatexCompilationError` is raised if there are errors.
         """
 
+        if isinstance(content, dict):
+            if 'title' in content:
+                title = content.pop('title')
+            if 'abstract' in content:
+                abstract = content.pop('abstract')
+
         # Build the document:
         s = ''
         s += r"\documentclass[{fontsize}pt]{{{kind}}}".format(kind=self.kind, fontsize=self.fontsize) + '\n'

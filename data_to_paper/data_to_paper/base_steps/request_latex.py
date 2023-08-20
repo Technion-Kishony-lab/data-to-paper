@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple, Union, Iterable, Dict
 
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
 
@@ -50,7 +50,8 @@ class CheckLatexCompilation:
     tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
     latex_document: Optional[LatexDocument] = field(default_factory=LatexDocument)
 
-    def _check_latex_compilation(self, section: str, section_name: str,
+    def _check_latex_compilation(self, content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]],
+                                 section_name: Optional[str] = None,
                                  is_table: bool = False,
                                  should_save: bool = True,
                                  ) -> Optional[Union[float, LatexProblemInCompilation]]:
@@ -62,7 +63,10 @@ class CheckLatexCompilation:
         """
 
         if SAVE_INTERMEDIATE_LATEX and should_save and self.output_directory is not None:
-            file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
+            if section_name is None:
+                file_stem = f'{self.conversation_name}'
+            else:
+                file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
             file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
             file_stem, output_directory = file_path.stem, file_path.parent
         else:
@@ -70,9 +74,9 @@ class CheckLatexCompilation:
 
         try:
             if is_table:
-                return self.latex_document.compile_table(section, file_stem=file_stem,
+                return self.latex_document.compile_table(content, file_stem=file_stem,
                                                          output_directory=output_directory)
-            self.latex_document.get_document(section, file_stem=file_stem,
+            self.latex_document.get_document(content, file_stem=file_stem,
                                              output_directory=output_directory)
         except TooWideTableOrText as e:
             if self.tolerance_for_too_wide_in_pts is not None and \
@@ -263,15 +267,13 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             section_contents[i] = self._check_and_refine_section(section_contents[i], self.section_names[i])
 
         # check the latex compilation
-        exceptions = [self._check_latex_compilation(section, section_name)
-                      for section, section_name in zip(section_contents, self.section_names)]
-        exceptions = [e for e in exceptions if e is not None]
+        exception = self._check_latex_compilation(
+            {section_name: section for section_name, section in zip(self.section_names, section_contents)})
 
         # store the result if there are no exceptions, forgiving TooWideTableOrText:
-        is_just_too_wide = [isinstance(e, TooWideTableOrText) for e in exceptions]
-        if all(is_just_too_wide):
+        if exception is None or isinstance(exception, TooWideTableOrText):
             self.returned_result = section_contents
 
         # raise the compilation errors
-        if any(exceptions):
-            self._raise_self_response_error('\n\n'.join((str(e) for e in exceptions)))
+        if exception is not None:
+            self._raise_self_response_error(str(exception))
