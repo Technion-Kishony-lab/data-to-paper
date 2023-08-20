@@ -107,7 +107,7 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
             category='Too many columns in a table',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
-            issue=f'The table has {len(columns)} columns, which is way too many.',
+            issue=f'The table has {len(columns)} columns, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables have just 2-5 columns "
                          f"and definitely not more than {MAX_COLUMNS}.",
         ))
@@ -119,10 +119,9 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
             category='Too many rows in a table',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
-            issue=f'The table has {df.shape[0]} rows, which is way too many.',
+            issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables "
                          f"have a maximum of {MAX_ROWS} rows.",
         ))
-    if issues:
-        return issues
 
+    return issues

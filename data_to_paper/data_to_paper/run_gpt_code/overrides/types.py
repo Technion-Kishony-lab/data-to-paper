@@ -27,10 +27,10 @@ class PValue(OperatorValue):
         )
 
     def __str__(self):
-        return self._forbidden_func(str)
+        return self._forbidden_func('{:.4g}'.format)
 
     def __repr__(self):
-        return self._forbidden_func(repr)
+        return self._forbidden_func('{:.4g}'.format)
 
     def __float__(self):
         return self._forbidden_func(float)
