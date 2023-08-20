@@ -56,15 +56,12 @@ class TestRequestCodeExplanation(RequestCodeExplanation):
 @dataclass
 class TestRequestCodeProducts(TestProductsReviewGPT, RequestCodeProducts):
     conversation_name: str = None
-    EXPLAIN_CODE_CLASS = TestRequestCodeExplanation
-    EXPLAIN_CREATED_FILES_CLASS = TestExplainCreatedDataframe
+    code_writing_class: Type[BaseScientificCodeProductsGPT] = TestDataframeChangingCodeProductsGPT
+    explain_code_class: Optional[Type[RequestCodeExplanation]] = TestRequestCodeExplanation
+    explain_created_files_class: Optional[Type[ExplainCreatedDataframe]] = TestExplainCreatedDataframe
     code_step: str = 'data_analysis'
     code_name: str = 'Testing'
     temp_dir: str = None
-
-    @property
-    def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
-        return TestDataframeChangingCodeProductsGPT
 
     def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
         cls = self.code_writing_class

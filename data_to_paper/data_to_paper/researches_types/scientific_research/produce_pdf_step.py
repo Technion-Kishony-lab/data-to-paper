@@ -26,6 +26,6 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
     def _get_appendix(self):
         s = ''
         s += self.products.data_file_descriptions.to_latex()
-        for code_step in self.products.codes_and_outputs:
-            s += '\n\n' + self.products.codes_and_outputs[code_step].to_latex()
+        for code_and_output in self.products.codes_and_outputs.values():
+            s += '\n\n' + code_and_output.to_latex()
         return s

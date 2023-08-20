@@ -612,7 +612,6 @@ class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequir
         return NiceDict(result)
 
 
-
 @dataclass
 class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
@@ -917,54 +916,37 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
         return data_file_descriptions
 
 
-CODE_STEP_TO_CLASS = {
-    'data_exploration': DataExplorationCodeProductsGPT,
-    'data_preprocessing': DataPreprocessingCodeProductsGPT,
-    'data_analysis': CreateTableDataframesCodeProductsGPT,
-}
-
-
 @dataclass
 class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
-    EXPLAIN_CODE_CLASS = RequestCodeExplanation
-    EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
+    code_writing_class: Type[BaseScientificCodeProductsGPT] = None
+    explain_code_class: Optional[Type[RequestCodeExplanation]] = RequestCodeExplanation
+    explain_created_files_class: Optional[Type[ExplainCreatedDataframe]] = None
     latex_document: LatexDocument = None
 
-    @property
-    def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
-        return CODE_STEP_TO_CLASS[self.code_step]
-
-    def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
-        cls = self.code_writing_class
-        return cls.from_(self)
-
     def get_code_and_output(self) -> CodeAndOutput:
-        return self.get_code_writing_instance().get_code_and_output()
+        code_writing = self.code_writing_class.from_(self)
+        assert code_writing.code_step == self.code_step
+        return code_writing.get_code_and_output()
 
     def _get_description_of_created_files(self) -> Optional[DataFileDescriptions]:
-        return self.EXPLAIN_CREATED_FILES_CLASS.from_(
+        return self.explain_created_files_class.from_(
             self,
             is_new_conversation=None,
             code_step=self.code_step,
-            products=self.products,
-            actions_and_conversations=self.actions_and_conversations,
         ).ask_for_created_files_descriptions()
 
     def _get_code_explanation(self) -> str:
-        return self.EXPLAIN_CODE_CLASS.from_(
+        return self.explain_code_class.from_(
             self,
             is_new_conversation=None,
             code_step=self.code_step,
-            products=self.products,
-            actions_and_conversations=self.actions_and_conversations,
         ).run_dialog_and_get_valid_result()
 
-    def get_code_and_output_and_descriptions(
-            self, with_file_descriptions: bool = True, with_code_explanation: bool = True) -> CodeAndOutput:
+    def get_code_and_output_and_descriptions(self) -> CodeAndOutput:
         code_and_output = self.get_code_and_output()
         self.products.codes_and_outputs[self.code_step] = code_and_output
-        if with_code_explanation:
+        if self.explain_code_class:
             code_and_output.code_explanation = self._get_code_explanation()
-        if with_file_descriptions and code_and_output.created_files.get_created_data_files():
+        if self.explain_created_files_class and code_and_output.created_files.get_created_data_files():
             code_and_output.description_of_created_files = self._get_description_of_created_files()
         return code_and_output
