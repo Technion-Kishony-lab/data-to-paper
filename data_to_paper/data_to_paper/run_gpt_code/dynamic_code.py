@@ -22,6 +22,7 @@ from .run_contexts import PreventCalling, PreventFileOpen, PreventImport, Warnin
 from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
 from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
+from ..utils.singleton import undefined
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filepath = os.path.join(module_dir, module_filename)
@@ -37,18 +38,11 @@ def save_code_to_module_file(code: str = None):
 save_code_to_module_file()
 CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
+DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning)
+DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
+DEFAULT_WARNINGS_TO_RAISE = ()
 
-@dataclass
-class RunCode:
-    """
-    Run the provided code and report exceptions or specific warnings.
-    """
-    timeout_sec: int = MAX_EXEC_TIME.val
-    warnings_to_issue: Iterable[Type[Warning]] = (RuntimeWarning, SyntaxWarning)
-    warnings_to_ignore: Iterable[Type[Warning]] = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning,
-                                                   FutureWarning)
-    warnings_to_raise: Iterable[Type[Warning]] = ()
-    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = (
+DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS = (
         # Module, function, create RunIssue (True) or raise exception (False)
         (builtins, 'print', True),
         (builtins, 'input', False),
@@ -58,7 +52,22 @@ class RunCode:
         (plt, 'savefig', False),
         # (builtins, 'exec', False),
     )
-    forbidden_imports: Optional[Iterable[str]] = ('os', 'sys', 'subprocess', 'shutil', 'matplotlib')
+
+DEFAULT_FORBIDDEN_IMPORTS = ('os', 'sys', 'subprocess', 'shutil', 'matplotlib')
+
+
+@dataclass
+class RunCode:
+    """
+    Run the provided code and report exceptions or specific warnings.
+    """
+    timeout_sec: int = undefined
+    warnings_to_issue: Iterable[Type[Warning]] = undefined
+    warnings_to_ignore: Iterable[Type[Warning]] = undefined
+    warnings_to_raise: Iterable[Type[Warning]] = undefined
+
+    forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = undefined
+    forbidden_imports: Optional[Iterable[str]] = undefined
 
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
@@ -73,6 +82,20 @@ class RunCode:
     run_folder: Union[Path, str] = field(default_factory=Path)
 
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
+
+    def __post_init__(self):
+        if self.timeout_sec is undefined:
+            self.timeout_sec = MAX_EXEC_TIME.val
+        if self.warnings_to_issue is undefined:
+            self.warnings_to_issue = DEFAULT_WARNINGS_TO_ISSUE
+        if self.warnings_to_ignore is undefined:
+            self.warnings_to_ignore = DEFAULT_WARNINGS_TO_IGNORE
+        if self.warnings_to_raise is undefined:
+            self.warnings_to_raise = DEFAULT_WARNINGS_TO_RAISE
+        if self.forbidden_modules_and_functions is undefined:
+            self.forbidden_modules_and_functions = DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS
+        if self.forbidden_imports is undefined:
+            self.forbidden_imports = DEFAULT_FORBIDDEN_IMPORTS
 
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:
 
