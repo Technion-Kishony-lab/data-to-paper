@@ -808,15 +808,21 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
 
         - Add a caption suitable for inclusion as part of a scientific paper \
-        (`caption=` in `to_latex_with_note`). \
-        - Add a table label (`label="table:<your label here>"` in `to_latex_with_note`).
-        - As needed, add a note at the end of the table, with any additional context \
-        (`note=` in `to_latex_with_note`).
-        For example, note="Total number of observations: <xxx>". 
-        - As needed, add a legend to clarify any abbreviated or technical names in the table \
-        (`legend=` in `to_latex_with_note`).
-        For example, if you have a column "DisSever", you should specify:
-        `legend={'DisSever': 'Severity of the disease, 1=Low, 2=Medium, 3=High'}`.
+        `to_latex_with_note(..., caption=<caption here>)`
+        
+        - Add a table label, `to_latex_with_note(..., label="table:<your label here>")`
+        
+        - As needed, add a note at the end of the table, with any additional context, \
+        `to_latex_with_note(..., note=<your note here>)`
+        For example, note="The analysis is based on a total of <xxx> observations".
+        
+        - As needed, add a legend to clarify: 
+        (a) the full names for abbreviated or technical headers in the table. 
+        For example: `legend={'DisSever': 'Severity of the disease'}`
+        (b) the meaning of any ordinal values, or categorical values that are not self-explanatory. 
+        For example: `legend={'Body Temperature': '1: Normal, 2: High, 3: Very High'}`
+        (c) the units of any numerical values.
+        For example: `legend={'Weight': 'Weight in kg'}`
 
         # Table 2:
         etc, for all 'table_?.pkl' files.

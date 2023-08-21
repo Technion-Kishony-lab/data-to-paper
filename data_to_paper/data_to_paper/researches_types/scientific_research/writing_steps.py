@@ -445,9 +445,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
         * Numeric values: 
         You can extract and mention numeric values from the latex Tables as well as from the \
-        "{results_file}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
-        going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
-        explicitly mention any such important numeric value as an integral part of the text.
+        "{additional_results}" listed above. Note though that, unlike the Tables, these {additional_results} are not \
+        going to be added as a part of the paper, so do not "refer" to these numbers in your writing, \
+        instead, as needed, just explicitly mention any such important numeric value as an integral part of the text.
 
         * p-values:
         When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
@@ -460,7 +460,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
         whether the {goal_noun} contains only information that is explicitly extracted from the \
-        "{tables}" and "{results_file}" provided above. \
+        "{tables}" and "{additional_results}" provided above. \
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.

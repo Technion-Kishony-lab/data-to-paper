@@ -351,12 +351,28 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
-    # Check that any abbreviated row/column labels are explained in the legend
+    # Get all headers:
     if index:
-        headers = [name for name in df.index]
+        headers = [name for name in df.index if isinstance(name, str)]
     else:
         headers = []
-    headers += [name for name in columns]
+    headers += [name for name in columns if isinstance(name, str)]
+
+    # Check for un-allowed characters in headers
+    UNALLOWED_CHARS = ['_', '{', '}']
+    for header in headers:
+        for char in UNALLOWED_CHARS:
+            if char in header:
+                issues.append(RunIssue(
+                    category='Unallowed characters in table headers',
+                    code_problem=CodeProblem.OutputFileDesignLevelB,
+                    item=filename,
+                    issue=f'The table header `{header}` contains the character `{char}`, which is not allowed.',
+                ))
+    if issues:
+        return issues
+
+    # Check that any abbreviated row/column labels are explained in the legend
     abbr_names = [name for name in headers if is_unknown_abbreviation(name)]
     un_mentioned_abbr_names = [name for name in abbr_names if name not in legend]
     if un_mentioned_abbr_names:
@@ -394,7 +410,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 issue=f'The legend of the table includes the following names that are not in the table:\n'
                       f'{un_mentioned_names}',
                 instructions=f"Here are the table headers:\n{headers}\n"
-                             f"Please revise the code making sure the legend keys and the table headers match.",
+                             f"Please revise the code making sure the legend keys and the table headers match.\n"
+                             f"If needed, you can use the `note` argument to add information that is related to the "
+                             f"table as a whole, rather than to a specific header."
             ))
 
     return issues
