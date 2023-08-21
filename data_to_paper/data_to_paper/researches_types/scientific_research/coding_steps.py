@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Callable
 
+from pandas.core.frame import DataFrame
+
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
@@ -19,6 +21,7 @@ from data_to_paper.researches_types.scientific_research.table_debugger import Ta
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
@@ -743,7 +746,13 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         ('research_goal', 'codes:data_preprocessing')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
-
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False) | \
+        {'CustomPreventMethods': PreventCalling(modules_and_functions=(
+            (DataFrame, 'to_latex', False),
+            (DataFrame, 'to_html', False),
+        ))}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
