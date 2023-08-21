@@ -416,9 +416,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'codes:data_analysis', 'tables', 'additional_results')
+        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'codes:data_analysis', 'tables', 'additional_results')
+        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
@@ -491,7 +491,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT4
-    background_product_fields: Tuple[str, ...] = ('title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('general_dataset_description',
+                                                  'title_and_abstract',
                                                   'literature_search:writing:background',
                                                   'literature_search:writing:results',
                                                   'paper_sections:introduction',

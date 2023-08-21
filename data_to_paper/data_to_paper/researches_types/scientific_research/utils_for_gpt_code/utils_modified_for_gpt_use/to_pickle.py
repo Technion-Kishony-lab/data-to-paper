@@ -37,9 +37,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
             issue="Please use `to_pickle(filename)` with a filename as a string argument in the format 'table_x'",
             code_problem=CodeProblem.RuntimeError,
         ))
-    with PValue.allow_str.temporary_set(True):
-        csv = df.to_csv()
-    context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, csv, prior_tables=prior_tables))
+    context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, prior_tables=prior_tables))
     with RegisteredRunContext.temporarily_disable_all():
         original_func(df, path)
 

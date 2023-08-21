@@ -4,6 +4,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
+from data_to_paper.run_gpt_code.overrides.types import PValue
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -22,7 +23,7 @@ def _is_non_integer_numeric(value) -> bool:
     return True
 
 
-def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: str,
+def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                                          prior_tables: Dict[str, pd.DataFrame]) -> List[RunIssue]:
     columns = df.columns
 
@@ -37,7 +38,8 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
                   f'but got {filename}.',
         ))
 
-    here_is_the_csv = f'Here is the table {filename}:\n```csv\n{csv}\n```\n'
+    with PValue.allow_str.temporary_set(True):
+        here_is_the_csv = f'Here is the table {filename}:\n```\n{df}\n```\n'
 
     # Check if the table contains the same values in multiple cells
     df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]

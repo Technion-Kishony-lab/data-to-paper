@@ -324,9 +324,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         if '...' in note:
             messages.append('The note of the table should not contain "..."')
 
-        if re.search(pattern=r'<.*\>', string=note):
-            messages.append('The note of the table should not contain "<...>"')
-
     if note is not None and caption is not None:
         if note.lower() == caption.lower():
             messages.append('The note of the table should not be the same as the caption.\n'
