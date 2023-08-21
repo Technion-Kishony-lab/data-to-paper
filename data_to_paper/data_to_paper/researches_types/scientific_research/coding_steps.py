@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Callable
 
+import pandas as pd
 from pandas.core.frame import DataFrame
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
@@ -119,6 +120,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
 @dataclass(frozen=True)
 class EnforceContentOutputFileRequirement(NumericTextContentOutputFileRequirement):
+    should_keep_file: bool = False
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
 
@@ -607,6 +609,13 @@ class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequiremen
             return super().get_pretty_content(content)
 
 
+class DataFramePickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement):
+
+    def get_pretty_content(self, content: DataFrame) -> str:
+        with PValue.allow_str.temporary_set(True):
+            return content.to_string()
+
+
 class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement,
                                              NumericTextContentOutputFileRequirement):
 
@@ -632,7 +641,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [PValuePickleContentOutputFileRequirement('table_?.pkl', 2),
+        [DataFramePickleContentOutputFileRequirement('table_?.pkl', 2),
          DictPickleContentOutputFileRequirement('additional_results.pkl', 1),
          ])
 
@@ -752,6 +761,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         {'CustomPreventMethods': PreventCalling(modules_and_functions=(
             (DataFrame, 'to_latex', False),
             (DataFrame, 'to_html', False),
+            (pd, 'to_numeric', False),
         ))}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])

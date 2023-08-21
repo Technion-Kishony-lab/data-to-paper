@@ -9,7 +9,9 @@ from data_to_paper.latex.clean_latex import replace_special_latex_chars
 THREEPARTTABLE = r"""\begin{table}[htbp]
 \centering
 \begin{threeparttable}
-<caption><label><tabular>
+<caption>
+<label>
+<tabular>
 \begin{tablenotes}
 <note_and_legend>
 \end{tablenotes}
@@ -17,7 +19,9 @@ THREEPARTTABLE = r"""\begin{table}[htbp]
 \end{table}
 """
 
-THREEPARTTABLE_WIDE = r"""\begin{table}[h]<caption><label>
+THREEPARTTABLE_WIDE = r"""\begin{table}[h]
+<caption>
+<label>
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
@@ -43,24 +47,24 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     regular_latex_table = df.to_latex(None, caption=None, label=None, **kwargs)
 
     tabular_part = get_tabular_block(regular_latex_table)
-    caption = r'\caption{' + caption + '}' if caption else ''
-    label = r'\label{' + label + '}' if label else ''
+    caption = r'\caption{' + caption + '}\n' if caption else ''
+    label = r'\label{' + label + '}\n' if label else ''
 
-    note_and_legend = ''
+    note_and_legend = []
     if note:
-        note_and_legend += r'\item ' + replace_special_latex_chars(note) + '\n'
+        note_and_legend.append(r'\item ' + replace_special_latex_chars(note))
     if legend:
         for key, value in legend.items():
-            note_and_legend += r'\item \textbf{' + replace_special_latex_chars(key) + \
-                               '}: ' + replace_special_latex_chars(value) + '\n'
+            note_and_legend.append(r'\item \textbf{' + replace_special_latex_chars(key) +
+                                   '}: ' + replace_special_latex_chars(value))
     if len(note_and_legend) == 0:
-        note_and_legend = r'\item '  # add an empty item to avoid an error
+        note_and_legend.append(r'\item ')  # add an empty item to avoid an error
 
     template = THREEPARTTABLE if not is_wide else THREEPARTTABLE_WIDE
     latex = template.replace('<tabular>', tabular_part) \
-        .replace('<caption>', caption) \
-        .replace('<label>', label) \
-        .replace('<note_and_legend>', note_and_legend)
+        .replace('<caption>\n', caption) \
+        .replace('<label>\n', label) \
+        .replace('<note_and_legend>', '\n'.join(note_and_legend))
 
     if filename is not None:
         with open(filename, 'w') as f:

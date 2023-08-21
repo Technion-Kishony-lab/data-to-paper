@@ -367,7 +367,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     category='Unallowed characters in table headers',
                     code_problem=CodeProblem.OutputFileDesignLevelB,
                     item=filename,
-                    issue=f'The table header `{header}` contains the character `{char}`, which is not allowed.',
+                    issue=f'The table header "{header}" contains the character "{char}", which is not allowed.',
                 ))
     if issues:
         return issues
@@ -409,10 +409,21 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 item=filename,
                 issue=f'The legend of the table includes the following names that are not in the table:\n'
                       f'{un_mentioned_names}',
-                instructions=f"Here are the table headers:\n{headers}\n"
-                             f"Please revise the code making sure the legend keys and the table headers match.\n"
-                             f"If needed, you can use the `note` argument to add information that is related to the "
-                             f"table as a whole, rather than to a specific header."
+                instructions=dedent_triple_quote_str("""
+                    Here are the table headers:
+                    {headers}
+                    
+                    The legend keys should represent a subset of the the table headers, which need clarification:
+                    - headers that are abbreviated
+                    - headers that are not self-explanatory
+                    - headers that represent a categorical/ordinal variable that requires explanation of the
+                      categories/levels
+                    
+                    Please revise the code changing either the legend keys, or the table headers, accordingly.
+                    
+                    As a reminder: you can use the `note` argument to add information that is related to the
+                    table as a whole, rather than to a specific header.
+                    """).format(headers=headers)
             ))
 
     return issues

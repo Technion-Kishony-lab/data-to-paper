@@ -12,14 +12,18 @@ def _format_p_value(x):
     """
     if TRACK_P_VALUES:
         _check_argument_for_format_p_value(x)
-        return format_p_value(x.value)
+        return format_p_value(x.value if isinstance(x, PValue) else x)
     else:
         return format_p_value(x)
 
 
 def _check_argument_for_format_p_value(x):
+    if isinstance(x, str) and x == '-' or x == 'NA':
+        return
+
     if not isinstance(x, PValue) and not isinstance(x, float):
-        raise ValueError(f"format_p_value should only be applied to P-value float. But got: {type(x)}.")
+        raise ValueError(f"format_p_value should only be applied to P-value float.\n"
+                         f"But got type: {type(x)}, value: {repr(x)}.")
     if not isinstance(x, PValue):
         raise RunUtilsError(
             RunIssue(
