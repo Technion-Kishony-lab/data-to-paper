@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import statsmodels.api
 
 from data_to_paper.env import TRACK_P_VALUES
-from ..attr_replacers import MethodReplacerContext
+from ..attr_replacers import SystematicMethodReplacerContext
 from ..types import convert_to_p_value
 from ...types import RunIssue, RunUtilsError, CodeProblem
 
@@ -51,7 +51,7 @@ def _get_summary_func(self, original_func):
 
 
 @dataclass
-class StatsmodelsOverride(MethodReplacerContext):
+class StatsmodelsOverride(SystematicMethodReplacerContext):
     """
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
@@ -61,7 +61,7 @@ class StatsmodelsOverride(MethodReplacerContext):
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
 
-    def custom_wrapper(self, parent, attr_name, original_func):
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):

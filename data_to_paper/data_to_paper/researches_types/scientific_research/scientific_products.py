@@ -22,6 +22,7 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
     'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
+    'data_to_latex': (ScientificStages.CODE, 'LaTeX Table Design', ScientificAgent.Debugger),
 }
 
 
@@ -103,14 +104,20 @@ class ScientificProducts(Products):
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
+    def get_number_of_created_df_tables(self) -> int:
+        files = [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
+                 if file.startswith('table_')]
+        return len(files)
+
     @property
     def tables(self) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
-        return {'results': [content for file, content
-                            in self.codes_and_outputs['data_analysis'].get_created_content_files_to_contents().items()
-                            if file.endswith('.tex')]}
+        return {'results': [
+            content for file, content
+            in self.codes_and_outputs['data_to_latex'].created_files.get_created_content_files_to_contents().items()
+            if file.endswith('.tex')]}
 
     @property
     def pretty_hypothesis_testing_plan(self) -> str:
@@ -161,7 +168,7 @@ class ScientificProducts(Products):
                 desc += code_and_output.description_of_created_files
             else:
                 desc += [DataFileDescription(file_path=created_file)
-                         for created_file in code_and_output.get_created_data_files()]
+                         for created_file in code_and_output.created_files.get_created_data_files()]
         desc.data_folder = self.data_file_descriptions.data_folder
         return desc
 
@@ -170,7 +177,7 @@ class ScientificProducts(Products):
         Return the file headers of a given code_step.
         """
         code_and_output = self.codes_and_outputs[code_step]
-        created_files = code_and_output.get_created_data_files()
+        created_files = code_and_output.created_files.get_created_data_files()
         if not created_files:
             return None
         return DataFileDescriptions(
@@ -343,7 +350,8 @@ class ScientificProducts(Products):
                 'Output of the {code_name} Code',
                 'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
-                lambda code_step: {'output': self.codes_and_outputs[code_step].get_single_output(is_clean=True),
+                lambda code_step: {'output':
+                                   self.codes_and_outputs[code_step]. created_files.get_single_output(is_clean=True),
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -382,7 +390,7 @@ class ScientificProducts(Products):
                 'Here are the files created by the {code_name} code:\n\n{created_files}',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
-                    'created_files': self.codes_and_outputs[code_step].get_created_data_files(),
+                    'created_files': self.codes_and_outputs[code_step].created_files.get_created_data_files(),
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -459,11 +467,21 @@ class ScientificProducts(Products):
 
             'tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
-                'Here are the tables created by our data analysis code:\n\n{}',
+                'Here are the tables created by our data analysis code '
+                '(a latex representation of the table_?.pkl dataframes):\n\n{}',
                 ScientificStages.TABLES,
                 lambda: None if not self.all_tables else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
                              f'```latex\n{table}\n```' for table in self.all_tables]),
+            ),
+
+            'additional_results': NameDescriptionStageGenerator(
+                'Additional Results (additional_results.pkl)',
+                'Here are some additional numeric values that may be helpful in writing the paper '
+                '(as saved to "additional_results.pkl"):\n\n{}',
+                ScientificStages.INTERPRETATION,
+                lambda: self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents()[
+                    'additional_results.pkl'],
             ),
 
             'tables_and_tables_names': NameDescriptionStageGenerator(
@@ -477,7 +495,8 @@ class ScientificProducts(Products):
                 'Here is the content of the "results.txt" file providing some additional numeric values '
                 'we can use to write the results of the paper:\n\n{}',
                 ScientificStages.CODE,
-                lambda: self.codes_and_outputs['data_analysis'].get_created_content_files_to_contents()['results.txt']
+                lambda: self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents()[
+                    'results.txt']
             ),
 
             'numeric_values': NameDescriptionStageGenerator(

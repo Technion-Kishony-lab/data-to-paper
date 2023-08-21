@@ -1,14 +1,21 @@
 from __future__ import annotations
 
+import os
+import pickle
 from dataclasses import dataclass, field
 
 from fnmatch import fnmatch
-from typing import Optional, List, Dict, Collection, Any, TYPE_CHECKING
+from pathlib import Path
+from typing import Optional, List, Dict, Any, TYPE_CHECKING, Iterable, Tuple
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
-from data_to_paper.utils.types import IndexOrderedEnum
+from data_to_paper.utils.types import IndexOrderedEnum, ListBasedSet
+from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
+from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .overrides.utils import round_floats
 
@@ -92,10 +99,74 @@ class RunUtilsError(Exception):
     issue: RunIssue
 
 
+class RunIssues(List[RunIssue]):
+
+    def append_if_does_not_exist(self, issue: RunIssue):
+        if issue not in self:
+            self.append(issue)
+
+    def get_message_and_comment(self, most_severe_only: bool = True, end_with: str = '') -> Tuple[str, str]:
+        """
+        We compose all the issues into a single message, and a single comment.
+        """
+        issues = self._get_issues(most_severe_only)
+        comments = ListBasedSet()
+
+        s = ''
+        if len(issues) > 1:
+            s += 'There are some issues that need to be corrected:\n\n'
+
+        code_problems = sorted(set(issue.code_problem for issue in issues))
+        for code_problem in code_problems:
+            categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
+            for category in categories:
+                if category:
+                    s += f'# {category}\n'
+                issues_in_category = [issue for issue in issues if issue.category == category]
+                unique_instructions = set(issue.instructions for issue in issues_in_category)
+                for issue in issues_in_category:
+                    if issue.item:
+                        s += f'* {issue.item}:\n'
+                    s += f'{issue.issue}\n'
+                    if len(unique_instructions) > 1 and issue.instructions is not None:
+                        s += f'{issue.instructions}\n'
+                    s += '\n'
+                    if issue.comment:
+                        comments.add(issue.comment)
+                if len(unique_instructions) == 1:
+                    shared_instructions = unique_instructions.pop()
+                    if shared_instructions:
+                        s += f'{shared_instructions}\n'
+        comment = '; '.join(comments)
+
+        # Add the end_with message at the end:
+        unique_end_with = set(issue.end_with for issue in issues)
+        assert len(unique_end_with) == 1
+        shared_end_with = unique_end_with.pop()
+        if shared_end_with is not None:
+            end_with = shared_end_with
+        if end_with:
+            s += f'\n{end_with}'
+        return s, comment
+
+    def get_most_severe_problem(self):
+        return min(issue.code_problem for issue in self)
+
+    def _get_issues(self, most_severe_only: bool = True) -> List[RunIssue]:
+        if most_severe_only:
+            return [issue for issue in self if issue.code_problem == self.get_most_severe_problem()]
+        else:
+            return list(self)
+
+    def do_all_issues_request_small_change(self, highest_priority: bool = True) -> bool:
+        return all(issue.requesting_small_change for issue in self._get_issues(highest_priority))
+
+
 @dataclass(frozen=True)
 class OutputFileRequirement:
     filename: str
     minimal_count: int
+    should_keep_file: bool = NotImplemented
 
     def is_wildcard(self):
         return '*' in self.filename or '?' in self.filename
@@ -103,50 +174,225 @@ class OutputFileRequirement:
     def matches(self, filename: str):
         return fnmatch(filename, self.filename)
 
-    @property
-    def should_keep_content(self) -> bool:
-        return NotImplemented
+    def delete_if_needed(self, file_path: str):
+        """
+        Delete the file if needed.
+        """
+        if not self.should_keep_file:
+            os.remove(file_path)
+
+    def get_content(self, file_path: str) -> Optional[str]:
+        """
+        Return the content of the file.
+        If data file, return None.
+        """
+        return None
+
+    def get_content_and_delete_if_needed(self, file_path: str) -> str:
+        """
+        Return the content of the file, and delete it if needed.
+        """
+        content = self.get_content(file_path)
+        self.delete_if_needed(file_path)
+        return content
 
 
 @dataclass(frozen=True)
 class DataOutputFileRequirement(OutputFileRequirement):
     minimal_count: int = 0
-
-    @property
-    def should_keep_content(self) -> bool:
-        return False
+    should_keep_file: bool = True
 
 
 @dataclass(frozen=True)
-class ContentOutputFileRequirement(OutputFileRequirement):
+class BaseContentOutputFileRequirement(OutputFileRequirement):
+    should_keep_file: bool = NotImplemented
     minimal_count: int = 1
-    max_tokens: int = MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val
 
-    @property
-    def should_keep_content(self) -> bool:
-        return True
+    def get_content(self, file_path: str) -> str:
+        """
+        Return the content of the file.
+        """
+        with open(file_path, 'r') as file:
+            return file.read()
 
-    def clean_content(self, content: str) -> str:
-        return content
+    def get_issues_for_output_file_content(self, filename: str, content: Any) -> List[RunIssue]:
+        """
+        Check the output and return a list of issues.
+        """
+        return []
+
+    def get_pretty_content(self, content: Any) -> str:
+        return str(content)
 
 
 @dataclass(frozen=True)
-class NumericContentOutputFileRequirement(ContentOutputFileRequirement):
+class PickleContentOutputFileRequirement(BaseContentOutputFileRequirement):
+    should_keep_file: bool = True
+
+    def get_content(self, file_path: str) -> Any:
+        """
+        Return the content of the file.
+        """
+        with open(file_path, 'rb') as file:
+            return pickle.load(file)
+
+
+@dataclass(frozen=True)
+class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
+    should_keep_file: bool = False
+    max_tokens: Optional[int] = MAX_SENSIBLE_OUTPUT_SIZE_TOKENS.val
+
+    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+        issues = super().get_issues_for_output_file_content(filename, content)
+
+        if len(content.strip()) == 0:
+            # The output file is empty.
+            issues.append(RunIssue(
+                item=filename,
+                issue=f'The code created the output file "{filename}", but the file is just empty!',
+                instructions="Please revise the code to make sure it correctly writes to the output file.",
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+
+        if self.max_tokens is not None \
+                and count_number_of_tokens_in_message(content, max(ModelEngine)) > self.max_tokens:
+            # Created output file is too large.
+            issues.append(RunIssue(
+                issue=dedent_triple_quote_str("""
+                    The code created the output file "{}", but the file is too long!
+
+                    Here, for context, is the beginning of the output:
+                    ```output
+                    {}
+                    ```
+                    """).format(filename, extract_to_nearest_newline(content, self.max_tokens)),
+                instructions="Only sensible-length output should be written to the file.",
+                code_problem=CodeProblem.OutputFileContentLevelC,
+            ))
+
+        return issues
+
+
+@dataclass(frozen=True)
+class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
     target_precision: int = 4
     source_precision: int = 10
 
-    def clean_content(self, content: str) -> str:
+    def get_pretty_content(self, content: str) -> str:
+        content = super().get_pretty_content(content)
         return round_floats(content, self.target_precision, self.source_precision)
 
 
-def get_single_content_file_from_requirements(requirements: Collection[OutputFileRequirement]) -> Optional[str]:
-    content_file_requirements = [
-        req for req in requirements
-        if isinstance(req, ContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
-    if len(content_file_requirements) != 1:
-        return None
-    requirement = next(iter(content_file_requirements))
-    return requirement.filename
+class OutputFileRequirements(Tuple[OutputFileRequirement]):
+
+    def get_all_allowed_created_filenames(self) -> Tuple[str]:
+        return tuple(requirement.filename for requirement in self)
+
+    def get_single_content_file(self) -> Optional[str]:
+        content_file_requirements = [
+            req for req in self
+            if isinstance(req, BaseContentOutputFileRequirement) and not req.is_wildcard() and req.minimal_count == 1]
+        if len(content_file_requirements) != 1:
+            return None
+        return content_file_requirements[0].filename
+
+    def _get_requirements_to_output_files_and_unmatched_files(
+            self, created_files: Iterable[str]) -> Tuple[Dict[OutputFileRequirement, List[str]], List[str]]:
+        """
+        Return:
+            - a dictionary mapping each requirement to a dictionary mapping each output file to its content.
+            - a list of files that were not matched to any requirement.
+        """
+        requirements_to_output_files = {requirement: [] for requirement in self}
+        unmatched_files = []
+        for created_file in created_files:
+            for requirement in self:
+                if requirement.matches(created_file):
+                    requirements_to_output_files[requirement].append(created_file)
+                    break
+            else:
+                unmatched_files.append(created_file)
+        return requirements_to_output_files, unmatched_files
+
+    def get_requirements_to_output_files(
+            self, created_files: Iterable[str]) -> Dict[OutputFileRequirement, List[str]]:
+        return self._get_requirements_to_output_files_and_unmatched_files(created_files)[0]
+
+    def get_unmatched_files(self, created_files: Iterable[str]) -> List[str]:
+        return self._get_requirements_to_output_files_and_unmatched_files(created_files)[1]
+
+    def convert_to_output_file_requirements_with_content(self, created_files: Iterable[str],
+                                                         run_folder) -> OutputFileRequirementsWithContent:
+        """
+        Returns an OutputFileRequirementsWithContent, which is a dictionary mapping each requirement to
+        a dictionary mapping each output file to its content.
+        """
+        requirements_to_files = self.get_requirements_to_output_files(sorted(created_files))
+        requirements_to_files_to_content = \
+            {requirement: {
+                output_file: requirement.get_content_and_delete_if_needed(
+                    file_path=run_folder / output_file if run_folder else output_file)
+                for output_file in files
+            } for requirement, files in requirements_to_files.items()}
+        return OutputFileRequirementsWithContent(requirements_to_files_to_content)
+
+
+class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, Any]]):
+    """
+    Should behave like a dictionary mapping each requirement to a dictionary mapping each output file to its content.
+    """
+
+    def convert_to_output_file_requirements(self) -> OutputFileRequirements:
+        return OutputFileRequirements(self.keys())
+
+    def get_single_content_file(self) -> Optional[str]:
+        return self.convert_to_output_file_requirements().get_single_content_file()
+
+    def get_all_created_files(self) -> List[str]:
+        """
+        Return the names of all the files created by the run.
+        """
+        return [filename for filenames_to_contents in self.values() for filename in filenames_to_contents.keys()]
+
+    def get_created_content_files(self) -> List[str]:
+        """
+        Return the names of the files created by the run, for which we collected the content.
+        """
+        return [filename for requirement, files_to_contents in self.items()
+                for filename in files_to_contents.keys()
+                if isinstance(requirement, BaseContentOutputFileRequirement)]
+
+    def get_created_content_files_to_contents(self, is_clean: bool = True) -> Dict[str, str]:
+        """
+        Return the names of the files created by the run, and their content.
+        """
+        return {filename: requirement.get_pretty_content(content) if is_clean else content
+                for requirement, files_to_contents in self.items()
+                for filename, content in files_to_contents.items()
+                if isinstance(requirement, BaseContentOutputFileRequirement)}
+
+    def get_single_output(self, is_clean: bool = True) -> Optional[str]:
+        """
+        Return the output of the run, if it is a single content file.
+        """
+        single_content_filename = self.get_single_content_file()
+        if single_content_filename is None:
+            return None
+        return self.get_created_content_files_to_contents(is_clean)[single_content_filename]
+
+    def get_created_data_files(self) -> List[str]:
+        """
+        Return the names of the files created by the run, and which were kept, not deleted.
+        """
+        return [filename for requirement, files_to_contents in self.items()
+                for filename in files_to_contents.keys() if requirement.should_keep_file]
+
+    def delete_all_created_files(self, run_folder: Optional[Path] = None):
+        """
+        Delete all the files that were created by the run, and which were kept, not deleted.
+        """
+        for filename in self.get_created_data_files():
+            os.remove(run_folder / filename if run_folder else filename)
 
 
 @dataclass
@@ -154,39 +400,12 @@ class CodeAndOutput:
     name: str = None
     code: str = None
     result: Any = None
-    requirements_to_output_files_to_contents: Dict[OutputFileRequirement, Dict[str, str]] = field(default_factory=dict)
+    created_files: \
+        OutputFileRequirementsWithContent = field(default_factory=OutputFileRequirementsWithContent)
     code_name: str = None
     code_explanation: Optional[str] = None
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
-
-    def get_single_output_filename(self) -> Optional[str]:
-        return get_single_content_file_from_requirements(self.requirements_to_output_files_to_contents.keys())
-
-    def get_single_output(self, is_clean: bool = True) -> Optional[str]:
-        """
-        Return the output of the run, if it is a single content file.
-        """
-        single_content_filename = self.get_single_output_filename()
-        if single_content_filename is None:
-            return None
-        return self.get_created_content_files_to_contents(is_clean)[single_content_filename]
-
-    def get_created_content_files_to_contents(self, is_clean: bool = True) -> Dict[str, str]:
-        """
-        Return the names of the files created by the run, and their content.
-        """
-        return {filename: requirement.clean_content(content) if is_clean else content
-                for requirement, files_to_contents in self.requirements_to_output_files_to_contents.items()
-                for filename, content in files_to_contents.items()
-                if isinstance(requirement, ContentOutputFileRequirement)}
-
-    def get_created_data_files(self) -> List[str]:
-        """
-        Return the names of the files created by the run, and whose content is None.
-        """
-        return [filename for files_to_contents in self.requirements_to_output_files_to_contents.values()
-                for filename, content in files_to_contents.items() if content is None]
 
     def to_latex(self):
         s = f"\\section{{{self.name}}} \\subsection{{Code}}" \
@@ -196,7 +415,7 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "\\subsection{Code Description}"
             s += '\n\n' + self.code_explanation
-        outputs = self.get_created_content_files_to_contents()
+        outputs = self.created_files.get_created_content_files_to_contents()
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, output in outputs.items():

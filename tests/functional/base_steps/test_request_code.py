@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Type
+from typing import Type, Any, Dict, Callable, Optional
 
 from _pytest.fixtures import fixture
 
@@ -8,8 +8,9 @@ from data_to_paper.base_steps import BaseCodeProductsGPT
 from data_to_paper.researches_types.scientific_research.coding_steps import ExplainCreatedDataframe, \
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
-from data_to_paper.run_gpt_code.types import OutputFileRequirement, DataOutputFileRequirement, \
-    ContentOutputFileRequirement
+from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
+from data_to_paper.run_gpt_code.types import DataOutputFileRequirement, \
+    TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
@@ -18,8 +19,9 @@ from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProductsGPT):
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
-    allow_dataframes_to_change_existing_series: bool = False
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)}
     enforce_saving_altered_dataframes: bool = True
     offer_revision_prompt: str = None
     code_name: str = 'Testing'
@@ -54,15 +56,12 @@ class TestRequestCodeExplanation(RequestCodeExplanation):
 @dataclass
 class TestRequestCodeProducts(TestProductsReviewGPT, RequestCodeProducts):
     conversation_name: str = None
-    EXPLAIN_CODE_CLASS = TestRequestCodeExplanation
-    EXPLAIN_CREATED_FILES_CLASS = TestExplainCreatedDataframe
+    code_writing_class: Type[BaseScientificCodeProductsGPT] = TestDataframeChangingCodeProductsGPT
+    explain_code_class: Optional[Type[RequestCodeExplanation]] = TestRequestCodeExplanation
+    explain_created_files_class: Optional[Type[ExplainCreatedDataframe]] = TestExplainCreatedDataframe
     code_step: str = 'data_analysis'
     code_name: str = 'Testing'
     temp_dir: str = None
-
-    @property
-    def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
-        return TestDataframeChangingCodeProductsGPT
 
     def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
         cls = self.code_writing_class
@@ -76,7 +75,8 @@ def code_running_converser(tmpdir_with_csv_file):
         code_name='Testing',
         conversation_name='testing',
         offer_revision_prompt='Output:\n{created_file_contents_explanation}\nRevise?',
-        output_file_requirements=(DataOutputFileRequirement('*.csv'), ContentOutputFileRequirement('output.txt')),
+        output_file_requirements=OutputFileRequirements(
+            [DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
     )
 
 
@@ -163,7 +163,7 @@ def test_request_code_with_revisions(code_running_converser):
             record_more_if_needed=False):
         code_and_output = code_running_converser.get_code_and_output()
     assert code_and_output.code == code3
-    assert code_and_output.get_single_output() == 'Best output'
+    assert code_and_output.created_files.get_single_output() == 'Best output'
     assert len(code_running_converser.conversation) == 5
 
 

@@ -1,10 +1,9 @@
 import importlib
-import os
 import re
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Tuple, Union, Type
+from typing import Optional, List, Tuple, Union, Type, Dict, Any, Callable
 
 import numpy as np
 
@@ -12,22 +11,18 @@ from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMEN
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, \
-    get_single_content_file_from_requirements, ContentOutputFileRequirement, CodeProblem, RunIssue, RunUtilsError
-from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
-from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, TrackDataFrames
+from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
+    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements, BaseContentOutputFileRequirement
+
+from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
-from data_to_paper.run_gpt_code.run_context import IssueCollector
+
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 
-from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.openai_models import ModelEngine
-from data_to_paper.utils.file_utils import run_in_directory
-from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .base_products_conversers import BackgroundProductsConverser
 
@@ -79,11 +74,10 @@ class DebuggerConverser(BackgroundProductsConverser):
     data_filenames: Optional[list] = field(default_factory=list)
 
     # output files:
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements()
 
     # dataframes:
-    allow_dataframes_to_change_existing_series: bool = True
-    enforce_saving_altered_dataframes: bool = False
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     user_initiation_prompt: str = None
     assistant_agent: Agent = None
@@ -122,14 +116,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             return ''
         return 'Remember, your code must contain the following sections:\n' + \
                '\n'.join(f'"{header}"' for header in self.headers_required_in_code)
-
-    @property
-    def output_filenames(self) -> Tuple[str, ...]:
-        return tuple(output_file_requirement.filename for output_file_requirement in self.output_file_requirements)
-
-    @property
-    def output_filename(self) -> Optional[str]:
-        return get_single_content_file_from_requirements(self.output_file_requirements)
 
     @property
     def iteration_str(self):
@@ -217,8 +203,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         )
 
     def _get_issue_for_timeout(self, error: TimeoutError, e: FailedRunningCode = None) -> RunIssue:
+        lineno, line, msg = e.get_lineno_line_message()
         return RunIssue(
-            issue="I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.",
+            issue=f"I ran the code, but it just ran forever... Perhaps got stuck in too long calculations.\n"
+                  f"When I stopped it, it was running on line {lineno}:\n```python\n{line}\n```\n",
+            instructions="Anything we can do to make it run faster? Perhaps use a smaller subset "
+                         "of the data for this part?",
             code_problem=CodeProblem.TimeoutError,
             comment='Code has timed out',
         )
@@ -327,11 +317,12 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_forbidden_read(self, error: CodeReadForbiddenFile, e: FailedRunningCode) -> RunIssue:
         file = error.file
-        if file == self.output_filename:
+        is_read_file_in_output_file_requirements = len(self.output_file_requirements.get_unmatched_files([file])) == 0
+        if is_read_file_in_output_file_requirements:
             return RunIssue(
                 issue=f'Your code tries reading from the output file "{file}".',
                 instructions=dedent_triple_quote_str("""
-                    The code should create and write to this output file, but should not read from it.
+                    The code can create and write to this output file, but should not read from it.
                     The only input files from which we can read the data are: 
                     {}
                     """).format(self.data_filenames),
@@ -362,88 +353,16 @@ class DebuggerConverser(BackgroundProductsConverser):
             code_problem=CodeProblem.RuntimeError,
             comment='Code modifies dataframe series')
 
-    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
+    def _get_issues_for_output_file_content(self, requirement: BaseContentOutputFileRequirement,
                                             filename: str, content: str) -> List[RunIssue]:
-        issues = []
-        issue = None
-        if len(content.strip()) == 0:
-            # The output file is empty.
-            issue = RunIssue(
-                issue=f'The code created the output file "{filename}", but the file is just empty!',
-                instructions="Please revise the code to make sure it correctly writes to the output file.",
-                comment='Output file empty',
-                code_problem=CodeProblem.OutputFileContentLevelA,
-            )
-        if count_number_of_tokens_in_message(content, max(ModelEngine)) > requirement.max_tokens:
-            # Created output file is too large.
-            issue = RunIssue(
-                issue=dedent_triple_quote_str("""
-                    The code created the output file "{}", but the file is too long!
-
-                    Here, for context, is the beginning of the output:
-                    ```output
-                    {}
-                    ```
-                    """).format(filename, extract_to_nearest_newline(content, requirement.max_tokens)),
-                instructions="Only sensible-length output should be written to the file.",
-                comment='Output file too long',
-                code_problem=CodeProblem.OutputFileContentLevelC,
-            )
-        if issue is not None:
-            issues.append(issue)
-        return issues
-
-    def _get_issues_for_num_files_created(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
-        issues = []
-        for requirement in self.output_file_requirements:
-            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
-            if len(output_files) < requirement.minimal_count:
-                # The specified number of output files were not created.
-                if requirement.is_wildcard():
-                    issue = dedent_triple_quote_str(f"""
-                        The code was supposed to create at least {requirement.minimal_count} files \
-                        of "{requirement.filename}", \
-                        but it only created {len(output_files)} files of this type.
-                        """)
-                else:
-                    issue = f"The code didn't generate the desired output file ({requirement.filename})."
-                issues.append(RunIssue(
-                    category='Not all required files were created',
-                    issue=issue,
-                    code_problem=CodeProblem.MissingOutputFiles,
-                    comment='Code did not create all required files'
-                ))
-        return issues
-
-    def _get_issues_for_unsaved_dataframes(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
-        dataframe_operations = code_and_output.dataframe_operations
-        issues = []
-        if self.enforce_saving_altered_dataframes and dataframe_operations.get_read_changed_but_unsaved_ids():
-            # Not all changed dataframes were saved to files.
-            read_but_unsaved_filenames = dataframe_operations.get_read_filenames_from_ids(
-                dataframe_operations.get_read_changed_but_unsaved_ids())
-            issues.append(RunIssue(
-                category='Any modified dataframe should be saved to a file',
-                issue=dedent_triple_quote_str(f"""
-                    Your code modifies, but doesn't save, some of the dataframes:
-                    {read_but_unsaved_filenames}.
-                    """),
-                instructions=dedent_triple_quote_str("""
-                    The code should use `to_csv` to save any modified dataframe in a new file \
-                    in the same directory as the code.
-                    """),
-                comment='Not all modified dataframes were saved',
-                code_problem=CodeProblem.MissingOutputFiles,
-            ))
-        return issues
+        return requirement.get_issues_for_output_file_content(filename, content)
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         issues = []
-        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=False)
         for requirement in self.output_file_requirements:
-            output_files = list(code_and_output.requirements_to_output_files_to_contents[requirement].keys())
-            if isinstance(requirement, ContentOutputFileRequirement):
-                for filename in output_files:
+            if isinstance(requirement, BaseContentOutputFileRequirement):
+                for filename in code_and_output.created_files[requirement]:
                     issues.extend(
                         self._get_issues_for_output_file_content(requirement, filename, files_to_contents[filename]))
         return issues
@@ -462,10 +381,11 @@ class DebuggerConverser(BackgroundProductsConverser):
         return None
 
     def _get_issue_for_run_utils_error(self, error: RunUtilsError, e: FailedRunningCode) -> RunIssue:
-        lineno, line, msg = e.get_lineno_line_message()
+        linenos_lines, msg = e.get_lineno_line_message()
+        on_line = '\n'.join(f'On line {lineno}: {line}' for lineno, line in linenos_lines)
         return RunIssue(
             category=error.issue.category,
-            issue=f'{error.issue.issue}\nOn line:\n`{line}`',
+            issue=f'{error.issue.issue}\n{on_line}',
             instructions=error.issue.instructions,
             comment=error.issue.comment,
             code_problem=error.issue.code_problem,
@@ -483,19 +403,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             script_file_path=None,
             run_folder=self.data_folder,
             runtime_available_objects=self._get_runtime_available_objects(),
-            additional_contexts={
-                'TrackDataFrames': TrackDataFrames(
-                    allow_changing_existing_series=self.allow_dataframes_to_change_existing_series),
-                'override_statistics_packages': override_statistics_packages()}
+            additional_contexts=self.additional_contexts,
         )
-
-    def _run_code_runner_and_get_code_and_output(self, code_runner: BaseCodeRunner
-                                                 ) -> Tuple[CodeAndOutput, List[RunIssue]]:
-        code_and_output, issues, contexts = code_runner.run_code()
-        track_df: TrackDataFrames = contexts['TrackDataFrames']
-        code_and_output.dataframe_operations = track_df.dataframe_operations
-        return code_and_output, issues
-
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
 
@@ -527,7 +436,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             comment=comment,
         )
 
-    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue]], code: Optional[str] = None):
+    def _respond_to_issues(self, issues: Union[RunIssue, List[RunIssue], RunIssues], code: Optional[str] = None):
         """
         We post a response to the assistant code, based on the issues.
         We also need to delete (some) of the previous exchange.
@@ -552,8 +461,10 @@ class DebuggerConverser(BackgroundProductsConverser):
         # Get Problem
         if isinstance(issues, RunIssue):
             issues = [issues]
-        issue_collector = IssueCollector(issues)
-        problem = issue_collector.get_most_severe_problem()
+        if not isinstance(issues, RunIssues):
+            issues = RunIssues(issues)
+
+        problem = issues.get_most_severe_problem()
 
         # Get Action
         # When we have run_failed, we essentially don't know the quality of the code (e.g. it can be the
@@ -595,7 +506,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "repost":
             self._post_code_as_fresh(code, problem, action_stage)
 
-        message, comment = issue_collector.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
+        message, comment = issues.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
         self.apply_append_user_message(
             content=message + ('\n\nREGENERATE' if action == "regenerate" else ''),
             comment=self.iteration_str + ': ' + comment,
@@ -610,7 +521,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             )
             self._requesting_small_change = False
         else:
-            self._requesting_small_change = issue_collector.do_all_issues_request_small_change()
+            self._requesting_small_change = issues.do_all_issues_request_small_change()
 
     def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
         """
@@ -643,7 +554,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
         # Code passes static checks. We can now run the code.
         try:
-            code_and_output, issues = self._run_code_runner_and_get_code_and_output(code_runner)
+            code_and_output, issues, contexts = code_runner.run_code()
         except FailedRunningCode as e:
             exceptions_to_funcs = {
                 ImportError: self._get_issue_for_allowed_packages,
@@ -670,16 +581,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         # The code ran without raising exceptions.
         # We now check for issues in the output files as well as issues collected during the run:
         output_issues = []
-        output_issues.extend(self._get_issues_for_num_files_created(code_and_output))
-        output_issues.extend(self._get_issues_for_unsaved_dataframes(code_and_output))
         output_issues.extend(issues)
         output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
 
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:
-            with run_in_directory(self.data_folder):
-                for file in code_and_output.get_created_data_files():
-                    os.remove(file)
+            code_and_output.created_files.delete_all_created_files(self.data_folder)
             self._respond_to_issues(output_issues, code)
             return None
 

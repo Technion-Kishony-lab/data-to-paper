@@ -5,7 +5,8 @@ from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckL
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import RequestCodeProducts
+from .coding_steps import RequestCodeProducts, DataExplorationCodeProductsGPT, RequestCodeExplanation, \
+    DataPreprocessingCodeProductsGPT, CreateTableDataframesCodeProductsGPT, CreateLatexTablesCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -87,7 +88,12 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Data exploration
         if self.should_do_data_exploration:
             self.advance_stage_and_set_active_conversation(ScientificStages.EXPLORATION, ScientificAgent.DataExplorer)
-            RequestCodeProducts.from_(self, code_step='data_exploration').get_code_and_output_and_descriptions()
+            RequestCodeProducts.from_(self,
+                                      code_step='data_exploration',
+                                      code_writing_class=DataExplorationCodeProductsGPT,
+                                      explain_code_class=RequestCodeExplanation,
+                                      explain_created_files_class=None,
+                                      ).get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
 
         # Goal
@@ -150,17 +156,30 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
                 ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
-            RequestCodeProducts.from_(self, code_step='data_preprocessing') \
-                .get_code_and_output_and_descriptions(with_file_descriptions=False)
+            RequestCodeProducts.from_(self,
+                                      code_step='data_preprocessing',
+                                      code_writing_class=DataPreprocessingCodeProductsGPT,
+                                      explain_code_class=RequestCodeExplanation,
+                                      explain_created_files_class=None,
+                                      ).get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs_with_explanations:data_preprocessing')
 
         # Analysis code and output
         self.advance_stage_and_set_active_conversation(ScientificStages.CODE, ScientificAgent.Debugger)
-        RequestCodeProducts.from_(
-            self,
-            code_step='data_analysis',
-            latex_document=self.latex_document,
-        ).get_code_and_output_and_descriptions()
+        RequestCodeProducts.from_(self,
+                                  code_step='data_analysis',
+                                  latex_document=self.latex_document,
+                                  code_writing_class=CreateTableDataframesCodeProductsGPT,
+                                  explain_code_class=RequestCodeExplanation,
+                                  explain_created_files_class=None,
+                                  ).get_code_and_output_and_descriptions()
+        RequestCodeProducts.from_(self,
+                                  code_step='data_to_latex',
+                                  latex_document=self.latex_document,
+                                  code_writing_class=CreateLatexTablesCodeProductsGPT,
+                                  explain_code_class=None,
+                                  explain_created_files_class=None,
+                                  ).get_code_and_output_and_descriptions()
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,

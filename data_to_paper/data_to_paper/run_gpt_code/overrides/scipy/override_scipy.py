@@ -5,13 +5,13 @@ from dataclasses import dataclass
 import scipy
 
 from data_to_paper.env import TRACK_P_VALUES
-from data_to_paper.run_gpt_code.overrides.attr_replacers import FuncReplacerContext
+from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
 
 from ..types import PValue
 
 
 @dataclass
-class ScipyOverride(FuncReplacerContext):
+class ScipyOverride(SystematicFuncReplacerContext):
     base_module: object = scipy
 
     def _should_replace(self, module, func_name, func) -> bool:
@@ -20,7 +20,7 @@ class ScipyOverride(FuncReplacerContext):
             return True
         return False
 
-    def custom_wrapper(self, parent, attr_name, original_func):
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(*args, **kwargs):

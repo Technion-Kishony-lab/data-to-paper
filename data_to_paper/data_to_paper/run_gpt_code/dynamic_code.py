@@ -8,19 +8,20 @@ import matplotlib.pyplot as plt
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, List
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
 
 from data_to_paper import chatgpt_created_scripts
 
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory
+from data_to_paper.utils.types import ListBasedSet
 
-from .run_context import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
+from .base_run_contexts import RunContext
+from .run_contexts import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
     TrackCreatedFiles
 from .timeout_context import timeout_context
 from .exceptions import FailedRunningCode, BaseRunContextException
-from .types import module_filename, MODULE_NAME, RunIssue
-from ..utils.types import ListBasedSet
+from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_filepath = os.path.join(module_dir, module_filename)
@@ -57,7 +58,7 @@ class RunCode:
         (plt, 'savefig', False),
         # (builtins, 'exec', False),
     )
-    forbidden_imports: Optional[Iterable[str]] = ('os', 'sys', 'subprocess', 'shutil', 'pickle', 'matplotlib')
+    forbidden_imports: Optional[Iterable[str]] = ('os', 'sys', 'subprocess', 'shutil', 'matplotlib')
 
     # File lists can include wildcards, e.g. '*.py' or '**/*.py'. () means no files. None means all files.
 
@@ -65,25 +66,21 @@ class RunCode:
     allowed_open_read_files: Optional[Iterable[str]] = ()
     allowed_open_write_files: Optional[Iterable[str]] = ()
 
-    # Allowed new files. Assessed at end of run. If 'auto', then allowed_open_write_files is used.
-    allowed_create_files: Union[str, Optional[Iterable[str]]] = 'auto'  # None means all files
+    # Allowed new files. Assessed at end of run. If None then all files are allowed.
+    output_file_requirements: Optional[OutputFileRequirements] = OutputFileRequirements()
 
     runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
 
-    additional_contexts: Optional[Dict[str, Any]] = field(default_factory=dict)
-
-    def __post_init__(self):
-        if self.allowed_create_files == 'auto':
-            self.allowed_create_files = self.allowed_open_write_files
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     def _create_and_get_all_contexts(self) -> Dict[str, Any]:
 
         # Mandatory contexts:
         contexts = {
             'run_in_directory': run_in_directory(self.run_folder),
-            'TrackCreatedFiles': TrackCreatedFiles(allowed_create_files=self.allowed_create_files),
             'IssueCollector': IssueCollector(),
+            'TrackCreatedFiles': TrackCreatedFiles(output_file_requirements=self.output_file_requirements),
         }
 
         # Optional builtin contexts:
@@ -104,12 +101,14 @@ class RunCode:
             contexts['timeout_context'] = timeout_context(seconds=self.timeout_sec)
 
         # Additional custom contexts:
-        for context_name, context in self.additional_contexts.items():
-            contexts[context_name] = context
+        if self.additional_contexts is not None:
+            for context_name, context in self.additional_contexts().items():
+                assert context_name not in contexts, f"Context name {context_name} already exists."
+                contexts[context_name] = context
         return contexts
 
     def run(self, code: str, save_as: Optional[str] = None
-            ) -> Tuple[Any, ListBasedSet[str], List[RunIssue], Dict[str, Any]]:
+            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -154,7 +153,13 @@ class RunCode:
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()  # leave the module empty
-        issues = contexts['IssueCollector'].issues
+
+        # Collect issues from all contexts
+        issues = RunIssues()
+        for context in contexts.values():
+            if isinstance(context, RunContext):
+                issues.extend(context.issues)
+
         return result, created_files, issues, contexts
 
     def _run_function_in_module(self, module: ModuleType):

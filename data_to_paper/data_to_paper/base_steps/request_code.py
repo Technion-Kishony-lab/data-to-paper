@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type
+from typing import Optional, Tuple, Dict, Type, Any, Callable
 
 from data_to_paper.env import SUPPORTED_PACKAGES
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    get_single_content_file_from_requirements, CodeProblem
+from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, OutputFileRequirements, \
+    TextContentOutputFileRequirement
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer
@@ -48,13 +48,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
-
-    allow_dataframes_to_change_existing_series: bool = True
-    enforce_saving_altered_dataframes: bool = False
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        ('output_file_requirements', 'data_filenames', 'data_folder', 'allow_dataframes_to_change_existing_series',
-         'enforce_saving_altered_dataframes', 'supported_packages', 'model_engine', )
+        ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine',
+         'additional_contexts')
 
     revision_round: int = 0
 
@@ -66,7 +64,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     goal_verb: str = 'write'
     user_initiation_prompt: str = 'Please write a code to analyze the data.'
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
+    output_file_requirements: OutputFileRequirements = \
+        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'), ))
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
@@ -100,20 +99,20 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     @property
     def output_filename(self) -> str:
-        return get_single_content_file_from_requirements(self.output_file_requirements)
+        return self.output_file_requirements.get_single_content_file()
 
     def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:
-        created_files = code_and_output.get_created_content_files_to_contents()
+        created_files = code_and_output.created_files.get_all_created_files()
         if len(created_files) == 0:
             return ''
         elif len(created_files) == 1:
             created_file = next(iter(created_files))
-            return f'It saves the results to the file "{created_file}".'
+            return f'It creates the file "{created_file}".'
         else:
-            return f'It saves the results to the files {list(created_files)}.'
+            return f'It creates the files: {list(created_files)}.'
 
     def get_created_file_contents_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
-        files_to_contents = code_and_output.get_created_content_files_to_contents(is_clean=True)
+        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=True)
         if len(files_to_contents) == 0:
             return None
         s = 'Here is the content of the output file(s) that the code created:\n'
@@ -161,6 +160,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 break
             if not self._are_further_code_revisions_needed(code_and_output, debugger):
                 break
+            # delete created files:
+            code_and_output.created_files.delete_all_created_files(self.data_folder)
             self.revision_round += 1
         code_and_output.name = self.code_name
         return code_and_output

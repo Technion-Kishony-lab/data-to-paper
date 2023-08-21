@@ -1,14 +1,13 @@
-import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
+from typing import Optional, Iterable, Tuple, List, Dict, Any, Type, Callable
 
 from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
-from .types import CodeAndOutput, OutputFileRequirement, RunIssue
+from .types import CodeAndOutput, RunIssue, OutputFileRequirements
 
 
 @dataclass
@@ -16,9 +15,9 @@ class BaseCodeRunner(ABC):
     response: str = None  # response from ChatGPT (with code)
     script_file_path: Optional[Path] = None  # where to save the script after running. If None, don't save.
     run_folder: Optional[Path] = None
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements()
     allowed_read_files: Iterable[str] = ()
-    additional_contexts: Dict[str, Any] = field(default_factory=dict)  # additional contexts to use when running code
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     _lines_added_in_front_of_code: int = None
@@ -33,15 +32,6 @@ class BaseCodeRunner(ABC):
         Extract the raw code from the response.
         """
         return NotImplementedError
-
-    @property
-    def keep_content_allowed_created_filenames(self) -> Tuple[str, ...]:
-        return tuple(requirement.filename for requirement in self.output_file_requirements
-                     if requirement.should_keep_content)
-
-    @property
-    def all_allowed_created_filenames(self) -> Tuple[str, ...]:
-        return tuple(requirement.filename for requirement in self.output_file_requirements)
 
     def _modify_code(self, code: str) -> Tuple[str, int]:
         """
@@ -64,34 +54,12 @@ class BaseCodeRunner(ABC):
         """
         return self.run_code_cls(
             allowed_open_read_files=self.allowed_read_files,
-            allowed_open_write_files=self.all_allowed_created_filenames,
-            allowed_create_files=self.all_allowed_created_filenames,
+            allowed_open_write_files=self.output_file_requirements.get_all_allowed_created_filenames(),
+            output_file_requirements=self.output_file_requirements,
             run_folder=self.run_folder,
             runtime_available_objects=self.runtime_available_objects,
             additional_contexts=self.additional_contexts,
         )
-
-    def read_output_file(self, output_file: str, delete_file: bool = False) -> str:
-        """
-        Return the content of the output file created by the run if successful.
-        """
-        filepath = self.run_folder / output_file if self.run_folder else output_file
-        with open(filepath, 'r') as file:
-            content = file.read()
-        if delete_file:
-            os.remove(filepath)
-        return content
-
-    def _get_requirements_to_output_files_to_contents(self, created_files: Iterable[str]) -> dict:
-        """
-        Return a dictionary mapping each requirement to a dictionary mapping each output file to its content.
-        """
-        return {requirement: {
-            output_file: (self.read_output_file(output_file, delete_file=True)
-                          if requirement.should_keep_content else None)
-            for output_file in created_files
-            if requirement.matches(output_file)
-        } for requirement in self.output_file_requirements}
 
     def _get_code_and_output(self, code: str, result: str, created_files: Iterable[str],
                              contexts: Dict[str, Any] = None) -> CodeAndOutput:
@@ -101,7 +69,10 @@ class BaseCodeRunner(ABC):
         return CodeAndOutput(
             code=code,
             result=result,
-            requirements_to_output_files_to_contents=self._get_requirements_to_output_files_to_contents(created_files),
+            created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(
+                created_files=created_files, run_folder=self.run_folder),
+            dataframe_operations=contexts['TrackDataFrames'].dataframe_operations
+            if 'TrackDataFrames' in contexts else None,
         )
 
     def run_code(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any]]:
@@ -135,7 +106,5 @@ class CodeRunner(BaseCodeRunner):
         """
         Modify the extracted code before running it.
         """
-        modified_code = code.replace('from my_utils',
-                                     'from data_to_paper.utils_for_gpt_code.utils_modified_for_gpt_use')
-        modified_code = self.add_in_front_of_code + modified_code
+        modified_code = self.add_in_front_of_code + code
         return modified_code, line_count(self.add_in_front_of_code)

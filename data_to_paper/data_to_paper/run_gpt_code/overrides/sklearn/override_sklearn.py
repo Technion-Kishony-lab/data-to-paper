@@ -3,17 +3,17 @@ from dataclasses import dataclass
 
 import sklearn
 
-from data_to_paper.run_gpt_code.overrides.attr_replacers import MethodReplacerContext
+from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
 
 
 @dataclass
-class SklearnOverride(MethodReplacerContext):
+class SklearnOverride(SystematicMethodReplacerContext):
     base_module: object = sklearn
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
 
-    def custom_wrapper(self, parent, attr_name, original_func):
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):

@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 import pandas as pd
@@ -23,6 +24,19 @@ class DataframeKeyError(KeyError):
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
 TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
 STR_FLOAT_FORMAT = format_float
+
+
+@contextmanager
+def temporarily_change_float_format(new_format):
+    """
+    Context manager that temporarily changes the float format to the given format.
+    """
+    original_float_format = pd.get_option('display.float_format')
+    try:
+        pd.set_option(f'display.float_format', new_format)
+        yield
+    finally:
+        pd.set_option(f'display.float_format', original_float_format)
 
 
 def __init__(self, *args, created_by: str = None, file_path: str = None,
@@ -72,26 +86,24 @@ def to_string(self, *args, original_method=None, on_change=None, **kwargs):
     """
     We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
     """
-    current_float_format = pd.get_option('display.float_format')
-    pd.set_option(f'display.float_format', STR_FLOAT_FORMAT)
-    result1 = original_method(self, *args, **kwargs)
-    result2 = original_method(self.T, *args, **kwargs)
+    with temporarily_change_float_format(STR_FLOAT_FORMAT):
+        result1 = original_method(self, *args, **kwargs)
+        result2 = original_method(self.T, *args, **kwargs)
     longest_line1 = max(len(line) for line in result1.split('\n'))
     longest_line2 = max(len(line) for line in result2.split('\n'))
     if longest_line1 > PDF_TEXT_WIDTH > longest_line2:
         result = result2
     else:
         result = result1
-    pd.set_option(f'display.float_format', current_float_format)
     return result
 
 
 def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
-    current_float_format = pd.get_option('display.float_format')
-    pd.set_option(f'display.float_format', TO_CSV_FLOAT_FORMAT)
-    result = original_method(self, *args, **kwargs)
-    pd.set_option(f'display.float_format', current_float_format)
+    with temporarily_change_float_format(TO_CSV_FLOAT_FORMAT):
+        result = original_method(self, *args, **kwargs)
+
     file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
     columns = list(self.columns.values) if hasattr(self, 'columns') else None
-    on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
+    if file_path is not None:
+        on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result

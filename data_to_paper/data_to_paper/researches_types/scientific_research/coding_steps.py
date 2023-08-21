@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, List
+from typing import Optional, Tuple, Dict, Type, List, Any, Callable
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
@@ -16,14 +16,31 @@ from data_to_paper.researches_types.scientific_research.cast import ScientificAg
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
+from data_to_paper.run_gpt_code.overrides.types import PValue
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput, OutputFileRequirement, ContentOutputFileRequirement, \
-    DataOutputFileRequirement, RunIssue, CodeProblem, NumericContentOutputFileRequirement
+from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
+    DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
+    PickleContentOutputFileRequirement
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
+    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
+
+
+def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = False,
+                             enforce_saving_altered_dataframes: bool = False,) -> Dict[str, Any]:
+    return {
+        'TrackDataFrames': TrackDataFrames(
+            allow_dataframes_to_change_existing_series=allow_dataframes_to_change_existing_series,
+            enforce_saving_altered_dataframes=enforce_saving_altered_dataframes,
+        ),
+        'override_statistics_packages': override_statistics_packages(),
+    }
 
 
 @dataclass
@@ -65,7 +82,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
             if section is None:
                 continue
             if section in self.products.codes_and_outputs:
-                files += self.products.codes_and_outputs[section].get_created_data_files()
+                files += self.products.codes_and_outputs[section].created_files.get_created_data_files()
         return files
 
     @property
@@ -97,14 +114,13 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
         return Path(self.products.data_file_descriptions.data_folder)
 
 
-@dataclass
-class DataExplorationDebugger(DebuggerConverser):
+@dataclass(frozen=True)
+class EnforceContentOutputFileRequirement(NumericTextContentOutputFileRequirement):
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
 
-    def _get_issues_for_output_file_content(self, requirement: ContentOutputFileRequirement,
-                                            filename: str, content: str) -> List[RunIssue]:
-        issues = super()._get_issues_for_output_file_content(requirement, filename, content)
+    def get_issues_for_output_file_content(self, filename: str, content: str) -> List[RunIssue]:
+        issues = super().get_issues_for_output_file_content(filename, content)
         if issues:
             return issues
 
@@ -117,23 +133,23 @@ class DataExplorationDebugger(DebuggerConverser):
                       f'{NiceList(missing_headers, wrap_with="`")}.',
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
+
         return issues
 
 
 @dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
-    debugger_cls: Type[DebuggerConverser] = DataExplorationDebugger
-
     code_step: str = 'data_exploration'
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
-        (ContentOutputFileRequirement('data_exploration.txt'), )
+    output_file_requirements: OutputFileRequirements = \
+        OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
     allowed_created_files: Tuple[str, ...] = ()
-    allow_dataframes_to_change_existing_series = False
-    enforce_saving_altered_dataframes: bool = False
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                         enforce_saving_altered_dataframes=False)
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
@@ -230,9 +246,10 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (DataOutputFileRequirement('*.csv'), )
-    allow_dataframes_to_change_existing_series = False
-    enforce_saving_altered_dataframes: bool = True
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                         enforce_saving_altered_dataframes=True)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
@@ -274,9 +291,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = (ContentOutputFileRequirement('results.txt'), )
-    allow_dataframes_to_change_existing_series: bool = True
-    enforce_saving_altered_dataframes: bool = False
+    output_file_requirements: OutputFileRequirements = \
+        OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False)
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -368,9 +387,17 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
     max_code_revisions: int = 3
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    headers_required_in_code: Tuple[str, ...] = (
+        '# IMPORT',
+        '# LOAD DATA',
+        '# PREPROCESSING',
+        '# ANALYSIS',
+        '# CREATE TABLES',
+        '# OUTPUT TEXT FILE',
+    )
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', )
+        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'headers_required_in_code')
 
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
@@ -382,10 +409,12 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = \
-        (ContentOutputFileRequirement('results.txt'), ContentOutputFileRequirement('*.tex', minimal_count=1))
-    allow_dataframes_to_change_existing_series: bool = True
-    enforce_saving_altered_dataframes: bool = False
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
+        [NumericTextContentOutputFileRequirement('results.txt'),
+         TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False)
     model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -423,6 +452,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         The statistical analysis should account for any relevant confounding variables, as applicable. 
         Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
         Note that you may need to perform more than one test for each hypothesis.
+
 
         # CREATE TABLES
         Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
@@ -469,6 +499,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         For example, if you have a p-value column named "p-value", then:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
+
         # OUTPUT TEXT FILE 
         At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
         and write to this file any important data that was not included in the tables.
@@ -506,17 +537,18 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
         raw data is performed on the preprocessed data, or vice versa.
 
-        (2) Check the created tables (latex code blocks above) and \
+        (2) Check the created tables (provided above) and \
         return a bullet-point response addressing these points:
         * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
         For example: 
         - If the table reports the mean of a variable, is the mean value sensible?
         - If the table reports CI, are the CI values flanking the mean?
         - Do values have correct signs?
-        - Do you see any values that are not sensible?
+        - Do you see any values that are not sensible (too high, too low)?
 
         * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+
         * Missing data in a table: Are we missing key variables in a given table?
         {comment_on_missing_table}* Any other issues you find.
 
@@ -544,17 +576,18 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)  # set to None to skip option for revision
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        linear_regression_funcs = ['ols', 'OLS', 'logit', 'Logit', 'glm', 'GLM']
         comments = {}
         s = []
         code = code_and_output.code
         s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
-        if 'ols(' in code or 'OLS(' in code:
+        if any(func in code for func in linear_regression_funcs):
             s.append('- In linear regression, if interactions terms are included, '
                      'did we remember to include the main effects?')
 
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
-        num_tables = len(code_and_output.get_created_content_files_to_contents()) - 1  # -1 for result.txt
+        num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
         if num_tables < 3:
             s = '* Missing tables: Considering our research goal and hypothesis testing plan, ' \
                 'are all relevant tables created? If not, can you suggest any additional tables?\n'
@@ -562,6 +595,231 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             s = ''
         comments['comment_on_missing_table'] = s
         return comments
+
+
+class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
+
+    def get_pretty_content(self, content: Any) -> str:
+        with PValue.allow_str.temporary_set(True):
+            return super().get_pretty_content(content)
+
+
+class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement,
+                                             NumericTextContentOutputFileRequirement):
+
+    def get_content(self, file_path: str) -> Dict:
+        result = super().get_content(file_path)
+        return NiceDict(result)
+
+
+@dataclass
+class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
+    debugger_cls: Type[DebuggerConverser] = DebuggerConverser
+    headers_required_in_code: Tuple[str, ...] = (
+        '# IMPORT',
+        '# LOAD DATA',
+        '# PREPROCESSING',
+        '# ANALYSIS',
+        '# CREATE DATAFRAMES FOR TABLES',
+        '# SAVE ADDITIONAL RESULTS',
+    )
+    attrs_to_send_to_debugger: Tuple[str, ...] = \
+        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code', )
+
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
+
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
+        [PValuePickleContentOutputFileRequirement('table_?.pkl', 2),
+         DictPickleContentOutputFileRequirement('additional_results.pkl', 1),
+         ])
+
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False) | \
+        {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+         'PickleDump': get_pickle_dump_attr_replacer()}
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \
+        for our paper.
+
+        The code must have the following sections (with these exact capitalized headers):
+
+        # IMPORT
+        import pickle
+        <import here any other packages you need>
+
+        As needed, you can use the following packages which are already installed:
+        {supported_packages}
+
+
+        # LOAD DATA
+        Load the data from the original data files described above (see "{data_file_descriptions}").\
+        {list_additional_data_files_if_any}
+
+
+        # PREPROCESSING 
+        Perform any preprocessing steps needed to prepare the data for the analysis.
+        For example, as applicable:
+        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
+        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
+        consider also the "{outputs:data_exploration}").
+        * Normalization of numeric values with different units into same-unit values.
+        * Any other data preprocessing you deem relevant.
+        * If no preprocessing is needed, write: "# No preprocessing is needed, because <your reasons here>."
+
+
+        # ANALYSIS 
+        Perform the analysis and appropriate statistical tests \
+        (see above our "{hypothesis_testing_plan}").
+        The statistical analysis should account for any relevant confounding variables, as applicable. 
+        Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
+        Note that you may need to perform more than one test for each hypothesis.
+
+
+        # CREATE DATAFRAMES FOR TABLES
+        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        "{hypothesis_testing_plan}"), decide on 2-4 tables we can create for our scientific paper, \
+        summarizing the results of the statistical analysis. 
+
+        For each such scientific table, create a dedicated corresponding dataframe and save it to a pkl file \
+        using pandas `df.to_pickle(filename)` method (at the same directory as the code).
+
+        Overall, the section should have the following structure:
+        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ... stratified by ...">
+        <write here the code to create a dataframe of table 1 and save it using `df1.to_pickle('table_1.pkl')`
+
+        ## Table 2: <your chosen table name here. e.g "Model xxx ...">
+        <write here the code to create a dataframe of table 2 and save it using `df2.to_pickle('table_2.pkl')`
+
+        etc, up to 4 tables.
+
+        When writing the code for the Tables, consider these guidelines (as applicable):
+
+        [a] List of tables to create:
+        * Create 2-4 tables relevant to our {research_goal} and {hypothesis_testing_plan}.
+        * Typically, the first table could be descriptive statistics of the data, \
+        and then we should have at least one table for each of the hypothesis tests.
+
+        [b] What to include in each table:
+        * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
+        * Nominal values should be accompanied by a measure of uncertainty (CI or STD).
+        * Exclude data not important to the research goal, or that are too technical. \
+        For example, when reporting descriptive statistics it is typically not necessary to include \
+        quartile or min/max values. 
+        * Make sure you do not repeat the same data in multiple tables.
+
+        # SAVE ADDITIONAL RESULTS
+        At the end of the code, after completing the tables, create a dict containing any additional \
+        results you deem important to include in the scientific paper, and save it to a pkl file \
+        'additional_results.pkl'. 
+
+        For example:
+
+        `additional_results = {
+            'Total number of observations': <xxx>,         
+            'model_accuracy': <xxx>,
+            # etc, any other results and important parameters that are not included in the tables
+        }
+        with open('additional_results.pkl', 'wb') as f:
+            pickle.dump(additional_results, f)
+        `
+
+        Avoid the following:
+        Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
+        Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
+        """)
+
+
+@dataclass
+class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
+    code_step: str = 'data_to_latex'
+    headers_required_in_code: Tuple[str, ...] = ()
+
+    background_product_fields: Tuple[str, ...] = \
+        ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis')
+    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
+        ('research_goal', 'codes:data_preprocessing')
+    allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
+
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
+        [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        I would like to create latex tables for our scientific paper, from the dataframes created \
+        in the code above ("table_?.pkl" files). 
+
+        I would like to convert these dataframes to latex tables, using a custom function I wrote: 
+
+        `to_latex_with_note(df, filename: str, caption: str, label: str, \
+        note: str = None, legend: Dict[str, str] = None, **kwargs)`
+
+        This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
+        and allows adding below the table an optional note (if `note` is provided) as well as an optional \
+        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
+
+
+        Please write a complete Python code that uses the above function to convert our dataframe Tables \
+        to latex tables suitable for our scientific paper.
+
+        The code should follow this structure:
+
+        # IMPORT
+        import pandas as pd
+        from my_utils import to_latex_with_note, format_p_value
+
+        # CREATE LATEX TABLES
+        For each of the table dataframe files created above (table_?.pkl), \
+        create a latex table and save it to a tex following this structure:
+
+        # Table 1:
+        df = pd.read_pickle('table_1.pkl')
+
+        # Styling the dataframe:
+        Re-style the dataframe to make it suitable for a scientific paper: 
+
+        - Columns and Row Headers:
+        Rename technical names to scientifically-suitable names.
+        For example:
+        `df = df.rename(columns={'<technical column name>': '<scientific column name>'})`
+
+        - Values:
+        Rename technical values to scientifically-suitable values \
+        (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
+
+        - P-values:
+        If the table includes P-values of statistical tests, convert them using the provided `format_p_value` func.
+        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
+        For example, if you have a p-value column named "p-value", then use:
+        `df['p-value'] = df['p-value'].apply(format_p_value)`
+
+        # Save as latex:
+        `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
+
+        - Add a caption suitable for inclusion as part of a scientific paper \
+        (`caption=` in `to_latex_with_note`). \
+        - Add a table label (`label="table:<your label here>"` in `to_latex_with_note`).
+        - As needed, add a note at the end of the table, with any additional context \
+        (`note=` in `to_latex_with_note`).
+        For example, note="Total number of observations: <xxx>". 
+        - As needed, add a legend to clarify any abbreviated or technical names in the table \
+        (`legend=` in `to_latex_with_note`).
+        For example, if you have a column "DisSever", you should specify:
+        `legend={'DisSever': 'Severity of the disease, 1=Low, 2=Medium, 3=High'}`.
+
+        # Table 2:
+        etc, for all 'table_?.pkl' files.
+
+
+        Avoid the following:
+        Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
+        Do not create any graphics, figures or any plots.
+        Do not send any presumed output examples.
+        """)
+
+    offer_revision_prompt: str = None
 
 
 @dataclass
@@ -582,13 +840,13 @@ class BaseScientificPostCodeProductsHandler(BaseScientificCodeProductsHandler):
 
     @property
     def output_filename(self):
-        return self.code_and_output.get_single_output_filename()
+        return self.code_and_output.created_files.get_single_content_file()
 
 
 @dataclass
 class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewBackgroundProductsConverser):
     goal_noun: str = 'explanation of the {code_name} code'
-    background_product_fields: Tuple[str, ...] = ('all_file_descriptions',)
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions',)
     max_reviewing_rounds: int = 0
     rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
     rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
@@ -628,7 +886,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
 
     @property
     def actual_requesting_output_explanation(self):
-        return self.requesting_output_explanation if self.code_and_output.get_single_output_filename() else ''
+        return self.requesting_output_explanation \
+            if self.code_and_output.created_files.get_single_content_file() else ''
 
     def run_dialog_and_get_valid_result(self):
         result = super().run_dialog_and_get_valid_result()
@@ -747,62 +1006,37 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
         return data_file_descriptions
 
 
-CODE_STEP_TO_CLASS = {
-    'data_exploration': DataExplorationCodeProductsGPT,
-    'data_preprocessing': DataPreprocessingCodeProductsGPT,
-    'data_analysis': CreateTablesCodeProductsGPT,
-}
-
-
 @dataclass
 class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
-    EXPLAIN_CODE_CLASS = RequestCodeExplanation
-    EXPLAIN_CREATED_FILES_CLASS = ExplainCreatedDataframe
+    code_writing_class: Type[BaseScientificCodeProductsGPT] = None
+    explain_code_class: Optional[Type[RequestCodeExplanation]] = RequestCodeExplanation
+    explain_created_files_class: Optional[Type[ExplainCreatedDataframe]] = None
     latex_document: LatexDocument = None
 
-    @property
-    def code_writing_class(self) -> Type[BaseScientificCodeProductsGPT]:
-        return CODE_STEP_TO_CLASS[self.code_step]
-
-    def get_code_writing_instance(self) -> BaseScientificCodeProductsGPT:
-        cls = self.code_writing_class
-        if self.code_step == 'data_analysis':
-            num_tables = 2
-            return cls.from_(
-                self,
-                latex_document=self.latex_document,
-                output_file_requirements=(NumericContentOutputFileRequirement('results.txt'),
-                                          ContentOutputFileRequirement('table_?.tex', num_tables)),
-            )
-        return cls.from_(self)
-
     def get_code_and_output(self) -> CodeAndOutput:
-        return self.get_code_writing_instance().get_code_and_output()
+        code_writing = self.code_writing_class.from_(self)
+        assert code_writing.code_step == self.code_step
+        return code_writing.get_code_and_output()
 
     def _get_description_of_created_files(self) -> Optional[DataFileDescriptions]:
-        return self.EXPLAIN_CREATED_FILES_CLASS.from_(
+        return self.explain_created_files_class.from_(
             self,
             is_new_conversation=None,
             code_step=self.code_step,
-            products=self.products,
-            actions_and_conversations=self.actions_and_conversations,
         ).ask_for_created_files_descriptions()
 
     def _get_code_explanation(self) -> str:
-        return self.EXPLAIN_CODE_CLASS.from_(
+        return self.explain_code_class.from_(
             self,
             is_new_conversation=None,
             code_step=self.code_step,
-            products=self.products,
-            actions_and_conversations=self.actions_and_conversations,
         ).run_dialog_and_get_valid_result()
 
-    def get_code_and_output_and_descriptions(
-            self, with_file_descriptions: bool = True, with_code_explanation: bool = True) -> CodeAndOutput:
+    def get_code_and_output_and_descriptions(self) -> CodeAndOutput:
         code_and_output = self.get_code_and_output()
         self.products.codes_and_outputs[self.code_step] = code_and_output
-        if with_code_explanation:
+        if self.explain_code_class:
             code_and_output.code_explanation = self._get_code_explanation()
-        if with_file_descriptions and code_and_output.get_created_data_files():
+        if self.explain_created_files_class and code_and_output.created_files.get_created_data_files():
             code_and_output.description_of_created_files = self._get_description_of_created_files()
         return code_and_output

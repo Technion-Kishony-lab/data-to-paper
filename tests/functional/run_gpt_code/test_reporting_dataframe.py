@@ -8,7 +8,7 @@ from data_to_paper.utils.file_utils import run_in_directory
 
 
 def test_dataframe_allows_changing_when_not_in_context():
-    with TrackDataFrames(allow_changing_existing_series=False):
+    with TrackDataFrames(allow_dataframes_to_change_existing_series=False):
         df = pd.DataFrame({'a': [1, 2, 3]})
         with pytest.raises(DataFrameSeriesChange):
             df['a'] = [4, 5, 6]
@@ -19,7 +19,7 @@ def test_dataframe_allows_changing_when_not_in_context():
 
 
 def test_dataframe_context_does_not_allow_changing_from_file_df(tmpdir_with_csv_file):
-    with TrackDataFrames(allow_changing_existing_series=None):
+    with TrackDataFrames(allow_dataframes_to_change_existing_series=None):
         df = pd.DataFrame({'a': [1, 2]})
         df['a'] = [4, 5]
         assert df['a'].tolist() == [4, 5]
@@ -30,7 +30,7 @@ def test_dataframe_context_does_not_allow_changing_from_file_df(tmpdir_with_csv_
 
 
 def test_dataframe_context_allows_changing(tmpdir_with_csv_file):
-    with TrackDataFrames(allow_changing_existing_series=True):
+    with TrackDataFrames(allow_dataframes_to_change_existing_series=True):
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
         df['a'] = [4, 5]
         assert df['a'].tolist() == [4, 5]
