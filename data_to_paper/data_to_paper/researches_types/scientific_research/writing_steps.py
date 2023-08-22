@@ -308,7 +308,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         * Outline the methodological procedure and briefly state the main findings \
         (cite relevant papers from the above "{literature_search:writing:methods}")
 
-        Each of these paragraphs should be 4-6 sentence long.
+        Note: each of these paragraphs should be 5-6 sentence long. Do not just write short paragraphs with less \
+        than 5 sentences!  
 
         Citations should be added in the following format: \\cite{paper_id}.
         Do not add a \\section{References} section, I will add it later manually.

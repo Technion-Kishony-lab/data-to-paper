@@ -28,7 +28,15 @@ def _check_argument_for_format_p_value(x):
         raise RunUtilsError(
             RunIssue(
                 code_problem=CodeProblem.RuntimeError,
-                issue=f"It seems like you are applying format_p_value to some values that are not P-values.",
-                instructions=f"No need to apply format_p_value to these values.",
+                issue=f"It seems like you are applying format_p_value to some values that are not P-Values.",
+                instructions=f"You should only apply format_p_value to P-Values.",
             )
         )
+
+
+def is_ok_to_apply_format_p_value(x):
+    try:
+        _check_argument_for_format_p_value(x)
+        return True
+    except (RunUtilsError, ValueError):
+        return False

@@ -3,8 +3,7 @@ from typing import Optional, Dict
 
 import pandas as pd
 
-from data_to_paper.latex.clean_latex import replace_special_latex_chars
-
+from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_non_math_parts
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
 \centering
@@ -47,7 +46,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     regular_latex_table = df.to_latex(None, caption=None, label=None, **kwargs)
 
     tabular_part = get_tabular_block(regular_latex_table)
-    caption = r'\caption{' + caption + '}\n' if caption else ''
+    caption = r'\caption{' + process_non_math_parts(caption) + '}\n' if caption else ''
     label = r'\label{' + label + '}\n' if label else ''
 
     note_and_legend = []

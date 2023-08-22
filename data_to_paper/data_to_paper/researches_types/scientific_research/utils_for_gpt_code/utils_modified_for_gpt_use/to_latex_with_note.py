@@ -11,6 +11,8 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
+from data_to_paper.utils.dataframe import extract_df_row_headers, extract_df_column_headers
+from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
 
@@ -70,6 +72,12 @@ def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *arg
     header, index = index, header
     return to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
+def contains_both_letter_and_numbers(name: str) -> bool:
+    """
+    Check if the name contains both letters and numbers.
+    """
+    return any(char.isalpha() for char in name) and any(char.isdigit() for char in name)
+
 
 def is_unknown_abbreviation(name: str) -> bool:
     """
@@ -81,7 +89,7 @@ def is_unknown_abbreviation(name: str) -> bool:
     if len(name) == 0:
         return False
 
-    if len(name) == 1:
+    if len(name) <= 2:
         return True
 
     for abbreviation in KNOWN_ABBREVIATIONS:
@@ -94,6 +102,10 @@ def is_unknown_abbreviation(name: str) -> bool:
     # if there are no letters left, it is not an abbreviation
     if not any(char.isalpha() for char in name):
         return False
+
+    words = re.split(pattern=r'[-_ ]', string=name)
+    if any(contains_both_letter_and_numbers(word) for word in words):
+        return True
 
     # if there are over 3 words, it is not an abbreviation:
     if len(re.split(pattern=r' ', string=name)) >= 3:
@@ -121,13 +133,22 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     issues = []
 
+    # Get all headers:
+    headers = extract_df_column_headers(df) | {df.columns.name}
+    if index:
+        headers = headers | extract_df_row_headers(df) | {df.index.name}
+
+    headers = {header for header in headers if isinstance(header, str)}
+
     """
     TABLE CONTENT
     """
 
     # Check for repetitive values in a column
-    for column_header in columns:
-        data = df[column_header]
+
+    for icol in range(df.shape[1]):
+        column_header = df.columns[icol]
+        data = df.iloc[:, icol]
         if len(data.unique()) == 1 and len(data) > 5:
             data0 = data.iloc[0]
             # check if the value is a number
@@ -157,52 +178,81 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     # Check P-value formatting
     if TRACK_P_VALUES:
-        # Check if there is a column which is all p-values:
-        for column_header in columns:
+        # Check if the entire table is p-values:
+        if sum(isinstance(v, PValue) for v in df.values.flatten()) > 1 \
+                and all(is_ok_to_apply_format_p_value(v) for v in df.values.flatten()):
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=dedent_triple_quote_str(f"""
+                        In particular, the dataframe should be formatted as:
+                        `df = df.applymap(format_p_value)`
+                        """),
+                ))
+
+        # Check if there are columns which are all p-values:
+        p_value_columns = []
+        for icol in range(df.shape[1]):
+            column_header = df.columns[icol]
+            data = df.iloc[:, icol]
             # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-            if all(isinstance(v, PValue) for v in df[column_header]):
-                raise RunUtilsError(
-                    RunIssue(
-                        category='P-value formatting',
-                        code_problem=CodeProblem.RuntimeError,
-                        item=filename,
-                        issue='P-values should be formatted with `format_p_value`',
-                        instructions=dedent_triple_quote_str(f"""
-                            In particular, the p-value column "{column_header}" should be formatted as:
-                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
-                            """),
-                    ))
+            if any(isinstance(v, PValue) for v in data) \
+                    and all(is_ok_to_apply_format_p_value(v) for v in data):
+                p_value_columns.append(column_header)
+        if p_value_columns:
+            if len(p_value_columns) == 1:
+                p_value_columns = p_value_columns[0]
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=f'In particular, the p-value columns should be formatted as:\n'
+                                 f'`df[{p_value_columns}] = df[{p_value_columns}].apply(format_p_value)`',
+                ))
         # Check if there is a row which is all p-values:
-        for row_header in df.index:
-            if all(isinstance(v, PValue) for v in df.loc[row_header]):
-                raise RunUtilsError(
-                    RunIssue(
-                        category='P-value formatting',
-                        code_problem=CodeProblem.RuntimeError,
-                        item=filename,
-                        issue='P-values should be formatted with `format_p_value`',
-                        instructions=dedent_triple_quote_str(f"""
-                            In particular, the p-value row "{row_header}" should be formatted as:
-                            `df.loc["{row_header}"] = df.loc["{row_header}"].apply(format_p_value)`
-                            """),
-                    ))
+        p_value_rows = []
+        for irow in range(df.shape[0]):
+            row_header = df.index[irow]
+            data = df.iloc[irow, :]
+            if any(isinstance(v, PValue) for v in data) \
+                    and all(is_ok_to_apply_format_p_value(v) for v in data):
+                p_value_rows.append(row_header)
+        if p_value_rows:
+            if len(p_value_rows) == 1:
+                p_value_rows = p_value_rows[0]
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=f'In particular, the p-value rows should be formatted as:\n'
+                                 f'`df.loc[{p_value_rows}] = df.loc[{p_value_rows}].apply(format_p_value)`',
+                ))
 
         # Check if there is a p-value that is not formatted:
-        for column_header in columns:
-            for row_header in df.index:
-                v = df.loc[row_header, column_header]
+        cells_with_p_value = []
+        for irow in range(df.shape[0]):
+            row_header = df.index[irow]
+            for icol in range(df.shape[1]):
+                column_header = df.columns[icol]
+                v = df.iloc[irow, icol]
                 if isinstance(v, PValue):
-                    raise RunUtilsError(
-                        RunIssue(
-                            category='P-value formatting',
-                            code_problem=CodeProblem.RuntimeError,
-                            item=filename,
-                            issue='P-values should be formatted with `format_p_value`',
-                            instructions=dedent_triple_quote_str(f"""
-                                In particular, the dataframe should be formatted as:
-                                `df.loc["{row_header}", "{column_header}"] = format_p_value({v})`
-                                """),
-                        ))
+                    cells_with_p_value.append((row_header, column_header))
+        if cells_with_p_value:
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=f"In particular, the dataframe has P-value in the cells: {cells_with_p_value}",
+                ))
 
     latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
 
@@ -243,11 +293,19 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 """)
         else:
             transpose_message = ''
-
+        if all(len(header) < 10 for header in headers):
+            drop_column_message = dedent_triple_quote_str("""\n
+                - Drop unnecessary columns. \
+                If the headers cannot be shortened much, consider whether there might be any \
+                unnecessary columns that we can drop. \
+                Use `to_latex_with_note(df, filename, columns=...)`.
+                """)
+        else:
+            drop_column_message = ''
         if index:
             index_note = dedent_triple_quote_str("""\n
                 - Rename the index to a shorter names. \
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.reset_index(inplace=False), ...)` \
+                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.reset_index(inplace=False), ...)`
                 """)
         else:
             index_note = ''
@@ -267,13 +325,10 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             instructions=dedent_triple_quote_str("""                
                 Please change the code to make the table narrower. Consider any of the following options:
 
-                - Drop unnecessary columns. \
-                Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
-
                 - Rename columns to shorter names. \
                 Replace `to_latex_with_note(df, filename, ...)` with \
                 `to_latex_with_note(df.rename(columns=...), filename, ...)`
-                """) + index_note + transpose_message,
+                """) + index_note + drop_column_message + transpose_message,
             code_problem=CodeProblem.OutputFileContentLevelC,
         ))
 
@@ -351,23 +406,20 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
-    # Get all headers:
-    if index:
-        headers = [name for name in df.index if isinstance(name, str)]
-    else:
-        headers = []
-    headers += [name for name in columns if isinstance(name, str)]
-
     # Check for un-allowed characters in headers
     UNALLOWED_CHARS = ['_', '{', '}']
     for header in headers:
         for char in UNALLOWED_CHARS:
             if char in header:
                 issues.append(RunIssue(
-                    category='Unallowed characters in table headers',
+                    category=f'Table headers contain "{char}" - which is not suitable for a scientific table',
                     code_problem=CodeProblem.OutputFileDesignLevelB,
                     item=filename,
-                    issue=f'The table header "{header}" contains the character "{char}", which is not allowed.',
+                    issue=f'The table header "{header}" contains the character "{char}", which is not '
+                          f'recommended for a scientific table.',
+                    instructions=f'Please revise the code so that the table headers do not contain '
+                                 f'the "{char}" characters, possibly by replacing them with a space. '
+                                 f'I do not want using "{char}" even not if properly latex escaped.',
                 ))
     if issues:
         return issues
