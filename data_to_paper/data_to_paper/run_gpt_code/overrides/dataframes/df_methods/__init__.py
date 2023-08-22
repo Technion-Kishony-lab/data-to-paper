@@ -1,6 +1,7 @@
 from .to_latex import to_latex
 
-from .methods import __init__, to_string, to_csv, __str__, __setitem__, __getitem__, __delitem__
+from .methods import __init__, to_string, to_csv, __str__, __setitem__, __getitem__, __delitem__, \
+    __LocationIndexer__get_item__
 
 from .methods import STR_FLOAT_FORMAT
 
