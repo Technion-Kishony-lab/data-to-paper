@@ -178,11 +178,11 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
 
         (3) Given your assessment above, choose one of the following two options:
 
-        a. Our goal and hypothesis seem distinct enough from existing literature and are worth pursuing \
-        {'choice': 'OK'}.
+        a. Our goal and hypothesis offer a significant novelty compared to existing literature, and \
+        will likely lead to interesting and novel findings {'choice': 'OK'}.
 
-        b. Our goal and hypothesis seem too overlapping with existing literature, \
-        and I think we should refine and improve them {'choice': 'REVISE'}.
+        b. Our goal and hypothesis have overlap with existing literature, and I can suggest ways to \
+        revise them to make them more novel {'choice': 'REVISE'}.
 
         Your response for this part should be formatted as a Python dictionary mapping 'choice' to \
         either 'OK' or 'REVISE'. 
