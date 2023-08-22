@@ -35,8 +35,8 @@ class DataFrameLocKeyError(BaseKeyError):
 
     def __str__(self):
         return str(self.original_error) + \
-            f"\n\nAvailable column keys are:\n{self.available_column_keys}" \
-            f"\n\nAvailable row keys are:\n{self.available_row_keys}"
+            f"\n\nAvailable row keys are:\n{self.available_row_keys}" \
+            f"\n\nAvailable column keys are:\n{self.available_column_keys}"
 
 
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')

@@ -1,8 +1,10 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+from dataclasses import dataclass, field
 
 import inspect
 from types import ModuleType
-from typing import Callable, Union, Type
+from typing import Callable, Union, Type, Iterable
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext, RegisteredRunContext
 
@@ -97,8 +99,7 @@ class SystematicFuncReplacerContext(SystematicAttrReplacerContext):
 
 @dataclass
 class AttrReplacer(RegisteredRunContext):
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
-    # This means that the attrs are swapped back in temporarily_disable mode
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
 
     attr: str = None
     cls: Union[Type, ModuleType] = None
@@ -109,13 +110,18 @@ class AttrReplacer(RegisteredRunContext):
 
     _original: Callable = None
 
+    def _get_wrapper(self):
+        return self.wrapper
+
     def _get_wrapped_wrapper(self):
         def wrapped_wrapper(*args, **kwargs):
+            if not self._is_enabled or not self._is_called_from_data_to_paper():
+                return self._original(*args, **kwargs)
             if self.send_context_to_wrapper:
                 kwargs['context_manager'] = self
             if self.send_original_to_wrapper:
                 kwargs['original_func'] = self._original
-            return self.wrapper(*args, **kwargs)
+            return self._get_wrapper()(*args, **kwargs)
         return wrapped_wrapper
 
     def _reversible_enter(self):
@@ -124,3 +130,31 @@ class AttrReplacer(RegisteredRunContext):
 
     def _reversible_exit(self):
         setattr(self.cls, self.attr, self._original)
+
+
+@dataclass
+class PreventAssignmentToAttrs(RegisteredRunContext):
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
+    cls: Type = None
+    forbidden_set_attrs: Iterable[str] = field(default_factory=list)
+    message: str = 'Cannot set {attr}.'
+    _original: Callable = None
+
+    def _get_wrapper(self):
+        def _replacement__setattr__(obj, attr, value):
+            if not self._is_enabled or not self._is_called_from_user_script():
+                return self._original(obj, attr, value)
+            if attr in self.forbidden_set_attrs:
+                self._raise_exception(attr, value)
+            return self._original(obj, attr, value)
+        return _replacement__setattr__
+
+    def _raise_exception(self, attr, value):
+        raise AttributeError(self.message.format(attr=attr))
+
+    def _reversible_enter(self):
+        self._original = self.cls.__setattr__
+        self.cls.__setattr__ = self._get_wrapper()
+
+    def _reversible_exit(self):
+        self.cls.__setattr__ = self._original

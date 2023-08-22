@@ -19,6 +19,7 @@ from data_to_paper.researches_types.scientific_research.cast import ScientificAg
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
@@ -26,7 +27,7 @@ from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
-    PickleContentOutputFileRequirement
+    PickleContentOutputFileRequirement, RunUtilsError
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -744,6 +745,18 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         """)
 
 
+class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
+    cls: Type[DataFrame] = DataFrame
+    forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
+
+    def _raise_exception(self, attr, value):
+        raise RunUtilsError(RunIssue(
+            issue=f"To avoid mistakes, please do not directly assign to '{attr}' (to avoid mistake).",
+            code_problem=CodeProblem.NonBreakingRuntimeIssue,
+            instructions=f'Use instead `df = df.rename({attr}=<mapping>)`',
+        ))
+
+
 @dataclass
 class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
@@ -759,11 +772,21 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False) | \
-        {'CustomPreventMethods': PreventCalling(modules_and_functions=(
-            (DataFrame, 'to_latex', False),
-            (DataFrame, 'to_html', False),
-            (pd, 'to_numeric', False),
-        ))}
+        {
+            'CustomPreventMethods':
+                PreventCalling(
+                    modules_and_functions=(
+                        (DataFrame, 'to_latex', False),
+                        (DataFrame, 'to_html', False),
+                        (pd, 'to_numeric', False),
+                    )),
+            'CustomPreventAssignmentToAtt':
+                DataframePreventAssignmentToAttrs(
+                    cls=DataFrame,
+                    forbidden_set_attrs=['columns', 'index'],
+                ),
+        }
+
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
