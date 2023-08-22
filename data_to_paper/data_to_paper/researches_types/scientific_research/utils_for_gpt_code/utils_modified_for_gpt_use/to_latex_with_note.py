@@ -133,6 +133,38 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     issues = []
 
+    # Enforce index=True:
+    if not index:
+        issues.append(RunIssue(
+            code_problem=CodeProblem.OutputFileDesignLevelA,
+            item=filename,
+            issue=f'Do not call `to_latex_with_note` with `index=False`.'
+                  f'I want to be able to extract the row headers from the index.',
+            instructions=dedent_triple_quote_str("""
+                Please revise the code making sure all tables are created with `index=True`, and that the index is \
+                meaningful.
+                """),
+        ))
+    if issues:
+        return issues
+
+    # Check if index is just a range:
+    if index and [ind for ind in df.index] == list(range(df.shape[0])):
+        issues.append(RunIssue(
+            category='Index is just a range',
+            code_problem=CodeProblem.OutputFileDesignLevelB,
+            item=filename,
+            issue=f'The index of the table {filename} is just a range from 0 to {df.shape[0] - 1}.',
+            instructions=dedent_triple_quote_str("""
+                Please revise the code making sure the index has meaningful row headers.
+                Or, if it should really be just a range, then convert it from int to strings, \
+                so that it is clear that it is not a mistake.
+                """),
+        ))
+
+    if issues:
+        return issues
+
     # Get all headers:
     headers = extract_df_column_headers(df) | {df.columns.name}
     if index:
@@ -281,7 +313,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             comment='Table compilation failed',
             code_problem=CodeProblem.OutputFileDesignLevelB,
         ))
-    elif e > 1.1:
+    elif e > 1.3:
         # Try to compile the transposed table:
         latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend, **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
