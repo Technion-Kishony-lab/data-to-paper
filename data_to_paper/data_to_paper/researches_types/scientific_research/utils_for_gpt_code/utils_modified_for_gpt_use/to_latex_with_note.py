@@ -11,7 +11,8 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
-from data_to_paper.utils.dataframe import extract_df_row_headers, extract_df_column_headers
+from data_to_paper.utils.dataframe import extract_df_row_headers, extract_df_column_headers, \
+    extract_df_headers_and_values
 from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
@@ -57,9 +58,8 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
 
-    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
-
-    return latex
+    with PValue.allow_str.temporary_set(True):
+        return to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
 
 
 def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
@@ -71,6 +71,7 @@ def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *arg
     header = kwargs.pop('header', True)
     header, index = index, header
     return to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
+
 
 def contains_both_letter_and_numbers(name: str) -> bool:
     """
@@ -92,6 +93,9 @@ def is_unknown_abbreviation(name: str) -> bool:
     if len(name) <= 2:
         return True
 
+    if name.isnumeric():
+        return False
+
     for abbreviation in KNOWN_ABBREVIATIONS:
         if abbreviation.endswith('.'):
             pattern = r'\b' + re.escape(abbreviation)
@@ -103,7 +107,7 @@ def is_unknown_abbreviation(name: str) -> bool:
     if not any(char.isalpha() for char in name):
         return False
 
-    words = re.split(pattern=r'[-_ ]', string=name)
+    words = re.split(pattern=r'[-_ =(),]', string=name)
     if any(contains_both_letter_and_numbers(word) for word in words):
         return True
 
@@ -133,32 +137,50 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     issues = []
 
+    # Check table compilation
+    compilation_func = ProvideData.get_item('compile_to_pdf_func')
+    file_stem, _ = filename.split('.')
+    with RegisteredRunContext.temporarily_disable_all(), \
+            PValue.allow_str.temporary_set(True):
+        latex = to_latex_with_note(df, None, *args, note=note, legend=legend, **kwargs)
+        e = compilation_func(latex, file_stem)
+
+    index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
+
     # Enforce index=True:
     if not index:
+        if index_is_range:
+            msg = 'Your current df index is just a numeric range range, so you will have to re-specify the index. ' \
+                  'If there is a column that should be the index, use `df.set_index(...)` to set it as the index.'
+        else:
+            msg = ''
         issues.append(RunIssue(
             code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
-            issue=f'Do not call `to_latex_with_note` with `index=False`.'
+            issue=f'Do not call `to_latex_with_note` with `index=False`. '
                   f'I want to be able to extract the row headers from the index.',
             instructions=dedent_triple_quote_str("""
                 Please revise the code making sure all tables are created with `index=True`, and that the index is \
                 meaningful.
-                """),
+                """) + msg,
         ))
     if issues:
         return issues
 
     # Check if index is just a range:
-    if index and [ind for ind in df.index] == list(range(df.shape[0])):
+    if index and index_is_range:
         issues.append(RunIssue(
             category='Index is just a range',
-            code_problem=CodeProblem.OutputFileDesignLevelB,
+            code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
             issue=f'The index of the table {filename} is just a range from 0 to {df.shape[0] - 1}.',
             instructions=dedent_triple_quote_str("""
                 Please revise the code making sure the index has meaningful row headers.
-                Or, if it should really be just a range, then convert it from int to strings, \
-                so that it is clear that it is not a mistake.
+                If the correct row headers are in a column, use df.set_index(...) to set the index to that column.
+                
+                Labeling row with sequential numbers is not common in scientific papers. 
+                Though, if you are sure that starting each row with a sequential number is really what you want, \
+                then convert it from int to strings, so that it is clear that it is not a mistake.
                 """),
         ))
 
@@ -166,10 +188,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Get all headers:
-    headers = extract_df_column_headers(df) | {df.columns.name}
-    if index:
-        headers = headers | extract_df_row_headers(df) | {df.index.name}
 
+    headers = extract_df_headers_and_values(df, index=index)
     headers = {header for header in headers if isinstance(header, str)}
 
     """
@@ -218,7 +238,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     category='P-value formatting',
                     code_problem=CodeProblem.RuntimeError,
                     item=filename,
-                    issue='P-values should be formatted with `format_p_value`',
+                    issue='P-values should be formatted with `format_p_value` before calling `to_latex_with_note`',
                     instructions=dedent_triple_quote_str(f"""
                         In particular, the dataframe should be formatted as:
                         `df = df.applymap(format_p_value)`
@@ -244,7 +264,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     item=filename,
                     issue='P-values should be formatted with `format_p_value`',
                     instructions=f'In particular, the p-value columns should be formatted as:\n'
-                                 f'`df[{p_value_columns}] = df[{p_value_columns}].apply(format_p_value)`',
+                                 f'`df[{repr(p_value_columns)}] = df[{repr(p_value_columns)}].apply(format_p_value)`',
                 ))
         # Check if there is a row which is all p-values:
         p_value_rows = []
@@ -264,7 +284,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     item=filename,
                     issue='P-values should be formatted with `format_p_value`',
                     instructions=f'In particular, the p-value rows should be formatted as:\n'
-                                 f'`df.loc[{p_value_rows}] = df.loc[{p_value_rows}].apply(format_p_value)`',
+                                 f'`df.loc[{repr(p_value_rows)}] = df.loc[{repr(p_value_rows)}].apply(format_p_value)`',
                 ))
 
         # Check if there is a p-value that is not formatted:
@@ -277,22 +297,18 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 if isinstance(v, PValue):
                     cells_with_p_value.append((row_header, column_header))
         if cells_with_p_value:
+            row, col = cells_with_p_value[0]
             raise RunUtilsError(
                 RunIssue(
                     category='P-value formatting',
                     code_problem=CodeProblem.RuntimeError,
                     item=filename,
                     issue='P-values should be formatted with `format_p_value`',
-                    instructions=f"In particular, the dataframe has P-value in the cells: {cells_with_p_value}",
+                    instructions=f"In particular, the dataframe has P-value in the cells: {cells_with_p_value}.\n"
+                                 f"Please format them using `format_p_value` "
+                                 f"(e.g., `df.loc[{repr(row)}, {repr(col)}] = "
+                                 f"format_p_value(df.loc[{repr(row)}, {repr(col)}]).",
                 ))
-
-    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
-
-    # Check table compilation
-    compilation_func = ProvideData.get_item('compile_to_pdf_func')
-    file_stem, _ = filename.split('.')
-    with RegisteredRunContext.temporarily_disable_all():
-        e = compilation_func(latex, file_stem)
 
     if not isinstance(e, float):
         issues.append(RunIssue(
@@ -320,8 +336,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:
             transpose_message = dedent_triple_quote_str("""\n
-                - Alternatively, consider completely transposing the table. \
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
+                - Alternatively, consider completely transposing the table. Use `df = df.T`.
                 """)
         else:
             transpose_message = ''
@@ -336,8 +351,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             drop_column_message = ''
         if index:
             index_note = dedent_triple_quote_str("""\n
-                - Rename the index to a shorter names. \
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.reset_index(inplace=False), ...)`
+                - Rename the index to a shorter names. Use `df.rename(index=...)`
                 """)
         else:
             index_note = ''
@@ -357,9 +371,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             instructions=dedent_triple_quote_str("""                
                 Please change the code to make the table narrower. Consider any of the following options:
 
-                - Rename columns to shorter names. \
-                Replace `to_latex_with_note(df, filename, ...)` with \
-                `to_latex_with_note(df.rename(columns=...), filename, ...)`
+                - Rename columns to shorter names. Use `df.rename(columns=...)`
                 """) + index_note + drop_column_message + transpose_message,
             code_problem=CodeProblem.OutputFileContentLevelC,
         ))
@@ -450,7 +462,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     issue=f'The table header "{header}" contains the character "{char}", which is not '
                           f'recommended for a scientific table.',
                     instructions=f'Please revise the code so that the table headers do not contain '
-                                 f'the "{char}" characters, possibly by replacing them with a space. '
+                                 f'the "{char}" characters, possibly by replacing them with a space, or a dash. '
                                  f'I do not want using "{char}" even not if properly latex escaped.',
                 ))
     if issues:
@@ -484,7 +496,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         ))
 
     # Check that the legend does not include any names that are not in the table
-    if legend:
+    if False:  # if legend:
         un_mentioned_names = [name for name in legend if name not in headers]
         if un_mentioned_names:
             issues.append(RunIssue(

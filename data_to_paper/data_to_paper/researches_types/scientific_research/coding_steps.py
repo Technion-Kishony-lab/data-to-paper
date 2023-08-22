@@ -814,9 +814,43 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         from my_utils import to_latex_with_note, format_p_value
 
         # PREPARATION FOR ALL TABLES
-        Write here any code needed for all tables, like custom functions, or common legend, etc.
-        Leave empty if not needed.
+        As needed, write here any common code for all tables, like custom functions, etc.
         
+        In particular, you can define here two common dictionaries:
+         
+        - `replace_map`: a shared mapping of abbreviated column or row names from any of the tables, to their \
+        full names:
+        
+        For example:
+        replace_map = {
+            'AvgAge': 'Avg. Age', 
+            'Age_Sex': 'Age * Sex',
+            'MethRes': 'MRSA',
+            'BT': 'Body Temperature',
+            'W': 'Weight',
+            ...
+            }
+        
+        - `shared_legend`: a mapping of any new (or just unmodified) column or row names that are not self-explanatory 
+        to their full names, explanation, and specification of units (if applicable).  
+        In particular, this is needed for clarifying:
+        (a) the full names for abbreviated or technical headers in any of the tables. 
+        For example: `{'Avg. Age': 'Average age, years'}`
+        (b) the meaning of any ordinal/categorical values that are not self-explanatory. 
+        For example: `{'Body Temperature': '1: Normal, 2: High, 3: Very High'}`
+        (c) the units of any numerical values.
+        For example: `{'Weight': 'Participant weight in kg'}`
+        
+        Therefore, a complete example of `shared_legend`, might look like this:
+        shared_legend = {
+            'Avg. Age': 'Average age, years',
+            'Body Temperature': '1: Normal, 2: High, 3: Very High'
+            'Age * Sex': 'Interaction term between Age and Sex',
+            'Weight': 'Participant weight in kg',
+            'MRSA': 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No',
+            ...
+            }
+
         # TABLE 1:
         df = pd.read_pickle('table_1.pkl')
 
@@ -834,12 +868,11 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, if you have a p-value column named "p-value", then use:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
-        - Column and Row Names:
+        - Column and Index Names:
         Rename technical names to scientifically-suitable names. To avoid confusion, do not use `df.columns = ...`, \
-        rather use `df = df.rename(columns=...)`.
-        For example:
-        `df = df.rename(columns={'AvgAge': 'Average Age', 'Age_Sex': 'Age * Sex Interaction'})`  
-        (or, if the table is too wide, use abbreviation: {'AvgAge': 'Avg. Age', 'Age_Sex': 'Age * Sex'})
+        or `df.index = ...`, rather use `df = df.rename(columns=..., index=...)`.
+        Since df.rename() is permissive (gracefully ignoring keys that are not in the specific dataframe), \
+        you should, ideally, just use: `df = df.rename(columns=replace_map, index=replace_map)`.
 
         # Save as latex:
         `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
@@ -852,13 +885,9 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         captured in the caption.
         For example, `note="Model results are based on a randomly sampled subset of 10% of the data"`
         
-        - `legend`: as needed, add a legend to clarify: 
-        (a) the full names for abbreviated or technical headers in the table. 
-        For example: `legend={'Avg. Age': 'Average age, years'}`
-        (b) the meaning of any ordinal/categorical values that are not self-explanatory. 
-        For example: `legend={'Body Temperature': '1: Normal, 2: High, 3: Very High'}`
-        (c) the units of any numerical values.
-        For example: `legend={'Weight': 'Weight in kg'}`
+        - `legend`: if needed, add a legend mapping any abbreviated column or row names to their full names.
+        to_latex_with_note is permissive (gracefully ignoring keys that are not in the specific dataframe), \
+        so if shared headers have the same meaning in all tables, you can just use: `legend=shared_legend`. 
 
         # TABLE 2:
         etc, for all 'table_?.pkl' files.

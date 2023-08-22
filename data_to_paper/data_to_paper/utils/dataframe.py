@@ -22,3 +22,10 @@ def extract_df_row_headers(df: DataFrame) -> Set:
 
 def extract_df_headers(df: DataFrame) -> Set:
     return extract_df_column_headers(df) | extract_df_row_headers(df)
+
+
+def extract_df_headers_and_values(df: DataFrame, index: bool = True) -> Set:
+    headers = extract_df_column_headers(df) | {df.columns.name}
+    if index:
+        headers = headers | extract_df_row_headers(df) | {df.index.name}
+    return headers

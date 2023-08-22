@@ -34,6 +34,7 @@ def test_to_latex_with_note(df_table):
     ('Avg. Education', False),
     ('Avg. Age', False),
     ('Coef.', False),
+    ('Diabetes (0=No, 1=Yes)', False),
 ])
 def test_is_unknown_abbreviation(phrase, expected):
     assert is_unknown_abbreviation(phrase) == expected
