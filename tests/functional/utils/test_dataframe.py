@@ -1,7 +1,8 @@
 import pandas as pd
 from _pytest.fixtures import fixture
 
-from data_to_paper.utils.dataframe import extract_df_headers
+from data_to_paper.utils.dataframe import extract_df_axes_labels
+
 
 @fixture
 def df():
@@ -22,9 +23,9 @@ def df():
 
 def test_extract_headers():
     df = pd.DataFrame([[1, 2], [3, 4]], columns=['A', 'B'], index=['X', 'Y'])
-    assert extract_df_headers(df) == {'A', 'B', 'X', 'Y'}
+    assert extract_df_axes_labels(df) == {'A', 'B', 'X', 'Y'}
 
 
 def test_extract_headers_from_multi_index(df):
-    assert extract_df_headers(df) == \
+    assert extract_df_axes_labels(df) == \
            {'A', 'B', 'cat', 'dog', 'white', 'black', 1, 2, 'X', 'Y', 'alpha', 'beta', 'gamma', 'delta'}

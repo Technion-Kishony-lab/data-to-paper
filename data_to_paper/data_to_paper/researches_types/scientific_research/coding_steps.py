@@ -818,7 +818,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         
         In particular, you can define here two common dictionaries:
          
-        - `replace_map`: a shared mapping of abbreviated column or row names from any of the tables, to their \
+        - `replace_map`: a shared mapping of abbreviated column or row labels from any of the tables, to their \
         full names:
         
         For example:
@@ -831,17 +831,20 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             ...
             }
         
-        - `shared_legend`: a mapping of any new (or just unmodified) column or row names that are not self-explanatory 
+        - `shared_legend`: a mapping of any new (or unmodified) column or row labels that are not self-explanatory 
         to their full names, explanation, and specification of units (if applicable).  
-        In particular, this is needed for clarifying:
-        (a) the full names for abbreviated or technical headers in any of the tables. 
+        In particular, this is should include row and column labels from any of the tables, \
+        that satisfy any of the following:
+        (a) abbreviated or technical label that needs clarification. 
         For example: `{'Avg. Age': 'Average age, years'}`
-        (b) the meaning of any ordinal/categorical values that are not self-explanatory. 
+        (b) labels of ordinal/categorical values that are not self-explanatory. 
         For example: `{'Body Temperature': '1: Normal, 2: High, 3: Very High'}`
-        (c) the units of any numerical values.
-        For example: `{'Weight': 'Participant weight in kg'}`
+        (c) labels of interaction terms.
+        For example: {'Age * Sex': 'Interaction term between Age and Sex'}
+        (d) labels of numeric values that have units.
+        For example: `{'Weight': 'Participant weight, kg'}`
         
-        Therefore, a complete example of `shared_legend`, might look like this:
+        Together, a complete example of `shared_legend`, might look like this:
         shared_legend = {
             'Avg. Age': 'Average age, years',
             'Body Temperature': '1: Normal, 2: High, 3: Very High'
@@ -868,8 +871,8 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, if you have a p-value column named "p-value", then use:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
-        - Column and Index Names:
-        Rename technical names to scientifically-suitable names. To avoid confusion, do not use `df.columns = ...`, \
+        - Column and Index Labels:
+        Rename technical labels to scientifically-suitable names. To avoid confusion, do not use `df.columns = ...`, \
         or `df.index = ...`, rather use `df = df.rename(columns=..., index=...)`.
         Since df.rename() is permissive (gracefully ignoring keys that are not in the specific dataframe), \
         you should, ideally, just use: `df = df.rename(columns=replace_map, index=replace_map)`.
@@ -885,7 +888,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         captured in the caption.
         For example, `note="Model results are based on a randomly sampled subset of 10% of the data"`
         
-        - `legend`: if needed, add a legend mapping any abbreviated column or row names to their full names.
+        - `legend`: if needed, add a legend mapping any abbreviated column or row labels to their full names.
         to_latex_with_note is permissive (gracefully ignoring keys that are not in the specific dataframe), \
         so if shared headers have the same meaning in all tables, you can just use: `legend=shared_legend`. 
 

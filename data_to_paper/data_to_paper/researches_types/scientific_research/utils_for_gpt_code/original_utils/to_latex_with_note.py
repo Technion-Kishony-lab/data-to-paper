@@ -4,7 +4,7 @@ from typing import Optional, Dict
 import pandas as pd
 
 from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_non_math_parts
-from data_to_paper.utils.dataframe import extract_df_headers_and_values
+from data_to_paper.utils.dataframe import extract_df_axes_labels
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
 \centering
@@ -55,13 +55,11 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     if note:
         note_and_legend.append(r'\item ' + replace_special_latex_chars(note))
     if legend:
-        headers = extract_df_headers_and_values(df, index=index)
+        axes_labels = extract_df_axes_labels(df, index=index)
         for key, value in legend.items():
-            if key in headers:
+            if key in axes_labels:
                 note_and_legend.append(r'\item \textbf{' + replace_special_latex_chars(key) +
                                        '}: ' + replace_special_latex_chars(value))
-            else:
-                print('WARNING: legend key "{}" is not a headers in the dataframe'.format(key))
     if len(note_and_legend) == 0:
         note_and_legend.append(r'\item ')  # add an empty item to avoid an error
 

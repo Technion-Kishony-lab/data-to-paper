@@ -4,28 +4,30 @@ import pandas as pd
 from pandas import DataFrame
 
 
-def extract_from_multiindex(multi_idx) -> Set:
+def _extract_from_multiindex(multi_idx) -> Set:
     return set(item for tuple_level in multi_idx for item in tuple_level)
 
 
-def extract_df_column_headers(df: DataFrame) -> Set:
+def extract_df_column_labels(df: DataFrame) -> Set:
     if isinstance(df.columns, pd.MultiIndex):
-        return extract_from_multiindex(df.columns.values)
+        return _extract_from_multiindex(df.columns.values)
     return set(df.columns)
 
 
-def extract_df_row_headers(df: DataFrame) -> Set:
+def extract_df_row_labels(df: DataFrame) -> Set:
     if isinstance(df.index, pd.MultiIndex):
-        return extract_from_multiindex(df.index.values)
+        return _extract_from_multiindex(df.index.values)
     return set(df.index)
 
 
-def extract_df_headers(df: DataFrame) -> Set:
-    return extract_df_column_headers(df) | extract_df_row_headers(df)
-
-
-def extract_df_headers_and_values(df: DataFrame, index: bool = True) -> Set:
-    headers = extract_df_column_headers(df) | {df.columns.name}
+def extract_df_axes_labels(df: DataFrame, index: bool = True, header: bool = True, with_title: bool = True) -> Set:
+    axes_labels = {}
+    if header:
+        axes_labels = extract_df_column_labels(df)
+        if with_title:
+            axes_labels |= {df.columns.name}
     if index:
-        headers = headers | extract_df_row_headers(df) | {df.index.name}
-    return headers
+        axes_labels |= extract_df_row_labels(df)
+        if with_title:
+            axes_labels |= {df.index.name}
+    return axes_labels

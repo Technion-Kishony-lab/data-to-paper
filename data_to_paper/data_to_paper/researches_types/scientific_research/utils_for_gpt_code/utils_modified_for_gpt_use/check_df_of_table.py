@@ -74,8 +74,8 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
         return issues
 
     # Check if the table is a df.describe() table
-    description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
-    if set(description_headers).issubset(columns) or set(description_headers).issubset(df.index):
+    description_labels = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
+    if set(description_labels).issubset(columns) or set(description_labels).issubset(df.index):
         issues.append(RunIssue(
             category='Quantiles and min/max values should not be included in scientific tables',
             code_problem=CodeProblem.OutputFileContentLevelA,

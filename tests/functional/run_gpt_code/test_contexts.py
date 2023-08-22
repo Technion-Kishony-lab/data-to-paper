@@ -1,5 +1,4 @@
 import os
-from dataclasses import dataclass
 
 from _pytest.python_api import raises
 
