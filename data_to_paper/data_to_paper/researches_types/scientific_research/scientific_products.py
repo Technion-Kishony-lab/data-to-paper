@@ -394,6 +394,18 @@ class ScientificProducts(Products):
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
 
+            'created_files_content:{}:{}': NameDescriptionStageGenerator(
+                'Content of Files Created by the {code_name} Code',
+                'Here is the content of {which_files} created by the {code_name} code:\n\n{created_files_content}',
+                lambda code_step, filespec: get_code_stage(code_step),
+                lambda code_step, filespec: {
+                    'created_files_content':
+                        self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
+                            match_filename=filespec),
+                    'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
+                    'code_name': self.codes_and_outputs[code_step].name},
+            ),
+
             'created_files_description:{}': NameDescriptionStageGenerator(
                 'Description of Files Created by the {code_name} Code',
                 'We can use these files created by the {code_name} code:\n\n{created_files_description}',

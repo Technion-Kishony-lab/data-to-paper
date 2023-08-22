@@ -16,12 +16,6 @@ from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind, SelfResponseError
 
-EXTS_TO_LABELS = {
-    '.tex': 'latex',
-    '.txt': 'output',
-    '.csv': 'csv',
-}
-
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
@@ -112,14 +106,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             return f'It creates the files: {list(created_files)}.'
 
     def get_created_file_contents_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
-        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=True)
-        if len(files_to_contents) == 0:
+        description = code_and_output.created_files.get_created_content_files_description()
+        if len(description) == 0:
             return None
-        s = 'Here is the content of the output file(s) that the code created:\n'
-        for filename, content in files_to_contents.items():
-            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
-            s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
-        return s
+        return f'Here is the content of the output file(s) that the code created:\n\n{description}'
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
         return {}

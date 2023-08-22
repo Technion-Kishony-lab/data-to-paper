@@ -750,9 +750,10 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     headers_required_in_code: Tuple[str, ...] = ()
 
     background_product_fields: Tuple[str, ...] = \
-        ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis')
+        ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
+         'created_files_content:data_analysis:table_?.pkl')
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
-        ('research_goal', 'codes:data_preprocessing')
+        ('research_goal', 'codes:data_preprocessing', 'created_files_content:data_analysis:*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
@@ -767,7 +768,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        I would like to create latex tables for our scientific paper, from the dataframes created \
+        I would like to create latex tables for our scientific paper from the dataframes created \
         in the code above ("table_?.pkl" files). 
 
         I would like to convert these dataframes to latex tables, using a custom function I wrote: 

@@ -25,6 +25,12 @@ if TYPE_CHECKING:
 MODULE_NAME = 'script_to_run'
 module_filename = MODULE_NAME + ".py"
 
+EXTS_TO_LABELS = {
+    '.tex': 'latex',
+    '.txt': 'output',
+    '.csv': 'csv',
+}
+
 
 class CodeProblem(IndexOrderedEnum):
     """
@@ -354,22 +360,30 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
         """
         return [filename for filenames_to_contents in self.values() for filename in filenames_to_contents.keys()]
 
-    def get_created_content_files(self) -> List[str]:
+    def get_created_content_files(self, match_filename: str = '*') -> List[str]:
         """
         Return the names of the files created by the run, for which we collected the content.
         """
         return [filename for requirement, files_to_contents in self.items()
                 for filename in files_to_contents.keys()
-                if isinstance(requirement, BaseContentOutputFileRequirement)]
+                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
 
-    def get_created_content_files_to_contents(self, is_clean: bool = True) -> Dict[str, str]:
+    def get_created_content_files_to_contents(self, is_clean: bool = True, match_filename: str = '*') -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content.
         """
         return {filename: requirement.get_pretty_content(content) if is_clean else content
                 for requirement, files_to_contents in self.items()
                 for filename, content in files_to_contents.items()
-                if isinstance(requirement, BaseContentOutputFileRequirement)}
+                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)}
+
+    def get_created_content_files_description(self, match_filename: str = '*'):
+        files_to_contents = self.get_created_content_files_to_contents(is_clean=True, match_filename=match_filename)
+        s = ''
+        for filename, content in files_to_contents.items():
+            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
+            s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
+        return s
 
     def get_single_output(self, is_clean: bool = True) -> Optional[str]:
         """
@@ -380,12 +394,13 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
             return None
         return self.get_created_content_files_to_contents(is_clean)[single_content_filename]
 
-    def get_created_data_files(self) -> List[str]:
+    def get_created_data_files(self, match_filename: str = '*') -> List[str]:
         """
         Return the names of the files created by the run, and which were kept, not deleted.
         """
         return [filename for requirement, files_to_contents in self.items()
-                for filename in files_to_contents.keys() if requirement.should_keep_file]
+                for filename in files_to_contents.keys() if
+                requirement.should_keep_file and fnmatch(filename, match_filename)]
 
     def delete_all_created_files(self, run_folder: Optional[Path] = None):
         """
