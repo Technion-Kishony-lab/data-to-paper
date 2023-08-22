@@ -747,7 +747,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 @dataclass
 class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
-    headers_required_in_code: Tuple[str, ...] = ()
+    headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
 
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
@@ -784,26 +784,22 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Please write a complete Python code that uses the above function to convert our dataframe Tables \
         to latex tables suitable for our scientific paper.
 
-        The code should follow this structure:
-
+        The code must have the following sections (with these exact capitalized headers):
+        
         # IMPORT
         import pandas as pd
         from my_utils import to_latex_with_note, format_p_value
 
-        # CREATE LATEX TABLES
-        For each of the table dataframe files created above (table_?.pkl), \
-        create a latex table and save it to a tex following this structure:
-
-        # Table 1:
+        # PREPARATION FOR ALL TABLES
+        Write here any code needed for all tables, like custom functions, or common legend, etc.
+        Leave empty if not needed.
+        
+        # TABLE 1:
         df = pd.read_pickle('table_1.pkl')
 
-        # Styling the dataframe:
+        # Re-style the dataframe
+         
         Re-style the dataframe to make it suitable for a scientific paper: 
-
-        - Columns and Row Headers:
-        Rename technical names to scientifically-suitable names.
-        For example:
-        `df = df.rename(columns={'<technical column name>': '<scientific column name>'})`
 
         - Values:
         Rename technical values to scientifically-suitable values \
@@ -815,27 +811,33 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, if you have a p-value column named "p-value", then use:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
+        - Column and Row Names:
+        Rename technical names to scientifically-suitable names. To avoid confusion, do not use `df.columns = ...`, \
+        rather use `df = df.rename(columns=...)`.
+        For example:
+        `df = df.rename(columns={'AvgAge': 'Average Age', 'Age_Sex': 'Age * Sex Interaction'})`  
+        (or, if the table is too wide, use abbreviation: {'AvgAge': 'Avg. Age', 'Age_Sex': 'Age * Sex'})
+
         # Save as latex:
         `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
 
-        - Add a caption suitable for inclusion as part of a scientific paper \
-        `to_latex_with_note(..., caption=<caption here>)`
+        - `caption`: add a caption suitable for inclusion as part of a scientific paper.
         
-        - Add a table label, `to_latex_with_note(..., label="table:<your label here>")`
+        - `label`: add a table label in the format "table:<your label here>".
         
-        - As needed, add a note at the end of the table, with any additional context, \
-        `to_latex_with_note(..., note=<your note here>)`
-        For example, note="The analysis is based on a total of <xxx> observations".
+        - `note`: if needed, add a note to provide any additional context that is not \
+        captured in the caption.
+        For example, `note="Model results are based on a randomly sampled subset of 10% of the data"`
         
-        - As needed, add a legend to clarify: 
+        - `legend`: as needed, add a legend to clarify: 
         (a) the full names for abbreviated or technical headers in the table. 
-        For example: `legend={'DisSever': 'Severity of the disease'}`
-        (b) the meaning of any ordinal values, or categorical values that are not self-explanatory. 
+        For example: `legend={'Avg. Age': 'Average age, years'}`
+        (b) the meaning of any ordinal/categorical values that are not self-explanatory. 
         For example: `legend={'Body Temperature': '1: Normal, 2: High, 3: Very High'}`
         (c) the units of any numerical values.
         For example: `legend={'Weight': 'Weight in kg'}`
 
-        # Table 2:
+        # TABLE 2:
         etc, for all 'table_?.pkl' files.
 
 
@@ -846,6 +848,11 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.headers_required_in_code += tuple(f'# TABLE {i + 1}'
+                                               for i in range(self.products.get_number_of_created_df_tables()))
 
 
 @dataclass
