@@ -167,7 +167,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         contain a summary of the data.
 
         The output file should be self-contained; any results you choose to save to this file \
-        should be accompanied with a header or a short label and indication of units (if any).
+        should be accompanied with a short header.
 
         The output file should be formatted as follows:
 
@@ -208,7 +208,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file? In particular, do we have a short label for each result?
-        * Do all numeric values have units (if applicable).
         * Are there any results that are missing. Check that under each header in the output file there is \
         a corresponding meaningful result.
         * Any other issues you find.
@@ -220,9 +219,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         ```python
         {
             "The result of the average of variable ... is missing": \
-            "Add the missing calculation of to the code.",
-            "The average of the variable ... is printed without units": \
-            "Based on the data description, the units should be ...",
+            "Add the missing calculation of ... to the code.",
+            "The average of the variable <xxx> is `Nan`": \
+            "Remove missing values in the calculation."
         }
         ```
 
@@ -685,11 +684,11 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
 
         # ANALYSIS 
-        Perform the analysis and appropriate statistical tests \
-        (see above our "{hypothesis_testing_plan}").
-        The statistical analysis should account for any relevant confounding variables, as applicable. 
-        Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
-        Note that you may need to perform more than one test for each hypothesis.
+        - Perform the analysis and appropriate statistical tests (see above our "{hypothesis_testing_plan}").
+        - The statistical analysis should account for any relevant confounding variables, as applicable.
+        - Try using inherent functionality and syntax provided in functions from the available \
+        Python packages (above) and avoid, as possible, manually implementing generically available functionality. 
+        - Note that you may need to perform more than one test for each hypothesis.
 
 
         # CREATE DATAFRAMES FOR TABLES
