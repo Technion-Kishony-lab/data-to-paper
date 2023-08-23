@@ -172,7 +172,11 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                     print_red(f"ERROR: embedding is not in the expected format. skipping."
                               f"Title: {paper.get('title', None)}")
                     continue
-            citations.append(SemanticCitation(paper, search_rank=rank, query=query))
+            citation = SemanticCitation(paper, search_rank=rank, query=query)
+            if len(citation.bibtex_id) <= 4:
+                print_red(f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}")
+                continue
+            citations.append(citation)
         return citations
 
 
