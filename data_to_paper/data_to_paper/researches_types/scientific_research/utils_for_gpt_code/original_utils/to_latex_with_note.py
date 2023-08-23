@@ -4,6 +4,7 @@ from typing import Optional, Dict
 import pandas as pd
 
 from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_non_math_parts
+from data_to_paper.run_gpt_code.overrides.utils import round_floats
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 
 THREEPARTTABLE = r"""\begin{table}[htbp]
@@ -39,6 +40,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
                        note: str = None,
                        legend: Dict[str, str] = None,
                        is_wide: bool = True,
+                       float_num_digits: int = 4,
                        **kwargs):
     """
     Create a latex table with a note.
@@ -68,6 +70,9 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
         .replace('<caption>\n', caption) \
         .replace('<label>\n', label) \
         .replace('<note_and_legend>', '\n'.join(note_and_legend))
+
+    if float_num_digits is not None:
+        latex = round_floats(latex, float_num_digits)
 
     if filename is not None:
         with open(filename, 'w') as f:

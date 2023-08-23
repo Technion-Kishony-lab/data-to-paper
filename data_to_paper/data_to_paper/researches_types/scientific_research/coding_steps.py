@@ -610,11 +610,13 @@ class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequiremen
             return super().get_pretty_content(content)
 
 
-class DataFramePickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement):
+class DataFramePickleContentOutputFileRequirement(NumericTextContentOutputFileRequirement,
+                                                  PickleContentOutputFileRequirement,
+                                                  ):
 
     def get_pretty_content(self, content: DataFrame) -> str:
         with PValue.allow_str.temporary_set(True):
-            return content.to_string()
+            return super().get_pretty_content(content.to_string())
 
 
 class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement,

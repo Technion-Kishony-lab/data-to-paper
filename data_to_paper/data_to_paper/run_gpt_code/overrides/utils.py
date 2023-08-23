@@ -14,7 +14,12 @@ def round_floats(text, target_precision=4, source_precision=10):
             return num_str
 
         value = float(num_str)
-        return f'{value:.{target_precision}g}'
+        formatted_str = f'{value:.{target_precision}g}'
+
+        # pad with spaces to match the length of the original string
+        if len(formatted_str) < len(num_str):
+            formatted_str = formatted_str.ljust(len(num_str))
+        return formatted_str
 
     # This regex matches any floating point number or number in scientific notation
     pattern = r'[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?'

@@ -138,12 +138,19 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     issues = []
 
     # Check table compilation
-    compilation_func = ProvideData.get_item('compile_to_pdf_func')
+    try:
+        compilation_func = ProvideData.get_item('compile_to_pdf_func')
+    except RuntimeError:
+        compilation_func = None
+
     file_stem, _ = filename.split('.')
     with RegisteredRunContext.temporarily_disable_all(), \
             PValue.allow_str.temporary_set(True):
         latex = to_latex_with_note(df, None, *args, note=note, legend=legend, **kwargs)
-        e = compilation_func(latex, file_stem)
+        if compilation_func is None:
+            e = 0
+        else:
+            e = compilation_func(latex, file_stem)
 
     index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
 
@@ -184,7 +191,11 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     for icol in range(df.shape[1]):
         column_label = df.columns[icol]
         data = df.iloc[:, icol]
-        if len(data.unique()) == 1 and len(data) > 5:
+        try:
+            data_unique = data.unique()
+        except:
+            data_unique = None
+        if data_unique is not None and len(data_unique) == 1 and len(data) > 5:
             data0 = data.iloc[0]
             # check if the value is a number
             if not isinstance(data0, (int, float)):
