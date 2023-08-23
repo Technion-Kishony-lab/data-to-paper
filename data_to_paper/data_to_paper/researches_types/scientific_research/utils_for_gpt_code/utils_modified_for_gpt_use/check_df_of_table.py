@@ -29,6 +29,23 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
 
     issues = []
 
+    # Check if index is just a range:
+    index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
+    if index_is_range:
+        issues.append(RunIssue(
+            category='Index is just a numeric range',
+            code_problem=CodeProblem.OutputFileDesignLevelA,
+            item=filename,
+            issue=f'The index of the table {filename} is just a range from 0 to {df.shape[0] - 1}.',
+            instructions=dedent_triple_quote_str("""
+                Please revise the code making sure the table is built with an index that has meaningful row labels.
+
+                Labeling row with sequential numbers is not common in scientific tables. 
+                Though, if you are sure that starting each row with a sequential number is really what you want, \
+                then convert it from int to strings, so that it is clear that it is not a mistake.
+                """),
+        ))
+
     # Check filename:
     if not re.match(pattern=r'^table_(\d+).pkl$', string=filename):
         issues.append(RunIssue(

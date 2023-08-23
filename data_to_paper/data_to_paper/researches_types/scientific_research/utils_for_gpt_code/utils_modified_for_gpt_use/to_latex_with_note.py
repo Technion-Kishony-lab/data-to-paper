@@ -167,23 +167,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
-    # Check if index is just a range:
-    if index and index_is_range:
-        issues.append(RunIssue(
-            category='Index is just a range',
-            code_problem=CodeProblem.OutputFileDesignLevelA,
-            item=filename,
-            issue=f'The index of the table {filename} is just a range from 0 to {df.shape[0] - 1}.',
-            instructions=dedent_triple_quote_str("""
-                Please revise the code making sure the index has meaningful row labels.
-                If the correct row labels are in a column, use df.set_index(...) to set the index to that column.
-                
-                Labeling row with sequential numbers is not common in scientific papers. 
-                Though, if you are sure that starting each row with a sequential number is really what you want, \
-                then convert it from int to strings, so that it is clear that it is not a mistake.
-                """),
-        ))
-
     if issues:
         return issues
 
@@ -495,7 +478,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         ))
 
     # Check that the legend does not include any labels that are not in the table
-    if False:  # if legend:
+    if legend:
         un_mentioned_labels = [label for label in legend if label not in axes_labels]
         if un_mentioned_labels:
             issues.append(RunIssue(

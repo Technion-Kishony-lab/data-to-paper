@@ -501,7 +501,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         [c] P-values:
         If you are reporting P-values of statistical tests, convert them using the provided `format_p_value` func.
-        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
+        This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
         For example, if you have a p-value column named "p-value", then:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
@@ -751,9 +751,9 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
     def _raise_exception(self, attr, value):
         raise RunUtilsError(RunIssue(
-            issue=f"To avoid mistakes, please do not directly assign to '{attr}' (to avoid mistake).",
+            issue=f"To avoid mistakes, please do not directly assign to '{attr}'.",
             code_problem=CodeProblem.NonBreakingRuntimeIssue,
-            instructions=f'Use instead `df = df.rename({attr}=<mapping>)`',
+            instructions=f'Use instead `df.rename({attr}=<mapping>, inplace=True)`',
         ))
 
 
@@ -809,76 +809,61 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
         The code must have the following sections (with these exact capitalized headers):
         
+        Imports:
+        ```python
         # IMPORT
+        from typing import Dict, Tuple, Optional
         import pandas as pd
         from my_utils import to_latex_with_note, format_p_value
-
+        ```
+        
+        Common code for all tables, like custom functions, etc.
+        ```python
         # PREPARATION FOR ALL TABLES
-        As needed, write here any common code for all tables, like custom functions, etc.
+        def separate_dict(d: Dict[str, Tuple[Optional[str], Optional[str]]]):
+            common_rename = {name: new_name for name, (new_name, legend) in d.items() if new_name is not None}`
+            common_legend = {new_name or name: legend for name, (new_name, legend) in d.items() \
+        if legend is not None}`
+            return common_rename, common_legend
+        ```
         
-        In particular, you can define here two common dictionaries:
-         
-        - `replace_map`: a shared mapping of abbreviated column or row labels from any of the tables, to their \
-        full names:
-        
-        For example:
-        replace_map = {
-            'AvgAge': 'Avg. Age', 
-            'Age_Sex': 'Age * Sex',
-            'MethRes': 'MRSA',
-            'BT': 'Body Temperature',
-            'W': 'Weight',
-            ...
-            }
-        
-        - `shared_legend`: a mapping of any new (or unmodified) column or row labels that are not self-explanatory 
-        to their full names, explanation, and specification of units (if applicable).  
-        In particular, this is should include row and column labels from any of the tables, \
-        that satisfy any of the following:
-        (a) abbreviated or technical label that needs clarification. 
-        For example: `{'Avg. Age': 'Average age, years'}`
-        (b) labels of ordinal/categorical values that are not self-explanatory. 
-        For example: `{'Body Temperature': '1: Normal, 2: High, 3: Very High'}`
-        (c) labels of interaction terms.
-        For example: {'Age * Sex': 'Interaction term between Age and Sex'}
-        (d) labels of numeric values that have units.
-        For example: `{'Weight': 'Participant weight, kg'}`
-        
-        Together, a complete example of `shared_legend`, might look like this:
-        shared_legend = {
-            'Avg. Age': 'Average age, years',
-            'Body Temperature': '1: Normal, 2: High, 3: Very High'
-            'Age * Sex': 'Interaction term between Age and Sex',
-            'Weight': 'Participant weight in kg',
-            'MRSA': 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No',
-            ...
-            }
-
+        Code for re-styling and saving each table:
+        ```python
         # TABLE 1:
         df = pd.read_pickle('table_1.pkl')
+        
+        # Format values (if needed)
+        ...
 
-        # Re-style the dataframe
-         
-        Re-style the dataframe to make it suitable for a scientific paper: 
-
-        - Values:
+        # Format P-Values (if any)
+        ...
+        
+        # Rename column and index labels (if needed)
+        
+        full_map = ...
+        rename_map, legend_map = separate_dict(full_map)
+        df = df.rename(columns=rename_map, index=rename_map)
+        
+        # Save as latex:
+        to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', legend=legend_map, ...)
+        ```
+        
+        - Format values (if needed):
         Rename technical values to scientifically-suitable values \
         (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
 
-        - P-values:
+        - Format P-Values (if any):
         If the table includes P-values of statistical tests, convert them using the provided `format_p_value` func.
         This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
         For example, if you have a p-value column named "p-value", then use:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
-        - Column and Index Labels:
+        - Rename column and index labels (if needed):
         Rename technical labels to scientifically-suitable names. To avoid confusion, do not use `df.columns = ...`, \
         or `df.index = ...`, rather use `df = df.rename(columns=..., index=...)`.
-        Since df.rename() is permissive (gracefully ignoring keys that are not in the specific dataframe), \
-        you should, ideally, just use: `df = df.rename(columns=replace_map, index=replace_map)`.
 
-        # Save as latex:
-        `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
+        - Save as latex:
+        use `to_latex_with_note` with the following arguments:
 
         - `caption`: add a caption suitable for inclusion as part of a scientific paper.
         
@@ -889,11 +874,41 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, `note="Model results are based on a randomly sampled subset of 10% of the data"`
         
         - `legend`: if needed, add a legend mapping any abbreviated column or row labels to their full names.
-        to_latex_with_note is permissive (gracefully ignoring keys that are not in the specific dataframe), \
-        so if shared headers have the same meaning in all tables, you can just use: `legend=shared_legend`. 
 
+        To avoid re-naming confusion, I strongly suggest you define for each table a dictionary, \
+        `full_map: Dict[str, Tuple[Optional[str], Optional[str]]`, mapping column and row labels \
+        that are not self-explanatory to an optional new name, and optional legend.
+        
+        new name: You should provide a new name to any column or row label that is abbreviated \
+        or technical, or that is otherwise not self-explanatory.
+        
+        legend: You should provide a legend for any label that that satisfy any of the following:
+        (a) a label that, even after renaming, remains abbreviated and need clarification. 
+        For example: `{'AvgAge': ('Avg. Age', 'Average age, years')}`
+        (b) labels of ordinal/categorical values that require clarification of the meaning of each value. 
+        For example: `{'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High')}`
+        (c) labels containing possibly unclear notation, like '*' or ':'.
+        For example: {'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex')}
+        (d) labels of numeric values that have units.
+        For example: `{'W': ('Weight': 'Participant weight, kg')}`
+        
+                
+        Together, a complete example of `full_map`, might look like this:
+        full_map = {
+            'AvgAge': ('Avg. Age', 'Average age, years'),
+            'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
+            'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
+            'W': ('Weight': 'Participant weight, kg'),
+            'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
+            'PV': ('P-value', None),
+            ...
+            }
+        
+        ```python
         # TABLE 2:
-        etc, for all 'table_?.pkl' files.
+        # <etc, for all 'table_?.pkl' files>
+        ```
+        
 
 
         Avoid the following:
