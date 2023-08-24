@@ -795,123 +795,103 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         I would like to create latex tables for our scientific paper from the dataframes created \
         in the code above ("table_?.pkl" files). 
 
-        I would like to convert these dataframes to latex tables, using a custom function I wrote: 
+        I would like to convert these dataframes to latex tables, using two custom functions I wrote: 
 
         `to_latex_with_note(df, filename: str, caption: str, label: str, \
         note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
         This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
         and allows adding below the table an optional note (if `note` is provided) as well as an optional \
-        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
-
-
-        Please write a complete Python code that uses the above function to convert our dataframe Tables \
-        to latex tables suitable for our scientific paper.
-
-        The code must have the following sections (with these exact capitalized headers):
+        legend mapping any abbreviated column or row names to their definitions (if `legend` is provided).
         
-        Imports:
-        ```python
+        `format_p_value(x)`
+        This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
+        
+        
+        Please write a complete Python code that uses the above functions to convert our dataframes \
+        to latex tables suitable for our scientific paper. Follow these instructions:
+        
+        Column and row names: You should provide a new name to any column or row label that is abbreviated \
+        or technical, or that is otherwise not self-explanatory.
+        
+        Definitions: You should provide an optional full definition for any name (or new name) that 
+        that satisfies any of the following: 
+        - Remains abbreviated, or not self-explanatory, even after renaming
+        - Is an ordinal/categorical value that requires clarification of the meaning of each value.
+        - Contains possibly unclear notation, like '*' or ':'
+        - Is a numeric value that has units, that need to be specified.        
+        
+        To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \
+        `mapping: Dict[str, Tuple[Optional[str], Optional[str]]`, which maps column and row labels \
+        that are abbreviated or not self-explanatory to an optional new name, and an optional definition.
+        If different tables share several common labels, then you can build these table-specific mappings \
+        from a general `shared_mapping`. See example below.
+        
+        Overall, the code must have the following structure:
+        
+        ```
         # IMPORT
-        from typing import Dict, Tuple, Optional
         import pandas as pd
+        from typing import Dict, Tuple, Optional
         from my_utils import to_latex_with_note, format_p_value
-        ```
         
-        Common code for all tables, like custom functions, etc.
-        ```python
+        Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
+        
+        
         # PREPARATION FOR ALL TABLES
-        def separate_dict(d: Dict[str, Tuple[Optional[str], Optional[str]]]):
-            common_rename = {name: new_name for name, (new_name, legend) in d.items() if new_name is not None}`
-            common_legend = {new_name or name: legend for name, (new_name, legend) in d.items() \
-        if legend is not None}`
-            return common_rename, common_legend
-        ```
+        def split_mapping(d: Mapping):
+            abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
+            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
+            return abbrs_to_names, names_to_definitions
         
-        Code for re-styling and saving each table:
-        ```python
+        
+        < As applicable, define a shared mapping for labels that are common to all tables. For example: >
+        
+        shared_mapping: Mapping = {
+            'AvgAge': ('Avg. Age', 'Average age, years'),
+            'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
+            'W': ('Weight', 'Participant weight, kg'),
+            'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
+            ...: (..., ...),
+        }
+        < This is of course just an example. Consult with the "{data_file_descriptions}" \
+        and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \
+        and definitions. >
+        
         # TABLE 1:
         df = pd.read_pickle('table_1.pkl')
         
-        # Format values (if needed)
-        ...
-
-        # Format P-Values (if any)
-        ...
+        # FORMAT VALUES <include this sub-section only as applicable>
+        < Rename technical values to scientifically-suitable values. For example: >
+        df['MRSA'] = df['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
         
-        # Rename column and index labels (if needed)
+        < If the table has P-values from statistical tests, format them with `format_p_value`. For example: >
+        df['PV'] = df['PV'].apply(format_p_value)
         
-        full_map = ...
-        rename_map, legend_map = separate_dict(full_map)
-        df = df.rename(columns=rename_map, index=rename_map)
+        # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
+        < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
+        < Use the `shared_mapping` if applicable. For example: >
+        mapping = shared_mapping | {
+            'PV': ('P-value', None),
+            'CI': (None, '95% Confidence Interval'),
+            'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
+        }
+        abbrs_to_names, legend = split_mapping(mapping)
+        df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
         
         # Save as latex:
-        to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', legend=legend_map, ...)
-        ```
+        to_latex_with_note(
+            df, 'table_1.tex',
+            caption="<choose a caption suitable for a table in a scientific paper>", 
+            label='table:<chosen table label>',
+            note="<If needed, add a note to provide any additional information that is not captured in the caption>",
+            legend=legend)
         
-        - Format values (if needed):
-        Rename technical values to scientifically-suitable values \
-        (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
-
-        - Format P-Values (if any):
-        If the table includes P-values of statistical tests, convert them using the provided `format_p_value` func.
-        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
-        For example, if you have a p-value column named "p-value", then use:
-        `df['p-value'] = df['p-value'].apply(format_p_value)`
-
-        - Rename column and index labels (if needed):
-        Rename technical labels to scientifically-suitable names. To avoid confusion, do not use `df.columns = ...`, \
-        or `df.index = ...`, rather use `df = df.rename(columns=..., index=...)`.
-
-        - Save as latex:
-        use `to_latex_with_note` with the following arguments:
-
-        - `caption`: add a caption suitable for inclusion as part of a scientific paper.
         
-        - `label`: add a table label in the format "table:<your label here>".
-        
-        - `note`: if needed, add a note to provide any additional context that is not \
-        captured in the caption.
-        For example, `note="Model results are based on a randomly sampled subset of 10% of the data"`
-        
-        - `legend`: if needed, add a legend mapping any abbreviated column or row labels to their full names.
-
-        To avoid re-naming confusion, I strongly suggest you define for each table a dictionary, \
-        `full_map: Dict[str, Tuple[Optional[str], Optional[str]]`, mapping column and row labels \
-        that are not self-explanatory to an optional new name, and optional legend.
-        
-        new name: You should provide a new name to any column or row label that is abbreviated \
-        or technical, or that is otherwise not self-explanatory.
-        
-        legend: You should provide a legend for any label that that satisfy any of the following:
-        (a) a label that, even after renaming, remains abbreviated and need clarification. 
-        For example: `{'AvgAge': ('Avg. Age', 'Average age, years')}`
-        (b) labels of ordinal/categorical values that require clarification of the meaning of each value. 
-        For example: `{'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High')}`
-        (c) labels containing possibly unclear notation, like '*' or ':'.
-        For example: {'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex')}
-        (d) labels of numeric values that have units.
-        For example: `{'W': ('Weight': 'Participant weight, kg')}`
-        
-                
-        Together, a complete example of `full_map`, might look like this:
-        full_map = {
-            'AvgAge': ('Avg. Age', 'Average age, years'),
-            'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
-            'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
-            'W': ('Weight': 'Participant weight, kg'),
-            'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
-            'PV': ('P-value', None),
-            ...
-            }
-        
-        ```python
         # TABLE 2:
-        # <etc, for all 'table_?.pkl' files>
+        < etc, all 'table_?.pkl' files >
         ```
         
-
-
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
         Do not create any graphics, figures or any plots.
