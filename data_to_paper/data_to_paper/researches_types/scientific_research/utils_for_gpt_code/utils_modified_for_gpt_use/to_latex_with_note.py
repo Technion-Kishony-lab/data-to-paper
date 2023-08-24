@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.env import TRACK_P_VALUES
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
@@ -225,7 +225,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     # Check P-value formatting
     if TRACK_P_VALUES:
         # Check if the entire table is p-values:
-        if sum(isinstance(v, PValue) for v in df.values.flatten()) > 1 \
+        if sum(is_p_value(v) for v in df.values.flatten()) > 1 \
                 and all(is_ok_to_apply_format_p_value(v) for v in df.values.flatten()):
             raise RunUtilsError(
                 RunIssue(
@@ -244,7 +244,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         for icol in range(df.shape[1]):
             column_label = df.columns[icol]
             data = df.iloc[:, icol]
-            if any(isinstance(v, PValue) for v in data) \
+            if any(is_p_value(v) for v in data) \
                     and all(is_ok_to_apply_format_p_value(v) for v in data):
                 p_value_columns.append(column_label)
         if p_value_columns:
@@ -264,7 +264,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         for irow in range(df.shape[0]):
             row_label = df.index[irow]
             data = df.iloc[irow, :]
-            if any(isinstance(v, PValue) for v in data) \
+            if any(is_p_value(v) for v in data) \
                     and all(is_ok_to_apply_format_p_value(v) for v in data):
                 p_value_rows.append(row_label)
         if p_value_rows:
@@ -287,7 +287,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             for icol in range(df.shape[1]):
                 column_label = df.columns[icol]
                 v = df.iloc[irow, icol]
-                if isinstance(v, PValue):
+                if is_p_value(v):
                     cells_with_p_value.append((row_label, column_label))
         if cells_with_p_value:
             row, col = cells_with_p_value[0]

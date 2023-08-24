@@ -1,4 +1,4 @@
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
 from data_to_paper.env import TRACK_P_VALUES
 
@@ -12,7 +12,7 @@ def _format_p_value(x):
     """
     if TRACK_P_VALUES:
         _check_argument_for_format_p_value(x)
-        return format_p_value(x.value if isinstance(x, PValue) else x)
+        return format_p_value(x.value if is_p_value(x) else x)
     else:
         return format_p_value(x)
 
@@ -21,10 +21,10 @@ def _check_argument_for_format_p_value(x):
     if isinstance(x, str) and x == '-' or x == 'NA':
         return
 
-    if not isinstance(x, PValue) and not isinstance(x, float):
+    if not is_p_value(x) and not isinstance(x, float):
         raise ValueError(f"format_p_value should only be applied to P-value float.\n"
                          f"But got type: {type(x)}, value: {repr(x)}.")
-    if not isinstance(x, PValue):
+    if not is_p_value(x):
         raise RunUtilsError(
             RunIssue(
                 code_problem=CodeProblem.RuntimeError,

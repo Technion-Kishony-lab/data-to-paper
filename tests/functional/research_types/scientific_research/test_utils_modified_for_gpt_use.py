@@ -5,7 +5,7 @@ from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils
     _check_for_table_style_issues
 from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.run_gpt_code.types import RunUtilsError
 from data_to_paper.utils.file_utils import run_in_directory
 
@@ -26,7 +26,7 @@ def test_to_pickle_with_checks_with_pvalue_runs_ok(tmpdir):
             df.to_pickle('test.csv')
             df2 = pd.read_pickle('test.csv')
             assert df.equals(df2)
-            assert isinstance(df2['a'][1], PValue)
+            assert is_p_value(df2['a'][1])
 
 
 def test_to_pickle_with_checks_does_not_allow_wrong_arguments():

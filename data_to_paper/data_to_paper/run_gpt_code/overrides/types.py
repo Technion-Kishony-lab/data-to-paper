@@ -12,6 +12,7 @@ class PValue(OperatorValue):
     An object that represents a p-value float.
     """
     allow_str = Flag(False)
+    this_is_a_p_value = True
 
     def __init__(self, value, created_by: str = None):
         super().__init__(value)
@@ -25,6 +26,12 @@ class PValue(OperatorValue):
             f"Calling `{func.__name__}` on it is forbidden.\n"
             f"Use `format_p_value` instead.\n"
         )
+
+    @property
+    def __class__(self):
+        if not self.allow_str:
+            return float
+        return PValue
 
     def __str__(self):
         return self._forbidden_func('{:.4g}'.format)
@@ -43,7 +50,7 @@ class PValue(OperatorValue):
 
 
 def convert_to_p_value(value, created_by: str = None):
-    if isinstance(value, PValue):
+    if is_p_value(value):
         return value
     if isinstance(value, float):
         return PValue(value, created_by=created_by)
@@ -55,3 +62,7 @@ def convert_to_p_value(value, created_by: str = None):
         return [convert_to_p_value(val, created_by=created_by) for val in value]
     if isinstance(value, dict):
         return {key: convert_to_p_value(val, created_by=created_by) for key, val in value.items()}
+
+
+def is_p_value(value):
+    return hasattr(value, 'this_is_a_p_value')

@@ -4,7 +4,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -14,6 +14,8 @@ def _is_non_integer_numeric(value) -> bool:
     Check if the value is a non-integer numeric.
     """
     if not isinstance(value, float):
+        return False
+    if is_p_value(value):
         return False
     if value.is_integer():
         return False

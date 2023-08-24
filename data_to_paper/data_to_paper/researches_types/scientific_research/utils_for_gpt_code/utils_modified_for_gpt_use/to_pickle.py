@@ -38,7 +38,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
             code_problem=CodeProblem.RuntimeError,
         ))
     context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, prior_tables=prior_tables))
-    with RegisteredRunContext.temporarily_disable_all():
+    with RegisteredRunContext.temporarily_disable_all(), PValue.allow_str.temporary_set(True):
         original_func(df, path)
 
 
