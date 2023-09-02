@@ -722,6 +722,11 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, when reporting descriptive statistics it is typically not necessary to include \
         quartile or min/max values. 
         * Make sure you do not repeat the same data in multiple tables.
+        
+        [c] Row and column labels:
+        * The table should have labels for the columns and the index (rows). 
+        * Do not invent new names; just keep the original variable names from the dataset.
+        * As applicable, also keep any attr names from statistical test results as they are.
 
         # SAVE ADDITIONAL RESULTS
         At the end of the code, after completing the tables, create a dict containing any additional \
@@ -743,6 +748,8 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
+        Avoid convoluted or indirect methods of data extraction and manipulation; \
+        Where possible, use direct attribute access for clarity and simplicity. 
         """)
 
 
