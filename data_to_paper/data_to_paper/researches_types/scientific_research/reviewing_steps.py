@@ -556,7 +556,6 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
                                                   'tables')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = (
         'outputs:data_exploration', 'outputs:data_analysis')
-    ask_for_formula_prompt: str = None
     conversation_name: str = 'key_numerical_results_extractor'
     value_type: type = Dict[str, Any]
     goal_noun: str = 'key numerical values'

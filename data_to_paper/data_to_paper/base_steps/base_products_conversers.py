@@ -241,32 +241,54 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         """)
 
     report_non_match_prompt: str = dedent_triple_quote_str("""
-        Some of the specified values {} are not explicitly extracted from the provided data \
-        (see above: {names_of_products_from_which_to_extract}).
+        You section should be fully based on numeric values provided in the `provided data` above, namely in: 
+        {names_of_products_from_which_to_extract}
+    
+        Yet, I found in your section some numeric values that are not explicit extraction from these \
+        `provided data`. Here are the `potentially problematic values` that I found: 
+        {}
 
-        Please correct these numbers so that they are correctly extracted, or correctly rounded, \
-        from the code outputs provided above.
-        {ask_for_formula_prompt}
-    """)
-
-    ask_for_formula_prompt: str = dedent_triple_quote_str("""\n\n
-        Alternatively, if you need to indicate a number which is NOT an explicit extraction \
-        or rounding from the numbers provided above, \
-        but is rather mathematically derived from them, then replace the number with the formula for deriving it, \
+        In order for me to be able to understand the origin of all numeric values in your section, \
+        please revise your section, sot hat it refers only to numeric values included in the `provided data`.
+        
+        If you wish to indicate a numeric value that is not included in the `provided data`, \
+        but that can be arithmetically derived from these data, then please specify the derivation formula \
         using the \\num command.
+        
+        A few examples:
+        
+        - Say you want to indicate the difference between two numeric values specified in the `provided data`, \
+        for example "87" and "22", then an original sentence such as:
+        "The difference was 65." 
+        should be re-written aa:
+        "The difference was \\num{87 - 22}."
+        
+        - Say you want to indicate the odds ratio corresponding to a linear regression coefficient \
+        specified in the `provided data`, for example for a coefficient of "2.0", \
+        then an original sentence such as:
+        "The odds ratio is 7.389"
+        should be replaced with:
+        "The odds ratio is \\num{exp(2.0)}."
+        
+        - Say you would like to indicate a numeric value with different units than specified in the \
+        provided data, for example the provided data includes a length of "8.7e3" in centimeters, \
+        and you would like to indicate the length in meters, then an original sentence such as: 
+        "The length is 87 meters."
+        should be replaced with:
+        "The length is \\num{8.7e3 / 100} meters."
 
-        For example, if you would like to specify the difference between two numbers, say "8.7e04 cm" and "2.2e04 cm", \
-        then instead of the sentence:
-        "The difference is 65 meter." 
-
-        you should write:
-        "The difference is \\num{(8.7e04 - 2.2e04) * 1e-03} meter."
-
-        Note that within the \\num command, you should use the numeric values as they appear in the code outputs 
-        above, with the exponentiation written as "e" (e.g., "8.7e04" instead of "8.7 \\times 10^4").
-
-        This will help me understand how you got to the number. 
-        """)  # set to None or '' to disable formula-writing option
+        Note that within the \\num command, you should use the numeric values as they appear in the `provided data`, \
+        with the exponentiation written as "e" (e.g., write "8.7e3"; do nto write "8.7 \\times 10^3").
+        
+        In total, your section should be fully based on the `provided data` above. Any numeric value that you indicate \
+        should be either:
+        - Explicitly extracted from the `provided data`.
+        - Arithmetically derived from the `provided data`, using the \\num command. 
+        
+        If any of the potentially problematic values is not explicitly extracted from the `provided data`, \
+        or you are unable to provide an explicit formula for deriving it, \
+        then you should revise your section so that it does not include this value. 
+        """)
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '\n'.join(self.products.get_description(product_field)
