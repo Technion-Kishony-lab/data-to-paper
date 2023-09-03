@@ -78,9 +78,9 @@ class Citation(dict):
             return None
         return f'{self.journal} ({self.year})'
 
-    def get_embedding_similarity(self, embedding_target: Optional[np.ndarray]) -> Optional[float]:
+    def get_embedding_similarity(self, embedding_target: Optional[np.ndarray]) -> float:
         if self.embedding is None or embedding_target is None:
-            return None
+            return 0
         return np.dot(self.embedding, embedding_target) / \
             (np.linalg.norm(self.embedding) * np.linalg.norm(embedding_target))
 
