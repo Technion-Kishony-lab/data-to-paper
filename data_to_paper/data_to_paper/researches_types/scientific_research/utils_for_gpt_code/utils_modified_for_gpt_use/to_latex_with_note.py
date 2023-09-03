@@ -178,9 +178,11 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Get all labels:
-
-    axes_labels = extract_df_axes_labels(df, index=index)
-    axes_labels = {axes_label for axes_label in axes_labels if isinstance(axes_label, str)}
+    row_labels = extract_df_row_labels(df)
+    row_labels = {row_label for row_label in row_labels if isinstance(row_label, str)}
+    column_labels = extract_df_column_labels(df)
+    column_labels = {column_label for column_label in column_labels if isinstance(column_label, str)}
+    axes_labels = row_labels | column_labels
 
     """
     TABLE CONTENT
@@ -396,6 +398,12 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if label is not None:
         if not label.startswith('table:'):
             messages.append('The label of the table is not in the format `table:<your table label here>`')
+        elif ' ' in label:
+            messages.append('The label of the table should not contain spaces.')
+        elif label.endswith(':'):
+            messages.append('The label of the table should not end with ":"')
+        elif label[6:].isnumeric():
+            messages.append('The label of the table should not be just a number.')
     else:
         messages.append(f'The table does not have a label.')
 
@@ -444,19 +452,25 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Check for un-allowed characters in labels
-    UNALLOWED_CHARS = ['_', '{', '}']
+    UNALLOWED_CHARS = [
+        ('_', 'underscore'),
+        ('^', 'caret'),
+        ('{', 'curly brace'),
+        ('}', 'curly brace')
+    ]
     for label in axes_labels:
-        for char in UNALLOWED_CHARS:
+        for char, char_name in UNALLOWED_CHARS:
             if char in label:
+                row_or_column = 'index' if label in row_labels else 'column'
                 issues.append(RunIssue(
-                    category=f'Table row/column labels contain "{char}" - which is not suitable for a scientific table',
+                    category=f'Table row/column labels contain un-allowed characters',
                     code_problem=CodeProblem.OutputFileDesignLevelB,
-                    item=filename,
-                    issue=f'The table label "{label}" contains the character "{char}", which is not '
-                          f'recommended for a scientific table.',
+                    issue=f'Table {filename} has a {row_or_column} label "{label}" containing the character "{char}" '
+                          f'({char_name}). This character is not allowed in index or column labels.',
                     instructions=f'Please revise the code so that the table axes labels do not contain '
-                                 f'the "{char}" characters, possibly by replacing them with a space, or a dash. '
-                                 f'I do not want using "{char}" even not if properly latex escaped.',
+                                 f'the "{char}" characters. You can replace them with a space, or a dash. '
+                                 f'Note that I do not want using the "{char}" char at all - '
+                                 f'not even not if properly latex escaped.',
                 ))
     if issues:
         return issues
@@ -497,22 +511,16 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 code_problem=CodeProblem.OutputFileDesignLevelB,
                 item=filename,
                 issue=f'The legend of the table includes the following labels that are not in the table:\n'
-                      f'{un_mentioned_labels}',
+                      f'{un_mentioned_labels}\n'
+                      f'Here are the available table row and column labels:\n{axes_labels}',
                 instructions=dedent_triple_quote_str("""
-                    Here are the table row and column labels:
-                    {labels}
-                    
-                    The legend keys should represent a subset of the the table labels, which need clarification:
-                    - labels that are abbreviated
-                    - labels that are not self-explanatory
-                    - labels that represent a categorical/ordinal variable that requires explanation of the
-                      categories/levels
+                    The legend keys should be a subset of the the table labels.
                     
                     Please revise the code changing either the legend keys, or the table labels, accordingly.
                     
-                    As a reminder: you can use the `note` argument to add information that is related to the
+                    As a reminder: you can also use the `note` argument to add information that is related to the
                     table as a whole, rather than to a specific label.
-                    """).format(labels=axes_labels)
+                    """)
             ))
 
     return issues

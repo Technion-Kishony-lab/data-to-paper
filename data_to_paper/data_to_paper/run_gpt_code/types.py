@@ -125,24 +125,28 @@ class RunIssues(List[RunIssue]):
         code_problems = sorted(set(issue.code_problem for issue in issues))
         for code_problem in code_problems:
             categories = sorted(set(issue.category for issue in issues if issue.code_problem == code_problem))
+            notes = []
             for category in categories:
+                note = ''
                 if category:
-                    s += f'# {category}\n'
+                    note += f'# {category}\n'
                 issues_in_category = [issue for issue in issues if issue.category == category]
                 unique_instructions = set(issue.instructions for issue in issues_in_category)
                 for issue in issues_in_category:
                     if issue.item:
-                        s += f'* {issue.item}:\n'
-                    s += f'{issue.issue}\n'
+                        note += f'* {issue.item}:\n'
+                    note += f'{issue.issue}\n'
                     if len(unique_instructions) > 1 and issue.instructions is not None:
-                        s += f'{issue.instructions}\n'
-                    s += '\n'
+                        note += f'{issue.instructions}\n'
+                    note += '\n'
                     if issue.comment:
                         comments.add(issue.comment)
                 if len(unique_instructions) == 1:
                     shared_instructions = unique_instructions.pop()
                     if shared_instructions:
-                        s += f'{shared_instructions}\n'
+                        note += f'{shared_instructions}\n'
+                notes.append(note)
+            s += '\n\n'.join(notes)
         comment = '; '.join(comments)
 
         # Add the end_with message at the end:

@@ -878,7 +878,8 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
         < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
         < Use the `shared_mapping` if applicable. For example: >
-        mapping = shared_mapping | {
+        mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
+        mapping |= {
             'PV': ('P-value', None),
             'CI': (None, '95% Confidence Interval'),
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),

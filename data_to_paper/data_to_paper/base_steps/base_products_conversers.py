@@ -241,15 +241,16 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         """)
 
     report_non_match_prompt: str = dedent_triple_quote_str("""
-        You section should be fully based on numeric values provided in the `provided data` above, namely in: 
+        Your section should be fully based on numeric values provided in the `provided data` above, namely in: 
         {names_of_products_from_which_to_extract}
     
         Yet, I found in your section some numeric values that are not explicit extraction from these \
         `provided data`. Here are the `potentially problematic values` that I found: 
         {}
 
-        In order for me to be able to understand the origin of all numeric values in your section, \
-        please revise your section, sot hat it refers only to numeric values included in the `provided data`.
+        In order for us to be able to understand the origin of all numeric values in your section, \
+        and to prevent and fix any errors, please revise your section, so that it refers only to numeric values \
+        included in the `provided data`.
         
         If you wish to indicate a numeric value that is not included in the `provided data`, \
         but that can be arithmetically derived from these data, then please specify the derivation formula \
