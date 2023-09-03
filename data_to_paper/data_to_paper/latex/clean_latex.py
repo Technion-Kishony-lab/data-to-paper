@@ -37,7 +37,7 @@ MATH_PATTERN = r"""
   # group 4,
   (\\begin\{(?:equation\*?|align\*?)\})|
   # group 5, match table and figure environments
-  (\\begin\{(?:figure|table|lstlisting)\})|
+  (\\begin\{(?:figure|lstlisting)\})|
   # group 6, match non-typesetting commands
   (\\(?:ref|label|autoref)\{)
 )
@@ -61,7 +61,7 @@ MATH_PATTERN = r"""
     # if group 4 was start, match end equation or end align
     (?(4)\\end\{(?:equation\*?|align\*?)\}| 
     # if group 5 was start, match end figure or end table
-    (?(5)\\end\{(?:figure|table|lstlisting)\}|
+    (?(5)\\end\{(?:figure|lstlisting)\}|
     # else, match end of non-typesetting command
     \})
   )
@@ -89,7 +89,7 @@ def escape_special_chars_and_symbols_in_table(table: str,
         raise ValueError(f'The Table does not contain the end command: {end}')
     before_tabular, tabular_part = table.split(begin, 1)
     tabular_part, after_tabular = tabular_part.split(end, 1)
-    tabular_part = process_non_math_parts(tabular_part, _process_table_part)
+    tabular_part = process_latex_text_and_math(tabular_part, _process_table_part)
     return before_tabular + begin + tabular_part + end + after_tabular
 
 
@@ -106,28 +106,46 @@ def replace_special_latex_chars(text):
     return re.sub(pattern, repl_func, text)
 
 
-def process_non_math_parts(text, processing_func=replace_special_latex_chars):
+def process_inside_and_outside_command(latex, inside_func, outside_func):
+    # Split the latex string into parts outside and within \caption{...}
+    parts = re.split(pattern=r'(\\caption\{.*?\})', string=latex)
+
+    # Process each part using the appropriate function
+    processed_parts = [outside_func(part) if not '\\caption' in part else '\\caption{' + inside_func(
+        part[len('\\caption{'):-1]) + '}' for part in parts]
+
+    # Reassemble the parts
+    processed_latex = ''.join(processed_parts)
+
+    return processed_latex
+
+
+def process_latex_text_and_math(text, process_text=replace_special_latex_chars, process_math=None):
+    if process_math is None:
+        process_math = lambda x: x
+
     result = []
     last_end = 0
 
     for match in regex.finditer(MATH_PATTERN, text, flags=regex.VERBOSE):
         non_math_part = text[last_end:match.start()]
 
-        processed_part = processing_func(non_math_part)
+        processed_part = process_text(non_math_part)
         result.append(processed_part)
 
         possibly_math_part = match.group()
         # find `\caption{...} parts in possibly_math_part and apply escaping on what's inside the curly braces
-        math_part = regex.sub(r'\\caption\{.*?\}',
-                              lambda m: m.group().replace(m.group(0)[9:-1], processing_func(m.group(0)[9:-1])),
-                              possibly_math_part)
-        result.append(math_part)
+        # apply process_math on possibly_math_part without the `\caption{...}` and then add the processed caption
+
+        processed_math_part = process_inside_and_outside_command(possibly_math_part, process_text, process_math)
+
+        result.append(processed_math_part)
 
         last_end = match.end()
 
     # Process the remaining non-math part after the last match
     non_math_part = text[last_end:]
-    processed_part = processing_func(non_math_part)
+    processed_part = process_text(non_math_part)
     result.append(processed_part)
 
     return "".join(result)

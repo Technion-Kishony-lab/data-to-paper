@@ -3,7 +3,7 @@ from typing import Optional, Dict
 
 import pandas as pd
 
-from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_non_math_parts
+from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_latex_text_and_math
 from data_to_paper.run_gpt_code.overrides.utils import round_floats
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 
@@ -50,7 +50,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
     index = kwargs.get('index', True)
 
     tabular_part = get_tabular_block(regular_latex_table)
-    caption = r'\caption{' + process_non_math_parts(caption) + '}\n' if caption else ''
+    caption = r'\caption{' + process_latex_text_and_math(caption) + '}\n' if caption else ''
     label = r'\label{' + label + '}\n' if label else ''
 
     note_and_legend = []
