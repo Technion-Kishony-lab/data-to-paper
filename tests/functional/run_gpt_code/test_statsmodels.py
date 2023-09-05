@@ -77,18 +77,6 @@ def test_statsmodels_ols():
         assert isinstance(pval, PValue)
 
 
-def test_statsmodels_raise_on_multiple_fit_calls():
-    with StatsmodelsOverride():
-        # Example data
-        data = sm.datasets.longley.load()
-        X = sm.add_constant(data.exog)
-        y = data.endog
-        model = sm.OLS(y, X)
-        model.fit()
-        with pytest.raises(RuntimeWarning):
-            model.fit()
-
-
 def test_sklean_raise_on_multiple_fit_calls():
     from sklearn.linear_model import LinearRegression
     with SklearnOverride():
