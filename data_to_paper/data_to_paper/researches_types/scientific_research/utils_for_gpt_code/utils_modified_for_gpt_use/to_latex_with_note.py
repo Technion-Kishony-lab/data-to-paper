@@ -458,15 +458,25 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         ('{', 'curly brace'),
         ('}', 'curly brace')
     ]
-    for label in axes_labels:
-        for char, char_name in UNALLOWED_CHARS:
-            if char in label:
-                row_or_column = 'index' if label in row_labels else 'column'
+    for char, char_name in UNALLOWED_CHARS:
+        for is_row in [True, False]:
+            if is_row:
+                labels = row_labels
+                index_or_column = 'index'
+            else:
+                labels = column_labels
+                index_or_column = 'column'
+            unallowed_labels = [label for label in labels if char in label]
+            if unallowed_labels:
                 issues.append(RunIssue(
                     category=f'Table row/column labels contain un-allowed characters',
                     code_problem=CodeProblem.OutputFileDesignLevelB,
-                    issue=f'Table {filename} has a {row_or_column} label "{label}" containing the character "{char}" '
-                          f'({char_name}). This character is not allowed in index or column labels.',
+                    issue=(
+                        f'Table {filename} has {index_or_column} labels containing '
+                        f'the character "{char}" ({char_name}), which is not allowed.\n'
+                        f'Here are the problematic {index_or_column} labels:\n'
+                        f'{unallowed_labels}'
+                    ),
                     instructions=f'Please revise the code to map these dataframe axes labels to new names '
                                  f'that do not contain the "{char}" characters.'
                 ))
@@ -478,7 +488,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     un_mentioned_abbr_labels = [label for label in abbr_labels if label not in legend]
     if un_mentioned_abbr_labels:
         instructions = dedent_triple_quote_str("""
-            Please revise the code making sure all abbreviated labels are explained in their table legend.
+            Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \
+            in their table legend.
             Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \
             function `to_latex_with_note`.
             """)
@@ -488,11 +499,17 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 their full names in the dataframe itself.
                 """)
         if legend:
-            issue = f'The legend of the table needs to include also the following abbreviated labels:\n' \
-                    f'{un_mentioned_abbr_labels}'
+            issue = dedent_triple_quote_str("""
+                The `legend` argument of `to_latex_with_note` includes only the following keys:
+                {legend_keys}
+                We need to add also the following abbreviated row/column labels:
+                {un_mentioned_abbr_labels}
+                """).format(legend_keys=list(legend.keys()), un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         else:
-            issue = f'The table needs a legend explaining the following abbreviated labels:\n' \
-                    f'{un_mentioned_abbr_labels}'
+            issue = dedent_triple_quote_str("""
+                The table needs a legend explaining the following abbreviated labels
+                {un_mentioned_abbr_labels}
+                """).format(un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         issues.append(RunIssue(
             category='Some abbreviated labels are not explained in the table legend',
             code_problem=CodeProblem.OutputFileDesignLevelB,
