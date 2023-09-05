@@ -160,3 +160,27 @@ def test_df_to_latex():
         latex = df.to_latex()
         assert '7 ' in latex
         assert '1.24 ' in latex
+
+
+def test_df_raise_column_key_options():
+    with TrackDataFrames():
+        df = pd.DataFrame({'available_key': [7.0, 1.2385]})
+        with pytest.raises(KeyError) as exc:
+            df['b']
+    assert 'available_key' in str(exc.value)
+
+
+def test_loc_key_options():
+    with TrackDataFrames():
+        df = pd.DataFrame(pd.DataFrame({
+            'col_A': [1, 2, 3],
+            'col_B': [4, 5, 6]
+        }, index=['row_x', 'row_y', 'row_z']))
+        with pytest.raises(KeyError) as exc:
+            df.loc['row', 'col']
+    e = exc.value
+    assert 'col_A' in str(e)
+    assert 'col_B' in str(e)
+    assert 'row_x' in str(e)
+    assert 'row_y' in str(e)
+    assert 'row_z' in str(e)

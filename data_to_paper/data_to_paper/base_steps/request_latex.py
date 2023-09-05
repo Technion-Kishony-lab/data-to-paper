@@ -15,7 +15,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.latex.latex_doc import LatexDocument
-from data_to_paper.latex.clean_latex import process_non_math_parts, check_usage_of_un_allowed_commands
+from data_to_paper.latex.clean_latex import process_latex_text_and_math, check_usage_of_un_allowed_commands
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
 
@@ -171,7 +171,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             )
 
     def _process_non_math_parts(self, section: str) -> str:
-        return process_non_math_parts(section)
+        return process_latex_text_and_math(section)
 
     def _check_usage_of_un_allowed_commands(self, section: str) -> str:
         try:

@@ -18,3 +18,11 @@ def run_once(func):
             return func(*args, **kwargs)
     wrapper.has_run = False
     return wrapper
+
+
+class UnDefined(metaclass=Singleton):
+    pass
+
+
+# create a singleton instance
+undefined = UnDefined()

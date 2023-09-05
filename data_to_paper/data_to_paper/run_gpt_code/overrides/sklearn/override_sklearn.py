@@ -17,11 +17,14 @@ class SklearnOverride(SystematicMethodReplacerContext):
 
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):
+            result = original_func(obj, *args, **kwargs)
             if self._is_called_from_data_to_paper():
-                if getattr(obj, '_fit_was_called', False):
-                    raise RuntimeWarning(f"The `{original_func.__name__}` function was already called on this object.")
-                obj._fit_was_called = True
+                if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
+                    raise RuntimeWarning(
+                        f"The `{original_func.__name__}` function was already called on this object. "
+                        f"Multiple calls should be avoided as the same result instance is returned again.")
+                obj._prior_fit_results = result
 
-            return original_func(obj, *args, **kwargs)
+            return result
 
         return wrapped

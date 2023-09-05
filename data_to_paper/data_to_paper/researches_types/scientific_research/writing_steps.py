@@ -308,7 +308,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         * Outline the methodological procedure and briefly state the main findings \
         (cite relevant papers from the above "{literature_search:writing:methods}")
 
-        Each of these paragraphs should be 4-6 sentence long.
+        Note: each of these paragraphs should be 5-6 sentence long. Do not just write short paragraphs with less \
+        than 5 sentences!  
 
         Citations should be added in the following format: \\cite{paper_id}.
         Do not add a \\section{References} section, I will add it later manually.
@@ -416,9 +417,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'codes:data_analysis', 'tables', 'additional_results')
+        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'codes:data_analysis', 'tables', 'additional_results')
+        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
@@ -445,9 +446,9 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
         * Numeric values: 
         You can extract and mention numeric values from the latex Tables as well as from the \
-        "{results_file}" listed above. Note though that, unlike the Tables, these Other Numerical Values are not \
-        going to be added as a part of the paper, so you cannot refer to these numbers, instead if needed you should \
-        explicitly mention any such important numeric value as an integral part of the text.
+        "{additional_results}" listed above. Note though that, unlike the Tables, these {additional_results} are not \
+        going to be added as a part of the paper, so do not "refer" to these numbers in your writing, \
+        instead, as needed, just explicitly mention any such important numeric value as an integral part of the text.
 
         * p-values:
         When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
@@ -460,7 +461,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
         whether the {goal_noun} contains only information that is explicitly extracted from the \
-        "{tables}" and "{results_file}" provided above. \
+        "{tables}" and "{additional_results}" provided above. \
 
         Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
         mention any discrepancies that need to be fixed.
@@ -491,7 +492,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 @dataclass
 class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     model_engine: ModelEngine = ModelEngine.GPT4
-    background_product_fields: Tuple[str, ...] = ('title_and_abstract',
+    background_product_fields: Tuple[str, ...] = ('general_dataset_description',
+                                                  'title_and_abstract',
                                                   'literature_search:writing:background',
                                                   'literature_search:writing:results',
                                                   'paper_sections:introduction',

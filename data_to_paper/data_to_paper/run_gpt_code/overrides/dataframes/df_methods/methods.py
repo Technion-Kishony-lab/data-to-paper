@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
+from typing import Any
 
 import pandas as pd
-from pandas.core.frame import DataFrame
 
 from data_to_paper.env import PDF_TEXT_WIDTH
 
@@ -12,13 +12,32 @@ from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOper
 
 
 @dataclass
-class DataframeKeyError(KeyError):
+class BaseKeyError(KeyError):
     original_error: KeyError
-    key: str
-    dataframe: DataFrame
+    key: Any
 
     def __str__(self):
-        return str(self.original_error) + f"\n\nAvailable keys are: {list(self.dataframe.columns)}"
+        return str(self.original_error)
+
+
+@dataclass
+class DataframeKeyError(BaseKeyError):
+    available_keys: Any
+
+    def __str__(self):
+        return str(self.original_error) + \
+            f"\n\nAvailable keys are:\n{self.available_keys}"
+
+
+@dataclass
+class DataFrameLocKeyError(BaseKeyError):
+    available_column_keys: Any
+    available_row_keys: Any
+
+    def __str__(self):
+        return str(self.original_error) + \
+            f"\n\nAvailable row keys are:\n{self.available_row_keys}" \
+            f"\n\nAvailable column keys are:\n{self.available_column_keys}"
 
 
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
@@ -52,7 +71,16 @@ def __getitem__(self, key, original_method=None, on_change=None):
     try:
         return original_method(self, key)
     except KeyError as e:
-        raise DataframeKeyError(original_error=e, key=key, dataframe=self)
+        raise DataframeKeyError(original_error=e, key=key, available_keys=list(self.columns))
+
+
+def __LocationIndexer__get_item__(self, key, *args, original_method=None, on_change=None, **kwargs):
+    try:
+        return original_method(self, key, *args, **kwargs)
+    except KeyError as e:
+        raise DataFrameLocKeyError(original_error=e, key=key,
+                                   available_column_keys=list(self.obj.columns),
+                                   available_row_keys=list(self.obj.index))
 
 
 def __setitem__(self, key, value, original_method=None, on_change=None):

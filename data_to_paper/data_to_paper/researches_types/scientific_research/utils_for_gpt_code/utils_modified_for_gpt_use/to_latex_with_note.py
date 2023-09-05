@@ -4,13 +4,15 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.env import TRACK_P_VALUES
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
+from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels
+from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
 
@@ -55,9 +57,8 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
 
-    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
-
-    return latex
+    with PValue.allow_str.temporary_set(True):
+        return to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend, **kwargs)
 
 
 def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
@@ -71,6 +72,13 @@ def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *arg
     return to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header, **kwargs)
 
 
+def contains_both_letter_and_numbers(name: str) -> bool:
+    """
+    Check if the name contains both letters and numbers.
+    """
+    return any(char.isalpha() for char in name) and any(char.isdigit() for char in name)
+
+
 def is_unknown_abbreviation(name: str) -> bool:
     """
     Check if the name is abbreviated.
@@ -81,8 +89,11 @@ def is_unknown_abbreviation(name: str) -> bool:
     if len(name) == 0:
         return False
 
-    if len(name) == 1:
+    if len(name) <= 2:
         return True
+
+    if name.isnumeric():
+        return False
 
     for abbreviation in KNOWN_ABBREVIATIONS:
         if abbreviation.endswith('.'):
@@ -94,6 +105,10 @@ def is_unknown_abbreviation(name: str) -> bool:
     # if there are no letters left, it is not an abbreviation
     if not any(char.isalpha() for char in name):
         return False
+
+    words = re.split(pattern=r'[-_ =(),]', string=name)
+    if any(contains_both_letter_and_numbers(word) for word in words):
+        return True
 
     # if there are over 3 words, it is not an abbreviation:
     if len(re.split(pattern=r' ', string=name)) >= 3:
@@ -121,14 +136,67 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     issues = []
 
+    # Check table compilation
+    try:
+        compilation_func = ProvideData.get_item('compile_to_pdf_func')
+    except RuntimeError:
+        compilation_func = None
+
+    file_stem, _ = filename.split('.')
+    with RegisteredRunContext.temporarily_disable_all(), \
+            PValue.allow_str.temporary_set(True):
+        latex = to_latex_with_note(df, None, *args, note=note, legend=legend, **kwargs)
+        if compilation_func is None:
+            e = 0
+        else:
+            e = compilation_func(latex, file_stem)
+
+    index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
+
+    # Enforce index=True:
+    if not index:
+        if index_is_range:
+            msg = 'Your current df index is just a numeric range range, so you will have to re-specify the index. ' \
+                  'If there is a column that should be the index, use `df.set_index(...)` to set it as the index.'
+        else:
+            msg = ''
+        issues.append(RunIssue(
+            code_problem=CodeProblem.OutputFileDesignLevelA,
+            item=filename,
+            issue=f'Do not call `to_latex_with_note` with `index=False`. '
+                  f'I want to be able to extract the row labels from the index.',
+            instructions=dedent_triple_quote_str("""
+                Please revise the code making sure all tables are created with `index=True`, and that the index is \
+                meaningful.
+                """) + msg,
+        ))
+    if issues:
+        return issues
+
+    if issues:
+        return issues
+
+    # Get all labels:
+    row_labels = extract_df_row_labels(df)
+    row_labels = {row_label for row_label in row_labels if isinstance(row_label, str)}
+    column_labels = extract_df_column_labels(df)
+    column_labels = {column_label for column_label in column_labels if isinstance(column_label, str)}
+    axes_labels = row_labels | column_labels
+
     """
     TABLE CONTENT
     """
 
     # Check for repetitive values in a column
-    for column_header in columns:
-        data = df[column_header]
-        if len(data.unique()) == 1 and len(data) > 5:
+
+    for icol in range(df.shape[1]):
+        column_label = df.columns[icol]
+        data = df.iloc[:, icol]
+        try:
+            data_unique = data.unique()
+        except Exception:
+            data_unique = None
+        if data_unique is not None and len(data_unique) == 1 and len(data) > 5:
             data0 = data.iloc[0]
             # check if the value is a number
             if not isinstance(data0, (int, float)):
@@ -140,15 +208,15 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     category='Repetitive values in a column',
                     code_problem=CodeProblem.OutputFileContentLevelA,
                     item=filename,
-                    issue=f'The column "{column_header}" has the same unique value for all rows.',
+                    issue=f'The column "{column_label}" has the same unique value for all rows.',
                     instructions=dedent_triple_quote_str(f"""
                         Please revise the code so that it:
                         * Finds the unique values \
-                        (use `{column_header}_unique = df["{column_header}"].unique()`)
+                        (use `{column_label}_unique = df["{column_label}"].unique()`)
                         * Asserts that there is only one value. \
-                        (use `assert len({column_header}_unique) == 1`)
-                        * Creates the table without this column (use `df.drop(columns=["{column_header}"])`)
-                        * Adds the unique value, {column_header}_unique[0], \
+                        (use `assert len({column_label}_unique) == 1`)
+                        * Creates the table without this column (use `df.drop(columns=["{column_label}"])`)
+                        * Adds the unique value, {column_label}_unique[0], \
                         in the table note (use `note=` in the function `to_latex_with_note`).
 
                         There is no need to add corresponding comments to the code. 
@@ -157,60 +225,84 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     # Check P-value formatting
     if TRACK_P_VALUES:
-        # Check if there is a column which is all p-values:
-        for column_header in columns:
-            # if any(column_header.lower() == p.lower() for p in P_VALUE_STRINGS):  # Column header is a p-value column
-            if all(isinstance(v, PValue) for v in df[column_header]):
-                raise RunUtilsError(
-                    RunIssue(
-                        category='P-value formatting',
-                        code_problem=CodeProblem.RuntimeError,
-                        item=filename,
-                        issue='P-values should be formatted with `format_p_value`',
-                        instructions=dedent_triple_quote_str(f"""
-                            In particular, the p-value column "{column_header}" should be formatted as:
-                            `df["{column_header}"] = df["{column_header}"].apply(format_p_value)`
-                            """),
-                    ))
+        # Check if the entire table is p-values:
+        if sum(is_p_value(v) for v in df.values.flatten()) > 1 \
+                and all(is_ok_to_apply_format_p_value(v) for v in df.values.flatten()):
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value` before calling `to_latex_with_note`',
+                    instructions=dedent_triple_quote_str(f"""
+                        In particular, the dataframe should be formatted as:
+                        `df = df.applymap(format_p_value)`
+                        """),
+                ))
+
+        # Check if there are columns which are all p-values:
+        p_value_columns = []
+        for icol in range(df.shape[1]):
+            column_label = df.columns[icol]
+            data = df.iloc[:, icol]
+            if any(is_p_value(v) for v in data) \
+                    and all(is_ok_to_apply_format_p_value(v) for v in data):
+                p_value_columns.append(column_label)
+        if p_value_columns:
+            if len(p_value_columns) == 1:
+                p_value_columns = p_value_columns[0]
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=f'In particular, the p-value columns should be formatted as:\n'
+                                 f'`df[{repr(p_value_columns)}] = df[{repr(p_value_columns)}].apply(format_p_value)`',
+                ))
         # Check if there is a row which is all p-values:
-        for row_header in df.index:
-            if all(isinstance(v, PValue) for v in df.loc[row_header]):
-                raise RunUtilsError(
-                    RunIssue(
-                        category='P-value formatting',
-                        code_problem=CodeProblem.RuntimeError,
-                        item=filename,
-                        issue='P-values should be formatted with `format_p_value`',
-                        instructions=dedent_triple_quote_str(f"""
-                            In particular, the p-value row "{row_header}" should be formatted as:
-                            `df.loc["{row_header}"] = df.loc["{row_header}"].apply(format_p_value)`
-                            """),
-                    ))
+        p_value_rows = []
+        for irow in range(df.shape[0]):
+            row_label = df.index[irow]
+            data = df.iloc[irow, :]
+            if any(is_p_value(v) for v in data) \
+                    and all(is_ok_to_apply_format_p_value(v) for v in data):
+                p_value_rows.append(row_label)
+        if p_value_rows:
+            if len(p_value_rows) == 1:
+                p_value_rows = p_value_rows[0]
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=f'In particular, the p-value rows should be formatted as:\n'
+                                 f'`df.loc[{repr(p_value_rows)}] = df.loc[{repr(p_value_rows)}].apply(format_p_value)`',
+                ))
 
         # Check if there is a p-value that is not formatted:
-        for column_header in columns:
-            for row_header in df.index:
-                v = df.loc[row_header, column_header]
-                if isinstance(v, PValue):
-                    raise RunUtilsError(
-                        RunIssue(
-                            category='P-value formatting',
-                            code_problem=CodeProblem.RuntimeError,
-                            item=filename,
-                            issue='P-values should be formatted with `format_p_value`',
-                            instructions=dedent_triple_quote_str(f"""
-                                In particular, the dataframe should be formatted as:
-                                `df.loc["{row_header}", "{column_header}"] = format_p_value({v})`
-                                """),
-                        ))
-
-    latex = to_latex_with_note(df, filename, *args, note=note, legend=legend, **kwargs)
-
-    # Check table compilation
-    compilation_func = ProvideData.get_item('compile_to_pdf_func')
-    file_stem, _ = filename.split('.')
-    with RegisteredRunContext.temporarily_disable_all():
-        e = compilation_func(latex, file_stem)
+        cells_with_p_value = []
+        for irow in range(df.shape[0]):
+            row_label = df.index[irow]
+            for icol in range(df.shape[1]):
+                column_label = df.columns[icol]
+                v = df.iloc[irow, icol]
+                if is_p_value(v):
+                    cells_with_p_value.append((row_label, column_label))
+        if cells_with_p_value:
+            row, col = cells_with_p_value[0]
+            raise RunUtilsError(
+                RunIssue(
+                    category='P-value formatting',
+                    code_problem=CodeProblem.RuntimeError,
+                    item=filename,
+                    issue='P-values should be formatted with `format_p_value`',
+                    instructions=f"In particular, the dataframe has P-value in the cells: {cells_with_p_value}.\n"
+                                 f"Please format them using `format_p_value` "
+                                 f"(e.g., `df.loc[{repr(row)}, {repr(col)}] = "
+                                 f"format_p_value(df.loc[{repr(row)}, {repr(col)}]).",
+                ))
 
     if not isinstance(e, float):
         issues.append(RunIssue(
@@ -231,23 +323,29 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             comment='Table compilation failed',
             code_problem=CodeProblem.OutputFileDesignLevelB,
         ))
-    elif e > 1.1:
+    elif e > 1.3:
         # Try to compile the transposed table:
         latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend, **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:
             transpose_message = dedent_triple_quote_str("""\n
-                - Alternatively, consider completely transposing the table. \
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.T, ...)`
+                - Alternatively, consider completely transposing the table. Use `df = df.T`.
                 """)
         else:
             transpose_message = ''
-
+        if all(len(label) < 10 for label in axes_labels):
+            drop_column_message = dedent_triple_quote_str("""\n
+                - Drop unnecessary columns. \
+                If the labels cannot be shortened much, consider whether there might be any \
+                unnecessary columns that we can drop. \
+                Use `to_latex_with_note(df, filename, columns=...)`.
+                """)
+        else:
+            drop_column_message = ''
         if index:
             index_note = dedent_triple_quote_str("""\n
-                - Rename the index to a shorter names. \
-                Replace `to_latex_with_note(df, ...)` with `to_latex_with_note(df.reset_index(inplace=False), ...)` \
+                - Rename the index labels to a shorter names. Use `df.rename(index=...)`
                 """)
         else:
             index_note = ''
@@ -267,13 +365,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             instructions=dedent_triple_quote_str("""                
                 Please change the code to make the table narrower. Consider any of the following options:
 
-                - Drop unnecessary columns. \
-                Use `to_latex_with_note(df, filename, columns=...)` to select only the columns you need.
-
-                - Rename columns to shorter names. \
-                Replace `to_latex_with_note(df, filename, ...)` with \
-                `to_latex_with_note(df.rename(columns=...), filename, ...)`
-                """) + index_note + transpose_message,
+                - Rename column labels to shorter names. Use `df.rename(columns=...)`
+                """) + index_note + drop_column_message + transpose_message,
             code_problem=CodeProblem.OutputFileContentLevelC,
         ))
 
@@ -304,6 +397,12 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if label is not None:
         if not label.startswith('table:'):
             messages.append('The label of the table is not in the format `table:<your table label here>`')
+        elif ' ' in label:
+            messages.append('The label of the table should not contain spaces.')
+        elif label.endswith(':'):
+            messages.append('The label of the table should not end with ":"')
+        elif label[6:].isnumeric():
+            messages.append('The label of the table should not be just a number.')
     else:
         messages.append(f'The table does not have a label.')
 
@@ -323,9 +422,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if note is not None:
         if '...' in note:
             messages.append('The note of the table should not contain "..."')
-
-        if re.search(pattern=r'<.*\>', string=note):
-            messages.append('The note of the table should not contain "<...>"')
 
     if note is not None and caption is not None:
         if note.lower() == caption.lower():
@@ -354,50 +450,92 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     if issues:
         return issues
 
+    # Check for un-allowed characters in labels
+    UNALLOWED_CHARS = [
+        ('_', 'underscore'),
+        ('^', 'caret'),
+        ('{', 'curly brace'),
+        ('}', 'curly brace')
+    ]
+    for char, char_name in UNALLOWED_CHARS:
+        for is_row in [True, False]:
+            if is_row:
+                labels = row_labels
+                index_or_column = 'index'
+            else:
+                labels = column_labels
+                index_or_column = 'column'
+            unallowed_labels = [label for label in labels if char in label]
+            if unallowed_labels:
+                issues.append(RunIssue(
+                    category=f'Table row/column labels contain un-allowed characters',
+                    code_problem=CodeProblem.OutputFileDesignLevelB,
+                    issue=(
+                        f'Table {filename} has {index_or_column} labels containing '
+                        f'the character "{char}" ({char_name}), which is not allowed.\n'
+                        f'Here are the problematic {index_or_column} labels:\n'
+                        f'{unallowed_labels}'
+                    ),
+                    instructions=f'Please revise the code to map these dataframe axes labels to new names '
+                                 f'that do not contain the "{char}" characters.'
+                ))
+    if issues:
+        return issues
+
     # Check that any abbreviated row/column labels are explained in the legend
-    if index:
-        headers = [name for name in df.index]
-    else:
-        headers = []
-    headers += [name for name in columns]
-    abbr_names = [name for name in headers if is_unknown_abbreviation(name)]
-    un_mentioned_abbr_names = [name for name in abbr_names if name not in legend]
-    if un_mentioned_abbr_names:
+    abbr_labels = [label for label in axes_labels if is_unknown_abbreviation(label)]
+    un_mentioned_abbr_labels = [label for label in abbr_labels if label not in legend]
+    if un_mentioned_abbr_labels:
         instructions = dedent_triple_quote_str("""
-            Please revise the code making sure all abbreviated names are explained in their table legend.
+            Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \
+            in their table legend.
             Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \
             function `to_latex_with_note`.
             """)
-        if e < 0.9:
+        if e < 0.8:
             instructions += dedent_triple_quote_str("""
-                Alternatively, you can replace the abbreviated names with their full names in the table itself.
+                Alternatively, since the table is not too wide, you can also replace the abbreviated labels with \
+                their full names in the dataframe itself.
                 """)
         if legend:
-            issue = f'The legend of the table needs to include also the following abbreviated names:\n' \
-                    f'{un_mentioned_abbr_names}'
+            issue = dedent_triple_quote_str("""
+                The `legend` argument of `to_latex_with_note` includes only the following keys:
+                {legend_keys}
+                We need to add also the following abbreviated row/column labels:
+                {un_mentioned_abbr_labels}
+                """).format(legend_keys=list(legend.keys()), un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         else:
-            issue = f'The table needs a legend explaining the following abbreviated names:\n' \
-                    f'{un_mentioned_abbr_names}'
+            issue = dedent_triple_quote_str("""
+                The table needs a legend explaining the following abbreviated labels
+                {un_mentioned_abbr_labels}
+                """).format(un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         issues.append(RunIssue(
-            category='Some abbreviated names are not explained in the table legend',
+            category='Some abbreviated labels are not explained in the table legend',
             code_problem=CodeProblem.OutputFileDesignLevelB,
             item=filename,
             issue=issue,
             instructions=instructions,
         ))
 
-    # Check that the legend does not include any names that are not in the table
+    # Check that the legend does not include any labels that are not in the table
     if legend:
-        un_mentioned_names = [name for name in legend if name not in headers]
-        if un_mentioned_names:
+        un_mentioned_labels = [label for label in legend if label not in axes_labels]
+        if un_mentioned_labels:
             issues.append(RunIssue(
-                category='The table legend include some keys that are not part of the table row or column headers.',
+                category='The table legend include some keys that are not part of the table row or column labels.',
                 code_problem=CodeProblem.OutputFileDesignLevelB,
                 item=filename,
-                issue=f'The legend of the table includes the following names that are not in the table:\n'
-                      f'{un_mentioned_names}',
-                instructions=f"Here are the table headers:\n{headers}\n"
-                             f"Please revise the code making sure the legend keys and the table headers match.",
+                issue=f'The legend of the table includes the following labels that are not in the table:\n'
+                      f'{un_mentioned_labels}\n'
+                      f'Here are the available table row and column labels:\n{axes_labels}',
+                instructions=dedent_triple_quote_str("""
+                    The legend keys should be a subset of the the table labels.
+
+                    Please revise the code changing either the legend keys, or the table labels, accordingly.
+
+                    As a reminder: you can also use the `note` argument to add information that is related to the
+                    table as a whole, rather than to a specific label.
+                    """)
             ))
 
     return issues

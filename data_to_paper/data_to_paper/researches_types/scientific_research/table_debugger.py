@@ -32,18 +32,6 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
     def _get_runtime_available_objects(self) -> dict:
         return {'compile_to_pdf_func': partial(self._check_latex_compilation, is_table=True)}
 
-    def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
-        issues = super()._get_issues_for_static_code_check(code)
-        for un_allowed_func in ['to_latex', 'as_latex']:
-            if un_allowed_func + '(' in code:
-                issues.append(RunIssue(
-                    issue=f"It seems like you are using the `{un_allowed_func}` method.",
-                    instructions=f"Please use the `to_latex_with_note` method instead.",
-                    comment='Unallowed method used',
-                    code_problem=CodeProblem.StaticCheck,
-                ))
-        return issues
-
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         num_created_pkl_table_files = self.products.get_number_of_created_df_tables()
         created_tex_table_files = code_and_output.created_files.get_created_content_files()

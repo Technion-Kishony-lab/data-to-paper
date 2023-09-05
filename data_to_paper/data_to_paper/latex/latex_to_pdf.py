@@ -5,6 +5,8 @@ import subprocess
 
 from typing import Optional, Collection
 
+import numpy as np
+
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 
@@ -21,8 +23,10 @@ def evaluate_latex_num_command(latex_str):
     matches = re.findall(pattern, latex_str)
     for match in matches:
         try:
-            result = round(eval(match), 10)
-            latex_str = latex_str.replace(f'\\num{{{match}}}', str(result))
+            result = eval(match,
+                          {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
+                           'e': np.e, 'sqrt': np.sqrt, 'log2': np.log2, 'log10': np.log10})
+            latex_str = latex_str.replace(f'\\num{{{match}}}', '{:.4g}'.format(result))
         except (SyntaxError, NameError):
             pass
     return latex_str

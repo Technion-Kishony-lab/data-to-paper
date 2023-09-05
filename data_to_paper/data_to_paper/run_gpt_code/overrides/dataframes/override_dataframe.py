@@ -1,10 +1,13 @@
 from functools import partial, wraps
-from typing import Iterable, Dict, Callable, Optional
+from typing import Iterable, Dict, Callable, Optional, Tuple, List, Type
 
 import pandas as pd
+
 from pandas.core.frame import DataFrame
 
 from dataclasses import dataclass, field
+
+from pandas.core.indexing import _LocationIndexer
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
@@ -13,18 +16,19 @@ from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOpera
 from . import df_methods
 from ...types import RunIssue, CodeProblem
 
-METHOD_NAMES_TO_FUNCS = {
-    '__init__': df_methods.__init__,
-    '__setitem__': df_methods.__setitem__,
-    '__getitem__': df_methods.__getitem__,
-    '__delitem__': df_methods.__delitem__,
-    '__str__': df_methods.__str__,
-    'to_string': df_methods.to_string,
-    'to_csv': df_methods.to_csv,
-    'to_latex': df_methods.to_latex,
-    'to_html': df_methods.raise_on_call,
-    'to_json': df_methods.raise_on_call,
-}
+CLS_METHOD_NAMES_NEW_METHODS = [
+    (DataFrame, '__init__', df_methods.__init__),
+    (DataFrame, '__setitem__', df_methods.__setitem__),
+    (DataFrame, '__getitem__', df_methods.__getitem__),
+    (DataFrame, '__delitem__', df_methods.__delitem__),
+    (DataFrame, '__str__', df_methods.__str__),
+    (DataFrame, 'to_string', df_methods.to_string),
+    (DataFrame, 'to_csv', df_methods.to_csv),
+    (DataFrame, 'to_latex', df_methods.to_latex),
+    (DataFrame, 'to_html', df_methods.raise_on_call),
+    (DataFrame, 'to_json', df_methods.raise_on_call),
+    (_LocationIndexer, '__getitem__', df_methods.__LocationIndexer__get_item__),
+]
 
 
 @dataclass
@@ -69,11 +73,12 @@ class TrackDataFrames(RunContext):
         ('read_excel', True),
         ('read_json', True),
     )
-    df_method_names_to_funcs: Dict[str, Callable] = field(default_factory=lambda: METHOD_NAMES_TO_FUNCS)
+    cls_method_names_new_methods: List[Tuple[Type, str, Callable]] = \
+        field(default_factory=lambda: CLS_METHOD_NAMES_NEW_METHODS)
 
     _original_float_format: Optional[str] = None
     _df_creating_func_names_to_original_funcs: Optional[Dict[str, Callable]] = None
-    _df_method_names_to_original_methods: Optional[Dict[str, Callable]] = None
+    _cls_method_names_original_methods: Optional[List[Tuple[Type, str, Callable]]] = None
     _prevent_recording_changes: Flag = field(default_factory=Flag)
 
     def _df_creating_func_override(self, *args, original_func=None, is_file=False, **kwargs):
@@ -126,20 +131,20 @@ class TrackDataFrames(RunContext):
         Override specified dataframe methods so that they report changes to the dataframe.
         As well as other enhancements.
         """
-        self._df_method_names_to_original_methods = {}
-        for method_name, new_method in self.df_method_names_to_funcs.items():
-            original_method = getattr(DataFrame, method_name)
+        self._cls_method_names_original_methods = []
+        for cls, method_name, new_method in self.cls_method_names_new_methods:
+            original_method = getattr(cls, method_name)
             wrapped_new_method = self._get_wrapped_new_method(new_method, original_method)
-            setattr(DataFrame, method_name, wrapped_new_method)
-            self._df_method_names_to_original_methods[method_name] = original_method
+            setattr(cls, method_name, wrapped_new_method)
+            self._cls_method_names_original_methods.append((cls, method_name, original_method))
 
     def _de_override_df_methods(self):
         """
         De-hook all the dataframe methods.
         """
-        for func_name, original_func in self._df_method_names_to_original_methods.items():
-            setattr(DataFrame, func_name, original_func)
-        self._df_method_names_to_original_methods = None
+        for cls, method_name, original_method in self._cls_method_names_original_methods:
+            setattr(cls, method_name, original_method)
+        self._cls_method_names_original_methods = None
 
     def _override_float_format(self):
         """

@@ -66,6 +66,7 @@ class RunContext(DisableableContext):
     """
     calling_module_name = 'data-to-paper'
     issues: Optional[RunIssues] = None
+    module_filename: str = module_filename
 
     def __enter__(self):
         self.issues = RunIssues()
@@ -77,7 +78,7 @@ class RunContext(DisableableContext):
         """
         tb = traceback.extract_stack()
         filename = tb[-3].filename
-        return filename.endswith(module_filename)
+        return filename.endswith(self.module_filename)
 
     def _is_called_from_data_to_paper(self) -> bool:
         tb = traceback.extract_stack()

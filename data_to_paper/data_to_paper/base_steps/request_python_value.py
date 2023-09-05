@@ -78,7 +78,10 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             return eval(response)
         except Exception as e:
             self._raise_self_response_error(
-                f'I tried to eval your response with Python `eval()`, but got:\n{e}')
+                f'I tried to eval your response with Python `eval()`, but got:\n{e}\n'
+                f'Your response should be formatted as a Python {self.parent_type.__name__} value '
+                f'(not an assignment, and with no comments, etc) '
+                f'that I can cut and paste and evaluated as is with `eval()`')
 
     def _validate_value_type(self, response_value: Any) -> Any:
         """

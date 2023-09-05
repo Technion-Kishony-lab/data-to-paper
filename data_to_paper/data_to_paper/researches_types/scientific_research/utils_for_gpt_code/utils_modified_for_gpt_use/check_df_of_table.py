@@ -4,6 +4,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -14,6 +15,8 @@ def _is_non_integer_numeric(value) -> bool:
     """
     if not isinstance(value, float):
         return False
+    if is_p_value(value):
+        return False
     if value.is_integer():
         return False
     # check if the value is nan or inf
@@ -22,11 +25,28 @@ def _is_non_integer_numeric(value) -> bool:
     return True
 
 
-def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: str,
+def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                                          prior_tables: Dict[str, pd.DataFrame]) -> List[RunIssue]:
     columns = df.columns
 
     issues = []
+
+    # Check if index is just a range:
+    index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
+    if index_is_range:
+        issues.append(RunIssue(
+            category='Index is just a numeric range',
+            code_problem=CodeProblem.OutputFileDesignLevelA,
+            item=filename,
+            issue=f'The index of the table {filename} is just a range from 0 to {df.shape[0] - 1}.',
+            instructions=dedent_triple_quote_str("""
+                Please revise the code making sure the table is built with an index that has meaningful row labels.
+
+                Labeling row with sequential numbers is not common in scientific tables. 
+                Though, if you are sure that starting each row with a sequential number is really what you want, \
+                then convert it from int to strings, so that it is clear that it is not a mistake.
+                """),
+        ))
 
     # Check filename:
     if not re.match(pattern=r'^table_(\d+).pkl$', string=filename):
@@ -37,7 +57,8 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
                   f'but got {filename}.',
         ))
 
-    here_is_the_csv = f'Here is the table {filename}:\n```csv\n{csv}\n```\n'
+    with PValue.allow_str.temporary_set(True):
+        here_is_the_df = f'Here is the table {filename}:\n```\n{df.to_string()}\n```\n'
 
     # Check if the table contains the same values in multiple cells
     df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
@@ -46,7 +67,7 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
             category='Table contents should not overlap',
             code_problem=CodeProblem.OutputFileContentLevelC,
             item=filename,
-            issue=here_is_the_csv + 'Note that the Table includes the same values in multiple cells.',
+            issue=here_is_the_df + 'Note that the Table includes the same values in multiple cells.',
             instructions=dedent_triple_quote_str("""
                 This is likely a mistake and is surely confusing to the reader.
                 Please revise the code so that the table does not repeat the same values in multiple cells.
@@ -72,8 +93,8 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
         return issues
 
     # Check if the table is a df.describe() table
-    description_headers = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
-    if set(description_headers).issubset(columns) or set(description_headers).issubset(df.index):
+    description_labels = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
+    if set(description_labels).issubset(columns) or set(description_labels).issubset(df.index):
         issues.append(RunIssue(
             category='Quantiles and min/max values should not be included in scientific tables',
             code_problem=CodeProblem.OutputFileContentLevelA,
@@ -88,17 +109,18 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str, csv: s
     if issues:
         return issues
 
-    # Check if the table has NaN or Inf values:
+    # Check if the table has NaN values:
     entire_df = df.reset_index(inplace=False)
     isnull = pd.isnull(entire_df).values
-    isinf = np.isinf(df.apply(pd.to_numeric, errors='coerce')).values
-    if np.any(isinf) or np.any(isnull):
+    if np.any(isnull):
         issues.append(RunIssue(
-            category='NaN or Inf values were found in created tables',
+            category='NaN values were found in created tables',
             code_problem=CodeProblem.OutputFileContentLevelA,
-            issue=here_is_the_csv + 'Note that the table has NaN/Inf values.',
-            instructions="Please revise the code so that the tables only include scientifically relevant statistics."),
-        )
+            issue=here_is_the_df + 'Note that the table has NaN values.',
+            instructions="Please revise the code to avoid NaN values in the created tables.\n"
+                         "If the NaNs are legit and stand for missing values: replace them with the string '-'.\n"
+                         "Otherwise, if they are computational errors, please revise the code to fix it.",
+        ))
 
     # Check if the table has too many columns
     MAX_COLUMNS = 10

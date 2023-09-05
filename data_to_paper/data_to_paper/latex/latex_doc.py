@@ -1,8 +1,10 @@
 import re
 from dataclasses import dataclass, field
+from functools import partial
 from typing import List, Optional, Dict, Union, Iterable, Collection
 
 from data_to_paper.latex import save_latex_and_compile_to_pdf
+from data_to_paper.latex.clean_latex import process_latex_text_and_math
 
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
@@ -40,7 +42,7 @@ CITATION_TEMPLATE = r"""
 """
 
 
-def replace_scientific_exponent_with_latex(s):
+def replace_scientific_exponent_with_latex(text, with_dollar_signs=True):
     def replace(match):
         base, exponent = match.groups()
         exponent = int(exponent)  # to remove leading zeros
@@ -50,10 +52,14 @@ def replace_scientific_exponent_with_latex(s):
         else:
             sign = ''
         if base == '1':
-            return r'${}10^{{{}}}$'.format(sign, exponent)
-        return r'${}{}\ 10^{{{}}}$'.format(sign, base, exponent)
+            s = r'{}10^{{{}}}'.format(sign, exponent)
+        else:
+            s = r'{}{}\ 10^{{{}}}'.format(sign, base, exponent)
+        if with_dollar_signs:
+            s = '$' + s + '$'
+        return s
 
-    return re.sub(pattern=r'([+-]?[\d.]+)e([+-]?\d+)', repl=replace, string=s)
+    return re.sub(pattern=r'([+-]?[\d.]+)e([+-]?\d+)', repl=replace, string=text)
 
 
 def get_tabular_block(latex_table: str) -> str:
@@ -108,7 +114,11 @@ class LatexDocument:
             section = section.replace(r'Table\textasciitilde', r'Table ').replace(r'Table \textasciitilde', r'Table ')
 
         if self.replace_scientific_exponents:
-            section = replace_scientific_exponent_with_latex(section)
+            section = process_latex_text_and_math(
+                section,
+                process_text=partial(replace_scientific_exponent_with_latex, with_dollar_signs=True),
+                process_math=partial(replace_scientific_exponent_with_latex, with_dollar_signs=False),
+            )
 
         return section
 

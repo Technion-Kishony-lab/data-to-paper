@@ -148,6 +148,8 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_known_mis_imports(self, error: ImportError) -> Optional[RunIssue]:
         if not hasattr(error, 'fromlist'):
             return
+        if error.fromlist is None:
+            return
         if len(error.fromlist) != 1:
             return
         var = error.fromlist[0]

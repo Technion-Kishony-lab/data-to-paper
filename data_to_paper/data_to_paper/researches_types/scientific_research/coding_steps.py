@@ -2,6 +2,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Callable
 
+import pandas as pd
+from pandas.core.frame import DataFrame
+
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
@@ -16,13 +19,15 @@ from data_to_paper.researches_types.scientific_research.cast import ScientificAg
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
-    PickleContentOutputFileRequirement
+    PickleContentOutputFileRequirement, RunUtilsError
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -116,6 +121,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
 @dataclass(frozen=True)
 class EnforceContentOutputFileRequirement(NumericTextContentOutputFileRequirement):
+    should_keep_file: bool = False
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
 
@@ -161,7 +167,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         contain a summary of the data.
 
         The output file should be self-contained; any results you choose to save to this file \
-        should be accompanied with a header or a short label and indication of units (if any).
+        should be accompanied with a short header.
 
         The output file should be formatted as follows:
 
@@ -202,7 +208,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file? In particular, do we have a short label for each result?
-        * Do all numeric values have units (if applicable).
         * Are there any results that are missing. Check that under each header in the output file there is \
         a corresponding meaningful result.
         * Any other issues you find.
@@ -214,9 +219,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         ```python
         {
             "The result of the average of variable ... is missing": \
-            "Add the missing calculation of to the code.",
-            "The average of the variable ... is printed without units": \
-            "Based on the data description, the units should be ...",
+            "Add the missing calculation of ... to the code.",
+            "The average of the variable <xxx> is `Nan`": \
+            "Remove missing values in the calculation."
         }
         ```
 
@@ -455,7 +460,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
         # CREATE TABLES
-        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        Considering our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         " "{hypothesis_testing_plan}"), create 2-4 tables for our scientific paper, summarizing \
         the results of the statistical analysis.
 
@@ -495,7 +500,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         [c] P-values:
         If you are reporting P-values of statistical tests, convert them using the provided `format_p_value` func.
-        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
+        This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
         For example, if you have a p-value column named "p-value", then:
         `df['p-value'] = df['p-value'].apply(format_p_value)`
 
@@ -584,7 +589,11 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         if any(func in code for func in linear_regression_funcs):
             s.append('- In linear regression, if interactions terms are included, '
                      'did we remember to include the main effects?')
-
+        if 'mediation' in code.lower():
+            s.append('- In mediation analysis:\n'
+                     '  * did we consider all three key paths (IV -> DV, IV -> Mediator, IV + Mediator -> DV)?\n'
+                     '  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n'
+                     '  * did we account for relevant confounding factors?')
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
@@ -602,6 +611,15 @@ class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequiremen
     def get_pretty_content(self, content: Any) -> str:
         with PValue.allow_str.temporary_set(True):
             return super().get_pretty_content(content)
+
+
+class DataFramePickleContentOutputFileRequirement(NumericTextContentOutputFileRequirement,
+                                                  PickleContentOutputFileRequirement,
+                                                  ):
+
+    def get_pretty_content(self, content: DataFrame) -> str:
+        with PValue.allow_str.temporary_set(True):
+            return super().get_pretty_content(content.to_string())
 
 
 class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement,
@@ -629,7 +647,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [PValuePickleContentOutputFileRequirement('table_?.pkl', 2),
+        [DataFramePickleContentOutputFileRequirement('table_?.pkl', 2),
          DictPickleContentOutputFileRequirement('additional_results.pkl', 1),
          ])
 
@@ -670,15 +688,15 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
 
         # ANALYSIS 
-        Perform the analysis and appropriate statistical tests \
-        (see above our "{hypothesis_testing_plan}").
-        The statistical analysis should account for any relevant confounding variables, as applicable. 
-        Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
-        Note that you may need to perform more than one test for each hypothesis.
+        - Perform the analysis and appropriate statistical tests (see above our "{hypothesis_testing_plan}").
+        - The statistical analysis should account for any relevant confounding variables, as applicable.
+        - Try using inherent functionality and syntax provided in functions from the available \
+        Python packages (above) and avoid, as possible, manually implementing generically available functionality. 
+        - Note that you may need to perform more than one test for each hypothesis.
 
 
         # CREATE DATAFRAMES FOR TABLES
-        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        Considering our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         "{hypothesis_testing_plan}"), decide on 2-4 tables we can create for our scientific paper, \
         summarizing the results of the statistical analysis. 
 
@@ -709,6 +727,11 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         quartile or min/max values. 
         * Make sure you do not repeat the same data in multiple tables.
 
+        [c] Row and column labels:
+        * The table should have labels for the columns and the index (rows). 
+        * Do not invent new names; just keep the original variable names from the dataset.
+        * As applicable, also keep any attr names from statistical test results as they are.
+
         # SAVE ADDITIONAL RESULTS
         At the end of the code, after completing the tables, create a dict containing any additional \
         results you deem important to include in the scientific paper, and save it to a pkl file \
@@ -729,89 +752,159 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
+        Avoid convoluted or indirect methods of data extraction and manipulation; \
+        Where possible, use direct attribute access for clarity and simplicity. 
         """)
+
+
+class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
+    cls: Type[DataFrame] = DataFrame
+    forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
+
+    def _raise_exception(self, attr, value):
+        raise RunUtilsError(RunIssue(
+            issue=f"To avoid mistakes, please do not directly assign to '{attr}'.",
+            code_problem=CodeProblem.NonBreakingRuntimeIssue,
+            instructions=f'Use instead `df.rename({attr}=<mapping>, inplace=True)`',
+        ))
 
 
 @dataclass
 class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
-    headers_required_in_code: Tuple[str, ...] = ()
+    headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
 
     background_product_fields: Tuple[str, ...] = \
-        ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis')
+        ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
+         'created_files_content:data_analysis:table_?.pkl')
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
-        ('research_goal', 'codes:data_preprocessing')
+        ('research_goal', 'codes:data_preprocessing', 'created_files_content:data_analysis:*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
+    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False) | {
+            'CustomPreventMethods':
+                PreventCalling(
+                    modules_and_functions=(
+                        (DataFrame, 'to_latex', False),
+                        (DataFrame, 'to_html', False),
+                        (pd, 'to_numeric', False),
+                    )),
+            'CustomPreventAssignmentToAtt':
+                DataframePreventAssignmentToAttrs(
+                    cls=DataFrame,
+                    forbidden_set_attrs=['columns', 'index'],
+                ),
+            'PValueMessage':
+                PValue.error_message_on_forbidden_func.temporary_set(
+                    "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead.")}
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        I would like to create latex tables for our scientific paper, from the dataframes created \
+        I would like to create latex tables for our scientific paper from the dataframes created \
         in the code above ("table_?.pkl" files). 
 
-        I would like to convert these dataframes to latex tables, using a custom function I wrote: 
+        I would like to convert these dataframes to latex tables, using two custom functions I wrote: 
 
         `to_latex_with_note(df, filename: str, caption: str, label: str, \
         note: str = None, legend: Dict[str, str] = None, **kwargs)`
 
         This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
         and allows adding below the table an optional note (if `note` is provided) as well as an optional \
-        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
+        legend mapping any abbreviated column or row names to their definitions (if `legend` is provided).
+
+        `format_p_value(x)`
+        This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
 
 
-        Please write a complete Python code that uses the above function to convert our dataframe Tables \
-        to latex tables suitable for our scientific paper.
+        Please write a complete Python code that uses the above functions to convert our dataframes \
+        to latex tables suitable for our scientific paper. Follow these instructions:
 
-        The code should follow this structure:
+        Column and row names: You should provide a new name to any column or row label that is abbreviated \
+        or technical, or that is otherwise not self-explanatory.
 
+        Definitions: You should provide an optional full definition for any name (or new name) that 
+        that satisfies any of the following: 
+        - Remains abbreviated, or not self-explanatory, even after renaming
+        - Is an ordinal/categorical value that requires clarification of the meaning of each value.
+        - Contains possibly unclear notation, like '*' or ':'
+        - Is a numeric value that has units, that need to be specified.        
+
+        To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \
+        `mapping: Dict[str, Tuple[Optional[str], Optional[str]]`, which maps column and row labels \
+        that are abbreviated or not self-explanatory to an optional new name, and an optional definition.
+        If different tables share several common labels, then you can build these table-specific mappings \
+        from a general `shared_mapping`. See example below.
+
+        Overall, the code must have the following structure:
+
+        ```
         # IMPORT
         import pandas as pd
+        from typing import Dict, Tuple, Optional
         from my_utils import to_latex_with_note, format_p_value
 
-        # CREATE LATEX TABLES
-        For each of the table dataframe files created above (table_?.pkl), \
-        create a latex table and save it to a tex following this structure:
+        Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
 
-        # Table 1:
+
+        # PREPARATION FOR ALL TABLES
+        def split_mapping(d: Mapping):
+            abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
+            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() \
+        if definition is not None}
+            return abbrs_to_names, names_to_definitions
+
+
+        < As applicable, define a shared mapping for labels that are common to all tables. For example: >
+
+        shared_mapping: Mapping = {
+            'AvgAge': ('Avg. Age', 'Average age, years'),
+            'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
+            'W': ('Weight', 'Participant weight, kg'),
+            'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
+            ...: (..., ...),
+        }
+        < This is of course just an example. Consult with the "{data_file_descriptions}" \
+        and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \
+        and definitions. >
+
+        # TABLE 1:
         df = pd.read_pickle('table_1.pkl')
 
-        # Styling the dataframe:
-        Re-style the dataframe to make it suitable for a scientific paper: 
+        # FORMAT VALUES <include this sub-section only as applicable>
+        < Rename technical values to scientifically-suitable values. For example: >
+        df['MRSA'] = df['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
 
-        - Columns and Row Headers:
-        Rename technical names to scientifically-suitable names.
-        For example:
-        `df = df.rename(columns={'<technical column name>': '<scientific column name>'})`
+        < If the table has P-values from statistical tests, format them with `format_p_value`. For example: >
+        df['PV'] = df['PV'].apply(format_p_value)
 
-        - Values:
-        Rename technical values to scientifically-suitable values \
-        (like a column with values of 0/1 may be more suitable to replace with "No"/"Yes").
-
-        - P-values:
-        If the table includes P-values of statistical tests, convert them using the provided `format_p_value` func.
-        This function returns: `"{:.3g}".format(x) if x >= 1e-6 else "<1e-6"`
-        For example, if you have a p-value column named "p-value", then use:
-        `df['p-value'] = df['p-value'].apply(format_p_value)`
+        # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
+        < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
+        < Use the `shared_mapping` if applicable. For example: >
+        mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
+        mapping |= {
+            'PV': ('P-value', None),
+            'CI': (None, '95% Confidence Interval'),
+            'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
+        }
+        abbrs_to_names, legend = split_mapping(mapping)
+        df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
 
         # Save as latex:
-        `to_latex_with_note(df, 'table_1.tex', caption=..., label='table:<chosen table label>', ...)`
+        to_latex_with_note(
+            df, 'table_1.tex',
+            caption="<choose a caption suitable for a table in a scientific paper>", 
+            label='table:<chosen table label>',
+            note="<If needed, add a note to provide any additional information that is not captured in the caption>",
+            legend=legend)
 
-        - Add a caption suitable for inclusion as part of a scientific paper \
-        (`caption=` in `to_latex_with_note`). \
-        - Add a table label (`label="table:<your label here>"` in `to_latex_with_note`).
-        - As needed, add a note at the end of the table, with any additional context \
-        (`note=` in `to_latex_with_note`).
-        For example, note="Total number of observations: <xxx>". 
-        - As needed, add a legend to clarify any abbreviated or technical names in the table \
-        (`legend=` in `to_latex_with_note`).
-        For example, if you have a column "DisSever", you should specify:
-        `legend={'DisSever': 'Severity of the disease, 1=Low, 2=Medium, 3=High'}`.
 
-        # Table 2:
-        etc, for all 'table_?.pkl' files.
-
+        # TABLE 2:
+        < etc, all 'table_?.pkl' files >
+        ```
 
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
@@ -820,6 +913,11 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         """)
 
     offer_revision_prompt: str = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.headers_required_in_code += tuple(f'# TABLE {i + 1}'
+                                               for i in range(self.products.get_number_of_created_df_tables()))
 
 
 @dataclass

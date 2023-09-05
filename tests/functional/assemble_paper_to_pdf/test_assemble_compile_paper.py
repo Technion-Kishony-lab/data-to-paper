@@ -5,6 +5,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.researches_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.run_gpt_code.types import OutputFileRequirementsWithContent
 from data_to_paper.servers.crossref import CrossrefCitation
 
 introduction_citation = {CrossrefCitation({
@@ -25,6 +26,7 @@ introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 def code_and_output():
     code_and_output = mock.Mock()
     # return value for function get_created_content_files_to_contents:
+    code_and_output.created_files = OutputFileRequirementsWithContent()
     code_and_output.get_created_content_files_to_contents.return_value = {
         'table_1.tex': """\\begin{table}
 \\centering
@@ -58,7 +60,7 @@ def products(code_and_output):
                                                'results': ('\\section{Results}{content of results}', set()),
                                                'discussion': ('\\section{Discussion}{content of discussion}', set()),
                                                'conclusion': ('\\section{Conclusion}{content of conclusion}', set()), },
-        codes_and_outputs={'data_analysis': code_and_output},
+        codes_and_outputs={'data_to_latex': code_and_output},
     )
 
 

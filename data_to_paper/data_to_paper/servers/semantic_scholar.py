@@ -128,7 +128,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 "limit": min(rows * 2, 100),  # x2 more to make sure we get enough results after removing faulty ones
                 "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
-            print_red(f"QUERYING SEMANTIC SCHOLAR WITH QUERY: {query}")
+            print_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"')
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
 
             if response.status_code != 200:
@@ -163,16 +163,35 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
         citations = NiceList(separator='\n', prefix='[\n', suffix='\n]')
         for rank, paper in enumerate(response):
 
-            if 'embedding' in paper:
-                paper = paper.copy()
+            msg = ''
+            embedding = None
+            if 'embedding' not in paper:
+                msg = 'No embedding attr'
+            elif paper['embedding'] is None:
+                msg = 'None embedding attr'
+            elif 'model' not in paper['embedding']:
+                msg = 'No model attr'
+            elif paper['embedding']['model'] not in ['specter@v0.1.1', 'specter_v1']:
+                msg = 'Wrong model attr'
+            else:
                 try:
-                    assert paper['embedding']['model'] == 'specter@v0.1.1'
-                    paper['embedding'] = np.array(paper['embedding']['vector'])
+                    assert len(paper['embedding']['vector']) == 768
                 except (AssertionError, KeyError, IndexError, TypeError):
-                    print_red(f"ERROR: embedding is not in the expected format. skipping."
-                              f"Title: {paper.get('title', None)}")
-                    continue
-            citations.append(SemanticCitation(paper, search_rank=rank, query=query))
+                    msg = 'Wrong vector attr'
+                else:
+                    embedding = np.array(paper['embedding']['vector'])
+            paper = paper.copy()
+            paper['embedding'] = embedding
+
+            citation = SemanticCitation(paper, search_rank=rank, query=query)
+
+            if msg:
+                print_red(f"ERROR: {msg}. ({citation.year}) {citation.journal}, {citation.title}")
+
+            if len(citation.bibtex_id) <= 4:
+                print_red(f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}")
+                continue
+            citations.append(citation)
         return citations
 
 

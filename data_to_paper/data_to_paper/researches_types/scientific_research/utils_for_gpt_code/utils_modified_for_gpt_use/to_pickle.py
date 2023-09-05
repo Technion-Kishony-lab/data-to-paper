@@ -37,10 +37,8 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
             issue="Please use `to_pickle(filename)` with a filename as a string argument in the format 'table_x'",
             code_problem=CodeProblem.RuntimeError,
         ))
-    with PValue.allow_str.temporary_set(True):
-        csv = df.to_csv()
-    context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, csv, prior_tables=prior_tables))
-    with RegisteredRunContext.temporarily_disable_all():
+    context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, prior_tables=prior_tables))
+    with RegisteredRunContext.temporarily_disable_all(), PValue.allow_str.temporary_set(True):
         original_func(df, path)
 
 
@@ -81,8 +79,8 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
             issue="Please use `dump(obj, filename)` with a dictionary `obj` with string keys.",
             code_problem=CodeProblem.RuntimeError,
         ))
-
-    original_func(obj, file)
+    with PValue.allow_str.temporary_set(True):
+        original_func(obj, file)
 
 
 def get_pickle_dump_attr_replacer():

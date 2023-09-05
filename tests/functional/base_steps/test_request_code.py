@@ -17,6 +17,7 @@ from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent
 
 @dataclass
 class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProductsGPT):
+    code_step = 'data_analysis'
     conversation_name: str = None
     COPY_ATTRIBUTES = BaseCodeProductsGPT.COPY_ATTRIBUTES | {'temp_dir'}
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
@@ -83,6 +84,14 @@ def code_running_converser(tmpdir_with_csv_file):
 @fixture()
 def code_request_converser(tmpdir_with_csv_file, scientific_products):
     return TestRequestCodeProducts(
+        products=scientific_products,
+        temp_dir=tmpdir_with_csv_file)
+
+
+@fixture()
+def code_request_converser_without_explanation(tmpdir_with_csv_file, scientific_products):
+    return TestRequestCodeProducts(
+        explain_code_class=None,
         products=scientific_products,
         temp_dir=tmpdir_with_csv_file)
 
@@ -167,22 +176,23 @@ def test_request_code_with_revisions(code_running_converser):
     assert len(code_running_converser.conversation) == 5
 
 
-def test_code_request_with_description_of_added_df_columns(code_request_converser, scientific_products):
+def test_code_request_with_description_of_added_df_columns(code_request_converser_without_explanation,
+                                                           scientific_products):
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is the code:\n```python\n{code_reading_csv}\n```\nShould be all good.',
              new_column_dict_explanation],
             record_more_if_needed=False):
-        code_request_converser.get_code_and_output_and_descriptions(with_code_explanation=False)
+        code_request_converser_without_explanation.get_code_and_output_and_descriptions()
     for keyword in code_reading_csv_keywords_in_description:
         assert keyword in scientific_products.get_description('created_files_description:data_analysis')
 
 
-def test_code_request_with_description_of_new_df(code_request_converser, scientific_products):
+def test_code_request_with_description_of_new_df(code_request_converser_without_explanation, scientific_products):
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is the code:\n```python\n{code_creating_csv}\n```\nShould be all good.',
              f'Here is the description of the new file ```{new_df_explanation}```'],
             record_more_if_needed=False):
-        code_request_converser.get_code_and_output_and_descriptions(with_code_explanation=False)
+        code_request_converser_without_explanation.get_code_and_output_and_descriptions()
     for keyword in code_creating_csv_keywords_in_description:
         assert keyword in scientific_products.get_description('created_files_description:data_analysis')
 

@@ -6,11 +6,14 @@ from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 
+from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
+
+from data_to_paper.run_gpt_code.types import RunUtilsError
 
 
 @pytest.mark.parametrize('func', [
@@ -20,7 +23,7 @@ from statsmodels.formula.api import ols, logit
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with StatsmodelsOverride():
+    with override_statistics_packages():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -28,14 +31,14 @@ def test_statsmodels_label_pvalues(func):
         model = func(y, X)
         results = model.fit()
         pval = results.pvalues[0]
-        assert isinstance(pval, PValue)
+        assert is_p_value(pval)
         assert pval.created_by == func.__name__
         if hasattr(results, 'summary2'):
             s2 = results.summary2()
             table1 = s2.tables[1]
             attr = 'P>|t|' if 't' in table1.columns else 'P>|z|'
             pval = s2.tables[1][attr][0]
-            assert isinstance(pval, PValue)
+            assert is_p_value(pval)
             assert pval.created_by == func.__name__
 
 
@@ -50,7 +53,7 @@ def test_statsmodels_logit():
         results = model.fit()
 
         pval = results.pvalues[0]
-        assert isinstance(pval, PValue)
+        assert is_p_value(pval)
         assert pval.created_by == 'Logit'
 
 
@@ -64,7 +67,7 @@ def test_statsmodels_logit_func():
         table2 = results.summary2().tables[1].iloc[:, 0:4]
         table2.columns = ['coef', 'std err', 'z', 'P>|z|']
         P = table2['P>|z|']
-        with pytest.raises(ValueError):
+        with pytest.raises(RunUtilsError):
             P.astype(float)
 
 
@@ -74,19 +77,7 @@ def test_statsmodels_ols():
         data = sm.datasets.longley.load().data
         results = ols('TOTEMP ~ GNPDEFL', data=data).fit()
         pval = results.pvalues[0]
-        assert isinstance(pval, PValue)
-
-
-def test_statsmodels_raise_on_multiple_fit_calls():
-    with StatsmodelsOverride():
-        # Example data
-        data = sm.datasets.longley.load()
-        X = sm.add_constant(data.exog)
-        y = data.endog
-        model = sm.OLS(y, X)
-        model.fit()
-        with pytest.raises(RuntimeWarning):
-            model.fit()
+        assert is_p_value(pval)
 
 
 def test_sklean_raise_on_multiple_fit_calls():
@@ -114,7 +105,7 @@ def test_scipy_label_pvalues():
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0
         t_statistic, p_value = stats.ttest_1samp(data, popmean)
-        assert isinstance(p_value, PValue)
+        assert is_p_value(p_value)
         assert p_value.created_by == 'ttest_1samp'
 
 
@@ -126,7 +117,7 @@ def test_scipy_stats_t_sf():
         t_statistic = 3.0
         df = 10
         p_value = scipy_stats.t.sf(t_statistic, df)
-        assert isinstance(p_value, PValue)
+        assert is_p_value(p_value)
 
 
 def test_pvalue_from_dict():
@@ -134,4 +125,4 @@ def test_pvalue_from_dict():
                                            estimate=1, standard_error=1, alternative=1)}
     df = pd.DataFrame.from_dict(ttest_results, orient='index')
     pvalue = df['pvalue'][0]
-    assert isinstance(pvalue, PValue)
+    assert is_p_value(pvalue)
