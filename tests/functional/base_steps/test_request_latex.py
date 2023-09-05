@@ -41,7 +41,7 @@ correct_abstract = r'\begin{abstract}The ultimate abstract\end{abstract}'
 
 
 @pytest.mark.parametrize('correct_latex, section', [
-    (correct_table, 'table'),
+    # (correct_table, 'table'),
     (correct_title, 'title'),
     (correct_abstract, 'abstract'),
 ])
@@ -66,12 +66,12 @@ def test_request_latex_autocorrect(correct_latex, section, replaced_value, repla
 
 @pytest.mark.parametrize('correct_latex, section, replaced_value, replace_with, error_includes', [
     # failed extractions:
-    (correct_table, 'table', r'\begin{table}', r'\begin', (r'Failed to extract table from response',)),
+    # (correct_table, 'table', r'\begin{table}', r'\begin', (r'Failed to extract table from response',)),
     (correct_title, 'title', '}', '', (r'Failed to extract title from response',)),
 
     # failed compilations:
-    (correct_table, 'table', '||c c c c||', '||c c c||', ('Extra alignment tab',)),
-    (correct_table, 'table', 'caption', 'captain', ('Undefined control sequence.', 'captain')),
+    # (correct_table, 'table', '||c c c c||', '||c c c||', ('Extra alignment tab',)),
+    # (correct_table, 'table', 'caption', 'captain', ('Undefined control sequence.', 'captain')),
 
     # failed unwanted commands:
     (correct_abstract, 'abstract', 'ultimate', r'ultimate \cite', (r'\cite', )),

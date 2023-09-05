@@ -1,3 +1,8 @@
+"""
+WIP approaches for latex parsing
+not currently in use
+"""
+
 import re
 from typing import Tuple, List, Callable, Optional
 
@@ -268,3 +273,37 @@ def process_latex(latex: str, process_math: Optional[Callable] = None, process_t
     results = separate_latex_safe(latex)
     processed = [funcs[type_](text) for type_, text in results]
     return ''.join(processed)
+
+
+# ANOTHER APPROACH, with "pylatexenc":
+
+from pylatexenc.latexwalker import LatexWalker, LatexCharsNode, LatexGroupNode
+
+latex_str = r"\textbf{Bold} and \emph{emphasized} text."
+
+# Save the original latex_verbatim methods
+original_latex_verbatim_chars = LatexCharsNode.latex_verbatim
+original_latex_verbatim_group = LatexGroupNode.latex_verbatim
+
+# Monkeypatch the latex_verbatim method to use the chars attribute for CharsNode
+def new_latex_verbatim_chars(self):
+    return self.chars.upper()
+
+# Monkeypatch the latex_verbatim method for GroupNode
+def new_latex_verbatim_group(self):
+    return '{' + ''.join(n.latex_verbatim() for n in self.nodelist) + '}'
+
+LatexCharsNode.latex_verbatim = new_latex_verbatim_chars
+LatexGroupNode.latex_verbatim = new_latex_verbatim_group
+
+# Initialize a walker
+walker = LatexWalker(latex_str)
+nodes, _, _ = walker.get_latex_nodes(pos=0)
+
+# Convert nodes back to LaTeX
+modified_latex = ''.join(n.latex_verbatim() for n in nodes if n is not None)
+print(modified_latex)
+
+# Restore the original latex_verbatim methods
+LatexCharsNode.latex_verbatim = original_latex_verbatim_chars
+LatexGroupNode.latex_verbatim = original_latex_verbatim_group

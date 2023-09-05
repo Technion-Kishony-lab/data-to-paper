@@ -72,7 +72,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
         .replace('<note_and_legend>', '\n'.join(note_and_legend))
 
     if float_num_digits is not None:
-        latex = round_floats(latex, float_num_digits)
+        latex = round_floats(latex, float_num_digits, pad_with_spaces=False)
 
     if filename is not None:
         with open(filename, 'w') as f:
