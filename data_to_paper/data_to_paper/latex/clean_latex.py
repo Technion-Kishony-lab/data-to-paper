@@ -111,7 +111,7 @@ def process_inside_and_outside_command(latex, inside_func, outside_func):
     parts = re.split(pattern=r'(\\caption\{.*?\})', string=latex)
 
     # Process each part using the appropriate function
-    processed_parts = [outside_func(part) if not '\\caption' in part else '\\caption{' + inside_func(
+    processed_parts = [outside_func(part) if '\\caption' not in part else '\\caption{' + inside_func(
         part[len('\\caption{'):-1]) + '}' for part in parts]
 
     # Reassemble the parts

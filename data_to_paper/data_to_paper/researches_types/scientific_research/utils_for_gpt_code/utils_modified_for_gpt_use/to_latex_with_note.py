@@ -11,8 +11,7 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
-from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, \
-    extract_df_axes_labels
+from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels
 from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
@@ -195,7 +194,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         data = df.iloc[:, icol]
         try:
             data_unique = data.unique()
-        except:
+        except Exception:
             data_unique = None
         if data_unique is not None and len(data_unique) == 1 and len(data) > 5:
             data0 = data.iloc[0]
@@ -531,9 +530,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                       f'Here are the available table row and column labels:\n{axes_labels}',
                 instructions=dedent_triple_quote_str("""
                     The legend keys should be a subset of the the table labels.
-                    
+
                     Please revise the code changing either the legend keys, or the table labels, accordingly.
-                    
+
                     As a reminder: you can also use the `note` argument to add information that is related to the
                     table as a whole, rather than to a specific label.
                     """)

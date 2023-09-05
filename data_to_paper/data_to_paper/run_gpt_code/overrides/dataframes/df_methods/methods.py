@@ -10,6 +10,7 @@ from ..utils import format_float
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
+
 @dataclass
 class BaseKeyError(KeyError):
     original_error: KeyError

@@ -726,7 +726,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, when reporting descriptive statistics it is typically not necessary to include \
         quartile or min/max values. 
         * Make sure you do not repeat the same data in multiple tables.
-        
+
         [c] Row and column labels:
         * The table should have labels for the columns and the index (rows). 
         * Do not invent new names; just keep the original variable names from the dataset.
@@ -783,8 +783,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False) | \
-        {
+                                         enforce_saving_altered_dataframes=False) | {
             'CustomPreventMethods':
                 PreventCalling(
                     modules_and_functions=(
@@ -799,8 +798,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
                 ),
             'PValueMessage':
                 PValue.error_message_on_forbidden_func.temporary_set(
-                    "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead.")
-        }
+                    "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead.")}
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
@@ -817,50 +815,51 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
         and allows adding below the table an optional note (if `note` is provided) as well as an optional \
         legend mapping any abbreviated column or row names to their definitions (if `legend` is provided).
-        
+
         `format_p_value(x)`
         This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
-        
-        
+
+
         Please write a complete Python code that uses the above functions to convert our dataframes \
         to latex tables suitable for our scientific paper. Follow these instructions:
-        
+
         Column and row names: You should provide a new name to any column or row label that is abbreviated \
         or technical, or that is otherwise not self-explanatory.
-        
+
         Definitions: You should provide an optional full definition for any name (or new name) that 
         that satisfies any of the following: 
         - Remains abbreviated, or not self-explanatory, even after renaming
         - Is an ordinal/categorical value that requires clarification of the meaning of each value.
         - Contains possibly unclear notation, like '*' or ':'
         - Is a numeric value that has units, that need to be specified.        
-        
+
         To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \
         `mapping: Dict[str, Tuple[Optional[str], Optional[str]]`, which maps column and row labels \
         that are abbreviated or not self-explanatory to an optional new name, and an optional definition.
         If different tables share several common labels, then you can build these table-specific mappings \
         from a general `shared_mapping`. See example below.
-        
+
         Overall, the code must have the following structure:
-        
+
         ```
         # IMPORT
         import pandas as pd
         from typing import Dict, Tuple, Optional
         from my_utils import to_latex_with_note, format_p_value
-        
+
         Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
-        
-        
+
+
         # PREPARATION FOR ALL TABLES
         def split_mapping(d: Mapping):
             abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
-            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
+            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() \
+        if definition is not None}
             return abbrs_to_names, names_to_definitions
-        
-        
+
+
         < As applicable, define a shared mapping for labels that are common to all tables. For example: >
-        
+
         shared_mapping: Mapping = {
             'AvgAge': ('Avg. Age', 'Average age, years'),
             'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
@@ -871,17 +870,17 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         < This is of course just an example. Consult with the "{data_file_descriptions}" \
         and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \
         and definitions. >
-        
+
         # TABLE 1:
         df = pd.read_pickle('table_1.pkl')
-        
+
         # FORMAT VALUES <include this sub-section only as applicable>
         < Rename technical values to scientifically-suitable values. For example: >
         df['MRSA'] = df['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
-        
+
         < If the table has P-values from statistical tests, format them with `format_p_value`. For example: >
         df['PV'] = df['PV'].apply(format_p_value)
-        
+
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
         < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
         < Use the `shared_mapping` if applicable. For example: >
@@ -893,7 +892,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         }
         abbrs_to_names, legend = split_mapping(mapping)
         df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
-        
+
         # Save as latex:
         to_latex_with_note(
             df, 'table_1.tex',
@@ -901,12 +900,12 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             label='table:<chosen table label>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
             legend=legend)
-        
-        
+
+
         # TABLE 2:
         < etc, all 'table_?.pkl' files >
         ```
-        
+
         Avoid the following:
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
         Do not create any graphics, figures or any plots.

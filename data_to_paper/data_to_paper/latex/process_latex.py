@@ -73,10 +73,9 @@ class TexMathParser:
 
         # Match all environments, macros, and switches in latex_str
         self._pattern = re.compile(
-            pattern=
-            r"\\begin\{([^}]+)\}|\\end\{([^}]+)\}|"
-            + self.texmathp_onoff_regexp + "|"
-            + self.texmathp_toggle_regexp
+            pattern=r"\\begin\{([^}]+)\}|\\end\{([^}]+)\}|"
+                    + self.texmathp_onoff_regexp + "|"
+                    + self.texmathp_toggle_regexp
         )
 
     def match_environment(self, latex_str, bound):
@@ -269,4 +268,3 @@ def process_latex(latex: str, process_math: Optional[Callable] = None, process_t
     results = separate_latex_safe(latex)
     processed = [funcs[type_](text) for type_, text in results]
     return ''.join(processed)
-

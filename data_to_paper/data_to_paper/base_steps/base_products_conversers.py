@@ -243,7 +243,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
     report_non_match_prompt: str = dedent_triple_quote_str("""
         Your section should be fully based on numeric values provided in the `provided data` above, namely in: 
         {names_of_products_from_which_to_extract}
-    
+
         Yet, I found in your section some numeric values that are not explicit extraction from these \
         `provided data`. Here are the `potentially problematic values` that I found: 
         {}
@@ -251,26 +251,26 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         In order for us to be able to understand the origin of all numeric values in your section, \
         and to prevent and fix any errors, please revise your section, so that it refers only to numeric values \
         included in the `provided data`.
-        
+
         If you wish to indicate a numeric value that is not included in the `provided data`, \
         but that can be arithmetically derived from these data, then please specify the derivation formula \
         using the \\num command.
-        
+
         A few examples:
-        
+
         - Say you want to indicate the difference between two numeric values specified in the `provided data`, \
         for example "87" and "22", then an original sentence such as:
         "The difference was 65." 
         should be re-written aa:
         "The difference was \\num{87 - 22}."
-        
+
         - Say you want to indicate the odds ratio corresponding to a linear regression coefficient \
         specified in the `provided data`, for example for a coefficient of "2.0", \
         then an original sentence such as:
         "The odds ratio is 7.389"
         should be replaced with:
         "The odds ratio is \\num{exp(2.0)}."
-        
+
         - Say you would like to indicate a numeric value with different units than specified in the \
         provided data, for example the provided data includes a length of "8.7e3" in centimeters, \
         and you would like to indicate the length in meters, then an original sentence such as: 
@@ -280,12 +280,12 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
 
         Note that within the \\num command, you should use the numeric values as they appear in the `provided data`, \
         with the exponentiation written as "e" (e.g., write "8.7e3"; do nto write "8.7 \\times 10^3").
-        
+
         In total, your section should be fully based on the `provided data` above. Any numeric value that you indicate \
         should be either:
         - Explicitly extracted from the `provided data`.
         - Arithmetically derived from the `provided data`, using the \\num command. 
-        
+
         If any of the potentially problematic values is not explicitly extracted from the `provided data`, \
         or you are unable to provide an explicit formula for deriving it, \
         then you should revise your section so that it does not include this value. 

@@ -1,10 +1,10 @@
 import pandas as pd
 from _pytest.python_api import raises
 
-from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_latex_with_note import \
-    _check_for_table_style_issues
-from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
-    get_dataframe_to_pickle_attr_replacer
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.\
+    utils_modified_for_gpt_use.to_latex_with_note import _check_for_table_style_issues
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.\
+    utils_modified_for_gpt_use.to_pickle import get_dataframe_to_pickle_attr_replacer
 from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from data_to_paper.run_gpt_code.types import RunUtilsError
 from data_to_paper.utils.file_utils import run_in_directory

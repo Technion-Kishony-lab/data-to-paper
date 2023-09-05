@@ -230,7 +230,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             The code has some issues that need to be fixed:
 
             {issues_to_solutions}
-            
+
             - And please fix any other issues that you may find.
 
             {prompt_to_append_at_end_of_response}

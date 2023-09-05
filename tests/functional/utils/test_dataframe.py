@@ -20,7 +20,6 @@ def df():
     return pd.DataFrame(data, columns=columns, index=index)
 
 
-
 def test_extract_headers():
     df = pd.DataFrame([[1, 2], [3, 4]], columns=['A', 'B'], index=['X', 'Y'])
     assert extract_df_axes_labels(df) == {'A', 'B', 'X', 'Y'}
