@@ -20,7 +20,7 @@ from .base_run_contexts import RunContext
 from .run_contexts import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
     TrackCreatedFiles
 from .timeout_context import timeout_context
-from .exceptions import FailedRunningCode, BaseRunContextException
+from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
 from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
 from ..utils.singleton import undefined
 
@@ -121,7 +121,7 @@ class RunCode:
                                                         categories_to_issue=self.warnings_to_issue,
                                                         categories_to_ignore=self.warnings_to_ignore)
         if self.timeout_sec is not None:
-            contexts['timeout_context'] = timeout_context(seconds=self.timeout_sec)
+            contexts['timeout_context'] = timeout_context(self.timeout_sec, CodeTimeoutException)
 
         # Additional custom contexts:
         if self.additional_contexts is not None:

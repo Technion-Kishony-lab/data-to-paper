@@ -3,25 +3,23 @@ import threading
 import os
 from contextlib import contextmanager
 
-from .exceptions import CodeTimeoutException
 
-
-def timeout_context(seconds):
+def timeout_context(seconds, exception=TimeoutError):
     """
     Context manager to terminate a function if runtime is too long.
     """
 
     # return different context manager depending on the operating system
     if os.name == 'nt':
-        return timeout_windows_context(seconds)
+        return timeout_windows_context(seconds, exception)
     else:
-        return timeout_unix_context(seconds)
+        return timeout_unix_context(seconds, exception)
 
 
 @contextmanager
-def timeout_unix_context(seconds):
+def timeout_unix_context(seconds, exception=TimeoutError):
     def signal_handler(signum, frame):
-        raise CodeTimeoutException(f"Context timed out after {seconds} seconds")
+        raise exception(seconds)
 
     # Set the signal handler and alarm for the specified number of seconds
     signal.signal(signal.SIGALRM, signal_handler)
@@ -35,7 +33,7 @@ def timeout_unix_context(seconds):
 
 
 @contextmanager
-def timeout_windows_context(seconds):
+def timeout_windows_context(seconds, exception=TimeoutError):
     stop_event = threading.Event()
 
     def target():
@@ -49,4 +47,4 @@ def timeout_windows_context(seconds):
     worker_thread.join(timeout=seconds)
 
     if not stop_event.is_set():
-        raise CodeTimeoutException(f"Context timed out after {seconds} seconds")
+        raise exception(seconds)
