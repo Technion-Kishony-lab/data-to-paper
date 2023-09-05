@@ -3,7 +3,8 @@ import functools
 import numpy as np
 import pandas as pd
 
-from data_to_paper.utils.mutable import Flag
+from data_to_paper.run_gpt_code.types import RunUtilsError, RunIssue, CodeProblem
+from data_to_paper.utils.mutable import Flag, Mutable
 from data_to_paper.utils.operator_value import OperatorValue
 
 
@@ -12,6 +13,7 @@ class PValue(OperatorValue):
     An object that represents a p-value float.
     """
     allow_str = Flag(False)
+    error_message_on_forbidden_func = Mutable("Calling `{func_name}` on a PValue object is forbidden.\n")
     this_is_a_p_value = True
 
     def __init__(self, value, created_by: str = None):
@@ -21,10 +23,12 @@ class PValue(OperatorValue):
     def _forbidden_func(self, func):
         if self.allow_str:
             return func(self.value)
-        raise ValueError(
-            f"Note that `{self.created_by}` now returns a PValue object.\n"
-            f"Calling `{func.__name__}` on it is forbidden.\n"
-            f"Use `format_p_value` instead.\n"
+        raise RunUtilsError(
+            RunIssue(
+                issue=self.error_message_on_forbidden_func.val.format(func_name=func.__name__,
+                                                                      created_by=self.created_by),
+                code_problem=CodeProblem.RuntimeError,
+            )
         )
 
     @property

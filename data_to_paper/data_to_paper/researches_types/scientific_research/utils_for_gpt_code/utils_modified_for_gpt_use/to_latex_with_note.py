@@ -467,10 +467,8 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     code_problem=CodeProblem.OutputFileDesignLevelB,
                     issue=f'Table {filename} has a {row_or_column} label "{label}" containing the character "{char}" '
                           f'({char_name}). This character is not allowed in index or column labels.',
-                    instructions=f'Please revise the code so that the table axes labels do not contain '
-                                 f'the "{char}" characters. You can replace them with a space, or a dash. '
-                                 f'Note that I do not want using the "{char}" char at all - '
-                                 f'not even not if properly latex escaped.',
+                    instructions=f'Please revise the code to map these dataframe axes labels to new names '
+                                 f'that do not contain the "{char}" characters.'
                 ))
     if issues:
         return issues
@@ -484,9 +482,10 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \
             function `to_latex_with_note`.
             """)
-        if e < 0.9:
+        if e < 0.8:
             instructions += dedent_triple_quote_str("""
-                Alternatively, you can replace the abbreviated labels with their full names in the table itself.
+                Alternatively, since the table is not too wide, you can also replace the abbreviated labels with \
+                their full names in the dataframe itself.
                 """)
         if legend:
             issue = f'The legend of the table needs to include also the following abbreviated labels:\n' \

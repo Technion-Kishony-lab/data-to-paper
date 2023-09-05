@@ -79,8 +79,8 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
             issue="Please use `dump(obj, filename)` with a dictionary `obj` with string keys.",
             code_problem=CodeProblem.RuntimeError,
         ))
-
-    original_func(obj, file)
+    with PValue.allow_str.temporary_set(True):
+        original_func(obj, file)
 
 
 def get_pickle_dump_attr_replacer():

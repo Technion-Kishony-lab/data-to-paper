@@ -460,7 +460,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
         # CREATE TABLES
-        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        Considering our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         " "{hypothesis_testing_plan}"), create 2-4 tables for our scientific paper, summarizing \
         the results of the statistical analysis.
 
@@ -589,7 +589,11 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         if any(func in code for func in linear_regression_funcs):
             s.append('- In linear regression, if interactions terms are included, '
                      'did we remember to include the main effects?')
-
+        if 'mediation' in code.lower():
+            s.append('- In mediation analysis:\n'
+                     '  * did we consider all three key paths (IV -> DV, IV -> Mediator, IV + Mediator -> DV)?\n'
+                     '  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n'
+                     '  * did we account for relevant confounding factors?')
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
@@ -692,7 +696,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
 
         # CREATE DATAFRAMES FOR TABLES
-        Considering the our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        Considering our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         "{hypothesis_testing_plan}"), decide on 2-4 tables we can create for our scientific paper, \
         summarizing the results of the statistical analysis. 
 
@@ -793,6 +797,9 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
                     cls=DataFrame,
                     forbidden_set_attrs=['columns', 'index'],
                 ),
+            'PValueMessage':
+                PValue.error_message_on_forbidden_func.temporary_set(
+                    "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead.")
         }
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
