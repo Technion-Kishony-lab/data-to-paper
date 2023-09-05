@@ -6,11 +6,14 @@ from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 
+from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
 from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
+
+from data_to_paper.run_gpt_code.types import RunUtilsError
 
 
 @pytest.mark.parametrize('func', [
@@ -20,7 +23,7 @@ from statsmodels.formula.api import ols, logit
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with StatsmodelsOverride():
+    with override_statistics_packages():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -64,7 +67,7 @@ def test_statsmodels_logit_func():
         table2 = results.summary2().tables[1].iloc[:, 0:4]
         table2.columns = ['coef', 'std err', 'z', 'P>|z|']
         P = table2['P>|z|']
-        with pytest.raises(ValueError):
+        with pytest.raises(RunUtilsError):
             P.astype(float)
 
 

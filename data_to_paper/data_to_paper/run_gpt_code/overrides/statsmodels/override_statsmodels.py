@@ -5,7 +5,7 @@ import statsmodels.api
 
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import SystematicMethodReplacerContext
-from ..types import convert_to_p_value
+from ..types import convert_to_p_value, PValue
 from ...types import RunIssue, RunUtilsError, CodeProblem
 
 
@@ -19,7 +19,8 @@ def _get_summary2_func(self, original_func):
         A custom summary2 function that replaces the pvalues attribute of the summary tables with a PValue objects.
         Replaces "P>|t|" and "P>|z|" with PValue objects.
         """
-        result = original_func(self, *args, **kwargs)
+        with PValue.allow_str.temporary_set(True):
+            result = original_func(self, *args, **kwargs)
 
         tables = result.tables
         table1 = tables[1]
