@@ -120,7 +120,7 @@ class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeP
 
 
 @dataclass(frozen=True)
-class EnforceContentOutputFileRequirement(NumericTextContentOutputFileRequirement):
+class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement):
     should_keep_file: bool = False
     headers_required_in_output: Tuple[str, ...] = \
         ('# Data Size', '# Summary Statistics', '# Categorical Variables', '# Missing Values')
@@ -146,6 +146,7 @@ class EnforceContentOutputFileRequirement(NumericTextContentOutputFileRequiremen
 @dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_exploration'
+    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
@@ -581,7 +582,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         """)  # set to None to skip option for revision
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
-        linear_regression_funcs = ['ols', 'OLS', 'logit', 'Logit', 'glm', 'GLM']
+        linear_regression_funcs = ['ols(', 'OLS(', 'logit(', 'Logit(', 'glm(', 'GLM(']
         comments = {}
         s = []
         code = code_and_output.code

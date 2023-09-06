@@ -38,9 +38,6 @@ MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF = Mutable(20)  # Use 0 to always show code 
 # Decide whether to show incomplete code in the output:
 HIDE_INCOMPLETE_CODE = Flag(True)
 
-# Max number of characters allowed in output txt file of gpt code:
-MAX_SENSIBLE_OUTPUT_SIZE = Mutable(10000)
-
 # Max number of tokens allowed in code output:
 MAX_SENSIBLE_OUTPUT_SIZE_TOKENS = Mutable(2500)
 
