@@ -419,7 +419,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
+        ('data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
@@ -446,9 +446,11 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
         * Numeric values: 
         You can extract and mention numeric values from the latex Tables as well as from the \
-        "{additional_results}" listed above. Note though that, unlike the Tables, these {additional_results} are not \
-        going to be added as a part of the paper, so do not "refer" to these numbers in your writing, \
-        instead, as needed, just explicitly mention any such important numeric value as an integral part of the text.
+        "{additional_results}" listed above. If you are mentioning a numeric value that is not explicitly \
+        mentioned in the Tables or "{additional_results}", but is rather derived from them, \
+        you should provide it using the \\num command. For example:
+        "Our regression analysis shows a coefficient of 2.0 (CI: [1.5, 2.5], p-value $<$ 1e-6), \
+        corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(1.5)}, \\num{exp(2.5)}])."
 
         * p-values:
         When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \

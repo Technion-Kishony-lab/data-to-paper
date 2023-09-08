@@ -541,7 +541,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
 
         * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
-        raw data is performed on the preprocessed data, or vice versa.
+        raw data is performed on the preprocessed data (like descriptive statistics), or vice versa (like regression).
 
         (2) Check the created tables (provided above) and \
         return a bullet-point response addressing these points:
@@ -550,7 +550,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         - If the table reports the mean of a variable, is the mean value sensible?
         - If the table reports CI, are the CI values flanking the mean?
         - Do values have correct signs?
-        - Do you see any values that are not sensible (too high, too low)?
+        - Do you see any values that are not sensible (too large, too small)?
 
         * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
