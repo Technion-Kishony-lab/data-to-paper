@@ -510,7 +510,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 {un_mentioned_abbr_labels}
                 """).format(un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         issues.append(RunIssue(
-            category='Some abbreviated labels are not explained in the table legend',
+            category='Table legend',
             code_problem=CodeProblem.OutputFileDesignLevelB,
             item=filename,
             issue=issue,
@@ -522,7 +522,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         un_mentioned_labels = [label for label in legend if label not in axes_labels]
         if un_mentioned_labels:
             issues.append(RunIssue(
-                category='The table legend include some keys that are not part of the table row or column labels.',
+                category='Table legend',
                 code_problem=CodeProblem.OutputFileDesignLevelB,
                 item=filename,
                 issue=f'The legend of the table includes the following labels that are not in the table:\n'

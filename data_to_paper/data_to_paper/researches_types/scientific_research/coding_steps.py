@@ -781,7 +781,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
         ('research_goal', 'codes:data_preprocessing', 'created_files_content:data_analysis:*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False) | {

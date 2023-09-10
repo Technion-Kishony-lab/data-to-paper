@@ -46,6 +46,9 @@ class PValue(OperatorValue):
     def __float__(self):
         return self._forbidden_func(float)
 
+    def __iter__(self):
+        return iter(self.value)
+
     @classmethod
     def from_value(cls, value, created_by: str = None):
         if isinstance(value, cls):
