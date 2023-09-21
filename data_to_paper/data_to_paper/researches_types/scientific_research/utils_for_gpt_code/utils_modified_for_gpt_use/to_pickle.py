@@ -15,7 +15,7 @@ from .check_df_of_table import check_df_of_table_for_content_issues
 def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
                                     original_func=None, context_manager: AttrReplacer = None, **kwargs):
     """
-    Save a data frame to a csv file.
+    Save a data frame to a pickle file.
     Check for content issues.
     """
     if hasattr(context_manager, 'prior_tables'):
@@ -24,6 +24,17 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
         prior_tables = {}
         context_manager.prior_tables = prior_tables
     prior_tables[path] = df
+
+    # check that the df has only numeric, str, bool, or tuple values:
+    for value in df.values.flatten():
+        if not isinstance(value, (int, float, str, bool, tuple, PValue)):
+            context_manager.issues.append(RunIssue(
+                item=path,
+                issue=f"Your dataframe contains a value of type {type(value)} which is not supported. "
+                      f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+            break
 
     if args or kwargs:
         raise RunUtilsError(issue=RunIssue(

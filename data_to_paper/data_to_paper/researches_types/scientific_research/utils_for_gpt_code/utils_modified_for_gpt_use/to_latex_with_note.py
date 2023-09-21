@@ -484,6 +484,10 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     # Check that any abbreviated row/column labels are explained in the legend
     abbr_labels = [label for label in axes_labels if is_unknown_abbreviation(label)]
+
+    # For compatability with `mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}`:
+    abbr_labels = [label for label in abbr_labels if label in df.columns or label in df.index]
+
     un_mentioned_abbr_labels = [label for label in abbr_labels if label not in legend]
     if un_mentioned_abbr_labels:
         instructions = dedent_triple_quote_str("""

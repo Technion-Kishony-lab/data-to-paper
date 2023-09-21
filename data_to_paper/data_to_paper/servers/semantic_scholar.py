@@ -134,7 +134,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
 
             if response.status_code == 504:
-                print_red("ERROR: Server timed out. We wait for 5 sec and tet's try again.")
+                print_red("ERROR: Server timed out. We wait for 5 sec and try again.")
                 time.sleep(5)
                 continue
 

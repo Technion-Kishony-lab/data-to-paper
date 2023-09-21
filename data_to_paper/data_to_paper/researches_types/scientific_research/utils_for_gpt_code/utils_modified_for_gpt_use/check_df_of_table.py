@@ -58,7 +58,8 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
         ))
 
     with PValue.allow_str.temporary_set(True):
-        here_is_the_df = f'Here is the table {filename}:\n```\n{df.to_string()}\n```\n'
+        printable_size_df = df.iloc[:10, :5]
+        here_is_the_df = f'Here is the table {filename}:\n```\n{printable_size_df.to_string()}\n```\n'
 
     # Check if the table contains the same values in multiple cells
     df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
@@ -115,7 +116,7 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
     if np.any(isnull):
         issues.append(RunIssue(
             category='NaN values were found in created tables',
-            code_problem=CodeProblem.OutputFileContentLevelA,
+            code_problem=CodeProblem.OutputFileContentLevelC,
             issue=here_is_the_df + 'Note that the table has NaN values.',
             instructions="Please revise the code to avoid NaN values in the created tables.\n"
                          "If the NaNs are legit and stand for missing values: replace them with the string '-'.\n"
