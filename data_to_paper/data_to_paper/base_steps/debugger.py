@@ -44,12 +44,15 @@ _assert_known_mis_imports()
 
 
 def _get_description_of_run_error(error: Exception):
+    str_error = str(error)
+    if len(str_error) > 2000:
+        str_error = str_error[:1000] + '\n[...]\n' + str_error[-800:]
     return dedent_triple_quote_str("""
         I ran the code and got the following error message:
         ```
         {}
         ```
-        """).format(error)
+        """).format(str_error)
 
 
 @dataclass
