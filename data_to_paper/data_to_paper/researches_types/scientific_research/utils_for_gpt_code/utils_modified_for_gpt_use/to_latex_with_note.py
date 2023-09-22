@@ -345,7 +345,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             drop_column_message = ''
         if index:
             index_note = dedent_triple_quote_str("""\n
-                - Rename the index labels to a shorter names. Use `df.rename(index=...)`
+                - Rename the index labels to shorter names. Use `df.rename(index=...)`
                 """)
         else:
             index_note = ''
@@ -476,8 +476,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                         f'Here are the problematic {index_or_column} labels:\n'
                         f'{unallowed_labels}'
                     ),
-                    instructions=f'Please revise the code to map these dataframe axes labels to new names '
-                                 f'that do not contain the "{char}" characters.'
+                    instructions=f'Please revise the code to map these {index_or_column} labels to new names '
+                                 f'that do not contain the "{char}" characters. '
+                                 f'Use `df.rename({index_or_column}=...)`',
                 ))
     if issues:
         return issues
