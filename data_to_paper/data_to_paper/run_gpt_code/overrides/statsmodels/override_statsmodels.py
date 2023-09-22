@@ -2,11 +2,19 @@ import functools
 from dataclasses import dataclass
 
 import statsmodels.api
+from statsmodels.stats import multitest
 
 from data_to_paper.env import TRACK_P_VALUES
-from ..attr_replacers import SystematicMethodReplacerContext
+from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext
 from ..types import convert_to_p_value, PValue
 from ...types import RunIssue, RunUtilsError, CodeProblem
+
+
+MULTI_TEST_FUNCS_AND_PVAL_INDEXES = [
+    ('multipletests', 1),
+    ('fdrcorrection_twostage', 1),
+    ('fdrcorrection', 1),
+]
 
 
 def _get_summary2_func(self, original_func):
@@ -52,7 +60,7 @@ def _get_summary_func(self, original_func):
 
 
 @dataclass
-class StatsmodelsOverride(SystematicMethodReplacerContext):
+class StatsmodelsFitOverride(SystematicMethodReplacerContext):
     """
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
@@ -95,6 +103,33 @@ class StatsmodelsOverride(SystematicMethodReplacerContext):
                 if hasattr(result, 'summary'):
                     original_summary = result.summary
                     result.summary = _get_summary_func(obj, original_summary)
+            return result
+
+        return wrapped
+
+
+@dataclass
+class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
+    base_module: object = multitest
+
+    def _should_replace(self, module, func_name, func) -> bool:
+        return func_name in [func_name for func_name, _ in MULTI_TEST_FUNCS_AND_PVAL_INDEXES]
+
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
+
+        @functools.wraps(original_func)
+        def wrapped(*args, **kwargs):
+            result = original_func(*args, **kwargs)
+
+            if TRACK_P_VALUES:
+                # Replace the pvalues attribute if it exists
+                try:
+                    func_name, pval_index = [x for x in MULTI_TEST_FUNCS_AND_PVAL_INDEXES if x[0] == attr_name][0]
+                    result = list(result)
+                    result[pval_index] = convert_to_p_value(result[pval_index], created_by=func_name)
+                    result = tuple(result)
+                except (AttributeError, TypeError, ValueError):
+                    pass
             return result
 
         return wrapped

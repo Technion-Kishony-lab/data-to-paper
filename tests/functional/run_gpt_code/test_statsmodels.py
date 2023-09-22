@@ -8,7 +8,7 @@ from statsmodels.genmod.generalized_linear_model import GLM
 
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
-from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsOverride
+from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
 from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
@@ -43,7 +43,7 @@ def test_statsmodels_label_pvalues(func):
 
 
 def test_statsmodels_logit():
-    with StatsmodelsOverride():
+    with StatsmodelsFitOverride():
         # Example data
         X = [1, 2, 3, 4, 5]
         y = [0, 0, 1, 1, 1]
@@ -58,7 +58,7 @@ def test_statsmodels_logit():
 
 
 def test_statsmodels_logit_func():
-    with StatsmodelsOverride():
+    with StatsmodelsFitOverride():
         # Example data
         X = [1, 2, 3, 4, 5]
         y = [0, 0, 1, 1, 1]
@@ -72,7 +72,7 @@ def test_statsmodels_logit_func():
 
 
 def test_statsmodels_ols():
-    with StatsmodelsOverride():
+    with StatsmodelsFitOverride():
         # Example of using the ols function, not the class
         data = sm.datasets.longley.load().data
         results = ols('TOTEMP ~ GNPDEFL', data=data).fit()
@@ -95,7 +95,7 @@ def test_sklean_raise_on_multiple_fit_calls():
 
 def test_df_describe_under_label_pvalues():
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    with StatsmodelsOverride():
+    with StatsmodelsFitOverride():
         df.describe()
 
 
