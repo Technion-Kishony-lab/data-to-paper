@@ -104,10 +104,12 @@ class ScientificProducts(Products):
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
+    def get_created_df_tables(self) -> List[str]:
+        return [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
+                if file.startswith('table_')]
+
     def get_number_of_created_df_tables(self) -> int:
-        files = [file for file in self.codes_and_outputs['data_analysis'].created_files.get_created_content_files()
-                 if file.startswith('table_')]
-        return len(files)
+        return len(self.get_created_df_tables())
 
     @property
     def tables(self) -> Dict[str, List[str]]:

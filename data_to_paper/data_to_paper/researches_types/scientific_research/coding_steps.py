@@ -531,19 +531,30 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         (1) Check your Python code and return a bullet-point response addressing these points:
 
-        * Statistical analysis: Check the part of the code that performs the statistical analysis, \
-        and identify any imperfect implementation of statistical tests, like:
-        - Incorrect choice of statistical test.
-        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
-
-        * Preprocessing: Review the description of the data files (see above "{data_file_descriptions}") \
+        * DATASET PREPARATIONS:
+        - Did we deal with missing, unknown, or undefined values, or with special numeric values that stand for \
+        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
+        consider also the "{outputs:data_exploration}")?
+        - Did we correctly standardize numeric values with different units into same-unit values? 
+        
+        * DESCRIPTIVE STATISTICS:
+        - As applicable, did we correctly report descriptive statistics of key variables?
+        - Is this analysis done on the correct data (for example, before any possible data normalization)?
+        
+        * PREPROCESSING:
+        Review the description of the data files (see above "{data_file_descriptions}") \
         and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
         data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
 
-        * Data Analysis: Check for any data analysis issues. For example, analysis that should be performed on the \
-        raw data is performed on the preprocessed data (like descriptive statistics), or vice versa (like regression).
+        * ANALYSIS:
+        Check for any data analysis issues. For example: 
+        - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
+        - Incorrect choice of statistical test.
+        - Imperfect implementation of statistical tests.
+        - Did we correctly chose the variables that represent the tested hypothesis? 
+        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
 
-        (2) Check the created tables (provided above) and \
+        (2) Check the created pkl tables (provided above) and \
         return a bullet-point response addressing these points:
         * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
         For example: 
@@ -578,7 +589,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
         If you are sure that there are no issues, and the code and tables need no revision,
-        then return an empty dict: {}. 
+        then return an empty dict: `{}`. 
         """)  # set to None to skip option for revision
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
@@ -588,10 +599,13 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         code = code_and_output.code
         s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
         if any(func in code for func in linear_regression_funcs):
-            s.append('- In linear regression, if interactions terms are included, '
-                     'did we remember to include the main effects?')
+            s.append('- In linear regression, if interactions terms are included:\n'
+                     '  * did we remember to include the main effects?\n'
+                     '  * did we use the `*` operator in statsmodels formula as recommended '
+                     '(instead of trying to manually multiply the variables)?')
         if 'mediation' in code.lower():
             s.append('- In mediation analysis:\n'
+                     '  * are we using the Mediation package (from `statsmodels.stats.mediation`)?\n'
                      '  * did we consider all three key paths (IV -> DV, IV -> Mediator, IV + Mediator -> DV)?\n'
                      '  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n'
                      '  * did we account for relevant confounding factors?')
@@ -637,9 +651,10 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
+        '# DATASET PREPARATIONS',
+        '# DESCRIPTIVE STATISTICS',
         '# PREPROCESSING',
         '# ANALYSIS',
-        '# CREATE DATAFRAMES FOR TABLES',
         '# SAVE ADDITIONAL RESULTS',
     )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
@@ -664,74 +679,90 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
         The code must have the following sections (with these exact capitalized headers):
 
-        # IMPORT
-        import pickle
-        <import here any other packages you need>
-
-        As needed, you can use the following packages which are already installed:
+        `# IMPORT`
+        `import pickle`
+        You can also import here any other packages you need from the following list: 
         {supported_packages}
 
 
-        # LOAD DATA
+        `# LOAD DATA`
         Load the data from the original data files described above (see "{data_file_descriptions}").\
         {list_additional_data_files_if_any}
 
 
-        # PREPROCESSING 
-        Perform any preprocessing steps needed to prepare the data for the analysis.
-        For example, as applicable:
+        `# DATASET PREPARATIONS`
+        * Join dataframes as needed.
         * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
         unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
         consider also the "{outputs:data_exploration}").
-        * Normalization of numeric values with different units into same-unit values.
+        * Create new columns as needed.
+        * Standardization of numeric values with different units into same-unit values.
+        
+        If no dataset preparations are needed, write below this header: \
+        `# No dataset preparations are needed.`
+
+        
+        `# DESCRIPTIVE STATISTICS`
+        * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \
+        "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \
+        the paper and create a relevant table.
+        
+        For example:
+        `## Table 0: "Descriptive statistics of height and age stratified by sex"`
+        Write here the code to create a descriptive statistics dataframe `df0` and save it using:
+        `df0.to_pickle('table_0.pkl')`
+        
+        If no descriptive statistics are needed, write: \
+        `# No descriptive statistics table is needed.`
+
+
+        # PREPROCESSING 
+        Perform any preprocessing steps needed to further prepare the data for the analysis.
+        For example, as applicable:
+        * Standardization and normalization of numeric values (as needed).
+        * Creating dummy variables for categorical variables (as needed).
         * Any other data preprocessing you deem relevant.
-        * If no preprocessing is needed, write: "# No preprocessing is needed, because <your reasons here>."
+        
+        If no preprocessing is needed, write:
+        `# No preprocessing is needed, because <your reasons here>.`
 
 
-        # ANALYSIS 
-        - Perform the analysis and appropriate statistical tests (see above our "{hypothesis_testing_plan}").
+        # ANALYSIS
+        Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 tables \
+        (in addition to the above descriptive statistics, if any) we should create for our scientific paper. \
+        Typically, we should have at least one table for each hypothesis test.
+
+        For each such scientific table:
+        [a] Write a comment with a suggested table's caption. 
+        Choose a caption that clearly describes the table's content and its purpose.
+        For example:
+        `## Table 1: "Test of association between age and risk of death, accounting for sex and race"`
+        Avoid generic captions such as `## Table 1: "Results of analysis"`.
+        
+        [b] Perform analysis
+        - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
         - The statistical analysis should account for any relevant confounding variables, as applicable.
-        - Try using inherent functionality and syntax provided in functions from the available \
-        Python packages (above) and avoid, as possible, manually implementing generically available functionality. 
         - Note that you may need to perform more than one test for each hypothesis.
+        - Try using inherent functionality and syntax provided in functions from the available \
+        Python packages (above) and avoid, as possible, manually implementing generically available functionality.
+        For example:
+        * to include interactions in regressions (if applicable), use the "x * y" string syntax in statsmodels formulas.
+        * to test for mediation effects (if applicable), use the Mediation package. 
 
-
-        # CREATE DATAFRAMES FOR TABLES
-        Considering our study goals and the hypothesis testing plan (see above "{research_goal}" and \
-        "{hypothesis_testing_plan}"), decide on 2-4 tables we can create for our scientific paper, \
-        summarizing the results of the statistical analysis. 
-
-        For each such scientific table, create a dedicated corresponding dataframe and save it to a pkl file \
-        using pandas `df.to_pickle(filename)` method (at the same directory as the code).
-
-        Overall, the section should have the following structure:
-        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ... stratified by ...">
-        <write here the code to create a dataframe of table 1 and save it using `df1.to_pickle('table_1.pkl')`
-
-        ## Table 2: <your chosen table name here. e.g "Model xxx ...">
-        <write here the code to create a dataframe of table 2 and save it using `df2.to_pickle('table_2.pkl')`
-
-        etc, up to 4 tables.
-
-        When writing the code for the Tables, consider these guidelines (as applicable):
-
-        [a] List of tables to create:
-        * Create 2-4 tables relevant to our {research_goal} and {hypothesis_testing_plan}.
-        * Typically, the first table could be descriptive statistics of the data, \
-        and then we should have at least one table for each of the hypothesis tests.
-
-        [b] What to include in each table:
-        * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
-        * Nominal values should be accompanied by a measure of uncertainty (CI or STD).
-        * Exclude data not important to the research goal, or that are too technical. \
-        For example, when reporting descriptive statistics it is typically not necessary to include \
-        quartile or min/max values. 
+        [c] Create a dataframe for the scientific table
+        * For each table, create a dataframe `df1`, `df2`, etc, containing the data needed for the table. 
+        * Only include information that is relevant and suitable for inclusion in a scientific table.
+        * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
+        * Exclude data not important to the research goal, or that are too technical.
         * Make sure you do not repeat the same data in multiple tables.
+        * The table should have labels for the both the columns and the index (rows): 
+            - Do not invent new names; just keep the original variable names from the dataset.
+            - As applicable, also keep unmodified any attr names from statistical test results.
+        
+        [d] Save the dataframe to a pkl file
+        Use pandas `to_pickle` function to save the dataframe to a pkl file.
+        For example, for Table 1: `df1.to_pickle('table_1.pkl')`
 
-        [c] Row and column labels:
-        * The table should have labels for the columns and the index (rows). 
-        * Do not invent new names; just keep the original variable names from the dataset.
-        * As applicable, also keep any attr names from statistical test results as they are.
 
         # SAVE ADDITIONAL RESULTS
         At the end of the code, after completing the tables, create a dict containing any additional \
@@ -742,7 +773,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
         `additional_results = {
             'Total number of observations': <xxx>,         
-            'model_accuracy': <xxx>,
+            'accuracy of regression model': <xxx>,
             # etc, any other results and important parameters that are not included in the tables
         }
         with open('additional_results.pkl', 'wb') as f:
@@ -754,7 +785,9 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
         Avoid convoluted or indirect methods of data extraction and manipulation; \
-        Where possible, use direct attribute access for clarity and simplicity. 
+        Where possible, use direct attribute access for clarity and simplicity.
+        Where possible, access dataframes using string-based column/index names, \
+        rather than integer-based column/index positions. 
         """)
 
 
@@ -872,8 +905,8 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \
         and definitions. >
 
-        # TABLE 1:
-        df = pd.read_pickle('table_1.pkl')
+        # TABLE {first_table_number}:
+        df = pd.read_pickle('table_{first_table_number}.pkl')
 
         # FORMAT VALUES <include this sub-section only as applicable>
         < Rename technical values to scientifically-suitable values. For example: >
@@ -903,7 +936,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             legend=legend)
 
 
-        # TABLE 2:
+        # TABLE <?>:
         < etc, all 'table_?.pkl' files >
         ```
 
@@ -915,10 +948,16 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
     offer_revision_prompt: str = None
 
+    @property
+    def first_table_number(self):
+        k = len('table_')
+        return self.products.get_created_df_tables()[0][k]
+
     def __post_init__(self):
         super().__post_init__()
-        self.headers_required_in_code += tuple(f'# TABLE {i + 1}'
-                                               for i in range(self.products.get_number_of_created_df_tables()))
+        k = len('table_')
+        self.headers_required_in_code += tuple(f'# TABLE {file_name[k]}'
+                                               for file_name in self.products.get_created_df_tables())
 
 
 @dataclass
