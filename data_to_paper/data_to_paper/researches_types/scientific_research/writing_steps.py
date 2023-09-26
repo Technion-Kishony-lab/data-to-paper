@@ -4,6 +4,7 @@ from typing import Tuple, List, Set, Optional, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
+from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, \
@@ -444,13 +445,18 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         or of future work.
         (These will be added later as part the Discussion section, not the Results section). 
 
-        * Numeric values: 
+        * Numeric values:
         You can extract and mention numeric values from the latex Tables as well as from the \
         "{additional_results}" listed above. If you are mentioning a numeric value that is not explicitly \
-        mentioned in the Tables or "{additional_results}", but is rather derived from them, \
+        mentioned in the Tables or in "{additional_results}", but is rather derived from them, \
         you should provide it using the \\num command. For example:
-        "Our regression analysis shows a coefficient of 2.0 (CI: [1.5, 2.5], p-value $<$ 1e-6), \
-        corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(1.5)}, \\num{exp(2.5)}])."
+        "Our regression analysis shows a coefficient of 2.0 (SE=0.3, p-value $<$ 1e-6), \
+        corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(2.0 - 2 * 0.3)}, \\num{exp(2.0 + 2 * 0.3)}])."
+        
+        If we must include a numeric value that does not appear in the Tables or "{additional_results}", \
+        and cannot be derived from them, \
+        then indicate `[unknown]` instead of the numeric value. For example:
+        "Our regression analysis shows a coefficient of [unknown]."
 
         * p-values:
         When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
@@ -480,6 +486,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         return [get_table_label(table) for table in self.products.tables[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
+        if '[unknown]' in section:
+            raise FailedCreatingProductException()
         table_labels = self._get_table_labels(section_name)
         for table_label in table_labels:
             if table_label not in section:
