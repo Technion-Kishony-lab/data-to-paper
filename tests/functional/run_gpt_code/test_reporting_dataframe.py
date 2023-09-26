@@ -170,6 +170,17 @@ def test_df_raise_column_key_options():
     assert 'available_key' in str(exc.value)
 
 
+def test_df_raise_on_non_matching_index_in_setitem():
+    with TrackDataFrames():
+        df = pd.DataFrame({'a': [1, 2]}, index=['x', 'y'])
+        df['b'] = [3, 4]
+        df['c'] = pd.Series([5, 6], index=['x', 'y'])
+        with pytest.raises(ValueError) as exc:
+            df['d'] = pd.Series([7, 8], index=['x', 'z'])
+    assert "['x', 'y']" in str(exc.value)
+    assert "['x', 'z']" in str(exc.value)
+
+
 def test_loc_key_options():
     with TrackDataFrames():
         df = pd.DataFrame(pd.DataFrame({

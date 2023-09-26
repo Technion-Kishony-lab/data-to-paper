@@ -84,6 +84,13 @@ def __LocationIndexer__get_item__(self, key, *args, original_method=None, on_cha
 
 
 def __setitem__(self, key, value, original_method=None, on_change=None):
+    # if value is a series, we need to check that the index is the same as the dataframe's index
+    if isinstance(value, pd.Series):
+        if not value.index.equals(self.index):
+            raise ValueError(f"Series index ({value.index}) must be the same as dataframe index ({self.index}). "
+                             f"Either drop non-matching rows, "
+                             f"or use `pd.merge(..., how='outer')` to keep all rows.")
+
     if hasattr(self, 'columns'):
         original_columns = self.columns
     else:
