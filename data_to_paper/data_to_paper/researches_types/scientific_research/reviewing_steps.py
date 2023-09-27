@@ -49,7 +49,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
         * Try to avoid trivial hypotheses (like just testing for simple linear associations).
         Instead, you could perhaps explore more complex associations and relationships, like testing for \
-        mediation, or moderation effects, or interactions between variables. 
+        moderation effects or interactions between variables. 
 
         * Make sure that your suggested hypothesis can be studied using only the provided dataset, \
         without requiring any additional data. In particular, pay attention to using only data available \
@@ -269,18 +269,6 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         Your response for this part should be formatted as a Python dictionary, like this:
         ```python
         {
-            "xxx is associated with yyy": 
-                "linear regression with xxx as the independent variable and  yyy as the dependent variable while \
-        adjusting for aaa, bbb, ccc",
-            "the above association between xxx and yyy is mediated by zzz":
-                "mediation analysis with xxx as the independent \
-        variable, yyy as the dependent variable, and zzz as the mediator, while adjusting for aaa, bbb, ccc",
-        }
-        ```
-
-        Or, here is another example:
-        ```python
-        {
             "xxx is associated with yyy and zzz":
                 "linear regression with xxx as the independent variable and \
         yyy and zzz as the dependent variables while adjusting for aaa, bbb, ccc",
@@ -293,7 +281,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         These of course are just examples. Your actual response should be based on the goal and hypotheses that \
         we have specified above (see the "{research_goal}" above).
 
-        Note how in both cases the the different hypotheses are connected to each other, building towards a single
+        Note how in the example shown the different hypotheses are connected to each other, building towards a single
         study goal.
 
         Remember to return a valid Python dictionary Dict[str, str].

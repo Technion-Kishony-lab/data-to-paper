@@ -797,8 +797,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
             if any(keyword in hypothesis.lower() or keyword in plan.lower() for keyword in keywords):
                 return f"\n" \
                        f"- If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' " \
-                       f"paths, and to check the significance of the indirect effect using the Sobel statistics: " \
-                       f"t = a * b / sqrt((a^2 * SE_b^2) + (b^2 * SE_a^2))\n"
+                       f"paths (and add the same confounding variables to both paths, as needed)."
         return ''
 
 
