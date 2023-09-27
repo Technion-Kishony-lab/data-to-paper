@@ -529,17 +529,19 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         {created_file_contents_explanation}
 
-        (1) Check your Python code and return a bullet-point response addressing these points:
+        (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
 
         * DATASET PREPARATIONS:
-        - Did we deal with missing, unknown, or undefined values, or with special numeric values that stand for \
-        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
-        consider also the "{outputs:data_exploration}")?
-        - Did we correctly standardize numeric values with different units into same-unit values? 
+        - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \
+        or with special numeric values that stand for unknown/undefined \
+        (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
+        - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
         
         * DESCRIPTIVE STATISTICS:
-        - As applicable, did we correctly report descriptive statistics of key variables?
-        - Is this analysis done on the correct data (for example, before any possible data normalization)?
+        If applicable: 
+        - did we correctly report descriptive statistics? Does the choice of variables for such \
+        statistics make sense for our study?
+        - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
         
         * PREPROCESSING:
         Review the description of the data files (see above "{data_file_descriptions}") \
@@ -547,11 +549,11 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
 
         * ANALYSIS:
-        Check for any data analysis issues. For example: 
+        As applicable, check for any data analysis issues, including: 
         - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
         - Incorrect choice of statistical test.
         - Imperfect implementation of statistical tests.
-        - Did we correctly chose the variables that represent the tested hypothesis? 
+        - Did we correctly chose the variables that best represent the tested hypothesis? 
         {specific_comments_for_code_and_output}- Any other statistical analysis issues.
 
         (2) Check the created pkl tables (provided above) and \
