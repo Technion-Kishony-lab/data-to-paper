@@ -81,10 +81,10 @@ class OperatorValue:
             setattr(cls, method_name, method)
 
         for method_name, op in cls.UNARY_METHODS_TO_OPERATORS.items():
-            def method(self, op=op):
+            def method(self, *args, op=op, **kwargs):
                 if op is None:
                     raise NotImplementedError(f'Operator {method_name} is not allowed on {self.__class__.__name__}')
-                return op(self.value)
+                return op(self.value, *args, **kwargs)
             setattr(cls, method_name, method)
         return cls
 
