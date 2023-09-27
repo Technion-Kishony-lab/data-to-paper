@@ -606,11 +606,10 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
                      '  * did we use the `*` operator in statsmodels formula as recommended '
                      '(instead of trying to manually multiply the variables)?')
         if 'mediation' in code.lower():
-            s.append('- In mediation analysis:\n'
-                     '  * are we using the Mediation package (from `statsmodels.stats.mediation`)?\n'
-                     '  * did we consider all three key paths (IV -> DV, IV -> Mediator, IV + Mediator -> DV)?\n'
-                     '  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n'
-                     '  * did we account for relevant confounding factors?')
+            s.append("- In mediation analysis:\n"
+                     "  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n"
+                     "  * did we account for relevant confounding factors "
+                     "(by adding these same confounding factors to both the 'a' and 'b' paths)?")
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
@@ -747,9 +746,8 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         - Note that you may need to perform more than one test for each hypothesis.
         - Try using inherent functionality and syntax provided in functions from the available \
         Python packages (above) and avoid, as possible, manually implementing generically available functionality.
-        For example:
-        * to include interactions in regressions (if applicable), use the "x * y" string syntax in statsmodels formulas.
-        * to test for mediation effects (if applicable), use the Mediation package. 
+        For example, to include interactions in regressions (if applicable), use the "x * y" string syntax \
+        in statsmodels formulas.{mediation_note_if_applicable}
 
         [c] Create a dataframe for the scientific table
         * For each table, create a dataframe `df1`, `df2`, etc, containing the data needed for the table. 
@@ -791,6 +789,17 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Where possible, access dataframes using string-based column/index names, \
         rather than integer-based column/index positions. 
         """)
+
+    @property
+    def mediation_note_if_applicable(self):
+        keywords = ['mediated', 'mediation', 'mediates', 'mediator', 'mediators']
+        for hypothesis, plan in self.products.hypothesis_testing_plan.items():
+            if any(keyword in hypothesis.lower() or keyword in plan.lower() for keyword in keywords):
+                return f"\n" \
+                       f"- If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' " \
+                       f"paths, and to check the significance of the indirect effect using the Sobel statistics: " \
+                       f"t = a * b / sqrt((a^2 * SE_b^2) + (b^2 * SE_a^2))\n"
+        return ''
 
 
 class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):

@@ -480,8 +480,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                         f'{unallowed_labels}'
                     ),
                     instructions=f'Please revise the code to map these {index_or_column} labels to new names '
-                                 f'that do not contain the "{char}" characters. '
-                                 f'Use `df.rename({index_or_column}=...)`',
+                                 f'that do not contain the "{char}" characters.\n\n'
+                                 f'Doublecheck to make sure your code uses `df.rename({index_or_column}=...)` '
+                                 f'with the `{index_or_column}=` arg.'
                 ))
     if issues:
         return issues
