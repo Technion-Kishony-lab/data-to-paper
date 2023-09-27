@@ -189,3 +189,14 @@ def test_run_code_raises_on_unallowed_created_files(tmpdir):
 def test_run_code_allows_allowed_files(tmpdir):
     os.chdir(tmpdir)
     RunCode(allowed_open_write_files=['test.txt'], output_file_requirements=None).run(code)
+
+
+def test_run_code_exception_with_docstring():
+    code = dedent_triple_quote_str('''
+        from statsmodels.stats.mediation import Mediation
+        Mediation(2, 1, 'wrong')
+        ''')
+    with raises(FailedRunningCode) as e:
+        RunCode().run(code)
+    error = e.value
+    print(error.get_docstring_of_function_causing_exception())

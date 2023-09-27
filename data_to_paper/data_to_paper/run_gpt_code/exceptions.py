@@ -1,3 +1,4 @@
+import sys
 import traceback
 from abc import ABCMeta
 from dataclasses import dataclass
@@ -35,6 +36,17 @@ class FailedRunningCode(data_to_paperException):
 
         return [t for t in self.tb if t[0].endswith(module_filename)]
 
+    def _get_first_outside_frame(self):
+        """
+        returns the first frame after the gpt module and outside the data_to_paper package.
+        """
+        # get first non data_to_paper frame
+        last_index_of_gpt_module = self.tb.index(self._get_gpt_module_frames()[-1])
+        for t in self.tb[last_index_of_gpt_module + 1:]:
+            if BASE_FOLDER_NAME not in t[0]:
+                return t
+        return None
+
     def _get_data_to_paper_frames(self):
         """
         returns the last frame within the data_to_paper package.
@@ -65,6 +77,19 @@ class FailedRunningCode(data_to_paperException):
         line = last_data_to_paper_frame.line
         # TODO: this is a hack.  we should check if the line explicitly raises.
         return line.strip().startswith('raise')
+
+    def get_docstring_of_function_causing_exception(self):
+        """
+        returns the docstring of the function that caused the exception.
+        """
+        frame = self._get_first_outside_frame()
+        if frame is None:
+            return None
+
+        func_name = frame.name
+        func = sys.modules[frame.filename].__dict__.get(func_name)
+        docstring = func.__doc__
+        return docstring
 
     def get_lineno_line_message(self, lines_added_by_modifying_code: int = 0) -> Tuple[List[Tuple[int, str]], str]:
         """
