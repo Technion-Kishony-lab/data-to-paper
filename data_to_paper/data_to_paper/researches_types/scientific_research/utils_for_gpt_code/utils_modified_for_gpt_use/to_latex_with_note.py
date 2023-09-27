@@ -11,7 +11,7 @@ from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
-from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels
+from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
@@ -177,11 +177,14 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         return issues
 
     # Get all labels:
-    row_labels = extract_df_row_labels(df)
+    row_labels = extract_df_row_labels(df, with_title=False)
     row_labels = {row_label for row_label in row_labels if isinstance(row_label, str)}
-    column_labels = extract_df_column_labels(df)
+    column_labels = extract_df_column_labels(df, with_title=False)
     column_labels = {column_label for column_label in column_labels if isinstance(column_label, str)}
-    axes_labels = row_labels | column_labels
+    axes_labels = extract_df_axes_labels(df, with_title=False)
+    axes_labels = {axes_label for axes_label in axes_labels if isinstance(axes_label, str)}
+    assert axes_labels == row_labels | column_labels
+    all_labels = extract_df_axes_labels(df, with_title=True)
 
     """
     TABLE CONTENT
@@ -524,7 +527,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
 
     # Check that the legend does not include any labels that are not in the table
     if legend:
-        un_mentioned_labels = [label for label in legend if label not in axes_labels]
+        un_mentioned_labels = [label for label in legend if label not in all_labels]
         if un_mentioned_labels:
             issues.append(RunIssue(
                 category='Table legend',
@@ -532,9 +535,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 item=filename,
                 issue=f'The legend of the table includes the following labels that are not in the table:\n'
                       f'{un_mentioned_labels}\n'
-                      f'Here are the available table row and column labels:\n{axes_labels}',
+                      f'Here are the available table row and column labels:\n{all_labels}',
                 instructions=dedent_triple_quote_str("""
-                    The legend keys should be a subset of the the table labels.
+                    The legend keys should be a subset of the table labels.
 
                     Please revise the code changing either the legend keys, or the table labels, accordingly.
 
