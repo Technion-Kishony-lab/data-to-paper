@@ -284,7 +284,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                                  f'`df.loc[{repr(p_value_rows)}] = df.loc[{repr(p_value_rows)}].apply(format_p_value)`',
                 ))
 
-        # Check if there is a p-value that is not formatted:
+        # Check if there are individual p-value cells that are not formatted:
         cells_with_p_value = []
         for irow in range(df.shape[0]):
             row_label = df.index[irow]
