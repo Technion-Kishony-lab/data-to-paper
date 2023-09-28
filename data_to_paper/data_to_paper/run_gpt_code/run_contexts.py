@@ -206,8 +206,9 @@ class PreventImport(SingletonRegisteredRunContext):
             try:
                 return self.original_import(name, globals, locals, fromlist, level)
             except Exception as e:
-                e.fromlist = fromlist
-                raise e
+                exc = ImportError(str(e))
+                exc.fromlist = fromlist
+                raise exc
 
     @contextmanager
     def within_import(self, package_name):

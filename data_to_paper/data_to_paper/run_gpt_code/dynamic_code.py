@@ -158,7 +158,10 @@ class RunCode:
                     module = importlib.reload(CODE_MODULE)
                     result = self._run_function_in_module(module)
                 except Exception as e:
-                    raise FailedRunningCode.from_exception(e)
+                    exc = FailedRunningCode.from_exception(e)
+                    if exc.is_legit():
+                        raise exc
+                    raise e
 
         except BaseRunContextException as e:
             raise FailedRunningCode.from_exception(e)

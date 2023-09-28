@@ -4,6 +4,8 @@ from typing import Optional
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 
+BASE_FOLDER_NAME = 'data-to-paper'
+
 SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn')
 
 # OpenAI API keys. model=None is the default key.

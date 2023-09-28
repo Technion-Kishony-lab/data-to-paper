@@ -6,6 +6,8 @@ from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass
 from typing import List, Type, TypeVar, Optional
 
+from data_to_paper.env import BASE_FOLDER_NAME
+
 from .types import module_filename, RunIssues
 
 T = TypeVar('T', bound='SingletonRegisteredRunContext')
@@ -64,7 +66,7 @@ class RunContext(DisableableContext):
     """
     Base context manager for running GPT code.
     """
-    calling_module_name = 'data-to-paper'
+    calling_module_name = BASE_FOLDER_NAME
     issues: Optional[RunIssues] = None
     module_filename: str = module_filename
 

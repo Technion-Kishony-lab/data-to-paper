@@ -3,6 +3,7 @@ from abc import ABCMeta
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from data_to_paper.env import BASE_FOLDER_NAME
 from data_to_paper.exceptions import data_to_paperException
 
 
@@ -30,12 +31,36 @@ class FailedRunningCode(data_to_paperException):
 
         return [t for t in self.tb if t[0].endswith(module_filename)]
 
+    def _get_data_to_paper_frames(self):
+        """
+        returns the last frame within the data_to_paper package.
+        """
+        return [t for t in self.tb if BASE_FOLDER_NAME in t[0]]
+
     def _get_name_space(self):
         """
         returns the name space of the frame that caused the exception.
         """
         # TODO: implement
         return NotImplemented
+
+    def is_legit(self):
+        """
+        Legit exceptions are exceptions whose last data_to_paper frame is the module_filename, or
+        that last data_to_paper frame has explicitly raised.
+        """
+        last_data_to_paper_frame = self._get_data_to_paper_frames()[-1]
+        gpt_module_frames = self._get_gpt_module_frames()
+        assert gpt_module_frames is not None
+        if len(gpt_module_frames) == 0:
+            assert isinstance(self.exception, SyntaxError)  # <-- are there other cases?
+            return True
+        last_gpt_module_frame = gpt_module_frames[-1]
+        if last_data_to_paper_frame is last_gpt_module_frame:
+            return True
+        line = last_data_to_paper_frame.line
+        # TODO: this is a hack.  we should check if the line explicitly raises.
+        return line.strip().startswith('raise')
 
     def get_lineno_line_message(self, lines_added_by_modifying_code: int = 0) -> Tuple[List[Tuple[int, str]], str]:
         """
