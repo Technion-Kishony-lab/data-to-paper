@@ -159,9 +159,15 @@ class RunCode:
                     result = self._run_function_in_module(module)
                 except Exception as e:
                     exc = FailedRunningCode.from_exception(e)
-                    if exc.is_legit():
-                        raise exc
-                    raise e
+
+                    # TODO: The lines below are disabled for now.
+                    #  Need to implement this while taking care of exception raised by a data-to-paper wrapper
+                    #  of external module functions.
+                    # if exc.is_legit():
+                    #     raise exc
+                    # raise e
+
+                    raise exc
 
         except BaseRunContextException as e:
             raise FailedRunningCode.from_exception(e)
