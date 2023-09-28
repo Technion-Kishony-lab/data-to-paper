@@ -71,3 +71,4 @@ def test_is_smaller_than_sign():
     assert is_after_smaller_than_sign('0.05', 'p-value <0.05') is True
     assert is_after_smaller_than_sign('0.05', 'p-value < 0.05') is True
     assert is_after_smaller_than_sign('0.05', 'p-value is 0.05') is False
+    assert is_after_smaller_than_sign('+0.05', 'p-value < +0.05') is True

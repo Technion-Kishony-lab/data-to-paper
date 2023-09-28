@@ -98,7 +98,7 @@ def is_after_smaller_than_sign(str_number: str, target: str) -> Optional[bool]:
     """
     Check if the given string number extracted from the target str appear after a '<' sign.
     """
-    str_number_positions = [m.start() for m in re.finditer(str_number, target)]
+    str_number_positions = [m.start() for m in re.finditer(re.escape(str_number), target)]
     for str_number_position in str_number_positions:
         if str_number_position > 0 and target[str_number_position - 1] == '<' or \
                 str_number_position > 1 and target[str_number_position - 2] == '<':
@@ -116,7 +116,7 @@ def is_percentage(str_number: str, target: str, search_distance: int = 30) -> Op
     """
     target_words = target.split()
     # find all the occurrences of the string number in the target:
-    str_number_positions = [m.start() for m in re.finditer(str_number, target)]
+    str_number_positions = [m.start() for m in re.finditer(re.escape(str_number), target)]
     len_str_number = len(str_number)
 
     # check if the string number is a percentage:
