@@ -89,7 +89,7 @@ class ChangeConversationParticipants(ConversationAction):
 
     def _pretty_attrs(self) -> str:
         return f'name={self.conversation_name} web={self.web_conversation_name}, ' \
-               f'participants={[p.name if isinstance(p, Agent) else p for p in self.participants]}'
+               f'participants={sorted([p.name if isinstance(p, Agent) else p for p in self.participants])}'
 
     def apply_to_web(self) -> bool:
         return False
