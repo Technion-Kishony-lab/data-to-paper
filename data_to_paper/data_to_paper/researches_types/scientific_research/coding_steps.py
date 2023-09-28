@@ -536,6 +536,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         or with special numeric values that stand for unknown/undefined \
         (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
         - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
+        - Are we restricting the analysis to the correct data (based on the study goal)?
         
         * DESCRIPTIVE STATISTICS:
         If applicable: 
@@ -600,11 +601,14 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         s = []
         code = code_and_output.code
         s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
-        if any(func in code for func in linear_regression_funcs):
-            s.append('- In linear regression, if interactions terms are included:\n'
-                     '  * did we remember to include the main effects?\n'
-                     '  * did we use the `*` operator in statsmodels formula as recommended '
-                     '(instead of trying to manually multiply the variables)?')
+        func_names = [func for func in linear_regression_funcs if func in code]
+        if func_names:
+            func_name = func_names[0]
+            s.append(f'- In linear regression, if interactions terms are included:\n'
+                     f'  * did we remember to include the main effects?\n'
+                     f'  * did we use the `*` operator in statsmodels formula as recommended '
+                     f'(as applicable, better use the `formula = "y ~ a * b"` string notation instead of trying to '
+                     f'manually multiply the variables)')
         if 'mediation' in code.lower():
             s.append("- In mediation analysis:\n"
                      "  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n"
@@ -697,6 +701,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
         consider also the "{outputs:data_exploration}").
         * Create new columns as needed.
+        * Remove records based on exclusion/inclusion criteria (to match study goal, if applicable).
         * Standardization of numeric values with different units into same-unit values.
         
         If no dataset preparations are needed, write below this header: \
@@ -746,11 +751,11 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         - Note that you may need to perform more than one test for each hypothesis.
         - Try using inherent functionality and syntax provided in functions from the available \
         Python packages (above) and avoid, as possible, manually implementing generically available functionality.
-        For example, to include interactions in regressions (if applicable), use the "x * y" string syntax \
+        For example, to include interactions in regression analysis (if applicable), use the "x * y" string syntax \
         in statsmodels formulas.{mediation_note_if_applicable}
 
-        [c] Create a dataframe for the scientific table
-        * For each table, create a dataframe `df1`, `df2`, etc, containing the data needed for the table. 
+        [c] Create and save a dataframe for a scientific table
+        * Create a dataframe containing the data needed for the table (`df1`, `df2`, etc). 
         * Only include information that is relevant and suitable for inclusion in a scientific table.
         * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
         * Exclude data not important to the research goal, or that are too technical.
@@ -759,10 +764,17 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
             - Do not invent new names; just keep the original variable names from the dataset.
             - As applicable, also keep unmodified any attr names from statistical test results.
         
-        [d] Save the dataframe to a pkl file
-        Use pandas `to_pickle` function to save the dataframe to a pkl file.
-        For example, for Table 1: `df1.to_pickle('table_1.pkl')`
+        
+        Overall, the section should have the following structure:
+        
+        # ANALYSIS
+        ## Table 1: <your chosen table name here>
+        <write here the code to analyze the data and create a dataframe df1 for the table 1>
+        df1.to_pickle('table_1.pkl')
 
+        ## Table 2: <your chosen table name here>
+        etc, up to 3 tables.
+        
 
         # SAVE ADDITIONAL RESULTS
         At the end of the code, after completing the tables, create a dict containing any additional \
