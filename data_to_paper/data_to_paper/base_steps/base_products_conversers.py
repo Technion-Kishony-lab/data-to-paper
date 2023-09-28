@@ -278,7 +278,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                         last_separator=' and ')
 
     def _check_extracted_numbers(self, text: str,
-                                 ignore_int_below: int = 20,
+                                 ignore_int_below: int = 100,
                                  remove_trailing_zeros: bool = True,
                                  allow_truncating: bool = True):
         if self.product_fields_from_which_response_is_extracted is None:
