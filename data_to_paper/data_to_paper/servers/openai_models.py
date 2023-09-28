@@ -31,6 +31,18 @@ class ModelEngine(IndexOrderedEnum):
     def __hash__(self):
         return hash(self.value)
 
+    def get_model_with_more_strength(self):
+        model =  MODELS_TO_MORE_STRENGTH[self]
+        if model is None:
+            raise ValueError(f"Model {self} has no stronger model")
+        return model
+
+    def get_model_with_more_context(self):
+        model = MODELS_TO_MORE_CONTEXT[self]
+        if model is None:
+            raise ValueError(f"Model {self} has no model with more context")
+        return model
+
     @property
     def max_tokens(self):
         return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][0]
@@ -42,6 +54,20 @@ class ModelEngine(IndexOrderedEnum):
         (in_dollar_per_token, out_dollar_per_token)
         """
         return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][1:]
+
+
+MODELS_TO_MORE_CONTEXT = {
+    ModelEngine.GPT35_TURBO_16: None,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
+    ModelEngine.GPT4: ModelEngine.GPT35_TURBO_16,
+}
+
+
+MODELS_TO_MORE_STRENGTH = {
+    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT4,
+    ModelEngine.GPT4: None,
+}
 
 
 @dataclass

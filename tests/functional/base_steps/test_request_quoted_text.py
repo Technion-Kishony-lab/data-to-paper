@@ -52,7 +52,8 @@ def test_request_quoted_text_bumps_model():
 
     # assert context as sent to the server:
     models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
-    assert models_used == [ModelEngine.GPT35_TURBO, ModelEngine.GPT35_TURBO, ModelEngine.GPT35_TURBO.get_next()]
+    assert models_used == [ModelEngine.GPT35_TURBO, ModelEngine.GPT35_TURBO,
+                           ModelEngine.GPT35_TURBO.get_model_with_more_strength()]
 
 
 def test_request_quoted_text_repost_correct_response_as_fresh():

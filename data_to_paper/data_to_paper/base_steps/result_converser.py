@@ -217,14 +217,17 @@ class ResultConverser(Converser):
 
             # The response is not valid
             self._self_response_iteration_count -= response_error.add_iterations
+            if response_error.bump_model:
+                try:
+                    self.model_engine = self.model_engine.get_model_with_more_strength()
+                    bump_model = True
+                except ValueError:
+                    bump_model = False
+                if bump_model:
+                    msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
+                    self.apply_append_user_message(msg, conversation_name=None)  # web only
+                    print_red(msg)
 
-            if response_error.bump_model and self.model_engine < MAX_MODEL_ENGINE:
-                self.apply_append_user_message(
-                    f"You seem totally drunk. Let's Bump you to {self.model_engine.get_next()} and try again...",
-                    conversation_name=None)  # web only
-                print_red(f"You seem totally drunk. Let's Bump you to {self.model_engine.get_next()} "
-                          f"and try again...")
-                self.model_engine = self.model_engine.get_next()
             self.apply_append_user_message(
                 Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
             if response_error.rewind == Rewind.RESTART:

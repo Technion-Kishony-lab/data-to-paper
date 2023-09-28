@@ -219,11 +219,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         )
 
     def _get_issue_for_incomplete_code_block(self) -> RunIssue:
-        if self.model_engine < MAX_MODEL_ENGINE:
-            self.model_engine = self.model_engine.get_next()
-            instructions = f"Let's bump you up to {self.model_engine.get_next()} and REGENERATE!"
-        else:
+        try:
+            self.model_engine = self.model_engine.get_model_with_more_context()
+            instructions = f"Let's bump you up to {self.model_engine} and REGENERATE!"
+        except ValueError:
             instructions = "Please REGENERATE!"
+
         return RunIssue(
             issue="Your sent incomplete code.",
             instructions=instructions,
