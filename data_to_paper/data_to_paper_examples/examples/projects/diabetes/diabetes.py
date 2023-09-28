@@ -12,7 +12,7 @@ RUN_PARAMETERS = dict(
 
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
-              output_folder='paper1301',
+              output_folder='paper1302',
               should_mock_servers=True,
               load_from_repo=True,
               save_on_repo=True)
