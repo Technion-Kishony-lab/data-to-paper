@@ -199,7 +199,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 @dataclass
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
-    background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
+    background_product_fields: Tuple[str] = ('general_dataset_description',
                                              'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
@@ -252,7 +252,7 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
 class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterReviewGPT):
     max_reviewing_rounds: int = 0
     conversation_name: str = 'title_abstract_section_second'
-    background_product_fields: Tuple[str] = ('general_dataset_description', 'research_goal',
+    background_product_fields: Tuple[str] = ('general_dataset_description',
                                              'paper_sections:results',
                                              'literature_search:writing:background',
                                              'literature_search:writing:dataset',
