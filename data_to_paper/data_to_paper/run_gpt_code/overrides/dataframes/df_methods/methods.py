@@ -122,15 +122,7 @@ def to_string(self, *args, original_method=None, on_change=None, **kwargs):
     We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
     """
     with temporarily_change_float_format(STR_FLOAT_FORMAT):
-        result1 = original_method(self, *args, **kwargs)
-        result2 = original_method(self.T, *args, **kwargs)
-    longest_line1 = max(len(line) for line in result1.split('\n'))
-    longest_line2 = max(len(line) for line in result2.split('\n'))
-    if longest_line1 > PDF_TEXT_WIDTH > longest_line2:
-        result = result2
-    else:
-        result = result1
-    return result
+        return original_method(self, *args, **kwargs)
 
 
 def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
