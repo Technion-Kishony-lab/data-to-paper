@@ -9,13 +9,17 @@ from data_to_paper.exceptions import data_to_paperException
 
 @dataclass
 class FailedRunningCode(data_to_paperException):
-    exception: Exception
+    exception: Optional[Exception]
     tb: Optional[List]
     fake_file_name = "my_analysis.py"
 
     @classmethod
     def from_exception(cls, e: Exception):
         return cls(exception=e, tb=traceback.extract_tb(e.__traceback__))
+
+    @classmethod
+    def from_current_tb(cls):
+        return cls(exception=None, tb=traceback.extract_stack())
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"

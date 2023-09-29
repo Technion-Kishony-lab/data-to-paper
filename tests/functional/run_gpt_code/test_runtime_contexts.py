@@ -19,3 +19,9 @@ def test_warning_handler_raises(warning_handler):
     with warning_handler:
         with raises(RuntimeWarning):
             warnings.warn('This is a runtime warning', category=RuntimeWarning)
+
+
+def test_warning_handler_issues(warning_handler):
+    with warning_handler:
+        warnings.warn('This is a deprecation warning', category=DeprecationWarning)
+    assert len(warning_handler.issues) == 1

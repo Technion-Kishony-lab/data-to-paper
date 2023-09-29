@@ -35,7 +35,7 @@ def test_run_code_correctly_reports_exception():
     assert linenos_lines == [(3, "raise Exception('error')")]
 
 
-def test_run_code_catches_warning():
+def test_run_code_raises_warning():
     code = dedent_triple_quote_str("""
         import warnings
         warnings.warn('be careful', UserWarning)
@@ -46,6 +46,17 @@ def test_run_code_catches_warning():
     lineno_line, msg = error.get_lineno_line_message()
     assert msg == 'be careful'
     assert lineno_line == [(2, "warnings.warn('be careful', UserWarning)")]
+
+
+def test_run_code_issues_warning():
+    code = dedent_triple_quote_str("""
+        import warnings
+        warnings.warn('be careful', UserWarning)
+        """)
+    result, created_files, issues, contexts = RunCode(warnings_to_issue=[UserWarning]).run(code)
+    assert len(issues) == 1
+    assert 'be careful' in issues[0].issue
+    assert issues[0].linenos_and_lines == [(2, "warnings.warn('be careful', UserWarning)")]
 
 
 def test_run_code_correctly_reports_exception_from_func():

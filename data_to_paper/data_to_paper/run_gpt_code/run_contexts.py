@@ -13,7 +13,7 @@ from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils import dedent_triple_quote_str
 
 from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
-    CodeImportForbiddenModule, UnAllowedFilesCreated
+    CodeImportForbiddenModule, UnAllowedFilesCreated, FailedRunningCode
 from .types import CodeProblem, RunIssue, OutputFileRequirements
 from .base_run_contexts import RegisteredRunContext, SingletonRegisteredRunContext
 
@@ -241,9 +241,11 @@ class WarningHandler(SingletonRegisteredRunContext):
 
     def _warning_handler(self, message, category, filename, lineno, file=None, line=None):
         if any(issubclass(category, cls) for cls in self.categories_to_issue):
+            linenos_lines, _ = FailedRunningCode.from_current_tb().get_lineno_line_message()
             self.issues.append(RunIssue(
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
+                linenos_and_lines=linenos_lines,
             ))
         elif any(issubclass(category, cls) for cls in self.categories_to_raise):
             raise message

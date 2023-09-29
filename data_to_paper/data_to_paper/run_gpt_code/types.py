@@ -90,6 +90,7 @@ class CodeProblem(IndexOrderedEnum):
 @dataclass(frozen=True)
 class RunIssue:
     code_problem: CodeProblem
+    linenos_and_lines: List[Tuple[int, str]] = None
     category: str = ''
     item: str = ''
     issue: str = ''
@@ -135,6 +136,10 @@ class RunIssues(List[RunIssue]):
                 for issue in issues_in_category:
                     if issue.item:
                         note += f'* {issue.item}:\n'
+                    if issue.linenos_and_lines:
+                        note += 'On line:\n'
+                        note += '\n'.join(f'{lineno}: {line}' for lineno, line in issue.linenos_and_lines)
+                        note += '\n'
                     note += f'{issue.issue}\n'
                     if len(unique_instructions) > 1 and issue.instructions is not None:
                         note += f'{issue.instructions}\n'
