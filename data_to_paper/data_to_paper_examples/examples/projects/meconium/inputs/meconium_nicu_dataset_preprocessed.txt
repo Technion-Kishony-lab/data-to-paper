@@ -1,0 +1,46 @@
+The dataset contains 44 columns:
+
+#1 `PRE/POST` (0=Pre, 1=Post) Delivery pre or post the new 2015 policy
+#2 `AGE` (int, in years) Maternal age
+#3 `RACE` (categorical) Mother race. "WHITE", "BLACK", "ASIAN" or "OTHER"
+#4 `RACE.binary` (1=WHITE, 0=NON-WHITE) Same as RACE, but binary
+#5 `ETHNICITY` (1=Hispanic, 0=Other)
+#6 `GRAVIDA` (int) Gravidity
+#7 `PARA` (int) Parity
+#8 `Multiple` (1=multiple, 0=singleton) Singleton or multiple
+#9 `Hypertensive.disorders` (1=Yes, 0=No) Gestational hypertensive disorder
+#10 `maternal.diabetes`	(1=Yes, 0=No) Gestational diabetes
+#11 `Maternal.Diabetes.treatment` (categorical) "INSULIN", "MEDS" for other medication, or "" for no treatment
+#12 `Mode.delivery` (Categorical) "VAGINAL" or "C section"
+#13 `Fetal.Distress` (1=Yes, 0=No)
+#14 `Prolonged.Rupture` (1=Yes, 0=No) Prolonged Rupture of Membranes
+#15 `Chorioamnionitis` (1=Yes, 0=No)
+#16 `SEPSIS` (Categorical) Neonatal blood culture. (""=none, "NEG CULTURES"=negative, "POS CULTURES"=positive)
+#17 `GESTATIONAL.AGE` (float, numerical). in weeks.
+#18 `PRETERM.TERM` (Categorical) "LATE PRETERM" / "TERM".
+#19 `Gender` (Categorical) "M"/ "F"
+#20 `BIRTH.WEIGHT` (float, in KG)
+#21 `APGAR.SCORE.1.minute` (int, 1-10)
+#22 `APGAR.SCORE.5.minute` (int, 1-10)
+#23 `MECONIUM.CONSISTENCY` (categorical) "THICK" / "THIN"
+#24 `ROUTINE.RESUSCITATION` (1=Yes, 0=No)
+#25 `PPV` (1=Yes, 0=No) Positive Pressure Ventilation
+#26 `Endotracheal.suction` (1=Yes, 0=No) Whether endotracheal suctioning was performed
+#27 `Meconium.recovered` (1=Yes, 0=No)
+#28 `Cardiopulmonary.resuscitation` (1=Yes, 0=No)
+#29 `REASON.ADMISSION` (categorical) Neonate ICU admission reason. ("OTHER", "RESP" or "CHORIOAMNIONITIS")
+#30 `Respiratory.Reason.Admission` (1=Yes, 0=No)
+#31 `Respiratory.Distress.Syndrome` (1=Yes, 0=No)
+#32 `Transient.Tachypnea` (1=Yes, 0=No)
+#33 `Meconium.Aspiration.Syndrome` (1=Yes, 0=No)
+#34 `Respiratory.Support` (categorical) "SIMV", "NC", "CPAP", "HFJV" or "RA"
+#35 `oxygen.therapy` (1=Yes, 0=No)
+#36 `mechanical.ventilation` (1=Yes, 0=No)
+#37 `Surfactant` (1=Yes, 0=No) Surfactant inactivation
+#38 `Pneumothorax` (1=Yes, 0=No)
+#39 `Antibiotics.duration` (float, in days) Neonate treatment duration
+#40 `Breastfeeding` (1=Yes, 0=No) Breastfed at NICU
+#41 `Exposure.xrays` (1=Yes, 0=No)
+#42 `Length.stay` (float, in days) Length of stay at NICU
+#43 `X.Ray.finding` (categorical) X-ray results (N/A)
+#44 `SNAPPE.II.SCORE` (int) 0–20 (mild), 21–40 (moderate), 41- (severe)
