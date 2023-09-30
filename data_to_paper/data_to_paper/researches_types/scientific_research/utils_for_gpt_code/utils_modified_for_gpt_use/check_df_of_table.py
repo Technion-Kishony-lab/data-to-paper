@@ -67,7 +67,9 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
 
     # Check if the table contains the same values in multiple cells
     df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
-    if len(df_values) != len(set(df_values)):
+    # TODO: This test is disabled for now. There are too many false positives - true cases of repeated values,
+    #  especially in df.describe() of small datasets.
+    if False and len(df_values) != len(set(df_values)):
         # Find the positions of the duplicated values:
         duplicated_values = [v for v in df_values if df_values.count(v) > 1]
         example_value = duplicated_values[0]

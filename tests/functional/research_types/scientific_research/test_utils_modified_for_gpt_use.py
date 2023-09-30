@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 from _pytest.fixtures import fixture
 from _pytest.python_api import raises
 
@@ -65,6 +66,15 @@ def test_check_df_of_table_for_content_issues_raises_on_nan(df):
     assert '(0, 1)' in issues[0].issue
 
 
+def test_check_df_of_table_for_content_issues_raises_on_p_value_of_nan(df):
+    df.iloc[0, 1] = PValue(float('nan'))
+    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    assert len(issues) == 1
+    assert 'NaN' in issues[0].category
+    assert '(0, 1)' in issues[0].issue
+
+
+@pytest.mark.skip(reason='Test for repeated values is disabled. High risk of false positive in small datasets')
 def test_check_df_of_table_for_content_issues_with_repeated_value(df):
     df.iloc[0, 0] = 2 / 7
     df.iloc[1, 1] = 2 / 7
