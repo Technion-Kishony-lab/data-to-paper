@@ -725,7 +725,6 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         # PREPROCESSING 
         Perform any preprocessing steps needed to further prepare the data for the analysis.
         For example, as applicable:
-        * Standardization and normalization of numeric values (as needed).
         * Creating dummy variables for categorical variables (as needed).
         * Any other data preprocessing you deem relevant.
         

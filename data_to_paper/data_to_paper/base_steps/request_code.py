@@ -210,7 +210,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         conversation_len = len(self.conversation)
         issues_to_solutions = RequestIssuesToSolutions.from_(
             self,
+            model_engine=self.model_engine,
             is_new_conversation=False,
+            background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
             user_initiation_prompt=Replacer(
                 self, self.offer_revision_prompt,
                 kwargs=dict(
