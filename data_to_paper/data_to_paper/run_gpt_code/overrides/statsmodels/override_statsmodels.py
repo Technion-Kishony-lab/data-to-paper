@@ -1,8 +1,8 @@
 import functools
 from dataclasses import dataclass
 
-import statsmodels.api
-from statsmodels.stats import multitest
+import statsmodels
+from statsmodels.stats import multitest, anova
 
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext
@@ -10,10 +10,19 @@ from ..types import convert_to_p_value, PValue
 from ...types import RunIssue, RunUtilsError, CodeProblem
 
 
-MULTI_TEST_FUNCS_AND_PVAL_INDEXES = [
+MULTITEST_FUNCS_AND_PVAL_INDEXES = [
     ('multipletests', 1),
     ('fdrcorrection_twostage', 1),
     ('fdrcorrection', 1),
+]
+
+
+ANOVA_FUNCS = [
+    'anova_single',
+    'anova1_lm_single',
+    'anova2_lm_single',
+    'anova3_lm_single',
+    'anova_lm',
 ]
 
 
@@ -89,7 +98,8 @@ class StatsmodelsFitOverride(SystematicMethodReplacerContext):
                     if not hasattr(result, attr):
                         continue
                     pvalues = getattr(result, attr)
-                    pvalues = convert_to_p_value(pvalues, created_by=obj.__class__.__name__)
+                    pvalues = convert_to_p_value(pvalues, created_by=obj.__class__.__name__,
+                                                 raise_on_nan=attr != 'f_pvalue')
                     try:
                         setattr(result, attr, pvalues)
                     except AttributeError:
@@ -113,7 +123,7 @@ class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
     base_module: object = multitest
 
     def _should_replace(self, module, func_name, func) -> bool:
-        return func_name in [func_name for func_name, _ in MULTI_TEST_FUNCS_AND_PVAL_INDEXES]
+        return func_name in [func_name for func_name, _ in MULTITEST_FUNCS_AND_PVAL_INDEXES]
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
 
@@ -124,10 +134,37 @@ class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
             if TRACK_P_VALUES:
                 # Replace the pvalues attribute if it exists
                 try:
-                    func_name, pval_index = [x for x in MULTI_TEST_FUNCS_AND_PVAL_INDEXES if x[0] == attr_name][0]
+                    func_name, pval_index = [x for x in MULTITEST_FUNCS_AND_PVAL_INDEXES if x[0] == attr_name][0]
                     result = list(result)
                     result[pval_index] = convert_to_p_value(result[pval_index], created_by=func_name)
                     result = tuple(result)
+                except (AttributeError, TypeError, ValueError):
+                    pass
+            return result
+
+        return wrapped
+
+
+@dataclass
+class StatsmodelsAnovaOverride(SystematicFuncReplacerContext):
+    base_module: object = anova
+
+    def _should_replace(self, module, func_name, func) -> bool:
+        return func_name in ANOVA_FUNCS
+
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
+
+        @functools.wraps(original_func)
+        def wrapped(*args, **kwargs):
+            result = original_func(*args, **kwargs)
+
+            if TRACK_P_VALUES:
+                # Replace the 'PR(>F)' column with PValue objects
+                try:
+                    for row_label in result.index:
+                        result.loc[row_label, 'PR(>F)'] = convert_to_p_value(result.loc[row_label, 'PR(>F)'],
+                                                                             created_by=attr_name,
+                                                                             raise_on_nan=row_label != 'Residual')
                 except (AttributeError, TypeError, ValueError):
                     pass
             return result

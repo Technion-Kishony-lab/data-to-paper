@@ -126,3 +126,21 @@ def forgiving_format(string, *args, **kwargs):
         return replace_with
 
     return re.sub(pattern, substitute, string)
+
+
+def short_repr(var):
+    """
+    Return a short representation of the given variable.
+    """
+    rep = repr(var)
+    if len(rep) < 30 and '\n' not in rep:
+        return rep
+    try:
+        return f"<{type(var).__name__}, shape={var.shape}>"
+    except AttributeError:
+        pass
+    try:
+        return f"<{type(var).__name__}, len={len(var)}>"
+    except TypeError:
+        pass
+    return f"<{type(var).__name__}>"

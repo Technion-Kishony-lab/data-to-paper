@@ -5,6 +5,8 @@ from scipy.stats import stats
 from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
+from statsmodels.stats.anova import anova_lm
+from statsmodels import stats as statsmodels_stats
 
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
@@ -57,6 +59,15 @@ def test_statsmodels_logit():
         assert pval.created_by == 'Logit'
 
 
+def test_statsmodels_anova_lm():
+    with override_statistics_packages():
+        data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
+        model = ols('y ~ x', data=data).fit()
+        anova_result = anova_lm(model, typ=2)
+        pval = anova_result.loc['x', 'PR(>F)']
+        assert is_p_value(pval)
+
+
 def test_statsmodels_logit_func():
     with StatsmodelsFitOverride():
         # Example data
@@ -107,6 +118,32 @@ def test_scipy_label_pvalues():
         t_statistic, p_value = stats.ttest_1samp(data, popmean)
         assert is_p_value(p_value)
         assert p_value.created_by == 'ttest_1samp'
+
+
+def test_scipy_label_pvalues_raise_on_nan():
+    with ScipyOverride():
+        data = []
+        popmean = 3.0
+        with pytest.raises(RunUtilsError):
+            t_statistic, p_value = stats.ttest_1samp(data, popmean)
+
+
+def test_scipy_label_pvalues_chi2_contingency():
+    with ScipyOverride():
+        # Example data
+        observed = [[10, 10, 20], [20, 20, 20]]
+        chi2, p, dof, expected = scipy_stats.chi2_contingency(observed)
+        assert is_p_value(p)
+
+
+def test_scipy_label_pvalues_ttest_ind():
+    with ScipyOverride():
+        # Example data
+        data1 = [0, 1, 2, 3, 4, 5]
+        data2 = [5, 6, 7, 8, 9, 10]
+        t_statistic, p_value = scipy_stats.ttest_ind(data1, data2)
+        assert is_p_value(p_value)
+        assert p_value.created_by == 'ttest_ind'
 
 
 @pytest.mark.skip()
