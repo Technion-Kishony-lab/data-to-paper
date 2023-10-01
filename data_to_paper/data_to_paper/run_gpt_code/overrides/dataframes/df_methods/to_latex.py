@@ -37,6 +37,12 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
                                            level=level)
             df.index.names = type(df.index.names)([carefully_replace_special_latex_chars(name)
                                                    for name in df.index.names])
+    if isinstance(df.columns, MultiIndex):
+        for level in range(len(df.columns.levels)):
+            df.columns = df.columns.set_levels(df.columns.levels[level].map(carefully_replace_special_latex_chars),
+                                               level=level)
+            df.columns.names = type(df.columns.names)([carefully_replace_special_latex_chars(name)
+                                                       for name in df.columns.names])
     df.index = df.index.map(carefully_replace_special_latex_chars)
     df.index.name = carefully_replace_special_latex_chars(df.index.name)
     df.columns = df.columns.map(carefully_replace_special_latex_chars)
