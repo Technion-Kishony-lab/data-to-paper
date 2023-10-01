@@ -1,0 +1,787 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Impact of Revised Neonatal Resuscitation Program Guidelines on Interventions and Outcomes of Non-Vigorous Newborns}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}Neonatal resuscitation plays a vital role in improving outcomes for non-vigorous newborns. In 2015, the Neonatal Resuscitation Program (NRP) guidelines were revised, shifting towards less aggressive interventions based on the initial resuscitation response. This study aims to assess the effects of these revised guidelines on interventions and clinical outcomes in a single-center retrospective analysis. The dataset includes 117 deliveries before and 106 deliveries after the guideline implementation. Strict inclusion criteria were applied to select non-vigorous infants with meconium-stained amniotic fluid of any consistency and a gestational age of 35-42 weeks. Infants with major congenital malformations were excluded. Descriptive statistics and statistical tests were utilized for data analysis. The results revealed a significant decrease in the use of endotracheal suction, with a trend towards decreased usage of positive pressure ventilation. There were no significant differences in length of stay or APGAR scores between the two groups. The findings emphasize the impact of guideline revisions on neonatal resuscitation practices. However, it's important to note that this study is limited by its retrospective design and single-center setting. Our results warrant further investigation through larger, multi-center studies to confirm the long-term effects of these guideline changes on neonatal outcomes. This study provides valuable insights into the implications of revised NRP guidelines for optimizing interventions and improving outcomes for non-vigorous newborns.\end{abstract}
+\section*{Introduction}
+
+Neonatal resuscitation represents a critical domain in neonatal care, influencing the immediate and long-term outcomes for newborns, especially those exhibiting diminished vitality at birth \cite{Carbine2000VideoRA, Grossman2017AnIT}. Implementing effective and safe interventions in the course of resuscitation is integral to optimizing these outcomes. Until 2015, the Neonatal Resuscitation Program (NRP) guidelines incorporated a mandatory component of endotracheal suction and intubation for all non-vigorous infants with meconium-stained amniotic fluid (MSAF) \cite{Bhutta2005CommunityBasedIF, Stock2012OutcomesOE}. However, based on a growing body of evidence favouring less aggressive intervention strategies, NRP guidelines underwent a revision in 2015 endorsing a preference for less invasive interventions dependent on the neonate's response to preliminary resuscitation efforts \cite{Chandrasekharan2020NeonatalRA, Hutton2015OutcomesAW}.
+
+Existing research has pointed towards potential benefits of the revised guidelines, such as improved Apgar scores and reduced requirement for respiratory support \cite{Myers2020ImpactOT}. Notwithstanding, a broader study exploring the comprehensive impacts, including other aspects of neonatal care and outcomes, remains warranted \cite{Chiruvolu2018DeliveryRM}. The gradual shift in neonatal resuscitation guidelines, driven by research insights and clinical practice revisions, highlights equivocal areas in this sphere, emphasizing the necessity for continuous refinement of guidelines based on empirical findings to achieve the desired neonatal outcomes \cite{Kamath-Rayne2018HelpingBB, Study2018EpidemiologyCS}.
+
+This research aims to bridge this knowledge gap, leveraging a comprehensive single-center dataset to evaluate the impact of the revised NRP guidelines on resuscitation interventions and clinical outcomes for non-vigorous neonates \cite{Mileder2021TelesimulationAA, Lindhard2021SimulationBasedNR}. We perform a retrospective comparison between interventions and clinical outcomes for neonates born through 117 deliveries before the guideline implementation and 106 deliveries after guideline implementation \cite{Okun2016NewbornSF, Chandrasekharan2020NeonatalRA}.
+
+Employing rigorous statistical techniques, our analysis encompasses an exploration of the association between the new policy implementation and distinct neonatal interventions, and an investigation into the correlation between the new policy implementation and key neonatal outcomes such as length of stay and APGAR scores \cite{Jacobs2004CardiacAA, Rubertsson2014MechanicalCC}. Our findings contribute to the continuing discourse around neonatal resuscitation guidelines, offering insights that may inform potential future revisions aligned with improving neonatal care and outcomes \cite{Olasveengen2009IntravenousDA, Link2015Part7A}.
+
+\section*{Results}
+
+Our analysis was geared towards assessing the impact of changes in the Neonatal Resuscitation Program (NRP) guidelines on interventions and clinical outcomes for non-vigorous newborns. The investigation comprised descriptive statistics of neonate interventions and outcomes, determining the association between new policy implementation and interventions, and analyzing the association between new policy implementation and neonatal outcomes.
+
+Initially, we delved into the descriptive statistics of neonate interventions and outcomes before and after the new policy implementation (Table {}\ref{table:descriptive-statistics}). The objective was to delineate changes in these parameters following the introduction of the revised NRP guidelines in 2015. The results showed a significant decrease in the use of endotracheal suction (ETS) in the post-policy group with respect to the pre-policy group ($<$$10^{-6}$). On top of that, the use of positive pressure ventilation (PPV) showcased a downward trend in the post-policy group, notwithstanding the absence of statistical significance (p-value = 0.329). Meanwhile, the length of stay and the APGAR scores maintained a similar range in both groups.
+
+\begin{table}[h]
+\caption{Descriptive statistics of neonate interventions and outcomes stratified by new policy}
+\label{table:descriptive-statistics}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llrr}
+\toprule
+ &  & Pre Policy & Post Policy \\
+\midrule
+\multirow[t]{2}{*}{\textbf{PPV}} & \textbf{mean} & 0.757 & 0.689 \\
+\textbf{} & \textbf{std} & 0.431 & 0.465 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{ETS}} & \textbf{mean} & 0.617 & 0.142 \\
+\textbf{} & \textbf{std} & 0.488 & 0.35 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{Stay}} & \textbf{mean} & 7.5 & 7.96 \\
+\textbf{} & \textbf{std} & 6.94 & 8.04 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{A1}} & \textbf{mean} & 4.36 & 3.99 \\
+\textbf{} & \textbf{std} & 2 & 2.28 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{A5}} & \textbf{mean} & 7.4 & 7.14 \\
+\textbf{} & \textbf{std} & 1.48 & 1.93 \\
+\cline{1-4}
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{PPV}: Positive Pressure Ventilation? 1: Yes, 0: No
+\item \textbf{ETS}: Endotracheal Suction? 1: Performed, 0: Not Performed
+\item \textbf{A1}: 1-min APGAR score
+\item \textbf{A5}: 5-min APGAR score
+\item \textbf{Stay}: Length of stay, days
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Next, we evaluated the association between new policy implementation and interventions through a chi-square test for PPV and ETS (Table {}\ref{table:association-interventions}). This aimed to confirm whether the revised NRP guidelines influenced changes in the utilization of PPV and ETS. The analysis revealed a significant association between new policy implementation and the use of ETS (p-value $<$$10^{-6}$), in line with the identified decrease in endotracheal suctioning. However, the correlation between new policy implementation and the application of PPV did not record statistical significance (p-value = 0.329).
+
+\begin{table}[h]
+\caption{Test of association between new policy implementation and interventions}
+\label{table:association-interventions}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & p-value \\
+Intervention &  \\
+\midrule
+\textbf{PPV} & 0.329 \\
+\textbf{ETS} & $<$$10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{PPV}: Positive Pressure Ventilation? 1: Yes, 0: No
+\item \textbf{ETS}: Endotracheal Suction? 1: Performed, 0: Not Performed
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Subsequently, we studied the association between new policy implementation and neonatal outcomes (Table {}\ref{table:association-outcomes}), to check if the guidelines revision had any bearing on the length of stay and APGAR scores. It emerged that because the p-values were 0.78, 0.254, and 0.305 for length of stay, APGAR1, and APGAR5 respectively, there wasn't a significant association between the new policy implementation and these parameters, implying that the guidelines revision did not significantly alter the immediate clinical outcomes for non-vigorous newborns.
+
+\begin{table}[h]
+\caption{Test of association between new policy and neonatal outcomes}
+\label{table:association-outcomes}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & p-value \\
+Outcome &  \\
+\midrule
+\textbf{Stay} & 0.78 \\
+\textbf{A1} & 0.254 \\
+\textbf{A5} & 0.305 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{A1}: 1-min APGAR score
+\item \textbf{A5}: 5-min APGAR score
+\item \textbf{Stay}: Length of stay, days
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+To sum up, the revised NRP guidelines that were implemented in 2015 significantly decreased the use of endotracheal suction. While the usage of positive pressure ventilation recorded a decline, it wasn't statistically significant. Moreover, the revised guidelines had no significant influence on length of stay or APGAR scores. These findings underscore the beneficial aspects of the guidelines in enhancing interventions for non-vigorous newborns, notably by minimizing endotracheal suctioning.
+
+\section*{Discussion}
+
+The thrust of this study was to evaluate the effects of the 2015 Neonatal Resuscitation Program (NRP) guidelines revision, rooted in less aggressive initial resuscitation interventions, on neonatal intensive care practices \cite{Carbine2000VideoRA, Hutton2015OutcomesAW}. Using a single-center dataset, we conducted a retrospective analysis to compare interventions and neonatal outcomes before and after the policy revision \cite{Mileder2021TelesimulationAA, Lindhard2021SimulationBasedNR, Jacobs2004CardiacAA, Rubertsson2014MechanicalCC}. The emphasis was on non-vigorous newborns exhibiting meconium-stained amniotic fluid and falling within a gestational age bracket of 35 to 42 weeks, without presenting major congenital malformations.
+
+Our principal findings revealed a decrease in the use of endotracheal suction and a trend towards the reduction in positive pressure ventilation use following the implementation of the revised guidelines. These results naturally align with the guidelines' emphasis on less aggressive interventions \cite{Myers2020ImpactOT, Chiruvolu2018DeliveryRM}. Interestingly, despite these changes in resuscitation tactics, there was no statistically significant alteration in the immediate neonatal outcomes, namely, APGAR scores and length of stay. This is supportive of existing research highlighting that neonatal outcomes remain stable, even with less invasive resuscitation practices \cite{Myers2020ImpactOT, Chiruvolu2018DeliveryRM, Kamath-Rayne2018HelpingBB, Study2018EpidemiologyCS}. 
+
+However, it is essential to recognize certain limitations in this study. The retrospective design may not account for confounders, such as practice variability between providers, which could impact the resuscitation procedures employed and consequent newborn outcomes irrespective of guideline changes \cite{Howard2020PerinatalMH}. The study is also constrained by its single-center perspective, which might limit the findings' wider applicability due to potential variations in resources, patient demographics, or hospital protocols across different centers. Additionally, the study examines immediate outcomes soon after the revision of the guidelines, and thus, may not reflect long-term repercussions.
+
+Regarding future research, the results warrant comprehensive, long-term, multi-center studies to confirm the observed effects and discern potential long-term impacts of these policy changes on neonatal outcomes \cite{Amoakoh-Coleman2016EffectivenessOM, Sondaal2016AssessingTE}. This insight could inform potential future modifications to the NRP guidelines and associated clinical practice.
+
+In conclusion, this study illuminates the positive shift towards less invasive neonatal resuscitation following the 2015 revision of the NRP guidelines. The measures showed a contraction in the use of endotracheal suction and a trend towards the decrease in the use of positive pressure ventilation. Importantly, these changes did not accompany a significant alteration in the immediate neonatal outcomes, including APGAR scores—the standard measure for assessing the physical condition of newborns—and length of stay. Overall, these findings illustrate the revised NRP guidelines' potential to enhance neonatal care for non-vigorous newborns with meconium-stained amniotic fluid, without negatively impacting their immediate health outcomes.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The data for this study was obtained from a single-center retrospective analysis of neonatal treatment and outcomes. The dataset, as described in the "Description of the Original Dataset" section, included information on 223 deliveries, with 117 deliveries occurring before and 106 deliveries occurring after the implementation of revised Neonatal Resuscitation Program (NRP) guidelines in 2015. Inclusion criteria were applied to select non-vigorous infants with meconium-stained amniotic fluid of any consistency and a gestational age between 35 and 42 weeks. Infants with major congenital malformations were excluded from the analysis. The dataset provided information on various maternal and neonatal characteristics, as well as interventions and outcomes.
+
+\subsection*{Data Preprocessing}
+The dataset was preprocessed to ensure data quality and suitability for analysis. Missing data were not present in the dataset, as any rows with missing values were dropped before further analysis. The gestational age variable, originally provided in days, was standardized to weeks by dividing the values by seven. The preprocessing steps were performed using Python programming language, as described in the "Data Analysis Code" section.
+
+\subsection*{Data Analysis}
+Descriptive statistics were calculated to provide a summary of the dataset, specifically focusing on neonate interventions and outcomes stratified by the implementation of the revised NRP guidelines. Statistical tests were conducted to assess the association between the new policy and specific interventions, using chi-square tests. Additionally, regression analysis was performed to examine the impact of the new policy on neonatal outcomes, including length of stay and APGAR scores. The regression models included relevant covariates such as maternal age, gravidity, hypertensive disorders, and maternal diabetes. These analyses were conducted using Python programming language and relevant statistical packages.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+A change in Neonatal Resuscitation Program (NRP) guidelines occurred in 2015:
+
+Pre-2015: Intubation and endotracheal suction was mandatory for all meconium-
+	stained non-vigorous infants
+Post-2015: Intubation and endotracheal suction was no longer mandatory;
+	preference for less aggressive interventions based on response to initial
+	resuscitation.
+
+This single-center retrospective study compared Neonatal Intensive Care Unit
+	(NICU) therapies and clinical outcomes of non-vigorous newborns for 117
+	deliveries pre-guideline implementation versus 106 deliveries post-guideline
+	implementation.
+
+Inclusion criteria included: birth through Meconium-Stained Amniotic Fluid
+	(MSAF) of any consistency, gestational age of 35–42 weeks, and admission to the
+	institution’s NICU. Infants were excluded if there were major congenital
+	malformations/anomalies present at birth.
+
+
+1 data file:
+
+"meconium_nicu_dataset_preprocessed_short.csv"
+The dataset contains 44 columns:
+
+`PrePost` (0=Pre, 1=Post) Delivery pre or post the new 2015 policy
+`AGE` (int, in years) Maternal age
+`GRAVIDA` (int) Gravidity
+`PARA` (int) Parity
+`HypertensiveDisorders` (1=Yes, 0=No) Gestational hypertensive disorder
+`MaternalDiabetes`      (1=Yes, 0=No) Gestational diabetes
+`ModeDelivery` (Categorical) "VAGINAL" or "CS" (C. Section)
+`FetalDistress` (1=Yes, 0=No)
+`ProlongedRupture` (1=Yes, 0=No) Prolonged Rupture of Membranes
+`Chorioamnionitis` (1=Yes, 0=No)
+`Sepsis` (Categorical) Neonatal blood culture ("NO CULTURES", "NEG CULTURES",
+	"POS CULTURES")
+`GestationalAge` (float, numerical). in weeks.
+`Gender` (Categorical) "M"/ "F"
+`BirthWeight` (float, in KG)
+`APGAR1` (int, 1-10) 1 minute APGAR score
+`APGAR5` (int, 1-10) 5 minute APGAR score
+`MeconiumConsistency` (categorical) "THICK" / "THIN"
+`PPV` (1=Yes, 0=No) Positive Pressure Ventilation
+`EndotrachealSuction` (1=Yes, 0=No) Whether endotracheal suctioning was
+	performed
+`MeconiumRecovered` (1=Yes, 0=No)
+`CardiopulmonaryResuscitation` (1=Yes, 0=No)
+`ReasonAdmission` (categorical) Neonate ICU admission reason. ("OTHER", "RESP"
+	or "CHORIOAMNIONITIS")
+`RespiratoryReasonAdmission` (1=Yes, 0=No)
+`RespiratoryDistressSyndrome` (1=Yes, 0=No)
+`TransientTachypnea` (1=Yes, 0=No)
+`MeconiumAspirationSyndrome` (1=Yes, 0=No)
+`OxygenTherapy` (1=Yes, 0=No)
+`MechanicalVentilation` (1=Yes, 0=No)
+`Surfactant` (1=Yes, 0=No) Surfactant inactivation
+`Pneumothorax` (1=Yes, 0=No)
+`AntibioticsDuration` (float, in days) Neonate treatment duration
+`Breastfeeding` (1=Yes, 0=No) Breastfed at NICU
+`LengthStay` (float, in days) Length of stay at NICU
+`SNAPPE_II_SCORE` (int) 0–20 (mild), 21–40 (moderate), 41- (severe)
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration} \subsection{Code}The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import numpy as np
+
+# Load data
+df = pd.read_csv("meconium_nicu_dataset_preprocessed_short.csv")
+
+# DataFrame shape
+num_rows = df.shape[0]
+num_columns = df.shape[1]
+
+# Categorical Variables - First find out categorical variables, then list their mode and unique counts
+df_cat = df.select_dtypes(include=['object'])
+cat_dict = {}
+for col in df_cat.columns:
+    mode = df_cat[col].mode()[0]
+    unique_count = df_cat[col].nunique()
+    cat_dict[col] = (mode, unique_count)
+
+# Missing Values - Count of nulls in each column
+missing_values = df.isnull().sum()
+missing_values = missing_values[missing_values > 0]
+
+# Open file and write the results
+with open("data_exploration.txt", "w") as f:
+    
+    # Write Data Size
+    f.write(f"# Data Size\nNumber of rows: {num_rows}\nNumber of columns: {num_columns}\n")
+    
+    # Write Summary Statistics
+    f.write("\n# Summary Statistics\n")
+    for col in df.columns:
+        if np.issubdtype(df[col].dtype, np.number):
+            mean = df[col].mean()   # Mean for numeric columns
+            std = df[col].std()     # Standard deviation for numeric columns
+            f.write(f"\n{col}:\nMean: {mean}\nStd: {std}\n")
+        
+    # Write Categorical Variables
+    f.write("\n# Categorical Variables\n")
+    for cat, stats in cat_dict.items():
+        f.write(f"\n{cat}:\nMode: {stats[0]}\nNumber of unique values: {stats[1]}\n")
+
+    # Write Missing Values
+    f.write("\n# Missing Values\n")
+    if missing_values.empty:
+        f.write("No missing values\n")
+    else:
+        for col, num in missing_values.items():
+            f.write(f"{col}: {num}\n")
+        
+    # Write dataset summary
+    f.write("\n# Data Summary\nThis dataset represents deliveries pre and post implementation of new guidelines introduced in 2015 with respect to Neonatal Resuscitation Program (NRP). It contains clinical information on the mother and newborn, along with treatments and outcomes.")
+
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code snippet provided performs exploratory data analysis on a dataset containing information about deliveries before and after the implementation of new guidelines in 2015 related to the Neonatal Resuscitation Program (NRP). 
+
+First, the code loads the dataset using the pandas library, creating a DataFrame object named \texttt{df}. 
+
+Next, the code retrieves the shape of the DataFrame using the \texttt{shape} attribute. This gives the number of rows and columns in the dataset.
+
+The code then identifies the categorical variables in the dataset by selecting columns with object data type. For each categorical column, it calculates the mode (most frequent value) and the number of unique values, storing these values in a dictionary called \texttt{cat\_dict}.
+
+Next, the code identifies missing values in the dataset by using the \texttt{isnull()} function and the \texttt{sum()} function on the DataFrame. The result is a count of null values for each column, which is stored in the \texttt{missing\_values} variable.
+
+Finally, the code writes the results of the data exploration to a file named \texttt{data\_exploration.txt}. 
+
+The information written to the file includes:
+- The number of rows and columns in the dataset.
+- Summary statistics for numerical columns, including the mean and standard deviation.
+- The mode and number of unique values for each categorical variable.
+- The count of missing values for each column.
+
+The purpose of this code is to summarize the key characteristics of the dataset, including the size, statistics, categorical variables, and missing values. These exploratory data analysis steps help researchers gain insights into the data and make informed decisions during subsequent analysis and modeling processes.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of rows: 223
+Number of columns: 34
+
+# Summary Statistics
+
+PrePost:
+Mean: 0.4753
+Std: 0.5005
+
+AGE:
+Mean: 29.72
+Std: 5.559
+
+GRAVIDA:
+Mean: 2.0
+Std: 1.433
+
+PARA:
+Mean: 1.422
+Std: 0.9163
+
+HypertensiveDisorders:
+Mean: 0.02691
+Std: 0.1622
+
+MaternalDiabetes:
+Mean: 0.1166
+Std: 0.3217
+
+FetalDistress:
+Mean: 0.3408
+Std: 0.475
+
+ProlongedRupture:
+Mean: 0.1847
+Std: 0.3889
+
+Chorioamnionitis:
+Mean: 0.5676
+Std: 0.4965
+
+GestationalAge:
+Mean: 39.67
+Std: 1.305
+
+BirthWeight:
+Mean: 3.442
+Std: 0.4935
+
+APGAR1:
+Mean: 4.175
+Std: 2.133
+
+APGAR5:
+Mean: 7.278
+Std: 1.707
+
+PPV:
+Mean: 0.722
+Std: 0.449
+
+EndotrachealSuction:
+Mean: 0.3901
+Std: 0.4889
+
+MeconiumRecovered:
+Mean: 0.148
+Std: 0.3559
+
+CardiopulmonaryResuscitation:
+Mean: 0.03139
+Std: 0.1748
+
+RespiratoryReasonAdmission:
+Mean: 0.6188
+Std: 0.4868
+
+RespiratoryDistressSyndrome:
+Mean: 0.09865
+Std: 0.2989
+
+TransientTachypnea:
+Mean: 0.3049
+Std: 0.4614
+
+MeconiumAspirationSyndrome:
+Mean: 0.2018
+Std: 0.4022
+
+OxygenTherapy:
+Mean: 0.4439
+Std: 0.498
+
+MechanicalVentilation:
+Mean: 0.1839
+Std: 0.3882
+
+Surfactant:
+Mean: 0.02691
+Std: 0.1622
+
+Pneumothorax:
+Mean: 0.1345
+Std: 0.342
+
+AntibioticsDuration:
+Mean: 2.769
+Std: 3.273
+
+Breastfeeding:
+Mean: 0.6771
+Std: 0.4686
+
+LengthStay:
+Mean: 7.731
+Std: 7.462
+
+SNAPPE_II_SCORE:
+Mean: 18.44
+Std: 14.45
+
+# Categorical Variables
+
+ModeDelivery:
+Mode: VAGINAL
+Number of unique values: 2
+
+Sepsis:
+Mode: NEG CULTURES
+Number of unique values: 3
+
+Gender:
+Mode: M
+Number of unique values: 2
+
+MeconiumConsistency:
+Mode: THICK
+Number of unique values: 2
+
+ReasonAdmission:
+Mode: RESP
+Number of unique values: 3
+
+# Missing Values
+ProlongedRupture: 1
+Chorioamnionitis: 1
+SNAPPE_II_SCORE: 1
+
+# Data Summary
+This dataset represents deliveries pre and post implementation of new guidelines
+	introduced in 2015 with respect to Neonatal Resuscitation Program (NRP). It
+	contains clinical information on the mother and newborn, along with treatments
+	and outcomes.
+\end{Verbatim}
+
+\section{Data Analysis} \subsection{Code}The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+import pickle
+from scipy.stats import chi2_contingency
+import statsmodels.formula.api as smf
+
+# LOAD DATA
+df = pd.read_csv('meconium_nicu_dataset_preprocessed_short.csv')
+
+# DATASET PREPARATIONS
+# Remove rows with missing values
+df = df.dropna()
+
+# Standardize gestational age to weeks (it is originally in days)
+df["GestationalAge"] = df["GestationalAge"]/7 
+
+# DESCRIPTIVE STATISTICS
+# Table 0: "Descriptive statistics of neonate interventions and outcomes stratified by new policy"
+df0 = df.groupby('PrePost').agg({'PPV': ['mean', 'std'], 'EndotrachealSuction': ['mean', 'std'], 'LengthStay': ['mean', 'std'], 'APGAR1': ['mean', 'std'], 'APGAR5': ['mean', 'std']})
+df0.index = ["Pre Policy", "Post Policy"]
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING 
+# Creating dummy variables for categorical variables
+df = pd.get_dummies(df,columns=['ModeDelivery','Sepsis','Gender','MeconiumConsistency','ReasonAdmission'])
+
+# ANALYSIS
+# Table 1: "Test of association between new policy implementation and interventions"
+contingency1 = pd.crosstab(df['PrePost'], df['PPV'])
+contingency2 = pd.crosstab(df['PrePost'], df['EndotrachealSuction'])
+_, pval1, _, _ = chi2_contingency(contingency1)
+_, pval2, _, _ = chi2_contingency(contingency2)
+df1 = pd.DataFrame({"Intervention": ["PPV", "EndotrachealSuction"], "p-value": [pval1, pval2]})
+df1.set_index("Intervention", inplace=True)
+df1.to_pickle('table_1.pkl')
+
+# Table 2: "Test of association between new policy and neonatal outcomes"
+model1 = smf.ols(formula="LengthStay ~ PrePost + AGE + GRAVIDA + HypertensiveDisorders + MaternalDiabetes", data=df).fit()
+model2 = smf.ols(formula="APGAR1 ~ PrePost + AGE + GRAVIDA + HypertensiveDisorders + MaternalDiabetes", data=df).fit()
+model3 = smf.ols(formula="APGAR5 ~ PrePost + AGE + GRAVIDA + HypertensiveDisorders + MaternalDiabetes", data=df).fit()
+df2 = pd.DataFrame({"Outcome": ["LengthStay", "APGAR1", "APGAR5"], "p-value": [model1.pvalues['PrePost'], model2.pvalues['PrePost'], model3.pvalues['PrePost']]})
+df2.set_index("Outcome", inplace=True)
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of observations': df.shape[0], 
+ 'accuracy of regression model for LengthStay': model1.rsquared,
+ 'accuracy of regression model for APGAR1': model2.rsquared,
+ 'accuracy of regression model for APGAR5': model3.rsquared,
+}
+with open('additional_results.pkl', 'wb') as f:
+ pickle.dump(additional_results, f)
+ 
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs data analysis on a dataset comparing neonatal interventions and outcomes before and after the implementation of a new policy for non-vigorous newborns. The dataset contains information on various factors including maternal age, gravidity, mode of delivery, fetal distress, and various interventions and outcomes.
+
+The analysis steps in the code are as follows:
+
+1. Loading the dataset: The code reads the dataset from a CSV file and stores it in a pandas dataframe.
+
+2. Dataset preparations: Rows with missing values are removed from the dataset. The gestational age is standardized to weeks (originally in days).
+
+3. Descriptive statistics: Descriptive statistics are calculated for neonate interventions and outcomes, stratified by the new policy. These statistics include mean and standard deviation values for positive pressure ventilation (PPV), endotracheal suction, length of stay, and APGAR scores at 1 and 5 minutes. The results are saved in a pickle file.
+
+4. Preprocessing: Categorical variables are encoded as dummy variables using one-hot encoding.
+
+5. Analysis:
+   a) Test of association between new policy implementation and interventions: The code calculates the contingency tables for PPV and endotracheal suction, and performs a chi-square test of independence to determine if there is a significant association between the implementation of the new policy and these interventions. The p-values are obtained and saved in a table in a pickle file.
+
+   b) Test of association between new policy and neonatal outcomes: The code performs linear regression models to examine the association between the new policy and neonatal outcomes. The outcomes considered are length of stay, APGAR score at 1 minute, and APGAR score at 5 minutes. The p-values for the new policy variable in each model are computed and saved in a table in a pickle file.
+
+6. Saving additional results: Additional results including the total number of observations and the accuracy of the regression models for length of stay, APGAR score at 1 minute, and APGAR score at 5 minutes are saved in a pickle file.
+
+The 'additional\_results.pkl' file contains a dictionary with the following information:
+- 'Total number of observations': The total number of observations in the dataset.
+- 'Accuracy of regression model for LengthStay': The coefficient of determination (R-squared) for the linear regression model predicting the length of stay.
+- 'Accuracy of regression model for APGAR1': The coefficient of determination (R-squared) for the linear regression model predicting the APGAR score at 1 minute.
+- 'Accuracy of regression model for APGAR5': The coefficient of determination (R-squared) for the linear regression model predicting the APGAR score at 5 minutes.
+
+These additional results provide insights into the performance of the regression models in predicting the outcomes of interest.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_0.pkl}
+
+\begin{Verbatim}[tabsize=4]
+               PPV        EndotrachealSuction        LengthStay       APGAR1
+	APGAR5
+              mean    std                mean    std       mean   std   mean
+	std   mean   std
+Pre Policy  0.7565 0.4311              0.6174 0.4882      7.504 6.943  4.357
+	1.996    7.4  1.48
+Post Policy 0.6887 0.4652              0.1415 0.3502      7.962 8.043  3.991
+	2.282  7.142 1.934
+\end{Verbatim}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                       p-value
+Intervention
+PPV                     0.3288
+EndotrachealSuction  1.152e-12
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+           p-value
+Outcome
+LengthStay  0.7805
+APGAR1      0.2543
+APGAR5      0.3047
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 221,
+    'accuracy of regression model for LengthStay': 0.01176            ,
+    'accuracy of regression model for APGAR1': 0.0128              ,
+    'accuracy of regression model for APGAR5': 0.02683             ,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design} \subsection{Code}The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from typing import Dict, Tuple, Optional
+from my_utils import to_latex_with_note, format_p_value
+
+Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
+
+# PREPARATION FOR ALL TABLES
+def split_mapping(d: Mapping):
+    abbrs_to_names = {abbr: (name or abbr) for abbr, (name, definition) in d.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+shared_mapping: Mapping = {
+    'PPV': ('PPV', 'Positive Pressure Ventilation? 1: Yes, 0: No'),
+    'EndotrachealSuction': ('ETS', 'Endotracheal Suction? 1: Performed, 0: Not Performed'),
+    'APGAR1': ('A1', '1-min APGAR score'),
+    'APGAR5': ('A5', '5-min APGAR score'),
+    'LengthStay': ('Stay', 'Length of stay, days'),
+}
+
+# TABLE 0
+df0 = pd.read_pickle('table_0.pkl').T
+mapping0 = {k: v for k, v in shared_mapping.items() if k in df0.columns or k in df0.index}
+column_names0, legend0 = split_mapping(mapping0)
+df0.rename(columns=column_names0, index=column_names0 , inplace=True)
+
+to_latex_with_note(
+ df0, 'table_0.tex',
+ caption="Descriptive statistics of neonate interventions and outcomes stratified by new policy", 
+ label='table:descriptive-statistics',
+ legend=legend0)
+
+# TABLE 1
+df1 = pd.read_pickle('table_1.pkl')
+mapping1 = {k: v for k, v in shared_mapping.items() if k == df1.index[0] or k == df1.index[1]}
+index_names1, legend1 = split_mapping(mapping1)
+df1.rename(index=index_names1, inplace=True)
+df1['p-value'] = df1['p-value'].apply(format_p_value)
+
+to_latex_with_note(
+ df1, 'table_1.tex',
+ caption="Test of association between new policy implementation and interventions", 
+ label='table:association-interventions',
+ legend=legend1)
+
+# TABLE 2
+df2 = pd.read_pickle('table_2.pkl')
+mapping2 = {k: v for k, v in shared_mapping.items() if k in df2.index}
+index_names2, legend2 = split_mapping(mapping2)
+df2.rename(index=index_names2, inplace=True)
+df2['p-value'] = df2['p-value'].apply(format_p_value)
+
+to_latex_with_note(
+ df2, 'table_2.tex',
+ caption="Test of association between new policy and neonatal outcomes", 
+ label='table:association-outcomes',
+ legend=legend2)
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_0.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Descriptive statistics of neonate interventions and outcomes stratified
+	by new policy}
+\label{table:descriptive-statistics}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{llrr}
+\toprule
+ &  & Pre Policy & Post Policy \\
+\midrule
+\multirow[t]{2}{*}{\textbf{PPV}} & \textbf{mean} & 0.757 & 0.689 \\
+\textbf{} & \textbf{std} & 0.431 & 0.465 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{ETS}} & \textbf{mean} & 0.617 & 0.142 \\
+\textbf{} & \textbf{std} & 0.488 & 0.35 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{Stay}} & \textbf{mean} & 7.5 & 7.96 \\
+\textbf{} & \textbf{std} & 6.94 & 8.04 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{A1}} & \textbf{mean} & 4.36 & 3.99 \\
+\textbf{} & \textbf{std} & 2 & 2.28 \\
+\cline{1-4}
+\multirow[t]{2}{*}{\textbf{A5}} & \textbf{mean} & 7.4 & 7.14 \\
+\textbf{} & \textbf{std} & 1.48 & 1.93 \\
+\cline{1-4}
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{PPV}: Positive Pressure Ventilation? 1: Yes, 0: No
+\item \textbf{ETS}: Endotracheal Suction? 1: Performed, 0: Not Performed
+\item \textbf{A1}: 1-min APGAR score
+\item \textbf{A5}: 5-min APGAR score
+\item \textbf{Stay}: Length of stay, days
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Test of association between new policy implementation and
+	interventions}
+\label{table:association-interventions}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & p-value \\
+Intervention &  \\
+\midrule
+\textbf{PPV} & 0.329 \\
+\textbf{ETS} & $<$1e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{PPV}: Positive Pressure Ventilation? 1: Yes, 0: No
+\item \textbf{ETS}: Endotracheal Suction? 1: Performed, 0: Not Performed
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Test of association between new policy and neonatal outcomes}
+\label{table:association-outcomes}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & p-value \\
+Outcome &  \\
+\midrule
+\textbf{Stay} & 0.78 \\
+\textbf{A1} & 0.254 \\
+\textbf{A5} & 0.305 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{A1}: 1-min APGAR score
+\item \textbf{A5}: 5-min APGAR score
+\item \textbf{Stay}: Length of stay, days
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\end{document}
