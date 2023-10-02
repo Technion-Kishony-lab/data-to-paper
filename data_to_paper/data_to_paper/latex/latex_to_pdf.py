@@ -9,10 +9,12 @@ import numpy as np
 
 from data_to_paper.servers.types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
+from PyPDF2 import PdfWriter, PdfReader
 
 from .exceptions import LatexCompilationError, TooWideTableOrText
 
 BIB_FILENAME: str = 'citations.bib'
+WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
 
 
 def evaluate_latex_num_command(latex_str):
@@ -30,6 +32,28 @@ def evaluate_latex_num_command(latex_str):
         except (SyntaxError, NameError):
             pass
     return latex_str
+
+
+def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = None):
+    """
+    Add watermark to pdf
+    :param pdf_path: path to pdf file
+    :param output_path: path to output file
+    :param watermark_path: path to watermark file
+    """
+    if output_path is None:
+        output_path = pdf_path
+    with open(pdf_path, "rb") as input_file, open(watermark_path, "rb") as watermark_file:
+        input_pdf = PdfReader(input_file, strict=False)
+        output = PdfWriter()
+        for i in range(len(input_pdf.pages)):
+            watermark_pdf = PdfReader(watermark_file, strict=False)
+            watermark_page = watermark_pdf.pages[0]
+            pdf_page = input_pdf.pages[i]
+            watermark_page.merge_page(pdf_page)
+            output.add_page(watermark_page)
+        with open(output_path, "wb") as merged_file:
+            output.write(merged_file)
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
@@ -70,6 +94,8 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             except subprocess.CalledProcessError:
                 _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
                 raise
+
+        add_watermark_to_pdf(file_stem + '.pdf', WATERMARK_PATH)
         _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
 
         return pdflatex_output
