@@ -10,7 +10,7 @@ from cast import DemoAgent
 from data_to_paper.researches_types.self_coding import initial_gpt_module
 from data_to_paper.run_gpt_code.code_runner import BaseCodeRunner, CodeRunner
 from data_to_paper.run_gpt_code.dynamic_code import RunCode
-from data_to_paper.run_gpt_code.types import OutputFileRequirement, CodeAndOutput
+from data_to_paper.run_gpt_code.types import OutputFileRequirement, CodeAndOutput, OutputFileRequirements
 from data_to_paper.servers.openai_models import ModelEngine
 from products import CodingProducts
 
@@ -106,13 +106,10 @@ class SelfCodeProductsGPT(BaseCodeProductsGPT):
     code_name: str = 'GPT Code'
     debugger_cls: Type[DebuggerConverser] = SelfDebuggerConverser
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        ('output_file_requirements', 'data_filenames', 'data_folder', 'allow_dataframes_to_change_existing_series',
-         'enforce_saving_altered_dataframes', 'supported_packages', 'model_engine', )
+        ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine', )
 
-    output_file_requirements: Tuple[OutputFileRequirement, ...] = ()
+    output_file_requirements: OutputFileRequirements = OutputFileRequirements([])
     allowed_created_files: Tuple[str, ...] = ()
-    allow_dataframes_to_change_existing_series = False
-    enforce_saving_altered_dataframes: bool = False
 
     supported_packages: Tuple[str, ...] = ()
 

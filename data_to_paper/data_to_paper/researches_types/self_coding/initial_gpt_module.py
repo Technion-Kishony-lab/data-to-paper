@@ -4,10 +4,16 @@ import inspect
 import re
 import sys
 from typing import Tuple
-# You can add more imports as needed. If they are not available, we will install them for you.
+# <Add additional imports here>
 
 
-# You can add new functions here and call them from the `respond_to_chatgpt_and_alter_self_code` function.
+# Functions:
+
+def do_something(chatgpt_message: str) -> str:
+    return "I am doing something!"
+
+# <Add additional functions here>
+
 
 
 def respond_to_chatgpt_and_alter_self_code(chatgpt_message: str) -> Tuple[str, str]:
@@ -22,11 +28,41 @@ def respond_to_chatgpt_and_alter_self_code(chatgpt_message: str) -> Tuple[str, s
         getting back a `response` and a `new_module_code`.
     (4) Updating the code of the module with the `new_module_code`.
     (5) Sending the `response` and the `new_module_code` back to chatgpt.
-    (6) Repeat from step (1)
+    (6) Go back to (1)
 
-    You should make any changes to this function or the entire module as you see fit and helpful.
+    You can make any changes to this function or the entire module as you see fit and helpful.
+
     To make changes to this function (or anything else in the module), you should simply include in your message
-    a Dict[str, str] mapping from old code to new code.
+    a Dict[str, str] mapping of old code strings to new code string. Your Dict[str, str] should be enclosed in triple
+    backticks.
+
+    You can design changes to the code to either:
+
+    * Enhance the self-altering functionality.
+    For example, to make sure only the first occurrence of the old code is replaced with the new code,
+    you can send a message containing:
+    ```
+    {
+        'replace(old_code, new_code)':
+            'old_code = old_code.replace(old_code, new_code, 1)'
+    }
+    ```
+
+    * You can make the code do something new.
+    For example, if you want to create a function that adds two numbers, you can send the following message:
+    ```
+    {
+        'return "I am doing something!"':
+            'split = chatgpt_message.split()\n'
+            'a = int(split[0])\n'
+            'b = int(split[1])\n'
+            'return "The sum of {a} and {b} is {a + b}"\n'
+    }
+    ```
+
+
+    Think creatively about what you can do with this platform.
+
     """
 
     current_module = sys.modules[__name__]
@@ -34,25 +70,28 @@ def respond_to_chatgpt_and_alter_self_code(chatgpt_message: str) -> Tuple[str, s
 
     new_module_code = module_code
 
-    extracted_dict_match = re.search(pattern=r'\{.*\}', string=chatgpt_message, flags=re.DOTALL)
+    extracted_dict_match = re.search(pattern=r"```(.*?)```", string=chatgpt_message, flags=re.DOTALL)
     if not extracted_dict_match:
-        return "Unable to find a Dict[str, str] mapping in your message.\n" \
-               "To update my code, please respond with a code mapping as a Dict[str, str].", module_code
-    try:
-        old_code_to_new_code = eval(extracted_dict_match.group(0))
-        for old_code, new_code in old_code_to_new_code.items():
-            if old_code not in module_code:
-                return f"I was unable to find '{old_code}' in my code.\n", module_code
-            new_module_code = new_module_code.replace(old_code, new_code)
-    except Exception as e:
-        return f"Unable to evaluate the code mapping in your message. Error: \n{e}", module_code
+        raise Exception("Unable to find a Dict[str, str] mapping in the LLM-ASSISTANT message")
+
+    old_code_to_new_code = eval(extracted_dict_match.group(0))
+
+    for old_code, new_code in old_code_to_new_code.items():
+        if old_code not in module_code:
+            raise Exception(f"Unable to find '{old_code}' in existing code.")
+        new_module_code = new_module_code.replace(old_code, new_code)
 
     if new_module_code == module_code:
         return "My code did not change :(\n" \
                "Please send me a message that includes a valid code mapping.", module_code
 
-    response = "Yeh! I have successfully updated my code based on your message :)\n" \
-               "On your next message, this new code will run and respond accordingly.\n" \
-               "Keep sending me messages to improve me further!"
+    response = do_something(chatgpt_message)
+
+    if new_module_code != module_code:
+        response += """\n
+            Yeh! I have successfully updated my code based on your message :)
+            On your next message, this new code will run and respond accordingly.
+            Keep sending me messages to improve me further!
+            """
 
     return response, new_module_code
