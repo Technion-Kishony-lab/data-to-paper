@@ -453,11 +453,6 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         "Our regression analysis shows a coefficient of 2.0 (SE=0.3, p-value $<$ 1e-6), \
         corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(2.0 - 2 * 0.3)}, \\num{exp(2.0 + 2 * 0.3)}])."
         
-        If we must include a numeric value that does not appear in the Tables or "{additional_results}", \
-        and cannot be derived from them, \
-        then indicate `[unknown]` instead of the numeric value. For example:
-        "Our regression analysis shows a coefficient of [unknown]."
-
         * p-values:
         When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
         relevant value.
@@ -465,6 +460,14 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         * Accuracy: 
         Make sure that you are only mentioning details that are explicitly found within the Tables and \
         Numerical Values.
+
+        * Unknown values:
+        If we need to include a numeric value that was not calculated or is not explicitly given in the \
+        Tables or "{additional_results}", and cannot be derived from them, \
+        then indicate `[unknown]` instead of the numeric value. 
+        
+        For example:
+        "The regression coefficient for the anti-cancer drugs was [unknown]."
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
