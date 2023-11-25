@@ -153,7 +153,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
-    allowed_created_files: Tuple[str, ...] = ()
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
                                          enforce_saving_altered_dataframes=False)

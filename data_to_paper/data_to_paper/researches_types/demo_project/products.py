@@ -47,7 +47,7 @@ class DemoProducts(Products):
                 'Output of the code',
                 'Here is the output of our code:\n```output\n{}\n```\n',
                 DemoStages.CODE,
-                lambda: self.code_and_output.output,
+                lambda: self.code_and_output.created_files.get_single_output()
             ),
 
             'code_and_output': NameDescriptionStageGenerator(
