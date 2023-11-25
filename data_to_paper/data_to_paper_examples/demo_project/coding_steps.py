@@ -33,7 +33,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([TextContentOutputFileRequirement('prime_number.txt')])
-    allowed_created_files: Tuple[str, ...] = ()
 
     supported_packages: Tuple[str, ...] = ('numpy', )
 
