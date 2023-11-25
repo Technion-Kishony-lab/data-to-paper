@@ -85,6 +85,7 @@ class OpenaiCallParameters:
     top_p: float = None
     frequency_penalty: float = None
     presence_penalty: float = None
+    response_format: dict = None
     stop: List[str] = None
 
     def to_dict(self):

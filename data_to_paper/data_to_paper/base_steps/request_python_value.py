@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundProductsConverser
@@ -28,6 +29,12 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     """
     value_type: type = None
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
+    json_mode: bool = False
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.json_mode:
+            self.chatgpt_parameters['response_format'] = {"type": "json_object"}
 
     @property
     def parent_type(self) -> type:
@@ -37,6 +44,8 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         """
         Return a response that contains just the python value.
         """
+        if self.json_mode:
+            return super()._get_fresh_looking_response(response)
         response = self.returned_result
         return super()._get_fresh_looking_response(f"```python\n{response}\n```")
 
@@ -52,6 +61,9 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         Extracts the string of the python value from chatgpt response.
         If there is an error extracting the value, _raise_self_response_error is called.
         """
+        if self.json_mode:
+            return response
+
         try:
             return extract_content_of_triple_quote_block(response, self.goal_noun, 'python')
         except NoBlocksFailedExtractingBlock:
@@ -74,6 +86,13 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
                 bump_model=tags[0] in response and tags[1] not in response)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
+        if self.json_mode:
+            try:
+                return json.loads(response)
+            except Exception as e:
+                self._raise_self_response_error(
+                    f'I tried to load your response with Python `json.loads()`, but got:\n{e}\n'
+                    f'Your response should be a valid JSON value.')
         try:
             return eval(response)
         except Exception as e:

@@ -7,6 +7,7 @@ import sys
 from data_to_paper.base_steps import PythonValueReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
@@ -32,6 +33,21 @@ correct_dict_str_str_value = r"""{'a': '1', 'b': '2', 'c': '3'}"""
 error_message_include_dict_str_str_value = "Your response should be formatted as"
 
 correct_list_str_value = r"""['a', 'b', 'c']"""
+
+
+def test_request_python_value_json_mode():
+    with OPENAI_SERVER_CALLER.mock([
+        '[\n"{\n    \"primes\": [2, 3, 5, 7, 11, 13, 17, 19]\n}"\n]'
+    ]):
+        converser = TestPythonValueReviewBackgroundProductsConverser(
+            value_type=Dict[str, Any],
+            json_mode=True,
+            model_engine=ModelEngine.GPT4_TURBO,
+            user_initiation_prompt='Please return a list of all prime numbers from 1 to 20. '
+                                   'Return your response as JSON value.',
+        )
+        result = converser.run_dialog_and_get_valid_result()
+    assert result == {'primes': [2, 3, 5, 7, 11, 13, 17, 19]}
 
 
 @pytest.mark.parametrize('correct_python_value, value_type', [
