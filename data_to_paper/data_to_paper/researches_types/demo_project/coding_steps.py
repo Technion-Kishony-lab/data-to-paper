@@ -5,6 +5,7 @@ from typing import Optional, Tuple
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from cast import DemoAgent
 from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.servers.openai_models import ModelEngine
 from products import DemoProducts
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -13,6 +14,7 @@ from data_to_paper.utils.nice_list import NiceList
 
 @dataclass
 class DemoCodeProductsGPT(BaseCodeProductsGPT):
+    model_engine: ModelEngine = ModelEngine.GPT4_TURBO
     products: DemoProducts = None
     assistant_agent: DemoAgent = DemoAgent.Performer
     user_agent: DemoAgent = DemoAgent.Debugger
