@@ -16,7 +16,6 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     products: DemoProducts = None
     assistant_agent: DemoAgent = DemoAgent.Performer
     user_agent: DemoAgent = DemoAgent.Debugger
-    allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files, () for no data files
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal')
     gpt_script_filename: str = None
     code_name: str = 'Prime Number Search'
