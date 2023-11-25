@@ -20,7 +20,7 @@ from .result_converser import Rewind, SelfResponseError
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     CHATGPT_PARAMETERS = {'temperature': 0.0}
-    value_type = Dict[str, str],
+    value_type: type = Dict[str, str]
 
     def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
                                    add_iterations: int = 0,
