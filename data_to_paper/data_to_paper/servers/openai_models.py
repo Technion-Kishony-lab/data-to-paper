@@ -8,6 +8,7 @@ MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     "gpt-3.5-turbo-0613": (4096, 0.0015, 0.002),
     "gpt-3.5-turbo-16k-0613": (16384, 0.003, 0.004),
     "gpt-4": (8192, 0.03, 0.06),
+    "gpt-4-1106-preview": (128000, 0.01, 0.03),
     # "gpt-4-32k": (32768, 0.06, 0.12),
 }
 
@@ -20,6 +21,7 @@ class ModelEngine(IndexOrderedEnum):
     GPT35_TURBO = "gpt-3.5-turbo-0613"  # latest version that supports better system prompt adherence
     GPT35_TURBO_16 = "gpt-3.5-turbo-16k-0613"
     GPT4 = "gpt-4"
+    GPT4_TURBO = "gpt-4-1106-preview"
     # GPT4_32 = "gpt-4-32k"
 
     def __str__(self):
@@ -57,16 +59,18 @@ class ModelEngine(IndexOrderedEnum):
 
 
 MODELS_TO_MORE_CONTEXT = {
-    ModelEngine.GPT35_TURBO_16: None,
+    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
-    ModelEngine.GPT4: ModelEngine.GPT35_TURBO_16,
+    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT4_TURBO: None,
 }
 
 
 MODELS_TO_MORE_STRENGTH = {
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4,
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT4,
-    ModelEngine.GPT4: None,
+    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT4_TURBO: None,
 }
 
 
