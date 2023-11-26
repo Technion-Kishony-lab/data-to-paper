@@ -149,8 +149,9 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
         check_response_value = super()._check_response_value(response_value)
         if self.requested_keys is not None:
             if set(response_value.keys()) != set(self.requested_keys):
+                type_name = 'JSON' if self.json_mode else 'single Python dict'
                 self._raise_self_response_error(
-                    f'Your response should include a single Python dict containing the keys: {self.requested_keys}')
+                    f'Your response should include a {type_name} containing the keys: {self.requested_keys}')
 
         return check_response_value
 
