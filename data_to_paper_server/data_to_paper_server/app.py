@@ -11,8 +11,8 @@ from typing import Optional
 from flask import Flask, request, send_from_directory
 from flask_socketio import SocketIO, join_room
 
-from examples import run_project, projects
-from examples.run_project import get_file_descriptions, copy_datafiles_to_data_folder, get_output_path
+from data_to_paper_examples.examples import run_project, projects
+from data_to_paper_examples.examples.run_project import get_file_descriptions, copy_datafiles_to_data_folder, get_output_path
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
@@ -25,7 +25,7 @@ import gipc
 """
 SET RUN PARAMETERS HERE
 """
-PROJECT: Optional[str] = 'diabetes'  # None to get from web ui
+PROJECT: Optional[str] = 'meconium'  # None to get from web ui
 
 if PROJECT:
     load_from_repo = True  # False to load from local examples folder (outside the repo)

@@ -1,4 +1,4 @@
-from examples.run_project import get_paper
+from data_to_paper_examples.examples.run_project import get_paper
 
 goal = "GOAL:\n" \
        "Find prevalence and predictors of stroke among individuals with Prediabetes and Diabetes in Florida.\n" \
