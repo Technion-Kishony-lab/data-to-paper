@@ -98,6 +98,10 @@ class OpenaiSeverCaller(ListServerCaller):
             else OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[None]
         openai.api_key = api_key
         openai.organization = organization
+        if model_engine in [ModelEngine.LLAMA_2, ModelEngine.CODELLAMA]:
+            openai.api_base = "https://api.deepinfra.com/v1/openai"  # Deepinfra's API endpoint
+        else:
+            openai.api_base = "https://api.openai.com"  # OpenAI's default API endpoint
         for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
             try:
                 with timeout_context(TIME_LIMIT_FOR_OPENAI_CALL):

@@ -10,6 +10,8 @@ MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     "gpt-4": (8192, 0.03, 0.06),
     "gpt-4-1106-preview": (128000, 0.01, 0.03),
     # "gpt-4-32k": (32768, 0.06, 0.12),
+    "llama-2-70b-chat-hf": (4096, 0.000001, 0.000001),
+    "codellama-34b-instruct-hf": (16384, 0.000001, 0.000001),
 }
 
 
@@ -23,6 +25,8 @@ class ModelEngine(IndexOrderedEnum):
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-1106-preview"
     # GPT4_32 = "gpt-4-32k"
+    LLAMA_2 = "llama-2-70b-chat-hf"
+    CODELLAMA = "codellama-34b-instruct-hf"
 
     def __str__(self):
         return self.value
@@ -63,6 +67,7 @@ MODELS_TO_MORE_CONTEXT = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
+    ModelEngine.LLAMA_2: ModelEngine.CODELLAMA,
 }
 
 
@@ -71,6 +76,7 @@ MODELS_TO_MORE_STRENGTH = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
+    ModelEngine.LLAMA_2: ModelEngine.CODELLAMA,
 }
 
 
