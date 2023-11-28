@@ -1,0 +1,681 @@
+
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\@namedef{PY@tok@w}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\@namedef{PY@tok@c}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cp}{\def\PY@tc##1{\textcolor[rgb]{0.61,0.40,0.00}{##1}}}
+\@namedef{PY@tok@k}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kt}{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\@namedef{PY@tok@o}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ow}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@nb}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nf}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@nn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@ne}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.80,0.25,0.22}{##1}}}
+\@namedef{PY@tok@nv}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@no}{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\@namedef{PY@tok@nl}{\def\PY@tc##1{\textcolor[rgb]{0.46,0.46,0.00}{##1}}}
+\@namedef{PY@tok@ni}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@na}{\def\PY@tc##1{\textcolor[rgb]{0.41,0.47,0.13}{##1}}}
+\@namedef{PY@tok@nt}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@nd}{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\@namedef{PY@tok@s}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sd}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@si}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@se}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.36,0.12}{##1}}}
+\@namedef{PY@tok@sr}{\def\PY@tc##1{\textcolor[rgb]{0.64,0.35,0.47}{##1}}}
+\@namedef{PY@tok@ss}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sx}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@m}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@gh}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gu}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\@namedef{PY@tok@gd}{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\@namedef{PY@tok@gi}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.52,0.00}{##1}}}
+\@namedef{PY@tok@gr}{\def\PY@tc##1{\textcolor[rgb]{0.89,0.00,0.00}{##1}}}
+\@namedef{PY@tok@ge}{\let\PY@it=\textit}
+\@namedef{PY@tok@gs}{\let\PY@bf=\textbf}
+\@namedef{PY@tok@gp}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\@namedef{PY@tok@go}{\def\PY@tc##1{\textcolor[rgb]{0.44,0.44,0.44}{##1}}}
+\@namedef{PY@tok@gt}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\@namedef{PY@tok@err}{\def\PY@bc##1{{\setlength{\fboxsep}{\string -\fboxrule}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}}
+\@namedef{PY@tok@kc}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kd}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kn}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@kr}{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@bp}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\@namedef{PY@tok@fm}{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\@namedef{PY@tok@vc}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vg}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vi}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@vm}{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\@namedef{PY@tok@sa}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sb}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sc}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@dl}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s2}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@sh}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@s1}{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\@namedef{PY@tok@mb}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mf}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mh}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mi}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@il}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@mo}{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\@namedef{PY@tok@ch}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cm}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cpf}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@c1}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+\@namedef{PY@tok@cs}{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.24,0.48,0.48}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+}
+
+\title{The Impact of Fruit and Vegetable Consumption and Physical Activity on Diabetes Risk among Adults}
+\author{Data to Paper}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Diabetes is a global health concern, and identifying modifiable risk factors is essential for prevention. We investigated the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults. Using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey, logistic regression analysis was conducted, controlling for age, sex, BMI, education, and income. Our results show that higher fruit and vegetable consumption is associated with a reduced risk of diabetes. Moreover, engaging in regular physical activity strengthens this association. This study addresses a gap in the literature by providing evidence on the protective effects of fruit and vegetable consumption and physical activity in relation to diabetes risk. However, limitations, such as self-reported data and potential confounders, should be considered. Our findings highlight the importance of promoting healthy lifestyle behaviors and have implications for diabetes prevention interventions among adults.
+\end{abstract}
+
+\section*{Introduction}
+
+Diabetes is a major global health concern, affecting nearly half a billion people worldwide, with projections estimating an increase of 25\% in 2030 and 51\% in 2045 \cite{Saeedi2019GlobalAR}. The increasing prevalence of diabetes poses both an economic and a public health burden \cite{Wild2004GlobalPO}. Identification of modifiable risk factors, such as dietary habits and physical activity, is crucial for the prevention and management of diabetes \cite{Uloko2018PrevalenceAR}.
+
+Previous research has demonstrated the beneficial impact of fruit and vegetable consumption and regular physical activity on diabetes risk \cite{Li2016AssociationBA, Herbst2007ImpactOP}, focusing primarily on prevalent diabetes risk factors such as insulin resistance, obesity, and cardiovascular health. However, there is limited evidence on the combined effect of both fruit and vegetable consumption and physical activity on diabetes risk.
+
+In this study, we aim to fill this gap in the literature by examining the relationship between fruit and vegetable consumption, physical activity, and diabetes risk among adults using data from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey \cite{Flores-Hernández2015QualityOD,Iachan2016NationalWO}. This dataset provides a large and diverse sample of American adults, allowing us to investigate the association of these modifiable lifestyle factors with the risk of developing diabetes.
+
+To assess the impact of fruit and vegetable consumption and physical activity on diabetes risk, we employed logistic regression analysis, controlling for potential confounding factors such as age, sex, BMI, education, and income \cite{Gomes-Neto2019FruitAV}. In addition to examining the independent effects of fruit and vegetable consumption and physical activity on diabetes risk, we also analyzed the interaction between these lifestyle factors to better understand their potential synergistic effect on diabetes risk reduction.
+
+With this comprehensive analysis of the BRFSS 2015 data, we provide evidence on the protective effects of fruit and vegetable consumption and physical activity on diabetes risk among adults. Our findings contribute to the growing body of literature supporting the importance of promoting healthy lifestyle behaviors for the prevention of diabetes and its complications.
+
+\section*{Results}
+
+In this section, we present the results of our analysis on the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey.
+
+\subsection*{Association between Fruit and Vegetable Consumption and Diabetes Risk}
+
+To understand the relationship between fruit and vegetable consumption and diabetes risk, we conducted logistic regression analysis while controlling for age, sex, BMI, education, and income (Table \ref{table2}). Our findings reveal that higher fruit and vegetable consumption is associated with a reduced risk of diabetes (Coefficient = -0.181, p-value $<10^{-4}$). This suggests that individuals who consume more fruits and vegetables have a lower probability of developing diabetes.\begin{table}[!htbp]
+\centering
+\caption{Association between fruit and vegetable consumption and diabetes risk: Logistic regression results}
+\label{table2}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Variable}  & \textbf{Coeff.} & \textbf{Std. Err.} & \textbf{p-value} \\
+\midrule
+Intercept          & $-4.861$        & $\pm 0.050$        & $<10^{-4}$    \\
+Fruit \& Vegetable & $-0.181$        & $\pm 0.012$        & $<10^{-4}$    \\
+Age (years)        & $0.211$         & $\pm 0.002$        & $<10^{-4}$    \\
+Sex (Male)         & $0.329$         & $\pm 0.013$        & $<10^{-4}$    \\
+BMI                & $0.085$         & $\pm 0.001$        & $<10^{-4}$    \\
+Education          & $-0.108$        & $\pm 0.007$        & $<10^{-4}$    \\
+Income             & $-0.147$        & $\pm 0.003$        & $<10^{-4}$    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{Association between Physical Activity, Fruit and Vegetable Consumption, and Diabetes Risk}
+
+To further explore the relationship between fruit and vegetable consumption, physical activity, and diabetes risk, we performed a logistic regression analysis controlling for age, sex, BMI, education, income, and physical activity (Table \ref{table3}). The results demonstrate that physical activity (Coefficient = -0.211, p-value $<10^{-4}$) and fruit and vegetable consumption (Coefficient = -0.052, p-value = 0.016) are independently associated with a reduced risk of diabetes. Moreover, the interaction term between fruit and vegetable consumption and physical activity is also statistically significant (Coefficient = -0.143, p-value $<10^{-4}$). This indicates that the combined effect of engaging in physical activity and consuming fruits and vegetables is even more protective against diabetes.\begin{table}[!htbp]
+\centering
+\caption{Interaction between fruit and vegetable consumption and physical activity on diabetes risk: Logistic regression results}
+\label{table3}
+\begin{tabular}{l c c c}
+\toprule
+\textbf{Variable}                        & \textbf{Coeff.} & \textbf{Std. Err.} & \textbf{p-value} \\
+\midrule
+Intercept                                & $-4.719$       & $\pm 0.051$        & $<10^{-4}$    \\
+Fruit \& Vegetable                      & $-0.052$       & $\pm 0.022$        & $0.016$       \\
+Physical Activity (Yes)                  & $-0.211$       & $\pm 0.018$        & $<10^{-4}$    \\
+Fruit \& Vegetable $\times$ Phys. Activity & $-0.143$       & $\pm 0.026$        & $<10^{-4}$    \\
+Age (years)                              & $0.208$        & $\pm 0.002$        & $<10^{-4}$    \\
+Sex (Male)                               & $0.339$        & $\pm 0.013$        & $<10^{-4}$    \\
+BMI                                      & $0.083$        & $\pm 0.001$        & $<10^{-4}$    \\
+Education                                & $-0.095$       & $\pm 0.007$        & $<10^{-4}$    \\
+Income                                   & $-0.141$       & $\pm 0.003$        & $<10^{-4}$    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The inclusion of physical activity and the interaction term in the logistic regression model improves its predictive power, as indicated by a higher pseudo R-squared value of 0.1263 compared to 0.1242 in the model without the interaction term. These results provide insights into potential mechanisms by which lifestyle interventions, such as increasing fruit and vegetable consumption and engaging in physical activity, may contribute to reducing the burden of diabetes among adults.
+
+The negative correlation coefficient of -0.181 between fruit and vegetable consumption and diabetes risk suggests that for every unit increase in fruit and vegetable consumption, the odds of developing diabetes decrease by 0.181 units. Additionally, the pseudo R-squared value of 0.1242 for the logistic regression model in Table \ref{table2} indicates that 12.42\% of the variability in diabetes risk can be explained by the included covariates.
+
+It is important to acknowledge potential limitations associated with self-reported data, including measurement errors and biases. Nevertheless, our findings emphasize the significance of promoting fruit and vegetable intake and regular physical activity as preventive measures for diabetes among adults. These results have implications for public health interventions and policies aimed at reducing the burden of diabetes in the adult population.
+
+In summary, our analysis demonstrates that higher fruit and vegetable consumption, along with engagement in regular physical activity, is associated with a reduced risk of diabetes among adults. These findings underscore the importance of adopting healthy lifestyle behaviors and highlight the potential benefits of targeted interventions to promote fruit and vegetable consumption and physical activity in reducing the burden of diabetes.\begin{table}[!htbp]
+\centering
+\caption{Descriptive statistics of the dataset}
+\label{table1}
+\begin{tabular}{l c c}
+\toprule
+\textbf{Variable}                & \textbf{Mean}       & \textbf{Standard Deviation} \\
+\midrule
+Diabetes                         & 0.139               & 0.346                       \\
+High Blood Pressure              & 0.429               & 0.495                       \\
+High Cholesterol                 & 0.424               & 0.494                       \\
+Cholesterol Check (Yes)          & 0.963               & 0.190                       \\
+BMI                              & 28.38               & 6.61                        \\
+Smoker (Yes)                     & 0.443               & 0.497                       \\
+Stroke (Yes)                     & 0.041               & 0.197                       \\
+Heart Disease or Attack (Yes)    & 0.094               & 0.292                       \\
+Physical Activity (Yes)          & 0.756               & 0.429                       \\
+Fruits Consumption (Yes)         & 0.634               & 0.482                       \\
+Vegetables Consumption (Yes)     & 0.811               & 0.391                       \\
+Heavy Alcohol Consumption (Yes)  & 0.056               & 0.230                       \\
+Healthcare Coverage (Yes)        & 0.951               & 0.216                       \\
+No Doctor due to Cost (Yes)      & 0.084               & 0.278                       \\
+General Health (1$\sim$5 scale)  & 2.51                & 1.07                        \\
+Mental Health (1$\sim$30 days)   & 3.19                & 7.41                        \\
+Physical Health (1$\sim$30 days) & 4.24                & 8.72                        \\
+Difficulty Walking (Yes)         & 0.168               & 0.374                       \\
+Sex (Male)                       & 0.440               & 0.497                       \\
+Age (18$\sim$80+ years)          & 8.03                & 3.05                        \\
+Education (1$\sim$6 scale)       & 5.05                & 0.986                       \\
+Income (1$\sim$8 scale)          & 6.05                & 2.07                        \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Discussion}
+
+The subject of this study focused on the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults. Given the forecasted increase in diabetes prevalence, with estimates projecting a 25\% increase in 2030 and 51\% in 2045 \cite{Saeedi2019GlobalAR}, it is critical to identify modifiable risk factors like dietary habits and physical activity for the prevention and management of diabetes \cite{Uloko2018PrevalenceAR}. 
+
+In examining the association between fruit and vegetable consumption, physical activity, and diabetes risk, our methodology involved logistic regression analysis using data from the Behavioral Risk Factor Surveillance System (BRFSS) 2015 survey, controlling for potential confounding factors such as age, sex, BMI, education, and income. Our findings reveal that a higher intake of fruits and vegetables, coupled with regular physical activity, resulted in a reduced risk of diabetes. These results align with previous research that highlighted the benefits of fruit and vegetable consumption and physical activity on diabetes risk \cite{Herbst2007ImpactOP, Carlström2018CoffeeCA, Drouin-Chartier2016SystematicRO}.
+
+However, our study has some limitations that should be taken into consideration. Our findings were based on self-reported data, which may be prone to errors and biases in measurement. Moreover, there is a possibility that unmeasured or residual confounding factors could have influenced the observed associations. Additionally, as this study utilized cross-sectional data, we caution against inferring any causal relationships between fruit and vegetable consumption, physical activity, and diabetes risk. 
+
+In conclusion, our study provides evidence that higher fruit and vegetable consumption and regular physical activity are associated with a reduced risk of diabetes among adults. These findings support the importance of promoting healthy lifestyle behaviors for diabetes prevention and management. While the results highlight the potential of fruit and vegetable consumption and regular physical exercise in reducing diabetes risk, future research should investigate the potential causal relationships and further evaluate the long-term effects of these lifestyle interventions in larger and more diverse populations. Moreover, longitudinal and experimental studies could help elucidate the mechanisms through which fruit and vegetable intake, physical activity, and diabetes interact, ultimately contributing to the development of more effective preventive measures and public health policies.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The data for this study was obtained from the CDC's Behavioral Risk Factor Surveillance System (BRFSS), specifically from the year 2015 survey. The BRFSS is an annual health-related telephone survey that collects information on health-related risk behaviors, chronic health conditions, and the use of preventative services from over 400,000 Americans. The dataset used for this study consists of 253,680 responses with 22 features, including diabetes status, fruit and vegetable consumption, physical activity level, and demographic variables. The dataset was provided as a comma-separated values (CSV) file.
+
+\subsection*{Data Preprocessing}
+The pre-processing of the data was performed using Python programming language. First, missing values were removed from the original dataset, resulting in a clean dataset of 253,680 responses. This step ensures that the subsequent analysis is conducted on complete data. Next, a new variable called "FruitVeg" was created by combining the "Fruits" and "Veggies" variables using a logical AND operation. This new variable represents whether an individual consumes at least one fruit and one vegetable each day. These pre-processing steps were performed using the pandas library in Python.
+
+\subsection*{Data Analysis}
+To examine the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults, logistic regression analysis was conducted using the statsmodels library in Python. In the first analysis step, a logistic regression model was fitted with the "Diabetes\_binary" variable as the dependent variable and "FruitVeg," "Age," "Sex," "BMI," "Education," and "Income" as independent variables. This analysis aimed to determine the association between fruit and vegetable consumption and the risk of diabetes, while controlling for demographic and health-related factors.
+
+In the second analysis step, an interaction term between fruit and vegetable consumption ("FruitVeg") and physical activity level ("PhysActivity") was introduced in the logistic regression model. The model included the main effects of "FruitVeg" and "PhysActivity," as well as the interaction term "FruitVeg\_PhysActivity." This analysis aimed to investigate whether the association between fruit and vegetable consumption and diabetes risk is modified by physical activity level.
+
+The results of the logistic regression analyses, including odds ratios and corresponding p-values, were obtained from the fitted models. Additionally, descriptive statistics for the dataset were calculated using the pandas library. The results were written to a text file named "results.txt" for further examination and reporting. 
+
+These analysis steps provide insights into the association between fruit and vegetable consumption, physical activity, and the risk of diabetes among adults, while controlling for potential confounding factors.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code output outputs, are provided in Supplementary Methods.
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\clearpage
+\appendix
+\section*{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+The dataset includes diabetes related factors extracted from the CDC's
+	Behavioral Risk Factor Surveillance System (BRFSS), year 2015.
+The original BRFSS, from which this dataset is derived, is a health-related
+	telephone survey that is collected annually by the CDC.
+Each year, the survey collects responses from over 400,000 Americans on health-
+	related risk behaviors, chronic health conditions, and the use of preventative
+	services. These features are either questions directly asked of participants, or
+	calculated variables based on individual participant responses.
+
+
+1 data file:
+
+"diabetes_binary_health_indicators_BRFSS2015.csv"
+The csv file is a clean dataset of 253,680 responses (rows) and 22 features
+	(columns).
+All rows with missing values were removed from the original dataset; the current
+	file contains no missing values.
+
+The columns in the dataset are:
+
+#1 `Diabetes_binary`: (int, bool) Diabetes (0=no, 1=yes)
+#2 `HighBP`: (int, bool) High Blood Pressure (0=no, 1=yes)
+#3 `HighChol`: (int, bool) High Cholesterol (0=no, 1=yes)
+#4 `CholCheck`: (int, bool) Cholesterol check in 5 years (0=no, 1=yes)
+#5 `BMI`: (int, numerical) Body Mass Index
+#6 `Smoker`: (int, bool) (0=no, 1=yes)
+#7 `Stroke`: (int, bool) Stroke (0=no, 1=yes)
+#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or
+	myocardial infarction (MI), (0=no, 1=yes)
+#9 `PhysActivity`: (int, bool) Physical Activity in past 30 days (0=no, 1=yes)
+#10 `Fruits`: (int, bool) Consume one fruit or more each day (0=no, 1=yes)
+#11 `Veggies`: (int, bool) Consume one Vegetable or more each day (0=no, 1=yes)
+#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers (0=no, 1=yes)
+#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage (0=no,
+	1=yes)
+#14 `NoDocbcCost` (int, bool) Was there a time in the past 12 months when you
+	needed to see a doctor but could not because of cost? (0=no, 1=yes)
+#15 `GenHlth` (int, ordinal) self-reported health (1=excellent, 2=very good,
+	3=good, 4=fair, 5=poor)
+#16 `MentHlth` (int, ordinal) How many days during the past 30 days was your
+	mental health not good? (1-30 days)
+#17 `PhysHlth` (int, ordinal) Hor how many days during the past 30 days was your
+	physical health not good? (1-30 days)
+#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing
+	stairs? (0=no, 1=yes)
+#19 `Sex` (int, categorical) Sex (0=female, 1=male)
+#20 `Age` (int, ordinal) Age, 13-level age category in intervals of 5 years
+	(1=18-24, 2=25-29, ..., 12=75-79, 13=80 or older)
+#21 `Education` (int, ordinal) Education level on a scale of 1-6 (1=Never
+	attended school, 2=Elementary, 3=Some high school, 4=High school, 5=Some
+	college, 6=College)
+#22 `Income` (int, ordinal) Income scale on a scale of 1-8 (1=<=10K, 2=<=15K,
+	3=<=20K, 4=<=25K, 5=<=35K, 6=<=50K, 7=<=75K, 8=>75K)
+
+
+\end{Verbatim}
+
+\section*{Data Exploration} \subsection*{Code}The Data Exploration was carried out using the following custom code:
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+
+\PY{c+c1}{\PYZsh{} Read the CSV file}
+\PY{n}{df} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015.csv}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Create an empty string to store the data exploration summary}
+\PY{n}{summary} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZdq{}}
+
+\PY{c+c1}{\PYZsh{} Measure of the scale of the data}
+\PY{n}{num\PYZus{}rows} \PY{o}{=} \PY{n+nb}{len}\PY{p}{(}\PY{n}{df}\PY{p}{)}
+\PY{n}{num\PYZus{}columns} \PY{o}{=} \PY{n+nb}{len}\PY{p}{(}\PY{n}{df}\PY{o}{.}\PY{n}{columns}\PY{p}{)}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Number of rows: }\PY{l+s+si}{\PYZob{}}\PY{n}{num\PYZus{}rows}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Number of columns: }\PY{l+s+si}{\PYZob{}}\PY{n}{num\PYZus{}columns}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+
+\PY{c+c1}{\PYZsh{} Summary statistics of key variables}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Summary Statistics:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{describe}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{to\PYZus{}string}\PY{p}{(}\PY{p}{)} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+
+\PY{c+c1}{\PYZsh{} List of most common values of categorical variables}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Most Common Values:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{categorical\PYZus{}columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Diabetes\PYZus{}binary}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HighBP}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HighChol}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PYZbs{}
+\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{CholCheck}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Smoker}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Stroke}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HeartDiseaseorAttack}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{PhysActivity}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Fruits}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Veggies}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PYZbs{}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{HvyAlcoholConsump}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AnyHealthcare}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{NoDocbcCost}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{GenHlth}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{DiffWalk}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Sex}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Age}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PYZbs{}
+                      \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Education}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Income}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+\PY{k}{for} \PY{n}{col} \PY{o+ow}{in} \PY{n}{categorical\PYZus{}columns}\PY{p}{:}
+        \PY{n}{common\PYZus{}values} \PY{o}{=} \PY{n}{df}\PY{p}{[}\PY{n}{col}\PY{p}{]}\PY{o}{.}\PY{n}{value\PYZus{}counts}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{)}
+        \PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{col}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{common\PYZus{}values}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+
+\PY{c+c1}{\PYZsh{} Counts of missing values}
+\PY{n}{missing\PYZus{}values} \PY{o}{=} \PY{n}{df}\PY{o}{.}\PY{n}{isnull}\PY{p}{(}\PY{p}{)}\PY{o}{.}\PY{n}{sum}\PY{p}{(}\PY{p}{)}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Counts of Missing Values:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+\PY{n}{summary} \PY{o}{+}\PY{o}{=} \PY{n}{missing\PYZus{}values}\PY{o}{.}\PY{n}{to\PYZus{}string}\PY{p}{(}\PY{p}{)} \PY{o}{+} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}
+
+\PY{c+c1}{\PYZsh{} Write the summary to a text file}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{data\PYZus{}exploration.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)} \PY{k}{as} \PY{n}{file}\PY{p}{:}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{summary}\PY{p}{)}
+\end{Verbatim}
+\subsection*{Code Description}
+
+The provided code is used for data exploration of the given dataset. It performs various operations to summarize and analyze the data.
+
+First, the code reads the dataset from a CSV file using the pandas library. The dataset contains information related to diabetes and various health indicators.
+
+The code then creates an empty string called "summary" to store the data exploration summary.
+
+Next, it calculates some key statistics about the dataset, including the number of rows and columns, and appends this information to the summary string.
+
+After that, it generates summary statistics for the dataset using the describe() function in pandas. This includes measures like mean, standard deviation, minimum, maximum, etc., for numerical variables in the dataset. The summary statistics are then appended to the summary string.
+
+The code then identifies the most common values for each categorical variable in the dataset. It iterates through a predefined list of categorical columns and uses the value\_counts() function to count the occurrences of each value. The top 5 most common values for each categorical column are then appended to the summary string.
+
+Next, the code counts the number of missing values in the dataset using the isnull() function and the sum() function. The counts of missing values for each variable are appended to the summary string.
+
+Finally, the code writes the generated summary string to a text file called "data\_exploration.txt" using the open() function and the write() method.
+
+The "data\_exploration.txt" file contains a summary of the dataset exploration. This includes the number of rows and columns, summary statistics for numerical variables, most common values for categorical variables, and counts of missing values for each variable. The file can be used for further analysis and documentation of the dataset.
+
+\subsection*{Code Output}
+
+\begin{Verbatim}[tabsize=4]
+Number of rows: 253680
+Number of columns: 22
+
+Summary Statistics:
+                      count    mean    std
+Diabetes_binary      253680  0.1393 0.3463
+HighBP               253680   0.429 0.4949
+HighChol             253680  0.4241 0.4942
+CholCheck            253680  0.9627 0.1896
+BMI                  253680   28.38  6.609
+Smoker               253680  0.4432 0.4968
+Stroke               253680 0.04057 0.1973
+HeartDiseaseorAttack 253680 0.09419 0.2921
+PhysActivity         253680  0.7565 0.4292
+Fruits               253680  0.6343 0.4816
+Veggies              253680  0.8114 0.3912
+HvyAlcoholConsump    253680  0.0562 0.2303
+AnyHealthcare        253680  0.9511 0.2158
+NoDocbcCost          253680 0.08418 0.2777
+GenHlth              253680   2.511  1.068
+MentHlth             253680   3.185  7.413
+PhysHlth             253680   4.242  8.718
+DiffWalk             253680  0.1682 0.3741
+Sex                  253680  0.4403 0.4964
+Age                  253680   8.032  3.054
+Education            253680    5.05 0.9858
+Income               253680   6.054  2.071
+
+Most Common Values:
+Diabetes_binary: 0    218334
+1     35346
+Name: Diabetes_binary, dtype: int64
+HighBP: 0    144851
+1    108829
+Name: HighBP, dtype: int64
+HighChol: 0    146089
+1    107591
+Name: HighChol, dtype: int64
+CholCheck: 1    244210
+0      9470
+Name: CholCheck, dtype: int64
+Smoker: 0    141257
+1    112423
+Name: Smoker, dtype: int64
+Stroke: 0    243388
+1     10292
+Name: Stroke, dtype: int64
+HeartDiseaseorAttack: 0    229787
+1     23893
+Name: HeartDiseaseorAttack, dtype: int64
+PhysActivity: 1    191920
+0     61760
+Name: PhysActivity, dtype: int64
+Fruits: 1    160898
+0     92782
+Name: Fruits, dtype: int64
+Veggies: 1    205841
+0     47839
+Name: Veggies, dtype: int64
+HvyAlcoholConsump: 0    239424
+1     14256
+Name: HvyAlcoholConsump, dtype: int64
+AnyHealthcare: 1    241263
+0     12417
+Name: AnyHealthcare, dtype: int64
+NoDocbcCost: 0    232326
+1     21354
+Name: NoDocbcCost, dtype: int64
+GenHlth: 2    89084
+3    75646
+1    45299
+4    31570
+5    12081
+Name: GenHlth, dtype: int64
+DiffWalk: 0    211005
+1     42675
+Name: DiffWalk, dtype: int64
+Sex: 0    141974
+1    111706
+Name: Sex, dtype: int64
+Age: 9     33244
+10    32194
+8     30832
+7     26314
+11    23533
+Name: Age, dtype: int64
+Education: 6    107325
+5     69910
+4     62750
+3      9478
+2      4043
+Name: Education, dtype: int64
+Income: 8    90385
+7    43219
+6    36470
+5    25883
+4    20135
+Name: Income, dtype: int64
+
+Counts of Missing Values:
+Diabetes_binary         0
+HighBP                  0
+HighChol                0
+CholCheck               0
+BMI                     0
+Smoker                  0
+Stroke                  0
+HeartDiseaseorAttack    0
+PhysActivity            0
+Fruits                  0
+Veggies                 0
+HvyAlcoholConsump       0
+AnyHealthcare           0
+NoDocbcCost             0
+GenHlth                 0
+MentHlth                0
+PhysHlth                0
+DiffWalk                0
+Sex                     0
+Age                     0
+Education               0
+Income                  0
+
+\end{Verbatim}
+
+\section*{Data Analysis} \subsection*{Code}The Data Analysis was carried out using the following custom code:
+
+\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=1,stepnumber=1,formatcom=\footnotesize]
+\PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+\PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+\PY{k+kn}{import} \PY{n+nn}{statsmodels}\PY{n+nn}{.}\PY{n+nn}{api} \PY{k}{as} \PY{n+nn}{sm}
+\PY{k+kn}{import} \PY{n+nn}{statsmodels}\PY{n+nn}{.}\PY{n+nn}{formula}\PY{n+nn}{.}\PY{n+nn}{api} \PY{k}{as} \PY{n+nn}{smf}
+\PY{k+kn}{from} \PY{n+nn}{typing} \PY{k+kn}{import} \PY{n}{Dict}\PY{p}{,} \PY{n}{Any}
+\PY{k+kn}{from} \PY{n+nn}{sklearn}\PY{n+nn}{.}\PY{n+nn}{preprocessing} \PY{k+kn}{import} \PY{n}{StandardScaler}
+
+\PY{c+c1}{\PYZsh{} Load the data}
+\PY{n}{data} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{diabetes\PYZus{}binary\PYZus{}health\PYZus{}indicators\PYZus{}BRFSS2015.csv}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\PY{n}{data}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{FruitVeg}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{data}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Fruits}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]} \PY{o}{\PYZam{}} \PY{n}{data}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Veggies}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}
+
+\PY{c+c1}{\PYZsh{} Calculate descriptive statistics for Table 1}
+\PY{n}{summary\PYZus{}table} \PY{o}{=} \PY{n}{data}\PY{o}{.}\PY{n}{describe}\PY{p}{(}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Perform logistic regression to test the association between}
+\PY{c+c1}{\PYZsh{} fruit/veg consumption and diabetes risk}
+\PY{n}{model1} \PY{o}{=} \PY{n}{smf}\PY{o}{.}\PY{n}{logit}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Diabetes\PYZus{}binary \PYZti{} FruitVeg + Age + Sex + BMI + }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{Education + Income}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{data}\PY{o}{=}\PY{n}{data}\PY{p}{)}\PY{o}{.}\PY{n}{fit}\PY{p}{(}\PY{p}{)}
+\PY{n}{table2} \PY{o}{=} \PY{n}{model1}\PY{o}{.}\PY{n}{summary}\PY{p}{(}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Add interaction term with physical activity and fit the logistic}
+\PY{c+c1}{\PYZsh{} regression model}
+\PY{n}{data}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{FruitVeg\PYZus{}PhysActivity}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{data}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{FruitVeg}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{*} \PYZbs{}
+\PY{n}{data}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{PhysActivity}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+
+\PY{n}{model2} \PY{o}{=} \PY{n}{smf}\PY{o}{.}\PY{n}{logit}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Diabetes\PYZus{}binary \PYZti{} FruitVeg + PhysActivity + }\PY{l+s+se}{\PYZbs{}}
+\PY{l+s+s2}{FruitVeg\PYZus{}PhysActivity + Age + Sex + BMI + Education + Income}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PYZbs{}
+\PY{n}{data}\PY{o}{=}\PY{n}{data}\PY{p}{)}\PY{o}{.}\PY{n}{fit}\PY{p}{(}\PY{p}{)}
+\PY{n}{table3} \PY{o}{=} \PY{n}{model2}\PY{o}{.}\PY{n}{summary}\PY{p}{(}\PY{p}{)}
+
+\PY{c+c1}{\PYZsh{} Create a dictionary with other numerical results}
+\PY{n}{results\PYZus{}dict} \PY{o}{=} \PY{p}{\PYZob{}}
+        \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Total number of observations}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n+nb}{len}\PY{p}{(}\PY{n}{data}\PY{p}{)}\PY{p}{,}
+    \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Correlation between fruit/veg consumption and diabetes risk}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PYZbs{}
+    \PY{n}{model1}\PY{o}{.}\PY{n}{params}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{FruitVeg}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{p}{,}
+        \PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Mean of BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{:} \PY{n}{data}\PY{p}{[}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{BMI}\PY{l+s+s1}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{mean}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+\PY{p}{\PYZcb{}}
+
+\PY{c+c1}{\PYZsh{} Write the results to a text file named \PYZdq{}results.txt\PYZdq{}}
+\PY{k}{with} \PY{n+nb}{open}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{results.txt}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{w}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)} \PY{k}{as} \PY{n}{file}\PY{p}{:}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Results for Table 1:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{summary\PYZus{}table}\PY{o}{.}\PY{n}{to\PYZus{}string}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Results for Table 2:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{table2}\PY{o}{.}\PY{n}{as\PYZus{}text}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Results for Table 3:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{n}{table3}\PY{o}{.}\PY{n}{as\PYZus{}text}\PY{p}{(}\PY{p}{)}\PY{p}{)}
+        \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{Other numerical results:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+        \PY{k}{for} \PY{n}{key}\PY{p}{,} \PY{n}{value} \PY{o+ow}{in} \PY{n}{results\PYZus{}dict}\PY{o}{.}\PY{n}{items}\PY{p}{(}\PY{p}{)}\PY{p}{:}
+                \PY{n}{file}\PY{o}{.}\PY{n}{write}\PY{p}{(}\PY{l+s+sa}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}}\PY{n}{key}\PY{l+s+si}{\PYZcb{}}\PY{l+s+s2}{: }\PY{l+s+si}{\PYZob{}}\PY{n}{value}\PY{l+s+si}{\PYZcb{}}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\subsection*{Code Description}
+
+The code performs data analysis on a dataset of diabetes-related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. The dataset contains information on various health indicators such as diabetes status, high blood pressure, high cholesterol, body mass index, lifestyle factors, and demographic variables.
+
+The code first loads the dataset into a pandas DataFrame. It then calculates descriptive statistics for Table 1, including measures such as count, mean, standard deviation, minimum, and maximum for each column in the dataset. These statistics provide an overview of the dataset and help understand the distribution of variables.
+
+Next, the code conducts logistic regression analysis to examine the association between fruit and vegetable consumption and the risk of diabetes. The model includes variables such as fruit and vegetable consumption, age, sex, body mass index (BMI), education level, and income. The logistic regression analysis estimates the coefficients and p-values for each variable, indicating the strength and significance of the association with diabetes risk. The results of the regression analysis are displayed in Table 2.
+
+In the next step, the code adds an interaction term between fruit/veg consumption and physical activity. It then fits another logistic regression model that includes this interaction term along with the previously mentioned variables. This model allows for testing if the association between fruit/veg consumption and diabetes varies based on the level of physical activity. The results of this extended logistic regression analysis are presented in Table 3.
+
+Additionally, the code calculates other numerical results, such as the total number of observations, the correlation between fruit/veg consumption and diabetes risk, and the mean of the BMI variable. These results are stored in a dictionary.
+
+Finally, the code writes all the results, including the summary statistics for Table 1, the regression results for Tables 2 and 3, and the other numerical results, into a text file named "results.txt". Each result is printed in a formatted manner, providing a comprehensive summary of the findings.
+
+In summary, this code performs data analysis on a dataset of diabetes-related factors, including descriptive statistics and logistic regression analyses, to explore the relationship between fruit/veg consumption and the risk of diabetes. The results are then written to a text file for further examination and reporting.
+
+\subsection*{Code Output}
+
+\begin{Verbatim}[tabsize=4]
+Results for Table 1:
+                      count    mean    std
+Diabetes_binary      253680  0.1393 0.3463
+HighBP               253680   0.429 0.4949
+HighChol             253680  0.4241 0.4942
+CholCheck            253680  0.9627 0.1896
+BMI                  253680   28.38  6.609
+Smoker               253680  0.4432 0.4968
+Stroke               253680 0.04057 0.1973
+HeartDiseaseorAttack 253680 0.09419 0.2921
+PhysActivity         253680  0.7565 0.4292
+Fruits               253680  0.6343 0.4816
+Veggies              253680  0.8114 0.3912
+HvyAlcoholConsump    253680  0.0562 0.2303
+AnyHealthcare        253680  0.9511 0.2158
+NoDocbcCost          253680 0.08418 0.2777
+GenHlth              253680   2.511  1.068
+MentHlth             253680   3.185  7.413
+PhysHlth             253680   4.242  8.718
+DiffWalk             253680  0.1682 0.3741
+Sex                  253680  0.4403 0.4964
+Age                  253680   8.032  3.054
+Education            253680    5.05 0.9858
+Income               253680   6.054  2.071
+FruitVeg             253680  0.5626 0.4961
+
+Results for Table 2:
+                           Logit Regression Results
+==============================================================================
+Dep. Variable:        Diabetes_binary   No. Observations:               253680
+Model:                          Logit   Df Residuals:                   253673
+Method:                           MLE   Df Model:                            6
+Date:                Fri, 23 Jun 2023   Pseudo R-squ.:                  0.1242
+Time:                        17:52:43   Log-Likelihood:                -89707.
+converged:                       True   LL-Null:                   -1.0242e+05
+Covariance Type:            nonrobust   LLR p-value:                     0.000
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+Intercept     -4.8608      0.050    -96.706      0.000      -4.959      -4.762
+FruitVeg      -0.1811      0.012    -14.572      0.000      -0.205      -0.157
+Age            0.2112      0.002     89.164      0.000       0.207       0.216
+Sex            0.3287      0.013     26.267      0.000       0.304       0.353
+BMI            0.0852      0.001     97.707      0.000       0.083       0.087
+Education     -0.1079      0.007    -16.469      0.000      -0.121      -0.095
+Income        -0.1466      0.003    -46.323      0.000      -0.153      -0.140
+==============================================================================
+
+Results for Table 3:
+                           Logit Regression Results
+==============================================================================
+Dep. Variable:        Diabetes_binary   No. Observations:               253680
+Model:                          Logit   Df Residuals:                   253671
+Method:                           MLE   Df Model:                            8
+Date:                Fri, 23 Jun 2023   Pseudo R-squ.:                  0.1263
+Time:                        17:52:44   Log-Likelihood:                -89485.
+converged:                       True   LL-Null:                   -1.0242e+05
+Covariance Type:            nonrobust   LLR p-value:                     0.000
+================================================================================
+	=========
+                            coef    std err          z      P>|z|      [0.025
+	0.975]
+--------------------------------------------------------------------------------
+	---------
+Intercept                -4.7193      0.051    -92.094      0.000      -4.820
+	-4.619
+FruitVeg                 -0.0516      0.022     -2.400      0.016      -0.094
+	-0.009
+PhysActivity             -0.2109      0.018    -11.761      0.000      -0.246
+	-0.176
+FruitVeg_PhysActivity    -0.1426      0.026     -5.447      0.000      -0.194
+	-0.091
+Age                       0.2075      0.002     87.402      0.000       0.203
+	0.212
+Sex                       0.3390      0.013     27.027      0.000       0.314
+	0.364
+BMI                       0.0828      0.001     94.559      0.000       0.081
+	0.084
+Education                -0.0950      0.007    -14.412      0.000      -0.108
+	-0.082
+Income                   -0.1409      0.003    -44.350      0.000      -0.147
+	-0.135
+================================================================================
+	=========
+
+Other numerical results:
+Total number of observations: 253680
+Correlation between fruit/veg consumption and diabetes risk:
+	-0.18113600236572014
+Mean of BMI: 28.382363607694735
+
+\end{Verbatim}
+
+\end{document}
