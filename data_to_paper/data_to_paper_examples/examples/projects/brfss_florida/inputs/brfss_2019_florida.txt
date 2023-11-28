@@ -1,0 +1,26 @@
+The csv file is a dataset of 16,959 responses (rows) and 22 features (columns).
+
+The columns in the dataset are:
+
+#1 `respondent_weighting_factor`: (float, numerical) Final weight assigned to each respondent, should be used to weigh each row when calculating aggregative values
+#2 `diabetes`: (str, bool) Diabetes ('yes' or 'no')
+#3 `prediabetes`: (str, bool) Prediabetes ('yes' or 'no')
+#4 `age_category`: (str, categorical) Age Category ('18-44', '45-64' ,'65+')
+#5 `sex`: (str, bool) Sex ('male' or 'female')
+#6 `race`: (str, categorical) Race ('white', 'black', 'hispanic' or 'other')
+#7 `smoker`: (str, bool) Smoker ('yes' or 'no')
+#8 `heavy_drinker': (str, bool) Heavy Alchohol Drinker ('yes' or 'no')
+#9 `income_category`: (str, categorical) Income Category ('<$15,000', '$15,000-<$25,000', '$25,000-<$35,000', '$35,000-<$50,000' or '≥$50,000')
+#10 `education_category`: (str, categorical) Education Category ('<high school', 'high school', 'some college' or 'college')
+#11 `depression`: (str, bool) Depression ('yes' or 'no')
+#12 `physical_activity_category` (str, categorical) Physical Activity Category ('highly active', 'active', 'insufficiently active' or 'inactive')
+#13 `daily_fruit_consumption` (str, bool) Daily Fruit Consumption is at least 1 a Day ('yes' or 'no')
+#14 `daily_vegetable_consumption` (str, bool) Daily Vegetable Consumption is at least 1 a Day ('yes' or 'no')
+#15 `have_health_insurance` (str, bool) Have Health Insurance or Coverage ('yes' or 'no')
+#16 `hypercholesterolemia` (str, bool) Hypercholesterolemia ('yes' or 'no')
+#17 `hypertension` (str, bool) Hypertension ('yes' or 'no')
+#18 `bmi_category` (str, categorical) BMI Category ('underweight', 'normal weight', 'overweight' or 'obese')
+#19 `martial_status` (str, categorical) Martial Status ('married', 'never married' or 'separated/divorced/widowed')
+#20 `arthritis` (str, bool) Arthritis ('yes' or 'no')
+#21 `chronic_kidney_disease` (str, bool) Chronic Kidney Disease ('yes' or 'no')
+#22 `stroke` (str, bool) Stroke ('yes' or 'no')
