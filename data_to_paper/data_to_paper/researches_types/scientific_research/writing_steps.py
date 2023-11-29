@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple, List, Set, Optional, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
@@ -10,7 +10,8 @@ from data_to_paper.latex.tables import get_table_label
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, \
     DEFAULT_LITERATURE_SEARCH_STYLE
-from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
+from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES, \
+    get_model_engine_for_class
 from data_to_paper.servers.types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -289,7 +290,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
     model_engine: ModelEngine = \
-        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["IntroductionSectionWriterReviewGPT"]
+        field(default_factory=lambda: get_model_engine_for_class(IntroductionSectionWriterReviewGPT))
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
@@ -517,7 +518,7 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
     model_engine: ModelEngine = \
-        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["DiscussionSectionWriterReviewGPT"]
+        field(default_factory=lambda: get_model_engine_for_class(DiscussionSectionWriterReviewGPT))
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Also, please suggest if you see any specific additional citations that are adequate to include \
         (from the Literature Searches above).

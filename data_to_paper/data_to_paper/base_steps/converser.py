@@ -6,8 +6,8 @@ from typing import Optional, Any
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, DEFAULT_MODEL_ENGINE, TEXT_WIDTH, TYPE_OF_MODELS
-from data_to_paper.servers.openai_models import TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH
+from data_to_paper.servers.openai_models import get_model_engine_for_class
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.servers.openai_models import ModelEngine
@@ -27,8 +27,7 @@ class Converser(Copier):
     CHATGPT_PARAMETERS = {}  # default parameters to pass to chatgpt. e.g. {'temperature': 0.0, 'max_tokens': 30}
     actions_and_conversations: ActionsAndConversations = None
 
-    model_engine: ModelEngine = \
-        field(default_factory=lambda: TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["Converser"])
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(Converser))
     # The openai model engine to use. If None, use the default model engine.
     # A call to apply_get_and_append_assistant_message can override this value.
 

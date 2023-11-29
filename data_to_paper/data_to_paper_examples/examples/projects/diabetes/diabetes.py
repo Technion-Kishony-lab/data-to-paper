@@ -6,7 +6,7 @@ goal = "Using machine learning models and multivariate analysis find risk factor
 RUN_PARAMETERS = dict(
     project='diabetes',
     data_filenames=["diabetes_binary_health_indicators_BRFSS2015.csv"],
-    research_goal='Find association between diabetes to BMI',
+    research_goal=None,
     should_do_data_exploration=True,
 )
 

@@ -7,7 +7,7 @@ from typing import Optional, List, Tuple, Union, Type, Dict, Any, Callable
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMENTS
+from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation

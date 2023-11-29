@@ -29,7 +29,8 @@ from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
     PickleContentOutputFileRequirement, RunUtilsError
-from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
+from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES, \
+    get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
@@ -151,7 +152,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
     model_engine: ModelEngine = \
-        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["DataExplorationCodeProductsGPT"]
+        field(default_factory=lambda: get_model_engine_for_class(DataExplorationCodeProductsGPT))
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
@@ -299,7 +300,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
     model_engine: ModelEngine = \
-        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["DataAnalysisCodeProductsGPT"]
+        field(default_factory=lambda: get_model_engine_for_class(DataAnalysisCodeProductsGPT))
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
@@ -407,8 +408,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'headers_required_in_code')
-    model_engine: ModelEngine = \
-        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["CreateTablesCodeProductsGPT"]
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(CreateTablesCodeProductsGPT))
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',

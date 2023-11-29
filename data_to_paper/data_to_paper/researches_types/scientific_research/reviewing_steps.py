@@ -2,7 +2,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional, Iterable, List
 
-from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
+from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES, \
+    get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
@@ -106,7 +107,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
 
-    model_engine: ModelEngine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["GetMostSimilarCitations"]
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(GetMostSimilarCitations))
     value_type: type = Dict[str, str]
     goal_noun: str = 'most similar papers'
     goal_verb: str = 'find'
@@ -156,7 +157,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
 @dataclass
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    model_engine: ModelEngine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["IsGoalOK"]
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(IsGoalOK))
     value_type: type = Dict[str, str]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     goal_noun: str = 'research goal and hypothesis'
@@ -433,7 +434,7 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
                                                   'tables_and_tables_names')
     model_engine: ModelEngine = \
-        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["TablesReviewBackgroundProductsConverser"]
+        field(default_factory=lambda: get_model_engine_for_class(TablesReviewBackgroundProductsConverser))
     table_name: str = None
     product_fields_from_which_response_is_extracted: Tuple[str] = \
         ('data_file_descriptions', 'outputs:data_analysis',)

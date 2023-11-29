@@ -8,28 +8,37 @@ BASE_FOLDER_NAME = 'data-to-paper'
 
 SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn')
 
+OPENAI_API_BASE = "https://api.openai.com/v1"
+DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
+
 # OpenAI API keys. model=None is the default key.
-OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = dict[Optional[ModelEngine], str]({
+OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL = dict[Optional[ModelEngine], str]({
     None:
         ("org-gvr0szNH28eeeuMCEG9JrwcR",
-         "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"),
+         "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",
+         OPENAI_API_BASE),
     ModelEngine.GPT4:
         ("org-SplsVAouKqk9mWIpVgIIVwSD",
-         "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"),
+         "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",
+         OPENAI_API_BASE),
     ModelEngine.GPT4_TURBO:
         ("org-SplsVAouKqk9mWIpVgIIVwSD",
-         "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"),
+         "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",
+         OPENAI_API_BASE),
     ModelEngine.LLAMA_2:
-        ("", "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG"),
+        ("",
+         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
+         DEEPINFRA_API_BASE),
     ModelEngine.CODELLAMA:
-        ("", "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG"),
+        ("",
+         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
+         DEEPINFRA_API_BASE),
 })
 
 S2_API_KEY = "hqcN3JMNgl2Ue889JZ1Zd3ogYCjtdpta8V0OXv3c"
 
 TYPE_OF_MODELS = "open"
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
-MAX_MODEL_ENGINE = ModelEngine.GPT4_TURBO
 
 # Text width for conversation output:
 TEXT_WIDTH = 150
