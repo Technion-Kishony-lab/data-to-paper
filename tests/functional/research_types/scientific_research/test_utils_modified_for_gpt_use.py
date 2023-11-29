@@ -3,9 +3,9 @@ import pytest
 from _pytest.fixtures import fixture
 from _pytest.python_api import raises
 
-from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.check_df_of_table import \
-    check_df_of_table_for_content_issues
-from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.\
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use. \
+    check_df_of_table import check_df_of_table_for_content_issues
+from data_to_paper.researches_types.scientific_research.utils_for_gpt_code. \
     utils_modified_for_gpt_use.to_latex_with_note import _check_for_table_style_issues
 from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.\
     utils_modified_for_gpt_use.to_pickle import get_dataframe_to_pickle_attr_replacer
@@ -92,4 +92,3 @@ def test_check_df_of_table_for_content_issues_with_repeated_value_in_prior_table
     assert len(issues) == 1
     assert 'overlap' in issues[0].category
     assert 'table_0.pkl' in issues[0].issue
-

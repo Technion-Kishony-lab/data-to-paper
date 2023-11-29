@@ -6,13 +6,13 @@ goal = "Using machine learning models and multivariate analysis find risk factor
 RUN_PARAMETERS = dict(
     project='diabetes',
     data_filenames=["diabetes_binary_health_indicators_BRFSS2015.csv"],
-    research_goal='Find association between diabetes to BMI',
+    research_goal=None,
     should_do_data_exploration=True,
 )
 
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
-              output_folder='client_example',
+              output_folder='llama_example',
               should_mock_servers=True,
               load_from_repo=True,
               save_on_repo=True)

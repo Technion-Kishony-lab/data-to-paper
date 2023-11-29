@@ -7,7 +7,6 @@ from typing import Any, Optional
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.env import MAX_MODEL_ENGINE
 from data_to_paper.utils.highlighted_text import print_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
 

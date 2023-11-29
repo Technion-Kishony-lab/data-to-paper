@@ -141,7 +141,6 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             if response.status_code != 200:
                 raise ServerErrorCitationException(status_code=response.status_code, text=response.text)
 
-
             data = response.json()
             try:
                 papers = data["data"]

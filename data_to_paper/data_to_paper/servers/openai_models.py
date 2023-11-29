@@ -10,6 +10,8 @@ MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     "gpt-4": (8192, 0.03, 0.06),
     "gpt-4-1106-preview": (128000, 0.01, 0.03),
     # "gpt-4-32k": (32768, 0.06, 0.12),
+    "meta-llama/Llama-2-70b-chat-hf": (4096, 0.0007, 0.001),
+    "codellama/CodeLlama-34b-Instruct-hf": (4096, 0.0006, 0.0006),
 }
 
 
@@ -23,6 +25,8 @@ class ModelEngine(IndexOrderedEnum):
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-1106-preview"
     # GPT4_32 = "gpt-4-32k"
+    LLAMA_2 = "meta-llama/Llama-2-70b-chat-hf"
+    CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
 
     def __str__(self):
         return self.value
@@ -34,7 +38,7 @@ class ModelEngine(IndexOrderedEnum):
         return hash(self.value)
 
     def get_model_with_more_strength(self):
-        model =  MODELS_TO_MORE_STRENGTH[self]
+        model = MODELS_TO_MORE_STRENGTH[self]
         if model is None:
             raise ValueError(f"Model {self} has no stronger model")
         return model
@@ -63,6 +67,8 @@ MODELS_TO_MORE_CONTEXT = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
+    ModelEngine.LLAMA_2: None,
+    ModelEngine.CODELLAMA: None,
 }
 
 
@@ -71,6 +77,8 @@ MODELS_TO_MORE_STRENGTH = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
+    ModelEngine.LLAMA_2: ModelEngine.CODELLAMA,
+    ModelEngine.CODELLAMA: None,
 }
 
 
@@ -99,3 +107,33 @@ class OpenaiCallParameters:
 
 
 OPENAI_CALL_PARAMETERS_NAMES = list(OpenaiCallParameters.__dataclass_fields__.keys())
+
+TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
+    "closed": {
+        "Converser": ModelEngine.GPT35_TURBO,
+        "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
+        "DataAnalysisCodeProductsGPT": ModelEngine.GPT4,
+        "CreateTablesCodeProductsGPT": ModelEngine.GPT4,
+        "GetMostSimilarCitations": ModelEngine.GPT4,
+        "IsGoalOK": ModelEngine.GPT4,
+        "TablesReviewBackgroundProductsConverser": ModelEngine.GPT4,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
+    },
+    "open": {
+        "Converser": ModelEngine.LLAMA_2,
+        "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
+        "DataAnalysisCodeProductsGPT": ModelEngine.CODELLAMA,
+        "CreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
+        "GetMostSimilarCitations": ModelEngine.LLAMA_2,
+        "IsGoalOK": ModelEngine.LLAMA_2,
+        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2,
+    },
+}
+
+
+def get_model_engine_for_class(class_: type) -> ModelEngine:
+    from data_to_paper.env import TYPE_OF_MODELS  # avoid circular import
+    return TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][class_.__name__]

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Iterable, Union, List
 
-from data_to_paper.env import DEFAULT_MODEL_ENGINE, MAX_MODEL_ENGINE
+from data_to_paper.env import DEFAULT_MODEL_ENGINE
 from data_to_paper.utils.highlighted_text import print_red
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.chatgpt import try_get_chatgpt_response

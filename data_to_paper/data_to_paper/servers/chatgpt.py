@@ -10,7 +10,7 @@ from typing import List, Union, Optional
 
 import tiktoken
 
-from data_to_paper.env import MAX_MODEL_ENGINE, DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS
+from data_to_paper.env import DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
 from data_to_paper.utils.highlighted_text import print_red
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 
@@ -55,8 +55,7 @@ def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine
     """
     Return the actual model engine to use for the given model engine.
     """
-    model_engine = model_engine or DEFAULT_MODEL_ENGINE
-    return min(MAX_MODEL_ENGINE, model_engine)
+    return model_engine or DEFAULT_MODEL_ENGINE
 
 
 class OpenaiSeverCaller(ListServerCaller):
@@ -93,10 +92,11 @@ class OpenaiSeverCaller(ListServerCaller):
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
-        organization, api_key = OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[model_engine] \
-            if model_engine in OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS \
-            else OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS[None]
+        organization, api_key, api_base_url = OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL[model_engine] \
+            if model_engine in OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL \
+            else OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL[None]
         openai.api_key = api_key
+        openai.api_base = api_base_url
         openai.organization = organization
         for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
             try:
@@ -130,9 +130,11 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
     """
     Count number of tokens in message using tiktoken.
     """
-    model = model_engine or DEFAULT_MODEL_ENGINE
-    model = model.value
-    encoding = tiktoken.encoding_for_model(model)
+    model_engine = model_engine or DEFAULT_MODEL_ENGINE
+    try:
+        encoding = tiktoken.encoding_for_model(model_engine.value)
+    except KeyError:
+        encoding = tiktoken.encoding_for_model(DEFAULT_MODEL_ENGINE.value)
     if isinstance(messages, str):
         num_tokens = len(encoding.encode(messages))
     else:

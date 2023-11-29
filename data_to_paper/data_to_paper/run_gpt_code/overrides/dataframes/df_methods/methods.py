@@ -4,8 +4,6 @@ from typing import Any
 
 import pandas as pd
 
-from data_to_paper.env import PDF_TEXT_WIDTH
-
 from ..utils import format_float
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation

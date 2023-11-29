@@ -28,7 +28,7 @@ from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
     PickleContentOutputFileRequirement, RunUtilsError
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
@@ -146,10 +146,11 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
 @dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_exploration'
-    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: get_model_engine_for_class(DataExplorationCodeProductsGPT))
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
@@ -244,7 +245,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 @dataclass
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
-
     code_step: str = 'data_preprocessing'
     background_product_fields: Tuple[str, ...] = ('research_goal', 'all_file_descriptions', 'outputs:data_exploration')
     user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
@@ -295,13 +295,14 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: get_model_engine_for_class(DataAnalysisCodeProductsGPT))
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-    model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
@@ -403,7 +404,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'headers_required_in_code')
-
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(CreateTablesCodeProductsGPT))
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
@@ -420,7 +421,6 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-    model_engine: ModelEngine = ModelEngine.GPT4
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
@@ -536,13 +536,13 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
         - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
         - Are we restricting the analysis to the correct data (based on the study goal)?
-        
+
         * DESCRIPTIVE STATISTICS:
         If applicable: 
         - did we correctly report descriptive statistics? Does the choice of variables for such \
         statistics make sense for our study?
         - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
-        
+
         * PREPROCESSING:
         Review the description of the data files (see above "{data_file_descriptions}") \
         and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
@@ -702,21 +702,21 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         * Create new columns as needed.
         * Remove records based on exclusion/inclusion criteria (to match study goal, if applicable).
         * Standardization of numeric values with different units into same-unit values.
-        
+
         If no dataset preparations are needed, write below this header: \
         `# No dataset preparations are needed.`
 
-        
+
         `# DESCRIPTIVE STATISTICS`
         * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \
         "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \
         the paper and create a relevant table.
-        
+
         For example:
         `## Table 0: "Descriptive statistics of height and age stratified by sex"`
         Write here the code to create a descriptive statistics dataframe `df0` and save it using:
         `df0.to_pickle('table_0.pkl')`
-        
+
         If no descriptive statistics are needed, write: \
         `# No descriptive statistics table is needed.`
 
@@ -726,7 +726,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example, as applicable:
         * Creating dummy variables for categorical variables (as needed).
         * Any other data preprocessing you deem relevant.
-        
+
         If no preprocessing is needed, write:
         `# No preprocessing is needed, because <your reasons here>.`
 
@@ -742,7 +742,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         For example:
         `## Table 1: "Test of association between age and risk of death, accounting for sex and race"`
         Avoid generic captions such as `## Table 1: "Results of analysis"`.
-        
+
         [b] Perform analysis
         - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
         - The statistical analysis should account for any relevant confounding variables, as applicable.
@@ -761,10 +761,10 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         * The table should have labels for the both the columns and the index (rows): 
             - Do not invent new names; just keep the original variable names from the dataset.
             - As applicable, also keep unmodified any attr names from statistical test results.
-        
-        
+
+
         Overall, the section should have the following structure:
-        
+
         # ANALYSIS
         ## Table 1: <your chosen table name here>
         <write here the code to analyze the data and create a dataframe df1 for the table 1>
@@ -772,7 +772,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
         ## Table 2: <your chosen table name here>
         etc, up to 3 tables.
-        
+
 
         # SAVE ADDITIONAL RESULTS
         At the end of the code, after completing the tables, create a dict containing any additional \
