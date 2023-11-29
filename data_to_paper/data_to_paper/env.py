@@ -19,10 +19,15 @@ OPENAI_MODELS_TO_ORGANIZATIONS_AND_API_KEYS = dict[Optional[ModelEngine], str]({
     ModelEngine.GPT4_TURBO:
         ("org-SplsVAouKqk9mWIpVgIIVwSD",
          "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"),
+    ModelEngine.LLAMA_2:
+        ("", "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG"),
+    ModelEngine.CODELLAMA:
+        ("", "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG"),
 })
 
 S2_API_KEY = "hqcN3JMNgl2Ue889JZ1Zd3ogYCjtdpta8V0OXv3c"
 
+TYPE_OF_MODELS = 'open'
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 MAX_MODEL_ENGINE = ModelEngine.GPT4_TURBO
 

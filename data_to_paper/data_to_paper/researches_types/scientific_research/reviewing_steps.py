@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional, Iterable, List
 
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
@@ -15,6 +15,7 @@ from data_to_paper.servers.types import Citation
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
+from ...env import TYPE_OF_MODELS
 
 
 @dataclass
@@ -105,7 +106,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
 
-    model_engine: ModelEngine = ModelEngine.GPT4
     value_type: type = Dict[str, str]
     goal_noun: str = 'most similar papers'
     goal_verb: str = 'find'
@@ -116,6 +116,8 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
+    def __post_init__(self):
+        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \
@@ -154,7 +156,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
 @dataclass
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    model_engine: ModelEngine = ModelEngine.GPT4
     value_type: type = Dict[str, str]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     goal_noun: str = 'research goal and hypothesis'
@@ -166,6 +167,8 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
+    def __post_init__(self):
+        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Given the related papers listed above, please follow these 3 steps:
@@ -427,7 +430,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     tolerance_for_too_wide_in_pts: Optional[float] = 25.0  # we allow tables to extend a bit out
     products: ScientificProducts = None
     max_reviewing_rounds: int = 0
-    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions',
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
                                                   'tables_and_tables_names')
@@ -440,6 +442,9 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     termination_phrase: str = 'The table does not require any enhancements'
+    def __post_init__(self):
+        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
+
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please build the table "{table_name}".
         Write the table in latex format, centered, in booktabs, multirow format.

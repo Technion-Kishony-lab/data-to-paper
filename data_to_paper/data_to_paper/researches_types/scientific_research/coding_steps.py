@@ -12,6 +12,7 @@ from data_to_paper.base_steps.base_products_conversers import ProductsConverser,
 from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
+from data_to_paper.env import TYPE_OF_MODELS
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_doc import LatexDocument
 
@@ -28,7 +29,7 @@ from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
     PickleContentOutputFileRequirement, RunUtilsError
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
@@ -146,7 +147,6 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
 @dataclass
 class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_exploration'
-    model_engine: ModelEngine = ModelEngine.GPT4
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
@@ -241,6 +241,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         """)  # set to None to skip option for revision
 
+    def __post_init__(self):
+        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
+
 
 @dataclass
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
@@ -301,7 +304,9 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-    model_engine: ModelEngine = ModelEngine.GPT4
+
+    def __post_init__(self):
+        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
@@ -420,7 +425,9 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-    model_engine: ModelEngine = ModelEngine.GPT4
+
+    def __post_init__(self):
+        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.

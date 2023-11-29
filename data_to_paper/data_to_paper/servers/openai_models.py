@@ -105,3 +105,28 @@ class OpenaiCallParameters:
 
 
 OPENAI_CALL_PARAMETERS_NAMES = list(OpenaiCallParameters.__dataclass_fields__.keys())
+
+TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
+    "closed": {
+        "Converser": ModelEngine.GPT35_TURBO,
+        "DataExplorationCodeProductsGPT": ModelEngine.GPT4_TURBO,
+        "DataAnalysisCodeProductsGPT": ModelEngine.GPT4_TURBO,
+        "CreateTablesCodeProductsGPT": ModelEngine.GPT4_TURBO,
+        "GetMostSimilarCitations": ModelEngine.GPT4_TURBO,
+        "IsGoalOK": ModelEngine.GPT4_TURBO,
+        "TablesReviewBackgroundProductsConverser": ModelEngine.GPT4_TURBO,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4_TURBO,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4_TURBO,
+    },
+    "open": {
+        "Converser": ModelEngine.LLAMA_2,
+        "DataExplorationCodeProductsGPT": ModelEngine.CODELLAMA,
+        "DataAnalysisCodeProductsGPT": ModelEngine.CODELLAMA,
+        "CreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
+        "GetMostSimilarCitations": ModelEngine.LLAMA_2,
+        "IsGoalOK": ModelEngine.LLAMA_2,
+        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2,
+    },
+}
