@@ -1,0 +1,66 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\author{Data to Paper}
+\begin{document}
+% Define the save box within the document block
+\newsavebox{\mytablebox} % Create a box to store the table
+
+% Save only the tabular part of table in the \mytablebox without typesetting it:
+\begin{lrbox}{\mytablebox}
+ \begin{tabular}{lrr}
+\toprule
+{} &  Height &   Age \\
+\midrule
+\textbf{Female} &    65.4 & 0.685 \\
+\textbf{Male  } &    66.5 & 0.715 \\
+\bottomrule
+\end{tabular}%
+\end{lrbox}
+
+% Typeset the entire table:
+\begin{table}[h]
+\caption{Average height and age stratified by sex}
+\label{table:patient_characteristics}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+{} &  Height &   Age \\
+\midrule
+\textbf{Female} &    65.4 & 0.685 \\
+\textbf{Male  } &    66.5 & 0.715 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item The categories are measured separately for female and male patients.
+\item \textbf{Height}: Average height in cm
+\item \textbf{Age}: Average age in years
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+% Print the width of the tabular part of the table and the width of the page margin to the log file
+\typeout{Table width: \the\wd\mytablebox}
+\typeout{Page margin width: \the\textwidth}
+\end{document}

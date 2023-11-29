@@ -1,0 +1,28 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Predictive Modeling of Optimal Tracheal Tube Depth in Pediatric Patients}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Pediatric patients undergoing post-operative mechanical ventilation face potential complications when tracheal tube tips are improperly positioned, leading to hypoxia, atelectasis, hypercarbia, pneumothorax, and even death. Currently, the tracheal tube is misplaced in a significant percentage of pediatric patients. To address this issue, we developed predictive models for determining the optimal tracheal tube depth in pediatric patients aged below 7 years. The dataset used in this study consists of electronic health records and anatomical information derived from chest X-ray images of patients who underwent surgery at Samsung Medical Center between January 2015 and December 2018. The dataset includes patient age, biological sex, height, weight, and the corresponding optimal tracheal tube depth. We employed multiple machine learning algorithms, including Random Forest, Elastic Net, Support Vector and Artificial Neural Network models, to predict the optimal tube depth using patient characteristics as features. Our findings underscore the importance of precise tracheal tube positioning in pediatric patients requiring mechanical ventilation. The developed machine learning models demonstrated promising predictive performance in estimating the optimal tube depth. Accurate tracheal tube placement can significantly reduce the risks associated with incorrect positioning and improve patient outcomes. However, it is important to note that this study is limited by the specific age range and single-center dataset used. Thus, further research is required to validate these findings on a larger and more diverse pediatric patient population. Such validation could have a substantial impact on clinical decision-making and patient safety.
+\end{abstract}
+\end{document}
