@@ -7,7 +7,7 @@ from _pytest.fixtures import fixture
 from data_to_paper.researches_types.scientific_research.literature_search import WritingLiteratureSearchReviewGPT
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 from tests.functional.base_steps.utils import TestProductsReviewGPT
 
 
