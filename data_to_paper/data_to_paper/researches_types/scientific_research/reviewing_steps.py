@@ -106,6 +106,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     allow_citations_from_step: str = 'goal'
     max_reviewing_rounds: int = 0
 
+    model_engine: ModelEngine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["GetMostSimilarCitations"]
     value_type: type = Dict[str, str]
     goal_noun: str = 'most similar papers'
     goal_verb: str = 'find'
@@ -116,8 +117,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
+
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \
@@ -156,6 +156,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
 @dataclass
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
     products: ScientificProducts = None
+    model_engine: ModelEngine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["IsGoalOK"]
     value_type: type = Dict[str, str]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     goal_noun: str = 'research goal and hypothesis'
@@ -167,8 +168,6 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Given the related papers listed above, please follow these 3 steps:
@@ -433,6 +432,8 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions',
                                                   'codes:data_analysis', 'outputs:data_analysis', 'research_goal',
                                                   'tables_and_tables_names')
+    model_engine: ModelEngine = \
+        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["TablesReviewBackgroundProductsConverser"]
     table_name: str = None
     product_fields_from_which_response_is_extracted: Tuple[str] = \
         ('data_file_descriptions', 'outputs:data_analysis',)
@@ -442,8 +443,6 @@ class TablesReviewBackgroundProductsConverser(LatexReviewBackgroundProductsConve
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.TableExpert
     termination_phrase: str = 'The table does not require any enhancements'
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please build the table "{table_name}".

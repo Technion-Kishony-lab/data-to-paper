@@ -288,8 +288,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
     allow_citations_from_step: str = 'writing'
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
+    model_engine: ModelEngine = \
+        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["IntroductionSectionWriterReviewGPT"]
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The introduction should be interesting and pique your reader’s interest. 
         It should be written while citing relevant papers from the Literature Searches above.
@@ -516,8 +516,8 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     allow_citations_from_step: str = 'writing'
     should_remove_citations_from_section: bool = False
     max_reviewing_rounds: int = 1
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
+    model_engine: ModelEngine = \
+        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["DiscussionSectionWriterReviewGPT"]
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
         Also, please suggest if you see any specific additional citations that are adequate to include \
         (from the Literature Searches above).

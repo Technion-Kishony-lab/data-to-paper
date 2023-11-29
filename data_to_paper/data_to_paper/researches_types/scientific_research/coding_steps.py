@@ -150,6 +150,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', )
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
+    model_engine: ModelEngine = \
+        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["DataExplorationCodeProductsGPT"]
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
@@ -241,8 +243,6 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         """)  # set to None to skip option for revision
 
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
 
 @dataclass
@@ -298,15 +298,14 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
+    model_engine: ModelEngine = \
+        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["DataAnalysisCodeProductsGPT"]
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
@@ -408,7 +407,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'headers_required_in_code')
-
+    model_engine: ModelEngine = \
+        TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["CreateTablesCodeProductsGPT"]
     code_step: str = 'data_analysis'
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
@@ -425,9 +425,6 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-
-    def __post_init__(self):
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.

@@ -27,7 +27,8 @@ class Converser(Copier):
     CHATGPT_PARAMETERS = {}  # default parameters to pass to chatgpt. e.g. {'temperature': 0.0, 'max_tokens': 30}
     actions_and_conversations: ActionsAndConversations = None
 
-    model_engine: ModelEngine = field(init=False)
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS]["Converser"])
     # The openai model engine to use. If None, use the default model engine.
     # A call to apply_get_and_append_assistant_message can override this value.
 
@@ -59,9 +60,6 @@ class Converser(Copier):
             if conversation_exists:
                 self.conversation_name = self.actions_and_conversations.conversations.get_new_conversation_name(
                     self.conversation_name)
-
-        self.model_engine = TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][self.__class__.__name__]
-
         if self.chatgpt_parameters is None:
             self.chatgpt_parameters = self.CHATGPT_PARAMETERS
 

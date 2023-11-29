@@ -56,6 +56,8 @@ def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine
     Return the actual model engine to use for the given model engine.
     """
     model_engine = model_engine or DEFAULT_MODEL_ENGINE
+    if model_engine > MAX_MODEL_ENGINE:
+        return model_engine
     return min(MAX_MODEL_ENGINE, model_engine)
 
 
