@@ -38,7 +38,7 @@ class ModelEngine(IndexOrderedEnum):
         return hash(self.value)
 
     def get_model_with_more_strength(self):
-        model =  MODELS_TO_MORE_STRENGTH[self]
+        model = MODELS_TO_MORE_STRENGTH[self]
         if model is None:
             raise ValueError(f"Model {self} has no stronger model")
         return model
@@ -133,6 +133,7 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
     },
 }
 
+
 def get_model_engine_for_class(class_: type) -> ModelEngine:
-    from data_to_paper.env import TYPE_OF_MODELS # avoid circular import
+    from data_to_paper.env import TYPE_OF_MODELS  # avoid circular import
     return TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][class_.__name__]

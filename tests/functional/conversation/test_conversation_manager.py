@@ -4,7 +4,6 @@ from data_to_paper.conversation.conversation_actions import ReplaceLastResponse
 from data_to_paper.conversation.conversation_manager import ConversationManager
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.servers.openai_models import ModelEngine
 
 
 @fixture()

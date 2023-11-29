@@ -244,11 +244,11 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         Any numeric value in your section must be based on the `provided data` above, namely on numerical values \
         extracted from: 
         {names_of_products_from_which_to_extract}
-        
+
         However, upon reviewing your section, I've identified certain `potentially problematic values`, \
         which don't directly match the `provided data`. They are: 
         {}
-        
+
         For transparency, please revise your section such that it includes only values \
         explicitly extracted from the `provided data` above, or derived from them using the `\\num{<formula>}` syntax. 
 
@@ -263,15 +263,15 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         - If the provided data includes a distance of 9.1e3 cm, and you would like to report the distance in meters, \
         you should write: 
         "Our analysis revealed a distance of \\num{9.1e3 / 100} meters"
-        
+
         IMPORTANT NOTE:
         If we need to include a numeric value that was not calculated or is not explicitly given in the \
         Tables or "{additional_results}", \
         and cannot be derived from them, \
         then indicate `[unknown]` instead of the numeric value. 
-        
+
         For example:
-        
+
         "The regression coefficient for the anti-cancer drugs was [unknown]."
         """)
 

@@ -4,9 +4,8 @@ from typing import Optional, Tuple
 
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from cast import DemoAgent
-from data_to_paper.env import TYPE_OF_MODELS
 from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES
+from data_to_paper.servers.openai_models import ModelEngine
 from products import DemoProducts
 
 from data_to_paper.utils import dedent_triple_quote_str

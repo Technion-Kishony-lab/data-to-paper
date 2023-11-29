@@ -127,7 +127,7 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
         return issues
 
     # Check if the table has NaN values or PValue with value of nan
-    isnull = pd.isnull(df).values # type: np.ndarray
+    isnull = pd.isnull(df).values  # type: np.ndarray
     is_p_value_nan = [is_p_value(v) and np.isnan(v.value) for v in df.values.flatten()]
     isnull = isnull | np.array(is_p_value_nan).reshape(df.shape)
     num_nulls = np.sum(isnull)

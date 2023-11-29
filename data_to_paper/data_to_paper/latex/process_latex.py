@@ -285,13 +285,16 @@ latex_str = r"\textbf{Bold} and \emph{emphasized} text."
 original_latex_verbatim_chars = LatexCharsNode.latex_verbatim
 original_latex_verbatim_group = LatexGroupNode.latex_verbatim
 
+
 # Monkeypatch the latex_verbatim method to use the chars attribute for CharsNode
 def new_latex_verbatim_chars(self):
     return self.chars.upper()
 
+
 # Monkeypatch the latex_verbatim method for GroupNode
 def new_latex_verbatim_group(self):
     return '{' + ''.join(n.latex_verbatim() for n in self.nodelist) + '}'
+
 
 LatexCharsNode.latex_verbatim = new_latex_verbatim_chars
 LatexGroupNode.latex_verbatim = new_latex_verbatim_group

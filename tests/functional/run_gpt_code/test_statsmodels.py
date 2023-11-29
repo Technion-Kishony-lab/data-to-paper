@@ -6,7 +6,6 @@ from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.stats.anova import anova_lm
-from statsmodels import stats as statsmodels_stats
 
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride

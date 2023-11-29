@@ -5,13 +5,11 @@ from typing import Tuple, List, Set, Optional, Iterable
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckExtractionReviewBackgroundProductsConverser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
-from data_to_paper.env import TYPE_OF_MODELS
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, \
     DEFAULT_LITERATURE_SEARCH_STYLE
-from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES, \
-    get_model_engine_for_class
+from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
 from data_to_paper.servers.types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str
@@ -34,10 +32,10 @@ class ShowCitationProducts:
 
     def get_repr_citation_products(self) -> List[str]:
         contents = []
-        for field in self.background_product_fields:
-            if field.startswith('literature_search') and self.products.is_product_available(field):
+        for product_field in self.background_product_fields:
+            if product_field.startswith('literature_search') and self.products.is_product_available(product_field):
                 with DEFAULT_LITERATURE_SEARCH_STYLE.temporary_set('print'):
-                    product = self.products[field]
+                    product = self.products[product_field]
                     contents.append(f'{product.name}:\n{product.description}')
         return contents
 
@@ -455,7 +453,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         you should provide it using the \\num command. For example:
         "Our regression analysis shows a coefficient of 2.0 (SE=0.3, p-value $<$ 1e-6), \
         corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(2.0 - 2 * 0.3)}, \\num{exp(2.0 + 2 * 0.3)}])."
-        
+
         * p-values:
         When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
         relevant value.
@@ -468,7 +466,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         If we need to include a numeric value that was not calculated or is not explicitly given in the \
         Tables or "{additional_results}", and cannot be derived from them, \
         then indicate `[unknown]` instead of the numeric value. 
-        
+
         For example:
         "The regression coefficient for the anti-cancer drugs was [unknown]."
         """)

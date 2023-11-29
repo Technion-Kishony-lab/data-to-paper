@@ -2,8 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional, Iterable, List
 
-from data_to_paper.servers.openai_models import ModelEngine, TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES, \
-    get_model_engine_for_class
+from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
@@ -16,7 +15,6 @@ from data_to_paper.servers.types import Citation
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
-from ...env import TYPE_OF_MODELS
 
 
 @dataclass
@@ -118,7 +116,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
     rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
-
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \

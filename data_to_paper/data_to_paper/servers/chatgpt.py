@@ -130,10 +130,11 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
     """
     Count number of tokens in message using tiktoken.
     """
-    model = model_engine or DEFAULT_MODEL_ENGINE \
-        if model_engine not in [ModelEngine.LLAMA_2, ModelEngine.CODELLAMA] else DEFAULT_MODEL_ENGINE
-    model = model.value
-    encoding = tiktoken.encoding_for_model(model)
+    model_engine = model_engine or DEFAULT_MODEL_ENGINE
+    try:
+        encoding = tiktoken.encoding_for_model(model_engine.value)
+    except KeyError:
+        encoding = tiktoken.encoding_for_model(DEFAULT_MODEL_ENGINE.value)
     if isinstance(messages, str):
         num_tokens = len(encoding.encode(messages))
     else:
