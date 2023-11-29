@@ -1,0 +1,18 @@
+The csv file is a dataset of 969 data points (rows) and 15 features (columns). It has no NaN values.
+
+Data features description:
+#1 tube internal diameter of the tube in mm
+#2 fix recorded depth of the tracheal tube
+#3 CE distance from the carina to the tip of the tracheal tube
+#4 Carina_ETTtip_mm same as #3 CE in mm
+#5 T1 distance from the carina to the upper margin of the first thoracic vertebral body (T1) in cm
+#6 T1_mm same as #5 T1 in mm
+#7 T3 distance from the carina to the lower margin of the third thoracic vertebral body (T3) in cm
+#8 T3_mm same as #7 T3 in mm
+#9 sex patient sex - 0=female, 1=male
+#10 age patient age in years
+#11 age_c patient age in years including half years
+#12 ht patient height in cm
+#13 wt patient weight in kg
+#14 G_point Optimal tube tip position
+#15 tube_depth_G Optimal tube depth in cm
