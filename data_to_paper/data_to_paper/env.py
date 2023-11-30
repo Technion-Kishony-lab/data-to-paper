@@ -25,6 +25,10 @@ OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL = dict[Optional[ModelEn
         ("org-SplsVAouKqk9mWIpVgIIVwSD",
          "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",
          OPENAI_API_BASE),
+    ModelEngine.LLAMA_2_7b:
+        ("",
+         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
+         DEEPINFRA_API_BASE),
     ModelEngine.LLAMA_2_70b:
         ("",
          "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",

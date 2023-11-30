@@ -80,8 +80,8 @@ MODELS_TO_MORE_STRENGTH = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
-    ModelEngine.LLAMA_2_7b: ModelEngine.LLAMA_2_70b,
-    ModelEngine.LLAMA_2_70b: ModelEngine.CODELLAMA,
+    ModelEngine.LLAMA_2_7b: None,
+    ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
 }
 
@@ -141,3 +141,7 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
 def get_model_engine_for_class(class_: type) -> ModelEngine:
     from data_to_paper.env import TYPE_OF_MODELS  # avoid circular import
     return TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][class_.__name__]
+
+def get_model_engine_for_class_by_name(model_name: str) -> ModelEngine:
+    model_string_to_model_engine = {model_engine.name: model_engine for model_engine in ModelEngine}
+    return model_string_to_model_engine[model_name]
