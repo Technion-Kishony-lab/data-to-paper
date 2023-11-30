@@ -1,3 +1,4 @@
+import pickle
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Callable
@@ -36,9 +37,9 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
 
 @dataclass
 class BaseCodeProductsGPT(BackgroundProductsConverser):
-    max_code_revisions: int = 5
-    max_code_writing_attempts: int = 2
-    max_debug_iterations_per_attempt: int = 12
+    max_code_revisions: int = 0
+    max_code_writing_attempts: int = 1
+    max_debug_iterations_per_attempt: int = 20
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
@@ -158,8 +159,12 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     def _run_debugger(self, previous_code: Optional[str] = None
                       ) -> Tuple[Optional[CodeAndOutput], Optional[DebuggerConverser]]:
+        # create a dict that document the number of code writing attempts and the number of debug
+        # iterations in each attempt and return it at the end of the function
+        writing_and_debugging_attempts = dict()
         for attempt in range(self.max_code_writing_attempts):
             # in each attempt, we are resetting the conversation back to this tag:
+            writing_and_debugging_attempts[attempt + 1] = 0
             revision_and_attempt = f"Revision {self.revision_round + 1}/{self.max_code_revisions} " \
                                    f"(attempt {attempt + 1}/{self.max_code_writing_attempts})"
             self.comment(f'Starting to write and debug code. {revision_and_attempt}.')
@@ -177,6 +182,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
             )
             code_and_output = debugger.run_debugging()
+            writing_and_debugging_attempts[attempt + 1] = debugger.debug_iteration
             if code_and_output is None:
                 # debugging failed
                 self.comment(f'Debugging failed, {revision_and_attempt}.')
@@ -195,8 +201,16 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     comment='Adding the debugged code as if it was the original response.',
                     web_conversation_name=None,
                 )
+            print(writing_and_debugging_attempts)
+            self._pickle_to_output_folder(writing_and_debugging_attempts, 'writing_and_debugging_attempts')
             return code_and_output, debugger
+        print(writing_and_debugging_attempts)
+        self._pickle_to_output_folder(writing_and_debugging_attempts, 'writing_and_debugging_attempts')
         return None, None
+
+    def _pickle_to_output_folder(self, object_to_pickle, filename):
+        with open(self.output_directory / f'{filename}.pkl', 'wb') as f:
+            pickle.dump(object_to_pickle, f)
 
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
         """

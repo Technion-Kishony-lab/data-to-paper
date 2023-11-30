@@ -91,10 +91,11 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             RequestCodeProducts.from_(self,
                                       code_step='data_exploration',
                                       code_writing_class=DataExplorationCodeProductsGPT,
-                                      explain_code_class=RequestCodeExplanation,
+                                      explain_code_class=None,
                                       explain_created_files_class=None,
                                       ).get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
+        return products
 
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)

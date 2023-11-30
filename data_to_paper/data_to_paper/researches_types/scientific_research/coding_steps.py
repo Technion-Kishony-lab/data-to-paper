@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Callable
@@ -28,7 +29,8 @@ from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
     PickleContentOutputFileRequirement, RunUtilsError
-from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
+from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class, \
+    get_model_engine_for_class_by_name
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
@@ -150,7 +152,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.DataExplorer
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )
     model_engine: ModelEngine = \
-        field(default_factory=lambda: get_model_engine_for_class(DataExplorationCodeProductsGPT))
+        field(default_factory=lambda:
+        get_model_engine_for_class_by_name(os.environ['DATA_EXPLORATION_MODEL_ENGINE']))
+    CHATGPT_PARAMETERS = {'temperature': 0.0, 'max_tokens': 4096}
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
