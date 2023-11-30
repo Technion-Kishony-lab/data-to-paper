@@ -154,7 +154,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     model_engine: ModelEngine = \
         field(default_factory=lambda:
         get_model_engine_for_class_by_name(os.environ['DATA_EXPLORATION_MODEL_ENGINE']))
-    CHATGPT_PARAMETERS = {'temperature': 0.0, 'max_tokens': 4096}
+    CHATGPT_PARAMETERS = {'max_tokens': 4096}
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
