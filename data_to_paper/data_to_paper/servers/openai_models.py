@@ -10,6 +10,7 @@ MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     "gpt-4": (8192, 0.03, 0.06),
     "gpt-4-1106-preview": (128000, 0.01, 0.03),
     # "gpt-4-32k": (32768, 0.06, 0.12),
+    "meta-llama/Llama-2-7b-chat-hf": (4096, 0.0002, 0.0002),
     "meta-llama/Llama-2-70b-chat-hf": (4096, 0.0007, 0.001),
     "codellama/CodeLlama-34b-Instruct-hf": (4096, 0.0006, 0.0006),
 }
@@ -25,7 +26,8 @@ class ModelEngine(IndexOrderedEnum):
     GPT4 = "gpt-4"
     GPT4_TURBO = "gpt-4-1106-preview"
     # GPT4_32 = "gpt-4-32k"
-    LLAMA_2 = "meta-llama/Llama-2-70b-chat-hf"
+    LLAMA_2_7b = "meta-llama/Llama-2-7b-chat-hf"
+    LLAMA_2_70b = "meta-llama/Llama-2-70b-chat-hf"
     CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
 
     def __str__(self):
@@ -67,7 +69,8 @@ MODELS_TO_MORE_CONTEXT = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
-    ModelEngine.LLAMA_2: None,
+    ModelEngine.LLAMA_2_7b: None,
+    ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
 }
 
@@ -77,7 +80,8 @@ MODELS_TO_MORE_STRENGTH = {
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4_TURBO: None,
-    ModelEngine.LLAMA_2: ModelEngine.CODELLAMA,
+    ModelEngine.LLAMA_2_7b: ModelEngine.LLAMA_2_70b,
+    ModelEngine.LLAMA_2_70b: ModelEngine.CODELLAMA,
     ModelEngine.CODELLAMA: None,
 }
 
@@ -121,15 +125,15 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
     },
     "open": {
-        "Converser": ModelEngine.LLAMA_2,
+        "Converser": ModelEngine.LLAMA_2_70b,
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
         "DataAnalysisCodeProductsGPT": ModelEngine.CODELLAMA,
         "CreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
-        "GetMostSimilarCitations": ModelEngine.LLAMA_2,
-        "IsGoalOK": ModelEngine.LLAMA_2,
-        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2,
-        "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2,
-        "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2,
+        "GetMostSimilarCitations": ModelEngine.LLAMA_2_70b,
+        "IsGoalOK": ModelEngine.LLAMA_2_70b,
+        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2_70b,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
     },
 }
 
