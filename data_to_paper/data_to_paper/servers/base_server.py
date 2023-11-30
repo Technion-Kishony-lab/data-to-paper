@@ -6,7 +6,7 @@ from abc import ABC
 from pathlib import Path
 from typing import Union
 
-from .json import save_list_to_json, load_list_from_json
+from .custom_json import save_list_to_json, load_list_from_json
 
 
 class NoMoreResponsesToMockError(Exception):

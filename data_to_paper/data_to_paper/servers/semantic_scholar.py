@@ -12,7 +12,7 @@ from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.latex.clean_latex import replace_special_latex_chars
 from data_to_paper.servers.base_server import DictServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.highlighted_text import print_red
 from data_to_paper.utils.nice_list import NiceList
 

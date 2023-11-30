@@ -10,7 +10,7 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBac
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
 from data_to_paper.latex.tables import get_table_label
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts

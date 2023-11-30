@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Union, Iterable, Collection
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
 
 DEFAULT_PACKAGES = (

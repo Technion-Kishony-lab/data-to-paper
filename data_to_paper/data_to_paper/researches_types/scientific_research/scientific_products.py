@@ -16,7 +16,7 @@ from data_to_paper.base_products import DataFileDescriptions, DataFileDescriptio
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),

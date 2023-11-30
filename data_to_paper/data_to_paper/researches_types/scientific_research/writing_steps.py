@@ -10,7 +10,7 @@ from data_to_paper.researches_types.scientific_research.cast import ScientificAg
 from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, \
     DEFAULT_LITERATURE_SEARCH_STYLE
 from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.citataion_utils import find_citation_ids

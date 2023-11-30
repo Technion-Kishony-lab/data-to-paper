@@ -7,7 +7,7 @@ from typing import Optional, Dict, List, Iterable
 
 from data_to_paper.utils.iterators import interleave
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 
 
 def unite_citation_lists(citations_lists: Iterable[Iterable[Citation]], total: int = None) -> List[Citation]:

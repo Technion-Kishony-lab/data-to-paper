@@ -7,7 +7,7 @@ from typing import Optional, Collection
 
 import numpy as np
 
-from data_to_paper.servers.types import Citation
+from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
 from PyPDF2 import PdfWriter, PdfReader
 
