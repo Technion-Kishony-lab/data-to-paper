@@ -1,4 +1,8 @@
+import os
+
 from data_to_paper_examples.examples.run_project import get_paper
+
+os.environ['DATA_EXPLORATION_MODEL_ENGINE'] = 'CODELLAMA'
 
 goal = "Using machine learning models and multivariate analysis find risk factors for diabetes. " \
        "Build predictive models to predict diabetes from health indicators.",
@@ -12,7 +16,7 @@ RUN_PARAMETERS = dict(
 
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
-              output_folder='llama_example',
+              output_folder='CODELLAMA_run_10',
               should_mock_servers=True,
               load_from_repo=True,
               save_on_repo=True)

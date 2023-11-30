@@ -16,10 +16,10 @@ def run_command(command):
 def main():
     processes = []
     try:
-        for model_engine in ["GPT4", "GPT35_TURBO", "LLAMA_2_7b", "LLAMA_2_70b", "CODELLAMA"]:
+        for model_engine in ["LLAMA_2_70b"]:
             print("_" * 80)
             print(f"Now evaluating {model_engine}")
-            for run_number in trange(10,11):
+            for run_number in trange(4,5):
                 output_folder = f"{model_engine}_run_{run_number}"
                 command = f"python diabetes_data_exploration.py --model_engine {model_engine} --output_folder {output_folder}"
                 processes.append(run_command(command))
