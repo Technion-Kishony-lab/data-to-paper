@@ -602,7 +602,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
         func_names = [func for func in linear_regression_funcs if func in code]
         if func_names:
-            func_name = func_names[0]
+            func_name = func_names[0][:-1]
             s.append(f'- In linear regression, if interactions terms are included:\n'
                      f'  * did we remember to include the main effects?\n'
                      f'  * did we use the `*` operator in statsmodels formula as recommended '
@@ -613,6 +613,16 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
                      "  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n"
                      "  * did we account for relevant confounding factors "
                      "(by adding these same confounding factors to both the 'a' and 'b' paths)?")
+
+        ml_funcs = ['RandomForestClassifier(', 'RandomForestRegressor(',
+                    'ElasticNet(', 'SVR(', 'SVC(', 'MLPRegressor(',
+                    'DecisionTreeClassifier(',
+                    'DecisionTreeRegressor(', 'LogisticRegression(']
+        func_names = [func for func in ml_funcs if func in code]
+        if func_names:
+            func_name = func_names[0][:-1]
+            s.append(f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
+                     f'using cross-validation (as appropriate).')
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
