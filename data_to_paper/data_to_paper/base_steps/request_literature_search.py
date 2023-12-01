@@ -8,6 +8,7 @@ from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLE
 
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from .literature_search import LiteratureSearch
+from ..utils.highlighted_text import print_red
 
 
 @dataclass
@@ -37,6 +38,10 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
         }
     }
     requested_keys: Collection[str] = ('dataset', 'questions',)
+
+    excluded_citation_titles: List[str] = None
+    # bibtex ids to remove from the results. Important for removing reproduced paper from citing itself.
+
     value_type: type = Dict[str, List[str]]
     goal_noun: str = 'literature search queries'
     goal_verb: str = 'write'
@@ -121,9 +126,19 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
             for query in queries:
                 citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
                                                                                rows=self.number_of_papers_per_query)
+                num_citations = len(citations)
                 self.comment(f'\nQuerying Semantic Scholar. '
-                             f'Found {len(citations)} / {self.number_of_papers_per_query} citations. '
+                             f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
                              f'Query: "{query}".')
+                if self.excluded_citation_titles is not None:
+                    excluded_citations = [citation for citation in citations
+                                          if citation['title'] in self.excluded_citation_titles]
+                    if excluded_citations:
+                        print_red(f'The following citations specified in the excluded citation list were excluded:\n')
+                        for citation in excluded_citations:
+                            print_red(f'{citation}\n\n')
+                        citations = [citation for citation in citations if citation not in excluded_citations]
+
                 queries_to_citations[query] = citations
 
             literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
@@ -135,16 +150,5 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "paper_id": "",
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
-            # for scope in literature_search.scopes_to_queries_to_citations:
-            #     for should_sort in (True, False):
-            #         print(f'\n\nscope: {scope}, sorted: {should_sort}')
-            #         print(literature_search.pretty_repr_for_scope_and_query(
-            #             scope=scope,
-            #             total=7,
-            #             distribution_factor=2.0,
-            #             sort_by_similarity=should_sort,
-            #             minimal_influence=1,
-            #             style='print',
-            #         ))
 
         return literature_search

@@ -40,6 +40,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_add_tables: bool = True
     should_interpret_results: bool = False
 
+    excluded_citation_titles: List[str] = None,
+
     def get_sections_to_writing_class(
             self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
         return [
@@ -114,7 +116,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             if self.should_do_literature_search:
                 # TODO: need a dedicated client Stage for literature search
                 self.set_active_conversation(ScientificAgent.CitationExpert)
-                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(self).get_literature_search()
+                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
+                    self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
                 # self.send_product_to_client('citations')
 
             if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
@@ -199,7 +202,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.paper_sections_and_optional_citations['abstract'] = \
             FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
                                                            ).write_sections_with_citations()
-        products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(self).get_literature_search()
+        products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(
+            self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
         self.send_product_to_client('scope_and_literature_search')
 
         # Paper sections
