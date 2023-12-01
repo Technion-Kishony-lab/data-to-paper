@@ -32,6 +32,9 @@ PAPER_SEARCH_URL = 'https://api.semanticscholar.org/graph/v1/paper/search'
 EMBEDDING_URL = 'https://model-apis.semanticscholar.org/specter/v1/invoke'
 
 
+get_bibtex_id_from_bibtex = lambda bibtex: bibtex.split('{', 1)[1].split(',\n', 1)[0]
+
+
 class SemanticCitation(Citation):
 
     def __init__(self, *args, **kwargs):
@@ -41,22 +44,31 @@ class SemanticCitation(Citation):
     @property
     def bibtex(self) -> str:
         bibtex = self['citationStyles']['bibtex']
-        # remove commas from authors:
-        authors = bibtex.split('author = {', 1)[1].split('},', 1)[0]
-        authors = authors.replace(', ', ' and ')
-        bibtex = bibtex.split('author = {', 1)[0] + 'author = {' + authors + '},' + bibtex.split('},', 1)[1]
+
+        # remove non-ascii characters:
         bibtex = bibtex.encode('ascii', 'ignore').decode('utf-8')
-        return replace_special_latex_chars(bibtex)
+        bibtex = replace_special_latex_chars(bibtex)
+
+        # remove commas from authors:
+        try:
+            authors = bibtex.split('author = {', 1)[1].split('},', 1)[0]
+        except IndexError:
+            pass
+        else:
+            bibtex = bibtex.split('author = {', 1)[0] + 'author = {' + authors + '},' + bibtex.split('},', 1)[1]
+
+        # characters not allowed in bibtex ids are replaced with '_':
+        pattern = r'[{}(),\\\"-#~^:\'`ʹ]'
+        bibtex_id = get_bibtex_id_from_bibtex(bibtex)
+        bibtex_id = re.sub(pattern, '_', bibtex_id)
+        bibtex = bibtex.split('{', 1)[0] + '{' + bibtex_id + ',\n' + bibtex.split(',\n', 1)[1]
+
+        return bibtex
 
     @property
     def bibtex_id(self) -> str:
         if self._bibtex_id is None:
-            bibtex_id = self['citationStyles']['bibtex'].split('{', 1)[1].split(',\n', 1)[0]
-            # replace non unicode chars with unicode equivalent:
-            bibtex_id = bibtex_id.encode('ascii', 'ignore').decode('utf-8')
-            # characters not allowed in bibtex ids are replaced with ' ':
-            pattern = r'[{}(),\\\"-#~^:\'`ʹ]'
-            bibtex_id = re.sub(pattern, ' ', bibtex_id)
+            bibtex_id = get_bibtex_id_from_bibtex(self.bibtex)
             self._bibtex_id = bibtex_id
         return self._bibtex_id
 

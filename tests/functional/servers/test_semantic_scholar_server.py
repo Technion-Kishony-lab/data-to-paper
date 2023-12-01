@@ -39,3 +39,11 @@ def test_semantic_scholar_get_paper_embedding(paper):
 def test_semantic_scholar_paper_bibtex_id_not_none(query):
     papers = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=3)
     assert all(paper.bibtex_id != 'None' for paper in papers)
+
+
+@pytest.mark.parametrize('query', [
+    "Underspecification Presents Challenges for Credibility in Modern Machine Learning",
+])
+def test_semantic_scholar_paper_bibtex_id_has_no_spaces(query):
+    papers = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query, rows=3)
+    assert all(' ' not in paper.bibtex_id for paper in papers)
