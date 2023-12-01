@@ -12,6 +12,7 @@ from data_to_paper.utils import extract_text_between_tags
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
+from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -71,17 +72,17 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         except FailedExtractingBlock as e:
             self._raise_self_response_error(
                 f'{e}\n'
-                f'Your response should be formatted as a Python {self.parent_type.__name__}, '
+                f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'within a triple backtick code block.',
                 rewind=Rewind.ACCUMULATE,
                 bump_model=True)
 
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
-            return extract_text_between_tags(response, *tags, keep_tags=True)
+            return extract_text_between_most_flanking_tags(response, *tags, keep_tags=True)
         except ValueError:
             self._raise_self_response_error(
-                f'Your response should be formatted as a Python {self.parent_type.__name__}, '
+                f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.',
                 bump_model=tags[0] in response and tags[1] not in response)
 
@@ -98,7 +99,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         except Exception as e:
             self._raise_self_response_error(
                 f'I tried to eval your response with Python `eval()`, but got:\n{e}\n'
-                f'Your response should be formatted as a Python {self.parent_type.__name__} value '
+                f'Your response should be formatted as a single Python {self.parent_type.__name__} value '
                 f'(not an assignment, and with no comments, etc) '
                 f'that I can cut and paste and evaluated as is with `eval()`')
 

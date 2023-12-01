@@ -12,6 +12,22 @@ def find_str(text: str, query: str, start: int = 0, end: int = None, case_sensit
     return text.find(query, start, end)
 
 
+def extract_text_between_most_flanking_tags(text: str, left_tag: str, right_tag: str = None, keep_tags: bool = False,
+                                            case_sensitive: bool = True) -> str:
+    """
+    Extract text between the first left tag and the last right tag.
+    """
+    start = find_str(text, left_tag, case_sensitive=case_sensitive)
+    if start == -1:
+        raise ValueError(f'Could not find left tag {left_tag} in text')
+    end = text.rfind(right_tag)
+    if end == -1:
+        raise ValueError(f'Could not find right tag {right_tag} in text')
+    if keep_tags:
+        return text[start:end + len(right_tag)]
+    return text[start + len(left_tag):end]
+
+
 def extract_text_between_tags(text: str, left_tag: str, right_tag: str = None, keep_tags: bool = False,
                               case_sensitive: bool = True) -> str:
     """
