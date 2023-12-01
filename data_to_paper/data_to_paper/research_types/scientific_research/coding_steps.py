@@ -15,10 +15,10 @@ from data_to_paper.conversation.actions_and_conversations import ActionsAndConve
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_doc import LatexDocument
 
-from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
-from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
+from data_to_paper.research_types.scientific_research.cast import ScientificAgent
+from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
-from data_to_paper.researches_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
 from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
@@ -33,7 +33,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
+from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
 
 

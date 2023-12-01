@@ -3,7 +3,7 @@ from functools import partial
 from typing import Optional, Tuple, List, Type
 
 from data_to_paper.base_steps import DebuggerConverser, CheckLatexCompilation
-from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 
 from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem, CodeAndOutput
@@ -18,7 +18,7 @@ class UtilsCodeRunner(CodeRunner):
         modified_code, lines_added = super()._modify_code(code)
         modified_code = code.replace(
             'from my_utils',
-            'from data_to_paper.researches_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use')
+            'from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use')
         return modified_code, lines_added
 
 

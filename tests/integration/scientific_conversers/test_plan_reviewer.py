@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 from _pytest.fixtures import fixture
 
-from data_to_paper.researches_types.scientific_research.scientific_products import ScientificProducts
+from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
-from data_to_paper.researches_types.scientific_research.reviewing_steps import GoalReviewGPT, PlanReviewGPT
+from data_to_paper.research_types.scientific_research.reviewing_steps import GoalReviewGPT, PlanReviewGPT
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 
 

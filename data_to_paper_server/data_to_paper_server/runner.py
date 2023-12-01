@@ -1,5 +1,5 @@
-from data_to_paper.researches_types.scientific_research.cast import ScientificAgent
-from data_to_paper.researches_types.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.research_types.scientific_research.cast import ScientificAgent
+from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
 from data_to_paper_server.consts import BASE_DIRECTORY
 from data_to_paper_server.websocket_messenger import QueueMessenger
 

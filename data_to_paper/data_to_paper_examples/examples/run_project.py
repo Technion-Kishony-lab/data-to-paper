@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.latex.latex_doc import LatexDocument
-from data_to_paper.researches_types.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
 
 
 THIS_FOLDER = Path(__file__).parent

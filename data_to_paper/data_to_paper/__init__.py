@@ -1,2 +1,2 @@
 from .conversation import Conversation, Role, Message
-from .researches_types import scientific_research
+from .research_types import scientific_research
