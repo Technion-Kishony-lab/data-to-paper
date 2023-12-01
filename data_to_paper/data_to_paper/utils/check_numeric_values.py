@@ -75,7 +75,7 @@ def truncate_to_n_digits(str_number: str, n_digits: int, remove_sign: bool = Tru
     is_after_point = False
     for i in range(len(str_number)):
         digit = str_number[i]
-        if digit == '-':
+        if digit == '-' or digit == '+':
             continue
         if digit == '.':
             is_after_point = True
