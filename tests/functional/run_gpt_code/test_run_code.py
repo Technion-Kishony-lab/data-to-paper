@@ -92,6 +92,49 @@ def test_run_code_timeout():
     assert lineno_lines == [(3, 'time.sleep(2)')]
 
 
+def test_run_code_timeout_multiprocessing():
+    code = dedent_triple_quote_str("""
+        import multiprocessing
+        import time
+        # line 2
+        p = multiprocessing.Process(target=time.sleep, args=(2,))
+        p.start()
+        p.join()
+        # line 6
+        """)
+    with pytest.raises(FailedRunningCode) as e:
+        RunCode(timeout_sec=1, allowed_open_write_files=None).run(code)
+    error = e.value
+    assert isinstance(error.exception, TimeoutError)
+    lineno_lines, msg = error.get_lineno_line_message()
+    assert lineno_lines == [(5, 'p.join()')]
+
+
+def test_run_code_timeout_multiprocessing_with_context():
+    code = dedent_triple_quote_str("""
+        from sklearn.model_selection import GridSearchCV
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.datasets import make_regression
+        
+        X, y = make_regression(n_samples=100, n_features=3, noise=0.1, random_state=42)
+        param_grid = {
+            'n_estimators': [30, 60, 90],
+            'max_depth': [2, 4, 6],
+            'min_samples_split': [2, 4, 6]
+        }
+        rf = RandomForestRegressor()
+        grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5)
+        grid_search.fit(X, y)
+        print(grid_search.best_params_)
+    """)
+    with pytest.raises(FailedRunningCode) as e:
+        RunCode(timeout_sec=2).run(code)
+    error = e.value
+    assert isinstance(error.exception, TimeoutError)
+    lineno_lines, msg = error.get_lineno_line_message()
+    assert lineno_lines == [(11, 'grid_search.fit(X, y)')]
+
+
 @pytest.mark.parametrize("forbidden_call", ['input', 'exit', 'quit', 'eval'])
 def test_run_code_forbidden_functions(forbidden_call):
     time.sleep(0.1)
