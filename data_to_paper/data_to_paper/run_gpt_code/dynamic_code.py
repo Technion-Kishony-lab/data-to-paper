@@ -10,6 +10,8 @@ import importlib
 
 from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
 
+from sklearn.exceptions import ConvergenceWarning
+
 from data_to_paper import chatgpt_created_scripts
 
 from data_to_paper.env import MAX_EXEC_TIME
@@ -38,7 +40,7 @@ def save_code_to_module_file(code: str = None):
 save_code_to_module_file()
 CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
-DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning)
+DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
 DEFAULT_WARNINGS_TO_RAISE = ()
 
