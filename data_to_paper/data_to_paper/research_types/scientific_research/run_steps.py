@@ -33,6 +33,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
     should_do_data_exploration: bool = True
     should_do_data_preprocessing: bool = False
+    should_perform_goal_validation: bool = False
     should_prepare_data_analysis_plan: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
     should_do_literature_search: bool = True
@@ -93,7 +94,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             RequestCodeProducts.from_(self,
                                       code_step='data_exploration',
                                       code_writing_class=DataExplorationCodeProductsGPT,
-                                      explain_code_class=RequestCodeExplanation,
+                                      explain_code_class=None,
                                       explain_created_files_class=None,
                                       ).get_code_and_output_and_descriptions()
             self.send_product_to_client('codes_and_outputs_with_explanations:data_exploration')
@@ -110,31 +111,32 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         # self.send_product_to_client('research_goal')
 
-        goal_refinement_iteration = 0
-        while True:
-            # Literature search
-            if self.should_do_literature_search:
-                # TODO: need a dedicated client Stage for literature search
-                self.set_active_conversation(ScientificAgent.CitationExpert)
-                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
-                    self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
-                # self.send_product_to_client('citations')
+        if self.should_perform_goal_validation:
+            goal_refinement_iteration = 0
+            while True:
+                # Literature search
+                if self.should_do_literature_search:
+                    # TODO: need a dedicated client Stage for literature search
+                    self.set_active_conversation(ScientificAgent.CitationExpert)
+                    products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
+                        self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
+                    # self.send_product_to_client('citations')
 
-            if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
-                break
+                if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
+                    break
 
-            # Check if the goal is OK
-            products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
-                {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
-            if IsGoalOK.from_(self).is_goal_ok():
-                break
+                # Check if the goal is OK
+                products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
+                    {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
+                if IsGoalOK.from_(self).is_goal_ok():
+                    break
 
-            # Goal is not OK, so we need to devise the goal according to the literature search:
-            goal_refinement_iteration += 1
-            products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
-        # TODO: need to decide what and how to send to the client, we need to somehow split between
-        #  stages and produces
-        self.send_product_to_client('research_goal')
+                # Goal is not OK, so we need to devise the goal according to the literature search:
+                goal_refinement_iteration += 1
+                products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            # TODO: need to decide what and how to send to the client, we need to somehow split between
+            #  stages and produces
+            self.send_product_to_client('research_goal')
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
@@ -148,6 +150,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.hypothesis_testing_plan = \
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
+        return products
 
         if not self.should_prepare_data_analysis_plan and not self.should_prepare_hypothesis_testing_plan:
             raise ValueError("At least one of the following should be True: "

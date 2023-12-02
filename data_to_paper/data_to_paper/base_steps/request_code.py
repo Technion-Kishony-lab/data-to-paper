@@ -36,9 +36,9 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
 
 @dataclass
 class BaseCodeProductsGPT(BackgroundProductsConverser):
-    max_code_revisions: int = 5
-    max_code_writing_attempts: int = 2
-    max_debug_iterations_per_attempt: int = 12
+    max_code_revisions: int = 0
+    max_code_writing_attempts: int = 1
+    max_debug_iterations_per_attempt: int = 20
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES

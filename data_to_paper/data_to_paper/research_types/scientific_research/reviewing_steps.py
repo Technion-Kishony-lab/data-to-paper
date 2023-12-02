@@ -34,6 +34,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     CHATGPT_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
+    max_valid_response_iterations: int = 20
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
