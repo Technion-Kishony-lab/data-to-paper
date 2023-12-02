@@ -14,7 +14,7 @@ from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_specia
 from data_to_paper.utils.types import IndexOrderedEnum, ListBasedSet
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.servers.openai_models import ModelEngine
-from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 
 from .overrides.utils import round_floats
@@ -30,6 +30,9 @@ EXTS_TO_LABELS = {
     '.txt': 'output',
     '.csv': 'csv',
 }
+
+
+MAX_WORDS_BEFORE_TERMINATING_ISSUE_LIST = 150
 
 
 class CodeProblem(IndexOrderedEnum):
@@ -133,6 +136,8 @@ class RunIssues(List[RunIssue]):
                     note += f'# {category}\n'
                 issues_in_category = [issue for issue in issues if issue.category == category]
                 unique_instructions = set(issue.instructions for issue in issues_in_category)
+                shared_instructions = unique_instructions.pop() if len(unique_instructions) == 1 else None
+                shared_instructions_word_count = word_count(shared_instructions) if shared_instructions else 0
                 for issue in issues_in_category:
                     if issue.item:
                         note += f'* {issue.item}:\n'
@@ -141,15 +146,15 @@ class RunIssues(List[RunIssue]):
                         note += '\n'.join(f'{lineno}: {line}' for lineno, line in issue.linenos_and_lines)
                         note += '\n'
                     note += f'{issue.issue}\n'
-                    if len(unique_instructions) > 1 and issue.instructions is not None:
+                    if shared_instructions is None and issue.instructions is not None:
                         note += f'{issue.instructions}\n'
                     note += '\n'
                     if issue.comment:
                         comments.add(issue.comment)
-                if len(unique_instructions) == 1:
-                    shared_instructions = unique_instructions.pop()
-                    if shared_instructions:
-                        note += f'{shared_instructions}\n'
+                    if word_count(note) + shared_instructions_word_count > MAX_WORDS_BEFORE_TERMINATING_ISSUE_LIST:
+                        break
+                if shared_instructions is not None:
+                    note += f'{shared_instructions}\n'
                 notes.append(note)
             s += '\n\n'.join(notes)
         comment = '; '.join(comments)
