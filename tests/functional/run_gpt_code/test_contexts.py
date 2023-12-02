@@ -1,7 +1,9 @@
 import os
+import time
 
 from _pytest.python_api import raises
 
+from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
 from tests.functional.run_gpt_code.conftest import TestDoNotAssign
 
@@ -29,3 +31,11 @@ def test_prevent_assignment_to_attr_is_permissive_internally():
         t.set_internally(7)
 
     assert t.not_allowed == 7
+
+
+def test_timeout_context():
+    with timeout_context(1):
+        pass
+    with raises(TimeoutError):
+        with timeout_context(1):
+            time.sleep(2)
