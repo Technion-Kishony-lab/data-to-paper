@@ -621,8 +621,10 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         func_names = [func for func in ml_funcs if func in code]
         if func_names:
             func_name = func_names[0][:-1]
-            s.append(f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
-                     f'using cross-validation (as appropriate).')
+            s.append(
+                f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
+                f'using cross-validation (as appropriate). Also check whether the best hyperparameters are reported '
+                f'(either in the table files or in the "additional_results.pkl" file).')
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
