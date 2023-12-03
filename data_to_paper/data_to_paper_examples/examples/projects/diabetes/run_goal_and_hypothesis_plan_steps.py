@@ -55,7 +55,7 @@ def main():
         for model_engine in ["LLAMA_2_70b"]:
             print("_" * 80)
             print(f"Now evaluating {model_engine}")
-            for run_number in trange(2, 3):
+            for run_number in trange(10, 11):
                 output_folder = f"{model_engine}_goal_and_plan_{run_number}"
                 command = f"python diabetes_goal_and_plan.py --model_engine {model_engine} --output_folder {output_folder}"
                 run_command(command, output_folder)

@@ -110,6 +110,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             self.set_active_conversation(ScientificAgent.GoalReviewer)
             products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
         # self.send_product_to_client('research_goal')
+        return products
 
         if self.should_perform_goal_validation:
             goal_refinement_iteration = 0
@@ -150,7 +151,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.hypothesis_testing_plan = \
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
-        return products
 
         if not self.should_prepare_data_analysis_plan and not self.should_prepare_hypothesis_testing_plan:
             raise ValueError("At least one of the following should be True: "
