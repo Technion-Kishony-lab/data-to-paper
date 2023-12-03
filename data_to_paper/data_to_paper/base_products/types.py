@@ -19,7 +19,7 @@ class DataFileDescription:
         """
         Return True if the file is binary.
         """
-        text_exts = ['.txt', '.md', '.csv', '.json']
+        text_exts = ['.txt', '.md', '.csv']
         return Path(self.file_path).suffix not in text_exts
 
     def get_file_header(self, num_lines: int = 4):
