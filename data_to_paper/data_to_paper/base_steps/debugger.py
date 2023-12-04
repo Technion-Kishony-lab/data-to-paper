@@ -9,6 +9,7 @@ import numpy as np
 
 from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS
 from data_to_paper.utils import dedent_triple_quote_str, line_count
+from data_to_paper.utils.replacer import format_value
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
@@ -534,7 +535,8 @@ class DebuggerConverser(BackgroundProductsConverser):
         if action == "repost":
             self._post_code_as_fresh(code, problem, action_stage)
 
-        message, comment = issues.get_message_and_comment(end_with=self.prompt_to_append_at_end_of_response)
+        message, comment = issues.get_message_and_comment(
+            end_with=format_value(self, self.prompt_to_append_at_end_of_response))
         self.apply_append_user_message(
             content=message + ('\n\nREGENERATE' if action == "regenerate" else ''),
             comment=self.iteration_str + ': ' + comment,
