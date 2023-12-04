@@ -839,6 +839,9 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
+    phrases_required_in_code: Tuple[str, ...] = ('\nfrom my_utils import to_latex_with_note, format_p_value', )
+    attrs_to_send_to_debugger: Tuple[str, ...] = \
+        CreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code', )
 
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',

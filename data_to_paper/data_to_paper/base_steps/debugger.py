@@ -88,7 +88,8 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
     headers_required_in_code: Tuple[str, ...] = ()
-    un_allowed_keywords: Tuple[str, ...] = ('__name__', )
+    phrases_required_in_code: Tuple[str, ...] = ()
+    un_allowed_phrases: Tuple[str, ...] = ('__name__',)
 
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
@@ -295,9 +296,9 @@ class DebuggerConverser(BackgroundProductsConverser):
                     headers_required_in_code=self.headers_required_in_code,
                     required_strings_not_found=required_strings_not_found,
                 ),
+                instructions='Please rewrite the complete code again with all the required sections.',
                 comment='Required sections not found',
                 code_problem=CodeProblem.StaticCheck,
-                end_with='Please rewrite the complete code again with all the required sections.',
             ))
 
         # check if code uses `print`:
@@ -305,14 +306,24 @@ class DebuggerConverser(BackgroundProductsConverser):
             issues.append(self._get_issue_for_forbidden_functions(error=CodeUsesForbiddenFunctions(func='print')))
 
         # check if code has un-allowed keywords:
-        for keyword in self.un_allowed_keywords:
-            if re.search(pattern=r'\b{}\b'.format(keyword), string=code):
+        for phrase in self.un_allowed_phrases:
+            if phrase in code:
                 issues.append(RunIssue(
-                    issue=f"Your code uses `{keyword}`, which is not allowed.",
-                    instructions=f"Please rewrite the complete code again without using `{keyword}`.",
-                    comment=f'Code uses forbidden keyword',
+                    issue=f"Your code uses `{phrase}`, which is not allowed.",
+                    instructions=f"Please rewrite the complete code again without using `{phrase}`.",
+                    comment=f'Code uses forbidden phrase.',
                     code_problem=CodeProblem.StaticCheck,
                 ))
+
+        # check if code has all required keywords:
+        for phrase in self.phrases_required_in_code:
+            if phrase not in code:
+                issues.append(RunIssue(
+                    issue=f"Your code must explicitly use:\n`{phrase}`.",
+                    comment=f'Code does not use required phrase.',
+                    code_problem=CodeProblem.StaticCheck,
+                ))
+
         return issues
 
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
