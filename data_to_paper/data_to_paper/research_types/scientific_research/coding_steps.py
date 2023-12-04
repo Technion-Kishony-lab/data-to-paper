@@ -839,7 +839,8 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
-    phrases_required_in_code: Tuple[str, ...] = ('\nfrom my_utils import to_latex_with_note, format_p_value', )
+    phrases_required_in_code: Tuple[str, ...] = \
+        ('\nfrom my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         CreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code', )
 
@@ -872,30 +873,52 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    user_initiation_prompt: str = dedent_triple_quote_str('''
         I would like to create latex tables for our scientific paper from the dataframes created \
         in the code above ("table_?.pkl" files). 
 
-        I would like to convert these dataframes to latex tables, using two custom functions I wrote: 
+        I would like to convert these dataframes to latex tables, using the following 4 custom functions that I wrote: 
 
-        `to_latex_with_note(df, filename: str, caption: str, label: str, \
-        note: str = None, legend: Dict[str, str] = None, **kwargs)`
+        ```python
+        def to_latex_with_note(df, filename: str, caption: str, label: str, \
+        note: str = None, legend: Dict[str, str] = None, **kwargs):
+            """
+            Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
 
-        This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
-        and allows adding below the table an optional note (if `note` is provided) as well as an optional \
-        legend mapping any abbreviated column or row names to their definitions (if `legend` is provided).
+            Parameters:
+            - df, filename, caption, label: as in `df.to_latex`.
+            - note (optional): Additional note below the table.
+            - legend (optional): Dictionary mapping abbreviations to full names.
+            - **kwargs: Additional arguments for `df.to_latex`.
 
-        `format_p_value(x)`
-        This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
+            Returns:
+            - None: Outputs LaTeX file.
+            """      
 
+        def format_p_value(x):
+            returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
 
+        def is_str_in_df(df: pd.DataFrame, s: str):
+            return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \
+        getattr(df.columns, 'levels', [df.columns]))
+
+        AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+        def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+            abbrs_to_names = {abbr: name for abbr, (name, definition) in \
+        abbrs_to_names_and_definitions.items() if name is not None}
+            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in \
+        abbrs_to_names_and_definitions.items() if definition is not None}
+            return abbrs_to_names, names_to_definitions
+        ```
+        
         Please write a complete Python code that uses the above functions to convert our dataframes \
         to latex tables suitable for our scientific paper. Follow these instructions:
 
-        Column and row names: You should provide a new name to any column or row label that is abbreviated \
+        Rename column and row names: You should provide a new name to any column or row label that is abbreviated \
         or technical, or that is otherwise not self-explanatory.
 
-        Definitions: You should provide an optional full definition for any name (or new name) that 
+        Full definitions: You should provide an optional full definition for any name (or new name) \
         that satisfies any of the following: 
         - Remains abbreviated, or not self-explanatory, even after renaming
         - Is an ordinal/categorical value that requires clarification of the meaning of each value.
@@ -903,37 +926,24 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         - Is a numeric value that has units, that need to be specified.        
 
         To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \
-        `mapping: Dict[str, Tuple[Optional[str], Optional[str]]`, which maps column and row labels \
-        that are abbreviated or not self-explanatory to an optional new name, and an optional definition.
+        `mapping: AbbrToNameDef`, which maps any original \
+        column and row labels that are abbreviated or not self-explanatory to an optional new name, \
+        and an optional definition.
         If different tables share several common labels, then you can build these table-specific mappings \
-        from a general `shared_mapping`. See example below.
+        from a `shared_mapping`. See example below.
 
         Overall, the code must have the following structure:
 
         ```
         # IMPORT
         import pandas as pd
-        from typing import Dict, Tuple, Optional
-        from my_utils import to_latex_with_note, format_p_value
-
-        Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
-
+        from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES
-        def split_mapping(d: Mapping):
-            abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
-            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() \
-        if definition is not None}
-            return abbrs_to_names, names_to_definitions
-        
-        def is_str_in_df(df: pd.DataFrame, s: str):
-            return any(s in l for l in getattr(df.index, 'levels', [df.index]) + \
-        getattr(df.columns, 'levels', [df.columns]))
-
 
         < As applicable, define a shared mapping for labels that are common to all tables. For example: >
 
-        shared_mapping: Mapping = {
+        shared_mapping: AbbrToNameDef = {
             'AvgAge': ('Avg. Age', 'Average age, years'),
             'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
             'W': ('Weight', 'Participant weight, kg'),
@@ -983,7 +993,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
-        """)
+        ''')
 
     offer_revision_prompt: str = None
 
