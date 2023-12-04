@@ -88,6 +88,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
     headers_required_in_code: Tuple[str, ...] = ()
+    un_allowed_keywords: Tuple[str, ...] = ('__name__', )
 
     prompt_to_append_at_end_of_response: str = \
         dedent_triple_quote_str("""
@@ -302,6 +303,16 @@ class DebuggerConverser(BackgroundProductsConverser):
         # check if code uses `print`:
         if re.search(pattern=r'\bprint\s*\(', string=code):
             issues.append(self._get_issue_for_forbidden_functions(error=CodeUsesForbiddenFunctions(func='print')))
+
+        # check if code has un-allowed keywords:
+        for keyword in self.un_allowed_keywords:
+            if re.search(pattern=r'\b{}\b'.format(keyword), string=code):
+                issues.append(RunIssue(
+                    issue=f"Your code uses `{keyword}`, which is not allowed.",
+                    instructions=f"Please rewrite the complete code again without using `{keyword}`.",
+                    comment=f'Code uses forbidden keyword',
+                    code_problem=CodeProblem.StaticCheck,
+                ))
         return issues
 
     def _get_issue_for_forbidden_write(self, error: CodeWriteForbiddenFile, e: FailedRunningCode) -> RunIssue:
