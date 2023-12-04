@@ -925,6 +925,10 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() \
         if definition is not None}
             return abbrs_to_names, names_to_definitions
+        
+        def is_str_in_df(df: pd.DataFrame, s: str):
+            return any(s in l for l in getattr(df.index, 'levels', [df.index]) + \
+        getattr(df.columns, 'levels', [df.columns]))
 
 
         < As applicable, define a shared mapping for labels that are common to all tables. For example: >
@@ -953,7 +957,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
         < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
         < Use the `shared_mapping` if applicable. For example: >
-        mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
+        mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)} 
         mapping |= {
             'PV': ('P-value', None),
             'CI': (None, '95% Confidence Interval'),
