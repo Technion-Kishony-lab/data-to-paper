@@ -57,10 +57,10 @@ class SemanticCitation(Citation):
         else:
             bibtex = bibtex.split('author = {', 1)[0] + 'author = {' + authors + '},' + bibtex.split('},', 1)[1]
 
-        # characters not allowed in bibtex ids are replaced with '_':
-        pattern = r'[{}(),\\\"-#~^:\'`ʹ]'
+        # characters not allowed in bibtex ids are replaced with '-':
+        pattern = r'[{}(),\\\"-#~^:\'`ʹ_]'
         bibtex_id = get_bibtex_id_from_bibtex(bibtex)
-        bibtex_id = re.sub(pattern, '_', bibtex_id)
+        bibtex_id = re.sub(pattern, '-', bibtex_id)
         bibtex = bibtex.split('{', 1)[0] + '{' + bibtex_id + ',\n' + bibtex.split(',\n', 1)[1]
 
         return bibtex
