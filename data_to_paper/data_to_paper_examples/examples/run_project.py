@@ -73,6 +73,7 @@ def get_input_path(project: str, load_from_repo: bool = False) -> Path:
 
 
 def get_paper(project: str, data_filenames: List[str], research_goal: Optional[str], output_folder: str,
+              project_specific_goal_guidelines: Optional[str] = None,
               should_do_data_exploration: bool = True,
               excluded_citation_titles: List[str] = None,
               should_mock_servers: bool = True,
@@ -85,6 +86,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     ScientificStepsRunner(
         data_file_descriptions=get_file_descriptions(input_path, data_filenames, temp_folder_to_run_in),
         research_goal=research_goal,
+        project_specific_goal_guidelines=project_specific_goal_guidelines or '',
         output_directory=get_output_path(project, output_folder, save_on_repo),
         excluded_citation_titles=excluded_citation_titles,
         mock_servers=should_mock_servers,

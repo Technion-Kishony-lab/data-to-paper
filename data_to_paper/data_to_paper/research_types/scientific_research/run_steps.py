@@ -29,6 +29,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     cast = ScientificAgent
     products: ScientificProducts = field(default_factory=ScientificProducts)
     research_goal: Optional[str] = None
+    project_specific_goal_guidelines: str = ""
     max_goal_refinement_iterations: int = 3
 
     should_do_data_exploration: bool = True
@@ -107,7 +108,10 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         if is_auto_goal:
             # we did not get a goal from the director, so we need to devise it ourselves:
             self.set_active_conversation(ScientificAgent.GoalReviewer)
-            products.research_goal = GoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            products.research_goal = GoalReviewGPT.from_(
+                self,
+                project_specific_goal_guidelines=self.project_specific_goal_guidelines
+            ).run_dialog_and_get_valid_result()
         # self.send_product_to_client('research_goal')
 
         goal_refinement_iteration = 0
