@@ -159,7 +159,8 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             try:
                 response = extract_content_of_triple_quote_block(response, 'latex', 'latex')
             except FailedExtractingBlock as e:
-                self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock))
+                self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock),
+                                                rewind=Rewind.REGENERATE)
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:

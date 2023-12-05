@@ -35,7 +35,7 @@ class MultiBlocksFailedExtractingBlock(FailedExtractingBlock):
 @dataclass
 class IncompleteBlockFailedExtractingBlock(FailedExtractingBlock):
     def __str__(self):
-        return f"Your sent an incomplete triple-quoted block. Please try again."
+        return f"You sent an incomplete triple-quoted block. Please try again."
 
 
 @dataclass
