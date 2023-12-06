@@ -174,7 +174,9 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables "
-                         f"have a maximum of {MAX_ROWS} rows.",
+                         f"have a maximum of {MAX_ROWS} rows.\n"
+                         f"Note that simply trimming the data is not always a good solution. "
+                         f"You might instead want to think of a different representation of the data.",
         ))
 
     return issues
