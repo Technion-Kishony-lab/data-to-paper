@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import List, Type, TypeVar, Optional
 
 from data_to_paper.env import BASE_FOLDER_NAME
+from data_to_paper.utils.mutable import Flag
 
 from .types import module_filename, RunIssues
 
@@ -66,6 +67,7 @@ class RunContext(DisableableContext):
     """
     Base context manager for running GPT code.
     """
+    _is_checking = Flag(False)
     calling_module_name = BASE_FOLDER_NAME
     issues: Optional[RunIssues] = None
     module_filename: str = module_filename
@@ -78,7 +80,10 @@ class RunContext(DisableableContext):
         """
         Check if the code is called from user script.
         """
-        tb = traceback.extract_stack()
+        if self._is_checking:
+            return False  # prevent infinite recursion
+        with self._is_checking.temporary_set(True):
+            tb = traceback.extract_stack()
         filename = tb[-3].filename
         return filename.endswith(self.module_filename)
 
