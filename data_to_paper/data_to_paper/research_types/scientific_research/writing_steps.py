@@ -490,7 +490,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         return [get_table_label(table) for table in self.products.tables[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
-        if '[unknown]' in section:
+        if '[unknown]' in section.lower() or '[insert' in section.lower():
+            print(f'ABORTING DATA-TO_PAPER:\nThe LLM requires unknown values to write section "{section_name}".')
             raise FailedCreatingProductException()
         table_labels = self._get_table_labels(section_name)
         for table_label in table_labels:
