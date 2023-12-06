@@ -29,7 +29,7 @@ def read_general_file_description(directory: Path):
 def get_file_description(directory: Path, data_filename: str):
     return DataFileDescription(
         file_path=data_filename,
-        description=read_file_description(directory, data_filename.split('.')[0] + '_description.txt'),
+        description=read_file_description(directory, data_filename + '.description.txt'),
     )
 
 
