@@ -27,9 +27,20 @@ def read_general_file_description(directory: Path):
 
 
 def get_file_description(directory: Path, data_filename: str):
+    description = read_file_description(directory, data_filename + '.description.txt')
+    first_line = description.split('\n')[0]
+    if first_line == 'TEXT':
+        is_binary = False
+    elif first_line == 'BINARY':
+        is_binary = True
+    else:
+        is_binary = None
+    if is_binary is not None:
+        description = '\n'.join(description.split('\n')[1:])
     return DataFileDescription(
         file_path=data_filename,
-        description=read_file_description(directory, data_filename + '.description.txt'),
+        description=description,
+        is_binary=is_binary,
     )
 
 

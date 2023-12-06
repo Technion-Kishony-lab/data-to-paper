@@ -14,11 +14,14 @@ class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name
     description: Optional[str] = None  # a user provided description of the file
     originated_from: Optional[str] = None  # None for raw file
+    is_binary: Optional[bool] = None  # None for auto based on file extension
 
-    def is_binary(self):
+    def get_is_binary(self):
         """
         Return True if the file is binary.
         """
+        if self.is_binary is not None:
+            return self.is_binary
         text_exts = ['.txt', '.md', '.csv']
         return Path(self.file_path).suffix not in text_exts
 
@@ -41,7 +44,7 @@ class DataFileDescription:
         s = f'"{self.file_path}"\n'
         if self.description is not None:
             s += f'{self.description}\n\n'
-        if num_lines > 0 and not self.is_binary():
+        if num_lines > 0 and not self.get_is_binary():
             s += f'Here are the first few lines of the file:\n' \
                  f'```output\n{self.get_file_header(num_lines)}\n```\n'
         return s
