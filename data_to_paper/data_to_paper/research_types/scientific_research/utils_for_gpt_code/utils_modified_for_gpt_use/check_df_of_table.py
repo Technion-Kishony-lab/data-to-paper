@@ -127,23 +127,16 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
         return issues
 
     # Check if the table has NaN values or PValue with value of nan
-    isnull = pd.isnull(df).values  # type: np.ndarray
-    is_p_value_nan = [is_p_value(v) and np.isnan(v.value) for v in df.values.flatten()]
-    isnull = isnull | np.array(is_p_value_nan).reshape(df.shape)
-    num_nulls = np.sum(isnull)
+    df_with_raw_pvalues = df.applymap(lambda v: v.value if is_p_value(v) else v)
+    isnull = pd.isnull(df_with_raw_pvalues)
+    num_nulls = isnull.sum().sum()
     if num_nulls > 0:
-        # find the position of just the first nan:
-        nan_positions = np.where(isnull)
-        nan_positions = list(zip(*nan_positions))
-        nan_positions = [f'({row}, {col})' for row, col in nan_positions]
-        first_nan_position = nan_positions[0]
         if num_nulls > 1:
-            issue_text = f'Note that the table has {num_nulls} NaN values.\n' \
-                         f'For example, the first NaN value appears in the following cell:\n' \
-                         f'{first_nan_position}.'
+            issue_text = f'Note that the table has {num_nulls} NaN values.'
         else:
-            issue_text = f'Note that the table has a NaN value in the following cell:\n' \
-                         f'{first_nan_position}.'
+            issue_text = f'Note that the table has a NaN value.'
+
+        issue_text += f'\nHere is the `isnull` of the table:\n```\n{isnull.to_string()}\n```\n'
 
         issues.append(RunIssue(
             category='NaN values were found in created tables',
