@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Iterable, Type
 
 from .scipy.override_scipy import ScipyOverride
-from .sklearn.override_sklearn import SklearnOverride
+from .sklearn.override_sklearn import SklearnOverride, SklearnSearchLimitCheck
 from .statsmodels.override_statsmodels import StatsmodelsFitOverride, StatsmodelsMultitestOverride, \
     StatsmodelsAnovaOverride
 from ..base_run_contexts import RunContext

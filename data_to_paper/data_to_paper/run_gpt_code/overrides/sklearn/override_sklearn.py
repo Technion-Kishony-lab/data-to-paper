@@ -2,6 +2,7 @@ import functools
 from dataclasses import dataclass
 
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
+from sklearn.model_selection import ParameterGrid, ParameterSampler
 
 
 @dataclass
@@ -31,5 +32,34 @@ class SklearnOverride(SystematicMethodReplacerContext):
                 obj._prior_fit_results = result
 
             return result
+
+        return wrapped
+
+
+@dataclass
+class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
+    base_module: object = sklearn.model_selection
+
+    max_iterations: int = 10  # Default max iterations limit
+
+    is_parameter_grid: bool = False
+    is_parameter_sampler: bool = False
+
+    def _should_replace(self, parent, attr_name, attr) -> bool:
+        self.is_parameter_grid = issubclass(parent, ParameterGrid) and attr_name == "__len__"
+        self.is_parameter_sampler = issubclass(parent, ParameterSampler) and attr_name == "__len__"
+        return self.is_parameter_grid or self.is_parameter_sampler
+
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
+
+        @functools.wraps(original_func)
+        def wrapped(obj, *args, **kwargs):
+            original_len = original_func(obj, *args, **kwargs)
+            if original_len > self.max_iterations:
+                raise RuntimeWarning(f"The total number of iterations ({original_len}) exceeds the "
+                                   f"maximum allowed iterations ({self.max_iterations}). "
+                                   f"Please adjust your {'parameter grid' if self.is_parameter_grid else 'n_iter'} "
+                                   f"accordingly.")
+            return original_len
 
         return wrapped
