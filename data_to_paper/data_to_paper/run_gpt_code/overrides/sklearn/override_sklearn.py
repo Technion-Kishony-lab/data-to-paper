@@ -1,4 +1,5 @@
 import functools
+import inspect
 from dataclasses import dataclass
 
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
@@ -50,16 +51,26 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
         self.is_parameter_sampler = issubclass(parent, ParameterSampler) and attr_name == "__len__"
         return self.is_parameter_grid or self.is_parameter_sampler
 
+    def _get_estimator_class_name(self):
+        # Inspect the stack and find the class name of the estimator
+        for frame_record in inspect.stack():
+            if 'self' in frame_record.frame.f_locals:
+                instance = frame_record.frame.f_locals['self']
+                if hasattr(instance, 'fit'):
+                    return instance.estimator.__class__.__name__
+        return 'Unknown'
+
     def _get_custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):
             original_len = original_func(obj, *args, **kwargs)
             if original_len > self.max_iterations:
-                raise RuntimeWarning(f"The total number of iterations ({original_len}) exceeds the "
-                                   f"maximum allowed iterations ({self.max_iterations}). "
-                                   f"Please adjust your {'parameter grid' if self.is_parameter_grid else 'n_iter'} "
-                                   f"accordingly.")
+                estimator_class_name = self._get_estimator_class_name()
+                raise RuntimeWarning(f"The total number of iterations ({original_len}) for {estimator_class_name} "
+                                     f"exceeds the maximum allowed iterations ({self.max_iterations}). "
+                                     f"Please adjust your {'parameter grid' if self.is_parameter_grid else 'n_iter'} "
+                                     f"accordingly.")
             return original_len
 
         return wrapped
