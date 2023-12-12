@@ -63,7 +63,7 @@ def test_check_df_of_table_for_content_issues_raises_on_nan(df):
     issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
     assert len(issues) == 1
     assert 'NaN' in issues[0].category
-    assert '(0, 1)' in issues[0].issue
+    assert 'has a NaN value' in issues[0].issue
 
 
 def test_check_df_of_table_for_content_issues_raises_on_p_value_of_nan(df):
@@ -71,7 +71,7 @@ def test_check_df_of_table_for_content_issues_raises_on_p_value_of_nan(df):
     issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
     assert len(issues) == 1
     assert 'NaN' in issues[0].category
-    assert '(0, 1)' in issues[0].issue
+    assert 'has a NaN value' in issues[0].issue
 
 
 @pytest.mark.skip(reason='Test for repeated values is disabled. High risk of false positive in small datasets')
