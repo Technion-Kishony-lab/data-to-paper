@@ -1,3 +1,4 @@
+import multiprocessing
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -87,6 +88,25 @@ class BaseCodeRunner(ABC):
             self.get_run_code().run(code=modified_code, save_as=self.script_file_path)
 
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
+
+    def run_code_in_separate_process(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+        """
+        Run the provided code in a separate process and report exceptions or specific warnings.
+        Calls `run_in_provided_process` which is a wrapper for `run`.
+        """
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(target=self._run_code_and_put_result_in_queue, args=(queue,))
+        process.start()
+        process.join()
+        result = queue.get()
+        return result
+
+    def _run_code_and_put_result_in_queue(self, queue):
+        """
+        Run the provided code and put the result in the queue.
+        """
+        result = self.run_code()
+        queue.put(result)
 
 
 @dataclass

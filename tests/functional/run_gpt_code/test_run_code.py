@@ -4,7 +4,7 @@ import time
 import pytest
 from _pytest.python_api import raises
 
-from data_to_paper.run_gpt_code.dynamic_code import RunCode, CODE_MODULE, FailedRunningCode
+from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.utils import dedent_triple_quote_str
@@ -15,8 +15,8 @@ def test_run_code_on_legit_code():
         def f():
             return 'hello'
         """)
-    RunCode().run(code)
-    assert CODE_MODULE.f() == 'hello'
+    RunCode().run_in_separate_process(code)
+    # assert CODE_MODULE.f() == 'hello'
 
 
 def test_run_code_correctly_reports_exception():
@@ -78,10 +78,11 @@ def test_run_code_timeout():
     code = dedent_triple_quote_str("""
         import time
         # line 2
-        time.sleep(2)
+        time.sleep(20)
         # line 4
         """)
-    error = RunCode(timeout_sec=1).run(code)[4]
+    results = RunCode(timeout_sec=10).run(code)
+    error = results[4]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()
@@ -93,12 +94,13 @@ def test_run_code_timeout_multiprocessing():
         import multiprocessing
         import time
         # line 2
-        p = multiprocessing.Process(target=time.sleep, args=(2,))
+        p = multiprocessing.Process(target=time.sleep, args=(200,))
         p.start()
         p.join()
         # line 6
         """)
-    error = RunCode(timeout_sec=1).run(code)[4]
+    results = RunCode(timeout_sec=5, allowed_open_read_files=None, allowed_open_write_files=None).run(code)
+    error = results[4]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()

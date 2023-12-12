@@ -1,4 +1,5 @@
 import builtins
+import multiprocessing
 from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -36,9 +37,13 @@ def save_code_to_module_file(code: str = None):
         f.write(code)
 
 
-# create module from empty file:
-save_code_to_module_file()
-CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+def generate_empty_code_module_object() -> ModuleType:
+    """
+    Generate module object with the given code and return it.
+    """
+    save_code_to_module_file()
+    return importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+
 
 DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
@@ -149,6 +154,7 @@ class RunCode:
             contexts: a dict of all the contexts within which the code was run.
             exception: an exception that was raised during the run, None if no exception was raised.
         """
+        code_module = generate_empty_code_module_object()
         contexts = self._create_and_get_all_contexts()
         save_code_to_module_file(code)
         exception = None
@@ -158,7 +164,7 @@ class RunCode:
                 for context in contexts.values():
                     stack.enter_context(context)
                 try:
-                    module = importlib.reload(CODE_MODULE)
+                    module = importlib.reload(code_module)
                     result = self._run_function_in_module(module)
                 except Exception as e:
                     exception = FailedRunningCode.from_exception(e)
@@ -188,3 +194,4 @@ class RunCode:
 
     def _run_function_in_module(self, module: ModuleType):
         pass
+
