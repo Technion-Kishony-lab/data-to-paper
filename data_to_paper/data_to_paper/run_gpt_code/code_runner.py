@@ -7,6 +7,7 @@ from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
+from .exceptions import FailedRunningCode
 from .types import CodeAndOutput, RunIssue, OutputFileRequirements
 
 
@@ -75,17 +76,17 @@ class BaseCodeRunner(ABC):
             if 'TrackDataFrames' in contexts else None,
         )
 
-    def run_code(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any]]:
+    def run_code(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run code from GPT response, and return the output and the code.
         """
         code = self.get_raw_code()
         modified_code = self.get_modified_code_for_run(code)
 
-        result, created_files, issues, contexts = \
+        result, created_files, issues, contexts, exception = \
             self.get_run_code().run(code=modified_code, save_as=self.script_file_path)
 
-        return self._get_code_and_output(code, result, created_files, contexts), issues, contexts
+        return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
 
 @dataclass

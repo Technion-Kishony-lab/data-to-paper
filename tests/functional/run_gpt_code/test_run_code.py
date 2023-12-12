@@ -26,10 +26,8 @@ def test_run_code_correctly_reports_exception():
         raise Exception('error')
         # line 4
         """)
-    with raises(FailedRunningCode) as e:
-        RunCode().run(code)
-
-    error = e.value
+    error = RunCode().run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert error.exception.args[0] == 'error'
     linenos_lines, msg = error.get_lineno_line_message()
     assert linenos_lines == [(3, "raise Exception('error')")]
@@ -40,9 +38,8 @@ def test_run_code_raises_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode(warnings_to_raise=[UserWarning]).run(code)
-    error = e.value
+    error = RunCode(warnings_to_raise=[UserWarning]).run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     lineno_line, msg = error.get_lineno_line_message()
     assert msg == 'be careful'
     assert lineno_line == [(2, "warnings.warn('be careful', UserWarning)")]
@@ -53,7 +50,8 @@ def test_run_code_issues_warning():
         import warnings
         warnings.warn('be careful', UserWarning)
         """)
-    result, created_files, issues, contexts = RunCode(warnings_to_issue=[UserWarning]).run(code)
+    result, created_files, issues, contexts, e = RunCode(warnings_to_issue=[UserWarning]).run(code)
+    assert e is None
     assert len(issues) == 1
     assert 'be careful' in issues[0].issue
     assert issues[0].linenos_and_lines == [(2, "warnings.warn('be careful', UserWarning)")]
@@ -65,9 +63,8 @@ def test_run_code_correctly_reports_exception_from_func():
             raise Exception('stupid error')
         func()
         """)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode().run(code)
-    error = e.value
+    error = RunCode().run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert error.exception.args[0] == 'stupid error'
     linenos_lines, msg = error.get_lineno_line_message()
     assert linenos_lines == [(3, 'func()'), (2, "raise Exception('stupid error')")]
@@ -84,9 +81,8 @@ def test_run_code_timeout():
         time.sleep(2)
         # line 4
         """)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode(timeout_sec=1).run(code)
-    error = e.value
+    error = RunCode(timeout_sec=1).run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()
     assert lineno_lines == [(3, 'time.sleep(2)')]
@@ -102,9 +98,8 @@ def test_run_code_timeout_multiprocessing():
         p.join()
         # line 6
         """)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode(timeout_sec=1, allowed_open_write_files=None).run(code)
-    error = e.value
+    error = RunCode(timeout_sec=1).run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()
     assert lineno_lines == [(5, 'p.join()')]
@@ -127,9 +122,8 @@ def test_run_code_timeout_multiprocessing_with_context():
         grid_search.fit(X, y)
         print(grid_search.best_params_)
     """)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode(timeout_sec=2).run(code)
-    error = e.value
+    error = RunCode(timeout_sec=1).run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()
     assert lineno_lines == [(11, 'grid_search.fit(X, y)')]
@@ -142,9 +136,8 @@ def test_run_code_forbidden_functions(forbidden_call):
         a = 1
         {}()
         """).format(forbidden_call)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode().run(code)
-    error = e.value
+    error = RunCode().run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeUsesForbiddenFunctions)
     lineno_lines, msg = error.get_lineno_line_message()
     assert lineno_lines == [(2, '{}()'.format(forbidden_call))]
@@ -158,7 +151,7 @@ def test_run_code_forbidden_function_print():
         print(a)
         a = 2
         """)
-    result, created_files, issues, contexts = RunCode().run(code)
+    result, created_files, issues, contexts, error = RunCode().run(code)
     assert 'print' in issues[0].issue
 
 
@@ -177,9 +170,8 @@ def test_run_code_forbidden_import(forbidden_import, module_name):
         import numpy as np
         {}
         """).format(forbidden_import)
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode().run(code)
-    error = e.value
+    error = RunCode().run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeImportForbiddenModule)
     assert error.exception.module == module_name
     lineno_lines, msg = error.get_lineno_line_message()
@@ -199,9 +191,8 @@ def test_run_code_wrong_import():
     code = dedent_triple_quote_str("""
         from xxx import yyy
         """)
-    with raises(FailedRunningCode) as e:
-        RunCode().run(code)
-    error = e.value
+    error = RunCode().run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert error.exception.fromlist == ('yyy', )
 
 
@@ -212,18 +203,16 @@ code = dedent_triple_quote_str("""
 
 
 def test_run_code_raises_on_unallowed_open_files(tmpdir):
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode(allowed_open_write_files=[], run_folder=tmpdir).run(code)
-    error = e.value
+    error = RunCode(allowed_open_write_files=[], run_folder=tmpdir).run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, CodeWriteForbiddenFile)
     linenos_lines, msg = error.get_lineno_line_message()
     assert linenos_lines == [(1, "with open('test.txt', 'w') as f:")]
 
 
 def test_run_code_raises_on_unallowed_created_files(tmpdir):
-    with pytest.raises(FailedRunningCode) as e:
-        RunCode(allowed_open_write_files=None, run_folder=tmpdir).run(code)
-    error = e.value
+    error = RunCode(allowed_open_write_files=None, run_folder=tmpdir).run(code)[4]
+    assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, UnAllowedFilesCreated)
     lineno_line, msg = error.get_lineno_line_message()
     assert lineno_line == []

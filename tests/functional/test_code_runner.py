@@ -66,11 +66,12 @@ def test_runner_correctly_run_extracted_code(tmpdir):
 
 def test_runner_raises_when_code_writes_to_wrong_file(tmpdir):
     os.chdir(tmpdir)
-    with pytest.raises(FailedRunningCode):
+    _, _, _, exception = \
         CodeRunner(
             response=valid_response,
             output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('wrong_output.txt')]),
         ).run_code()
+    assert isinstance(exception, FailedRunningCode)
 
 
 def test_runner_raises_when_no_code_is_found():
@@ -90,20 +91,18 @@ def test_runner_raises_when_multiple_codes_are_found():
 
 
 def test_runner_raises_when_code_use_forbidden_functions():
-    try:
+    _, _, _, exception = \
         CodeRunner(
             response=code_using_input,
             output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('output.txt')]),
         ).run_code()
-    except FailedRunningCode as e:
-        assert isinstance(e.exception, CodeUsesForbiddenFunctions)
-        assert 'input' == e.exception.func
-    else:
-        assert False, "FailedRunningCode was not raised"
+    assert isinstance(exception, FailedRunningCode)
+    assert isinstance(exception.exception, CodeUsesForbiddenFunctions)
+    assert 'input' == exception.exception.func
 
 
 def test_runner_create_issue_on_print():
-    _, issues, _ = CodeRunner(
+    _, issues, _, _ = CodeRunner(
         response=code_using_print,
         output_file_requirements=OutputFileRequirements(),
     ).run_code()

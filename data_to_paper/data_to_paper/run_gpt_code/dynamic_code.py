@@ -133,7 +133,7 @@ class RunCode:
         return contexts
 
     def run(self, code: str, save_as: Optional[str] = None
-            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any]]:
+            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -147,10 +147,11 @@ class RunCode:
             created_files: the files that were created during the run.
             issues: the issues that were found during the run.
             contexts: a dict of all the contexts within which the code was run.
+            exception: an exception that was raised during the run, None if no exception was raised.
         """
         contexts = self._create_and_get_all_contexts()
         save_code_to_module_file(code)
-        completed_successfully = False
+        exception = None
         result = None
         try:
             with ExitStack() as stack:
@@ -160,26 +161,15 @@ class RunCode:
                     module = importlib.reload(CODE_MODULE)
                     result = self._run_function_in_module(module)
                 except Exception as e:
-                    exc = FailedRunningCode.from_exception(e)
-
-                    # TODO: The lines below are disabled for now.
-                    #  Need to implement this while taking care of exception raised by a data-to-paper wrapper
-                    #  of external module functions.
-                    # if exc.is_legit():
-                    #     raise exc
-                    # raise e
-
-                    raise exc
+                    exception = FailedRunningCode.from_exception(e)
 
         except BaseRunContextException as e:
-            raise FailedRunningCode.from_exception(e)
+            exception = FailedRunningCode.from_exception(e)
         except Exception:
             raise
-        else:
-            completed_successfully = True
         finally:
             created_files = contexts['TrackCreatedFiles'].created_files
-            if not completed_successfully:
+            if exception:
                 with run_in_directory(self.run_folder):
                     # remove all the files that were created
                     for file in created_files:
@@ -194,7 +184,7 @@ class RunCode:
             if isinstance(context, RunContext):
                 issues.extend(context.issues)
 
-        return result, created_files, issues, contexts
+        return result, created_files, issues, contexts, exception
 
     def _run_function_in_module(self, module: ModuleType):
         pass
