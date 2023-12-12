@@ -1,5 +1,7 @@
 import builtins
+import json
 import multiprocessing
+import pickle
 from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -45,6 +47,17 @@ def generate_empty_code_module_object() -> ModuleType:
     return importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
+def is_serializable(x):
+    """
+    Check if x is serializable to JSON so that it can be transferred between processes.
+    """
+    try:
+        json.dumps(x)
+        return True
+    except:
+        return False
+
+
 DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
 DEFAULT_WARNINGS_TO_RAISE = ()
@@ -68,7 +81,6 @@ class RunCode:
     """
     Run the provided code and report exceptions or specific warnings.
     """
-    timeout_sec: int = undefined
     warnings_to_issue: Iterable[Type[Warning]] = undefined
     warnings_to_ignore: Iterable[Type[Warning]] = undefined
     warnings_to_raise: Iterable[Type[Warning]] = undefined
@@ -91,8 +103,6 @@ class RunCode:
     additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
 
     def __post_init__(self):
-        if self.timeout_sec is undefined:
-            self.timeout_sec = MAX_EXEC_TIME.val
         if self.warnings_to_issue is undefined:
             self.warnings_to_issue = DEFAULT_WARNINGS_TO_ISSUE
         if self.warnings_to_ignore is undefined:
@@ -127,8 +137,6 @@ class RunCode:
             contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
                                                         categories_to_issue=self.warnings_to_issue,
                                                         categories_to_ignore=self.warnings_to_ignore)
-        if self.timeout_sec is not None:
-            contexts['timeout_context'] = timeout_context(self.timeout_sec, CodeTimeoutException)
 
         # Additional custom contexts:
         if self.additional_contexts is not None:
@@ -189,6 +197,7 @@ class RunCode:
         for context in contexts.values():
             if isinstance(context, RunContext):
                 issues.extend(context.issues)
+        contexts = {name: context for name, context in contexts.items() if is_serializable(context)}
 
         return result, created_files, issues, contexts, exception
 

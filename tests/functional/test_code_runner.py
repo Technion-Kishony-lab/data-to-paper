@@ -2,7 +2,8 @@ import pytest
 import os
 
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
+from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode, CodeTimeoutException, \
+    CodeWriteForbiddenFile
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
 from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
 
@@ -50,6 +51,14 @@ txt = 'hello'
 ```
 """
 
+code_runs_more_than_3_seconds = f"""
+This code runs more than 3 seconds:
+```python
+import time
+time.sleep(4)
+```
+"""
+
 
 def test_runner_correctly_extract_code_to_run():
     assert CodeRunner(response=valid_response,
@@ -70,7 +79,7 @@ def test_runner_raises_when_code_writes_to_wrong_file(tmpdir):
         CodeRunner(
             response=valid_response,
             output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('wrong_output.txt')]),
-        ).run_code()
+        ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
 
 
@@ -79,7 +88,7 @@ def test_runner_raises_when_no_code_is_found():
         CodeRunner(
             response=no_code_response,
             output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('output.txt')]),
-        ).run_code()
+        ).run_code_in_separate_process()
 
 
 def test_runner_raises_when_multiple_codes_are_found():
@@ -87,7 +96,7 @@ def test_runner_raises_when_multiple_codes_are_found():
         CodeRunner(
             response=two_codes_response,
             output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('output.txt')]),
-        ).run_code()
+        ).run_code_in_separate_process()
 
 
 def test_runner_raises_when_code_use_forbidden_functions():
@@ -95,7 +104,7 @@ def test_runner_raises_when_code_use_forbidden_functions():
         CodeRunner(
             response=code_using_input,
             output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('output.txt')]),
-        ).run_code()
+        ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
     assert isinstance(exception.exception, CodeUsesForbiddenFunctions)
     assert 'input' == exception.exception.func
@@ -105,5 +114,13 @@ def test_runner_create_issue_on_print():
     _, issues, _, _ = CodeRunner(
         response=code_using_print,
         output_file_requirements=OutputFileRequirements(),
-    ).run_code()
+    ).run_code_in_separate_process()
     assert 'print' in issues[0].issue
+
+def test_runner_raise_code_timeout_exception(tmpdir):
+    with pytest.raises(CodeTimeoutException) as e:
+        CodeRunner(response=code_runs_more_than_3_seconds,
+                   timeout_sec=3,
+                   ).run_code_in_separate_process()
+    assert f"3 seconds" in str(e.value)
+

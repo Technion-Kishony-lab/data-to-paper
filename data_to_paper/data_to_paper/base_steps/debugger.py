@@ -583,7 +583,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             return None
 
         # Code passes static checks. We can now run the code.
-        code_and_output, issues, contexts, exception = code_runner.run_code()
+        code_and_output, issues, contexts, exception = code_runner.run_code_in_separate_process()
         if exception is not None:
             exceptions_to_funcs = {
                 ImportError: self._get_issue_for_allowed_packages,
