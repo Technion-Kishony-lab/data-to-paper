@@ -24,11 +24,11 @@ def test_request_quoted_text():
         correct_value=enclosed_text)
 
 
-@pytest.mark.parametrize('left, right, msg', [
-    ('```', '', "incomplete triple-quoted block"),
-    ('', '', "enclosed within triple-backtick block"),
+@pytest.mark.parametrize('left, right', [
+    ('```', ''),
+    ('', ''),
 ])
-def test_request_quoted_text_with_error(left, right, msg):
+def test_request_quoted_text_with_error(left, right):
     check_wrong_and_right_responses(
         responses=[f'Here is some wrongly enclosed test:\n'
                    f'{left}{enclosed_text}{right}\nCheck it.',
@@ -38,7 +38,8 @@ def test_request_quoted_text_with_error(left, right, msg):
             rewind_after_end_of_review=None,
         ),
         correct_value=enclosed_text,
-        error_texts=(msg,))
+        error_texts=("Now it is good",),
+        error_message_number=2)
 
 
 def test_request_quoted_text_bumps_model():
