@@ -1,4 +1,5 @@
 import builtins
+import pickle
 from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -8,21 +9,20 @@ import matplotlib.pyplot as plt
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
-
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
 from sklearn.exceptions import ConvergenceWarning
 
 from data_to_paper import chatgpt_created_scripts
 
-from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 
 from .base_run_contexts import RunContext
 from .run_contexts import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
     TrackCreatedFiles
-from .timeout_context import timeout_context
+
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
+from .timeout_context import timeout_context
 from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
 from ..utils.singleton import undefined
 
@@ -36,9 +36,24 @@ def save_code_to_module_file(code: str = None):
         f.write(code)
 
 
-# create module from empty file:
-save_code_to_module_file()
-CODE_MODULE = importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+def generate_empty_code_module_object() -> ModuleType:
+    """
+    Generate module object with the given code and return it.
+    """
+    save_code_to_module_file()
+    return importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+
+
+def is_serializable(x):
+    """
+    Check if x is serializable so that it can be transferred between processes.
+    """
+    try:
+        pickle.dumps(x)
+        return True
+    except:
+        return False
+
 
 DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
@@ -63,7 +78,7 @@ class RunCode:
     """
     Run the provided code and report exceptions or specific warnings.
     """
-    timeout_sec: int = undefined
+    timeout_sec: Optional[int] = undefined
     warnings_to_issue: Iterable[Type[Warning]] = undefined
     warnings_to_ignore: Iterable[Type[Warning]] = undefined
     warnings_to_raise: Iterable[Type[Warning]] = undefined
@@ -83,11 +98,13 @@ class RunCode:
     runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
 
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
+    additional_contexts: Optional[Dict[str, Any]] = None
+
+    _module: ModuleType = None
 
     def __post_init__(self):
         if self.timeout_sec is undefined:
-            self.timeout_sec = MAX_EXEC_TIME.val
+            self.timeout_sec = None
         if self.warnings_to_issue is undefined:
             self.warnings_to_issue = DEFAULT_WARNINGS_TO_ISSUE
         if self.warnings_to_ignore is undefined:
@@ -127,13 +144,13 @@ class RunCode:
 
         # Additional custom contexts:
         if self.additional_contexts is not None:
-            for context_name, context in self.additional_contexts().items():
+            for context_name, context in self.additional_contexts.items():
                 assert context_name not in contexts, f"Context name {context_name} already exists."
                 contexts[context_name] = context
         return contexts
 
     def run(self, code: str, save_as: Optional[str] = None
-            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any]]:
+            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -147,39 +164,30 @@ class RunCode:
             created_files: the files that were created during the run.
             issues: the issues that were found during the run.
             contexts: a dict of all the contexts within which the code was run.
+            exception: an exception that was raised during the run, None if no exception was raised.
         """
+        self._module = generate_empty_code_module_object()
         contexts = self._create_and_get_all_contexts()
         save_code_to_module_file(code)
-        completed_successfully = False
+        exception = None
         result = None
         try:
             with ExitStack() as stack:
                 for context in contexts.values():
                     stack.enter_context(context)
                 try:
-                    module = importlib.reload(CODE_MODULE)
+                    module = importlib.reload(self._module)
                     result = self._run_function_in_module(module)
                 except Exception as e:
-                    exc = FailedRunningCode.from_exception(e)
-
-                    # TODO: The lines below are disabled for now.
-                    #  Need to implement this while taking care of exception raised by a data-to-paper wrapper
-                    #  of external module functions.
-                    # if exc.is_legit():
-                    #     raise exc
-                    # raise e
-
-                    raise exc
+                    exception = FailedRunningCode.from_exception(e)
 
         except BaseRunContextException as e:
-            raise FailedRunningCode.from_exception(e)
+            exception = FailedRunningCode.from_exception(e)
         except Exception:
             raise
-        else:
-            completed_successfully = True
         finally:
             created_files = contexts['TrackCreatedFiles'].created_files
-            if not completed_successfully:
+            if exception:
                 with run_in_directory(self.run_folder):
                     # remove all the files that were created
                     for file in created_files:
@@ -193,8 +201,10 @@ class RunCode:
         for context in contexts.values():
             if isinstance(context, RunContext):
                 issues.extend(context.issues)
+        contexts = {name: context for name, context in contexts.items() if is_serializable(context)}
 
-        return result, created_files, issues, contexts
+        return result, created_files, issues, contexts, exception
 
     def _run_function_in_module(self, module: ModuleType):
         pass
+

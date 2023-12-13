@@ -1,12 +1,15 @@
+import multiprocessing
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Iterable, Tuple, List, Dict, Any, Type, Callable
 
+from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
+from .exceptions import FailedRunningCode, CodeTimeoutException
 from .types import CodeAndOutput, RunIssue, OutputFileRequirements
 
 
@@ -21,6 +24,7 @@ class BaseCodeRunner(ABC):
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     _lines_added_in_front_of_code: int = None
+    timeout_sec: int = MAX_EXEC_TIME.val
 
     @property
     def lines_added_in_front_of_code(self) -> int:
@@ -75,18 +79,51 @@ class BaseCodeRunner(ABC):
             if 'TrackDataFrames' in contexts else None,
         )
 
-    def run_code(self) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any]]:
+    def run_code(self, code: Optional[str] = None, modified_code: Optional[str] = None) \
+            -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run code from GPT response, and return the output and the code.
         """
-        code = self.get_raw_code()
-        modified_code = self.get_modified_code_for_run(code)
-
-        result, created_files, issues, contexts = \
+        if code is None:
+            code = self.get_raw_code()
+        if modified_code is None:
+            modified_code = self.get_modified_code_for_run(code)
+        result, created_files, issues, contexts, exception = \
             self.get_run_code().run(code=modified_code, save_as=self.script_file_path)
 
-        return self._get_code_and_output(code, result, created_files, contexts), issues, contexts
+        return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
+    def run_code_in_separate_process(self) -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+        """
+        Run the provided code in a separate process and report exceptions or specific warnings.
+        Calls `run_in_provided_process` which is a wrapper for `run`.
+        """
+        code = self.get_raw_code()
+        modified_code = self.get_modified_code_for_run(code)
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(target=self._run_code_and_put_result_in_queue,
+                                          args=(queue, code, modified_code))
+        process.start()
+        process.join(self.timeout_sec)
+        if process.is_alive():
+            process.terminate()
+            process.join()
+            result = None, [], dict(), FailedRunningCode(CodeTimeoutException(self.timeout_sec), None)
+        else:
+            result = queue.get()
+            if isinstance(result, Exception):
+                raise result  # unexpected exception; not from the run code
+        return result
+
+    def _run_code_and_put_result_in_queue(self, queue, code: str, modified_code: str):
+        """
+        Run the provided code and put the result in the queue.
+        """
+        try:
+            result = self.run_code(code, modified_code)
+        except Exception as e:
+            result = e
+        queue.put(result)
 
 @dataclass
 class CodeRunner(BaseCodeRunner):

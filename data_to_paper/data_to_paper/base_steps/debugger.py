@@ -583,9 +583,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             return None
 
         # Code passes static checks. We can now run the code.
-        try:
-            code_and_output, issues, contexts = code_runner.run_code()
-        except FailedRunningCode as e:
+        code_and_output, issues, contexts, exception = code_runner.run_code_in_separate_process()
+        if exception is not None:
             exceptions_to_funcs = {
                 ImportError: self._get_issue_for_allowed_packages,
                 TimeoutError: self._get_issue_for_timeout,
@@ -600,11 +599,11 @@ class DebuggerConverser(BackgroundProductsConverser):
                 RunUtilsError: self._get_issue_for_run_utils_error,
             }
             for e_type, func in exceptions_to_funcs.items():
-                if isinstance(e.exception, e_type):
-                    run_time_issue = func(e.exception, e)
+                if isinstance(exception.exception, e_type):
+                    run_time_issue = func(exception.exception, exception)
                     break
             else:
-                run_time_issue = self._get_issue_for_regular_exception_or_warning(e, code_runner)
+                run_time_issue = self._get_issue_for_regular_exception_or_warning(exception, code_runner)
             self._respond_to_issues(run_time_issue, code)
             return None
 
