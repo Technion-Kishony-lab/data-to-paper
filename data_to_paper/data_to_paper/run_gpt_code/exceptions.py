@@ -6,7 +6,6 @@ from typing import List, Optional, Tuple
 
 from data_to_paper.env import BASE_FOLDER_NAME
 from data_to_paper.exceptions import data_to_paperException
-from data_to_paper.run_gpt_code.types import MODULE_NAME
 
 
 @dataclass

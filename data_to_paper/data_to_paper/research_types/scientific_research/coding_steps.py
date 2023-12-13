@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, List, Any, Callable
+from typing import Optional, Tuple, Dict, Type, List, Any
 
 import pandas as pd
 from pandas.core.frame import DataFrame
@@ -155,10 +155,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=
-        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                         enforce_saving_altered_dataframes=False)
-    )
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                                         enforce_saving_altered_dataframes=False))
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
@@ -255,10 +253,8 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=
-        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                         enforce_saving_altered_dataframes=True)
-    )
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                                         enforce_saving_altered_dataframes=True))
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
@@ -305,10 +301,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=
-        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False)
-    )
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                                         enforce_saving_altered_dataframes=False))
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
@@ -425,10 +419,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         [NumericTextContentOutputFileRequirement('results.txt'),
          TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=
-        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False)
-    )
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False))
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
 
@@ -609,7 +601,6 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
         func_names = [func for func in linear_regression_funcs if func in code]
         if func_names:
-            func_name = func_names[0][:-1]
             s.append(f'- In linear regression, if interactions terms are included:\n'
                      f'  * did we remember to include the main effects?\n'
                      f'  * did we use the `*` operator in statsmodels formula as recommended '
@@ -691,11 +682,10 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
          ])
 
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=
-        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False) | \
-        {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
-         'PickleDump': get_pickle_dump_attr_replacer()}
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                                         enforce_saving_altered_dataframes=False) |
+                                {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+                                 'PickleDump': get_pickle_dump_attr_replacer()}
     )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -861,24 +851,25 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=
-        lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False) | {
-            'CustomPreventMethods':
-                PreventCalling(
-                    modules_and_functions=(
-                        (DataFrame, 'to_latex', False),
-                        (DataFrame, 'to_html', False),
-                        (pd, 'to_numeric', False),
-                    )),
-            'CustomPreventAssignmentToAtt':
-                DataframePreventAssignmentToAttrs(
-                    cls=DataFrame,
-                    forbidden_set_attrs=['columns', 'index'],
-                ),
-            'PValueMessage':
-                PValue.error_message_on_forbidden_func.temporary_set(
-                    "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead.")}
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+                                         enforce_saving_altered_dataframes=False) |
+                                {'CustomPreventMethods':
+                                    PreventCalling(
+                                        modules_and_functions=(
+                                            (DataFrame, 'to_latex', False),
+                                            (DataFrame, 'to_html', False),
+                                            (pd, 'to_numeric', False),
+                                        )
+                                    ),
+                                    'CustomPreventAssignmentToAtt':
+                                        DataframePreventAssignmentToAttrs(
+                                            cls=DataFrame,
+                                            forbidden_set_attrs=['columns', 'index'],
+                                        ),
+                                    'PValueMessage':
+                                        PValue.error_message_on_forbidden_func.temporary_set(
+                                            "Calling `{func_name}` on a PValue object is forbidden.\nPlease use \
+                                            `format_p_value` instead.")}
     )
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
@@ -922,7 +913,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         abbrs_to_names_and_definitions.items() if definition is not None}
             return abbrs_to_names, names_to_definitions
         ```
-        
+
         Please write a complete Python code that uses the above functions to convert our dataframes \
         to latex tables suitable for our scientific paper. Follow these instructions:
 

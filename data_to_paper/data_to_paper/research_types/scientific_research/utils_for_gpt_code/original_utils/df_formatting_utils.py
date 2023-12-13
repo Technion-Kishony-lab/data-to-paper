@@ -22,7 +22,7 @@ def format_p_value(x):
 
 
 def is_str_in_df(df: pd.DataFrame, s: str):
-    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) +
                getattr(df.columns, 'levels', [df.columns]))
 
 
@@ -35,4 +35,3 @@ def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
     names_to_definitions = {name or abbr: definition for abbr, (name, definition) in
                             abbrs_to_names_and_definitions.items() if definition is not None}
     return abbrs_to_names, names_to_definitions
-

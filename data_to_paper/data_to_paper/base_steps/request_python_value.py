@@ -8,7 +8,6 @@ from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock
-from data_to_paper.utils import extract_text_between_tags
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException

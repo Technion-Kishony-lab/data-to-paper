@@ -49,6 +49,7 @@ setup(
         "pylatex",
         "tiktoken",
         "lxml",
+        "py-spy",
     ],
     extras_require={
         'dev': [

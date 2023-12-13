@@ -2,11 +2,9 @@ import pytest
 import os
 
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode, CodeTimeoutException, \
-    CodeWriteForbiddenFile
+from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
 from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.utils import dedent_triple_quote_str
 
 OUTPUT_FILE = "output.txt"
 
@@ -159,9 +157,7 @@ print(grid_search.best_params_)
 
 @pytest.mark.parametrize("code, result", [
                          (code_multi_process1, [('6', 'p.join()')]),
-                         (code_multi_process2, [('14', 'grid_search.fit(X, y)')]),
-                        ]
-                         )
+                         (code_multi_process2, [('14', 'grid_search.fit(X, y)')]),])
 def test_run_code_timeout_multiprocessing(code, result):
     _, _, _, exception = \
         CodeRunner(response=code,

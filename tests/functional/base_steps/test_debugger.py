@@ -23,8 +23,10 @@ class TestDebuggerGPT(DebuggerConverser):
 @fixture()
 def debugger(tmpdir_with_csv_file):
     return TestDebuggerGPT(data_folder=tmpdir_with_csv_file,
-                           output_file_requirements=OutputFileRequirements([TextContentOutputFileRequirement('test_output.txt')]),
+                           output_file_requirements=OutputFileRequirements(
+                               [TextContentOutputFileRequirement('test_output.txt')]),
                            data_filenames=('test.csv',),)
+
 
 @fixture()
 def debugger_with_timeout(tmpdir_with_csv_file):
@@ -57,6 +59,7 @@ import time
 time.sleep(0.5)
 ```"""
 
+
 def test_debugger_run_and_get_outputs(debugger):
     with OPENAI_SERVER_CALLER.mock([f'Here is the correct code:\n{code_creating_file_correctly}\nShould be all good.'],
                                    record_more_if_needed=False):
@@ -82,5 +85,5 @@ def test_request_code_with_error(correct_code, replaced_value, replace_with, err
 def test_code_with_timeout(debugger_with_timeout):
     with OPENAI_SERVER_CALLER.mock([code_runs_for_more_than_1_second,
                                     code_runs_for_less_than_1_second],
-                                     record_more_if_needed=False):
-        code_and_output = debugger_with_timeout.run_debugging()
+                                   record_more_if_needed=False):
+        debugger_with_timeout.run_debugging()

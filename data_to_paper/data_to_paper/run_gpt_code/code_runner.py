@@ -94,7 +94,8 @@ class BaseCodeRunner(ABC):
 
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
-    def run_code_in_separate_process(self) -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+    def run_code_in_separate_process(self) \
+            -> Tuple[Optional[CodeAndOutput], List[RunIssue],Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code in a separate process and report exceptions or specific warnings.
         Calls `run_in_provided_process` which is a wrapper for `run`.
@@ -131,6 +132,7 @@ class BaseCodeRunner(ABC):
         except Exception as e:
             result = e
         queue.put(result)
+
 
 @dataclass
 class CodeRunner(BaseCodeRunner):

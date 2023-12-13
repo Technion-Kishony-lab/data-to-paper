@@ -55,7 +55,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         * Make sure that your suggested hypothesis can be studied using only the provided dataset, \
         without requiring any additional data. In particular, pay attention to using only data available \
         based on the provided headers of our data files (see "{data_file_descriptions}", above).
-        
+
         {project_specific_goal_guidelines}* Do not suggest methodology. Just the goal and an hypothesis. 
         """)
     user_initiation_prompt: str = dedent_triple_quote_str("""\n
