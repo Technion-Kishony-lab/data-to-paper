@@ -1,4 +1,5 @@
 import multiprocessing
+import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -93,7 +94,8 @@ class BaseCodeRunner(ABC):
 
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
-    def run_code_in_separate_process(self) -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+    def run_code_in_separate_process(self) \
+            -> Tuple[Optional[CodeAndOutput], List[RunIssue],Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code in a separate process and report exceptions or specific warnings.
         Calls `run_in_provided_process` which is a wrapper for `run`.
@@ -106,9 +108,15 @@ class BaseCodeRunner(ABC):
         process.start()
         process.join(self.timeout_sec)
         if process.is_alive():
+            py_spy_stack = os.popen(f'py-spy dump --pid {process.pid}').read()
             process.terminate()
             process.join()
-            result = None, [], dict(), FailedRunningCode(CodeTimeoutException(self.timeout_sec), None)
+            result = (
+                None,
+                [],
+                dict(),
+                FailedRunningCode.from_exception_with_py_spy(CodeTimeoutException(self.timeout_sec),
+                                                             (py_spy_stack, modified_code)))
         else:
             result = queue.get()
             if isinstance(result, Exception):
@@ -124,6 +132,7 @@ class BaseCodeRunner(ABC):
         except Exception as e:
             result = e
         queue.put(result)
+
 
 @dataclass
 class CodeRunner(BaseCodeRunner):

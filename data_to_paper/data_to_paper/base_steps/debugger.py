@@ -7,7 +7,7 @@ from typing import Optional, List, Tuple, Union, Type, Dict, Any, Callable
 
 import numpy as np
 
-from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS
+from data_to_paper.env import SUPPORTED_PACKAGES, PRINT_COMMENTS, MAX_EXEC_TIME
 from data_to_paper.utils import dedent_triple_quote_str, line_count
 from data_to_paper.utils.replacer import format_value
 
@@ -105,6 +105,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     max_debug_iterations: int = 5
     debug_iteration = 0
+    timeout_sec: int = MAX_EXEC_TIME.val
 
     previous_code: Optional[str] = None
     _requesting_small_change: bool = False  # True when USER ask for modifications of an already existing code
@@ -433,6 +434,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             run_folder=self.data_folder,
             runtime_available_objects=self._get_runtime_available_objects(),
             additional_contexts=self.additional_contexts,
+            timeout_sec=self.timeout_sec,
         )
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None

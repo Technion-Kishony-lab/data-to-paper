@@ -2,11 +2,9 @@ import pytest
 import os
 
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode, CodeTimeoutException, \
-    CodeWriteForbiddenFile
+from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
 from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.utils import dedent_triple_quote_str
 
 OUTPUT_FILE = "output.txt"
 
@@ -56,7 +54,7 @@ code_runs_more_than_1_second = f"""
 This code runs more than 3 seconds:
 ```python
 import time
-time.sleep(4)
+time.sleep(100)
 ```
 """
 
@@ -157,14 +155,17 @@ print(grid_search.best_params_)
 """
 
 
-@pytest.mark.parametrize("code", [code_multi_process1, code_multi_process2])
-def test_run_code_timeout_multiprocessing(code):
+@pytest.mark.parametrize("code, result", [
+                         (code_multi_process1, [('6', 'p.join()')]),
+                         (code_multi_process2, [('14', 'grid_search.fit(X, y)')]),])
+def test_run_code_timeout_multiprocessing(code, result):
     _, _, _, exception = \
         CodeRunner(response=code,
                    timeout_sec=1,
+                   allowed_read_files=None,
                    ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
     assert isinstance(exception.exception, TimeoutError)
     lineno_lines, msg = exception.get_lineno_line_message()
-    assert lineno_lines == []
+    assert lineno_lines == result
     assert msg == 'Code timeout after 1 seconds.'

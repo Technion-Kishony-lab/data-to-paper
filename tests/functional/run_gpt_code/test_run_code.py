@@ -2,7 +2,6 @@ import os
 import time
 
 import pytest
-from _pytest.python_api import raises
 
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \

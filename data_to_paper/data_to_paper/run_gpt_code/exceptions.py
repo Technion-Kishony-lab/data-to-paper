@@ -1,3 +1,4 @@
+import re
 import traceback
 from abc import ABCMeta
 from dataclasses import dataclass
@@ -11,6 +12,7 @@ from data_to_paper.exceptions import data_to_paperException
 class FailedRunningCode(data_to_paperException):
     exception: Optional[Exception]
     tb: Optional[List]
+    py_spy_stack_and_code: Optional[Tuple[str, str]] = ('', '')
     fake_file_name = "my_analysis.py"
 
     @classmethod
@@ -20,6 +22,10 @@ class FailedRunningCode(data_to_paperException):
     @classmethod
     def from_current_tb(cls):
         return cls(exception=None, tb=traceback.extract_stack())
+
+    @classmethod
+    def from_exception_with_py_spy(cls, e: Exception, py_spy_stack_and_code: Tuple[str, str]):
+        return cls(exception=e, py_spy_stack_and_code=py_spy_stack_and_code, tb=traceback.extract_tb(e.__traceback__))
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
@@ -40,6 +46,16 @@ class FailedRunningCode(data_to_paperException):
         returns the last frame within the data_to_paper package.
         """
         return [t for t in self.tb if BASE_FOLDER_NAME in t[0]]
+
+    def _extract_linono_line_from_py_spy_stack(self):
+        """
+        returns the line of code that caused the exception.
+        """
+        from data_to_paper.run_gpt_code.dynamic_code import module_filename
+
+        lineno = re.search(fr'{module_filename}:(\d+)', self.py_spy_stack_and_code[0]).group(1)
+        line = self.py_spy_stack_and_code[1].splitlines()[int(lineno) - 1]
+        return [(lineno, line)]
 
     def _get_name_space(self):
         """
@@ -75,6 +91,10 @@ class FailedRunningCode(data_to_paperException):
             text = self.exception.text
             linenos_and_lines = [(lineno, text)]
             msg = self.exception.msg
+        if isinstance(self.exception, TimeoutError) and self.py_spy_stack_and_code[0]:
+            msg = str(self.exception)
+            linenos_and_lines = self._extract_linono_line_from_py_spy_stack()
+            return linenos_and_lines, msg
         else:
             msg = str(self.exception)
             frames = self._get_gpt_module_frames()
