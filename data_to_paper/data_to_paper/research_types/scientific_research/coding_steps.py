@@ -154,9 +154,11 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([EnforceContentOutputFileRequirement('data_exploration.txt')])
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    additional_contexts: Optional[Dict[str, Any]] = field(
+        default_factory=
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
                                          enforce_saving_altered_dataframes=False)
+    )
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
@@ -252,9 +254,11 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements([DataOutputFileRequirement('*.csv')])
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    additional_contexts: Optional[Dict[str, Any]] = field(
+        default_factory=
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
                                          enforce_saving_altered_dataframes=True)
+    )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-preprocessing phase, please write a complete short Python code for getting a \
@@ -300,9 +304,11 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements([NumericTextContentOutputFileRequirement('results.txt')])
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    additional_contexts: Optional[Dict[str, Any]] = field(
+        default_factory=
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
+    )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to achieve the research goal specified above.
@@ -418,10 +424,11 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [NumericTextContentOutputFileRequirement('results.txt'),
          TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    additional_contexts: Optional[Dict[str, Any]] = field(
+        default_factory=
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False)
-
+    )
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
 
@@ -683,11 +690,13 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
          DictPickleContentOutputFileRequirement('additional_results.pkl', 1),
          ])
 
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    additional_contexts: Optional[Dict[str, Any]] = field(
+        default_factory=
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False) | \
         {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
          'PickleDump': get_pickle_dump_attr_replacer()}
+    )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \
@@ -851,7 +860,8 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         ('research_goal', 'codes:data_preprocessing', 'created_files_content:data_analysis:*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = \
+    additional_contexts: Optional[Dict[str, Any]] = field(
+        default_factory=
         lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                          enforce_saving_altered_dataframes=False) | {
             'CustomPreventMethods':
@@ -869,6 +879,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             'PValueMessage':
                 PValue.error_message_on_forbidden_func.temporary_set(
                     "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead.")}
+    )
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])

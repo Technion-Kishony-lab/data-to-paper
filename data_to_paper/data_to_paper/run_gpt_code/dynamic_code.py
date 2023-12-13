@@ -1,6 +1,4 @@
 import builtins
-import json
-import multiprocessing
 import pickle
 from contextlib import ExitStack
 from dataclasses import dataclass, field
@@ -11,21 +9,20 @@ import matplotlib.pyplot as plt
 import os
 import importlib
 
-from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict, Callable
-
+from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
 from sklearn.exceptions import ConvergenceWarning
 
 from data_to_paper import chatgpt_created_scripts
 
-from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
 
 from .base_run_contexts import RunContext
 from .run_contexts import PreventCalling, PreventFileOpen, PreventImport, WarningHandler, ProvideData, IssueCollector, \
     TrackCreatedFiles
-from .timeout_context import timeout_context
+
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
+from .timeout_context import timeout_context
 from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
 from ..utils.singleton import undefined
 
@@ -49,10 +46,10 @@ def generate_empty_code_module_object() -> ModuleType:
 
 def is_serializable(x):
     """
-    Check if x is serializable to JSON so that it can be transferred between processes.
+    Check if x is serializable so that it can be transferred between processes.
     """
     try:
-        json.dumps(x)
+        pickle.dumps(x)
         return True
     except:
         return False
@@ -81,6 +78,7 @@ class RunCode:
     """
     Run the provided code and report exceptions or specific warnings.
     """
+    timeout_sec: Optional[int] = undefined
     warnings_to_issue: Iterable[Type[Warning]] = undefined
     warnings_to_ignore: Iterable[Type[Warning]] = undefined
     warnings_to_raise: Iterable[Type[Warning]] = undefined
@@ -100,9 +98,13 @@ class RunCode:
     runtime_available_objects: Optional[Dict] = None
     run_folder: Union[Path, str] = field(default_factory=Path)
 
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
+    additional_contexts: Optional[Dict[str, Any]] = None
+
+    _module: ModuleType = None
 
     def __post_init__(self):
+        if self.timeout_sec is undefined:
+            self.timeout_sec = None
         if self.warnings_to_issue is undefined:
             self.warnings_to_issue = DEFAULT_WARNINGS_TO_ISSUE
         if self.warnings_to_ignore is undefined:
@@ -137,10 +139,12 @@ class RunCode:
             contexts['WarningHandler'] = WarningHandler(categories_to_raise=self.warnings_to_raise,
                                                         categories_to_issue=self.warnings_to_issue,
                                                         categories_to_ignore=self.warnings_to_ignore)
+        if self.timeout_sec is not None:
+            contexts['timeout_context'] = timeout_context(self.timeout_sec, CodeTimeoutException)
 
         # Additional custom contexts:
         if self.additional_contexts is not None:
-            for context_name, context in self.additional_contexts().items():
+            for context_name, context in self.additional_contexts.items():
                 assert context_name not in contexts, f"Context name {context_name} already exists."
                 contexts[context_name] = context
         return contexts
@@ -162,7 +166,7 @@ class RunCode:
             contexts: a dict of all the contexts within which the code was run.
             exception: an exception that was raised during the run, None if no exception was raised.
         """
-        code_module = generate_empty_code_module_object()
+        self._module = generate_empty_code_module_object()
         contexts = self._create_and_get_all_contexts()
         save_code_to_module_file(code)
         exception = None
@@ -172,7 +176,7 @@ class RunCode:
                 for context in contexts.values():
                     stack.enter_context(context)
                 try:
-                    module = importlib.reload(code_module)
+                    module = importlib.reload(self._module)
                     result = self._run_function_in_module(module)
                 except Exception as e:
                     exception = FailedRunningCode.from_exception(e)

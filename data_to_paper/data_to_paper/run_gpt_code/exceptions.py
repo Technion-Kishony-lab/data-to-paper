@@ -78,7 +78,10 @@ class FailedRunningCode(data_to_paperException):
         else:
             msg = str(self.exception)
             frames = self._get_gpt_module_frames()
-            linenos_and_lines = [(f.lineno, f.line) for f in frames]
+            if frames is None:
+                linenos_and_lines = []
+            else:
+                linenos_and_lines = [(f.lineno, f.line) for f in frames]
         linenos_and_lines = [(lineno - lines_added_by_modifying_code, text) for lineno, text in linenos_and_lines]
         return linenos_and_lines, msg
 

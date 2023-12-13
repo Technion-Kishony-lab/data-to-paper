@@ -6,6 +6,7 @@ from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, Fa
     CodeWriteForbiddenFile
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
 from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.utils import dedent_triple_quote_str
 
 OUTPUT_FILE = "output.txt"
 
@@ -51,7 +52,7 @@ txt = 'hello'
 ```
 """
 
-code_runs_more_than_3_seconds = f"""
+code_runs_more_than_1_second = f"""
 This code runs more than 3 seconds:
 ```python
 import time
@@ -117,10 +118,53 @@ def test_runner_create_issue_on_print():
     ).run_code_in_separate_process()
     assert 'print' in issues[0].issue
 
-def test_runner_raise_code_timeout_exception(tmpdir):
-    with pytest.raises(CodeTimeoutException) as e:
-        CodeRunner(response=code_runs_more_than_3_seconds,
-                   timeout_sec=3,
-                   ).run_code_in_separate_process()
-    assert f"3 seconds" in str(e.value)
 
+def test_runner_raise_code_timeout_exception():
+    _, _, _, exception = \
+        CodeRunner(response=code_runs_more_than_1_second,
+                   timeout_sec=1,
+                   ).run_code_in_separate_process()
+    assert f"1 seconds" in str(exception.exception)
+
+
+code_multi_process1 = """
+```
+import multiprocessing
+import time
+p = multiprocessing.Process(target=time.sleep, args=(40,))
+p.start()
+p.join()
+```
+"""
+
+code_multi_process2 = """
+`    ```
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.datasets import make_regression
+
+X, y = make_regression(n_samples=100, n_features=3, noise=0.1, random_state=42)
+param_grid = {
+    'n_estimators': [30, 60, 90],
+    'max_depth': [2, 4, 6],
+    'min_samples_split': [2, 4, 6]
+}
+rf = RandomForestRegressor()
+grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5)
+grid_search.fit(X, y)
+print(grid_search.best_params_)
+```
+"""
+
+
+@pytest.mark.parametrize("code", [code_multi_process1, code_multi_process2])
+def test_run_code_timeout_multiprocessing(code):
+    _, _, _, exception = \
+        CodeRunner(response=code,
+                   timeout_sec=1,
+                   ).run_code_in_separate_process()
+    assert isinstance(exception, FailedRunningCode)
+    assert isinstance(exception.exception, TimeoutError)
+    lineno_lines, msg = exception.get_lineno_line_message()
+    assert lineno_lines == []
+    assert msg == 'Code timeout after 1 seconds.'

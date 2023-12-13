@@ -15,8 +15,9 @@ def test_run_code_on_legit_code():
         def f():
             return 'hello'
         """)
-    RunCode().run_in_separate_process(code)
-    # assert CODE_MODULE.f() == 'hello'
+    run_code = RunCode()
+    run_code.run(code)
+    assert run_code._module.f() == 'hello'
 
 
 def test_run_code_correctly_reports_exception():
@@ -81,54 +82,12 @@ def test_run_code_timeout():
         time.sleep(20)
         # line 4
         """)
-    results = RunCode(timeout_sec=10).run(code)
+    results = RunCode(timeout_sec=1).run(code)
     error = results[4]
     assert isinstance(error, FailedRunningCode)
     assert isinstance(error.exception, TimeoutError)
     lineno_lines, msg = error.get_lineno_line_message()
-    assert lineno_lines == [(3, 'time.sleep(2)')]
-
-
-def test_run_code_timeout_multiprocessing():
-    code = dedent_triple_quote_str("""
-        import multiprocessing
-        import time
-        # line 2
-        p = multiprocessing.Process(target=time.sleep, args=(200,))
-        p.start()
-        p.join()
-        # line 6
-        """)
-    results = RunCode(timeout_sec=5, allowed_open_read_files=None, allowed_open_write_files=None).run(code)
-    error = results[4]
-    assert isinstance(error, FailedRunningCode)
-    assert isinstance(error.exception, TimeoutError)
-    lineno_lines, msg = error.get_lineno_line_message()
-    assert lineno_lines == [(5, 'p.join()')]
-
-
-def test_run_code_timeout_multiprocessing_with_context():
-    code = dedent_triple_quote_str("""
-        from sklearn.model_selection import GridSearchCV
-        from sklearn.ensemble import RandomForestRegressor
-        from sklearn.datasets import make_regression
-        
-        X, y = make_regression(n_samples=100, n_features=3, noise=0.1, random_state=42)
-        param_grid = {
-            'n_estimators': [30, 60, 90],
-            'max_depth': [2, 4, 6],
-            'min_samples_split': [2, 4, 6]
-        }
-        rf = RandomForestRegressor()
-        grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5)
-        grid_search.fit(X, y)
-        print(grid_search.best_params_)
-    """)
-    error = RunCode(timeout_sec=1).run(code)[4]
-    assert isinstance(error, FailedRunningCode)
-    assert isinstance(error.exception, TimeoutError)
-    lineno_lines, msg = error.get_lineno_line_message()
-    assert lineno_lines == [(11, 'grid_search.fit(X, y)')]
+    assert lineno_lines == [(3, 'time.sleep(20)')]
 
 
 @pytest.mark.parametrize("forbidden_call", ['input', 'exit', 'quit', 'eval'])

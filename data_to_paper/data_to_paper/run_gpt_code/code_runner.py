@@ -4,13 +4,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Iterable, Tuple, List, Dict, Any, Type, Callable
 
+from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.run_gpt_code.dynamic_code import RunCode
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
 from .exceptions import FailedRunningCode, CodeTimeoutException
 from .types import CodeAndOutput, RunIssue, OutputFileRequirements
-from ..env import MAX_EXEC_TIME
 
 
 @dataclass
@@ -79,10 +79,15 @@ class BaseCodeRunner(ABC):
             if 'TrackDataFrames' in contexts else None,
         )
 
-    def run_code(self, code: str, modified_code: str) -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+    def run_code(self, code: Optional[str] = None, modified_code: Optional[str] = None) \
+            -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run code from GPT response, and return the output and the code.
         """
+        if code is None:
+            code = self.get_raw_code()
+        if modified_code is None:
+            modified_code = self.get_modified_code_for_run(code)
         result, created_files, issues, contexts, exception = \
             self.get_run_code().run(code=modified_code, save_as=self.script_file_path)
 
@@ -106,6 +111,8 @@ class BaseCodeRunner(ABC):
             result = None, [], dict(), FailedRunningCode(CodeTimeoutException(self.timeout_sec), None)
         else:
             result = queue.get()
+            if isinstance(result, Exception):
+                raise result  # unexpected exception; not from the run code
         return result
 
     def _run_code_and_put_result_in_queue(self, queue, code: str, modified_code: str):
@@ -114,10 +121,9 @@ class BaseCodeRunner(ABC):
         """
         try:
             result = self.run_code(code, modified_code)
-            queue.put(result)
         except Exception as e:
-            result = None, [], dict(), FailedRunningCode(e, None)
-            queue.put(result)
+            result = e
+        queue.put(result)
 
 @dataclass
 class CodeRunner(BaseCodeRunner):

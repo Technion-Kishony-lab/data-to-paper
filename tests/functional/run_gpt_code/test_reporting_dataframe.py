@@ -7,6 +7,11 @@ from data_to_paper.run_gpt_code.overrides.dataframes.override_dataframe import D
 from data_to_paper.utils.file_utils import run_in_directory
 
 
+def test_track_dataframe_is_pickleable():
+    import pickle
+    pickle.dumps(TrackDataFrames())
+
+
 def test_dataframe_allows_changing_when_not_in_context():
     with TrackDataFrames(allow_dataframes_to_change_existing_series=False):
         df = pd.DataFrame({'a': [1, 2, 3]})
