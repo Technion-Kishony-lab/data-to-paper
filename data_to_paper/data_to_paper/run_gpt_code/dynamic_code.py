@@ -191,7 +191,9 @@ class RunCode:
                 with run_in_directory(self.run_folder):
                     # remove all the files that were created
                     for file in created_files:
-                        os.remove(file)
+                        if os.path.exists(file):
+                            os.remove(file)
+                created_files = []
             if save_as:
                 os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()  # leave the module empty
