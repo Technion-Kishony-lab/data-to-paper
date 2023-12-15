@@ -41,7 +41,7 @@ class SklearnOverride(SystematicMethodReplacerContext):
 class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
     base_module: object = sklearn.model_selection
 
-    max_iterations: int = 10  # Default max iterations limit
+    max_iterations: int = 12  # Default max iterations limit
 
     is_parameter_grid: bool = False
     is_parameter_sampler: bool = False
@@ -67,10 +67,12 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
             original_len = original_func(obj, *args, **kwargs)
             if original_len > self.max_iterations:
                 estimator_class_name = self._get_estimator_class_name()
-                raise RuntimeWarning(f"The total number of iterations ({original_len}) for {estimator_class_name} "
-                                     f"exceeds the maximum allowed iterations ({self.max_iterations}). "
-                                     f"Please adjust your {'parameter grid' if self.is_parameter_grid else 'n_iter'} "
-                                     f"accordingly.")
+                raise RuntimeWarning(f"The presumed total number of training iterations ({original_len}) for "
+                                     f"{estimator_class_name} exceeds the maximum allowed iterations "
+                                     f"({self.max_iterations}). \nNotice that the amount of iterations is a "
+                                     f"multiplication of the numbers of possible values for each parameter when using "
+                                     f"GridSearchCV or n_iter when using RandomizedSearchCV. \n"
+                                     f"use only a subset of the parameters or reduce the number of iterations.")
             return original_len
 
         return wrapped
