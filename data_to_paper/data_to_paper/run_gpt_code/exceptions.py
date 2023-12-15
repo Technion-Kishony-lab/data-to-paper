@@ -53,7 +53,10 @@ class FailedRunningCode(data_to_paperException):
         """
         from data_to_paper.run_gpt_code.dynamic_code import module_filename
 
-        lineno = re.search(fr'{module_filename}:(\d+)', self.py_spy_stack_and_code[0]).group(1)
+        search_results = re.search(fr'{module_filename}:(\d+)', self.py_spy_stack_and_code[0])
+        if search_results is None:
+            return []
+        lineno = search_results.group(1)
         line = self.py_spy_stack_and_code[1].splitlines()[int(lineno) - 1]
         return [(lineno, line)]
 
