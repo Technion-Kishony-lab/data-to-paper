@@ -104,7 +104,7 @@ class RunIssue:
     forgive_after: int = None  # Forgive after this many times,  None means never forgive
 
 
-@dataclass(frozen=True)
+@dataclass
 class RunUtilsError(Exception):
     issue: RunIssue
 
