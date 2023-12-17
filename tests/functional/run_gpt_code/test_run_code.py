@@ -3,9 +3,12 @@ import time
 
 import pytest
 
+from data_to_paper.research_types.scientific_research.coding_steps import DictPickleContentOutputFileRequirement
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
+from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.types import OutputFileRequirements, PickleContentOutputFileRequirement
 from data_to_paper.utils import dedent_triple_quote_str
 
 
@@ -181,3 +184,25 @@ def test_run_code_raises_on_unallowed_created_files(tmpdir):
 def test_run_code_allows_allowed_files(tmpdir):
     os.chdir(tmpdir)
     RunCode(allowed_open_write_files=['test.txt'], output_file_requirements=None).run(code)
+
+
+def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
+    code = dedent_triple_quote_str("""
+        import pickle
+        import pandas as pd 
+        from scipy.stats import f_oneway
+        all_mses = [[1, 2, 3], [4, 5, 6], [7, 8, 9], 
+                    pd.Series([10, 11, 12, 13 ,14]), pd.Series([15, 16, 17, 18, 19]), pd.Series([20, 21, 22, 23, 24])]
+        F, p = f_oneway(*all_mses)
+        additional_results = {'f_score': F, 'p_value': p}
+        with open('additional_results.pkl', 'wb') as f:
+            pickle.dump(additional_results, f)
+        """)
+    with override_statistics_packages():
+        error = RunCode(run_folder=tmpdir,
+                        allowed_open_write_files=None,
+                        output_file_requirements=
+                        OutputFileRequirements((DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)),
+                        ).run(code)[4]
+        if error is not None:
+            raise error

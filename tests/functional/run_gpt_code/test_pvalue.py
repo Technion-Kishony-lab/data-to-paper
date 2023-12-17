@@ -1,3 +1,5 @@
+import pickle
+
 from _pytest.fixtures import fixture
 from pandas.core.dtypes.inference import is_list_like
 
@@ -18,3 +20,16 @@ def test_pvalue_type(pvalue):
 
 def test_pvalue_is_list_like(pvalue):
     assert is_list_like(pvalue) is False
+
+
+def test_pvalue_pickleability(pvalue):
+    # Pickle the PValue object
+    pickled_pvalue = pickle.dumps(pvalue)
+
+    # Unpickle the PValue object
+    unpickled_pvalue = pickle.loads(pickled_pvalue)
+
+    # Assert that the unpickled object is still a PValue and retains its properties
+    assert isinstance(unpickled_pvalue, PValue)
+    assert unpickled_pvalue.value == pvalue.value
+    assert unpickled_pvalue.created_by == pvalue.created_by
