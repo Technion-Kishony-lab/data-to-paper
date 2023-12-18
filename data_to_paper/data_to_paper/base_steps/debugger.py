@@ -80,8 +80,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     # output files:
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
 
-    # dataframes:
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
+    additional_contexts: Optional[Dict[str, Any]] = None
 
     user_initiation_prompt: str = None
     assistant_agent: Agent = None

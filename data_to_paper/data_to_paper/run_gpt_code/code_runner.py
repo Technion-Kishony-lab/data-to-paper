@@ -22,7 +22,7 @@ class BaseCodeRunner(ABC):
     run_folder: Optional[Path] = None
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
     allowed_read_files: Iterable[str] = ()
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None  # additional contexts to use when running code
+    additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     _lines_added_in_front_of_code: int = None

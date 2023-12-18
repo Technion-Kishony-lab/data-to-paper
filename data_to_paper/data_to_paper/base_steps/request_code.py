@@ -42,7 +42,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None
+    additional_contexts: Optional[Dict[str, Any]] = None
 
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         ('output_file_requirements', 'data_filenames', 'data_folder', 'supported_packages', 'model_engine',
