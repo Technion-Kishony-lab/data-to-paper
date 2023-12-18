@@ -1,5 +1,7 @@
 import multiprocessing
 import os
+import platform
+import time
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -108,7 +110,9 @@ class BaseCodeRunner(ABC):
         process.start()
         process.join(self.timeout_sec)
         if process.is_alive():
-            py_spy_stack = os.popen(f'py-spy dump --pid {process.pid}').read()
+            py_spy_stack = (
+                os.popen(f'{"sudo " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}').read())
+            time.sleep(0.3)
             process.terminate()
             process.join()
             result = (
