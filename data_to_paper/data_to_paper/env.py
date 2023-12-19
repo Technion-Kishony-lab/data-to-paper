@@ -51,7 +51,7 @@ TEXT_WIDTH = 150
 PDF_TEXT_WIDTH = 80
 
 # max time for code timeout when running code from chatgpt (seconds)
-MAX_EXEC_TIME = Mutable(200)
+MAX_EXEC_TIME = Mutable(600)
 
 # Decide whether to present code debugging iterations as code diff or full.
 # Defining: compaction_code_diff = num_lines(new_code) - num_lines(code_diff)
