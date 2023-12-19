@@ -15,7 +15,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
     CodeImportForbiddenModule, UnAllowedFilesCreated, FailedRunningCode
 from .types import CodeProblem, RunIssue, OutputFileRequirements
-from .base_run_contexts import RegisteredRunContext, SingletonRegisteredRunContext
+from .base_run_contexts import SingletonRegisteredRunContext
 
 
 @dataclass

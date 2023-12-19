@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import importlib
 import pkgutil
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import inspect
-from types import ModuleType
-from typing import Callable, Union, Type, Iterable, Any, Optional, Tuple, Dict
 
-from data_to_paper.run_gpt_code.base_run_contexts import RunContext, RegisteredRunContext
+from typing import Callable, Iterable, Any, Optional, Tuple, Dict
+
+from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions
 from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 
@@ -73,7 +73,7 @@ def _import_obj(obj_import_str: Optional[str, Any]):
 
 
 @dataclass
-class OverrideImportedObjContext(RunContext):
+class OverrideImportedObjContext(RegisteredRunContext):
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     obj_import_str: Optional[str, Any] = None
 
@@ -205,7 +205,7 @@ class PreventAssignmentToAttrs(OverrideImportedObjContext):
 
 
 @dataclass
-class PreventCalling(RunContext):
+class PreventCalling(RegisteredRunContext):
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
     _original_functions: Dict[str, Callable] = None
