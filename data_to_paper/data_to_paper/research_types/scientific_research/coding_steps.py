@@ -20,7 +20,7 @@ from data_to_paper.research_types.scientific_research.scientific_products import
     get_code_agent
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
-from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
 from data_to_paper.run_gpt_code.run_contexts import PreventCalling
@@ -44,7 +44,7 @@ def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = 
             allow_dataframes_to_change_existing_series=allow_dataframes_to_change_existing_series,
             enforce_saving_altered_dataframes=enforce_saving_altered_dataframes,
         ),
-        'override_statistics_packages': override_statistics_packages(),
+        'OverrideStatisticsPackages': OverrideStatisticsPackages(),
     }
 
 
