@@ -1,10 +1,12 @@
 import os
 import time
+import pickle
 
+import pandas
 from _pytest.python_api import raises
 
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
-from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
+from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, AttrReplacer
 from tests.functional.run_gpt_code.conftest import TestDoNotAssign
 
 # get the name of this file without the path:
@@ -39,3 +41,19 @@ def test_timeout_context():
     with raises(TimeoutError):
         with timeout_context(1):
             time.sleep(2)
+
+
+def _wrapper(*args, **kwargs):
+    return 7
+
+
+def test_attr_replacer():
+    attr_replacer = AttrReplacer(attr='DataFrame', cls=pandas, wrapper=_wrapper)
+    with attr_replacer:
+        assert pandas.DataFrame({'a': [1]}) == 7
+    assert pandas.DataFrame({'a': [1]})['a'][0] == 1
+
+
+def test_attr_replacer_is_serializable():
+    attr_replacer = AttrReplacer(attr='DataFrame', cls=pandas, wrapper=_wrapper)
+    pickle.dumps(attr_replacer)
