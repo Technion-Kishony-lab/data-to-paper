@@ -61,6 +61,13 @@ class PValue(OperatorValue):
             )
         return cls(value, created_by=created_by)
 
+    @classmethod
+    def reconstruction(cls, value, created_by):
+        return cls(value, created_by)
+
+    def __reduce__(self):
+        return self.reconstruction, (self.value, self.created_by)
+
 
 def convert_to_p_value(value, created_by: str = None, raise_on_nan: bool = True, func_call_str: str = None):
     if is_p_value(value):

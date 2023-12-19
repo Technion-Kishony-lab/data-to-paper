@@ -7,7 +7,9 @@ from scipy.stats._stats_py import TtestResult
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.stats.anova import anova_lm
 
-from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.code_runner import CodeRunner
+from data_to_paper.run_gpt_code.exceptions import FailedRunningCode
+from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
@@ -24,7 +26,7 @@ from data_to_paper.run_gpt_code.types import RunUtilsError
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with override_statistics_packages():
+    with OverrideStatisticsPackages():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -59,7 +61,7 @@ def test_statsmodels_logit():
 
 
 def test_statsmodels_anova_lm():
-    with override_statistics_packages():
+    with OverrideStatisticsPackages():
         data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
         model = ols('y ~ x', data=data).fit()
         anova_result = anova_lm(model, typ=2)
@@ -91,16 +93,49 @@ def test_statsmodels_ols():
 
 
 def test_sklean_raise_on_multiple_fit_calls():
-    from sklearn.linear_model import LinearRegression
+
     with SklearnOverride():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
         y = data.endog
+        from sklearn.linear_model import LinearRegression
         model = LinearRegression()
         model.fit(X, y)
         with pytest.raises(RuntimeWarning):
             model.fit(X, y)
+
+
+response_with_two_fit_calls = """
+```
+from sklearn.linear_model import LinearRegression
+import statsmodels.api as sm
+data = sm.datasets.longley.load()
+X = sm.add_constant(data.exog)
+y = data.endog
+model = LinearRegression()
+model.fit(X, y)
+model.fit(X, y)
+```
+"""
+
+
+def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
+    _, _, _, exception = CodeRunner(response=response_with_two_fit_calls,
+                                    additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
+                                    allowed_read_files=None,
+                                    ).run_code_in_separate_process()
+    assert isinstance(exception, FailedRunningCode)
+    assert isinstance(exception.exception, RuntimeWarning)
+
+
+def test_sklean_do_not_raise_on_single_fit_call_in_code_runner():
+    response_with_single_fit_calls = response_with_two_fit_calls.replace('model.fit(X, y)\n```', '```')
+    _, _, _, exception = CodeRunner(response=response_with_single_fit_calls,
+                                    additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
+                                    allowed_read_files=None,
+                                    ).run_code_in_separate_process()
+    assert exception is None
 
 
 def test_df_describe_under_label_pvalues():

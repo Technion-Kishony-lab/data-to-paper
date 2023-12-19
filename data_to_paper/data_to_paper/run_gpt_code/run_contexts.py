@@ -6,16 +6,16 @@ import warnings
 
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Tuple, Any, Iterable, Callable, List, Type, Dict, Optional
+from typing import Any, Iterable, Callable, List, Type, Dict, Optional
 
 from data_to_paper.utils.file_utils import is_name_matches_list_of_wildcard_names
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils import dedent_triple_quote_str
 
-from .exceptions import CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, \
+from .exceptions import CodeWriteForbiddenFile, CodeReadForbiddenFile, \
     CodeImportForbiddenModule, UnAllowedFilesCreated, FailedRunningCode
 from .types import CodeProblem, RunIssue, OutputFileRequirements
-from .base_run_contexts import RegisteredRunContext, SingletonRegisteredRunContext
+from .base_run_contexts import SingletonRegisteredRunContext
 
 
 @dataclass
@@ -93,40 +93,6 @@ class PreventFileOpen(SingletonRegisteredRunContext):
         abs_path_to_file = os.path.abspath(file_name)
         return any(abs_path_to_file.startswith(folder) for folder in self.SYSTEM_FOLDERS) or \
             any(abs_path_to_file.endswith(file) for file in self.SYSTEM_FILES)
-
-
-@dataclass
-class PreventCalling(RegisteredRunContext):
-    modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
-    _original_functions: Dict[str, Callable] = None
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
-
-    def __enter__(self):
-        self._original_functions = {}
-        for module, function_name, should_only_create_issue in self.modules_and_functions:
-            original_func = getattr(module, function_name)
-            setattr(module, function_name, self.get_upon_called(function_name, original_func, should_only_create_issue))
-            self._original_functions[function_name] = original_func
-        return super().__enter__()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        for module, function_name, _ in self.modules_and_functions:
-            setattr(module, function_name, self._original_functions.pop(function_name))
-        return super().__exit__(exc_type, exc_val, exc_tb)
-
-    def get_upon_called(self, func_name: str, original_func: Callable, should_only_create_issue: bool):
-        def upon_called(*args, **kwargs):
-            if not self._is_enabled or not self._is_called_from_user_script():
-                return original_func(*args, **kwargs)
-            if should_only_create_issue:
-                self.issues.append(RunIssue(
-                    issue=f'Code uses forbidden function: "{func_name}".',
-                    code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                ))
-            else:
-                raise CodeUsesForbiddenFunctions(func_name)
-            return original_func(*args, **kwargs)
-        return upon_called
 
 
 @dataclass

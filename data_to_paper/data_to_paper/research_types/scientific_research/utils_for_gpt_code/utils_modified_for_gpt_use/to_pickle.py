@@ -1,5 +1,4 @@
 import numbers
-import pickle
 from typing import Dict
 
 import pandas as pd
@@ -63,7 +62,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
 
 
 def get_dataframe_to_pickle_attr_replacer():
-    return AttrReplacer(cls=DataFrame, attr='to_pickle', wrapper=dataframe_to_pickle_with_checks,
+    return AttrReplacer(obj_import_str='pandas.DataFrame', attr='to_pickle', wrapper=dataframe_to_pickle_with_checks,
                         send_context_to_wrapper=True, send_original_to_wrapper=True)
 
 
@@ -104,5 +103,5 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
 
 
 def get_pickle_dump_attr_replacer():
-    return AttrReplacer(cls=pickle, attr='dump', wrapper=pickle_dump_with_checks,
+    return AttrReplacer(obj_import_str='pickle', attr='dump', wrapper=pickle_dump_with_checks,
                         send_context_to_wrapper=True, send_original_to_wrapper=True)

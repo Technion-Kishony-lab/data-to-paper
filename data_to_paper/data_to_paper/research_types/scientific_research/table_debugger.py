@@ -30,7 +30,7 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
     tolerance_for_too_wide_in_pts: Optional[float] = 25.
 
     def _get_runtime_available_objects(self) -> dict:
-        return {'compile_to_pdf_func': partial(self._check_latex_compilation, is_table=True)}
+        return {'compile_to_pdf_func': partial(self._get_static_latex_compilation_func(), is_table=True)}
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         num_created_pkl_table_files = self.products.get_number_of_created_df_tables()

@@ -1,5 +1,7 @@
 import re
 from dataclasses import dataclass, field
+from functools import partial
+from pathlib import Path
 from typing import Optional, List, Tuple, Union, Iterable, Dict
 
 from data_to_paper.env import SAVE_INTERMEDIATE_LATEX
@@ -50,6 +52,43 @@ class CheckLatexCompilation:
     tolerance_for_too_wide_in_pts: Optional[float] = None  # If None, do not raise on too wide.
     latex_document: Optional[LatexDocument] = field(default_factory=LatexDocument)
 
+    @staticmethod
+    def _static_check_latex_compilation(content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]],
+                                        section_name: Optional[str] = None,
+                                        output_directory: Optional[Union[str, Path]] = None,
+                                        conversation_name: Optional[str] = None,
+                                        latex_document: Optional[LatexDocument] = None,
+                                        tolerance_for_too_wide_in_pts: Optional[float] = None,
+                                        is_table: bool = False,
+                                        should_save: bool = True,
+                                        ) -> Optional[Union[float, LatexProblemInCompilation]]:
+        if SAVE_INTERMEDIATE_LATEX and should_save and output_directory is not None:
+            if section_name is None:
+                file_stem = f'{conversation_name}'
+            else:
+                file_stem = f'{section_name.replace(" ", "")}_{conversation_name}'
+            file_path = get_non_existing_file_name(output_directory / f'{file_stem}.pdf')
+            file_stem, output_directory = file_path.stem, file_path.parent
+        else:
+            file_stem, output_directory = 'test', None
+
+        try:
+            if is_table:
+                return latex_document.compile_table(content, file_stem=file_stem, output_directory=output_directory)
+            latex_document.get_document(content, file_stem=file_stem, output_directory=output_directory)
+        except TooWideTableOrText as e:
+            if tolerance_for_too_wide_in_pts is not None and e.overflow_in_pts > tolerance_for_too_wide_in_pts:
+                return e
+        except LatexProblemInCompilation as e:
+            return e
+
+    def _get_static_latex_compilation_func(self):
+        return partial(self._static_check_latex_compilation,
+                       output_directory=self.output_directory,
+                       conversation_name=self.conversation_name,
+                       latex_document=self.latex_document,
+                       tolerance_for_too_wide_in_pts=self.tolerance_for_too_wide_in_pts)
+
     def _check_latex_compilation(self, content: Optional[Union[str, Iterable[str], Dict[Optional[str], str]]],
                                  section_name: Optional[str] = None,
                                  is_table: bool = False,
@@ -61,29 +100,8 @@ class CheckLatexCompilation:
 
         For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
         """
-
-        if SAVE_INTERMEDIATE_LATEX and should_save and self.output_directory is not None:
-            if section_name is None:
-                file_stem = f'{self.conversation_name}'
-            else:
-                file_stem = f'{section_name.replace(" ", "")}_{self.conversation_name}'
-            file_path = get_non_existing_file_name(self.output_directory / f'{file_stem}.pdf')
-            file_stem, output_directory = file_path.stem, file_path.parent
-        else:
-            file_stem, output_directory = 'test', None
-
-        try:
-            if is_table:
-                return self.latex_document.compile_table(content, file_stem=file_stem,
-                                                         output_directory=output_directory)
-            self.latex_document.get_document(content, file_stem=file_stem,
-                                             output_directory=output_directory)
-        except TooWideTableOrText as e:
-            if self.tolerance_for_too_wide_in_pts is not None and \
-                    e.overflow_in_pts > self.tolerance_for_too_wide_in_pts:
-                return e
-        except LatexProblemInCompilation as e:
-            return e
+        return self._get_static_latex_compilation_func()(
+            content=content, section_name=section_name, is_table=is_table, should_save=should_save)
 
 
 @dataclass

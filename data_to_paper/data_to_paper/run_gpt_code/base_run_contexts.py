@@ -100,6 +100,7 @@ class RegisteredRunContext(RunContext):
     Allows centralized `temporarily_disable_all` registered context managers.
     """
     PROCESS_AND_NAME_TO_OBJECT = {}
+    should_register: bool = True
 
     @property
     def _process_and_identifier(self):
@@ -110,11 +111,13 @@ class RegisteredRunContext(RunContext):
         return id(self)
 
     def __enter__(self):
-        self.PROCESS_AND_NAME_TO_OBJECT[self._process_and_identifier] = self
+        if self.should_register:
+            self.PROCESS_AND_NAME_TO_OBJECT[self._process_and_identifier] = self
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        del self.PROCESS_AND_NAME_TO_OBJECT[self._process_and_identifier]
+        if self.should_register:
+            del self.PROCESS_AND_NAME_TO_OBJECT[self._process_and_identifier]
         return super().__exit__(exc_type, exc_val, exc_tb)
 
     @classmethod

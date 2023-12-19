@@ -4,10 +4,10 @@ import platform
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, List, Dict, Any, Type, Callable
+from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
 
 from data_to_paper.env import MAX_EXEC_TIME
-from data_to_paper.run_gpt_code.dynamic_code import RunCode
+from data_to_paper.run_gpt_code.dynamic_code import RunCode, is_serializable
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
@@ -22,7 +22,7 @@ class BaseCodeRunner(ABC):
     run_folder: Optional[Path] = None
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
     allowed_read_files: Iterable[str] = ()
-    additional_contexts: Optional[Callable[[], Dict[str, Any]]] = None  # additional contexts to use when running code
+    additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
     _lines_added_in_front_of_code: int = None
@@ -97,7 +97,7 @@ class BaseCodeRunner(ABC):
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
     def run_code_in_separate_process(self) \
-            -> Tuple[Optional[CodeAndOutput], List[RunIssue],Dict[str, Any], Optional[FailedRunningCode]]:
+            -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code in a separate process and report exceptions or specific warnings.
         Calls `run_in_provided_process` which is a wrapper for `run`.
@@ -107,7 +107,13 @@ class BaseCodeRunner(ABC):
         queue = multiprocessing.Queue()
         process = multiprocessing.Process(target=self._run_code_and_put_result_in_queue,
                                           args=(queue, code, modified_code))
-        process.start()
+        try:
+            process.start()
+        except AttributeError:
+            for k, v in self.__dict__.items():
+                if not is_serializable(v):
+                    print(f'Attribute {k} is not serializable.')
+            raise
         process.join(self.timeout_sec)
         if process.is_alive():
             with os.popen(f'{"sudo -n " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}') as f:

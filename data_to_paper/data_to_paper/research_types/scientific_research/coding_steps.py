@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any
 
-import pandas as pd
 from pandas.core.frame import DataFrame
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
@@ -19,11 +18,10 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
-from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
-from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
+from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
-from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
@@ -44,7 +42,7 @@ def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = 
             allow_dataframes_to_change_existing_series=allow_dataframes_to_change_existing_series,
             enforce_saving_altered_dataframes=enforce_saving_altered_dataframes,
         ),
-        'override_statistics_packages': override_statistics_packages(),
+        'OverrideStatisticsPackages': OverrideStatisticsPackages(),
     }
 
 
@@ -420,7 +418,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
          TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False))
+                                                         enforce_saving_altered_dataframes=False))
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
 
@@ -618,7 +616,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
                     'DecisionTreeRegressor(', 'LogisticRegression(']
         func_names = [func for func in ml_funcs if func in code]
         if func_names:
-            func_name = func_names[0][:-1]
+            # func_name = func_names[0][:-1]
             s.append(
                 f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
                 f'using cross-validation (as appropriate). Also check whether the best hyperparameters are reported '
@@ -684,8 +682,8 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                                          enforce_saving_altered_dataframes=False) |
-                                {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
-                                 'PickleDump': get_pickle_dump_attr_replacer()}
+        {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+         'PickleDump': get_pickle_dump_attr_replacer()}
     )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -822,8 +820,9 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         return ''
 
 
+@dataclass
 class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
-    cls: Type[DataFrame] = DataFrame
+    obj_import_str: str = 'pandas.DataFrame'
     forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
 
     def _raise_exception(self, attr, value):
@@ -851,25 +850,23 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                         enforce_saving_altered_dataframes=False) |
-                                {'CustomPreventMethods':
-                                    PreventCalling(
-                                        modules_and_functions=(
-                                            (DataFrame, 'to_latex', False),
-                                            (DataFrame, 'to_html', False),
-                                            (pd, 'to_numeric', False),
-                                        )
-                                    ),
-                                    'CustomPreventAssignmentToAtt':
-                                        DataframePreventAssignmentToAttrs(
-                                            cls=DataFrame,
-                                            forbidden_set_attrs=['columns', 'index'],
-                                        ),
-                                    'PValueMessage':
-                                        PValue.error_message_on_forbidden_func.temporary_set(
-                                            "Calling `{func_name}` on a PValue object is forbidden.\nPlease use \
-                                            `format_p_value` instead.")}
+        default_factory=lambda: _get_additional_contexts(
+            allow_dataframes_to_change_existing_series=True,
+            enforce_saving_altered_dataframes=False) |
+        {'CustomPreventMethods': PreventCalling(
+            modules_and_functions=(
+                ('pandas.DataFrame', 'to_latex', False),
+                ('pandas.DataFrame', 'to_html', False),
+                ('pandas', 'to_numeric', False),
+            )
+        ),
+         'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
+            forbidden_set_attrs=['columns', 'index'],
+        ),
+         'PValueMessage': AttrReplacer(
+             obj_import_str=PValue, attr='error_message_on_forbidden_func',
+             wrapper="Calling `{func_name}` on a PValue object is forbidden.\n Please use `format_p_value` instead."
+        )}
     )
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(

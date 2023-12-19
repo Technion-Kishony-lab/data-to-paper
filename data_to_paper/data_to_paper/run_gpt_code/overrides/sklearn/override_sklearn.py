@@ -1,14 +1,19 @@
 import functools
 from dataclasses import dataclass
 
-import sklearn
-
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
 
 
 @dataclass
 class SklearnOverride(SystematicMethodReplacerContext):
-    base_module: object = sklearn
+    obj_import_str: str = 'sklearn'
+
+    @property
+    def obj(self):
+        # TODO: add more sklearn modules. Or fix generally. See comment in SystematicAttrReplacerContext.
+        from sklearn import linear_model, svm  # noqa  Needed for the import to work inclusively.
+        import sklearn
+        return sklearn
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
