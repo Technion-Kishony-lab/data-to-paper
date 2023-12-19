@@ -147,7 +147,12 @@ class RunCode:
         if self.additional_contexts is not None:
             for context_name, context in self.additional_contexts.items():
                 assert context_name not in contexts, f"Context name {context_name} already exists."
-                contexts[context_name] = context
+                # if list of contexts, add them all
+                if isinstance(context, list):
+                    for i, c in enumerate(context):
+                        contexts[f"{context_name}_{i}"] = c
+                else:
+                    contexts[context_name] = context
         return contexts
 
     def run(self, code: str, save_as: Optional[str] = None

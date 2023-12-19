@@ -18,6 +18,8 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.set_seed_for_sklearn_models import \
+    sklearn_random_state_init_replacer
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
@@ -683,7 +685,8 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                                          enforce_saving_altered_dataframes=False) |
         {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
-         'PickleDump': get_pickle_dump_attr_replacer()}
+         'PickleDump': get_pickle_dump_attr_replacer(),
+         'SklearnRandomSeedInitReplacer': sklearn_random_state_init_replacer()}
     )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""

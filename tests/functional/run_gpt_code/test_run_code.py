@@ -4,6 +4,8 @@ import time
 import pytest
 
 from data_to_paper.research_types.scientific_research.coding_steps import DictPickleContentOutputFileRequirement
+from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.set_seed_for_sklearn_models import \
+    sklearn_random_state_init_replacer
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
@@ -209,3 +211,20 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
         import pickle
         p_value = pickle.load(open(tmpdir / 'additional_results.pkl', 'rb'))['p_value']
         assert p_value.created_by == 'f_oneway'
+
+
+def test_run_code_with_sklearn_class_with_no_random_state_defined():
+    code = """
+from sklearn.linear_model import ElasticNet
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
+# initialize models without setting random_state
+models = {'Random Forest': RandomForestRegressor(), 'Elastic Net': ElasticNet(), 'Neural network': MLPRegressor()}
+# check if models are initialized with `random_state=0` by using the replacer we created
+for model in models.keys():
+    if hasattr(models[model], 'random_state'):
+        assert models[model].random_state == 0, f'{model} is not initialized with random_state=0'
+"""
+    error = RunCode(additional_contexts={'SklearnRandomSeedInitReplacer': sklearn_random_state_init_replacer()}).run(code)[4]
+    if error is not None:
+        raise error
