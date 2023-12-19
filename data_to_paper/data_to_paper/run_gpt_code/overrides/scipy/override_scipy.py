@@ -2,8 +2,6 @@ import functools
 import inspect
 from dataclasses import dataclass
 
-import scipy
-
 from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
 from data_to_paper.utils.text_formatting import short_repr
@@ -13,7 +11,7 @@ from ..types import convert_to_p_value
 
 @dataclass
 class ScipyOverride(SystematicFuncReplacerContext):
-    base_module: object = scipy
+    obj_import_str: str = 'scipy'
 
     def _should_replace(self, module, func_name, func) -> bool:
         doc = inspect.getdoc(func)

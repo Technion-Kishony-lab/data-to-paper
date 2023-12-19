@@ -96,40 +96,6 @@ class PreventFileOpen(SingletonRegisteredRunContext):
 
 
 @dataclass
-class PreventCalling(RegisteredRunContext):
-    modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
-    _original_functions: Dict[str, Callable] = None
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
-
-    def __enter__(self):
-        self._original_functions = {}
-        for module, function_name, should_only_create_issue in self.modules_and_functions:
-            original_func = getattr(module, function_name)
-            setattr(module, function_name, self.get_upon_called(function_name, original_func, should_only_create_issue))
-            self._original_functions[function_name] = original_func
-        return super().__enter__()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        for module, function_name, _ in self.modules_and_functions:
-            setattr(module, function_name, self._original_functions.pop(function_name))
-        return super().__exit__(exc_type, exc_val, exc_tb)
-
-    def get_upon_called(self, func_name: str, original_func: Callable, should_only_create_issue: bool):
-        def upon_called(*args, **kwargs):
-            if not self._is_enabled or not self._is_called_from_user_script():
-                return original_func(*args, **kwargs)
-            if should_only_create_issue:
-                self.issues.append(RunIssue(
-                    issue=f'Code uses forbidden function: "{func_name}".',
-                    code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                ))
-            else:
-                raise CodeUsesForbiddenFunctions(func_name)
-            return original_func(*args, **kwargs)
-        return upon_called
-
-
-@dataclass
 class TrackCreatedFiles(SingletonRegisteredRunContext):
     output_file_requirements: Optional[OutputFileRequirements] = None  # None means allow all
 

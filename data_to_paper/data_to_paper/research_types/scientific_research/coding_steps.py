@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any
 
-import pandas as pd
 from pandas.core.frame import DataFrame
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
@@ -19,11 +18,10 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
-from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs
+from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
-from data_to_paper.run_gpt_code.run_contexts import PreventCalling
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
@@ -823,7 +821,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
 
 class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
-    cls: Type[DataFrame] = DataFrame
+    obj_import_str: str = 'pandas.DataFrame'
     forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
 
     def _raise_exception(self, attr, value):
@@ -856,14 +854,13 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
                                 {'CustomPreventMethods':
                                     PreventCalling(
                                         modules_and_functions=(
-                                            (DataFrame, 'to_latex', False),
-                                            (DataFrame, 'to_html', False),
-                                            (pd, 'to_numeric', False),
+                                            ('pandas.DataFrame', 'to_latex', False),
+                                            ('pandas.DataFrame', 'to_html', False),
+                                            ('pandas', 'to_numeric', False),
                                         )
                                     ),
                                     'CustomPreventAssignmentToAtt':
                                         DataframePreventAssignmentToAttrs(
-                                            cls=DataFrame,
                                             forbidden_set_attrs=['columns', 'index'],
                                         ),
                                     'PValueMessage':

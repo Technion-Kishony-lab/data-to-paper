@@ -1,9 +1,6 @@
 import functools
 from dataclasses import dataclass
 
-import statsmodels
-from statsmodels.stats import multitest, anova
-
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext
 from ..types import convert_to_p_value, PValue
@@ -74,7 +71,7 @@ class StatsmodelsFitOverride(SystematicMethodReplacerContext):
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
     """
-    base_module: object = statsmodels
+    obj_import_str: str = 'statsmodels'
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
@@ -120,7 +117,7 @@ class StatsmodelsFitOverride(SystematicMethodReplacerContext):
 
 @dataclass
 class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
-    base_module: object = multitest
+    obj_import_str: str = 'statsmodels.stats.multitest'
 
     def _should_replace(self, module, func_name, func) -> bool:
         return func_name in [func_name for func_name, _ in MULTITEST_FUNCS_AND_PVAL_INDEXES]
@@ -147,7 +144,7 @@ class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
 
 @dataclass
 class StatsmodelsAnovaOverride(SystematicFuncReplacerContext):
-    base_module: object = anova
+    obj_import_str: str = 'statsmodels.stats.anova'
 
     def _should_replace(self, module, func_name, func) -> bool:
         return func_name in ANOVA_FUNCS

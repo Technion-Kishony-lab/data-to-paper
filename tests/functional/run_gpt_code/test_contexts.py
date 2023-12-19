@@ -15,7 +15,7 @@ THIS_FILE = os.path.basename(__file__)
 
 def test_prevent_assignment_to_attr():
     t = TestDoNotAssign()
-    with PreventAssignmentToAttrs(cls=TestDoNotAssign, forbidden_set_attrs=['not_allowed'], module_filename=THIS_FILE):
+    with PreventAssignmentToAttrs(obj_import_str=TestDoNotAssign, forbidden_set_attrs=['not_allowed'], module_filename=THIS_FILE):
         t.allowed = 1
         with raises(AttributeError) as exc:
             t.not_allowed = 1
@@ -27,7 +27,7 @@ def test_prevent_assignment_to_attr():
 
 def test_prevent_assignment_to_attr_is_permissive_internally():
     t = TestDoNotAssign()
-    with PreventAssignmentToAttrs(cls=TestDoNotAssign, forbidden_set_attrs=['not_allowed'], module_filename=THIS_FILE):
+    with PreventAssignmentToAttrs(obj_import_str=TestDoNotAssign, forbidden_set_attrs=['not_allowed'], module_filename=THIS_FILE):
         with raises(AttributeError):
             t.not_allowed = 1
         t.set_internally(7)
@@ -48,12 +48,12 @@ def _wrapper(*args, **kwargs):
 
 
 def test_attr_replacer():
-    attr_replacer = AttrReplacer(attr='DataFrame', cls=pandas, wrapper=_wrapper)
+    attr_replacer = AttrReplacer(attr='DataFrame', obj_import_str='pandas', wrapper=_wrapper)
     with attr_replacer:
         assert pandas.DataFrame({'a': [1]}) == 7
     assert pandas.DataFrame({'a': [1]})['a'][0] == 1
 
 
 def test_attr_replacer_is_serializable():
-    attr_replacer = AttrReplacer(attr='DataFrame', cls=pandas, wrapper=_wrapper)
+    attr_replacer = AttrReplacer(attr='DataFrame', obj_import_str='pandas', wrapper=_wrapper)
     pickle.dumps(attr_replacer)

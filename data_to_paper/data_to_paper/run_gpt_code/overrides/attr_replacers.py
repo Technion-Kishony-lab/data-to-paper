@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import importlib
+import pkgutil
 from dataclasses import dataclass, field
 
 import inspect
 from types import ModuleType
-from typing import Callable, Union, Type, Iterable
+from typing import Callable, Union, Type, Iterable, Any, Optional, Tuple, Dict
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext, RegisteredRunContext
+from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions
+from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 
 
 def _carefully_get_members(module):
@@ -32,18 +36,61 @@ def get_all_submodules(module, visited=None):
     return all_submodules
 
 
-@dataclass
-class SystematicAttrReplacerContext(RunContext):
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
-    base_module: object = None
-    recursive: bool = True
+def import_submodules(package):
+    """ Recursively import all submodules of a module, including sub-packages """
+    if isinstance(package, str):
+        package = importlib.import_module(package)
+    results = {}
+    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+        full_name = package.__name__ + '.' + name
+        try:
+            results[full_name] = importlib.import_module(full_name)
+            if is_pkg:
+                results.update(import_submodules(full_name))
+        except ModuleNotFoundError:
+            continue
+    return results
 
+
+def dynamic_import(full_path):
+    """Dynamically import a module or class from a string path."""
+    try:
+        # This will work if the path is to a module (e.g., 'statsmodels.stats.multitest')
+        return importlib.import_module(full_path)
+    except ImportError:
+        # If direct import fails, it might be a class or function in a module
+        module_path, class_or_func_name = full_path.rsplit('.', 1)
+        module = importlib.import_module(module_path)
+        return getattr(module, class_or_func_name)
+
+
+def _import_obj(obj_import_str: Optional[str, Any]):
+    if obj_import_str is None:
+        return None
+    if isinstance(obj_import_str, str):
+        return dynamic_import(obj_import_str)
+    return obj_import_str
+
+
+@dataclass
+class OverrideImportedObjContext(RunContext):
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
+    obj_import_str: Optional[str, Any] = None
+
+    @property
+    def obj(self):
+        return _import_obj(self.obj_import_str)
+
+
+@dataclass
+class SystematicAttrReplacerContext(OverrideImportedObjContext):
+    recursive: bool = True
     _originals: dict = None
 
     def _get_all_modules(self) -> list:
-        all_modules = [self.base_module]
+        all_modules = [self.obj]
         if self.recursive:
-            all_modules += get_all_submodules(self.base_module)
+            all_modules += get_all_submodules(self.obj)
         return all_modules
 
     def _get_all_parents(self) -> set:
@@ -59,9 +106,10 @@ class SystematicAttrReplacerContext(RunContext):
         return NotImplemented
 
     def __enter__(self):
+        # import_submodules(self.obj)  # make sure all submodules are imported
         self._originals = {}
-
-        for parent in self._get_all_parents():
+        all_parent = self._get_all_parents()
+        for parent in all_parent:
             for attr_name, attr_obj in parent.__dict__.items():
                 if (parent, attr_name) not in self._originals \
                         and self._is_right_type(attr_obj) \
@@ -70,6 +118,7 @@ class SystematicAttrReplacerContext(RunContext):
                     assert original is attr_obj
                     self._originals[(parent, attr_name)] = original
                     setattr(parent, attr_name, self._get_custom_wrapper(parent, attr_name, original))
+        return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for (parent, attr_name), original in self._originals.items():
@@ -98,11 +147,8 @@ class SystematicFuncReplacerContext(SystematicAttrReplacerContext):
 
 
 @dataclass
-class AttrReplacer(RegisteredRunContext):
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
-
+class AttrReplacer(OverrideImportedObjContext):
     attr: str = None
-    cls: Union[Type, ModuleType] = None
     wrapper: Callable = None
 
     send_context_to_wrapper: bool = False
@@ -125,18 +171,16 @@ class AttrReplacer(RegisteredRunContext):
         return wrapped_wrapper
 
     def _reversible_enter(self):
-        self._original = getattr(self.cls, self.attr)
-        setattr(self.cls, self.attr, self._get_wrapped_wrapper())
+        self._original = getattr(self.obj, self.attr)
+        setattr(self.obj, self.attr, self._get_wrapped_wrapper())
 
     def _reversible_exit(self):
-        setattr(self.cls, self.attr, self._original)
+        setattr(self.obj, self.attr, self._original)
 
 
 @dataclass
-class PreventAssignmentToAttrs(RegisteredRunContext):
-    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
-    cls: Type = None
-    forbidden_set_attrs: Iterable[str] = field(default_factory=list)
+class PreventAssignmentToAttrs(OverrideImportedObjContext):
+    forbidden_set_attrs: Iterable[str] = ()
     message: str = 'Cannot set {attr}.'
     _original: Callable = None
 
@@ -153,8 +197,46 @@ class PreventAssignmentToAttrs(RegisteredRunContext):
         raise AttributeError(self.message.format(attr=attr))
 
     def _reversible_enter(self):
-        self._original = self.cls.__setattr__
-        self.cls.__setattr__ = self._get_wrapper()
+        self._original = self.obj.__setattr__
+        self.obj.__setattr__ = self._get_wrapper()
 
     def _reversible_exit(self):
-        self.cls.__setattr__ = self._original
+        self.obj.__setattr__ = self._original
+
+
+@dataclass
+class PreventCalling(RunContext):
+    TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
+    modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
+    _original_functions: Dict[str, Callable] = None
+
+    def __enter__(self):
+        self._original_functions = {}
+        for module, function_name, should_only_create_issue in self.modules_and_functions:
+            module = _import_obj(module)
+            original_func = getattr(module, function_name)
+            setattr(module, function_name, self.get_upon_called(function_name, original_func, should_only_create_issue))
+            self._original_functions[function_name] = original_func
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for module, function_name, _ in self.modules_and_functions:
+            module = _import_obj(module)
+            setattr(module, function_name, self._original_functions.pop(function_name))
+        return super().__exit__(exc_type, exc_val, exc_tb)
+
+    def get_upon_called(self, func_name: str, original_func: Callable, should_only_create_issue: bool):
+        def upon_called(*args, **kwargs):
+            if not self._is_enabled or not self._is_called_from_user_script():
+                return original_func(*args, **kwargs)
+            if should_only_create_issue:
+                self.issues.append(RunIssue(
+                    issue=f'Code uses forbidden function: "{func_name}".',
+                    code_problem=CodeProblem.NonBreakingRuntimeIssue,
+                ))
+            else:
+                raise CodeUsesForbiddenFunctions(func_name)
+            return original_func(*args, **kwargs)
+        return upon_called
+
+
