@@ -7,7 +7,7 @@ from data_to_paper.research_types.scientific_research.coding_steps import DictPi
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
-from data_to_paper.run_gpt_code.overrides.contexts import override_statistics_packages
+from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.types import OutputFileRequirements, PickleContentOutputFileRequirement
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -198,7 +198,7 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
         with open('additional_results.pkl', 'wb') as f:
             pickle.dump(additional_results, f)
         """)
-    with override_statistics_packages():
+    with OverrideStatisticsPackages():
         error = RunCode(run_folder=tmpdir,
                         allowed_open_write_files=None,
                         output_file_requirements=
@@ -206,3 +206,7 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
                         ).run(code)[4]
         if error is not None:
             raise error
+        assert os.path.exists(tmpdir / 'additional_results.pkl')
+        import pickle
+        p_value = pickle.load(open(tmpdir / 'additional_results.pkl', 'rb'))['p_value']
+        assert p_value.created_by == 'f_oneway'
