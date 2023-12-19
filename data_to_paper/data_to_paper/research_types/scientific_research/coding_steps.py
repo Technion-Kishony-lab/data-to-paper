@@ -820,6 +820,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         return ''
 
 
+@dataclass
 class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
     obj_import_str: str = 'pandas.DataFrame'
     forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
