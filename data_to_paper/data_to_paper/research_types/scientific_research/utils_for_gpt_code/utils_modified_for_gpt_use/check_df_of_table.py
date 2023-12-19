@@ -4,7 +4,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.types import is_p_value
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -59,11 +59,6 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
             issue=f'The filename of the table should be in the format `table_<number>.pkl`, '
                   f'but got {filename}.',
         ))
-
-    # TODO: can delete, we are not using this anymore:
-    with PValue.allow_str.temporary_set(True):
-        printable_size_df = df.iloc[:MAX_ROWS, :MAX_COLUMNS]
-        here_is_the_df = f'Here is the table {filename}:\n```\n{printable_size_df.to_string()}\n```\n'
 
     # Check if the table contains the same values in multiple cells
     df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]

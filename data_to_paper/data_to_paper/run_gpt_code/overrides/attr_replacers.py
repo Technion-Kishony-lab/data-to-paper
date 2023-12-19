@@ -106,6 +106,7 @@ class SystematicAttrReplacerContext(OverrideImportedObjContext):
         return NotImplemented
 
     def __enter__(self):
+        # TODO: This doesn't work for some reason. For now, each subclass should import the needed submodules itself.
         # import_submodules(self.obj)  # make sure all submodules are imported
         self._originals = {}
         all_parent = self._get_all_parents()
@@ -238,5 +239,3 @@ class PreventCalling(RegisteredRunContext):
                 raise CodeUsesForbiddenFunctions(func_name)
             return original_func(*args, **kwargs)
         return upon_called
-
-

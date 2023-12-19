@@ -52,7 +52,7 @@ def is_serializable(x):
     try:
         pickle.dumps(x)
         return True
-    except:
+    except TypeError:
         return False
 
 

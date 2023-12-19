@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any, Callable
+from typing import Optional, Tuple, Dict, Type, Any
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, OutputFileRequirements, \

@@ -4,7 +4,7 @@ import platform
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Iterable, Tuple, List, Dict, Any, Type, Callable
+from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
 
 from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.run_gpt_code.dynamic_code import RunCode
@@ -97,7 +97,7 @@ class BaseCodeRunner(ABC):
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
     def run_code_in_separate_process(self) \
-            -> Tuple[Optional[CodeAndOutput], List[RunIssue],Dict[str, Any], Optional[FailedRunningCode]]:
+            -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code in a separate process and report exceptions or specific warnings.
         Calls `run_in_provided_process` which is a wrapper for `run`.

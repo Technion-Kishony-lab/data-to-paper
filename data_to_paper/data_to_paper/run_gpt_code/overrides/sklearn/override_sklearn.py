@@ -10,7 +10,8 @@ class SklearnOverride(SystematicMethodReplacerContext):
 
     @property
     def obj(self):
-        from sklearn import linear_model
+        # TODO: add more sklearn modules. Or fix generally. See comment in SystematicAttrReplacerContext.
+        from sklearn import linear_model, svm  # noqa  Needed for the import to work inclusively.
         import sklearn
         return sklearn
 
