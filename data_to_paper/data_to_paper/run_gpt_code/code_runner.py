@@ -1,7 +1,6 @@
 import multiprocessing
 import os
 import platform
-import time
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -61,7 +60,8 @@ class BaseCodeRunner(ABC):
         """
         return self.run_code_cls(
             allowed_open_read_files=self.allowed_read_files,
-            allowed_open_write_files=self.output_file_requirements.get_all_allowed_created_filenames(),
+            allowed_open_write_files=None if self.output_file_requirements is None else
+            self.output_file_requirements.get_all_allowed_created_filenames(),
             output_file_requirements=self.output_file_requirements,
             run_folder=self.run_folder,
             runtime_available_objects=self.runtime_available_objects,
@@ -110,9 +110,8 @@ class BaseCodeRunner(ABC):
         process.start()
         process.join(self.timeout_sec)
         if process.is_alive():
-            py_spy_stack = (
-                os.popen(f'{"sudo " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}').read())
-            time.sleep(0.3)
+            with os.popen(f'{"sudo -n " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}') as f:
+                py_spy_stack = f.read()
             process.terminate()
             process.join()
             result = (

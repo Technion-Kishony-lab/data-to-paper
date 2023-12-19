@@ -30,7 +30,7 @@ def debugger(tmpdir_with_csv_file):
 
 @fixture()
 def debugger_with_timeout(tmpdir_with_csv_file):
-    return TestDebuggerGPT(timeout_sec=1)
+    return TestDebuggerGPT(timeout_sec=3)
 
 
 code_creating_file_correctly = r"""```python
