@@ -18,7 +18,7 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
-from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling
+from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.types import PValue
@@ -863,8 +863,9 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
          'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
             forbidden_set_attrs=['columns', 'index'],
         ),
-         'PValueMessage': PValue.error_message_on_forbidden_func.temporary_set(
-         "Calling `{func_name}` on a PValue object is forbidden.\nPlease use `format_p_value` instead."
+         'PValueMessage': AttrReplacer(
+             obj_import_str=PValue, attr='error_message_on_forbidden_func',
+             wrapper="Calling `{func_name}` on a PValue object is forbidden.\n Please use `format_p_value` instead."
         )}
     )
 

@@ -8,7 +8,7 @@ from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
-from data_to_paper.run_gpt_code.types import OutputFileRequirements, PickleContentOutputFileRequirement
+from data_to_paper.run_gpt_code.types import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 
 
@@ -201,9 +201,8 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
     with OverrideStatisticsPackages():
         error = RunCode(run_folder=tmpdir,
                         allowed_open_write_files=None,
-                        output_file_requirements=
-                        OutputFileRequirements((DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)),
-                        ).run(code)[4]
+                        output_file_requirements=OutputFileRequirements(
+                            (DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)),).run(code)[4]
         if error is not None:
             raise error
         assert os.path.exists(tmpdir / 'additional_results.pkl')

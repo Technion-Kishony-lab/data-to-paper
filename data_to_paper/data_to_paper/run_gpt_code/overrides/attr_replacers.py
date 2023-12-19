@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import inspect
 
-from typing import Callable, Iterable, Any, Optional, Tuple, Dict
+from typing import Callable, Iterable, Any, Optional, Tuple, Dict, Union
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions
@@ -150,7 +150,7 @@ class SystematicFuncReplacerContext(SystematicAttrReplacerContext):
 @dataclass
 class AttrReplacer(OverrideImportedObjContext):
     attr: str = None
-    wrapper: Callable = None
+    wrapper: Union[Callable, Any] = None
 
     send_context_to_wrapper: bool = False
     send_original_to_wrapper: bool = False
@@ -161,6 +161,9 @@ class AttrReplacer(OverrideImportedObjContext):
         return self.wrapper
 
     def _get_wrapped_wrapper(self):
+        if not callable(self._get_wrapper()):
+            return self._get_wrapper()
+
         def wrapped_wrapper(*args, **kwargs):
             if not self._is_enabled or not self._is_called_from_data_to_paper():
                 return self._original(*args, **kwargs)

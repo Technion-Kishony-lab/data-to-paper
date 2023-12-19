@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
 
 from data_to_paper.env import MAX_EXEC_TIME
-from data_to_paper.run_gpt_code.dynamic_code import RunCode
+from data_to_paper.run_gpt_code.dynamic_code import RunCode, is_serializable
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
@@ -107,7 +107,13 @@ class BaseCodeRunner(ABC):
         queue = multiprocessing.Queue()
         process = multiprocessing.Process(target=self._run_code_and_put_result_in_queue,
                                           args=(queue, code, modified_code))
-        process.start()
+        try:
+            process.start()
+        except AttributeError:
+            for k, v in self.__dict__.items():
+                if not is_serializable(v):
+                    print(f'Attribute {k} is not serializable.')
+            raise
         process.join(self.timeout_sec)
         if process.is_alive():
             with os.popen(f'{"sudo -n " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}') as f:

@@ -69,7 +69,6 @@ class PValue(OperatorValue):
         return self.reconstruction, (self.value, self.created_by)
 
 
-
 def convert_to_p_value(value, created_by: str = None, raise_on_nan: bool = True, func_call_str: str = None):
     if is_p_value(value):
         return value
