@@ -4,7 +4,7 @@ import os
 import traceback
 from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass
-from typing import List, Type, TypeVar, Optional
+from typing import List, Type, TypeVar, Optional, Iterable
 
 from data_to_paper.env import BASE_FOLDER_NAME
 from data_to_paper.utils.mutable import Flag
@@ -155,3 +155,21 @@ class SingletonRegisteredRunContext(RegisteredRunContext):
         if process_and_identifier not in cls.PROCESS_AND_NAME_TO_OBJECT:
             raise RuntimeError(f'SingletonRegisteredRunContext {cls.__name__} was not created yet.')
         return cls.PROCESS_AND_NAME_TO_OBJECT[process_and_identifier]
+
+
+@dataclass
+class MultiRunContext(RunContext):
+    """
+    Pack together multiple run contexts.
+    """
+    contexts: Iterable[RunContext] = ()
+
+    def __enter__(self):
+        for context in self.contexts:
+            context.__enter__()
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for context in self.contexts:
+            context.__exit__(exc_type, exc_val, exc_tb)
+        return super().__exit__(exc_type, exc_val, exc_tb)

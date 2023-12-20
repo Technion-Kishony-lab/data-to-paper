@@ -6,15 +6,15 @@ from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitChec
     SklearnNNSizeOverride
 from .statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, StatsmodelsMultitestPValueOverride, \
     StatsmodelsAnovaPValueOverride
-from ..base_run_contexts import RunContext
+from ..base_run_contexts import RunContext, MultiRunContext
 
 
 @dataclass
-class OverrideStatisticsPackages(RunContext):
+class OverrideStatisticsPackages(MultiRunContext):
     """
     Base context manager for running GPT code.
     """
-    overrides: Iterable[RunContext] = (
+    contexts: Iterable[RunContext] = (
         ScipyPValueOverride(),
         SklearnFitOverride(),
         StatsmodelsFitPValueOverride(),
@@ -24,13 +24,3 @@ class OverrideStatisticsPackages(RunContext):
         SklearnRandomStateOverride(),
         SklearnNNSizeOverride(),
     )
-
-    def __enter__(self):
-        for context in self.overrides:
-            context.__enter__()
-        return super().__enter__()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        for context in self.overrides:
-            context.__exit__(exc_type, exc_val, exc_tb)
-        return super().__exit__(exc_type, exc_val, exc_tb)
