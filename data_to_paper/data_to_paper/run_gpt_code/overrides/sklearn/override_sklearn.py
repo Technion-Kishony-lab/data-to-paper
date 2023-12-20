@@ -120,10 +120,12 @@ class SklearnNNSizeOverride(SystematicMethodReplacerContext):
         return [MLPRegressor, MLPClassifier]
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
+        if not attr_name == '__init__':
+            return False
         sig = inspect.signature(attr)
         assert 'hidden_layer_sizes' in sig.parameters, \
             f"Expected hidden_layer_sizes to be in the signature of {parent.__name__}"
-        return attr_name == '__init__'
+        return True
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
 
