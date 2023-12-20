@@ -4,12 +4,11 @@ import time
 import pytest
 
 from data_to_paper.research_types.scientific_research.coding_steps import DictPickleContentOutputFileRequirement
-from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.set_seed_for_sklearn_models import \
-    sklearn_random_state_init_replacer
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
+from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnRandomStateOverride
 from data_to_paper.run_gpt_code.types import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -225,6 +224,7 @@ for model in models.keys():
     if hasattr(models[model], 'random_state'):
         assert models[model].random_state == 0, f'{model} is not initialized with random_state=0'
 """
-    error = RunCode(additional_contexts={'SklearnRandomSeedInitReplacer': sklearn_random_state_init_replacer()}).run(code)[4]
-    if error is not None:
-        raise error
+    with SklearnRandomStateOverride():
+        error = RunCode().run(code)[4]
+        if error is not None:
+            raise error

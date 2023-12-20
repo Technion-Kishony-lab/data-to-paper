@@ -14,6 +14,9 @@ class SklearnOverride(SystematicMethodReplacerContext):
     def obj(self):
         # TODO: add more sklearn modules. Or fix generally. See comment in SystematicAttrReplacerContext.
         from sklearn import linear_model, svm  # noqa  Needed for the import to work inclusively.
+        from sklearn.ensemble import RandomForestRegressor # noqa  Needed for the import to work inclusively.
+        from sklearn.linear_model import ElasticNet # noqa  Needed for the import to work inclusively.
+        from sklearn.neural_network import MLPRegressor # noqa  Needed for the import to work inclusively.
         import sklearn
         return sklearn
 
@@ -70,5 +73,31 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
                                      f"GridSearchCV or n_iter when using RandomizedSearchCV. \n"
                                      f"use only a subset of the parameters or reduce the number of iterations.")
             return original_len
+
+        return wrapped
+
+@dataclass
+class SklearnRandomStateOverride(SklearnOverride):
+    """
+    This class overrides any sklearn class constructor (__init__) that supports random_state
+    from sklearn to set random_state=0, ensuring reproducibility.
+    """
+    def _should_replace(self, parent, attr_name, attr) -> bool:
+        if attr_name == '__init__' and getattr(parent, '__name__',
+                                               None) is not None and parent.__name__ in ['RandomForestRegressor',
+                                                                                         'ElasticNet', 'MLPRegressor']:
+            return True
+        return False
+
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
+
+        @functools.wraps(original_func)
+        def wrapped(obj, *args, **kwargs):
+            # Set random_state=0 if not explicitly passed
+            if 'random_state' not in kwargs:
+                kwargs['random_state'] = 0
+
+            # Call the original constructor
+            return original_func(obj, *args, **kwargs)
 
         return wrapped
