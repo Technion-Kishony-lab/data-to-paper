@@ -10,9 +10,9 @@ from statsmodels.stats.anova import anova_lm
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
-from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnOverride
-from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitOverride
-from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyOverride
+from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
+from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
+from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
 from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
 
@@ -46,7 +46,7 @@ def test_statsmodels_label_pvalues(func):
 
 
 def test_statsmodels_logit():
-    with StatsmodelsFitOverride():
+    with StatsmodelsFitPValueOverride():
         # Example data
         X = [1, 2, 3, 4, 5]
         y = [0, 0, 1, 1, 1]
@@ -70,7 +70,7 @@ def test_statsmodels_anova_lm():
 
 
 def test_statsmodels_logit_func():
-    with StatsmodelsFitOverride():
+    with StatsmodelsFitPValueOverride():
         # Example data
         X = [1, 2, 3, 4, 5]
         y = [0, 0, 1, 1, 1]
@@ -84,7 +84,7 @@ def test_statsmodels_logit_func():
 
 
 def test_statsmodels_ols():
-    with StatsmodelsFitOverride():
+    with StatsmodelsFitPValueOverride():
         # Example of using the ols function, not the class
         data = sm.datasets.longley.load().data
         results = ols('TOTEMP ~ GNPDEFL', data=data).fit()
@@ -94,7 +94,7 @@ def test_statsmodels_ols():
 
 def test_sklean_raise_on_multiple_fit_calls():
 
-    with SklearnOverride():
+    with SklearnFitOverride():
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -140,12 +140,12 @@ def test_sklean_do_not_raise_on_single_fit_call_in_code_runner():
 
 def test_df_describe_under_label_pvalues():
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
-    with StatsmodelsFitOverride():
+    with StatsmodelsFitPValueOverride():
         df.describe()
 
 
 def test_scipy_label_pvalues():
-    with ScipyOverride():
+    with ScipyPValueOverride():
         # Example data
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0
@@ -155,7 +155,7 @@ def test_scipy_label_pvalues():
 
 
 def test_scipy_label_pvalues_raise_on_nan():
-    with ScipyOverride():
+    with ScipyPValueOverride():
         data = []
         popmean = 3.0
         with pytest.raises(RunUtilsError):
@@ -163,7 +163,7 @@ def test_scipy_label_pvalues_raise_on_nan():
 
 
 def test_scipy_label_pvalues_chi2_contingency():
-    with ScipyOverride():
+    with ScipyPValueOverride():
         # Example data
         observed = [[10, 10, 20], [20, 20, 20]]
         chi2, p, dof, expected = scipy_stats.chi2_contingency(observed)
@@ -171,7 +171,7 @@ def test_scipy_label_pvalues_chi2_contingency():
 
 
 def test_scipy_label_pvalues_ttest_ind():
-    with ScipyOverride():
+    with ScipyPValueOverride():
         # Example data
         data1 = [0, 1, 2, 3, 4, 5]
         data2 = [5, 6, 7, 8, 9, 10]
@@ -183,7 +183,7 @@ def test_scipy_label_pvalues_ttest_ind():
 @pytest.mark.skip()
 def test_scipy_stats_t_sf():
     # test stats.t.sf
-    with ScipyOverride():
+    with ScipyPValueOverride():
         # Example data
         t_statistic = 3.0
         df = 10

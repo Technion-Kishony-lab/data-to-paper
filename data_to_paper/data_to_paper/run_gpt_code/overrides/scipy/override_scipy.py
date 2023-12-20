@@ -10,7 +10,7 @@ from ..types import convert_to_p_value
 
 
 @dataclass
-class ScipyOverride(SystematicFuncReplacerContext):
+class ScipyPValueOverride(SystematicFuncReplacerContext):
     obj_import_str: str = 'scipy'
 
     def _should_replace(self, module, func_name, func) -> bool:

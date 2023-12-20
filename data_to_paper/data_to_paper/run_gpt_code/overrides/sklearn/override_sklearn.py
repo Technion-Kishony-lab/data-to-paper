@@ -4,16 +4,14 @@ from dataclasses import dataclass
 
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
 
-@dataclass
-class SklearnOverride(SystematicMethodReplacerContext):
-    obj_import_str: str = 'sklearn'
 
-    @property
-    def obj(self):
-        # TODO: add more sklearn modules. Or fix generally. See comment in SystematicAttrReplacerContext.
-        from sklearn import linear_model, svm  # noqa  Needed for the import to work inclusively.
-        import sklearn
-        return sklearn
+@dataclass
+class SklearnFitOverride(SystematicMethodReplacerContext):
+
+    def _get_all_modules(self) -> list:
+        # add here all modules that have classes with fit methods:
+        from sklearn import linear_model, svm
+        return [linear_model, svm]
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
@@ -37,14 +35,15 @@ class SklearnOverride(SystematicMethodReplacerContext):
 
 @dataclass
 class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
-    obj_import_str: str = 'sklearn.model_selection'
     max_iterations: int = 12  # Default max iterations limit
 
-    def _should_replace(self, parent, attr_name, attr) -> bool:
+    def _get_all_parents(self) -> list:
+        # add here all modules that have classes with fit methods:
         from sklearn.model_selection import ParameterGrid, ParameterSampler
-        is_parameter_grid = issubclass(parent, ParameterGrid) and attr_name == "__len__"
-        is_parameter_sampler = issubclass(parent, ParameterSampler) and attr_name == "__len__"
-        return is_parameter_grid or is_parameter_sampler
+        return [ParameterGrid, ParameterSampler]
+
+    def _should_replace(self, parent, attr_name, attr) -> bool:
+        return attr_name == "__len__"
 
     def _get_estimator_class_name(self):
         # Inspect the stack and find the class name of the estimator
@@ -72,6 +71,7 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
 
         return wrapped
 
+
 @dataclass
 class SklearnRandomStateOverride(SystematicMethodReplacerContext):
     """
@@ -79,13 +79,18 @@ class SklearnRandomStateOverride(SystematicMethodReplacerContext):
     from sklearn to set random_state=0, ensuring reproducibility.
     """
     def _get_all_parents(self) -> list:
-        from sklearn.ensemble import RandomForestRegressor # noqa  Needed for the import to work inclusively.
-        from sklearn.linear_model import ElasticNet # noqa  Needed for the import to work inclusively.
-        from sklearn.neural_network import MLPRegressor # noqa  Needed for the import to work inclusively.
+        # Add here all classes that have a random_state parameter in their constructor:
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.linear_model import ElasticNet
+        from sklearn.neural_network import MLPRegressor
         return [RandomForestRegressor, ElasticNet, MLPRegressor]
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
-        return attr_name == '__init__'
+        if not attr_name == '__init__':
+            return False
+        sig = inspect.signature(attr)
+        assert 'random_state' in sig.parameters, f"Expected random_state to be in the signature of {parent.__name__}"
+        return True
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
 
@@ -110,28 +115,36 @@ class SklearnNNSizeOverride(SystematicMethodReplacerContext):
     max_neurons_per_layer: int = 50
 
     def _get_all_parents(self) -> list:
-        from sklearn.neural_network import MLPRegressor # noqa  Needed for the import to work inclusively.
-        from sklearn.neural_network import MLPClassifier # noqa  Needed for the import to work inclusively.
+        from sklearn.neural_network import MLPRegressor
+        from sklearn.neural_network import MLPClassifier
         return [MLPRegressor, MLPClassifier]
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
+        sig = inspect.signature(attr)
+        assert 'hidden_layer_sizes' in sig.parameters, \
+            f"Expected hidden_layer_sizes to be in the signature of {parent.__name__}"
         return attr_name == '__init__'
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
 
         @functools.wraps(original_func)
         def wrapped(obj, *args, **kwargs):
-            if 'hidden_layer_sizes' in kwargs:
-                hidden_layer_sizes = kwargs['hidden_layer_sizes']
-            else:
-                # get the default hidden_layer_sizes
-                hidden_layer_sizes = parent().hidden_layer_sizes
+
+            sig = inspect.signature(original_func)
+            # apply default and get the hidden_layer_sizes:
+            bound_args = sig.bind(obj, *args, **kwargs)
+            bound_args.apply_defaults()
+
+            # Check depth:
+            hidden_layer_sizes = bound_args.arguments['hidden_layer_sizes']
             if len(hidden_layer_sizes) > self.max_layers:
                 raise RuntimeWarning(f"The given hidden_layer_sizes ({len(hidden_layer_sizes)}) is too large!\n"
                                      f"We only allow up to {self.max_layers} layers with {self.max_neurons_per_layer} "
                                      f"max neurons per layer.")
+
+            # Check width:
             for layer, layer_size in enumerate(hidden_layer_sizes):
-                if layer_size > 50:
+                if layer_size > self.max_neurons_per_layer:
                     raise RuntimeWarning(f"The given hidden_layer_sizes, has a layer ({layer}) with too many neurons!\n"
                                          f"We only allow up to {self.max_layers} layers with "
                                          f"{self.max_neurons_per_layer} max neurons per layer.")

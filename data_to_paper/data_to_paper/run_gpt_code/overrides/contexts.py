@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import Iterable, Type
+from typing import Iterable
 
-from .scipy.override_scipy import ScipyOverride
-from .sklearn.override_sklearn import SklearnOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
+from .scipy.override_scipy import ScipyPValueOverride
+from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
     SklearnNNSizeOverride
-from .statsmodels.override_statsmodels import StatsmodelsFitOverride, StatsmodelsMultitestOverride, \
-    StatsmodelsAnovaOverride
+from .statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, StatsmodelsMultitestPValueOverride, \
+    StatsmodelsAnovaPValueOverride
 from ..base_run_contexts import RunContext
 
 
@@ -14,19 +14,23 @@ class OverrideStatisticsPackages(RunContext):
     """
     Base context manager for running GPT code.
     """
-    overrides: Iterable[Type[RunContext]] = (
-        ScipyOverride, SklearnOverride, StatsmodelsFitOverride, StatsmodelsMultitestOverride, StatsmodelsAnovaOverride,
-        SklearnSearchLimitCheck, SklearnRandomStateOverride, SklearnNNSizeOverride)
-
-    _contexts: Iterable[RunContext] = None
+    overrides: Iterable[RunContext] = (
+        ScipyPValueOverride(),
+        SklearnFitOverride(),
+        StatsmodelsFitPValueOverride(),
+        StatsmodelsMultitestPValueOverride(),
+        StatsmodelsAnovaPValueOverride(),
+        SklearnSearchLimitCheck(),
+        SklearnRandomStateOverride(),
+        SklearnNNSizeOverride(),
+    )
 
     def __enter__(self):
-        self._contexts = [override() for override in self.overrides]
-        for context in self._contexts:
+        for context in self.overrides:
             context.__enter__()
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for context in self._contexts:
+        for context in self.overrides:
             context.__exit__(exc_type, exc_val, exc_tb)
         return super().__exit__(exc_type, exc_val, exc_tb)
