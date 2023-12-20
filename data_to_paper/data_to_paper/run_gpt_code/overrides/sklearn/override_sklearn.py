@@ -39,17 +39,13 @@ class SklearnOverride(SystematicMethodReplacerContext):
 
 @dataclass
 class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
-    base_module: object = sklearn.model_selection
-
+    obj_import_str: str = 'sklearn.model_selection'
     max_iterations: int = 12  # Default max iterations limit
 
-    is_parameter_grid: bool = False
-    is_parameter_sampler: bool = False
-
     def _should_replace(self, parent, attr_name, attr) -> bool:
-        self.is_parameter_grid = issubclass(parent, ParameterGrid) and attr_name == "__len__"
-        self.is_parameter_sampler = issubclass(parent, ParameterSampler) and attr_name == "__len__"
-        return self.is_parameter_grid or self.is_parameter_sampler
+        is_parameter_grid = issubclass(parent, ParameterGrid) and attr_name == "__len__"
+        is_parameter_sampler = issubclass(parent, ParameterSampler) and attr_name == "__len__"
+        return is_parameter_grid or is_parameter_sampler
 
     def _get_estimator_class_name(self):
         # Inspect the stack and find the class name of the estimator

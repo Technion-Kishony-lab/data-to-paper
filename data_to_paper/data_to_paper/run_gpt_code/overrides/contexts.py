@@ -14,7 +14,8 @@ class OverrideStatisticsPackages(RunContext):
     Base context manager for running GPT code.
     """
     overrides: Iterable[Type[RunContext]] = (
-        ScipyOverride, SklearnOverride, StatsmodelsFitOverride, StatsmodelsMultitestOverride, StatsmodelsAnovaOverride)
+        ScipyOverride, SklearnOverride, StatsmodelsFitOverride, StatsmodelsMultitestOverride, StatsmodelsAnovaOverride,
+        SklearnSearchLimitCheck)
 
     _contexts: Iterable[RunContext] = None
 
