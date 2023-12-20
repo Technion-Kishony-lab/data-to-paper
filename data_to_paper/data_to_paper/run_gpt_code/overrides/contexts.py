@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Iterable, Type
 
 from .scipy.override_scipy import ScipyOverride
-from .sklearn.override_sklearn import SklearnOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride
+from .sklearn.override_sklearn import SklearnOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
+    SklearnNNSizeOverride
 from .statsmodels.override_statsmodels import StatsmodelsFitOverride, StatsmodelsMultitestOverride, \
     StatsmodelsAnovaOverride
 from ..base_run_contexts import RunContext
@@ -15,7 +16,7 @@ class OverrideStatisticsPackages(RunContext):
     """
     overrides: Iterable[Type[RunContext]] = (
         ScipyOverride, SklearnOverride, StatsmodelsFitOverride, StatsmodelsMultitestOverride, StatsmodelsAnovaOverride,
-        SklearnSearchLimitCheck, SklearnRandomStateOverride)
+        SklearnSearchLimitCheck, SklearnRandomStateOverride, SklearnNNSizeOverride)
 
     _contexts: Iterable[RunContext] = None
 

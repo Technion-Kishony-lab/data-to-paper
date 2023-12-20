@@ -99,3 +99,44 @@ class SklearnRandomStateOverride(SystematicMethodReplacerContext):
             return original_func(obj, *args, **kwargs)
 
         return wrapped
+
+
+@dataclass
+class SklearnNNSizeOverride(SystematicMethodReplacerContext):
+    """
+    This class overrides MLPRegressor and MLPClassifier to raise warning if the hidden_layer_sizes is too large.
+    """
+    max_layers: int = 2
+    max_neurons_per_layer: int = 50
+
+    def _get_all_parents(self) -> list:
+        from sklearn.neural_network import MLPRegressor # noqa  Needed for the import to work inclusively.
+        from sklearn.neural_network import MLPClassifier # noqa  Needed for the import to work inclusively.
+        return [MLPRegressor, MLPClassifier]
+
+    def _should_replace(self, parent, attr_name, attr) -> bool:
+        return attr_name == '__init__'
+
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
+
+        @functools.wraps(original_func)
+        def wrapped(obj, *args, **kwargs):
+            if 'hidden_layer_sizes' in kwargs:
+                hidden_layer_sizes = kwargs['hidden_layer_sizes']
+            else:
+                # get the default hidden_layer_sizes
+                hidden_layer_sizes = parent().hidden_layer_sizes
+            if len(hidden_layer_sizes) > self.max_layers:
+                raise RuntimeWarning(f"The given hidden_layer_sizes ({len(hidden_layer_sizes)}) is too large!\n"
+                                     f"We only allow up to {self.max_layers} layers with {self.max_neurons_per_layer} "
+                                     f"max neurons per layer.")
+            for layer, layer_size in enumerate(hidden_layer_sizes):
+                if layer_size > 50:
+                    raise RuntimeWarning(f"The given hidden_layer_sizes, has a layer ({layer}) with too many neurons!\n"
+                                         f"We only allow up to {self.max_layers} layers with "
+                                         f"{self.max_neurons_per_layer} max neurons per layer.")
+
+            # Call the original constructor
+            return original_func(obj, *args, **kwargs)
+
+        return wrapped
