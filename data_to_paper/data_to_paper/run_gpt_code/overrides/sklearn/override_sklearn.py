@@ -1,8 +1,11 @@
 import functools
 import inspect
 from dataclasses import dataclass
+from typing import Iterable
 
-from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
+from data_to_paper.run_gpt_code.base_run_contexts import MultiRunContext
+from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext, \
+    PreventAssignmentToAttrs
 
 
 @dataclass
@@ -107,51 +110,36 @@ class SklearnRandomStateOverride(SystematicMethodReplacerContext):
 
 
 @dataclass
-class SklearnNNSizeOverride(SystematicMethodReplacerContext):
+class SklearnSingleNNSizeOverride(PreventAssignmentToAttrs):
     """
     This class overrides MLPRegressor and MLPClassifier to raise warning if the hidden_layer_sizes is too large.
     """
+    obj_import_str: str = None  # 'sklearn.neural_network.MLPRegressor', 'sklearn.neural_network.MLPClassifier'
+    forbidden_set_attrs: Iterable[str] = ('hidden_layer_sizes', )
     max_layers: int = 2
     max_neurons_per_layer: int = 50
 
-    def _get_all_parents(self) -> list:
-        from sklearn.neural_network import MLPRegressor
-        from sklearn.neural_network import MLPClassifier
-        return [MLPRegressor, MLPClassifier]
-
-    def _should_replace(self, parent, attr_name, attr) -> bool:
-        if not attr_name == '__init__':
-            return False
-        sig = inspect.signature(attr)
-        assert 'hidden_layer_sizes' in sig.parameters, \
-            f"Expected hidden_layer_sizes to be in the signature of {parent.__name__}"
+    def _is_called_from_user_script(self) -> bool:
         return True
 
-    def _get_custom_wrapper(self, parent, attr_name, original_func):
+    def _raise_exception(self, attr, value):
+        # Check depth:
+        if len(value) > self.max_layers:
+            raise RuntimeWarning(f"The given hidden_layer_sizes ({len(value)}) is too large!\n"
+                                 f"We only allow up to {self.max_layers} layers with {self.max_neurons_per_layer} "
+                                 f"max neurons per layer.")
 
-        @functools.wraps(original_func)
-        def wrapped(obj, *args, **kwargs):
+        # Check width:
+        for layer, layer_size in enumerate(value):
+            if layer_size > self.max_neurons_per_layer:
+                raise RuntimeWarning(f"The given hidden_layer_sizes, has a layer ({layer}) with too many neurons!\n"
+                                     f"We only allow up to {self.max_layers} layers with "
+                                     f"{self.max_neurons_per_layer} max neurons per layer.")
 
-            sig = inspect.signature(original_func)
-            # apply default and get the hidden_layer_sizes:
-            bound_args = sig.bind(obj, *args, **kwargs)
-            bound_args.apply_defaults()
 
-            # Check depth:
-            hidden_layer_sizes = bound_args.arguments['hidden_layer_sizes']
-            if len(hidden_layer_sizes) > self.max_layers:
-                raise RuntimeWarning(f"The given hidden_layer_sizes ({len(hidden_layer_sizes)}) is too large!\n"
-                                     f"We only allow up to {self.max_layers} layers with {self.max_neurons_per_layer} "
-                                     f"max neurons per layer.")
-
-            # Check width:
-            for layer, layer_size in enumerate(hidden_layer_sizes):
-                if layer_size > self.max_neurons_per_layer:
-                    raise RuntimeWarning(f"The given hidden_layer_sizes, has a layer ({layer}) with too many neurons!\n"
-                                         f"We only allow up to {self.max_layers} layers with "
-                                         f"{self.max_neurons_per_layer} max neurons per layer.")
-
-            # Call the original constructor
-            return original_func(obj, *args, **kwargs)
-
-        return wrapped
+@dataclass
+class SklearnNNSizeOverride(MultiRunContext):
+    contexts: Iterable[SklearnSingleNNSizeOverride] = (
+        SklearnSingleNNSizeOverride(obj_import_str='sklearn.neural_network.MLPRegressor'),
+        SklearnSingleNNSizeOverride(obj_import_str='sklearn.neural_network.MLPClassifier'),
+    )

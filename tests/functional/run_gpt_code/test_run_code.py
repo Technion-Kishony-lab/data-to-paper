@@ -240,13 +240,13 @@ def test_run_code_with_sklearn_nn_with_too_many_layers(MLPclass, hidden_layer_si
 from sklearn.neural_network import {MLPclass}
 mlp = {MLPclass}(hidden_layer_sizes={hidden_layer_sizes})
 """
-    with SklearnNNSizeOverride(max_layers=2, max_neurons_per_layer=50):
-        error = RunCode().run(code)[4]
-        warning_to_compare_to = expected_warning_and_contains[0]
-        if warning_to_compare_to is None:
-            assert error is None
-        else:
-            if error is None:
-                raise AssertionError(f"Expected a {warning_to_compare_to} warning, but got None.")
-            assert isinstance(error.exception, warning_to_compare_to)
-            assert expected_warning_and_contains[1] in error.exception.args[0]
+    error = RunCode(additional_contexts=
+                    {'SklearnNNSizeOverride': SklearnNNSizeOverride()}).run(code)[4]
+    warning_to_compare_to = expected_warning_and_contains[0]
+    if warning_to_compare_to is None:
+        assert error is None
+    else:
+        if error is None:
+            raise AssertionError(f"Expected a {warning_to_compare_to} warning, but got None.")
+        assert isinstance(error.exception, warning_to_compare_to)
+        assert expected_warning_and_contains[1] in error.exception.args[0]
