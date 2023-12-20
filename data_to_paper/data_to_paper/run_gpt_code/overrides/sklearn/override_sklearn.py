@@ -3,8 +3,6 @@ import inspect
 from dataclasses import dataclass
 
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext
-from sklearn.model_selection import ParameterGrid, ParameterSampler
-
 
 @dataclass
 class SklearnOverride(SystematicMethodReplacerContext):
@@ -14,9 +12,6 @@ class SklearnOverride(SystematicMethodReplacerContext):
     def obj(self):
         # TODO: add more sklearn modules. Or fix generally. See comment in SystematicAttrReplacerContext.
         from sklearn import linear_model, svm  # noqa  Needed for the import to work inclusively.
-        from sklearn.ensemble import RandomForestRegressor # noqa  Needed for the import to work inclusively.
-        from sklearn.linear_model import ElasticNet # noqa  Needed for the import to work inclusively.
-        from sklearn.neural_network import MLPRegressor # noqa  Needed for the import to work inclusively.
         import sklearn
         return sklearn
 
@@ -46,6 +41,7 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
     max_iterations: int = 12  # Default max iterations limit
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
+        from sklearn.model_selection import ParameterGrid, ParameterSampler
         is_parameter_grid = issubclass(parent, ParameterGrid) and attr_name == "__len__"
         is_parameter_sampler = issubclass(parent, ParameterSampler) and attr_name == "__len__"
         return is_parameter_grid or is_parameter_sampler
@@ -77,17 +73,19 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
         return wrapped
 
 @dataclass
-class SklearnRandomStateOverride(SklearnOverride):
+class SklearnRandomStateOverride(SystematicMethodReplacerContext):
     """
-    This class overrides any sklearn class constructor (__init__) that supports random_state
+    This class overrides any provided sklearn class constructor (__init__) that supports random_state
     from sklearn to set random_state=0, ensuring reproducibility.
     """
+    def _get_all_parents(self) -> list:
+        from sklearn.ensemble import RandomForestRegressor # noqa  Needed for the import to work inclusively.
+        from sklearn.linear_model import ElasticNet # noqa  Needed for the import to work inclusively.
+        from sklearn.neural_network import MLPRegressor # noqa  Needed for the import to work inclusively.
+        return [RandomForestRegressor, ElasticNet, MLPRegressor]
+
     def _should_replace(self, parent, attr_name, attr) -> bool:
-        if attr_name == '__init__' and getattr(parent, '__name__',
-                                               None) is not None and parent.__name__ in ['RandomForestRegressor',
-                                                                                         'ElasticNet', 'MLPRegressor']:
-            return True
-        return False
+        return attr_name == '__init__'
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
 
