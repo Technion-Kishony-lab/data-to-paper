@@ -124,6 +124,7 @@ class SystematicAttrReplacerContext(OverrideImportedObjContext):
     def __exit__(self, exc_type, exc_val, exc_tb):
         for (parent, attr_name), original in self._originals.items():
             setattr(parent, attr_name, original)
+        return super().__exit__(exc_type, exc_val, exc_tb)
 
 
 class SystematicMethodReplacerContext(SystematicAttrReplacerContext):
