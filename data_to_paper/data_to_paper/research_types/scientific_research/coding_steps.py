@@ -683,7 +683,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
                                                          enforce_saving_altered_dataframes=False) |
         {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
-         'PickleDump': get_pickle_dump_attr_replacer()}
+         'PickleDump': get_pickle_dump_attr_replacer(),}
     )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""

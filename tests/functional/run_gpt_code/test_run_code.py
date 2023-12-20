@@ -8,6 +8,8 @@ from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
+from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnRandomStateOverride, \
+    SklearnNNSizeOverride
 from data_to_paper.run_gpt_code.types import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 
@@ -209,3 +211,42 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
         import pickle
         p_value = pickle.load(open(tmpdir / 'additional_results.pkl', 'rb'))['p_value']
         assert p_value.created_by == 'f_oneway'
+
+
+def test_run_code_with_sklearn_class_with_no_random_state_defined():
+    code = """
+from sklearn.linear_model import ElasticNet
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
+# initialize models without setting random_state
+models = {'Random Forest': RandomForestRegressor(), 'Elastic Net': ElasticNet(), 'Neural network': MLPRegressor()}
+# check if models are initialized with `random_state=0` by using the replacer we created
+for model in models.keys():
+    if hasattr(models[model], 'random_state'):
+        assert models[model].random_state == 0, f'{model} is not initialized with random_state=0'
+"""
+    with SklearnRandomStateOverride():
+        error = RunCode().run(code)[4]
+        if error is not None:
+            raise error
+
+@pytest.mark.parametrize("MLPclass, hidden_layer_sizes, expected_warning_and_contains", (
+                         ('MLPRegressor' ,(50,), (None, '')),
+                         ('MLPClassifier', (50, 50, 50), (RuntimeWarning, '(3) is too large!')),
+                         ('MLPRegressor', (100,), (RuntimeWarning, '(0) with too many neurons!')),)
+                         )
+def test_run_code_with_sklearn_nn_with_too_many_layers(MLPclass, hidden_layer_sizes, expected_warning_and_contains):
+    code = f"""
+from sklearn.neural_network import {MLPclass}
+mlp = {MLPclass}(hidden_layer_sizes={hidden_layer_sizes})
+"""
+    with SklearnNNSizeOverride(max_layers=2, max_neurons_per_layer=50):
+        error = RunCode().run(code)[4]
+        warning_to_compare_to = expected_warning_and_contains[0]
+        if warning_to_compare_to is None:
+            assert error is None
+        else:
+            if error is None:
+                raise AssertionError(f"Expected a {warning_to_compare_to} warning, but got None.")
+            assert isinstance(error.exception, warning_to_compare_to)
+            assert expected_warning_and_contains[1] in error.exception.args[0]

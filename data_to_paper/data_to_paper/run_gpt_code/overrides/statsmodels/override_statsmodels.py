@@ -66,7 +66,7 @@ def _get_summary_func(self, original_func):
 
 
 @dataclass
-class StatsmodelsFitOverride(SystematicMethodReplacerContext):
+class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext):
     """
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
@@ -116,7 +116,7 @@ class StatsmodelsFitOverride(SystematicMethodReplacerContext):
 
 
 @dataclass
-class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
+class StatsmodelsMultitestPValueOverride(SystematicFuncReplacerContext):
     obj_import_str: str = 'statsmodels.stats.multitest'
 
     def _should_replace(self, module, func_name, func) -> bool:
@@ -143,7 +143,7 @@ class StatsmodelsMultitestOverride(SystematicFuncReplacerContext):
 
 
 @dataclass
-class StatsmodelsAnovaOverride(SystematicFuncReplacerContext):
+class StatsmodelsAnovaPValueOverride(SystematicFuncReplacerContext):
     obj_import_str: str = 'statsmodels.stats.anova'
 
     def _should_replace(self, module, func_name, func) -> bool:
