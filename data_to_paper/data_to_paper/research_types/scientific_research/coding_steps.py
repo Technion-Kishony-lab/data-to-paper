@@ -423,8 +423,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         [NumericTextContentOutputFileRequirement('results.txt'),
          TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                                         enforce_saving_altered_dataframes=False))
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
+                                         enforce_saving_altered_dataframes=False))
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
 
@@ -625,7 +625,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             # func_name = func_names[0][:-1]
             s.append(
                 f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
-                f'using cross-validation (as appropriate). Also check whether the best hyperparameters are reported '
+                f'using cross-validation (as appropriate). Make sure that the best hyperparameters are reported '
                 f'(either in the table files or in the "additional_results.pkl" file).')
 
         # get ScipyPValueOverride:

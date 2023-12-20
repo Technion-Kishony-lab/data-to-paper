@@ -35,13 +35,14 @@ optimal tube depth is provided for each age group:
 (c) ID-based method:
 OTTD (in cm) = 3 * (tube ID [mm]) * cm/mm
 
+For each model and each formula, you should calculate a "fit score" and estimate the standard deviation of this \
+"fit score".  
 
 ** Hypotheses:
 
-- Compared across cross-validation folds, the ML models will vary in their performance for predicting the OTTD. 
+- The ML models will vary in their performance for predicting the OTTD. 
 
-- Compared across cross-validation folds, each of the 4 optimized ML models will perform better than each of the \
-formula-based methods. 
+- Each of the 4 optimized ML models will perform better than each of the formula-based methods. 
 """
 
 
