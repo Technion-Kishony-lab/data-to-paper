@@ -157,7 +157,7 @@ print(grid_search.best_params_)
 
 @pytest.mark.parametrize("code, result", [
                          (code_multi_process1, [('6', 'p.join()')]),
-                         (code_multi_process2, [('14', 'grid_search.fit(X, y)')]),])
+                         (code_multi_process2, [('14', 'grid_search.fit(X, y)')]), ])
 def test_run_code_timeout_multiprocessing(code, result):
     _, _, _, exception = \
         CodeRunner(response=code,
