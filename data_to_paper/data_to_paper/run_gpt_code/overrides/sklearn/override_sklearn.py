@@ -123,6 +123,9 @@ class SklearnSingleNNSizeOverride(PreventAssignmentToAttrs):
         return True
 
     def _raise_exception(self, attr, value):
+        # if value is the same as default, do not raise exception - get value using inspect and compare
+        if value == inspect.signature(self.obj).parameters[attr].default:
+            return
         # Check depth:
         if len(value) > self.max_layers:
             raise RuntimeWarning(f"The given hidden_layer_sizes ({len(value)}) is too large!\n"
