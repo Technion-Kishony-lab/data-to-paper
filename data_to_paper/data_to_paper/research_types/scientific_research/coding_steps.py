@@ -680,7 +680,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
          ])
 
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
+        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
                                                          enforce_saving_altered_dataframes=False) |
         {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
          'PickleDump': get_pickle_dump_attr_replacer(),
