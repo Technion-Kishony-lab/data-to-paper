@@ -5,6 +5,7 @@ import pickle
 import pandas
 from _pytest.python_api import raises
 
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import DataframeKeyError
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, AttrReplacer
 from tests.functional.run_gpt_code.conftest import TestDoNotAssign
@@ -61,3 +62,17 @@ def test_attr_replacer():
 def test_attr_replacer_is_serializable():
     attr_replacer = AttrReplacer(attr='DataFrame', obj_import_str='pandas', wrapper=_wrapper)
     pickle.dumps(attr_replacer)
+
+
+def test_dataframe_key_error_is_serializable():
+    error = DataframeKeyError(original_error=KeyError("Test error"), key="test_key",
+                              available_keys=["key1", "key2"])
+
+    pickled_error = pickle.dumps(error)
+    unpickled_error = pickle.loads(pickled_error)
+
+    assert error.original_error.args == unpickled_error.original_error.args, \
+        "Original error arguments do not match unpickled error arguments"
+    assert error.key == unpickled_error.key, "Original error key does not match unpickled error key"
+    assert error.available_keys == unpickled_error.available_keys, \
+        "Original error available keys do not match unpickled error available keys"
