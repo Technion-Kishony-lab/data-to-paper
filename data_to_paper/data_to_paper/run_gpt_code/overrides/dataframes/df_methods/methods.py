@@ -26,6 +26,10 @@ class DataframeKeyError(BaseKeyError):
         return str(self.original_error) + \
             f"\n\nAvailable keys are:\n{self.available_keys}"
 
+    def __reduce__(self):
+        # Custom serialization: return the class and its arguments
+        return self.__class__, (self.original_error, self.key, self.available_keys)
+
 
 @dataclass
 class DataFrameLocKeyError(BaseKeyError):
