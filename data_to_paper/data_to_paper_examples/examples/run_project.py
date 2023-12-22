@@ -87,6 +87,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
               project_specific_goal_guidelines: Optional[str] = None,
               should_do_data_exploration: bool = True,
               excluded_citation_titles: List[str] = None,
+              copy_openai_responses: bool = False,
               should_mock_servers: bool = True,
               load_from_repo: bool = True,
               save_on_repo: bool = True):
@@ -94,11 +95,15 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     temp_folder_to_run_in = input_path / 'temp_folder'
     copy_datafiles_to_data_folder(data_filenames, input_path, temp_folder_to_run_in)
 
+    output_directory = get_output_path(project, output_folder, save_on_repo)
+    if copy_openai_responses and not output_directory.exists():
+        copy_datafiles_to_data_folder(['openai_responses.txt'], input_path, output_directory)
+
     ScientificStepsRunner(
         data_file_descriptions=get_file_descriptions(input_path, data_filenames, temp_folder_to_run_in),
         research_goal=research_goal,
         project_specific_goal_guidelines=project_specific_goal_guidelines or '',
-        output_directory=get_output_path(project, output_folder, save_on_repo),
+        output_directory=output_directory,
         excluded_citation_titles=excluded_citation_titles,
         mock_servers=should_mock_servers,
         should_do_data_exploration=should_do_data_exploration,
