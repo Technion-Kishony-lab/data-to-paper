@@ -40,6 +40,7 @@ class BaseLatexToPDF(BaseFileProducer):
             content=self._get_sections(),
             appendix=self._get_appendix(),
             references=self._get_references(),
+            format_cite=True,
             file_stem=self.output_file_stem,
             output_directory=str(self.output_directory),
             raise_on_too_wide=False,

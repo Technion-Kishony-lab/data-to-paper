@@ -31,6 +31,7 @@ SECTIONS_TO_WRITING_CLASS = [
             # (('conclusion',), ConclusionSectionWriterReviewGPT),
         ]
 
+
 @dataclass
 class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
