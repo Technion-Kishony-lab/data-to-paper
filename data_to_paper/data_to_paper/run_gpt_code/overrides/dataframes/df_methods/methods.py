@@ -4,13 +4,14 @@ from typing import Any
 
 import pandas as pd
 
+from data_to_paper.exceptions import data_to_paperException
 from ..utils import format_float
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
 
 @dataclass
-class BaseKeyError(KeyError):
+class BaseKeyError(KeyError, data_to_paperException):
     original_error: KeyError
     key: Any
 

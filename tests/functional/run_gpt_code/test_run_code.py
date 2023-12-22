@@ -158,7 +158,7 @@ def test_run_code_wrong_import():
         """)
     error = RunCode().run(code)[4]
     assert isinstance(error, FailedRunningCode)
-    assert error.exception.fromlist == ('yyy', )
+    assert error.exception.fromlist == ('yyy',)
 
 
 code = dedent_triple_quote_str("""
@@ -204,7 +204,7 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
         error = RunCode(run_folder=tmpdir,
                         allowed_open_write_files=None,
                         output_file_requirements=OutputFileRequirements(
-                            (DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)),).run(code)[4]
+                            (DictPickleContentOutputFileRequirement('additional_results.pkl', 1),)), ).run(code)[4]
         if error is not None:
             raise error
         assert os.path.exists(tmpdir / 'additional_results.pkl')
@@ -230,18 +230,18 @@ for model in models.keys():
         if error is not None:
             raise error
 
+
 @pytest.mark.parametrize("MLPclass, hidden_layer_sizes, expected_warning_and_contains", (
-                         ('MLPRegressor' ,(50,), (None, '')),
-                         ('MLPClassifier', (50, 50, 50), (RuntimeWarning, '(3) is too large!')),
-                         ('MLPRegressor', (100,), (RuntimeWarning, '(0) with too many neurons!')),)
+        ('MLPRegressor', (50,), (None, '')),
+        ('MLPClassifier', (50, 50, 50), (RuntimeWarning, '(3) is too large!')),
+        ('MLPRegressor', (200,), (RuntimeWarning, '(0) with too many neurons!')),)
                          )
 def test_run_code_with_sklearn_nn_with_too_many_layers(MLPclass, hidden_layer_sizes, expected_warning_and_contains):
     code = f"""
 from sklearn.neural_network import {MLPclass}
 mlp = {MLPclass}(hidden_layer_sizes={hidden_layer_sizes})
 """
-    error = RunCode(additional_contexts=
-                    {'SklearnNNSizeOverride': SklearnNNSizeOverride()}).run(code)[4]
+    error = RunCode(additional_contexts={'SklearnNNSizeOverride': SklearnNNSizeOverride()}).run(code)[4]
     warning_to_compare_to = expected_warning_and_contains[0]
     if warning_to_compare_to is None:
         assert error is None
