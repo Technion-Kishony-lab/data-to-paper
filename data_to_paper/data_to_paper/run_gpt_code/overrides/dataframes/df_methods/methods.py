@@ -4,13 +4,14 @@ from typing import Any
 
 import pandas as pd
 
+from data_to_paper.exceptions import data_to_paperException
 from ..utils import format_float
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
 
 @dataclass
-class BaseKeyError(KeyError):
+class BaseKeyError(KeyError, data_to_paperException):
     original_error: KeyError
     key: Any
 
@@ -25,10 +26,6 @@ class DataframeKeyError(BaseKeyError):
     def __str__(self):
         return str(self.original_error) + \
             f"\n\nAvailable keys are:\n{self.available_keys}"
-
-    def __reduce__(self):
-        # Custom serialization: return the class and its arguments
-        return self.__class__, (self.original_error, self.key, self.available_keys)
 
 
 @dataclass
