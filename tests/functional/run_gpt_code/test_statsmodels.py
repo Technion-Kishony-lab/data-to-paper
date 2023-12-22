@@ -129,6 +129,22 @@ def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
     assert isinstance(exception.exception, RuntimeWarning)
 
 
+code0 = """
+```from statsmodels.formula.api import logit
+import pandas as pd
+df = pd.DataFrame({'Y': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                   'X': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],})
+table1_model = logit("interaction ~ Beauty", data=df).fit()
+```
+"""
+
+
+def test_run_code_with_none_serializable_exception():
+    runner = CodeRunner(response=code0, allowed_read_files=None)
+    _, _, _, exception = runner.run_code_in_separate_process()
+    print(exception)
+
+
 def test_sklean_do_not_raise_on_single_fit_call_in_code_runner():
     response_with_single_fit_calls = response_with_two_fit_calls.replace('model.fit(X, y)\n```', '```')
     _, _, _, exception = CodeRunner(response=response_with_single_fit_calls,
