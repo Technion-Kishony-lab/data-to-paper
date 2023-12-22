@@ -81,10 +81,6 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
 
         pdflatex_output = pdflatex_output.stdout.decode('utf-8')
-        if r'Overfull \hbox' in pdflatex_output and raise_on_too_wide:
-            _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
-            raise TooWideTableOrText(latex_content=latex_content,
-                                     pdflatex_output=pdflatex_output)
 
         if should_compile_with_bib:
             try:
@@ -96,7 +92,12 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
                 raise
 
         add_watermark_to_pdf(file_stem + '.pdf', WATERMARK_PATH)
+
         _move_latex_and_pdf_to_output_directory(file_stem, output_directory, latex_file_name)
+
+        if r'Overfull \hbox' in pdflatex_output and raise_on_too_wide:
+            raise TooWideTableOrText(latex_content=latex_content,
+                                     pdflatex_output=pdflatex_output)
 
         return pdflatex_output
 
