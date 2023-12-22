@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
@@ -9,12 +9,6 @@ from data_to_paper.servers.crossref import CrossrefCitation
 @dataclass
 class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
     products: ScientificProducts = None
-
-    def _get_title(self) -> str:
-        return self.products.get_title()
-
-    def _get_abstract(self) -> str:
-        return self.products.get_abstract()
 
     def _get_sections(self) -> Dict[str, str]:
         return {section_name: self.products.tabled_paper_sections[section_name]

@@ -19,9 +19,17 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 
-SECTIONS_TO_ADD_CITATIONS_TO = ['introduction', 'discussion']
-SECTIONS_TO_ADD_TABLES_TO = ['results']
+PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
+SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
+SECTIONS_TO_WRITING_CLASS = [
+            (('results',), ReferringTablesSectionWriterReviewGPT),
+            (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
+            (('methods',), MethodsSectionWriterReviewGPT),
+            (('introduction',), IntroductionSectionWriterReviewGPT),
+            (('discussion',), DiscussionSectionWriterReviewGPT),
+            # (('conclusion',), ConclusionSectionWriterReviewGPT),
+        ]
 
 @dataclass
 class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
@@ -38,22 +46,13 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_prepare_hypothesis_testing_plan: bool = True
     should_do_literature_search: bool = True
     should_add_citations: bool = False
-    should_add_tables: bool = True
     should_interpret_results: bool = False
 
-    excluded_citation_titles: List[str] = None,
+    excluded_citation_titles: List[str] = None,  # Title of papers that we don't allow to be cited
 
     def get_sections_to_writing_class(
             self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
-        return [
-            (('results',), (ReferringTablesSectionWriterReviewGPT if self.should_add_tables
-                            else SectionWriterReviewBackgroundProductsConverser)),
-            (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
-            (('methods',), MethodsSectionWriterReviewGPT),
-            (('introduction',), IntroductionSectionWriterReviewGPT),
-            (('discussion',), DiscussionSectionWriterReviewGPT),
-            #  (('conclusion',), ConclusionSectionWriterReviewGPT),
-        ]
+        return SECTIONS_TO_WRITING_CLASS
 
     def assert_paper_sections_to_write_matches_template(self, template_sections, sections_to_writing_class):
         flattened_paper_sections_to_write = []
@@ -66,15 +65,14 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         products = self.products  # Start with empty products
 
         # Set the paper section names:
-        paper_section_names = ['introduction', 'results', 'discussion', 'methods']
         sections_and_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(['title', 'abstract'] + paper_section_names,
+        self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES,
                                                              sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             latex_document=self.latex_document,
             output_filename='paper.pdf',
-            paper_section_names=paper_section_names,
+            paper_section_names=PAPER_SECTIONS_NAMES,
         )
 
         # Data file descriptions:
@@ -230,7 +228,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Add citations to relevant paper sections
         if self.should_add_citations:
             self.advance_stage_and_set_active_conversation(ScientificStages.CITATIONS, ScientificAgent.CitationExpert)
-            for section_name in SECTIONS_TO_ADD_CITATIONS_TO:
+            for section_name in SECTIONS_WITH_CITATIONS:
                 products.paper_sections_and_optional_citations[section_name] = \
                     AddCitationReviewGPT.from_(self, section_name=section_name,
                                                conversation_name=f'add_citations_to_{section_name}') \

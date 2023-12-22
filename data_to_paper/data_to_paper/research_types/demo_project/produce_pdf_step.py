@@ -10,12 +10,6 @@ from products import DemoProducts
 class ProduceDemoPaperPDF(BaseLatexToPDF):
     products: DemoProducts = None
 
-    def _get_title(self) -> str:
-        return self.products.paper_sections['title']
-
-    def _get_abstract(self) -> str:
-        return self.products.paper_sections['abstract']
-
     def _get_sections(self) -> Dict[str, str]:
         return {section_name: self.products.paper_sections[section_name]
                 for section_name in self.paper_section_names}
