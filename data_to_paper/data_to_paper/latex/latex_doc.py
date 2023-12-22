@@ -129,6 +129,7 @@ class LatexDocument:
                      appendix: Optional[str] = None,
                      author: Optional[str] = None,
                      references: Collection[Citation] = None,
+                     format_cite: bool = True,
                      add_before_document: Optional[str] = None,
                      file_stem: str = None,
                      output_directory: Optional[str] = None,
@@ -223,7 +224,8 @@ class LatexDocument:
 
         # Save and compile:
         pdf_output = save_latex_and_compile_to_pdf(s, file_stem=file_stem, output_directory=output_directory,
-                                                   references=references, raise_on_too_wide=raise_on_too_wide)
+                                                   references=references, raise_on_too_wide=raise_on_too_wide,
+                                                   format_cite=format_cite)
         return s, pdf_output
 
     def compile_table(self, latex_table: str, file_stem: str = None, output_directory: Optional[str] = None) -> float:
@@ -253,6 +255,7 @@ class LatexDocument:
                                           file_stem=file_stem,
                                           output_directory=output_directory,
                                           raise_on_too_wide=False,
+                                          format_cite=False,
                                           )
 
         table_width = re.findall(pattern=r'Table width: (\d+\.\d+)pt', string=pdf_output)[0]

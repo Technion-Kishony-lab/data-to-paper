@@ -16,21 +16,10 @@ class BaseLatexToPDF(BaseFileProducer):
     latex_document: LatexDocument = field(default_factory=LatexDocument)
     paper_section_names: List[str] = None
 
-    def _get_title(self) -> Optional[str]:
-        """
-        Return the title of the paper.
-        """
-        return None
-
-    def _get_abstract(self) -> Optional[str]:
-        """
-        Return the abstract of the paper.
-        """
-        return None
-
     def _get_sections(self) -> Dict[str, str]:
         """
         Return a mapping from section names to their content for all the sections of the paper.
+        Should include the 'title' and 'abstract' as keys if the pdf should have a title and abstract.
         """
         return {}
 
@@ -49,10 +38,9 @@ class BaseLatexToPDF(BaseFileProducer):
     def assemble_compile_paper(self) -> str:
         return self.latex_document.get_document(
             content=self._get_sections(),
-            title=self._get_title(),
-            abstract=self._get_abstract(),
             appendix=self._get_appendix(),
             references=self._get_references(),
+            format_cite=True,
             file_stem=self.output_file_stem,
             output_directory=str(self.output_directory),
             raise_on_too_wide=False,

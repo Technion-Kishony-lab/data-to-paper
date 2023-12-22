@@ -26,7 +26,7 @@ class DemoStepsRunner(BaseStepsRunner):
         paper_producer = ProduceDemoPaperPDF.from_(
             self,
             output_filename='paper.pdf',
-            paper_section_names=[]
+            paper_section_names=['title', 'abstract'],
         )
 
         # Data file descriptions:
