@@ -873,13 +873,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
-    user_initiation_prompt: str = dedent_triple_quote_str('''
-        I would like to create latex tables for our scientific paper from the dataframes created \
-        in the code above ("table_?.pkl" files). 
-
-        I would like to convert these dataframes to latex tables, using the following 4 custom functions that I wrote: 
-
-        ```python
+    provided_code: str = dedent_triple_quote_str('''
         def to_latex_with_note(df, filename: str, caption: str, label: str, \
         note: str = None, legend: Dict[str, str] = None, **kwargs):
             """
@@ -893,7 +887,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
             Returns:
             - None: Outputs LaTeX file.
-            """      
+            """
 
         def format_p_value(x):
             returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
@@ -910,6 +904,16 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             names_to_definitions = {name or abbr: definition for abbr, (name, definition) in \
         abbrs_to_names_and_definitions.items() if definition is not None}
             return abbrs_to_names, names_to_definitions
+        ''')
+
+    user_initiation_prompt: str = dedent_triple_quote_str('''
+        I would like to create latex tables for our scientific paper from the dataframes created \
+        in the code above ("table_?.pkl" files). 
+
+        I would like to convert these dataframes to latex tables, using the following 4 custom functions that I wrote: 
+
+        ```python
+        {provided_code}
         ```
 
         Please write a complete Python code that uses the above functions to convert our dataframes \

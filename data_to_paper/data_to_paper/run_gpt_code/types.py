@@ -433,17 +433,23 @@ class CodeAndOutput:
         OutputFileRequirementsWithContent = field(default_factory=OutputFileRequirementsWithContent)
     code_name: str = None
     code_explanation: Optional[str] = None
+    provided_code: Optional[str] = None
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 
     def to_latex(self):
-        s = f"\\section{{{self.name}}} \\subsection{{Code}}" \
-            f"The {self.name} was carried out using the following custom code:"
-        s += '\n\n'
-        s += '\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
+        s = f"\\section{{{self.name}}}\n"
+        if self.code:
+            s += "\\subsection{{Code}}\n"
+            s += f"The {self.name} was carried out using the following custom code:\n"
+            s += '\n\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
+        if self.provided_code:
+            s += f"\\subsection{{Provided Code}}\n"
+            s += f"The code above is using the following provided functions:\n"
+            s += '\n\\begin{minted}[linenos, breaklines]{python}\n' + self.provided_code + '\n\\end{minted}\n\n'
         if self.code_explanation:
-            s += "\\subsection{Code Description}"
-            s += '\n\n' + self.code_explanation
+            s += "\\subsection{Code Description}\n"
+            s += '\n' + self.code_explanation
         outputs = self.created_files.get_created_content_files_to_contents()
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"

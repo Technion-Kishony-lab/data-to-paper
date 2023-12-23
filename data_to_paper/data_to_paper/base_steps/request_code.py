@@ -50,6 +50,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     revision_round: int = 0
 
+    provided_code: Optional[str] = None
+
     system_prompt: str = dedent_triple_quote_str("""
         You are a brilliant data scientist. You are writing a Python code to analyze data.
         """)
@@ -154,6 +156,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             code_and_output.created_files.delete_all_created_files(self.data_folder)
             self.revision_round += 1
         code_and_output.name = self.code_name
+        code_and_output.provided_code = self.provided_code
         return code_and_output
 
     def _run_debugger(self, previous_code: Optional[str] = None
