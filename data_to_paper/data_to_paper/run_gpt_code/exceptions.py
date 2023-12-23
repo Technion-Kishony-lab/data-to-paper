@@ -2,22 +2,36 @@ import re
 import traceback
 from abc import ABCMeta
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
-from data_to_paper.env import BASE_FOLDER_NAME
 from data_to_paper.exceptions import data_to_paperException
 
 
 @dataclass
+class AnyException(data_to_paperException):
+    msg: str
+    type_name: str
+
+    def __str__(self):
+        return self.msg
+
+
+def convert_exception_to_any_exception_if_needed(e: Exception) -> Exception:
+    if isinstance(e, (TimeoutError, SyntaxError, ImportError, RuntimeWarning, data_to_paperException)):
+        return e
+    return AnyException(msg=str(e), type_name=type(e).__name__)
+
+
+@dataclass
 class FailedRunningCode(data_to_paperException):
-    exception: Optional[Exception]
+    exception: Optional[Union[Exception, AnyException]]
     tb: Optional[List]
     py_spy_stack_and_code: Optional[Tuple[str, str]] = ('', '')
     fake_file_name = "my_analysis.py"
 
     @classmethod
     def from_exception(cls, e: Exception):
-        return cls(exception=e, tb=traceback.extract_tb(e.__traceback__))
+        return cls(exception=convert_exception_to_any_exception_if_needed(e), tb=traceback.extract_tb(e.__traceback__))
 
     @classmethod
     def from_current_tb(cls):
@@ -25,7 +39,8 @@ class FailedRunningCode(data_to_paperException):
 
     @classmethod
     def from_exception_with_py_spy(cls, e: Exception, py_spy_stack_and_code: Tuple[str, str]):
-        return cls(exception=e, py_spy_stack_and_code=py_spy_stack_and_code, tb=traceback.extract_tb(e.__traceback__))
+        return cls(exception=convert_exception_to_any_exception_if_needed(e), tb=traceback.extract_tb(e.__traceback__),
+                   py_spy_stack_and_code=py_spy_stack_and_code)
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
@@ -41,12 +56,6 @@ class FailedRunningCode(data_to_paperException):
 
         return [t for t in self.tb if t[0].endswith(module_filename)]
 
-    def _get_data_to_paper_frames(self):
-        """
-        returns the last frame within the data_to_paper package.
-        """
-        return [t for t in self.tb if BASE_FOLDER_NAME in t[0]]
-
     def _extract_linono_line_from_py_spy_stack(self):
         """
         returns the line of code that caused the exception.
@@ -60,31 +69,6 @@ class FailedRunningCode(data_to_paperException):
         line = self.py_spy_stack_and_code[1].splitlines()[int(lineno) - 1]
         return [(lineno, line)]
 
-    def _get_name_space(self):
-        """
-        returns the name space of the frame that caused the exception.
-        """
-        # TODO: implement
-        return NotImplemented
-
-    def is_legit(self):
-        """
-        Legit exceptions are exceptions whose last data_to_paper frame is the module_filename, or
-        that last data_to_paper frame has explicitly raised.
-        """
-        last_data_to_paper_frame = self._get_data_to_paper_frames()[-1]
-        gpt_module_frames = self._get_gpt_module_frames()
-        assert gpt_module_frames is not None
-        if len(gpt_module_frames) == 0:
-            assert isinstance(self.exception, SyntaxError)  # <-- are there other cases?
-            return True
-        last_gpt_module_frame = gpt_module_frames[-1]
-        if last_data_to_paper_frame is last_gpt_module_frame:
-            return True
-        line = last_data_to_paper_frame.line
-        # TODO: this is a hack.  we should check if the line explicitly raises.
-        return line.strip().startswith('raise')
-
     def get_lineno_line_message(self, lines_added_by_modifying_code: int = 0) -> Tuple[List[Tuple[int, str]], str]:
         """
         returns the line of code that caused the exception.
@@ -94,7 +78,7 @@ class FailedRunningCode(data_to_paperException):
             text = self.exception.text
             linenos_and_lines = [(lineno, text)]
             msg = self.exception.msg
-        if isinstance(self.exception, TimeoutError) and self.py_spy_stack_and_code[0]:
+        elif isinstance(self.exception, TimeoutError) and self.py_spy_stack_and_code[0]:
             msg = str(self.exception)
             linenos_and_lines = self._extract_linono_line_from_py_spy_stack()
             return linenos_and_lines, msg
@@ -108,6 +92,11 @@ class FailedRunningCode(data_to_paperException):
         linenos_and_lines = [(lineno - lines_added_by_modifying_code, text) for lineno, text in linenos_and_lines]
         return linenos_and_lines, msg
 
+    def get_type_name(self):
+        if isinstance(self.exception, AnyException):
+            return self.exception.type_name
+        return type(self.exception).__name__
+
     def get_traceback_message(self, lines_added_by_modifying_code: int = 0):
         """
         returns a fake traceback message, simulating as if the code ran in a real file.
@@ -118,7 +107,7 @@ class FailedRunningCode(data_to_paperException):
         for lineno, line in linenos_and_lines:
             s += f'  File "{self.fake_file_name}", line {lineno}, in <module>"\n' + \
                f'    {line}\n'
-        return s + f'{type(self.exception).__name__}: {msg}'
+        return s + f'{self.get_type_name()}: {msg}'
 
 
 class BaseRunContextException(data_to_paperException, metaclass=ABCMeta):
