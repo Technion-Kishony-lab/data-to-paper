@@ -236,6 +236,12 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                         .rewrite_section_with_citations()
             self.send_product_to_client('most_updated_paper')
 
+        # Compile paper
         paper_producer.assemble_compile_paper()
+
+        # Save the GPT-writen codes
+        for code_step, code_and_output in products.codes_and_outputs.items():
+            with open(f'{self.output_directory}/{code_step}.py', 'w') as f:
+                f.write(code_and_output.code)
 
         return products
