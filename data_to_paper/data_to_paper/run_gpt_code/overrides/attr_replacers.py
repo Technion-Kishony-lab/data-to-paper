@@ -85,7 +85,7 @@ class OverrideImportedObjContext(RegisteredRunContext):
 @dataclass
 class SystematicAttrReplacerContext(OverrideImportedObjContext):
     recursive: bool = True
-    _originals: dict = None
+    _originals: Optional[dict] = None
 
     def _get_all_modules(self) -> list:
         all_modules = [self.obj]
@@ -124,6 +124,7 @@ class SystematicAttrReplacerContext(OverrideImportedObjContext):
     def __exit__(self, exc_type, exc_val, exc_tb):
         for (parent, attr_name), original in self._originals.items():
             setattr(parent, attr_name, original)
+        self._originals = None
         return super().__exit__(exc_type, exc_val, exc_tb)
 
 
@@ -213,7 +214,7 @@ class PreventAssignmentToAttrs(OverrideImportedObjContext):
 class PreventCalling(RegisteredRunContext):
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = True
     modules_and_functions: Iterable[Tuple[Any, str, bool]] = None
-    _original_functions: Dict[str, Callable] = None
+    _original_functions: Optional[Dict[str, Callable]] = None
 
     def __enter__(self):
         self._original_functions = {}
@@ -228,6 +229,7 @@ class PreventCalling(RegisteredRunContext):
         for module, function_name, _ in self.modules_and_functions:
             module = _import_obj(module)
             setattr(module, function_name, self._original_functions.pop(function_name))
+        self._original_functions = None
         return super().__exit__(exc_type, exc_val, exc_tb)
 
     def get_upon_called(self, func_name: str, original_func: Callable, should_only_create_issue: bool):

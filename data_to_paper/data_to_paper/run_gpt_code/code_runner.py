@@ -109,7 +109,7 @@ class BaseCodeRunner(ABC):
                                           args=(queue, code, modified_code))
         try:
             process.start()
-        except AttributeError:
+        except (AttributeError, TypeError):
             for k, v in self.__dict__.items():
                 if not is_serializable(v):
                     print(f'Attribute {k} is not serializable.')
