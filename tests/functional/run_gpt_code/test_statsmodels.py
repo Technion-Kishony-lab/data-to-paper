@@ -142,7 +142,7 @@ table1_model = logit("interaction ~ Beauty", data=df).fit()
 def test_run_code_with_none_serializable_exception():
     runner = CodeRunner(response=code0, allowed_read_files=None)
     _, _, _, exception = runner.run_code_in_separate_process()
-    print(exception)
+    assert exception.get_type_name() == 'PatsyError'
 
 
 def test_sklean_do_not_raise_on_single_fit_call_in_code_runner():

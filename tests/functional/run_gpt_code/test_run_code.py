@@ -33,7 +33,7 @@ def test_run_code_correctly_reports_exception():
         """)
     error = RunCode().run(code)[4]
     assert isinstance(error, FailedRunningCode)
-    assert error.exception.args[0] == 'error'
+    assert error.exception.msg == 'error'
     linenos_lines, msg = error.get_lineno_line_message()
     assert linenos_lines == [(3, "raise Exception('error')")]
 
@@ -70,7 +70,7 @@ def test_run_code_correctly_reports_exception_from_func():
         """)
     error = RunCode().run(code)[4]
     assert isinstance(error, FailedRunningCode)
-    assert error.exception.args[0] == 'stupid error'
+    assert 'stupid error' in str(error.exception)
     linenos_lines, msg = error.get_lineno_line_message()
     assert linenos_lines == [(3, 'func()'), (2, "raise Exception('stupid error')")]
     msg = error.get_traceback_message()
