@@ -69,7 +69,7 @@ def test_paper_assembler_compiler_gpt(tmpdir, products):
         products=products,
         output_directory=tmpdir,
         output_filename='output.pdf',
-        paper_section_names=['introduction', 'results', 'discussion', 'methods'],
+        paper_section_names=['title', 'abstract', 'introduction', 'results', 'discussion', 'methods'],
     )
 
     latex_paper = paper_assembler_compiler.assemble_compile_paper()
