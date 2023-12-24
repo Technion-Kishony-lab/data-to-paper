@@ -7,6 +7,7 @@ from typing import Any, Optional
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
+from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
 
@@ -56,7 +57,7 @@ class Rewind(Enum):
 
 
 @dataclass
-class SelfResponseError(Exception):
+class SelfResponseError(data_to_paperException):
     """
     Exception raised when the response to a request for a latex section is not acceptable.
     """

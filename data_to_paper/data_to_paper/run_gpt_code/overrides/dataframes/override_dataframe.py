@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 
 from pandas.core.indexing import _LocationIndexer
 
+from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
 from ...base_run_contexts import RunContext
@@ -32,7 +33,7 @@ CLS_METHOD_NAMES_NEW_METHODS = [
 
 
 @dataclass
-class DataFrameSeriesChange(Exception):
+class DataFrameSeriesChange(data_to_paperException):
     """
     Exception that is raised when a data frame series is changed.
     """

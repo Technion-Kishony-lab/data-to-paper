@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
+from data_to_paper.exceptions import data_to_paperException
+
 
 @dataclass
-class UnAllowedDataframeMethodCall(Exception):
+class UnAllowedDataframeMethodCall(data_to_paperException):
     method_name: str
 
     def __str__(self):

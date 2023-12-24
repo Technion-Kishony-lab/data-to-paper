@@ -17,7 +17,8 @@ class AnyException(data_to_paperException):
 
 
 def convert_exception_to_any_exception_if_needed(e: Exception) -> Exception:
-    if isinstance(e, (TimeoutError, SyntaxError, ImportError, RuntimeWarning, data_to_paperException)):
+    if isinstance(e, (TimeoutError, SyntaxError, ImportError, RuntimeWarning, FileNotFoundError,
+                      data_to_paperException)):
         return e
     return AnyException(msg=str(e), type_name=type(e).__name__)
 

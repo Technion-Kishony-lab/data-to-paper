@@ -2,9 +2,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Any, get_args, get_origin
 
+from data_to_paper.exceptions import data_to_paperException
+
 
 @dataclass
-class WrongTypeException(Exception):
+class WrongTypeException(data_to_paperException):
     """
     Raised when a value is of the wrong type.
     """

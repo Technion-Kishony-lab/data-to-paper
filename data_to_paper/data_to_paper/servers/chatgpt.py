@@ -19,6 +19,7 @@ from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
 
+from data_to_paper.exceptions import data_to_paperException
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
@@ -46,7 +47,7 @@ class TooManyTokensInMessageError(Exception):
                f'maximum number of tokens: {self.max_tokens}.'
 
 
-class UserAbort(Exception):
+class UserAbort(data_to_paperException):
     def __str__(self):
         return 'user aborted.'
 
