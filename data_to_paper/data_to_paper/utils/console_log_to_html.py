@@ -1,8 +1,7 @@
-import glob
-import os, re
+import os
+import re
 
 from pathlib import Path
-from typing import Union
 from ansi2html import Ansi2HTMLConverter
 
 
@@ -39,21 +38,18 @@ def filter_text(text):
     return filtered_text
 
 
-def convert_console_log_to_html(output_directory: Union[str, Path]):
+def convert_console_log_to_html(console_filepath: Path):
     """
     Convert the console log to a html file.
     """
-    os.chdir(output_directory)
-    file = glob.glob('console_log.txt')[0]
     # check if file exists and is not empty
-    if os.path.isfile(file) and os.path.getsize(file) > 0:
-        with open(file, 'r') as f:
-            text_as_string = f.read()
-            filtered_text = filter_text(text_as_string)
-            text_as_string_html = convert_ansi_to_html(filtered_text)
-            html_file = file.replace('.txt', '.html')
-            with open(html_file, 'w') as new_f:
-                new_f.write(text_as_string_html)
-        return html_file
-    else:
-        raise FileNotFoundError(f'File {file} does not exist or is empty')
+    if not os.path.isfile(console_filepath) or os.path.getsize(console_filepath) > 0:
+        raise FileNotFoundError(f'File {console_filepath} does not exist or is empty')
+    with open(console_filepath, 'r') as f:
+        text_as_string = f.read()
+        filtered_text = filter_text(text_as_string)
+        text_as_string_html = convert_ansi_to_html(filtered_text)
+        html_file = console_filepath.parent / (console_filepath.stem + '.html')
+        with open(html_file, 'w') as new_f:
+            new_f.write(text_as_string_html)
+    return html_file
