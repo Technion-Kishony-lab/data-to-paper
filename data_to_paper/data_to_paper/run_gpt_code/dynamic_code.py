@@ -28,12 +28,12 @@ from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequiremen
 from ..utils.singleton import undefined
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
-module_filepath = os.path.join(module_dir, module_filename)
+module_default_filepath = os.path.join(module_dir, module_filename)
 
 
 def save_code_to_module_file(code: str = None):
     code = code or '# empty module\n'
-    with open(module_filepath, "w") as f:
+    with open(module_default_filepath, "w") as f:
         f.write(code)
 
 
@@ -56,7 +56,8 @@ def is_serializable(x):
         return False
 
 
-DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
+# DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
+DEFAULT_WARNINGS_TO_ISSUE = None  # None for all that are not ignored or raised
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
 DEFAULT_WARNINGS_TO_RAISE = ()
 
@@ -80,9 +81,9 @@ class RunCode:
     Run the provided code and report exceptions or specific warnings.
     """
     timeout_sec: Optional[int] = undefined
-    warnings_to_issue: Iterable[Type[Warning]] = undefined
-    warnings_to_ignore: Iterable[Type[Warning]] = undefined
-    warnings_to_raise: Iterable[Type[Warning]] = undefined
+    warnings_to_issue: Optional[Iterable[Type[Warning]]] = undefined
+    warnings_to_ignore: Optional[Iterable[Type[Warning]]] = undefined
+    warnings_to_raise: Optional[Iterable[Type[Warning]]] = undefined
 
     forbidden_modules_and_functions: Iterable[Tuple[Any, str, bool]] = undefined
     forbidden_imports: Optional[Iterable[str]] = undefined
@@ -150,7 +151,7 @@ class RunCode:
                 contexts[context_name] = context
         return contexts
 
-    def run(self, code: str, save_as: Optional[str] = None
+    def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None, save_as: Optional[str] = None,
             ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any], Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
@@ -167,9 +168,11 @@ class RunCode:
             contexts: a dict of all the contexts within which the code was run.
             exception: an exception that was raised during the run, None if no exception was raised.
         """
-        self._module = generate_empty_code_module_object()
+        if module_filepath is None:
+            self._module = generate_empty_code_module_object()
+            save_code_to_module_file(code)
+
         contexts = self._create_and_get_all_contexts()
-        save_code_to_module_file(code)
         exception = None
         result = None
         try:
@@ -177,7 +180,10 @@ class RunCode:
                 for context in contexts.values():
                     stack.enter_context(context)
                 try:
-                    module = importlib.reload(self._module)
+                    if module_filepath is None:
+                        module = importlib.reload(self._module)
+                    else:
+                        module = importlib.import_module(module_filepath)
                     result = self._run_function_in_module(module)
                 except Exception as e:
                     exception = FailedRunningCode.from_exception(e)
@@ -195,8 +201,8 @@ class RunCode:
                         if os.path.exists(file):
                             os.remove(file)
                 created_files = []
-            if save_as:
-                os.rename(module_filepath, os.path.join(module_dir, save_as) + ".py")
+            if save_as and module_filepath is None:
+                os.rename(module_default_filepath, os.path.join(module_dir, save_as) + ".py")
             save_code_to_module_file()  # leave the module empty
 
         # Collect issues from all contexts
