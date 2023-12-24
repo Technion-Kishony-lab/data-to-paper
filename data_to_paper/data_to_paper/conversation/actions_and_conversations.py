@@ -14,8 +14,9 @@ from pathlib import Path
 from typing import Union, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 
-from .conversation import Conversation, WebConversation
+from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.base_cast import Agent
+from .conversation import Conversation, WebConversation
 
 
 @dataclass(frozen=True)
@@ -98,8 +99,7 @@ class Actions(List[Action]):
             else:
                 s = action.pretty_repr(is_color=is_color)
             if s:
-                print(s)
-                print()
+                print_and_log(s, end='\n\n')
         if should_append:
             self.append(action)
         action.apply()

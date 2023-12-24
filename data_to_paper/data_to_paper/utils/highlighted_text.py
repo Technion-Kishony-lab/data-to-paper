@@ -85,14 +85,6 @@ def red_text(text: str, is_color: bool = True) -> str:
     return colored_text(text, colorama.Fore.RED, is_color)
 
 
-def print_color(text: str, color: str, **kwargs):
-    print(colored_text(text, color), **kwargs)
-
-
-print_red = partial(print_color, color=colorama.Fore.RED)
-print_magenta = partial(print_color, color=colorama.Fore.MAGENTA)
-
-
 def get_pre_html_format(text,
                         color: str = None,
                         font_style: str = 'normal',

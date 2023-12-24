@@ -7,7 +7,7 @@ from typing import List, Optional
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
-
+from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE
 
 THIS_FOLDER = Path(__file__).parent
 
@@ -98,6 +98,8 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     output_directory = get_output_path(project, output_folder, save_on_repo)
     if copy_openai_responses and not output_directory.exists():
         copy_datafiles_to_data_folder(['openai_responses.txt'], input_path, output_directory)
+
+    CONSOLE_LOG_FILE.set(output_directory / 'console_log.txt')
 
     ScientificStepsRunner(
         data_file_descriptions=get_file_descriptions(input_path, data_filenames, temp_folder_to_run_in),

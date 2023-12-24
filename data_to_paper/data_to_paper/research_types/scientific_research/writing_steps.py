@@ -15,6 +15,7 @@ from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.nice_list import nicely_join
+from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.utils.types import ListBasedSet
 
 
@@ -491,7 +492,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         if '[unknown]' in section.lower() or '[insert' in section.lower():
-            print(f'ABORTING DATA-TO_PAPER:\nThe LLM requires unknown values to write section "{section_name}".')
+            print_and_log(
+                f'ABORTING DATA-TO_PAPER:\nThe LLM requires unknown values to write section "{section_name}".')
             raise FailedCreatingProductException()
         table_labels = self._get_table_labels(section_name)
         for table_label in table_labels:

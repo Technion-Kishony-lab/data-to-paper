@@ -3,12 +3,12 @@ from typing import Dict, List, Collection, Optional
 
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
+from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from .literature_search import LiteratureSearch
-from ..utils.highlighted_text import print_red
 
 
 @dataclass
@@ -134,9 +134,10 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     excluded_citations = [citation for citation in citations
                                           if citation['title'] in self.excluded_citation_titles]
                     if excluded_citations:
-                        print_red(f'The following citations specified in the excluded citation list were excluded:\n')
+                        print_and_log_red(
+                            f'The following citations specified in the excluded citation list were excluded:\n')
                         for citation in excluded_citations:
-                            print_red(f'{citation}\n\n')
+                            print_and_log_red(f'{citation}\n\n')
                         citations = [citation for citation in citations if citation not in excluded_citations]
 
                 queries_to_citations[query] = citations

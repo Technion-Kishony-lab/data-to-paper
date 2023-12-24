@@ -11,7 +11,7 @@ from typing import List, Union, Optional
 import tiktoken
 
 from data_to_paper.env import DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
-from data_to_paper.utils.highlighted_text import print_red
+from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 
 from .base_server import ListServerCaller
@@ -73,15 +73,15 @@ class OpenaiSeverCaller(ListServerCaller):
                     break
                 elif answer == 'n':
                     raise UserAbort()
-        print_red('Calling OPENAI for real.')
+        print_and_log_red('Calling OPENAI for real.')
 
     @staticmethod
     def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
         tokens_in = count_number_of_tokens_in_message(messages, model_engine)
         tokens_out = count_number_of_tokens_in_message(content, model_engine)
         pricing_in, pricing_out = model_engine.pricing
-        print_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
-                  f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.')
+        print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
+                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.')
         # time.sleep(6)
 
     @staticmethod
@@ -110,11 +110,11 @@ class OpenaiSeverCaller(ListServerCaller):
             except openai.error.InvalidRequestError:
                 raise
             except (openai.error.OpenAIError, TimeoutError) as e:
-                print_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
+                print_and_log_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
                 sleep_time = 1.0 * 2 ** attempt
-                print_red(f'Going to sleep for {sleep_time} seconds before trying again.')
+                print_and_log_red(f'Going to sleep for {sleep_time} seconds before trying again.')
                 time.sleep(sleep_time)
-                print(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_OPENAI_ATTEMPTS}) ...')
+                print_and_log_red(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_OPENAI_ATTEMPTS}) ...')
         else:
             raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')
 
@@ -162,10 +162,11 @@ def try_get_chatgpt_response(messages: List[Message],
     tokens = count_number_of_tokens_in_message(messages, model_engine)
     if tokens + expected_tokens_in_response > model_engine.max_tokens:
         return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine.max_tokens)
-    print_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
-              f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
+    print_and_log_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
+                      f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
     if tokens + expected_tokens_in_response < DEFAULT_MODEL_ENGINE.max_tokens and model_engine > DEFAULT_MODEL_ENGINE:
-        print(f'WARNING: Consider using {DEFAULT_MODEL_ENGINE} (max {DEFAULT_MODEL_ENGINE.max_tokens} tokens).')
+        print_and_log(f'WARNING: Consider using {DEFAULT_MODEL_ENGINE} (max {DEFAULT_MODEL_ENGINE.max_tokens} tokens).',
+                      should_log=False)
 
     try:
         return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)

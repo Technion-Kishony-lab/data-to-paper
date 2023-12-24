@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Any
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation, Message
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
-from data_to_paper.utils.highlighted_text import print_magenta
+from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.env import TEXT_WIDTH
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
@@ -357,11 +357,11 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             return response
 
     def initialize_dialog(self):
-        print_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
-        print_magenta(self.conversation_name.center(TEXT_WIDTH))
+        print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
+        print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
         if self.are_we_reviewing_at_all:
-            print_magenta(self.other_conversation_name.center(TEXT_WIDTH))
-        print_magenta('=' * TEXT_WIDTH)
+            print_and_log_magenta(self.other_conversation_name.center(TEXT_WIDTH))
+        print_and_log_magenta('=' * TEXT_WIDTH)
 
         self.initialize_conversation_if_needed(print_header=False)
         if self.are_we_reviewing_at_all:
