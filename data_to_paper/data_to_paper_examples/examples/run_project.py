@@ -113,4 +113,4 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
         latex_document=LatexDocument(fontsize=11),
     ).run_all_steps()
 
-    convert_console_log_to_html(CONSOLE_LOG_FILE.get())
+    convert_console_log_to_html(CONSOLE_LOG_FILE.val)
