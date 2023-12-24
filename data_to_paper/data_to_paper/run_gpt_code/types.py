@@ -16,6 +16,7 @@ from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
+from data_to_paper.exceptions import data_to_paperException
 
 from .overrides.utils import round_floats
 
@@ -105,8 +106,11 @@ class RunIssue:
 
 
 @dataclass
-class RunUtilsError(Exception):
+class RunUtilsError(data_to_paperException):
     issue: RunIssue
+
+    def __str__(self):
+        return self.issue.issue
 
 
 class RunIssues(List[RunIssue]):
