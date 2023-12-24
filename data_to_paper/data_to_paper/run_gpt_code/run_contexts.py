@@ -205,17 +205,21 @@ class WarningHandler(SingletonRegisteredRunContext):
         warnings.showwarning = self.original_showwarning
         return super()._reversible_exit()
 
+    @staticmethod
+    def _is_matched_cls(category, classes):
+        return classes is None or any(issubclass(category, cls) for cls in classes)
+
     def _warning_handler(self, message, category, filename, lineno, file=None, line=None):
-        if any(issubclass(category, cls) for cls in self.categories_to_issue):
+        if self._is_matched_cls(category, self.categories_to_raise):
+            raise message
+        elif self._is_matched_cls(category, self.categories_to_ignore):
+            pass
+        elif self._is_matched_cls(category, self.categories_to_issue):
             linenos_lines, _ = FailedRunningCode.from_current_tb().get_lineno_line_message()
             self.issues.append(RunIssue(
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 linenos_and_lines=linenos_lines,
             ))
-        elif any(issubclass(category, cls) for cls in self.categories_to_raise):
-            raise message
-        elif any(issubclass(category, cls) for cls in self.categories_to_ignore):
-            pass
         else:
             return self.original_showwarning(message, category, filename, lineno, file, line)

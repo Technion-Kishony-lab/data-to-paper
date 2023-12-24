@@ -57,9 +57,9 @@ def is_serializable(x):
 
 
 # DEFAULT_WARNINGS_TO_ISSUE = (RuntimeWarning, SyntaxWarning, ConvergenceWarning)
-DEFAULT_WARNINGS_TO_ISSUE = None  # None for all that are not ignored or raised
 DEFAULT_WARNINGS_TO_IGNORE = (DeprecationWarning, ResourceWarning, PendingDeprecationWarning, FutureWarning)
 DEFAULT_WARNINGS_TO_RAISE = ()
+DEFAULT_WARNINGS_TO_ISSUE = None  # None for all that are not ignored or raised
 
 DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS = (
         # Module, function, create RunIssue (True) or raise exception (False)
