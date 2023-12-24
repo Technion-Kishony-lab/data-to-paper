@@ -19,6 +19,16 @@ from statsmodels.formula.api import ols, logit
 from data_to_paper.run_gpt_code.types import RunUtilsError
 
 
+def test_fit_results_do_not_allow_summary():
+    with OverrideStatisticsPackages():
+        data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
+        model = ols('y ~ x', data=data)
+        results = model.fit()
+        with pytest.raises(RunUtilsError) as e:
+            results.summary()
+        assert 'Do not use the `summary` function of statsmodels.' in str(e.value)
+
+
 @pytest.mark.parametrize('func', [
     sm.OLS,
     sm.WLS,

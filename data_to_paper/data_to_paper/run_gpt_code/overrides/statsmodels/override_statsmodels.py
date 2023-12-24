@@ -71,7 +71,12 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext):
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
     """
-    obj_import_str: str = 'statsmodels'
+
+    def _get_all_modules(self) -> list:
+        from statsmodels.regression import linear_model
+        from statsmodels.genmod import generalized_linear_model
+        from statsmodels.discrete import discrete_model
+        return [linear_model, generalized_linear_model, discrete_model]
 
     def _should_replace(self, parent, attr_name, attr) -> bool:
         return attr_name.startswith('fit')
