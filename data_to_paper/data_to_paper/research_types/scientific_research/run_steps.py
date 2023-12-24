@@ -239,9 +239,4 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Compile paper
         paper_producer.assemble_compile_paper()
 
-        # Save the GPT-writen codes
-        for code_step, code_and_output in products.codes_and_outputs.items():
-            with open(f'{self.output_directory}/{code_step}.py', 'w') as f:
-                f.write(code_and_output.code)
-
         return products

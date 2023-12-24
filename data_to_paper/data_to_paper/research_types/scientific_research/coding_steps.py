@@ -1204,6 +1204,10 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     explain_created_files_class: Optional[Type[ExplainCreatedDataframe]] = None
     latex_document: LatexDocument = None
 
+    def _save_code_to_file(self, code_step: str, code_and_output: CodeAndOutput):
+        with open(f'{self.output_directory}/{code_step}.py', 'w') as f:
+            f.write(code_and_output.code)
+
     def get_code_and_output(self) -> CodeAndOutput:
         code_writing = self.code_writing_class.from_(self)
         assert code_writing.code_step == self.code_step
@@ -1230,4 +1234,5 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             code_and_output.code_explanation = self._get_code_explanation()
         if self.explain_created_files_class and code_and_output.created_files.get_created_data_files():
             code_and_output.description_of_created_files = self._get_description_of_created_files()
+        self._save_code_to_file(self.code_step, code_and_output)
         return code_and_output
