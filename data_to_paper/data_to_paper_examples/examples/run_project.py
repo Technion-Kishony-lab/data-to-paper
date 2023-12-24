@@ -7,6 +7,7 @@ from typing import List, Optional
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.utils.console_log_to_html import convert_console_log_to_html
 from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE
 
 THIS_FOLDER = Path(__file__).parent
@@ -111,3 +112,5 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
         should_do_data_exploration=should_do_data_exploration,
         latex_document=LatexDocument(fontsize=11),
     ).run_all_steps()
+
+    convert_console_log_to_html(CONSOLE_LOG_FILE.get())
