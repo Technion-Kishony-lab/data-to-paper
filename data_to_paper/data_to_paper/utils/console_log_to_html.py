@@ -43,7 +43,7 @@ def convert_console_log_to_html(console_filepath: Path):
     Convert the console log to a html file.
     """
     # check if file exists and is not empty
-    if not os.path.isfile(console_filepath) or os.path.getsize(console_filepath) > 0:
+    if not os.path.isfile(console_filepath) or not os.path.getsize(console_filepath) > 0:
         raise FileNotFoundError(f'File {console_filepath} does not exist or is empty')
     with open(console_filepath, 'r') as f:
         text_as_string = f.read()
