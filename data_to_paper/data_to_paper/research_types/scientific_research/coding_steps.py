@@ -156,7 +156,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
                                                          enforce_saving_altered_dataframes=False))
 
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'networkx')
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \
@@ -411,7 +411,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         ('outputs:data_exploration', 'research_goal')
     user_agent: ScientificAgent = ScientificAgent.Debugger
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'networkx')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [NumericTextContentOutputFileRequirement('results.txt'),
@@ -713,7 +713,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code', )
 
-    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
+    supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle', 'networkx')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [DataFramePickleContentOutputFileRequirement('table_?.pkl', 2),
