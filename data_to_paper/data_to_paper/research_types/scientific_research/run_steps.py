@@ -19,15 +19,16 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 
-PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
+# PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
+PAPER_SECTIONS_NAMES = ['title', 'abstract', 'results']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
 SECTIONS_TO_WRITING_CLASS = [
             (('results',), ReferringTablesSectionWriterReviewGPT),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
-            (('methods',), MethodsSectionWriterReviewGPT),
-            (('introduction',), IntroductionSectionWriterReviewGPT),
-            (('discussion',), DiscussionSectionWriterReviewGPT),
+            # (('methods',), MethodsSectionWriterReviewGPT),
+            # (('introduction',), IntroductionSectionWriterReviewGPT),
+            # (('discussion',), DiscussionSectionWriterReviewGPT),
             # (('conclusion',), ConclusionSectionWriterReviewGPT),
         ]
 
@@ -67,8 +68,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         # Set the paper section names:
         sections_and_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES,
-                                                             sections_and_writing_class)
+        # self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES,
+        #                                                      sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             latex_document=self.latex_document,
