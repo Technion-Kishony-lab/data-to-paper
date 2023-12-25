@@ -1205,6 +1205,11 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
     latex_document: LatexDocument = None
 
     def _save_code_to_file(self, code_step: str, code_and_output: CodeAndOutput):
+        """
+        Save the code to a file, only if self.output_directory was defined.
+        """
+        if self.output_directory is None:
+            return
         with open(f'{self.output_directory}/{code_step}.py', 'w') as f:
             f.write(code_and_output.code)
 
