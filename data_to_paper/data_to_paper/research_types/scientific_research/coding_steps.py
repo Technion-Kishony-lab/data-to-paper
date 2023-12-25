@@ -658,8 +658,49 @@ class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequir
 
 
 @dataclass
+class FromFormulaDebuggerConverser(DebuggerConverser):
+    class_and_from_formula: Tuple[str, str] = (
+        ('GLS', 'gls'),
+        ('WLS', 'wls'),
+        ('OLS', 'ols'),
+        ('GLSAR', 'glsar'),
+        ('MixedLM', 'mixedlm'),
+        ('GLM', 'glm'),
+        ('RLM', 'rlm'),
+        ('MNLogit', 'mnlogit'),
+        ('Logit', 'logit'),
+        ('Probit', 'probit'),
+        ('Poisson', 'poisson'),
+        ('NegativeBinomial', 'negativebinomial'),
+        ('QuantReg', 'quantreg'),
+        ('PHReg', 'phreg'),
+        ('OrdinalGEE', 'ordinal_gee'),
+        ('NominalGEE', 'nominal_gee'),
+        ('GEE', 'gee'),
+        ('GLMGam', 'glmgam'),
+        ('ConditionalLogit', 'conditional_logit'),
+        ('ConditionalMNLogit', 'conditional_mnlogit'),
+        ('ConditionalPoisson', 'conditional_poisson'),
+    )
+
+    def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
+        issues = super()._get_issues_for_static_code_check(code)
+
+        for class_name, from_formula in self.class_and_from_formula:
+            if class_name + '(' in code:
+                issues.append(RunIssue(
+                    issue=f'You are using the "{class_name}" class. ',
+                    instructions=f'You should use the "{from_formula}" function instead, so that the '
+                                 f'formula is clearly specified as a string.',
+                    code_problem=CodeProblem.StaticCheck,
+                ))
+
+        return issues
+
+
+@dataclass
 class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
-    debugger_cls: Type[DebuggerConverser] = DebuggerConverser
+    debugger_cls: Type[DebuggerConverser] = FromFormulaDebuggerConverser
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
