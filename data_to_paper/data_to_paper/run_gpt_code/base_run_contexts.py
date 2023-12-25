@@ -76,7 +76,7 @@ class RunContext(DisableableContext):
         self.issues = RunIssues()
         return super().__enter__()
 
-    def _is_called_from_user_script(self) -> bool:
+    def _is_called_from_user_script(self, offset: int = 3) -> bool:
         """
         Check if the code is called from user script.
         """
@@ -84,8 +84,9 @@ class RunContext(DisableableContext):
             return False  # prevent infinite recursion
         with self._is_checking.temporary_set(True):
             tb = traceback.extract_stack()
-        filename = tb[-3].filename
-        return filename.endswith(self.module_filename)
+        filepath = tb[-offset].filename
+        filename = os.path.basename(filepath)
+        return filename == self.module_filename or filename.startswith('test_')
 
     def _is_called_from_data_to_paper(self) -> bool:
         tb = traceback.extract_stack()
