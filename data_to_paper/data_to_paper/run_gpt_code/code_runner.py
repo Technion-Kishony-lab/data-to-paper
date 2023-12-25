@@ -1,6 +1,9 @@
 import multiprocessing
 import os
+import pickle
 import platform
+import tempfile
+import uuid
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,6 +16,10 @@ from data_to_paper.utils import line_count
 
 from .exceptions import FailedRunningCode, CodeTimeoutException
 from .types import CodeAndOutput, RunIssue, OutputFileRequirements
+
+
+# process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
+FILE_BASED_TRANSFER = True
 
 
 @dataclass
@@ -104,9 +111,14 @@ class BaseCodeRunner(ABC):
         """
         code = self.get_raw_code()
         modified_code = self.get_modified_code_for_run(code)
-        queue = multiprocessing.Queue()
+        if FILE_BASED_TRANSFER:
+            queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
+            queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
+        else:
+            queue_or_filepath = multiprocessing.Queue()
+
         process = multiprocessing.Process(target=self._run_code_and_put_result_in_queue,
-                                          args=(queue, code, modified_code))
+                                          args=(queue_or_filepath, code, modified_code))
         try:
             process.start()
         except (AttributeError, TypeError):
@@ -127,12 +139,17 @@ class BaseCodeRunner(ABC):
                 FailedRunningCode.from_exception_with_py_spy(CodeTimeoutException(self.timeout_sec),
                                                              (py_spy_stack, modified_code)))
         else:
-            result = queue.get()
+            if FILE_BASED_TRANSFER:
+                with open(queue_or_filepath, 'rb') as f:
+                    result = pickle.load(f)
+                os.remove(queue_or_filepath)
+            else:
+                result = queue_or_filepath.get()
             if isinstance(result, Exception):
                 raise result  # unexpected exception; not from the run code
         return result
 
-    def _run_code_and_put_result_in_queue(self, queue, code: str, modified_code: str):
+    def _run_code_and_put_result_in_queue(self, queue_or_filepath, code: str, modified_code: str):
         """
         Run the provided code and put the result in the queue.
         """
@@ -140,7 +157,11 @@ class BaseCodeRunner(ABC):
             result = self.run_code(code, modified_code)
         except Exception as e:
             result = e
-        queue.put(result)
+        if FILE_BASED_TRANSFER:
+            with open(queue_or_filepath, 'wb') as f:
+                pickle.dump(result, f)
+        else:
+            queue_or_filepath.put(result)
 
 
 @dataclass
