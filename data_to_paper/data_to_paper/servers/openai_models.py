@@ -65,9 +65,9 @@ class ModelEngine(IndexOrderedEnum):
 
 
 MODELS_TO_MORE_CONTEXT = {
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4,
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
-    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT4: None,
     ModelEngine.GPT4_TURBO: None,
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
@@ -76,9 +76,9 @@ MODELS_TO_MORE_CONTEXT = {
 
 
 MODELS_TO_MORE_STRENGTH = {
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT4,
+    ModelEngine.GPT4: None,
     ModelEngine.GPT4_TURBO: None,
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
@@ -116,6 +116,7 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
     "closed": {
         "Converser": ModelEngine.GPT35_TURBO,
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
+        'GoalReviewGPT': ModelEngine.GPT4,
         "DataAnalysisCodeProductsGPT": ModelEngine.GPT4,
         "CreateTablesCodeProductsGPT": ModelEngine.GPT4,
         "GetMostSimilarCitations": ModelEngine.GPT4,
