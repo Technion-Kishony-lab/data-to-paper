@@ -192,9 +192,9 @@ class PreventImport(SingletonRegisteredRunContext):
 
 @dataclass
 class WarningHandler(SingletonRegisteredRunContext):
-    categories_to_issue: Iterable[Type[Warning]] = field(default_factory=list)
-    categories_to_raise: Iterable[Type[Warning]] = field(default_factory=list)
-    categories_to_ignore: Iterable[Type[Warning]] = field(default_factory=list)
+    categories_to_issue: Optional[Iterable[Type[Warning]]] = ()
+    categories_to_raise: Optional[Iterable[Type[Warning]]] = ()
+    categories_to_ignore: Optional[Iterable[Type[Warning]]] = ()
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
     original_showwarning: Callable = None
 
@@ -220,6 +220,8 @@ class WarningHandler(SingletonRegisteredRunContext):
             linenos_lines, _ = FailedRunningCode.from_current_tb().get_lineno_line_message()
             self.issues.append(RunIssue(
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
+                instructions='Please see if you understand the cause of this warning and fix the code.\n'
+                             'Alternatively, if the warning is expected, then change the code to ignore it.',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 linenos_and_lines=linenos_lines,
             ))
