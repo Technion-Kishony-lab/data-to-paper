@@ -1,0 +1,13 @@
+A sparse representation of the interaction matrix between members of the 115th US Congress on Twitter.
+Downloaded from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains a source node j, a target node i, and the engagement P[i,j] of j with i (j, i, P[i,j]; seperated with spaces).
+
+Example:
+```
+0 1 0.05
+0 2 0.1
+1 3 0.25
+```
+
+The Twitter handle of a node j is given by usernameList[j] (see 'congress_network_data.json').

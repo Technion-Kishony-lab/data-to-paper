@@ -1,0 +1,10 @@
+A csv file of members of the 117th Congress, including their Twitter handles, Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR", "VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
