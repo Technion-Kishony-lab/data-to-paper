@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from copy import copy
 from dataclasses import dataclass
 from typing import Any
 
@@ -63,7 +64,7 @@ def __init__(self, *args, created_by: str = None, file_path: str = None,
     self.created_by = created_by
     self.file_path = file_path
     on_change(self, CreationDataframeOperation(
-        id=id(self), created_by=created_by, file_path=file_path, columns=list(self.columns.values)))
+        id=id(self), created_by=created_by, file_path=file_path, columns=copy(self.columns.values)))
 
 
 def __getitem__(self, key, original_method=None, on_change=None):
@@ -129,7 +130,7 @@ def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
         result = original_method(self, *args, **kwargs)
 
     file_path = args[0] if len(args) > 0 else kwargs.get('path_or_buf')
-    columns = list(self.columns.values) if hasattr(self, 'columns') else None
+    columns = copy(self.columns.values) if hasattr(self, 'columns') else None
     if file_path is not None:
         on_change(self, SaveDataframeOperation(id=id(self), file_path=file_path, columns=columns))
     return result

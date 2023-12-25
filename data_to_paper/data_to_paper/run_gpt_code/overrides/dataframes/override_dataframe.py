@@ -208,4 +208,4 @@ class TrackDataFrames(RunContext):
         self._de_override_df_methods()
         self._de_override_df_creating_funcs()
         self._create_issues_for_unsaved_dataframes()
-        super().__exit__(exc_type, exc_val, exc_tb)
+        return super().__exit__(exc_type, exc_val, exc_tb)

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -103,11 +104,11 @@ def test_dataframe_column_names(tmpdir_with_csv_file):
         df['new'] = [4, 5]
         df.to_csv(str(tmpdir_with_csv_file.join('test_modified.csv')))
     dataframe_operations = tdf.dataframe_operations
-    assert dataframe_operations[0].columns == ['a', 'b', 'c']
+    assert np.array_equal(dataframe_operations[0].columns, ['a', 'b', 'c'])
     assert dataframe_operations[1].series_name == 'new'
     id_ = dataframe_operations[1].id
-    assert dataframe_operations.get_creation_columns(id_) == ['a', 'b', 'c']
-    assert dataframe_operations.get_save_columns(id_) == ['a', 'b', 'c', 'new']
+    assert np.array_equal(dataframe_operations.get_creation_columns(id_), ['a', 'b', 'c'])
+    assert np.array_equal(dataframe_operations.get_save_columns(id_), ['a', 'b', 'c', 'new'])
 
 
 def test_even_non_reporting_df_reports_on_save(tmpdir):
@@ -121,7 +122,7 @@ def test_even_non_reporting_df_reports_on_save(tmpdir):
     dataframe_operations = tdf.dataframe_operations
     assert len(dataframe_operations) == 3
     assert dataframe_operations[2].filename == 'test.csv'
-    assert dataframe_operations[2].columns == ['A']
+    assert dataframe_operations[2].columns == ('A', )
 
 
 def test_df_float_precision_to_csv():

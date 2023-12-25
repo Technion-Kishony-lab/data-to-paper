@@ -151,6 +151,7 @@ class PreventImport(SingletonRegisteredRunContext):
     TEMPORARILY_DISABLE_IS_INTERNAL_ONLY = False
 
     _currently_importing: list = field(default_factory=list)
+    original_import: Callable = None
 
     def _reversible_enter(self):
         self.original_import = builtins.__import__
@@ -159,6 +160,7 @@ class PreventImport(SingletonRegisteredRunContext):
 
     def _reversible_exit(self):
         builtins.__import__ = self.original_import
+        self.original_import = None
         return super()._reversible_exit()
 
     def is_currently_importing(self) -> bool:

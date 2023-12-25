@@ -13,7 +13,7 @@ class DataframeOperation:
 @dataclass(frozen=True)
 class FileDataframeOperation(DataframeOperation):
     file_path: Optional[str]
-    columns: Optional[List[str]]
+    columns: Optional[Iterable]
 
     @property
     def filename(self):
