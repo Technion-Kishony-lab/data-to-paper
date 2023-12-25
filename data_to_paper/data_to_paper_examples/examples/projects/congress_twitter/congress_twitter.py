@@ -32,7 +32,7 @@ For example, do NOT choose a goal like "Democrats are more/less engaged than Rep
 """
 
 if __name__ == '__main__':
-    for key, goal in list(goals.items())[1:2]:
+    for key, goal in list(goals.items())[3:]:
         for jrun in [0]:
 
             goal = "Goal and Hypothesis:\n" + goal if goal is not None else None
