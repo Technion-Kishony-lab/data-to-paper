@@ -74,7 +74,7 @@ class OpenaiSeverCaller(ListServerCaller):
                     break
                 elif answer == 'n':
                     raise UserAbort()
-        print_and_log_red('Calling OPENAI for real.')
+        print_and_log_red('Calling OPENAI for real.', should_log=False)
 
     @staticmethod
     def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
@@ -82,7 +82,8 @@ class OpenaiSeverCaller(ListServerCaller):
         tokens_out = count_number_of_tokens_in_message(content, model_engine)
         pricing_in, pricing_out = model_engine.pricing
         print_and_log_red(f'Total: {tokens_in} prompt tokens, {tokens_out} returned tokens, '
-                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.')
+                          f'cost: ${(tokens_in * pricing_in + tokens_out * pricing_out) / 1000:.2f}.',
+                          should_log=False)
         # time.sleep(6)
 
     @staticmethod

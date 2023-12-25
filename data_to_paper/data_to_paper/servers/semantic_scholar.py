@@ -142,11 +142,11 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 "limit": min(rows * 2, 100),  # x2 more to make sure we get enough results after removing faulty ones
                 "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
-            print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"')
+            print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"', should_log=False)
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
 
             if response.status_code == 504:
-                print_and_log_red("ERROR: Server timed out. We wait for 5 sec and try again.")
+                print_and_log_red("ERROR: Server timed out. We wait for 5 sec and try again.", should_log=False)
                 time.sleep(5)
                 continue
 
@@ -166,7 +166,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             for word in words_to_remove_in_case_of_zero_citation_error:
                 redacted_query = remove_word(query, word)
                 if redacted_query != query:
-                    print_and_log_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY")
+                    print_and_log_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY", should_log=False)
                     query = redacted_query
                     break
             else:
