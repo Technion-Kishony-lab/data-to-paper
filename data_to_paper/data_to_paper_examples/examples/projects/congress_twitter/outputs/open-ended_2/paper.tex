@@ -1,0 +1,544 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Insights from Twitter Interactions among US Congress Members}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Understanding the social dynamics and interactions among members of the US Congress is crucial for unraveling the complex political relationships within the legislative body. However, the structural properties and factors influencing these interactions remain understudied. To address this gap, we conduct a comprehensive analysis of a Twitter interaction dataset among members of the 117th US Congress, spanning a 4-month period. By leveraging a directed graph framework and employing graph metrics and statistical analysis, we uncover intriguing insights into this dynamic network. Our findings demonstrate that the chamber affiliation does not significantly influence the density of out-degree interactions, suggesting similar engagement patterns across the House and Senate. Additionally, we observe variations in the degree centrality among political parties, indicating distinct levels of Twitter engagement among Democrats, Republicans, and Independents. These results contribute to our understanding of the social dynamics within Congress and highlight the potential of directed graph analysis for studying political networks. It is important to note that our analysis focuses solely on Twitter interactions and does not capture the full spectrum of congressional communication. Nonetheless, this study enhances our knowledge of the role of social media in political discourse and decision-making processes.
+\end{abstract}
+\section*{Results}
+
+In this study, we present the results of a comprehensive analysis conducted on a directed graph mapping the Twitter interactions among members of the 117th US Congress. Consisting of 475 nodes and 13289 edges, and exhibiting a density of 0.05902, the network generated offers deep insights into the structural properties and factors driving these interactions.
+
+Our first step involved investigating the connection between a member's house affiliation (House or Senate) and their out-degree interaction density. The generate a thorough understanding of the patterns in interaction density across different houses, we adopted an analysis of variance (ANOVA) approach, the details and results of which are presented in Table \ref{table:anova_1}. The ANOVA results revealed a significant lack of difference in the density of out-degree interactions exhibited by members of the House or the Senate (F statistic = 0.657, p-value $>$ 0.05). These findings suggest that the engagement patterns on Twitter among the congressional members remains unaffected by their house affiliations. In other words, the extent of connectivity or interaction between any given member and all other members does not vary significantly across the two houses.
+
+\begin{table}[h]
+\caption{ANOVA test of association between chamber affiliation and out-degree centrality}
+\label{table:anova_1}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & F statistic & p-value \\
+\midrule
+\textbf{Chamber} & 0.657 & 0.418 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Out-degree centrality is a measure of the proportion of all other congress members a given member interacts with on Twitter.
+\item \textbf{p-value}: value of the statistical significance test
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Expanding on these findings, our analysis then shifted focus onto studying the degree of centrality within each political party. The aim was to unearth underlying variations in Twitter engagement patterns among Democrats, Republicans, and Independents. As displayed in Table \ref{table:degree_centrality_party}, our computations revealed an average degree centrality of 0.117 for Democrats, 0.0717 for Independents, and 0.119 for Republicans. These figures highlight slightly higher levels of engagement on Twitter by Democrats and Republicans compared to Independents. As degree centrality reflects the fraction of the graph that a node is connected to, these results represent a more extensive network of interactions pertaining to Democrats and Republicans.
+
+\begin{table}[h]
+\caption{Degree centrality by political party}
+\label{table:degree_centrality_party}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & Average Degree Centrality \\
+Party &  \\
+\midrule
+\textbf{Democrat} & 0.117 \\
+\textbf{Independent} & 0.0717 \\
+\textbf{Republican} & 0.119 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Average Degree Centrality}: Average centrality measure indicating the proportion of out-degree interaction within the Twitter network
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Overall, this analytical study based on the Twitter interactions among the members of the 117th US Congress has brought forth intriguing insights into the interconnected political network that forms part of the legislative body. Although there was no discernible difference in interaction density driven by house affiliations, evident variations in degree centrality among the different political parties were detected. Being solely reliant on Twitter interactions for the analysis might present a limitation in terms of capturing the full spectrum of congressional communication, but the insights garnered pave the way for future, expansive investigations within the politico-social dynamic sphere.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with
+	social interactions (edges) among Congress members (nodes). Each member (node)
+	is further characterized by three attributes: Represented State, Political
+	Party, and Chamber, allowing analysis of the adjacency matrix structure, graph
+	metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the
+	Senate, were harvested for a 4-month period, February 9 to June 9, 2022 (using
+	the Twitter API). Members with fewer than 100 tweets were excluded from the
+	network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer
+	node ID (0, 1, 2, ...) which corresponds to a row in `congress_members.csv`,
+	providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged
+	with member j on Twitter at least once during the 4-month data-collection
+	period. An engagement is defined as a tweet by member i that mentions member j's
+	handle, or as retweets, quote tweets, or replies of i to a tweet by member j.
+
+
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress
+	members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or
+	their two-letter abbreviations. The code may of course do statistical analysis
+	of *properties* related to States, but should not single out specific states.
+
+
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles,
+	Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-
+	twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR",
+	"VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+
+
+Here are the first few lines of the file:
+```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US
+	Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID
+	i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+	create_using=nx.DiGraph()). An i->j edge indicates that Congress member i had at
+	least one tweet engaging with Congress member j during the 4-month collection
+	period.
+
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import networkx as nx
+import numpy as np
+
+# Read in the members file with pandas
+df_members = pd.read_csv('congress_members.csv')
+
+# Gathering the Data Size information
+data_size = f'Number of Members: {df_members.shape[0]}\nNumber of Columns in Members Data: {df_members.shape[1]}'
+
+# Gathering the Summary Statistics information
+summary_stats = df_members.describe(include='all').to_string()
+
+# Gathering the Categorical Variables information
+cats = df_members.select_dtypes(include=['object'])
+freq_cats = cats.apply(lambda x: f"{x.name}: {x.value_counts().idxmax()} (Most Common)\n").to_list()
+
+# Gathering the Missing Values information
+missing_values_counts = df_members.isna().sum().sum()
+
+# Read in the edges file with networkx
+G = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph())
+num_of_edges = G.number_of_edges()
+num_of_nodes = G.number_of_nodes()
+
+# Write out the gathered data to a text file
+with open('data_exploration.txt', 'w') as f:
+    f.write('# Data Size\n')
+    f.write(data_size)
+
+    # Add number of edges and nodes
+    f.write(f'\nNumber of Edges: {num_of_edges}\nNumber of Nodes: {num_of_nodes}\n')
+
+    f.write('\n# Summary Statistics\n')
+    f.write(summary_stats)
+
+    f.write('\n# Categorical Variables\n')
+    f.writelines(freq_cats)
+
+    f.write('\n# Missing Values\n')
+    f.write(f'Total Missing Values: {missing_values_counts}\n')
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on the given dataset of US Congress Twitter interactions. The code aims to analyze and summarize the dataset by extracting various information and writing it to the "data\_exploration.txt" file.
+
+First, the code reads the "congress\_members.csv" file using pandas, which contains information about Congress members such as their Twitter handles, represented states, party affiliations, and chambers. The code then gathers data size information, including the number of members and the number of columns in the members' data.
+
+Next, the code calculates and adds information about the interaction network by reading the "congress\_edges.dat" file using networkx. It analyzes the number of edges and nodes in the network.
+
+Moving on, the code collects summary statistics of the categorical variables in the members' data and writes them to the output file. It provides information like the most common value for each categorical variable (e.g., the most common represented state, party affiliation, and chamber).
+
+Furthermore, the code calculates the total number of missing values in the members' data and includes it in the output file. This provides an overview of the data quality and the extent of missing information.
+
+Finally, all the gathered information is written to the "data\_exploration.txt" file. The file includes sections such as data size, summary statistics, categorical variables, and missing values. This allows for a comprehensive understanding and analysis of the US Congress Twitter dataset.
+
+The output file serves as a summary and reference for the exploratory analysis of the dataset. It provides key details and statistical information that can aid in further research, data preprocessing, and decision-making processes.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of Members: 475
+Number of Columns in Members Data: 4
+Number of Edges: 13289
+Number of Nodes: 475
+
+# Summary Statistics
+                Handle State Party Chamber
+count              475   475   475     475
+unique             475    54     3       2
+top     SenatorBaldwin    CA     D   House
+freq                 1    49   250     383
+# Categorical Variables
+Handle: SenatorBaldwin (Most Common)
+State: CA (Most Common)
+Party: D (Most Common)
+Chamber: House (Most Common)
+
+# Missing Values
+Total Missing Values: 0
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+import networkx as nx
+from scipy import stats
+import pickle
+
+# LOAD DATA
+members = pd.read_csv('congress_members.csv')
+edges = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph())
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING
+# Creating numeric IDs for members; adding this column to members dataframe.
+members['ID'] = range(len(members))
+
+# ANALYSIS
+## Table 1: "Test of Association between Chamber and Density of Out-Edges"
+# Create an out-degree centrality measure for each node (member of congress)
+out_degrees = pd.DataFrame.from_dict(nx.out_degree_centrality(edges), orient='index', columns=['Out-degree Centrality'])
+
+# Label node IDs and merge with members dataframe
+out_degrees['ID'] = out_degrees.index.map(int)
+result_table_1 = members.merge(out_degrees, on='ID')
+
+house_out_degrees = result_table_1[result_table_1['Chamber'] == 'House']['Out-degree Centrality']
+senate_out_degrees = result_table_1[result_table_1['Chamber'] == 'Senate']['Out-degree Centrality']
+
+f_stat, p_val = stats.f_oneway(house_out_degrees, senate_out_degrees)
+df1 = pd.DataFrame({'F Stat': [f_stat], 'p-value': [p_val]}, index=['Chamber'])
+df1.to_pickle('table_1.pkl')
+
+## Table 2: "Degree Centrality by Party"
+# State level centrality measure
+degree_centrality = pd.DataFrame.from_dict(nx.degree_centrality(edges), orient='index', columns=['Degree Centrality'])
+degree_centrality['ID'] = degree_centrality.index.map(int)
+result_table_2 = members.merge(degree_centrality, on='ID')
+
+by_party = result_table_2.groupby('Party')['Degree Centrality'].mean()
+df2 = pd.DataFrame(by_party).rename(columns={'Degree Centrality': 'Average Degree Centrality'})
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = { 
+  'Number of Nodes': edges.number_of_nodes(), 
+  'Number of Edges': edges.number_of_edges(), 
+  'Density of Network': nx.density(edges)
+} 
+
+with open('additional_results.pkl', 'wb') as file:
+    pickle.dump(additional_results, file)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs an analysis of the Twitter interaction network among members of the 117th US Congress. The data consists of two files: "congress\_members.csv" which provides information about the Congress members, and "congress\_edges.dat" which represents the network of interactions between the members on Twitter.
+
+The analysis code performs the following steps:
+
+1. Load the data: The code reads the "congress\_members.csv" file using the pandas library to create a DataFrame containing information about the members, and reads the "congress\_edges.dat" file using the networkx library to create a directed graph representing the Twitter interactions.
+
+2. Dataset Preparations: No specific dataset preparations are performed in this code.
+
+3. Descriptive Statistics: No descriptive statistics table is generated in this code.
+
+4. Preprocessing: The code assigns numeric IDs to the members and adds this column to the members DataFrame.
+
+5. Analysis:
+    a. Table 1: "Test of Association between Chamber and Density of Out-Edges":
+        - Compute the out-degree centrality measure for each node (member) in the graph, which represents the proportion of outgoing edges from a node.
+        - Merge the out-degree centrality values with the members DataFrame based on the node ID.
+        - Separate the out-degree centrality values for members of the House and Senate into separate series.
+        - Perform a one-way analysis of variance (ANOVA) test to determine the association between the Chamber (House or Senate) and the density of out-edges.
+        - Save the results of the test, including the F-statistic and p-value, as a DataFrame and store it as "table\_1.pkl".
+    
+    b. Table 2: "Degree Centrality by Party":
+        - Compute the degree centrality measure for each node (member) in the graph, which represents the proportion of edges connected to a node.
+        - Merge the degree centrality values with the members DataFrame based on the node ID.
+        - Group the members by their political party and calculate the average degree centrality for each party.
+        - Save the results of the average degree centrality by party as a DataFrame and store it as "table\_2.pkl".
+    
+6. Additional Results:
+   - Compute and store additional results about the network, including the number of nodes, number of edges, and density of the network, as a dictionary.
+   - Save the dictionary as a pickled file named "additional\_results.pkl".
+
+The code enables analysis of interactions between Congress members on Twitter, examining factors such as the association between the chamber and the density of out-edges, as well as the average degree centrality by party. Additionally, it provides summary statistics about the network structure through the additional\_results.pkl file.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+          F Stat p-value
+Chamber  0.65654  0.4182
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+       Average Degree Centrality
+Party
+D                       0.117359
+I                       0.071730
+R                       0.119231
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Number of Nodes': 475,
+    'Number of Edges': 13289,
+    'Density of Network': 0.05902            ,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+
+# Shared mapping
+shared_mapping: AbbrToNameDef = {
+    'F Stat': ('F statistic', None),
+    'p-value': ('p-value', 'value of the statistical significance test'),
+    'Party': ('Political Party', 'D: Democrat, R: Republican, I: Independent'),
+    'Average Degree Centrality': ('Average Degree Centrality', 'Average centrality measure indicating the proportion of out-degree interaction within the Twitter network'),
+    'D': ('Democrat', None),
+    'I': ('Independent', None),
+    'R': ('Republican', None)
+}
+
+# TABLE 1
+df1 = pd.read_pickle('table_1.pkl')
+
+# Format statistical significance values
+df1['p-value'] = df1['p-value'].apply(format_p_value)
+
+# Rename rows and columns
+mapping1 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df1, k)}
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# Save as latex
+to_latex_with_note(
+ df1, 
+ 'table_1.tex',
+ caption="ANOVA test of association between chamber affiliation and out-degree centrality", 
+ label='table:anova_1',
+ note="Out-degree centrality is a measure of the proportion of all other congress members a given member interacts with on Twitter.",
+ legend=legend1
+)
+
+# TABLE 2
+df2 = pd.read_pickle('table_2.pkl')
+
+# Rename rows and columns
+mapping2 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df2, k)}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(index=abbrs_to_names2)
+
+# Save as latex
+to_latex_with_note(
+ df2, 
+ 'table_2.tex',
+ caption="Degree centrality by political party", 
+ label='table:degree_centrality_party',
+ note=None,
+ legend=legend2
+)
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{ANOVA test of association between chamber affiliation and out-degree
+	centrality}
+\label{table:anova_1}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & F statistic & p-value \\
+\midrule
+\textbf{Chamber} & 0.657 & 0.418 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Out-degree centrality is a measure of the proportion of all other congress
+	members a given member interacts with on Twitter.
+\item \textbf{p-value}: value of the statistical significance test
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Degree centrality by political party}
+\label{table:degree_centrality_party}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & Average Degree Centrality \\
+Party &  \\
+\midrule
+\textbf{Democrat} & 0.117 \\
+\textbf{Independent} & 0.0717 \\
+\textbf{Republican} & 0.119 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Average Degree Centrality}: Average centrality measure indicating
+	the proportion of out-degree interaction within the Twitter network
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}
