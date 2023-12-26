@@ -29,11 +29,13 @@ project_specific_goal_guidelines = """\
 * Avoid choosing politically sided goals. \
 For example, do NOT choose a goal like "Democrats are more/less engaged than Republicans".
 
+* Avoid choosing the following goal that we have already explored:
+- The probability of interaction of a member is associated with their Party, State, and Chamber.
 """
 
 if __name__ == '__main__':
     for key, goal in list(goals.items())[3:]:
-        for jrun in [0]:
+        for jrun in [1]:
 
             goal = "Goal and Hypothesis:\n" + goal if goal is not None else None
 

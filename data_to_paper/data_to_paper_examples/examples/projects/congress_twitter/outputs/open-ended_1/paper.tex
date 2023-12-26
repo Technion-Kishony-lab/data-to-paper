@@ -1,0 +1,591 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Party Affiliation and Chamber Membership shape Twitter Interactions among Members of the US Congress}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Interactions among members of the US Congress on social media platforms provide valuable insights into their relationships and the dynamics of political networks. However, understanding the role of partisan affiliations and chamber membership in shaping these interactions remains a gap in the literature. To address this, we present a comprehensive analysis of Twitter interactions among members of the 117th US Congress, investigating the distinct patterns and likelihood of interactions based on party affiliations and chamber associations. Our findings reveal that interactions within the same party and chamber are more prevalent, with a higher number of interactions within the Democratic party observed. Moreover, interactions across party lines are more frequent in the Senate compared to the House. These patterns are further supported by a logistic regression analysis, which demonstrates that party affiliation and chamber membership significantly influence the likelihood of interactions. While our study is limited to Twitter interactions and excludes members with fewer than 100 tweets, the findings shed light on the dynamics within the US Congress and the role of social media platforms in shaping political relationships. This has important implications for understanding political networks and can inform policymakers and stakeholders about the role of social media in political interactions and discourse.
+\end{abstract}
+\section*{Results}
+
+To gain insights into the dynamics of Twitter interactions among members of the 117th US Congress, we analyzed the number of interactions based on party affiliations and chamber associations, and performed a logistic regression analysis. Understanding these dynamics is crucial for comprehending the relationships and networks within the US Congress and the role of social media platforms in shaping political interactions.
+
+We first examined the number of Twitter interactions between Congress members based on their party affiliations and chamber associations (see Table {}\ref{table:interaction_counts_within_across_party_chamber}). This analysis aimed to uncover distinct patterns in interactions among members of the same party and chamber, as well as interactions across party lines and chambers. The results revealed that interactions within the same party and chamber were more prevalent than interactions between members of different parties or chambers. Specifically, we observed a significantly higher number of interactions within the Democratic party in both the House and the Senate. Additionally, the table demonstrates that interactions across party lines were more frequent in the Senate compared to the House.
+
+\begin{table}[h]
+\caption{Number of Twitter interactions between Congress members by Party, Chamber, and whether they interacted with members of the same or a different party and chamber.}
+\label{table:interaction_counts_within_across_party_chamber}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllrl}
+\toprule
+Interacted & Source Party & Source Chamber & DiffPartyCham & SamePartyCham \\
+Index &  &  &  &  \\
+\midrule
+\textbf{D-House} & D & House & 989 & 4494 \\
+\textbf{D-Senate} & D & Senate & 881 & 627 \\
+\textbf{I-Senate} & I & Senate & 50 & - \\
+\textbf{R-House} & R & House & 712 & 4392 \\
+\textbf{R-Senate} & R & Senate & 671 & 473 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{DiffPartyCham}: Interactions between members of different party or Chamber
+\item \textbf{SamePartyCham}: Interactions between members of the same party and Chamber
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+In the logistic regression analysis (see Table {}\ref{table:logit_model_fixtures}), we investigated the likelihood of Twitter interactions between Congress members based on their party affiliations and chamber associations. Using a logistic regression model, we assessed the significance of party affiliation and chamber membership in predicting the likelihood of interactions, while controlling for other factors if any. The analysis revealed that the party affiliation of the tweeting member had a positive effect on the likelihood of interactions, indicating a higher probability of members interacting with others from their own party. Conversely, the party affiliation of the tweeted-at Congress member had a negative effect, suggesting a reduced likelihood of interactions between members of different parties. Moreover, chamber membership was found to be a significant factor, with members in the Senate having a higher likelihood of interaction compared to members in the House.
+
+\begin{table}[h]
+\caption{Logistic regression model for the likelihood of Twitter interaction between Congress members based on their partisanship and chamber association.}
+\label{table:logit_model_fixtures}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coefficient & StdErr & Z-Score & P-Value & CI-Lower & CI-Upper \\
+Variable &  &  &  &  &  &  \\
+\midrule
+\textbf{Intercept} & 1.58 & 0.035 & 45.1 & $<$$10^{-6}$ & 1.51 & 1.65 \\
+\textbf{SrcParty} & 0.18 & 0.03 & 6.02 & $<$$10^{-6}$ & 0.122 & 0.239 \\
+\textbf{TgtParty} & -0.113 & 0.0299 & -3.78 & 0.000159 & -0.171 & -0.0543 \\
+\textbf{SrcChamber} & -2.22 & 0.0617 & -36 & $<$$10^{-6}$ & -2.34 & -2.1 \\
+\textbf{TgtChamber} & 0.334 & 0.0699 & 4.78 & $1.75\ 10^{-6}$ & 0.197 & 0.471 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Intercept}: The value of the predicted response when all independent variables are 0
+\item \textbf{SrcParty}: Political party affiliation of the tweeting member
+\item \textbf{TgtParty}: Political party of the tweeted-at congress member
+\item \textbf{SrcChamber}: Chamber (House or Senate) of the tweeting member
+\item \textbf{TgtChamber}: Chamber of the tweeted-at congress member
+\item \textbf{Coefficient}: Estimated parameter of the logistic regression model
+\item \textbf{StdErr}: Standard error of the estimated parameter
+\item \textbf{Z-Score}: Value of the test statistic for hypotheses testing of individual parameter estimates
+\item \textbf{P-Value}: Twotailed probability of getting a test statistic as extreme as, or more extreme than, the observed value under the null hypothesis
+\item \textbf{CI-Lower}: Lower limit of the 95\% confidence interval
+\item \textbf{CI-Upper}: Upper limit of the 95\% confidence interval
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Interpreting the coefficients in the logistic regression model provides further insights into the likelihood of Twitter interactions. The positive coefficient for the party affiliation of the tweeting member indicates that members are more likely to interact with others from their own party. Conversely, the negative coefficient for the party affiliation of the tweeted-at Congress member suggests a lower likelihood of interactions between members of different parties. Chamber membership also influences interaction patterns, with the coefficients highlighting that members of the Senate have a higher likelihood of interaction compared to members of the House.
+
+To better understand the magnitudes of these effects, we examined the odds ratios derived from the logistic regression model. The odds ratio quantifies the change in odds for a unit change in the independent variable. We calculated the odds ratios for the coefficients and obtained numerical values for the magnitude of the effects. For example, the odds ratio for the party affiliation of the tweeting member indicates the increase in the odds of interaction when comparing members of different parties.
+
+In summary, our analysis of Twitter interactions among members of the 117th US Congress revealed distinct patterns based on party affiliations and chamber associations. There were significantly more interactions within the same party and chamber, with interactions across party lines being more prevalent in the Senate. The logistic regression analysis highlighted the significance of party affiliation and chamber membership in predicting the likelihood of interactions, with members being more likely to interact with others from their own party. These findings enhance our understanding of the dynamics within the US Congress and shed light on the role of social media platforms in shaping political relationships.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with
+	social interactions (edges) among Congress members (nodes). Each member (node)
+	is further characterized by three attributes: Represented State, Political
+	Party, and Chamber, allowing analysis of the adjacency matrix structure, graph
+	metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the
+	Senate, were harvested for a 4-month period, February 9 to June 9, 2022 (using
+	the Twitter API). Members with fewer than 100 tweets were excluded from the
+	network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer
+	node ID (0, 1, 2, ...) which corresponds to a row in `congress_members.csv`,
+	providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged
+	with member j on Twitter at least once during the 4-month data-collection
+	period. An engagement is defined as a tweet by member i that mentions member j's
+	handle, or as retweets, quote tweets, or replies of i to a tweet by member j.
+
+
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress
+	members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or
+	their two-letter abbreviations. The code may of course do statistical analysis
+	of *properties* related to States, but should not single out specific states.
+
+
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles,
+	Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-
+	twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR",
+	"VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+
+
+Here are the first few lines of the file:
+```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US
+	Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID
+	i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+	create_using=nx.DiGraph()). An i->j edge indicates that Congress member i had at
+	least one tweet engaging with Congress member j during the 4-month collection
+	period.
+
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import networkx as nx
+import numpy as np
+
+# Read in the members file with pandas
+df_members = pd.read_csv('congress_members.csv')
+
+# Gathering the Data Size information
+data_size = f'Number of Members: {df_members.shape[0]}\nNumber of Columns in Members Data: {df_members.shape[1]}'
+
+# Gathering the Summary Statistics information
+summary_stats = df_members.describe(include='all').to_string()
+
+# Gathering the Categorical Variables information
+cats = df_members.select_dtypes(include=['object'])
+freq_cats = cats.apply(lambda x: f"{x.name}: {x.value_counts().idxmax()} (Most Common)\n").to_list()
+
+# Gathering the Missing Values information
+missing_values_counts = df_members.isna().sum().sum()
+
+# Read in the edges file with networkx
+G = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph())
+num_of_edges = G.number_of_edges()
+num_of_nodes = G.number_of_nodes()
+
+# Write out the gathered data to a text file
+with open('data_exploration.txt', 'w') as f:
+    f.write('# Data Size\n')
+    f.write(data_size)
+
+    # Add number of edges and nodes
+    f.write(f'\nNumber of Edges: {num_of_edges}\nNumber of Nodes: {num_of_nodes}\n')
+
+    f.write('\n# Summary Statistics\n')
+    f.write(summary_stats)
+
+    f.write('\n# Categorical Variables\n')
+    f.writelines(freq_cats)
+
+    f.write('\n# Missing Values\n')
+    f.write(f'Total Missing Values: {missing_values_counts}\n')
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on the given dataset of US Congress Twitter interactions. The code aims to analyze and summarize the dataset by extracting various information and writing it to the "data\_exploration.txt" file.
+
+First, the code reads the "congress\_members.csv" file using pandas, which contains information about Congress members such as their Twitter handles, represented states, party affiliations, and chambers. The code then gathers data size information, including the number of members and the number of columns in the members' data.
+
+Next, the code calculates and adds information about the interaction network by reading the "congress\_edges.dat" file using networkx. It analyzes the number of edges and nodes in the network.
+
+Moving on, the code collects summary statistics of the categorical variables in the members' data and writes them to the output file. It provides information like the most common value for each categorical variable (e.g., the most common represented state, party affiliation, and chamber).
+
+Furthermore, the code calculates the total number of missing values in the members' data and includes it in the output file. This provides an overview of the data quality and the extent of missing information.
+
+Finally, all the gathered information is written to the "data\_exploration.txt" file. The file includes sections such as data size, summary statistics, categorical variables, and missing values. This allows for a comprehensive understanding and analysis of the US Congress Twitter dataset.
+
+The output file serves as a summary and reference for the exploratory analysis of the dataset. It provides key details and statistical information that can aid in further research, data preprocessing, and decision-making processes.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of Members: 475
+Number of Columns in Members Data: 4
+Number of Edges: 13289
+Number of Nodes: 475
+
+# Summary Statistics
+                Handle State Party Chamber
+count              475   475   475     475
+unique             475    54     3       2
+top     SenatorBaldwin    CA     D   House
+freq                 1    49   250     383
+# Categorical Variables
+Handle: SenatorBaldwin (Most Common)
+State: CA (Most Common)
+Party: D (Most Common)
+Chamber: House (Most Common)
+
+# Missing Values
+Total Missing Values: 0
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+import networkx as nx
+from sklearn.preprocessing import LabelEncoder
+import statsmodels.formula.api as smf 
+import pickle
+
+# LOAD DATA
+members = pd.read_csv('congress_members.csv')
+edges = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph(), nodetype = int)
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics are needed.
+
+# PREPROCESSING
+# Transform categorical data into binary format
+labelencoder = LabelEncoder()
+members['Party_Code'] = labelencoder.fit_transform(members['Party'])
+members['Chamber_Code'] = labelencoder.fit_transform(members['Chamber'])
+
+# ANALYSIS
+
+## Table 1: "Number of Interactions by Party and Chamber"
+# Creating a new dataframe for analysis
+edges_df = pd.DataFrame([(edge[0], edge[1]) for edge in edges.edges()], columns=['From', 'To'])
+df = edges_df.join(members, on='From').join(members, on='To', lsuffix='_From', rsuffix='_To')
+df['Interacted'] = (df.Party_Code_From == df.Party_Code_To) & (df.Chamber_Code_From == df.Chamber_Code_To)
+interaction_counts = df.groupby(['Party_From', 'Chamber_From', 'Interacted']).size().reset_index(name='Counts')
+df1 = interaction_counts.pivot_table(index=['Party_From', 'Chamber_From'], columns='Interacted', values='Counts').reset_index()
+df1['Index'] = df1['Party_From'] + "_" + df1['Chamber_From']
+df1.set_index('Index',inplace = True)
+df1.fillna('-', inplace=True)
+df1.to_pickle('table_1.pkl')
+
+## Table 2: "Logit Regression Results"
+# We will create an Interacted_Code column that will be binary (1 if there was an interaction, 0 otherwise)
+df['Interacted_Code'] = labelencoder.fit_transform(df['Interacted'])
+# Logistic Regression
+logit_model = smf.logit(formula='Interacted_Code ~ Party_Code_From + Party_Code_To + Chamber_Code_From + Chamber_Code_To', data=df)
+result = logit_model.fit()
+summary = result.summary2().tables[1]
+summary.reset_index(inplace=True)
+summary.columns = ['Variable', 'Coeff.', 'Std.Err.', 'z', 'P>|z|', '[0.025', '0.975]']
+df2 = summary.set_index('Variable')
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of observations': len(df), 
+ 'p-value of logistic regression': result.pvalues[0]
+}
+with open('additional_results.pkl', 'wb') as f:
+ pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs an analysis on the Twitter interaction data among members of the 117th US Congress. 
+
+First, the code imports the necessary libraries and loads the dataset, which includes information about the Congress members and their Twitter interactions. The dataset is in the form of a directed graph, with nodes representing members and edges representing interactions.
+
+Next, the code preprocesses the data by transforming the categorical variables into binary format.
+
+The code then proceeds with the analysis steps:
+
+\subsection{Table 1: "Number of Interactions by Party and Chamber"}
+
+The code creates a new dataframe for analysis by joining the edges dataframe with the members dataframe. It then calculates the number of interactions by party and chamber using groupby operations. The results are pivoted to create a table that shows the number of interactions for each combination of party and chamber. This table is saved as a pickle file called "table\_1.pkl" for further reference.
+
+\subsection{Table 2: "Logit Regression Results"}
+
+In this step, the code creates a new column called "Interacted\_Code" which represents whether there was an interaction between two members (1 if there was an interaction, 0 otherwise). The code then performs a logistic regression analysis using the party and chamber codes as independent variables. The results of the regression analysis, including coefficients, standard errors, z-scores, p-values, and confidence intervals, are saved as a pickle file called "table\_2.pkl" for further reference.
+
+\subsection{Additional Results}
+
+The code saves additional results that include the total number of observations in the dataset and the p-value of the logistic regression analysis. These results are stored in a dictionary and saved as a pickle file called "additional\_results.pkl". This file can be used to retrieve these additional results later.
+
+The code provides a comprehensive analysis of the Twitter interaction data among members of the 117th US Congress, including descriptive statistics, logistic regression results, and additional information.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+Interacted Party_From Chamber_From  False    True
+Index
+D_House             D        House  989.0  4494.0
+D_Senate            D       Senate  881.0   627.0
+I_Senate            I       Senate   50.0       -
+R_House             R        House  712.0  4392.0
+R_Senate            R       Senate  671.0   473.0
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                     Coeff.  Std.Err.          z       P>|z|    [0.025    0.975]
+Variable
+Intercept          1.582233  0.035046  45.147266           0  1.513544  1.650922
+Party_Code_From    0.180437  0.029965   6.021515   1.728e-09  0.121706  0.239168
+Party_Code_To     -0.112855  0.029886  -3.776133   0.0001593 -0.171431 -0.054279
+Chamber_Code_From -2.217917  0.061658 -35.971274  2.354e-283 -2.338764 -2.097069
+Chamber_Code_To    0.334213   0.06992   4.779934   1.754e-06  0.197172  0.471254
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 13289,
+    'p-value of logistic regression': 0,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+ 'Intercept': (None, 'The value of the predicted response when all independent variables are 0'),
+ 'Party_Code_From': ('SrcParty', 'Political party of the tweeting congress member'),
+ 'Party_Code_To': ('TgtParty', 'Political party of the tweeted-at congress member'),
+ 'Chamber_Code_From': ('SrcChamber', 'Chamber of the tweeting congress member'),
+ 'Chamber_Code_To': ('TgtChamber', 'Chamber of the tweeted-at congress member'),
+ 'Coeff.': ('Coefficient', 'Estimated parameter of the logistic regression model'),
+ 'Std.Err.': ('StdErr', 'Standard error of the estimated parameter'),
+ 'z': ('Z-Score', 'Value of the test statistic for hypotheses testing of individual parameter estimates'),
+ 'P>|z|': ('P-Value', 'Twotailed probability of getting a test statistic as extreme as, or more extreme than, the observed value under the null hypothesis'),
+ '[0.025': ('CI-Lower', 'Lower limit of the 95% confidence interval'),
+ '0.975]': ('CI-Upper', 'Upper limit of the 95% confidence interval')
+}
+
+# TABLE 1
+df = pd.read_pickle('table_1.pkl')
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)} 
+mapping |= {
+ False: ('DiffPartyCham', 'Interactions between members of different party or Chamber'),
+ True: ('SamePartyCham', 'Interactions between members of the same party and Chamber'),
+ 'R_House': ('R-House', None),
+ 'D_House': ('D-House', None),
+ 'D_Senate': ('D-Senate', None),
+ 'I_Senate': ('I-Senate', None),
+ 'R_Senate': ('R-Senate', None),
+ 'Party_From': ('Source Party', None),
+ 'Chamber_From': ('Source Chamber', None),
+}
+abbrs_to_names, legend = split_mapping(mapping)
+df.rename(index=abbrs_to_names, columns=abbrs_to_names, inplace=True)
+
+to_latex_with_note(
+ df, 'table_1.tex',
+ caption='Number of Twitter interactions between Congress members by Party, Chamber, and whether they interacted with members of the same or a different party and chamber.',
+ label='table:interaction_counts_within_across_party_chamber',
+ note=None,
+ legend=legend
+ )
+
+# TABLE 2
+df = pd.read_pickle('table_2.pkl')
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)} 
+mapping |= {
+ 'Party_Code_From': ('SrcParty', 'Political party affiliation of the tweeting member'),
+ 'Chamber_Code_From': ('SrcChamber', 'Chamber (House or Senate) of the tweeting member'),
+}
+abbrs_to_names, legend = split_mapping(mapping)
+df.rename(index=abbrs_to_names, columns=abbrs_to_names, inplace=True)
+df['P-Value'] = df['P-Value'].apply(format_p_value)
+
+to_latex_with_note(
+ df, 'table_2.tex',
+ caption='Logistic regression model for the likelihood of Twitter interaction between Congress members based on their partisanship and chamber association.',
+ label='table:logit_model_fixtures',
+ note=None,
+ legend=legend
+ )
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Number of Twitter interactions between Congress members by Party,
+	Chamber, and whether they interacted with members of the same or a different
+	party and chamber.}
+\label{table:interaction_counts_within_across_party_chamber}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllrl}
+\toprule
+Interacted & Source Party & Source Chamber & DiffPartyCham & SamePartyCham \\
+Index &  &  &  &  \\
+\midrule
+\textbf{D-House} & D & House & 989 & 4494 \\
+\textbf{D-Senate} & D & Senate & 881 & 627 \\
+\textbf{I-Senate} & I & Senate & 50 & - \\
+\textbf{R-House} & R & House & 712 & 4392 \\
+\textbf{R-Senate} & R & Senate & 671 & 473 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{DiffPartyCham}: Interactions between members of different party or
+	Chamber
+\item \textbf{SamePartyCham}: Interactions between members of the same party and
+	Chamber
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Logistic regression model for the likelihood of Twitter interaction
+	between Congress members based on their partisanship and chamber association.}
+\label{table:logit_model_fixtures}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coefficient & StdErr & Z-Score & P-Value & CI-Lower & CI-Upper \\
+Variable &  &  &  &  &  &  \\
+\midrule
+\textbf{Intercept} & 1.58 & 0.035 & 45.1 & $<$1e-06 & 1.51 & 1.65 \\
+\textbf{SrcParty} & 0.18 & 0.03 & 6.02 & $<$1e-06 & 0.122 & 0.239 \\
+\textbf{TgtParty} & -0.113 & 0.0299 & -3.78 & 0.000159 & -0.171 & -0.0543 \\
+\textbf{SrcChamber} & -2.22 & 0.0617 & -36 & $<$1e-06 & -2.34 & -2.1 \\
+\textbf{TgtChamber} & 0.334 & 0.0699 & 4.78 & 1.75e-06 & 0.197 & 0.471 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Intercept}: The value of the predicted response when all
+	independent variables are 0
+\item \textbf{SrcParty}: Political party affiliation of the tweeting member
+\item \textbf{TgtParty}: Political party of the tweeted-at congress member
+\item \textbf{SrcChamber}: Chamber (House or Senate) of the tweeting member
+\item \textbf{TgtChamber}: Chamber of the tweeted-at congress member
+\item \textbf{Coefficient}: Estimated parameter of the logistic regression model
+\item \textbf{StdErr}: Standard error of the estimated parameter
+\item \textbf{Z-Score}: Value of the test statistic for hypotheses testing of
+	individual parameter estimates
+\item \textbf{P-Value}: Twotailed probability of getting a test statistic as
+	extreme as, or more extreme than, the observed value under the null hypothesis
+\item \textbf{CI-Lower}: Lower limit of the 95\% confidence interval
+\item \textbf{CI-Upper}: Upper limit of the 95\% confidence interval
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}
