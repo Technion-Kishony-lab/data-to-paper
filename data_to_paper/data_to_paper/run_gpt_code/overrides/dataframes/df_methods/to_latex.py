@@ -46,6 +46,7 @@ def _escape_string_in_dataframe(df: DataFrame) -> DataFrame:
     df.index = df.index.map(carefully_replace_special_latex_chars)
     df.index.name = carefully_replace_special_latex_chars(df.index.name)
     df.columns = df.columns.map(carefully_replace_special_latex_chars)
+    df.columns.name = carefully_replace_special_latex_chars(df.columns.name)
     return df
 
 
