@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To investigate whether the frequency of Twitter interactions among Congress members is influenced by their respective party affiliations.
+
+Hypothesis: 
+Congress members from the same political party engage more frequently with each other on Twitter than with members of different parties.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Congress members from the same political party engage more frequently with each other on Twitter than with members of different parties
+Statistical Test: Two-sample t-test comparing the frequency of Twitter interactions between members of the same party and members of different parties while adjusting for confounding variables such as represented state and the chamber.

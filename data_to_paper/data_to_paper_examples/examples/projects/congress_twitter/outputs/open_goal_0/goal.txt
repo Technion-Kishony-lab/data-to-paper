@@ -1,0 +1,17 @@
+Here is our Research Goal
+
+
+Research Goal: 
+Examine whether geographic proximity between Congress members influences their Twitter interaction network.
+
+Hypothesis: 
+The frequency of Twitter interactions between Congress members representing the same state or from the same geographic region is significantly higher than the interactions between Congress members not from the same state or region, regardless of their party affiliations or chamber.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The frequency of Twitter interactions between Congress members representing the same state is significantly higher than the interactions between Congress members not from the same state
+Statistical Test: Independent samples t-test comparing the frequency of interactions between Congress members from the same state vs. different states. Adjust for party affiliation and chamber as covariates.
+
+Hypothesis: The frequency of Twitter interactions between Congress members from the same geographic region is significantly higher than the interactions between Congress members from different regions
+Statistical Test: Independent samples t-test comparing the frequency of interactions between Congress members from the same geographic region vs. different regions. Adjust for party affiliation and chamber as covariates.

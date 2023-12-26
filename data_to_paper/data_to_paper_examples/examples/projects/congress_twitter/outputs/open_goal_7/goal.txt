@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal:
+Investigate the structure of the Twitter interaction network of Congress members, particularly focusing on the distributions of incoming and outgoing interactions.
+
+Hypothesis:
+The distributions of in-degree and out-degree in the network exhibit properties of regular patterns found in real-world networks, such as power-law distribution. This suggests that few Congress members predominantly participate in or are subjects of discourse.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The distributions of in-degree and out-degree in the network exhibit properties of regular patterns found in real-world networks, such as power-law distribution
+Statistical Test: Perform a goodness-of-fit test, such as the Kolmogorov-Smirnov test or the Chi-square test, between the observed degree distribution and a power-law distribution. Adjust for confounding variables, if necessary.

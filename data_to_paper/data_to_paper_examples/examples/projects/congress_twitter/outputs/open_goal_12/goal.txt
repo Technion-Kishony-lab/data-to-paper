@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To understand the structural properties of the Congressional Twitter network and investigate any potential influence of chamber division on social interaction dynamics.
+
+Hypothesis: 
+The level of Twitter engagement within the same chamber (House to House or Senate to Senate) is higher than between chambers (House to Senate or Senate to House), irrespective of party affiliations.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The level of Twitter engagement within the same chamber is higher than between chambers, irrespective of party affiliations
+Statistical Test: Independent samples t-test comparing the mean number of interactions within the same chamber to the mean number of interactions between chambers, while adjusting for party affiliations using analysis of covariance (ANCOVA)

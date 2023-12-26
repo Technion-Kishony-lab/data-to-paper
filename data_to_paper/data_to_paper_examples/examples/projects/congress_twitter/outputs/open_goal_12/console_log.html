@@ -1,0 +1,1796 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title></title>
+<style type="text/css">
+.ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+.body_foreground { color: #AAAAAA; }
+.body_background { background-color: #000000; }
+.inv_foreground { color: #000000; }
+.inv_background { background-color: #AAAAAA; }
+.ansi31 { color: #aa0000; }
+.ansi32 { color: #00aa00; }
+.ansi34 { color: #0000aa; }
+.ansi35 { color: #E850A8; }
+.ansi36 { color: #00aaaa; }
+.ansi92 { color: #00ff00; }
+.ansi96 { color: #00ffff; }
+.ansi38-15 { color: #ffffff; }
+.ansi38-197 { color: #ff005f; }
+.ansi38-141 { color: #af87ff; }
+.ansi38-81 { color: #5fd7ff; }
+.ansi38-186 { color: #d7d787; }
+.ansi38-242 { color: #6c6c6c; }
+</style>
+</head>
+<body class="body_foreground body_background" style="font-size: normal;" >
+<pre class="ansi2html-content">
+<span class="ansi31">CreateConversation(name=None web=[web]get data, participants=['Director', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]explore data, participants=['DataExplorer', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]review goal, participants=['GoalReviewer', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]preprocess data, participants=['DataPreprocessor', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]review plan, participants=['Performer', 'PlanReviewer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]debug, participants=['Debugger', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]results interpretation, participants=['InterpretationReviewer', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]write paper, participants=['Performer', 'Writer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]add citations, participants=['CitationExpert', 'Performer'])</span>
+
+<span class="ansi31">CreateConversation(name=None web=[web]add tables, participants=['Performer', 'TableExpert'])</span>
+<span class="ansi31">CreateConversation(name=with_director web=[web]get data, participants=['Director', 'Performer']) -&gt; with_director</span>
+
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                    with_director                                                                     </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=data_exploration_code web=[web]explore data, participants=['DataExplorer', 'Performer']) -&gt; data_exploration_code</span>
+
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                data_exploration_code                                                                 </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; data_exploration_code ---------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a brilliant data scientist. You are writing a Python code to analyze data.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] ----- USER {DataExplorer} -&gt; data_exploration_code &lt;background_all_file_descriptions&gt;  -----------------------------------------------------------
+</span><span class="ansi32">Description of the Dataset:
+
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with social interactions (edges) among Congress members (nodes). Each member
+(node) is further characterized by three attributes: Represented State, Political Party, and Chamber, allowing analysis of the adjacency matrix
+structure, graph metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the Senate, were harvested for a 4-month period, February 9 to June 9, 2022
+(using the Twitter API). Members with fewer than 100 tweets were excluded from the network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer node ID (0, 1, 2, ...) which corresponds to a row in
+`congress_members.csv`, providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged with member j on Twitter at least once during the 4-month data-
+collection period. An engagement is defined as a tweet by member i that mentions member j's handle, or as retweets, quote tweets, or replies of i to a
+tweet by member j.
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or their two-letter abbreviations. The code may of course do statistical
+analysis of *properties* related to States, but should not single out specific states.
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles, Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR", "VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+Here are the first few lines of the file:
+</span><span class="ansi92">```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```</span><span class="ansi32">
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+create_using=nx.DiGraph()). An i-&gt;j edge indicates that Congress member i had at least one tweet engaging with Congress member j during the 4-month
+collection period.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[3] ===== SURROGATE {Performer} -&gt; data_exploration_code &lt;background_thanks_all_file_descriptions&gt;  ==================================================
+</span><span class="ansi36">Thank you for the Description of the Dataset.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi34">[4] COMMENTER -&gt; data_exploration_code &lt;after_background&gt;  : Background messages completed. Requesting "Data Exploration code".</span>
+
+<span class="ansi32">[5] ----- USER {DataExplorer} -&gt; data_exploration_code -----------------------------------------------------------------------------------------------
+</span><span class="ansi32">As part of a data-exploration phase, please write a complete short Python code for getting a first sense of the data.
+
+Your code should create an output text file named "data_exploration.txt", which should contain a summary of the data.
+
+The output file should be self-contained; any results you choose to save to this file should be accompanied with a short header.
+
+The output file should be formatted as follows:
+
+</span><span class="ansi92">```output
+# Data Size
+&lt;Measure of the scale of our data (e.g., number of rows, number of columns)&gt;
+
+# Summary Statistics
+&lt;Summary statistics of all or key variables&gt;
+
+# Categorical Variables
+&lt;As applicable, list here categorical values and their most common values&gt;
+
+# Missing Values
+&lt;Counts of missing, unknown, or undefined values&gt;
+&lt;As applicable, counts of special numeric values that stand for unknown/undefined if any (check in the "Description of the Dataset" above for any)&gt;
+
+# &lt;other summary you deem relevant, if any&gt;
+&lt;summary&gt;
+```</span><span class="ansi32">
+
+If needed, you can use the following packages which are already installed:
+('pandas', 'numpy', 'scipy', 'networkx')
+
+Do not provide a sketch or pseudocode; write a complete runnable code.
+Do not create any graphics, figures or any plots.
+Do not send any presumed output examples.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi34">[6] COMMENTER -&gt; data_exploration_code : Starting to write and debug code. Revision 1/5 (attempt 1/2).</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 956 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[7] ===== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; data_exploration_code ======================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (956 tokens):
+# 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
+# 1      USER ( 657 tokens): Description of the Dataset: [...] collection period.
+# 2 SURROGATE (  10 tokens): Thank you for the Description of the Dataset.
+# 3      USER ( 272 tokens): As part of a [...] output examples.
+
+# 4 ASSISTANT ( 431 tokens): You can explore and [...] of your files.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+You can explore and describe the data using Python's popular data analysis library pandas and the network analysis library networkx. Here is how you
+may do that:
+
+</span><span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">pandas</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span>
+<span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">networkx</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span>
+
+<span class="ansi38-242"># read members data</span>
+<span class="ansi38-15">members</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span><span class="ansi38-197">.</span><span class="ansi38-15">read_csv</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_members.csv</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># read edges data</span>
+<span class="ansi38-15">edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">read_edgelist</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_edges.dat</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-15">create_using</span><span class="ansi38-197">=</span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">DiGraph</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># open a new text file and write the analyses</span>
+<span class="ansi38-81">with</span><span class="ansi38-15"> </span><span class="ansi38-15">open</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">data_exploration.txt</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">w</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">outfile</span><span class="ansi38-15">:</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># data size</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Data Size</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of nodes (Congress members): </span><span class="ansi38-186">{</span><span class="ansi38-15">len</span><span class="ansi38-15">(</span><span class="ansi38-15">members</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">num_edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">edges</span><span class="ansi38-197">.</span><span class="ansi38-15">number_of_edges</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of edges (interactions): </span><span class="ansi38-186">{</span><span class="ansi38-15">num_edges</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># summary statistics</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Summary Statistics</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">party_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chamber_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Party counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">party_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">chamber_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># categorical variables</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Categorical Variables</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">parties</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chambers</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique parties: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">parties</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique chambers: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">chambers</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># missing values</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Missing Values</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">na_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-197">.</span><span class="ansi38-15">isna</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">sum</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">NA counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">na_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi36">
+
+This script reads the nodes and edges into pandas dataframe and networkx graph, respectively. It then opens a new text file and writes the requested
+analyses including the size, summary, categorical variables, and missing values.
+
+Before running, ensure you have the necessary files in the correct directory or adjust the paths in script according to the locations of your files.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;5&gt; - &lt;-1&gt; [2 MESSAGES]) -&gt; data_exploration_code</span>
+
+<span class="ansi31">AppendMessage, Adding the debugged code as if it was the original response.</span>
+<span class="ansi36">[6] ===== SURROGATE {Performer} -&gt; data_exploration_code =============================================================================================
+</span><span class="ansi36">Here is the code to perform the analysis.
+It creates the file "data_exploration.txt".
+</span><span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">pandas</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span>
+<span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">networkx</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span>
+
+<span class="ansi38-242"># read members data</span>
+<span class="ansi38-15">members</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span><span class="ansi38-197">.</span><span class="ansi38-15">read_csv</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_members.csv</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># read edges data</span>
+<span class="ansi38-15">edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">read_edgelist</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_edges.dat</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-15">create_using</span><span class="ansi38-197">=</span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">DiGraph</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># open a new text file and write the analyses</span>
+<span class="ansi38-81">with</span><span class="ansi38-15"> </span><span class="ansi38-15">open</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">data_exploration.txt</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">w</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">outfile</span><span class="ansi38-15">:</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># data size</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Data Size</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of nodes (Congress members): </span><span class="ansi38-186">{</span><span class="ansi38-15">len</span><span class="ansi38-15">(</span><span class="ansi38-15">members</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">num_edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">edges</span><span class="ansi38-197">.</span><span class="ansi38-15">number_of_edges</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of edges (interactions): </span><span class="ansi38-186">{</span><span class="ansi38-15">num_edges</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># summary statistics</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Summary Statistics</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">party_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chamber_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Party counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">party_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">chamber_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># categorical variables</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Categorical Variables</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">parties</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chambers</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique parties: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">parties</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique chambers: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">chambers</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># missing values</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Missing Values</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">na_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-197">.</span><span class="ansi38-15">isna</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">sum</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">NA counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">na_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[7] ----- USER {DataExplorer} -&gt; data_exploration_code -----------------------------------------------------------------------------------------------
+</span><span class="ansi32">I ran your code.
+
+Here is the content of the output file(s) that the code created:
+
+"data_exploration.txt":
+</span><span class="ansi92">```output
+# Data Size
+Number of nodes (Congress members): 475
+Number of edges (interactions): 13289
+
+# Summary Statistics
+Party counts:
+Party
+D    250
+R    223
+I      2
+Chamber counts:
+Chamber
+House     383
+Senate     92
+
+# Categorical Variables
+Unique parties: D, R, I
+Unique chambers: Senate, House
+
+# Missing Values
+NA counts:
+Handle     0
+State      0
+Party      0
+Chamber    0
+
+```</span><span class="ansi32">
+Please follow these two steps:
+
+(1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
+* Are there any unexpected NaN values in the output.
+* Can results be understood from the output file? In particular, do we have a short label for each result?
+* Are there any results that are missing. Check that under each header in the output file there is a corresponding meaningful result.
+* Any other issues you find.
+
+(2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted above (dict keys) to specific suggested
+corrections/improvements in the code (dict values).
+
+For example:
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">The result of the average of variable ... is missing</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Add the missing calculation of ... to the code.</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">The average of the variable &lt;xxx&gt; is `Nan`</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Remove missing values in the calculation.</span><span class="ansi38-186">"</span>
+<span class="ansi38-15">}</span>
+<span class="ansi32">
+
+Try to be as specific as possible when describing the issues and proposed fixes.
+Include in the dict as many issues as you find.
+If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, then return an empty dict:
+</span><span class="ansi38-15">{</span><span class="ansi38-15">}</span>
+<span class="ansi32">
+
+Important:
+* Do not return the revised code, only the issues and suggested fixes.
+* If there are no critical issues, then return an empty dict: `{}`.
+* Do not create positive issues that require no change in the code. In particular, do not write {"No issues found": "No corrections or improvements
+are needed."}, return an empty dict instead.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 1781 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[8] ===== ASSISTANT{'model_engine': gpt-4, 'temperature': 0.0} {Performer} -&gt; data_exploration_code ==================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1781 tokens):
+# 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
+# 1      USER ( 657 tokens): Description of the Dataset: [...] collection period.
+# 2 SURROGATE (  10 tokens): Thank you for the Description of the Dataset.
+# 3      USER ( 272 tokens): As part of a [...] output examples.
+# 4 SURROGATE ( 351 tokens): Here is the code to perform [...] ts:\n{na_counts}\n')
+# 5      USER ( 474 tokens): I ran your code.  Here is [...] empty dict instead.
+
+# 6 ASSISTANT ( 121 tokens): Based on the output file, [...]  python {}
+                             {'model_engine': gpt-4, 'temperature': 0.0}
+</span><span class="ansi36">
+
+Based on the output file, the code seems to be working as expected. Here is my assessment:
+
+* There are no unexpected NaN values in the output. The code correctly checks for missing values and reports that there are none in the dataset.
+* The results can be understood from the output file. Each result is preceded by a short label that describes what the result represents.
+* There are no results that are missing. Under each header in the output file, there is a corresponding meaningful result.
+* I didn't find any other issues.
+
+Therefore, my response is an empty dictionary:
+
+</span><span class="ansi38-15">{</span><span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;7&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; data_exploration_code</span>
+
+<span class="ansi36">[8] ===== SURROGATE {Performer} -&gt; data_exploration_code =============================================================================================
+</span><span class="ansi38-15">{</span><span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                               data_exploration_code_0                                                                </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=data_exploration_code_0 web=[web]explore data, participants=['DataExplorer', 'Performer']) -&gt; data_exploration_code_0</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; data_exploration_code_0 -------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a scientist who needs to write explanation of the Data Exploration code.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] ----- USER {DataExplorer} -&gt; data_exploration_code_0 &lt;background_data_file_descriptions&gt;  --------------------------------------------------------
+</span><span class="ansi32">DESCRIPTION OF THE ORIGINAL DATASET
+
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with social interactions (edges) among Congress members (nodes). Each member
+(node) is further characterized by three attributes: Represented State, Political Party, and Chamber, allowing analysis of the adjacency matrix
+structure, graph metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the Senate, were harvested for a 4-month period, February 9 to June 9, 2022
+(using the Twitter API). Members with fewer than 100 tweets were excluded from the network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer node ID (0, 1, 2, ...) which corresponds to a row in
+`congress_members.csv`, providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged with member j on Twitter at least once during the 4-month data-
+collection period. An engagement is defined as a tweet by member i that mentions member j's handle, or as retweets, quote tweets, or replies of i to a
+tweet by member j.
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or their two-letter abbreviations. The code may of course do statistical
+analysis of *properties* related to States, but should not single out specific states.
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles, Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR", "VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+Here are the first few lines of the file:
+</span><span class="ansi92">```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```</span><span class="ansi32">
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+create_using=nx.DiGraph()). An i-&gt;j edge indicates that Congress member i had at least one tweet engaging with Congress member j during the 4-month
+collection period.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[3] ===== SURROGATE {Performer} -&gt; data_exploration_code_0 &lt;background_thanks_data_file_descriptions&gt;  ===============================================
+</span><span class="ansi36">Thank you for the Description of the Original Dataset.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[4] ----- USER {DataExplorer} -&gt; data_exploration_code_0 &lt;background_codes:data_exploration&gt;  --------------------------------------------------------
+</span><span class="ansi32">Here is our Data Exploration Code:
+</span><span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">pandas</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span>
+<span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">networkx</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span>
+
+<span class="ansi38-242"># read members data</span>
+<span class="ansi38-15">members</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span><span class="ansi38-197">.</span><span class="ansi38-15">read_csv</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_members.csv</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># read edges data</span>
+<span class="ansi38-15">edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">read_edgelist</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_edges.dat</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-15">create_using</span><span class="ansi38-197">=</span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">DiGraph</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># open a new text file and write the analyses</span>
+<span class="ansi38-81">with</span><span class="ansi38-15"> </span><span class="ansi38-15">open</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">data_exploration.txt</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">w</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">outfile</span><span class="ansi38-15">:</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># data size</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Data Size</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of nodes (Congress members): </span><span class="ansi38-186">{</span><span class="ansi38-15">len</span><span class="ansi38-15">(</span><span class="ansi38-15">members</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">num_edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">edges</span><span class="ansi38-197">.</span><span class="ansi38-15">number_of_edges</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of edges (interactions): </span><span class="ansi38-186">{</span><span class="ansi38-15">num_edges</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># summary statistics</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Summary Statistics</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">party_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chamber_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Party counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">party_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">chamber_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># categorical variables</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Categorical Variables</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">parties</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chambers</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique parties: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">parties</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique chambers: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">chambers</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># missing values</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Missing Values</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">na_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-197">.</span><span class="ansi38-15">isna</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">sum</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">NA counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">na_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[5] ===== SURROGATE {Performer} -&gt; data_exploration_code_0 &lt;background_thanks_codes:data_exploration&gt;  ===============================================
+</span><span class="ansi36">Thank you for the Data Exploration Code.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi34">[6] COMMENTER -&gt; data_exploration_code_0 &lt;after_background&gt;  : Background messages completed. Requesting "explanation of the Data Exploration code".</span>
+
+<span class="ansi32">[7] ----- USER {DataExplorer} -&gt; data_exploration_code_0 ---------------------------------------------------------------------------------------------
+</span><span class="ansi32">Please return a triple-backtick Latex Block explaining what the code above does.
+Do not provide a line-by-line explanation, rather provide a high-level explanation of the code in a language suitable for a Methods section of a
+research paper.
+Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.
+Also explain what does the code write into the "data_exploration.txt" file.
+Your explanation should be written in LaTeX, and should be enclosed within a LaTeX Code Block, like this:
+
+</span><span class="ansi92">```latex
+\section{Code Explanation}
+&lt;your code explanation here&gt;
+```</span><span class="ansi32">
+
+Remember to enclose your explanation within a LaTeX Code Block, so that I can easily copy-paste it!</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-3.5-turbo-0613 (max 4096 tokens) for 1183 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[8] ===== ASSISTANT{'model_engine': gpt-3.5-turbo-0613} {Performer} -&gt; data_exploration_code_0 =======================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1183 tokens):
+# 0    SYSTEM (  15 tokens): You are a scientist who [...] Exploration code.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER ( 338 tokens): Here is our Data [...] ts:\n{na_counts}\n')
+# 4 SURROGATE (   9 tokens): Thank you for the Data Exploration Code.
+# 5      USER ( 151 tokens): Please return a [...] copy-paste it!
+
+# 6 ASSISTANT ( 353 tokens): \section{Code Explanation} [...] or decision-making.
+                             {'model_engine': gpt-3.5-turbo-0613}
+</span><span class="ansi36">
+
+\section{Code Explanation}
+The provided code performs data exploration on the dataset of US Congress members' Twitter interactions.
+
+The code starts by reading the members data from the "congress_members.csv" file and the edges data from the "congress_edges.dat" file. The members
+data contains information about the Congress members, such as their Twitter handles, represented states, party affiliations, and chamber. The edges
+data represents the interactions between Congress members on Twitter.
+
+The code then proceeds to perform the following analysis steps:
+
+1. Data Size: The code calculates the number of nodes, which corresponds to the number of Congress members, and the number of edges, which represents
+the number of interactions between members. These results are written into the "data_exploration.txt" file.
+
+2. Summary Statistics: The code computes the counts of party affiliations and chamber memberships among the Congress members. These counts are written
+into the "data_exploration.txt" file.
+
+3. Categorical Variables: The code identifies the unique party affiliations and unique chambers present among the Congress members and writes them
+into the "data_exploration.txt" file.
+
+4. Missing Values: The code checks for missing values in the members data, specifically in the columns containing Twitter handles, represented states,
+party affiliations, and chamber memberships. The counts of missing values are written into the "data_exploration.txt" file.
+
+The "data_exploration.txt" file serves as a summary report of the data exploration analysis. It contains information about the size of the dataset,
+summary statistics of party affiliations and chamber memberships, the unique categorical variables, and the counts of missing values. This file can be
+used to gain insights into the dataset and inform further analysis or decision-making.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[9] ----- USER {DataExplorer} -&gt; data_exploration_code_0 ---------------------------------------------------------------------------------------------
+</span><span class="ansi32">You did not send any triple-backtick block.
+Please try again, making sure the latex is enclosed within triple-backtick "latex" block.
+
+Please write the explanation of the Data Exploration code again with this error corrected.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">DeleteMessages(&lt;-2&gt; - &lt;-1&gt; [2 MESSAGES]) -&gt; data_exploration_code_0</span>
+
+<span class="ansi31">Using gpt-3.5-turbo-0613 (max 4096 tokens) for 1183 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[8] ===== ASSISTANT{'model_engine': gpt-3.5-turbo-0613} {Performer} -&gt; data_exploration_code_0 =======================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1183 tokens):
+# 0    SYSTEM (  15 tokens): You are a scientist who [...] Exploration code.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER ( 338 tokens): Here is our Data [...] ts:\n{na_counts}\n')
+# 4 SURROGATE (   9 tokens): Thank you for the Data Exploration Code.
+# 5      USER ( 151 tokens): Please return a [...] copy-paste it!
+
+# 6 ASSISTANT ( 385 tokens): latex \section{Code [...] dataset.
+                             {'model_engine': gpt-3.5-turbo-0613}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+\section{Code Explanation}
+
+The provided code performs data exploration on the US Congress Twitter interactions dataset.
+
+First, the code reads the members data from the "congress_members.csv" file and the edges data from the "congress_edges.dat" file.
+
+Next, the code opens a new text file named "data_exploration.txt" to store the analysis results.
+
+The code then proceeds with the following analysis steps:
+
+1. Data Size:
+   - The code calculates the number of Congress members by taking the length of the members dataframe.
+   - The code also calculates the number of interactions (edges) by using the number_of_edges() function from the edges networkx graph object.
+
+2. Summary Statistics:
+   - The code computes the counts of members by party affiliation and writes them to the output file.
+   - The code also computes the counts of members by their chamber (House or Senate) and writes them to the output file.
+
+3. Categorical Variables:
+   - The code retrieves the unique values of party affiliations and chambers from the members dataframe and writes them to the output file.
+
+4. Missing Values:
+   - The code checks for missing values in the members dataframe using the isna() function and computes the counts of missing values for each column.
+   - The code writes the counts of missing values to the output file.
+
+The "data_exploration.txt" file will include the following information:
+- The number of Congress members and the number of interactions in the dataset.
+- The counts of members by party affiliation and chamber.
+- The unique values of party affiliations and chambers.
+- The counts of missing values for each column in the members dataframe.
+
+This data exploration code provides an initial understanding of the dataset, including its size, summary statistics, categorical variables, and
+missing values. This information can help inform further analysis and research on the US Congress Twitter interactions dataset.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;6&gt; - &lt;-1&gt; [2 MESSAGES]) -&gt; data_exploration_code_0</span>
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                    research_goal                                                                     </span>
+<span class="ansi35">                                                                research_goal_reviewer                                                                </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=research_goal web=[web]review goal, participants=['GoalReviewer', 'Performer']) -&gt; research_goal</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; research_goal -----------------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a helpful scientist.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] USER {GoalReviewer} -&gt; research_goal &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[3] SURROGATE {Performer} -&gt; research_goal &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[4] ----- USER {GoalReviewer} -&gt; research_goal &lt;background_codes_and_outputs:data_exploration&gt;  ------------------------------------------------------
+</span><span class="ansi32">Here is our Data Exploration Code:
+</span><span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">pandas</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span>
+<span class="ansi38-197">import</span><span class="ansi38-15"> </span><span class="ansi38-15">networkx</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span>
+
+<span class="ansi38-242"># read members data</span>
+<span class="ansi38-15">members</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">pd</span><span class="ansi38-197">.</span><span class="ansi38-15">read_csv</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_members.csv</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># read edges data</span>
+<span class="ansi38-15">edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">read_edgelist</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">congress_edges.dat</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-15">create_using</span><span class="ansi38-197">=</span><span class="ansi38-15">nx</span><span class="ansi38-197">.</span><span class="ansi38-15">DiGraph</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-242"># open a new text file and write the analyses</span>
+<span class="ansi38-81">with</span><span class="ansi38-15"> </span><span class="ansi38-15">open</span><span class="ansi38-15">(</span><span class="ansi38-186">'</span><span class="ansi38-186">data_exploration.txt</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">w</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span><span class="ansi38-15"> </span><span class="ansi38-81">as</span><span class="ansi38-15"> </span><span class="ansi38-15">outfile</span><span class="ansi38-15">:</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># data size</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Data Size</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of nodes (Congress members): </span><span class="ansi38-186">{</span><span class="ansi38-15">len</span><span class="ansi38-15">(</span><span class="ansi38-15">members</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">num_edges</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">edges</span><span class="ansi38-197">.</span><span class="ansi38-15">number_of_edges</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Number of edges (interactions): </span><span class="ansi38-186">{</span><span class="ansi38-15">num_edges</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># summary statistics</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Summary Statistics</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">party_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chamber_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">value_counts</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Party counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">party_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">chamber_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># categorical variables</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Categorical Variables</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">parties</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Party</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">chambers</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">Chamber</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span><span class="ansi38-197">.</span><span class="ansi38-15">unique</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique parties: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">parties</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">Unique chambers: </span><span class="ansi38-186">{</span><span class="ansi38-186">"</span><span class="ansi38-186">, </span><span class="ansi38-186">"</span><span class="ansi38-197">.</span><span class="ansi38-15">join</span><span class="ansi38-15">(</span><span class="ansi38-15">chambers</span><span class="ansi38-15">)</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-242"># missing values</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">"</span><span class="ansi38-186"># Missing Values</span><span class="ansi38-141">\n</span><span class="ansi38-186">"</span><span class="ansi38-15">)</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">na_counts</span><span class="ansi38-15"> </span><span class="ansi38-197">=</span><span class="ansi38-15"> </span><span class="ansi38-15">members</span><span class="ansi38-197">.</span><span class="ansi38-15">isna</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">sum</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span><span class="ansi38-197">.</span><span class="ansi38-15">to_string</span><span class="ansi38-15">(</span><span class="ansi38-15">)</span>
+
+<span class="ansi38-15">    </span><span class="ansi38-15">outfile</span><span class="ansi38-197">.</span><span class="ansi38-15">write</span><span class="ansi38-15">(</span><span class="ansi38-186">f</span><span class="ansi38-186">'</span><span class="ansi38-186">NA counts:</span><span class="ansi38-141">\n</span><span class="ansi38-186">{</span><span class="ansi38-15">na_counts</span><span class="ansi38-186">}</span><span class="ansi38-141">\n</span><span class="ansi38-186">'</span><span class="ansi38-15">)</span>
+<span class="ansi32">
+Here is the Output of our Data Exploration code:
+</span><span class="ansi92">```output
+# Data Size
+Number of nodes (Congress members): 475
+Number of edges (interactions): 13289
+
+# Summary Statistics
+Party counts:
+Party
+D    250
+R    223
+I      2
+Chamber counts:
+Chamber
+House     383
+Senate     92
+
+# Categorical Variables
+Unique parties: D, R, I
+Unique chambers: Senate, House
+
+# Missing Values
+NA counts:
+Handle     0
+State      0
+Party      0
+Chamber    0
+
+```</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[5] ===== SURROGATE {Performer} -&gt; research_goal &lt;background_thanks_codes_and_outputs:data_exploration&gt;  =============================================
+</span><span class="ansi36">Thank you for the Data Exploration Code and Output.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi34">[6] COMMENTER -&gt; research_goal &lt;after_background&gt;  : Background messages completed. Requesting "research goal and hypothesis".</span>
+
+<span class="ansi32">[7] ----- USER {GoalReviewer} -&gt; research_goal -------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">Please suggest a research goal and an hypothesis that can be studied using only the provided dataset.
+The goal and hypothesis should be interesting and novel.
+
+Guidelines:
+
+* Try to avoid trivial hypotheses (like just testing for simple linear associations).
+Instead, you could perhaps explore more complex associations and relationships, like testing for moderation effects or interactions between variables.
+
+* Make sure that your suggested hypothesis can be studied using only the provided dataset, without requiring any additional data. In particular, pay
+attention to using only data available based on the provided headers of our data files (see "Description of the Original Dataset", above).
+
+* Avoid choosing politically sided goals. For example, do NOT choose a goal like "Democrats are more/less engaged than Republicans".
+
+* Avoid choosing the following goal that we have already explored:
+- The probability of interaction of a member is associated with their Party, State, and Chamber.
+* Do not suggest methodology. Just the goal and an hypothesis.
+
+INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
+Please return the goal and hypothesis enclosed within triple-backticks, like this:
+</span><span class="ansi92">```
+Research Goal:
+&lt;your research goal here&gt;
+
+Hypothesis:
+&lt;your hypothesis here&gt;
+```</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">CreateConversation(name=research_goal_reviewer web=None, participants=['GoalReviewer', 'Performer']) -&gt; research_goal_reviewer</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {GoalReviewer} -&gt; research_goal_reviewer -----------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a scientific reviewer for a scientist who needs to suggest research goal and hypothesis.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] USER {Performer} -&gt; research_goal_reviewer &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[3] SURROGATE {GoalReviewer} -&gt; research_goal_reviewer &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[4] USER {Performer} -&gt; research_goal_reviewer &lt;background_codes_and_outputs:data_exploration&gt;  : 
+Here is our Data Exploration Code: python  import pandas as pd import networkx as nx  # read [...] counts: Handle 0 State 0 Party 0 Chamber 0</span>
+
+<span class="ansi36">[5] ===== SURROGATE {GoalReviewer} -&gt; research_goal_reviewer &lt;background_thanks_codes_and_outputs:data_exploration&gt;  =================================
+</span><span class="ansi36">Thank you for the Data Exploration Code and Output.
+Please suggest a research goal and an hypothesis that can be studied using only the provided dataset.
+The goal and hypothesis should be interesting and novel.
+
+Guidelines:
+
+* Try to avoid trivial hypotheses (like just testing for simple linear associations).
+Instead, you could perhaps explore more complex associations and relationships, like testing for moderation effects or interactions between variables.
+
+* Make sure that your suggested hypothesis can be studied using only the provided dataset, without requiring any additional data. In particular, pay
+attention to using only data available based on the provided headers of our data files (see "Description of the Original Dataset", above).
+
+* Avoid choosing politically sided goals. For example, do NOT choose a goal like "Democrats are more/less engaged than Republicans".
+
+* Avoid choosing the following goal that we have already explored:
+- The probability of interaction of a member is associated with their Party, State, and Chamber.
+* Do not suggest methodology. Just the goal and an hypothesis.
+
+INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
+Please return the goal and hypothesis enclosed within triple-backticks, like this:
+</span><span class="ansi96">```
+Research Goal:
+&lt;your research goal here&gt;
+
+Hypothesis:
+&lt;your hypothesis here&gt;
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 1396 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[8] ===== ASSISTANT{'model_engine': gpt-4, 'temperature': 1.0} {Performer} -&gt; research_goal ==========================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1396 tokens):
+# 0    SYSTEM (   6 tokens): You are a helpful scientist.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER ( 468 tokens): Here is our Data [...] 0 Party 0 Chamber 0
+# 4 SURROGATE (  11 tokens): Thank you for the Data Exploration Code and Output.
+# 5      USER ( 242 tokens): Please suggest a research [...] hypothesis here&gt;
+
+# 6 ASSISTANT (  73 tokens): Research Goal:  To [...] party affiliations.
+                             {'model_engine': gpt-4, 'temperature': 1.0}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```
+Research Goal:
+To understand the structural properties of the Congressional Twitter network and investigate any potential influence of chamber division on social
+interaction dynamics.
+
+Hypothesis:
+The level of Twitter engagement within the same chamber (House to House or Senate to Senate) is higher than between chambers (House to Senate or
+Senate to House), irrespective of party affiliations.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;7&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; research_goal</span>
+
+<span class="ansi36">[8] ===== SURROGATE {Performer} -&gt; research_goal =====================================================================================================
+</span><span class="ansi36">Here is the research goal and hypothesis:
+
+</span><span class="ansi96">```
+Research Goal:
+To understand the structural properties of the Congressional Twitter network and investigate any potential influence of chamber division on social
+interaction dynamics.
+
+Hypothesis:
+The level of Twitter engagement within the same chamber (House to House or Senate to Senate) is higher than between chambers (House to Senate or
+Senate to House), irrespective of party affiliations.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[6] ----- USER {Performer} -&gt; research_goal_reviewer -------------------------------------------------------------------------------------------------
+</span><span class="ansi32">Here is the research goal and hypothesis:
+
+</span><span class="ansi92">```
+Research Goal:
+To understand the structural properties of the Congressional Twitter network and investigate any potential influence of chamber division on social
+interaction dynamics.
+
+Hypothesis:
+The level of Twitter engagement within the same chamber (House to House or Senate to Senate) is higher than between chambers (House to Senate or
+Senate to House), irrespective of party affiliations.
+```</span><span class="ansi32">
+Please provide constructive bullet-point feedback on the above research goal and hypothesis.
+
+Specifically:
+* If the hypothesis cannot be tested using only the provided dataset (without requiring additional data), suggest how to modify the hypothesis to
+better fit the dataset.
+* If the hypothesis is not interesting and novel, suggest how to modify it to make it more interesting.
+* If the hypothesis is broad or convoluted, suggest how best to focus it on a single well defined question.
+Do not provide positive feedback; if these conditions are all satisfied, just respond with:
+"The research goal does not require any changes".
+If you feel that the initial goal and hypothesis satisfy the above conditions, respond solely with "The research goal does not require any changes".</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 1636 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[7] ===== ASSISTANT{'model_engine': gpt-4} {GoalReviewer} -&gt; research_goal_reviewer ==================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1636 tokens):
+# 0    SYSTEM (  17 tokens): You are a scientific [...] and hypothesis.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER ( 468 tokens): Here is our Data [...] 0 Party 0 Chamber 0
+# 4 SURROGATE ( 252 tokens): Thank you for the Data [...] hypothesis here&gt;
+# 5      USER ( 229 tokens): Here is the research goal [...] any changes".
+
+# 6 ASSISTANT (  43 tokens): The research goal and [...] any changes.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+The research goal and hypothesis provide an interesting and novel angle to explore. They are clear, focused, and can be studied using the provided
+dataset without requiring additional data.
+
+The research goal does not require any changes.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[9] USER {GoalReviewer} -&gt; research_goal : 
+The research goal and hypothesis provide an interesting and novel angle to explore. They are [...] research goal does not require any changes.</span>
+
+<span class="ansi31">DeleteMessages(&lt;7&gt; - &lt;-1&gt; [2 MESSAGES]) -&gt; research_goal</span>
+
+<span class="ansi36">[8] SURROGATE {Performer} -&gt; research_goal : 
+Here is the research goal and hypothesis:   Research Goal:  To understand the structural [...] House), irrespective of party affiliations.</span>
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                literature_search_goal                                                                </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=literature_search_goal web=[web]add citations, participants=['CitationExpert', 'Performer']) -&gt; literature_search_goal</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; literature_search_goal --------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a scientist who needs to write literature search queries.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] USER {CitationExpert} -&gt; literature_search_goal &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[3] SURROGATE {Performer} -&gt; literature_search_goal &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[4] ----- USER {CitationExpert} -&gt; literature_search_goal &lt;background_research_goal&gt;  ----------------------------------------------------------------
+</span><span class="ansi32">Here is our Research Goal
+Research Goal:
+To understand the structural properties of the Congressional Twitter network and investigate any potential influence of chamber division on social
+interaction dynamics.
+
+Hypothesis:
+The level of Twitter engagement within the same chamber (House to House or Senate to Senate) is higher than between chambers (House to Senate or
+Senate to House), irrespective of party affiliations.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[5] ===== SURROGATE {Performer} -&gt; literature_search_goal &lt;background_thanks_research_goal&gt;  =========================================================
+</span><span class="ansi36">Thank you for the Research Goal.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi34">[6] COMMENTER -&gt; literature_search_goal &lt;after_background&gt;  : Background messages completed. Requesting "literature search queries".</span>
+
+<span class="ansi32">[7] ----- USER {CitationExpert} -&gt; literature_search_goal --------------------------------------------------------------------------------------------
+</span><span class="ansi32">Please write literature-search queries that we can use to search for papers related to our study.
+
+You would need to compose search queries to identify prior papers covering these 2 areas:
+"dataset": papers that use the same or similar datasets as in our study
+"questions": papers that ask questions similar to our study
+
+Return your answer as a `Dict[str, List[str]]`, where the keys are the 2 areas noted above, and the values are lists of query string. Each individual
+query should be a string with up to 5-10 words.
+
+For example, for a study reporting waning of the efficacy of the covid-19 BNT162b2 vaccine based on analysis of the "United Kingdom National Core Data
+(UK-NCD)", the queries could be:
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">"</span><span class="ansi38-186">dataset</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">The UK-NCD dataset</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">covid-19 vaccine efficacy dataset</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">"</span><span class="ansi38-186">questions</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-15">[</span><span class="ansi38-186">'</span><span class="ansi38-186">covid-19 vaccine efficacy over time</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">covid-19 vaccine waning</span><span class="ansi38-186">'</span><span class="ansi38-15">]</span>
+<span class="ansi38-15">}</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-3.5-turbo-0613 (max 4096 tokens) for 973 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[8] ===== ASSISTANT{'model_engine': gpt-3.5-turbo-0613} {Performer} -&gt; literature_search_goal ========================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (973 tokens):
+# 0    SYSTEM (  12 tokens): You are a scientist who [...] search queries.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER (  76 tokens): Here is our Research Goal   [...] party affiliations.
+# 4 SURROGATE (   8 tokens): Thank you for the Research Goal.
+# 5      USER ( 207 tokens): Please write [...] vaccine waning'] }
+
+# 6 ASSISTANT ( 102 tokens): {  "dataset": [  [...] of Congress'  ] }
+                             {'model_engine': gpt-3.5-turbo-0613}
+</span><span class="ansi36">
+
+{
+    "dataset": [
+        'Congressional Twitter interaction dataset',
+        'US Congress Twitter network dataset',
+        'Congressional social interactions on Twitter dataset'
+    ],
+    "questions": [
+        'Structural properties of Congressional Twitter network',
+        'Social interaction dynamics in the Congressional Twitter network',
+        'Influence of chamber division on Twitter engagement in Congress',
+        'Effect of party affiliations on Twitter interactions in Congress',
+        'Comparison of Twitter engagement within and between chambers of Congress'
+    ]
+}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;7&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; literature_search_goal</span>
+
+<span class="ansi36">[8] ===== SURROGATE {Performer} -&gt; literature_search_goal ============================================================================================
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">dataset</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-15">[</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Congressional Twitter interaction dataset</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">US Congress Twitter network dataset</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Congressional social interactions on Twitter dataset</span><span class="ansi38-186">"</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">]</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">questions</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-15">[</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Structural properties of Congressional Twitter network</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Social interaction dynamics in the Congressional Twitter network</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Influence of chamber division on Twitter engagement in Congress</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Effect of party affiliations on Twitter interactions in Congress</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">        </span><span class="ansi38-186">"</span><span class="ansi38-186">Comparison of Twitter engagement within and between chambers of Congress</span><span class="ansi38-186">"</span>
+<span class="ansi38-15">    </span><span class="ansi38-15">]</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;7&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; literature_search_goal</span>
+
+<span class="ansi36">[8] SURROGATE {Performer} -&gt; literature_search_goal : 
+python {  'dataset': [  "Congressional Twitter interaction dataset",  "US Congress Twitter [...] and between chambers of Congress"  ], }</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2019) , The Rhetorical Agenda: What Twitter Tells Us About Congressional Attention</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) 2015 International Conference on Network and Information Systems for Computers, Detecting Spammers on Twitter Based on Content and Social Interaction</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) Data, The #BTW17 Twitter Dataset-Recorded Tweets of the Federal Election Campaigns of 2017 for the 19th German Bundestag</span>
+<span class="ansi31">ERROR: None embedding attr. (2014) None, Predicting the stability of user interaction ties in Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) None, The # BTW 17 Twitter Dataset – Recorded Tweets of the Federal Election Campaigns of 2017 for the 19 th German Bundestag</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) , Inferring social behavior and interaction on twitter by combining metadata about users &amp; messages</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) The Journal of Undergraduate Research, Social Media and Politics: Twitter Use in the Second Congressional District of Virginia</span>
+<span class="ansi34">[9] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 99 / 100 citations. Query: "Congressional Twitter interaction dataset".</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2018) 2018 11th International Congress on Image and Signal Processing, BioMedical Engineering and Informatics (CISP-BMEI), What Can Be Learned from Bigrams Analysis of Messages in Social Network?</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) Social Network Analysis and Mining, Characterizing the 2016 Russian IRA influence campaign</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) 2016 Intl IEEE Conferences on Ubiquitous Intelligence &amp; Computing, Advanced and Trusted Computing, Scalable Computing and Communications, Cloud and Big Data Computing, Internet of People, and Smart World Congress (UIC/ATC/ScalCom/CBDCom/IoP/SmartWorld), A Personalized Tweet Recommendation Approach Based on Concept Graphs</span>
+<span class="ansi31">ERROR: None embedding attr. (2014) Journal of Communication, Network Issue Agendas on Twitter During the 2012 U.S. Presidential Election</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) Social Network Analysis and Mining, Behavioral differences: insights, explanations and comparisons of French and US Twitter usage during elections</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) Social media and society, Power of Predictive Analytics: Using Emotion Classification of Twitter Data for Predicting 2016 US Presidential Elections</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) Personal and Ubiquitous Computing, Twitter-based traffic delay detection based on topic propagation analysis using railway network topology</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) None, Measuring Extremism: Validating an Alt-Right Twitter Accounts Dataset</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) Proceedings of the 28th ACM International Conference on Information and Knowledge Management, #suicidal - A Multipronged Approach to Identify and Explore Suicidal Ideation in Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2012) None, Knowledge Mining from the Twitter Social Network: The Case of Barack Obama</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) None, Think Before Your Click: Data and Models for Adult Content in Arabic Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) , 113th Congress as News Commentators on Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) None, Detecting Political Bias Trolls in Twitter Data</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) None, Representing Emoji Usage Using Directed Networks: A Twitter Case Study</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) , Medicinal Side-Effect Analysis Using Twitter Feed</span>
+<span class="ansi31">ERROR: None embedding attr. (2014) None, The Role of Pre-processing in Twitter Sentiment Analysis</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) 2018 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM), Characterizing Politically Engaged Users' Behavior During the 2016 US Presidential Campaign</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) 2017 International Conference on New Trends in Computing Sciences (ICTCS), Dynamic Evolution of Hashtags on Twitter: A Case Study from Career Opportunities Groups</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) ArXiv, Predicting election trends with Twitter: Hillary Clinton versus Donald Trump</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) None, Identifying Partisan Slant in News Articles and Twitter During Political Crises</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) None, Word Embeddings and Deep Learning for Spanish Twitter Sentiment Analysis</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) , Positional Accuracy of Twitter and Instagram Images in Urban Environments</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) ArXiv, Early Stage Influenza Detection from Twitter</span>
+<span class="ansi34">[10] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 99 / 100 citations. Query: "US Congress Twitter network dataset".</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2019) None, News Sharing User Behaviour on Twitter: A Comprehensive Data Collection of News Articles and Social Interactions</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) None, Influence and Sentiment Homophily on Twitter Social Circles</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) The Roads to Congress 2018, Fear and Loathing on Twitter: Exploring Negative Rhetoric in Tweets During the 2018 Midterm Election</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) , Strafing, Spats, and Skirmishes: Social Dynamics of Negative Campaigning on Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) Comput. Informatics, Social Data Visualization System for Understanding Diffusion Patterns on Twitter: A Case Study on Korean Enterprises</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) The Journal of Undergraduate Research, Social Media and Politics: Twitter Use in the Second Congressional District of Virginia</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) Data, The #BTW17 Twitter Dataset-Recorded Tweets of the Federal Election Campaigns of 2017 for the 19th German Bundestag</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) 2016 2nd International Conference on Advances in Electrical, Electronics, Information, Communication and Bio-Informatics (AEEICB), Sentiment on social interactions using linear and non-linear clustering</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) None, The # BTW 17 Twitter Dataset – Recorded Tweets of the Federal Election Campaigns of 2017 for the 19 th German Bundestag</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) 2015 International Conference on Network and Information Systems for Computers, Detecting Spammers on Twitter Based on Content and Social Interaction</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) Companion Proceedings of the The Web Conference 2018, An Evaluation of Performance and Competition in Customer Services on Twitter: A UK Telecoms Case Study</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) Proceedings of the 26th Conference on User Modeling, Adaptation and Personalization, Modeling and Predicting News Consumption on Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) Journal of Contemporary Eastern Asia, Interacting or Just Acting? -A Case Study of European, Korean, and American Politicians' Interactions with the Public on Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) None, Human Interactions on Online Social Media</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) PLoS ONE, Link prediction on Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) World Wide Web, Using time-sensitive interactions to improve topic derivation in twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) , Inferring social behavior and interaction on twitter by combining metadata about users &amp; messages</span>
+<span class="ansi34">[11] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 99 / 100 citations. Query: "Congressional social interactions on Twitter dataset".</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2018) Int. J. Bus. Inf. Syst., Patterns affecting structural properties of social networking site 'Twitter'</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) Social Network Analysis and Mining, Analysis of social interaction network properties and growth on Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) None, Analysis of a Reciprocal Network Using Google+: Structural Properties and Evolution</span>
+<span class="ansi31">ERROR: None embedding attr. (2009) First Monday, Detecting Spam in a Twitter Network</span>
+<span class="ansi31">ERROR: None embedding attr. (2014) Proceedings of the 23rd International Conference on World Wide Web, Information network or social network?: the structure of the twitter follow graph</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) ArXiv, What can Social Media teach us about protests? Analyzing the Chilean 2011-12 Student Movement's Network evolution through Twitter data</span>
+<span class="ansi31">ERROR: None embedding attr. (2012) 8th International Conference on Collaborative Computing: Networking, Applications and Worksharing (CollaborateCom), Preservation of structural properties in anonymized social networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2011) Proceedings of the SIGCHI Conference on Human Factors in Computing Systems, The impact of network structure on breaking ties in online social networks: unfollowing on twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) Social Network Analysis and Mining, Defining and evaluating Twitter influence metrics: a higher-order approach in Neo4j</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) Manag. Sci., The Structural Virality of Online Diffusion</span>
+<span class="ansi31">ERROR: None embedding attr. (2011) Proceedings of the 20th international conference companion on World wide web, Predicting popular messages in Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) None, Evaluating Twitter Influence Ranking with System Theory</span>
+<span class="ansi31">ERROR: None embedding attr. (2012) None, Network Analysis of Three Twitter Functions: Favorite, Follow and Mention</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) ArXiv, Analyzing Social Interaction Networks from Twitter for Planned Special Events</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) Social Network Analysis and Mining, Behavioral differences: insights, explanations and comparisons of French and US Twitter usage during elections</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) PLoS ONE, Does the Type of Event Influence How User Interactions Evolve on Twitter?</span>
+<span class="ansi31">ERROR: bibtex_id is too short. skipping. Title: Никнеймы англоязычных пользователей подросткового возраста (на примере социальной сети Twitter)</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) ArXiv, Structure of Ego-Alter Relationships of Politicians in Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) None, Analyzing Dynamic Ideological Communities in Congressional Voting Networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) The 41st International ACM SIGIR Conference on Research &amp; Development in Information Retrieval, The Evolution of Content Analysis for Personalized Recommendations at Twitter</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) None, From Graph Theory to Network Science: The Natural Emergence of Hyperbolicity (Tutorial)</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) 2019 IEEE International Conference on Intelligence and Security Informatics (ISI), Detection of Fraudulent Tweets: An Empirical Investigation Using Network Analysis and Deep Learning Technique</span>
+<span class="ansi31">ERROR: None embedding attr. (2014) None, Twitter as Social Sensor: Dynamics and Structure in Major Sporting Events</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) , Classifying Political Similarity of Twitter Users</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) Social Network Analysis and Mining, Structure and prominence in Twitter networks centered on contentious politics</span>
+<span class="ansi31">ERROR: None embedding attr. (2012) 2012 IEEE 24th International Conference on Tools with Artificial Intelligence, An Ontology-Based Representation of the Twitter REST API</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) Corporate Communications: An International Journal, CSR communication strategies for organizational legitimacy in social media</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) 2017 5th International Conference on Information and Communication Technology (ICoIC7), Hybrid sentiment and network analysis of social opinion polarization</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) , A Combination Approach to Community Detection in Social Networks by Utilizing Structural and Attribute Data</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) , Samskara Minimal structural features for detecting subjectivity and polarity in Italian tweets</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) , Exploiting behaviors of communities of twitter users for link prediction</span>
+<span class="ansi31">ERROR: None embedding attr. (2011) 2011 IEEE Ninth International Conference on Dependable, Autonomic and Secure Computing, Characterizing Twitter with Respondent-Driven Sampling</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) , A combined algorithm for analyzing structural controllability and observability of complex networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) None, Learning Automata Approach for Social Networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2014) 2014 IEEE Joint Intelligence and Security Informatics Conference, The Nature of Communications and Emerging Communities on Twitter Following the 2013 Syria Sarin Gas Attacks</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) Epj Data Science, A multilayer approach to multiplexity and link prediction in online geo-social networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2011) None, Detecting Overlapping Communities in Social Networks by Game Theory and Structural Equivalence Concept</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) Chaos, Link prediction for tree-like networks.</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) None, Authentication for Twitter Messages Using Support Vector Machine</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) Sociology of Innovation eJournal, Online Brand Community Management for New Products: The Role of Consumer-Specific Social Network Topology</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) Social Network Analysis and Mining, Structure-preserving sparsification methods for social networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2011) , Social Privacy in Networked Publics: Teens’ Attitudes, Practices, and Strategies</span>
+<span class="ansi31">ERROR: None embedding attr. (2016) Proceedings of the 8th ACM Conference on Web Science, Seeing the forest for the trees: new approaches to forecasting cascades</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) IEEE Access, Narrow Convolutional Neural Network for Arabic Dialects Polarity Classification</span>
+<span class="ansi31">ERROR: None embedding attr. (2019) International Journal of English Linguistics, Pragma-Semantic Relations in the Structure of a Business Microblog</span>
+<span class="ansi31">ERROR: None embedding attr. (2017) None, Graph Community Discovery Algorithms in Neo4j with a Regularization-based Evaluation Metric</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) International Journal of Advanced Computer Science and Applications, An Efficient Link Prediction Technique in Social Networks based on Node Neighborhoods</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) Proceedings of the 2015 International Conference on Social Media &amp; Society, Social set analysis: four demonstrative case studies</span>
+<span class="ansi31">ERROR: None embedding attr. (2012) 2012 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining, Diffusion Centrality in Social Networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) 2015 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM), Weibo, and a tale of two worlds</span>
+<span class="ansi31">ERROR: None embedding attr. (2011) , Time Series Analysis of Online Social Network Data and Content</span>
+<span class="ansi31">ERROR: None embedding attr. (2010) None, The wisdom in tweetonomies: acquiring latent conceptual structures from social awareness streams</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) 2015 IEEE/WIC/ACM International Conference on Web Intelligence and Intelligent Agent Technology (WI-IAT), Blog, Forum or Newspaper? Web Genre Detection Using SVMs</span>
+<span class="ansi31">ERROR: None embedding attr. (2018) ArXiv, What Propels Celebrity Follower Counts? Language Use or Social Connectivity</span>
+<span class="ansi31">ERROR: None embedding attr. (2012) None, Why Rumors Spread Fast in Social Networks</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) Network and Complex Systems, Knowledge Discovery and Complex Network Dynamics in Social Media Space</span>
+<span class="ansi31">ERROR: None embedding attr. (2013) None, Community Detection in Social Media by Leveraging Interactions and Intensities</span>
+<span class="ansi31">ERROR: None embedding attr. (2015) , Connected for Success? : How Network Centrality on ResearchGate Relates to Bibliometrics, Altmetrics and Webometrics</span>
+<span class="ansi34">[12] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 98 / 100 citations. Query: "Structural properties of Congressional Twitter network".</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2012) EPJ Data Science, Partisan asymmetries in online political activity</span>
+<span class="ansi34">[13] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 1 / 100 citations. Query: "Social interaction dynamics in the Congressional Twitter network".</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2015) , #Int_law@social_media: Social Media and Promotion of International Law</span>
+<span class="ansi34">[14] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 1 / 100 citations. Query: "Influence of chamber division on Twitter engagement in Congress".</span>
+
+<span class="ansi34">[15] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 1 / 100 citations. Query: "Effect of party affiliations on Twitter interactions in Congress".</span>
+
+<span class="ansi31">ERROR: None embedding attr. (2015) None, Human Spaceflight in Social Media : Promoting Space Exploration Through Twitter</span>
+<span class="ansi34">[16] COMMENTER -&gt; literature_search_goal : 
+Querying Semantic Scholar. Found 1 / 100 citations. Query: "Comparison of Twitter engagement within and between chambers of Congress".</span>
+
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                  similar_citations                                                                   </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=similar_citations web=[web]review goal, participants=['GoalReviewer', 'Performer']) -&gt; similar_citations</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; similar_citations -------------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a scientist who needs to find most similar papers.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi34">[2] COMMENTER -&gt; similar_citations : Dataset-related Literature Search:
+Here are citations from our Literature Search for papers related to the Dataset of our study:
+
+Query: {'US Congress Twitter network dataset'}
+Search rank: 1
+ID: 'Badawy2018CharacterizingT2'
+Title: 'Characterizing the 2016 Russian IRA influence campaign'
+Journal and year: 'Social Network Analysis and Mining (2018)'
+TLDR: 'This study takes a closer look at users who re-shared the posts produced on Twitter by the Russian troll accounts publicly disclosed by U.S. Congress investigation, finding that conservative trolls talk about refugees, terrorism, and Islam, while liberal trolls talk more about school shootings and the police.'
+Citation influence: 3
+Embedding similarity: 0
+Query: {'US Congress Twitter network dataset'}
+Search rank: 10
+ID: 'Bovet2018InfluenceOF'
+Title: 'Influence of fake news in Twitter during the 2016 US presidential election'
+Journal and year: 'Nature Communications (2018)'
+TLDR: 'It is found that, while top influencers spreading traditional center and left leaning news largely influence the activity of Clinton supporters, this causality is reversed for the fake news: the activityof Trump supporters influences the dynamics of the top fake news spreaders.'
+Citation influence: 26
+Embedding similarity: 0
+Query: {'US Congress Twitter network dataset'}
+Search rank: 11
+ID: 'Vargo2014NetworkIA'
+Title: 'Network Issue Agendas on Twitter During the 2012 U.S. Presidential Election'
+Journal and year: 'Journal of Communication (2014)'
+TLDR: 'Support for agenda melding is found and the Network Agenda Setting (NAS) model is validated through a series of computer science methods with large datasets on Twitter, which demonstrates that during the 2012 U.S. presidential election, distinctive audiences “melded” agendas of various media differently.'
+Citation influence: 15
+Embedding similarity: 0
+Query: {'Congressional social interactions on Twitter dataset', 'Congressional Twitter interaction dataset'}
+Search rank: 14
+ID: 'Hua2020CharacterizingTU'
+Title: 'Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates'
+Journal and year: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems (2020)'
+TLDR: 'This paper characterize users who adversarially interact with political figures on Twitter using mixed-method techniques and shows that among moderately active users, adversarial activity is associated with decreased centrality in the social graph and increased attention to candidates from the opposing party.'
+Citation influence: 5
+Embedding similarity: 0
+Query: {'US Congress Twitter network dataset'}
+Search rank: 14
+ID: 'Davidson2019BehavioralDI'
+Title: 'Behavioral differences: insights, explanations and comparisons of French and US Twitter usage during elections'
+Journal and year: 'Social Network Analysis and Mining (2019)'
+TLDR: 'Twitter data as a time-stamped vertex-labeled graph is explored, leveraging existing community discovery methods to find communities using just the structural data and then describe these communities using behavioral data in two complimentary directions.'
+Citation influence: 2
+Embedding similarity: 0
+Query: {'Congressional social interactions on Twitter dataset', 'Congressional Twitter interaction dataset'}
+Search rank: 15
+ID: 'Hua2020TowardsMA'
+Title: 'Towards Measuring Adversarial Twitter Interactions against Candidates in the US Midterm Elections'
+TLDR: 'This study measures the adversarial interactions against candidates for the US House of Representatives during the run-up to the 2018 US general election, and develops a new technique for detecting tweets with toxic content that are directed at any specific candidate.'
+Citation influence: 5
+Embedding similarity: 0
+Query: {'US Congress Twitter network dataset'}
+Search rank: 15
+ID: 'Pierri2020AMA'
+Title: 'A multi-layer approach to disinformation detection in US and Italian news spreading on Twitter'
+Journal and year: 'EPJ Data Science (2020)'
+TLDR: 'This work tackles the problem of classifying news articles pertaining to disinformation vs mainstream news by solely inspecting their diffusion mechanisms on Twitter by employing a multi-layer representation of Twitter diffusion networks and believes that the network-based approach provides useful insights which pave the way to the future development of a system to detect misleading and harmful information spreading on social media.'
+Citation influence: 2
+Embedding similarity: 0
+Query: {'Congressional social interactions on Twitter dataset', 'Congressional Twitter interaction dataset'}
+Search rank: 19
+ID: 'Ahmed2021DetectingSD'
+Title: 'Detecting sentiment dynamics and clusters of Twitter users for trending topics in COVID-19 pandemic'
+Journal and year: 'PLoS ONE (2021)'
+TLDR: 'This work scrutinizes the users’ sentiment in different time intervals to assist in trending topics in Twitter on the COVID-19 tweets dataset and finds out the sentimental clusters from the sentiment categories.'
+Citation influence: 2
+Embedding similarity: 0
+Query: {'Congressional social interactions on Twitter dataset', 'Congressional Twitter interaction dataset'}
+Search rank: 26
+ID: 'Muneer2020ACA'
+Title: 'A Comparative Analysis of Machine Learning Techniques for Cyberbullying Detection on Twitter'
+Journal and year: 'Future Internet (2020)'
+TLDR: 'This study attempted to explore the issue of cyberbullying by compiling a global dataset of 37,373 unique tweets from Twitter, using seven machine learning classifiers and showing the superiority of LR, which achieved a median accuracy of around 90.57%.'
+Citation influence: 7
+Embedding similarity: 0
+Query: {'Congressional social interactions on Twitter dataset', 'Congressional Twitter interaction dataset'}
+Search rank: 28
+ID: 'Shen2015DetectingSO'
+Title: 'Detecting Spammers on Twitter Based on Content and Social Interaction'
+Journal and year: '2015 International Conference on Network and Information Systems for Computers (2015)'
+Citation influence: 4
+Embedding similarity: 0
+Query: {'US Congress Twitter network dataset'}
+Search rank: 28
+ID: 'Xiao2020TIMMETI'
+Title: 'TIMME: Twitter Ideology-detection via Multi-task Multi-relational Embedding'
+Journal and year: 'Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining (2020)'
+TLDR: 'TIMME is a multi-task multi-relational embedding model that works efficiently on sparsely-labeled heterogeneous real-world dataset, and is overall better than the state-of-the-art models for ideology detection on Twitter.'
+Citation influence: 12
+Embedding similarity: 0
+Query: {'US Congress Twitter network dataset'}
+Search rank: 31
+ID: 'Himelboim2017ClassifyingTT'
+Title: 'Classifying Twitter Topic-Networks Using Social Network Analysis'
+Journal and year: 'Social Media + Society (2017)'
+TLDR: 'A conceptual and practical model for the classification of topical Twitter networks, based on their network-level structures, is proposed, which suggests six structures of information flow: divided, unified, fragmented, clustered, in and out hub-and-spoke networks.'
+Citation influence: 14
+Embedding similarity: 0
+
+</span>
+
+<span class="ansi34">[3] COMMENTER -&gt; similar_citations : Questions-related Literature Search:
+Here are citations from our Literature Search for papers related to the Questions of our study:
+
+Query: {'Social interaction dynamics in the Congressional Twitter network'}
+Search rank: 0
+ID: 'Conover2012PartisanAI'
+Title: 'Partisan asymmetries in online political activity'
+Journal and year: 'EPJ Data Science (2012)'
+TLDR: 'In contrast to the online political dynamics of the 2008 campaign, right-leaning Twitter users exhibit greater levels of political activity, a more tightly interconnected social structure, and a communication network topology that facilitates the rapid and broad dissemination of political information.'
+Citation influence: 11
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 1
+ID: 'Stier2018OfAA'
+Title: 'Of activists and gatekeepers: Temporal and structural properties of policy networks on Twitter'
+Journal and year: 'New Media &amp; Society (2018)'
+TLDR: 'A comparative keyword analysis shows that non-governmental organisations and citizen media emphasise personalised connective action frames, whereas political actors and traditional media tend to refer to the political decision-making process and its institutions in line with cyclical conceptions of policy processes.'
+Citation influence: 2
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 9
+ID: 'Schoenebeck2009DetectingSI'
+Title: 'Detecting Spam in a Twitter Network'
+Journal and year: 'First Monday (2009)'
+TLDR: 'This article examines spam around a one-time Twitter meme—“robotpickuplines” and shows the existence of structural network differences between spam accounts and legitimate users, highlighting challenges in disambiguating spammers from legitimate users.'
+Citation influence: 14
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 10
+ID: 'Myers2014InformationNO'
+Title: 'Information network or social network?: the structure of the twitter follow graph'
+Journal and year: 'Proceedings of the 23rd International Conference on World Wide Web (2014)'
+TLDR: "A characterization of the topological features of the Twitter follow graph is provided, analyzing properties such as degree distributions, connected components, shortest path lengths, clustering coefficients, and degree assortativity to hypothesize that from an individual user's perspective, Twitter starts off more like an information network, but evolves to behave more like a social network."
+Citation influence: 27
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 16
+ID: 'Kivran-Swaine2011TheIO'
+Title: 'The impact of network structure on breaking ties in online social networks: unfollowing on twitter'
+Journal and year: 'Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (2011)'
+TLDR: 'It is shown that structural properties of individuals and dyads at Time 1 have a significant effect on the existence of edges at Time 2, and these findings are connected to the social theories that motivated the study.'
+Citation influence: 8
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 20
+ID: 'Goel2015TheSV'
+Title: 'The Structural Virality of Online Diffusion'
+Journal and year: 'Manag. Sci. (2015)'
+TLDR: 'This work proposes a formal measure of what it label “structural virality” that interpolates between two conceptual extremes: content that gains its popularity through a single, large broadcast and that which grows through multiple generations with any one individual directly responsible for only a fraction of the total adoption.'
+Citation influence: 52
+Embedding similarity: 0
+
+</span>
+
+<span class="ansi32">[4] USER {GoalReviewer} -&gt; similar_citations &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[5] SURROGATE {Performer} -&gt; similar_citations &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[6] USER {GoalReviewer} -&gt; similar_citations &lt;background_research_goal&gt;  : 
+Here is our Research Goal   Research Goal:  To understand the structural properties of the [...] House), irrespective of party affiliations.</span>
+
+<span class="ansi36">[7] SURROGATE {Performer} -&gt; similar_citations &lt;background_thanks_research_goal&gt;  : 
+Thank you for the Research Goal.</span>
+
+<span class="ansi32">[8] ----- USER {GoalReviewer} -&gt; similar_citations &lt;background_literature_search:goal:dataset&gt;  ------------------------------------------------------
+</span><span class="ansi32">Here are citations from our Literature Search for papers related to the Dataset of our study:
+
+ID: 'Badawy2018CharacterizingT2'
+Title: 'Characterizing the 2016 Russian IRA influence campaign'
+Journal and year: 'Social Network Analysis and Mining (2018)'
+TLDR: 'This study takes a closer look at users who re-shared the posts produced on Twitter by the Russian troll accounts publicly disclosed by U.S.
+Congress investigation, finding that conservative trolls talk about refugees, terrorism, and Islam, while liberal trolls talk more about school
+shootings and the police.'
+Citation influence: 3
+ID: 'Bovet2018InfluenceOF'
+Title: 'Influence of fake news in Twitter during the 2016 US presidential election'
+Journal and year: 'Nature Communications (2018)'
+TLDR: 'It is found that, while top influencers spreading traditional center and left leaning news largely influence the activity of Clinton
+supporters, this causality is reversed for the fake news: the activityof Trump supporters influences the dynamics of the top fake news spreaders.'
+Citation influence: 26
+ID: 'Vargo2014NetworkIA'
+Title: 'Network Issue Agendas on Twitter During the 2012 U.S. Presidential Election'
+Journal and year: 'Journal of Communication (2014)'
+TLDR: 'Support for agenda melding is found and the Network Agenda Setting (NAS) model is validated through a series of computer science methods with
+large datasets on Twitter, which demonstrates that during the 2012 U.S. presidential election, distinctive audiences “melded” agendas of various media
+differently.'
+Citation influence: 15
+ID: 'Hua2020CharacterizingTU'
+Title: 'Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates'
+Journal and year: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems (2020)'
+TLDR: 'This paper characterize users who adversarially interact with political figures on Twitter using mixed-method techniques and shows that among
+moderately active users, adversarial activity is associated with decreased centrality in the social graph and increased attention to candidates from
+the opposing party.'
+Citation influence: 5
+ID: 'Davidson2019BehavioralDI'
+Title: 'Behavioral differences: insights, explanations and comparisons of French and US Twitter usage during elections'
+Journal and year: 'Social Network Analysis and Mining (2019)'
+TLDR: 'Twitter data as a time-stamped vertex-labeled graph is explored, leveraging existing community discovery methods to find communities using just
+the structural data and then describe these communities using behavioral data in two complimentary directions.'
+Citation influence: 2
+ID: 'Hua2020TowardsMA'
+Title: 'Towards Measuring Adversarial Twitter Interactions against Candidates in the US Midterm Elections'
+TLDR: 'This study measures the adversarial interactions against candidates for the US House of Representatives during the run-up to the 2018 US
+general election, and develops a new technique for detecting tweets with toxic content that are directed at any specific candidate.'
+Citation influence: 5
+ID: 'Pierri2020AMA'
+Title: 'A multi-layer approach to disinformation detection in US and Italian news spreading on Twitter'
+Journal and year: 'EPJ Data Science (2020)'
+TLDR: 'This work tackles the problem of classifying news articles pertaining to disinformation vs mainstream news by solely inspecting their diffusion
+mechanisms on Twitter by employing a multi-layer representation of Twitter diffusion networks and believes that the network-based approach provides
+useful insights which pave the way to the future development of a system to detect misleading and harmful information spreading on social media.'
+Citation influence: 2
+ID: 'Ahmed2021DetectingSD'
+Title: 'Detecting sentiment dynamics and clusters of Twitter users for trending topics in COVID-19 pandemic'
+Journal and year: 'PLoS ONE (2021)'
+TLDR: 'This work scrutinizes the users’ sentiment in different time intervals to assist in trending topics in Twitter on the COVID-19 tweets dataset
+and finds out the sentimental clusters from the sentiment categories.'
+Citation influence: 2
+ID: 'Muneer2020ACA'
+Title: 'A Comparative Analysis of Machine Learning Techniques for Cyberbullying Detection on Twitter'
+Journal and year: 'Future Internet (2020)'
+TLDR: 'This study attempted to explore the issue of cyberbullying by compiling a global dataset of 37,373 unique tweets from Twitter, using seven
+machine learning classifiers and showing the superiority of LR, which achieved a median accuracy of around 90.57%.'
+Citation influence: 7
+ID: 'Shen2015DetectingSO'
+Title: 'Detecting Spammers on Twitter Based on Content and Social Interaction'
+Journal and year: '2015 International Conference on Network and Information Systems for Computers (2015)'
+Citation influence: 4
+ID: 'Xiao2020TIMMETI'
+Title: 'TIMME: Twitter Ideology-detection via Multi-task Multi-relational Embedding'
+Journal and year: 'Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining (2020)'
+TLDR: 'TIMME is a multi-task multi-relational embedding model that works efficiently on sparsely-labeled heterogeneous real-world dataset, and is
+overall better than the state-of-the-art models for ideology detection on Twitter.'
+Citation influence: 12
+ID: 'Himelboim2017ClassifyingTT'
+Title: 'Classifying Twitter Topic-Networks Using Social Network Analysis'
+Journal and year: 'Social Media + Society (2017)'
+TLDR: 'A conceptual and practical model for the classification of topical Twitter networks, based on their network-level structures, is proposed,
+which suggests six structures of information flow: divided, unified, fragmented, clustered, in and out hub-and-spoke networks.'
+Citation influence: 14</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[9] ===== SURROGATE {Performer} -&gt; similar_citations &lt;background_thanks_literature_search:goal:dataset&gt;  =============================================
+</span><span class="ansi36">Thank you for the Dataset-related Literature Search.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[10] ---- USER {GoalReviewer} -&gt; similar_citations &lt;background_literature_search:goal:questions&gt;  ----------------------------------------------------
+</span><span class="ansi32">Here are citations from our Literature Search for papers related to the Questions of our study:
+
+ID: 'Conover2012PartisanAI'
+Title: 'Partisan asymmetries in online political activity'
+Journal and year: 'EPJ Data Science (2012)'
+TLDR: 'In contrast to the online political dynamics of the 2008 campaign, right-leaning Twitter users exhibit greater levels of political activity, a
+more tightly interconnected social structure, and a communication network topology that facilitates the rapid and broad dissemination of political
+information.'
+Citation influence: 11
+ID: 'Stier2018OfAA'
+Title: 'Of activists and gatekeepers: Temporal and structural properties of policy networks on Twitter'
+Journal and year: 'New Media &amp; Society (2018)'
+TLDR: 'A comparative keyword analysis shows that non-governmental organisations and citizen media emphasise personalised connective action frames,
+whereas political actors and traditional media tend to refer to the political decision-making process and its institutions in line with cyclical
+conceptions of policy processes.'
+Citation influence: 2
+ID: 'Schoenebeck2009DetectingSI'
+Title: 'Detecting Spam in a Twitter Network'
+Journal and year: 'First Monday (2009)'
+TLDR: 'This article examines spam around a one-time Twitter meme—“robotpickuplines” and shows the existence of structural network differences between
+spam accounts and legitimate users, highlighting challenges in disambiguating spammers from legitimate users.'
+Citation influence: 14
+ID: 'Myers2014InformationNO'
+Title: 'Information network or social network?: the structure of the twitter follow graph'
+Journal and year: 'Proceedings of the 23rd International Conference on World Wide Web (2014)'
+TLDR: "A characterization of the topological features of the Twitter follow graph is provided, analyzing properties such as degree distributions,
+connected components, shortest path lengths, clustering coefficients, and degree assortativity to hypothesize that from an individual user's
+perspective, Twitter starts off more like an information network, but evolves to behave more like a social network."
+Citation influence: 27
+ID: 'Kivran-Swaine2011TheIO'
+Title: 'The impact of network structure on breaking ties in online social networks: unfollowing on twitter'
+Journal and year: 'Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (2011)'
+TLDR: 'It is shown that structural properties of individuals and dyads at Time 1 have a significant effect on the existence of edges at Time 2, and
+these findings are connected to the social theories that motivated the study.'
+Citation influence: 8
+ID: 'Goel2015TheSV'
+Title: 'The Structural Virality of Online Diffusion'
+Journal and year: 'Manag. Sci. (2015)'
+TLDR: 'This work proposes a formal measure of what it label “structural virality” that interpolates between two conceptual extremes: content that
+gains its popularity through a single, large broadcast and that which grows through multiple generations with any one individual directly responsible
+for only a fraction of the total adoption.'
+Citation influence: 52</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[11] ==== SURROGATE {Performer} -&gt; similar_citations &lt;background_thanks_literature_search:goal:questions&gt;  ===========================================
+</span><span class="ansi36">Thank you for the Questions-related Literature Search.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi34">[12] COMMENTER -&gt; similar_citations &lt;after_background&gt;  : Background messages completed. Requesting "most similar papers".</span>
+
+<span class="ansi32">[13] ---- USER {GoalReviewer} -&gt; similar_citations ---------------------------------------------------------------------------------------------------
+</span><span class="ansi32">From the literature search above, list up to 5 key papers whose results are most similar/overlapping with our research goal and hypothesis.
+
+Return your response as a Python Dict[str, str], where the keys are bibtex ids of the papers, and the values are the titles of the papers. For
+example:
+
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Smith2020TheAB</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">A title of a paper most overlapping with our goal and hypothesis</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Jones2021AssortedCD</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Another title of a paper that is similar to our goal and hypothesis</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 2769 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[14] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; similar_citations ==========================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (2769 tokens):
+# 0    SYSTEM (  12 tokens): You are a scientist who [...] similar papers.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER (  76 tokens): Here is our Research Goal   [...] party affiliations.
+# 4 SURROGATE (   8 tokens): Thank you for the Research Goal.
+# 5      USER (1219 tokens): Here are citations from our [...] influence: 14
+# 6 SURROGATE (  10 tokens): Thank you for the Dataset-related Literature Search.
+# 7      USER ( 649 tokens): Here are citations from our [...] influence: 52
+# 8 SURROGATE (  10 tokens): Thank you for the Questions-related Literature Search.
+# 9      USER ( 115 tokens): From the literature search [...] and hypothesis", }
+
+#10 ASSISTANT ( 126 tokens): python {  [...] Candidates" }
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Conover2012PartisanAI</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Partisan asymmetries in online political activity</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Myers2014InformationNO</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Information network or social network?: the structure of the twitter follow graph</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Kivran-Swaine2011TheIO</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">The impact of network structure on breaking ties in online social networks: unfollowing on twitter</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Goel2015TheSV</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">The Structural Virality of Online Diffusion</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Hua2020CharacterizingTU</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates</span><span class="ansi38-186">"</span>
+<span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;13&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; similar_citations</span>
+
+<span class="ansi36">[14] ==== SURROGATE {Performer} -&gt; similar_citations =================================================================================================
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">Conover2012PartisanAI</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">Partisan asymmetries in online political activity</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">Myers2014InformationNO</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">Information network or social network?: the structure of the twitter follow graph</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">Kivran-Swaine2011TheIO</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">The impact of network structure on breaking ties in online social networks: unfollowing on twitter</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">Goel2015TheSV</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">The Structural Virality of Online Diffusion</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">Hua2020CharacterizingTU</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;13&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; similar_citations</span>
+
+<span class="ansi36">[14] SURROGATE {Performer} -&gt; similar_citations : 
+python {  'Conover2012PartisanAI': 'Partisan asymmetries in online political activity',  [...] against Political Candidates', }</span>
+
+<span class="ansi31">CreateConversation(name=is_goal_ok web=[web]review goal, participants=['GoalReviewer', 'Performer']) -&gt; is_goal_ok</span>
+
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                      is_goal_ok                                                                      </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; is_goal_ok --------------------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a scientist who needs to check research goal and hypothesis.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi34">[2] COMMENTER -&gt; is_goal_ok : Goal And Hypothesis-related Literature Search:
+Here are citations from our Literature Search for papers related to the Goal And Hypothesis of our study:
+
+Query: {'Social interaction dynamics in the Congressional Twitter network'}
+Search rank: 0
+ID: 'Conover2012PartisanAI'
+Title: 'Partisan asymmetries in online political activity'
+Journal and year: 'EPJ Data Science (2012)'
+TLDR: 'In contrast to the online political dynamics of the 2008 campaign, right-leaning Twitter users exhibit greater levels of political activity, a more tightly interconnected social structure, and a communication network topology that facilitates the rapid and broad dissemination of political information.'
+Citation influence: 11
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 10
+ID: 'Myers2014InformationNO'
+Title: 'Information network or social network?: the structure of the twitter follow graph'
+Journal and year: 'Proceedings of the 23rd International Conference on World Wide Web (2014)'
+TLDR: "A characterization of the topological features of the Twitter follow graph is provided, analyzing properties such as degree distributions, connected components, shortest path lengths, clustering coefficients, and degree assortativity to hypothesize that from an individual user's perspective, Twitter starts off more like an information network, but evolves to behave more like a social network."
+Citation influence: 27
+Embedding similarity: 0
+Query: {'Congressional social interactions on Twitter dataset', 'Congressional Twitter interaction dataset'}
+Search rank: 14
+ID: 'Hua2020CharacterizingTU'
+Title: 'Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates'
+Journal and year: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems (2020)'
+TLDR: 'This paper characterize users who adversarially interact with political figures on Twitter using mixed-method techniques and shows that among moderately active users, adversarial activity is associated with decreased centrality in the social graph and increased attention to candidates from the opposing party.'
+Citation influence: 5
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 16
+ID: 'Kivran-Swaine2011TheIO'
+Title: 'The impact of network structure on breaking ties in online social networks: unfollowing on twitter'
+Journal and year: 'Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (2011)'
+TLDR: 'It is shown that structural properties of individuals and dyads at Time 1 have a significant effect on the existence of edges at Time 2, and these findings are connected to the social theories that motivated the study.'
+Citation influence: 8
+Embedding similarity: 0
+Query: {'Structural properties of Congressional Twitter network'}
+Search rank: 20
+ID: 'Goel2015TheSV'
+Title: 'The Structural Virality of Online Diffusion'
+Journal and year: 'Manag. Sci. (2015)'
+TLDR: 'This work proposes a formal measure of what it label “structural virality” that interpolates between two conceptual extremes: content that gains its popularity through a single, large broadcast and that which grows through multiple generations with any one individual directly responsible for only a fraction of the total adoption.'
+Citation influence: 52
+Embedding similarity: 0
+
+</span>
+
+<span class="ansi32">[3] USER {GoalReviewer} -&gt; is_goal_ok &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[4] SURROGATE {Performer} -&gt; is_goal_ok &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[5] USER {GoalReviewer} -&gt; is_goal_ok &lt;background_research_goal&gt;  : 
+Here is our Research Goal   Research Goal:  To understand the structural properties of the [...] House), irrespective of party affiliations.</span>
+
+<span class="ansi36">[6] SURROGATE {Performer} -&gt; is_goal_ok &lt;background_thanks_research_goal&gt;  : 
+Thank you for the Research Goal.</span>
+
+<span class="ansi32">[7] ----- USER {GoalReviewer} -&gt; is_goal_ok &lt;background_literature_search:goal:goal and hypothesis&gt;  -------------------------------------------------
+</span><span class="ansi32">Here are citations from our Literature Search for papers related to the Goal And Hypothesis of our study:
+
+ID: 'Conover2012PartisanAI'
+Title: 'Partisan asymmetries in online political activity'
+Journal and year: 'EPJ Data Science (2012)'
+TLDR: 'In contrast to the online political dynamics of the 2008 campaign, right-leaning Twitter users exhibit greater levels of political activity, a
+more tightly interconnected social structure, and a communication network topology that facilitates the rapid and broad dissemination of political
+information.'
+Citation influence: 11
+ID: 'Myers2014InformationNO'
+Title: 'Information network or social network?: the structure of the twitter follow graph'
+Journal and year: 'Proceedings of the 23rd International Conference on World Wide Web (2014)'
+TLDR: "A characterization of the topological features of the Twitter follow graph is provided, analyzing properties such as degree distributions,
+connected components, shortest path lengths, clustering coefficients, and degree assortativity to hypothesize that from an individual user's
+perspective, Twitter starts off more like an information network, but evolves to behave more like a social network."
+Citation influence: 27
+ID: 'Hua2020CharacterizingTU'
+Title: 'Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates'
+Journal and year: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems (2020)'
+TLDR: 'This paper characterize users who adversarially interact with political figures on Twitter using mixed-method techniques and shows that among
+moderately active users, adversarial activity is associated with decreased centrality in the social graph and increased attention to candidates from
+the opposing party.'
+Citation influence: 5
+ID: 'Kivran-Swaine2011TheIO'
+Title: 'The impact of network structure on breaking ties in online social networks: unfollowing on twitter'
+Journal and year: 'Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (2011)'
+TLDR: 'It is shown that structural properties of individuals and dyads at Time 1 have a significant effect on the existence of edges at Time 2, and
+these findings are connected to the social theories that motivated the study.'
+Citation influence: 8
+ID: 'Goel2015TheSV'
+Title: 'The Structural Virality of Online Diffusion'
+Journal and year: 'Manag. Sci. (2015)'
+TLDR: 'This work proposes a formal measure of what it label “structural virality” that interpolates between two conceptual extremes: content that
+gains its popularity through a single, large broadcast and that which grows through multiple generations with any one individual directly responsible
+for only a fraction of the total adoption.'
+Citation influence: 52</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[8] ===== SURROGATE {Performer} -&gt; is_goal_ok &lt;background_thanks_literature_search:goal:goal and hypothesis&gt;  ========================================
+</span><span class="ansi36">Thank you for the Goal And Hypothesis-related Literature Search.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi34">[9] COMMENTER -&gt; is_goal_ok &lt;after_background&gt;  : Background messages completed. Requesting "research goal and hypothesis".</span>
+
+<span class="ansi32">[10] ---- USER {GoalReviewer} -&gt; is_goal_ok ----------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">Given the related papers listed above, please follow these 3 steps:
+
+(1) Provide a bullet-point list of potential similarities between our goal and hypothesis, and the related papers listed above.
+
+(2) Determine in what ways, if any, our stated goal and hypothesis are distinct from the related papers listed above.
+
+(3) Given your assessment above, choose one of the following two options:
+
+a. Our goal and hypothesis offer a significant novelty compared to existing literature, and will likely lead to interesting and novel findings
+{'choice': 'OK'}.
+
+b. Our goal and hypothesis have overlap with existing literature, and I can suggest ways to revise them to make them more novel {'choice': 'REVISE'}.
+
+Your response for this part should be formatted as a Python dictionary mapping 'choice' to either 'OK' or 'REVISE'.
+Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 1546 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[11] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; is_goal_ok =================================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1546 tokens):
+# 0    SYSTEM (  13 tokens): You are a scientist who [...] and hypothesis.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER (  76 tokens): Here is our Research Goal   [...] party affiliations.
+# 4 SURROGATE (   8 tokens): Thank you for the Research Goal.
+# 5      USER ( 575 tokens): Here are citations from our [...] influence: 52
+# 6 SURROGATE (  14 tokens): Thank you for the Goal And [...] Literature Search.
+# 7      USER ( 190 tokens): Given the related papers [...] 'REVISE'}
+
+# 8 ASSISTANT ( 262 tokens): (1) Potential Similarities: [...] literature.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+(1) Potential Similarities:
+- Like the objectives in 'Conover2012PartisanAI' and 'Hua2020CharacterizingTU', our goal also involves analyzing the dynamics and interactions of
+political figures on Twitter.
+- Just as 'Kivran-Swaine2011TheIO' utilizes network structural properties for their analysis, our research will also consider the structure of this
+Twitter network in its investigation.
+- Our hypothesis, that interactions are higher amongst members within the same chambers, bears a resemblance to the focus on network properties
+affecting interactions in 'Myers2014InformationNO' and 'Goel2015TheSV'.
+
+(2) Distinct Features:
+- While the other papers focus on topics such as partisan asymmetries, the virality of content diffusion, and user behaviors, our study specifically
+intends to understand the impact of chamber division on Twitter interactions amongst Congress members.
+- Our hypothesis is based on interaction dynamics between different chambers (House and Senate), which is a different angle from the above studies
+that focused mainly on social networks or partisan behaviors.
+
+(3) Assessment:
+
+{'choice': 'OK'}
+
+The goal and hypothesis provide novelty as they specifically target the understanding of structural dynamics of Congressional Twitter interactions
+based on chamber divisions, which is not evidently covered in the above-mentioned literature.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;10&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; is_goal_ok</span>
+
+<span class="ansi36">[11] ==== SURROGATE {Performer} -&gt; is_goal_ok ========================================================================================================
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">choice</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">OK</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                               hypothesis_testing_plan                                                                </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=hypothesis_testing_plan web=[web]review plan, participants=['Performer', 'PlanReviewer']) -&gt; hypothesis_testing_plan</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Performer} -&gt; hypothesis_testing_plan -------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a scientist who needs to write hypothesis testing plan.
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] USER {PlanReviewer} -&gt; hypothesis_testing_plan &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[3] SURROGATE {Performer} -&gt; hypothesis_testing_plan &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[4] USER {PlanReviewer} -&gt; hypothesis_testing_plan &lt;background_codes_and_outputs:data_exploration&gt;  : 
+Here is our Data Exploration Code: python  import pandas as pd import networkx as nx  # read [...] counts: Handle 0 State 0 Party 0 Chamber 0</span>
+
+<span class="ansi36">[5] SURROGATE {Performer} -&gt; hypothesis_testing_plan &lt;background_thanks_codes_and_outputs:data_exploration&gt;  : 
+Thank you for the Data Exploration Code and Output.</span>
+
+<span class="ansi32">[6] USER {PlanReviewer} -&gt; hypothesis_testing_plan &lt;background_research_goal&gt;  : 
+Here is our Research Goal   Research Goal:  To understand the structural properties of the [...] House), irrespective of party affiliations.</span>
+
+<span class="ansi36">[7] SURROGATE {Performer} -&gt; hypothesis_testing_plan &lt;background_thanks_research_goal&gt;  : 
+Thank you for the Research Goal.</span>
+
+<span class="ansi34">[8] COMMENTER -&gt; hypothesis_testing_plan &lt;after_background&gt;  : Background messages completed. Requesting "hypothesis testing plan".</span>
+
+<span class="ansi32">[9] ----- USER {PlanReviewer} -&gt; hypothesis_testing_plan ---------------------------------------------------------------------------------------------
+</span><span class="ansi32">We would like to test the specified hypotheses using the provided dataset.
+
+Please follow these two steps:
+
+(1) Return a bullet-point review of relevant statistical issues.
+Read the "Description of the Original Dataset" and the "Data Exploration Code and Output" provided above, and then for each of the following generic
+statistical issues determine if they are relevant for our case and whether they should be accounted for:
+* multiple comparisons.
+* confounding variables (see available variables in the dataset that we can adjust for).
+* dependencies between data points.
+* missing data points.
+* any other relevant statistical issues.
+
+(2) Create a Python Dict[str, str], mapping each hypothesis (dict key) to the statistical test that would be most adequate for testing it (dict
+value).
+The keys of this dictionary should briefly describe each of our hypotheses.
+The values of this dictionary should specify the most adequate statistical test for each hypothesis, and describe how it should be performed while
+accounting for any issues you have outlined above as relevant.
+
+For each of our hypotheses, suggest a *single* statistical test.
+If there are several possible ways to test a given hypothesis, specify only *one* statistical test (the simplest one).
+
+Your response for this part should be formatted as a Python dictionary, like this:
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">xxx is associated with yyy and zzz</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">linear regression with xxx as the independent variable and yyy and zzz as the dependent variables while adjusting for aaa, bbb, ccc</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">the association between xxx and yyy is moderated by zzz</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">repeat the above linear regression, while adding the interaction term between yyy and zzz</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi32">
+
+These of course are just examples. Your actual response should be based on the goal and hypotheses that we have specified above (see the "Research
+Goal" above).
+
+Note how in the example shown the different hypotheses are connected to each other, building towards a single
+study goal.
+
+Remember to return a valid Python dictionary Dict[str, str].</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-3.5-turbo-0613 (max 4096 tokens) for 1649 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[10] ==== ASSISTANT{'model_engine': gpt-3.5-turbo-0613} {Performer} -&gt; hypothesis_testing_plan =======================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (1649 tokens):
+# 0    SYSTEM (  12 tokens): You are a scientist who [...] testing plan.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER ( 468 tokens): Here is our Data [...] 0 Party 0 Chamber 0
+# 4 SURROGATE (  11 tokens): Thank you for the Data Exploration Code and Output.
+# 5      USER (  76 tokens): Here is our Research Goal   [...] party affiliations.
+# 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
+# 7      USER ( 404 tokens): We would like to test the [...] Dict[str, str].
+
+# 8 ASSISTANT ( 437 tokens): (1) Bullet-point review of [...] Twitter engagement.
+                             {'model_engine': gpt-3.5-turbo-0613}
+</span><span class="ansi36">
+
+(1) Bullet-point review of relevant statistical issues:
+
+- Multiple Comparisons: While we have not explicitly described multiple comparisons in our hypotheses, we should be aware that conducting multiple
+statistical tests may increase the chances of making a Type I error. We should consider adjusting the significance level or using appropriate methods,
+such as the Bonferroni correction, if we decide to conduct multiple tests.
+
+- Confounding Variables: In our dataset, we have potential confounding variables such as "Party" and "Chamber" that could influence the relationship
+between Twitter engagement and chamber division. We should adjust for these variables in our statistical analysis to isolate the effect of chamber
+division on Twitter engagement.
+
+- Dependencies between Data Points: The social interactions in the Congressional Twitter network may exhibit dependencies between data points, as the
+engagement of one member can affect the engagement of their connected members. We should account for these dependencies when analyzing the data to
+ensure the validity of the statistical tests.
+
+- Missing Data Points: According to the data exploration code and output, there are no missing values in the dataset. However, if there were missing
+data points, we would need to handle them appropriately, such as through imputation or using methods that can handle missing data.
+
+- Other Relevant Statistical Issues: We should consider the distributional assumptions of the statistical tests we choose and evaluate their
+appropriateness for the data. Additionally, we should consider the potential presence of outliers and influential data points that may affect the
+results of the statistical tests.
+
+(2) Python dictionary mapping each hypothesis to the statistical test:
+
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">The level of Twitter engagement within the same chamber is higher than between chambers, irrespective of party affiliations</span><span class="ansi38-186">"</span><span class="ansi38-15">:</span>
+<span class="ansi38-15"> </span><span class="ansi38-186">"</span><span class="ansi38-186">Independent samples t-test comparing the mean number of interactions within the same chamber to the mean number of interactions between chambers, while adjusting for party affiliations using analysis of covariance (ANCOVA)</span><span class="ansi38-186">"</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi36">
+
+In this case, we suggest using an independent samples t-test to compare the mean number of interactions within the same chamber and between chambers.
+We would adjust for party affiliations using ANCOVA to account for the potential confounding effect of party affiliation on the relationship between
+chamber division and Twitter engagement.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;9&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; hypothesis_testing_plan</span>
+
+<span class="ansi36">[10] ==== SURROGATE {Performer} -&gt; hypothesis_testing_plan ===========================================================================================
+</span><span class="ansi38-15">{</span>
+<span class="ansi38-15">    </span><span class="ansi38-186">'</span><span class="ansi38-186">The level of Twitter engagement within the same chamber is higher than between chambers, irrespective of party affiliations</span><span class="ansi38-186">'</span><span class="ansi38-15">:</span><span class="ansi38-15"> </span><span class="ansi38-186">'</span><span class="ansi38-186">Independent samples t-test comparing the mean number of interactions within the same chamber to the mean number of interactions between chambers, while adjusting for party affiliations using analysis of covariance (ANCOVA)</span><span class="ansi38-186">'</span><span class="ansi38-15">,</span>
+<span class="ansi38-15">}</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;9&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; hypothesis_testing_plan</span>
+
+<span class="ansi36">[10] SURROGATE {Performer} -&gt; hypothesis_testing_plan : 
+python {  'The level of Twitter engagement within the same chamber is higher than between [...] using analysis of covariance (ANCOVA)', }</span>
+
+</pre>
+</body>
+
+</html>

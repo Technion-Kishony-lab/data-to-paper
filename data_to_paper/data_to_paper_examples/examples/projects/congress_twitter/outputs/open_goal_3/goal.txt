@@ -1,0 +1,20 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To investigate the impact of regional proximity on Twitter interactions among US Congress members.
+
+Hypothesis: 
+Congress members are more likely to engage with other members that represent nearby states, compared to those from distant states. This hypothesis is based on the idea that geographical proximity may lead to common regional interests and concerns, leading to increased interaction and cooperation.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Congress members are more likely to engage with other members that represent nearby states, compared to those from distant states
+Statistical Test: Logistic regression: Examine the relationship between likelihood of engagement and distance between states represented by Congress members, controlling for Political Party and Chamber.
+
+Hypothesis: The likelihood of engagement between Congress members is dependent on their shared Political Party
+Statistical Test: Chi-square test of independence: Assess the association between likelihood of engagement and Political Party.
+
+Hypothesis: The likelihood of engagement between Congress members is dependent on their shared Chamber
+Statistical Test: Chi-square test of independence: Investigate the association between the likelihood of engagement and Chamber.

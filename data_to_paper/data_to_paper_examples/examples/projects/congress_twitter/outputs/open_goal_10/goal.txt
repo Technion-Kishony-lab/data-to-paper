@@ -1,0 +1,20 @@
+Here is our Research Goal
+
+
+Research Goal: 
+Analyze the influence of geographical location and chamber representation on network centrality measures among the congress members in the Twitter interaction network.
+
+Hypothesis: 
+The centrality measures in the Twitter interaction network vary based on the geographical location (state representation) and the chamber (House or Senate) of the congress members.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The centrality measures in the Twitter interaction network vary based on the geographical location (state representation) of the congress members
+Statistical Test: ANOVA or Kruskal-Wallis test to compare the centrality measures across different states, adjusting for potential confounding variables (e.g., party affiliation, chamber representation)
+
+Hypothesis: The centrality measures in the Twitter interaction network vary based on the chamber (House or Senate) representation of the congress members
+Statistical Test: Independent t-test or Mann-Whitney U test to compare the centrality measures between the House and Senate, adjusting for potential confounding variables (e.g., state representation, party affiliation)
+
+Hypothesis: The influence of geographical location (state representation) on centrality measures is moderated by the chamber (House or Senate) representation of the congress members
+Statistical Test: Multiple regression analysis with centrality measures as dependent variables, state representation and chamber representation as independent variables, and adjusting for potential confounding variables (e.g., party affiliation)

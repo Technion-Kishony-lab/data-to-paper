@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To understand the impact of a member's position within the Congressional network on their social interactions, independent of their political party identification or chamber representation. 
+
+Hypothesis: 
+The centrality of a Congress member within the network (as measured by their betweenness centrality score) is positively associated with the number of their engagements (direct interactions) on Twitter, controlling for State, Party, and Chamber. 
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The centrality of a Congress member is positively associated with the number of engagements, controlling for State, Party, and Chamber
+Statistical Test: Multiple Linear Regression with the number of engagements as the dependent variable and betweenness centrality, State, Party, and Chamber as independent variables. Adjust the regression model for the dependencies between data points and consider robust regression methods if outliers are present.

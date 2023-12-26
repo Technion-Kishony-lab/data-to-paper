@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To investigate the influence of shared state representation on Twitter interactions among Congress members. This aims to uncover whether representing the same state has a bearing on the frequency and/or likelihood of Twitter engagements between members, irrespective of their party affiliation or chamber of service.
+
+Hypothesis: 
+Members of the Congress who represent the same state, regardless of their political party or chamber assignment, are more likely to interact with each other on Twitter. This premise explores the potential consequence of shared state representation on the frequency of Twitter interactions among Congress members.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Members of Congress representing the same state are more likely to interact with each other on Twitter
+Statistical Test: Perform a logistic regression analysis, with the presence or absence of Twitter interactions between two Congress members as the dependent variable, and adjust for Political Party and Chamber as independent variables. Use a non-parametric permutation test to account for multiple comparisons and dependencies within the graph structure.

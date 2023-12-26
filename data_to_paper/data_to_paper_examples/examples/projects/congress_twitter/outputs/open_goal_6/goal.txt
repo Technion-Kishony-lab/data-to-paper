@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To examine the role of state representation in the social media interactions of members of the U.S Congress.
+
+Hypothesis: 
+Members of the U.S. Congress representing the same State are more likely to interact with each other on Twitter, irrespective of their Chamber (House or Senate) and Political Party affiliation. This may suggest that shared local concerns or interests could potentially drive more frequent interactions.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Members of the U.S. Congress representing the same State are more likely to interact with each other on Twitter, irrespective of their Chamber (House or Senate) and Political Party affiliation
+Statistical Test: Logistic Regression with State as the independent variable and Twitter Interaction (Yes/No) as the dependent variable, while adjusting for Chamber and Political Party

@@ -1,0 +1,20 @@
+Here is our Research Goal
+
+
+Research Goal: 
+Analyze the hierarchical interaction dynamics among U.S. Congress members on Twitter. Specifically, assess the asymmetry in Twitter interactions to identify potential influencers and followers within this network, independently of their Party, State, and Chamber affiliations.
+
+Hypothesis: 
+Significant asymmetrical interaction patterns could be identified within the U.S. Congress members' Twitter network, suggesting hierarchical positionality that may defeat traditional lines of Party, State, or Chamber affiliations. We posit that certain members with consistent higher engagement levels may emerge as key influencers within the network.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Significant asymmetrical interaction patterns within the U.S. Congress members' Twitter network could be identified, suggesting hierarchical positionality that may defeat traditional lines of Party, State, or Chamber affiliations
+Statistical Test: Network Centrality Analysis
+
+Hypothesis: The interaction dynamics among U.S. Congress members exhibit asymmetry, suggesting a hierarchical structure independent of Party, State, and Chamber affiliations
+Statistical Test: Stochastic Block Model (SBM) Analysis
+
+Hypothesis: Certain Congress members with consistent higher engagement levels on Twitter may act as key influencers within the network, regardless of Party, State, or Chamber affiliations
+Statistical Test: Logistic Regression

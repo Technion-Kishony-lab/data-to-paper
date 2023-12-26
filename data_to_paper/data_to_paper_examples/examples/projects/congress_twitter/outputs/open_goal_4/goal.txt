@@ -1,0 +1,20 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To examine the factors influencing the structure and connectivity within the social interaction network amongst members of the 117th US Congress on Twitter, specifically focusing on how the members' State representation, Chamber, and Party influence their position within the network.
+
+Hypothesis: 
+Attributes such as the State representation, Chamber, and Party affiliation of a US Congress member influence their centrality and connectivity in the Twitter interaction network. The hypothesis posits that Congress members from more populous States, those from the 'House' Chamber, and those linked to major political parties are more likely to occupy central positions within this interaction network.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Centrality in the network is influenced by State representation
+Statistical Test: ANOVA or regression analysis with centrality as the dependent variable and State as the independent variable, adjusting for Party affiliation and Chamber
+
+Hypothesis: Centrality in the network is influenced by Chamber
+Statistical Test: ANOVA or regression analysis with centrality as the dependent variable and Chamber as the independent variable, adjusting for State representation and Party affiliation
+
+Hypothesis: Connectivity in the network is influenced by State representation
+Statistical Test: ANOVA or regression analysis with connectivity as the dependent variable and State as the independent variable, adjusting for Party affiliation and Chamber

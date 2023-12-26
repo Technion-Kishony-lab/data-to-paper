@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+Explore the relationship between the degree of influence (degree centrality) of Congress members and the diversity of their connections across party lines and chambers.
+
+Hypothesis: 
+Congress members with the highest degree of influence (degree centrality) maintain more diverse connections with other members across different political parties and chambers (House and Senate) compared to those with lower degree centrality. This diversity could possibly be a contributing factor underlying their influence in the Congressional workspace as reflected in the Twitter network data.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Congress members with the highest degree of influence have more diverse connections across party lines and chambers
+Statistical Test: Logistic regression with the diversity of connections as the dependent variable and degree centrality as the independent variable, adjusting for Party and Chamber as potential confounders.

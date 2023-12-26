@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+Explore how interaction networks in the US Congress manifest on Twitter, specifically whether the interaction networks exhibit community-like structures based on the attributes of Congress members (State, Party, and Chamber) that go beyond the respective attribute groups.
+
+Hypothesis: 
+Community detection algorithms applied to the Twitter interaction network of the US Congress will reveal communities that do not simply correspond to State, Party, or Chamber. This could suggest that factors other than those attributes (e.g., shared policy interests, collaborative history, etc.) might be influencing Twitter interactions among Congress members.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Community detection algorithms applied to the Twitter interaction network of the US Congress will reveal communities that do not simply correspond to State, Party, or Chamber. This could suggest that factors other than those attributes might be influencing Twitter interactions among Congress members.
+Statistical Test: Perform network-based community detection algorithms (e.g., Louvain algorithm, Infomap algorithm) on the Twitter interaction network, and compare the detected communities with the known State, Party, and Chamber attributes using a chi-squared test of independence. Account for multiple comparisons using the Bonferroni correction or False Discovery Rate (FDR) control.
