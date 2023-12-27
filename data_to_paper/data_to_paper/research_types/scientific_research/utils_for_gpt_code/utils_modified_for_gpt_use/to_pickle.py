@@ -6,7 +6,7 @@ from pandas.core.frame import DataFrame
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.overrides.attr_replacers import AttrReplacer
-from data_to_paper.run_gpt_code.overrides.types import PValue
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue
 from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem, RunUtilsError
 
 from .check_df_of_table import check_df_of_table_for_content_issues

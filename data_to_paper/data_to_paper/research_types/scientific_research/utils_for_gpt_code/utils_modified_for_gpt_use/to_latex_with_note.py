@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from data_to_paper.env import TRACK_P_VALUES
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext

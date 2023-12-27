@@ -1,8 +1,11 @@
 import functools
+from dataclasses import dataclass, field
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 
+from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.run_gpt_code.types import RunUtilsError, RunIssue, CodeProblem
 from data_to_paper.utils.mutable import Flag, Mutable
 from data_to_paper.utils.operator_value import OperatorValue
@@ -87,3 +90,29 @@ def convert_to_p_value(value, created_by: str = None, raise_on_nan: bool = True,
 
 def is_p_value(value):
     return hasattr(value, 'this_is_a_p_value')
+
+
+def is_containing_p_value(value):
+    if is_p_value(value):
+        return True
+    if isinstance(value, np.ndarray):
+        return np.any(np.vectorize(is_containing_p_value)(value))
+    if isinstance(value, pd.Series):
+        return value.apply(is_containing_p_value).any()
+    if isinstance(value, pd.DataFrame):
+        return value.applymap(is_containing_p_value).any().any()
+    if isinstance(value, (list, tuple)):
+        return any(is_containing_p_value(val) for val in value)
+    if isinstance(value, dict):
+        return any(is_containing_p_value(val) for val in value.values())
+    return False
+
+
+@dataclass
+class TrackPValueCreationFuncs(RunContext):
+    PACKAGE_NAMES: Tuple[str] = ()
+    pvalue_creating_funcs: List[str] = field(default_factory=list)
+
+    def _add_pvalue_creating_func(self, func_name: str):
+        if self._is_enabled and self._is_called_from_user_script(4):
+            self.pvalue_creating_funcs.append(func_name)

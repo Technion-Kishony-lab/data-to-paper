@@ -13,7 +13,7 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
-from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
 
 from data_to_paper.run_gpt_code.types import RunUtilsError
@@ -36,7 +36,7 @@ def test_fit_results_do_not_allow_summary():
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with OverrideStatisticsPackages():
+    with StatsmodelsFitPValueOverride() as context:
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -46,6 +46,7 @@ def test_statsmodels_label_pvalues(func):
         pval = results.pvalues[0]
         assert is_p_value(pval)
         assert pval.created_by == func.__name__
+        assert context.pvalue_creating_funcs == [func.__name__]
         if hasattr(results, 'summary2'):
             s2 = results.summary2()
             table1 = s2.tables[1]
@@ -68,6 +69,25 @@ def test_statsmodels_logit():
         pval = results.pvalues[0]
         assert is_p_value(pval)
         assert pval.created_by == 'Logit'
+
+
+@pytest.mark.parametrize('calling_fit', [
+    True,
+    False,
+])
+def test_statsmodels_create_issue_if_no_fit_is_called(calling_fit):
+    with OverrideStatisticsPackages() as context:
+        # Example data
+        X = [1, 2, 3, 4, 5]
+        y = [0, 0, 1, 1, 1]
+        X = sm.add_constant(X)
+        model = sm.Logit(y, X)
+        if calling_fit:
+            model.fit()
+    if calling_fit:
+        assert len(context.issues) == 0
+    else:
+        assert len(context.issues) == 1
 
 
 def test_statsmodels_anova_lm():

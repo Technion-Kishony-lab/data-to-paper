@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext
-from ..types import convert_to_p_value, PValue
+from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
 from ...types import RunIssue, RunUtilsError, CodeProblem
 
 
@@ -66,11 +66,12 @@ def _get_summary_func(self, original_func):
 
 
 @dataclass
-class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext):
+class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueCreationFuncs):
     """
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
     """
+    PACKAGE_NAMES = ('statsmodels', )
 
     def _get_all_modules(self) -> list:
         from statsmodels.regression import linear_model
@@ -95,13 +96,15 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext):
 
             if TRACK_P_VALUES:
                 # Replace the pvalues attribute if it exists
-                # result.pvalues = result.pvalues.astype(PValueDtype(self.__class__.__name__))
+                created_by = obj.__class__.__name__
+                pvalue_detected = False
                 for attr in ['pvalues', 'f_pvalue', 'pvalue']:
                     if not hasattr(result, attr):
                         continue
                     pvalues = getattr(result, attr)
-                    pvalues = convert_to_p_value(pvalues, created_by=obj.__class__.__name__,
+                    pvalues = convert_to_p_value(pvalues, created_by=created_by,
                                                  raise_on_nan=attr != 'f_pvalue')
+                    pvalue_detected = True
                     try:
                         setattr(result, attr, pvalues)
                     except AttributeError:
@@ -111,10 +114,15 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext):
                 if hasattr(result, 'summary2'):
                     original_summary2 = result.summary2
                     result.summary2 = _get_summary2_func(obj, original_summary2)
+                    pvalue_detected = True
 
                 if hasattr(result, 'summary'):
                     original_summary = result.summary
                     result.summary = _get_summary_func(obj, original_summary)
+                    pvalue_detected = True
+
+                if pvalue_detected:
+                    self._add_pvalue_creating_func(created_by)
             return result
 
         return wrapped

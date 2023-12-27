@@ -6,11 +6,12 @@ from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
 from data_to_paper.utils.text_formatting import short_repr
 
-from ..types import convert_to_p_value
+from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 
 
 @dataclass
-class ScipyPValueOverride(SystematicFuncReplacerContext):
+class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
+    PACKAGE_NAMES = ('scipy', )
     obj_import_str: str = 'scipy'
 
     def _should_replace(self, module, func_name, func) -> bool:
@@ -34,9 +35,11 @@ class ScipyPValueOverride(SystematicFuncReplacerContext):
                 try:
                     asdict = {k.strip('_'): v for k, v in result._asdict().items()}
                     if 'pvalue' in asdict:
+                        created_by = original_func.__name__
                         asdict['pvalue'] = convert_to_p_value(asdict['pvalue'],
-                                                              created_by=original_func.__name__,
+                                                              created_by=created_by,
                                                               func_call_str=func_call_str)
+                        self._add_pvalue_creating_func(created_by)
                         result = type(result)(**asdict)
                 except (AttributeError, TypeError, ValueError):
                     pass

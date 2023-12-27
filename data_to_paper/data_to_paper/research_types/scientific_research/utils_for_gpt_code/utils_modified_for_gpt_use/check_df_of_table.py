@@ -4,7 +4,7 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 
-from data_to_paper.run_gpt_code.overrides.types import is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value
 from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 from data_to_paper.utils import dedent_triple_quote_str
 
