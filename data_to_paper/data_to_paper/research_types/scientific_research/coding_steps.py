@@ -36,13 +36,16 @@ from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_m
 
 
 def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = False,
-                             enforce_saving_altered_dataframes: bool = False,) -> Dict[str, Any]:
+                             enforce_saving_altered_dataframes: bool = False,
+                             issue_if_statistics_test_not_called: bool = False,
+                             ) -> Dict[str, Any]:
     return {
         'TrackDataFrames': TrackDataFrames(
             allow_dataframes_to_change_existing_series=allow_dataframes_to_change_existing_series,
             enforce_saving_altered_dataframes=enforce_saving_altered_dataframes,
         ),
-        'OverrideStatisticsPackages': OverrideStatisticsPackages(),
+        'OverrideStatisticsPackages': OverrideStatisticsPackages(
+            issue_if_statistics_test_not_called=issue_if_statistics_test_not_called),
     }
 
 
@@ -722,7 +725,8 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
 
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                                         enforce_saving_altered_dataframes=False) |
+                                                         enforce_saving_altered_dataframes=False,
+                                                         issue_if_statistics_test_not_called=True) |
         {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
          'PickleDump': get_pickle_dump_attr_replacer(),
          }

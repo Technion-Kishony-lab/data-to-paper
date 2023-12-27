@@ -71,6 +71,25 @@ def test_statsmodels_logit():
         assert pval.created_by == 'Logit'
 
 
+@pytest.mark.parametrize('calling_fit', [
+    True,
+    False,
+])
+def test_statsmodels_create_issue_if_no_fit_is_called(calling_fit):
+    with OverrideStatisticsPackages() as context:
+        # Example data
+        X = [1, 2, 3, 4, 5]
+        y = [0, 0, 1, 1, 1]
+        X = sm.add_constant(X)
+        model = sm.Logit(y, X)
+        if calling_fit:
+            model.fit()
+    if calling_fit:
+        assert len(context.issues) == 0
+    else:
+        assert len(context.issues) == 1
+
+
 def test_statsmodels_anova_lm():
     with OverrideStatisticsPackages():
         data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
