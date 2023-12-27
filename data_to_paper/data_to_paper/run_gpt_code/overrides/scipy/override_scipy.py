@@ -11,6 +11,7 @@ from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
+    PACKAGE_NAMES = ('scipy', )
     obj_import_str: str = 'scipy'
 
     def _should_replace(self, module, func_name, func) -> bool:
