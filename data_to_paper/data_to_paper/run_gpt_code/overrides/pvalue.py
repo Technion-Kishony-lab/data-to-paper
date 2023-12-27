@@ -92,6 +92,22 @@ def is_p_value(value):
     return hasattr(value, 'this_is_a_p_value')
 
 
+def is_containing_p_value(value):
+    if is_p_value(value):
+        return True
+    if isinstance(value, np.ndarray):
+        return np.any(np.vectorize(is_containing_p_value)(value))
+    if isinstance(value, pd.Series):
+        return value.apply(is_containing_p_value).any()
+    if isinstance(value, pd.DataFrame):
+        return value.applymap(is_containing_p_value).any().any()
+    if isinstance(value, (list, tuple)):
+        return any(is_containing_p_value(val) for val in value)
+    if isinstance(value, dict):
+        return any(is_containing_p_value(val) for val in value.values())
+    return False
+
+
 @dataclass
 class TrackPValueCreationFuncs(RunContext):
     pvalue_creating_funcs: List[str] = field(default_factory=list)

@@ -21,7 +21,7 @@ from data_to_paper.research_types.scientific_research.table_debugger import Tabl
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
@@ -661,7 +661,7 @@ class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequir
 
 
 @dataclass
-class FromFormulaDebuggerConverser(DebuggerConverser):
+class StatisticalTestingDebuggerConverser(DebuggerConverser):
     class_and_from_formula: Tuple[str, str] = (
         ('GLS', 'gls'),
         ('WLS', 'wls'),
@@ -686,6 +686,25 @@ class FromFormulaDebuggerConverser(DebuggerConverser):
         ('ConditionalPoisson', 'conditional_poisson'),
     )
 
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+        """
+        Check that a PValue instance appear in at least one of the created tables.
+        """
+        issues = super()._get_issues_for_created_output_files(code_and_output)
+        any_pvalues = False
+        for file_path, content in code_and_output.created_files.get_created_content_files_to_contents().items():
+            if is_containing_p_value(content):
+                any_pvalues = True
+                break
+        if not any_pvalues:
+            issues.append(RunIssue(
+                issue='We are presenting results for a statistical-testing paper, but no p-values are reported in '
+                      'any of the created files.',
+                instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+        return issues
+
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
         issues = super()._get_issues_for_static_code_check(code)
 
@@ -703,7 +722,7 @@ class FromFormulaDebuggerConverser(DebuggerConverser):
 
 @dataclass
 class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
-    debugger_cls: Type[DebuggerConverser] = FromFormulaDebuggerConverser
+    debugger_cls: Type[DebuggerConverser] = StatisticalTestingDebuggerConverser
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
