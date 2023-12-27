@@ -44,7 +44,7 @@ class OverrideStatisticsPackages(MultiRunContext):
                     issue="We are writing code for an hypothesis-testing paper, "
                           "but your code does not call any statistical-testing function that returns a p-value.",
                     instructions="Please make sure that you perform a statistical-test with either "
-                                 "{}.".format(NiceList(stat_packages, last_separator=', or ')),
+                                 "{}.".format(sorted(NiceList(stat_packages, last_separator=', or '))),
                     code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 ))
         return super().__exit__(exc_type, exc_val, exc_tb)
