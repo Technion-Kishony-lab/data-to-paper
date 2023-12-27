@@ -173,4 +173,5 @@ class MultiRunContext(RunContext):
     def __exit__(self, exc_type, exc_val, exc_tb):
         for context in self.contexts:
             context.__exit__(exc_type, exc_val, exc_tb)
+            self.issues.extend(context.issues)
         return super().__exit__(exc_type, exc_val, exc_tb)
