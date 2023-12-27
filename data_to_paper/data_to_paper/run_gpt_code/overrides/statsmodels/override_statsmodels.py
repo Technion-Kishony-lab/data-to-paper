@@ -1,4 +1,5 @@
 import functools
+from typing import Iterable
 from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
@@ -71,7 +72,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
     A context manager that replaces the pvalues attribute of all fit functions in statsmodels with a
     PValue.
     """
-    PACKAGE_NAMES = ('statsmodels', )
+    package_names: Iterable[str] = ('statsmodels', )
 
     def _get_all_modules(self) -> list:
         from statsmodels.regression import linear_model
@@ -129,7 +130,8 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
 
 
 @dataclass
-class StatsmodelsMultitestPValueOverride(SystematicFuncReplacerContext):
+class StatsmodelsMultitestPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
+    package_names: Iterable[str] = ('statsmodels', )
     obj_import_str: str = 'statsmodels.stats.multitest'
 
     def _should_replace(self, module, func_name, func) -> bool:
@@ -148,6 +150,7 @@ class StatsmodelsMultitestPValueOverride(SystematicFuncReplacerContext):
                     result = list(result)
                     result[pval_index] = convert_to_p_value(result[pval_index], created_by=func_name)
                     result = tuple(result)
+                    self._add_pvalue_creating_func(func_name)
                 except (AttributeError, TypeError, ValueError):
                     pass
             return result
@@ -156,7 +159,8 @@ class StatsmodelsMultitestPValueOverride(SystematicFuncReplacerContext):
 
 
 @dataclass
-class StatsmodelsAnovaPValueOverride(SystematicFuncReplacerContext):
+class StatsmodelsAnovaPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
+    package_names: Iterable[str] = ('statsmodels', )
     obj_import_str: str = 'statsmodels.stats.anova'
 
     def _should_replace(self, module, func_name, func) -> bool:
@@ -175,6 +179,7 @@ class StatsmodelsAnovaPValueOverride(SystematicFuncReplacerContext):
                         result.loc[row_label, 'PR(>F)'] = convert_to_p_value(result.loc[row_label, 'PR(>F)'],
                                                                              created_by=attr_name,
                                                                              raise_on_nan=row_label != 'Residual')
+                    self._add_pvalue_creating_func(attr_name)
                 except (AttributeError, TypeError, ValueError):
                     pass
             return result

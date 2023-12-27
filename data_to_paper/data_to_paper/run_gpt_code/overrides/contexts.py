@@ -33,10 +33,10 @@ class OverrideStatisticsPackages(MultiRunContext):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.issue_if_statistics_test_not_called:
             stat_test_called = False
-            stat_packages = []
+            stat_packages = set()
             for context in self.contexts:
                 if isinstance(context, TrackPValueCreationFuncs):
-                    stat_packages.extend(context.PACKAGE_NAMES)
+                    stat_packages |= set(context.package_names)
                     if context.pvalue_creating_funcs:
                         stat_test_called = True
             if not stat_test_called:

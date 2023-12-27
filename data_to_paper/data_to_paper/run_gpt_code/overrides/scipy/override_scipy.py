@@ -1,6 +1,7 @@
 import functools
 import inspect
 from dataclasses import dataclass
+from typing import Iterable
 
 from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
@@ -11,7 +12,7 @@ from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
-    PACKAGE_NAMES = ('scipy', )
+    package_names: Iterable[str] = ('scipy', )
     obj_import_str: str = 'scipy'
 
     def _should_replace(self, module, func_name, func) -> bool:

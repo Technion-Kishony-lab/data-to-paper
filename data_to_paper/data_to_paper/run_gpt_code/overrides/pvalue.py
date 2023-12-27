@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 
 import numpy as np
 import pandas as pd
@@ -110,7 +110,7 @@ def is_containing_p_value(value):
 
 @dataclass
 class TrackPValueCreationFuncs(RunContext):
-    PACKAGE_NAMES: Tuple[str] = ()
+    package_names: Iterable[str] = ()
     pvalue_creating_funcs: List[str] = field(default_factory=list)
 
     def _add_pvalue_creating_func(self, func_name: str):
