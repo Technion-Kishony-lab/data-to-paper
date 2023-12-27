@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext
-from ..types import convert_to_p_value, PValue
+from ..pvalue import convert_to_p_value, PValue
 from ...types import RunIssue, RunUtilsError, CodeProblem
 
 

@@ -13,7 +13,7 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
-from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
 
 from data_to_paper.run_gpt_code.types import RunUtilsError

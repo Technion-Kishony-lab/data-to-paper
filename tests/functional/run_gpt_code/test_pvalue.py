@@ -3,7 +3,7 @@ import pickle
 from _pytest.fixtures import fixture
 from pandas.core.dtypes.inference import is_list_like
 
-from data_to_paper.run_gpt_code.overrides.types import PValue, is_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 
 
 @fixture()
