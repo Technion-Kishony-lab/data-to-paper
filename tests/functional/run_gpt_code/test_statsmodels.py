@@ -36,7 +36,7 @@ def test_fit_results_do_not_allow_summary():
     GLM,
 ])
 def test_statsmodels_label_pvalues(func):
-    with OverrideStatisticsPackages():
+    with StatsmodelsFitPValueOverride() as context:
         # Example data
         data = sm.datasets.longley.load()
         X = sm.add_constant(data.exog)
@@ -46,6 +46,7 @@ def test_statsmodels_label_pvalues(func):
         pval = results.pvalues[0]
         assert is_p_value(pval)
         assert pval.created_by == func.__name__
+        assert context.pvalue_creating_funcs == [func.__name__]
         if hasattr(results, 'summary2'):
             s2 = results.summary2()
             table1 = s2.tables[1]

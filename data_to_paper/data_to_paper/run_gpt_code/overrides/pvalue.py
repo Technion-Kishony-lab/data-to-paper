@@ -1,8 +1,11 @@
 import functools
+from dataclasses import dataclass, field
+from typing import Set, List
 
 import numpy as np
 import pandas as pd
 
+from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.run_gpt_code.types import RunUtilsError, RunIssue, CodeProblem
 from data_to_paper.utils.mutable import Flag, Mutable
 from data_to_paper.utils.operator_value import OperatorValue
@@ -87,3 +90,12 @@ def convert_to_p_value(value, created_by: str = None, raise_on_nan: bool = True,
 
 def is_p_value(value):
     return hasattr(value, 'this_is_a_p_value')
+
+
+@dataclass
+class TrackPValueCreationFuncs(RunContext):
+    pvalue_creating_funcs: List[str] = field(default_factory=list)
+
+    def _add_pvalue_creating_func(self, func_name: str):
+        if self._is_enabled and self._is_called_from_user_script(4):
+            self.pvalue_creating_funcs.append(func_name)
