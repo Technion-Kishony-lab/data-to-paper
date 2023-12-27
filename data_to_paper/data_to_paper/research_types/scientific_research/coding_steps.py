@@ -749,7 +749,7 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [DataFramePickleContentOutputFileRequirement('table_?.pkl', 2),
+        [DataFramePickleContentOutputFileRequirement('table_?.pkl', 1),
          DictPickleContentOutputFileRequirement('additional_results.pkl', 1),
          ])
 
