@@ -692,10 +692,11 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
         """
         issues = super()._get_issues_for_created_output_files(code_and_output)
         any_pvalues = False
-        for file_path, content in code_and_output.created_files.get_created_content_files_to_contents().items():
-            if is_containing_p_value(content):
-                any_pvalues = True
-                break
+        for names_to_contents in code_and_output.created_files.values():
+            for content in names_to_contents.values():
+                if is_containing_p_value(content):
+                    any_pvalues = True
+                    break
         if not any_pvalues:
             issues.append(RunIssue(
                 issue='We are presenting results for a statistical-testing paper, but no p-values are reported in '
