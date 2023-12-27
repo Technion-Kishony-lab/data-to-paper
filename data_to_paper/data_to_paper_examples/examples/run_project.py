@@ -91,6 +91,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
               copy_openai_responses: bool = False,
               should_mock_servers: bool = True,
               load_from_repo: bool = True,
+              should_remove_temp_folder: bool = True,
               save_on_repo: bool = True):
     input_path = get_input_path(project, load_from_repo)
     temp_folder_to_run_in = input_path / 'temp_folder'
@@ -114,3 +115,6 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
     ).run_all_steps()
 
     convert_console_log_to_html(CONSOLE_LOG_FILE.val)
+
+    if should_remove_temp_folder:
+        shutil.rmtree(temp_folder_to_run_in, ignore_errors=True)  # remove temp folder and all its content
