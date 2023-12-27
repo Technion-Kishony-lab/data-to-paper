@@ -16,9 +16,9 @@ from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
+from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.exceptions import data_to_paperException
 
-from .overrides.utils import round_floats
 
 if TYPE_CHECKING:
     from .overrides.dataframes.dataframe_operations import DataframeOperations
