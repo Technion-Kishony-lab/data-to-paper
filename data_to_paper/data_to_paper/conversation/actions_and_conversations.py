@@ -96,10 +96,12 @@ class Actions(List[Action]):
                     and isinstance(action, AppendMessage) \
                     and action.message.content in self.get_all_message_contents(only_printed=True):
                 s = action.pretty_repr(is_color=is_color, abbreviate_content=True)
+                s_bw = action.pretty_repr(is_color=False, abbreviate_content=True)
             else:
                 s = action.pretty_repr(is_color=is_color)
+                s_bw = action.pretty_repr(is_color=False)
             if s:
-                print_and_log(s, end='\n\n')
+                print_and_log(s_bw, text_in_color=s, end='\n\n')
         if should_append:
             self.append(action)
         action.apply()

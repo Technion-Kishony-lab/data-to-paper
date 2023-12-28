@@ -59,7 +59,10 @@ def output_to_highlighted_html(output_str: str) -> str:
 
 
 def python_to_highlighted_text(code_str: str, color: str = '') -> str:
-    return highlight(code_str, PythonLexer(), terminal_formatter)
+    if color:
+        return highlight(code_str, PythonLexer(), terminal_formatter)
+    else:
+        return code_str
 
 
 def text_to_html(text: str, textblock: bool = False) -> str:

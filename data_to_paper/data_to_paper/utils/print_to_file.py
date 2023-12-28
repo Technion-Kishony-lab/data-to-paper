@@ -9,13 +9,22 @@ from .mutable import Mutable
 CONSOLE_LOG_FILE = Mutable(None)
 
 
-def print_and_log(*args, color: Optional[str] = None, should_log: bool = True, **kwargs):
+def print_and_log(text_in_bw: str, text_in_color: Optional[str] = None, color: Optional[str] = None,
+                  should_log: bool = True, **kwargs):
     if color is not None:
-        args = [colored_text(arg, color) for arg in args]
-    print(*args, **kwargs)
+        assert text_in_color is None
+        text_in_color = colored_text(text_in_bw, color)
+    else:
+        if text_in_color is None:
+            text_in_color = text_in_bw
+    print(text_in_color, **kwargs)
     if should_log and CONSOLE_LOG_FILE.val is not None:
-        with open(CONSOLE_LOG_FILE.val, 'a') as f:
-            print(*args, **kwargs, file=f)
+        file_path_color = CONSOLE_LOG_FILE.val  # pathlib.Path
+        with open(file_path_color, 'a') as f:
+            print(text_in_color, file=f, **kwargs)
+        file_path_bw = file_path_color.with_stem(file_path_color.stem + '_bw')
+        with open(file_path_bw, 'a') as f:
+            print(text_in_bw, file=f, **kwargs)
 
 
 print_and_log_red = partial(print_and_log, color=colorama.Fore.RED)
