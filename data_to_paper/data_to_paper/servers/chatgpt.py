@@ -112,11 +112,13 @@ class OpenaiSeverCaller(ListServerCaller):
             except openai.error.InvalidRequestError:
                 raise
             except (openai.error.OpenAIError, TimeoutError) as e:
-                print_and_log_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}')
                 sleep_time = 1.0 * 2 ** attempt
-                print_and_log_red(f'Going to sleep for {sleep_time} seconds before trying again.')
+                print_and_log_red(f'Unexpected OPENAI error:\n{type(e)}\n{e}\n'
+                                  f'Going to sleep for {sleep_time} seconds before trying again.',
+                                  should_log=False)
                 time.sleep(sleep_time)
-                print_and_log_red(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_OPENAI_ATTEMPTS}) ...')
+                print_and_log_red(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_OPENAI_ATTEMPTS}) ...',
+                                  should_log=False)
         else:
             raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')
 
