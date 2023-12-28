@@ -41,7 +41,7 @@ class SklearnFitOverride(SystematicMethodReplacerContext):
 
 @dataclass
 class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
-    max_iterations: int = 12  # Default max iterations limit
+    max_iterations: int = 30  # Default max iterations limit
 
     def _get_all_parents(self) -> list:
         # add here all modules that have classes with fit methods:
