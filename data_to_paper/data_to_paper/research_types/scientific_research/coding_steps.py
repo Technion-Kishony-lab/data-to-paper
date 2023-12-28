@@ -627,11 +627,21 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
-        if num_tables < 3:
-            s = '* Missing tables: Considering our research goal and hypothesis testing plan, ' \
-                'are all relevant tables created? If not, can you suggest any additional tables?\n'
-        else:
+        is_descriptive_table = 'table_0.pkl' in code_and_output.created_files.get_created_content_files_to_contents()
+        if num_tables >= 3:
             s = ''
+        else:
+            if num_tables == 1:
+                s = '* Missing tables: You only produced 1 table. ' \
+                    'Note that research papers typically have 2 or more tables. ' \
+                    'Are you sure all relevant tables are created? Can you suggest any additional analysis leading to ' \
+                    'additional tables?'
+            elif num_tables == 2:
+                s = '* Missing tables: Considering our research goal and hypothesis testing plan, ' \
+                    'are all relevant tables created? If not, can you suggest any additional tables?'
+            if not is_descriptive_table:
+                s += ' Perhaps add a descriptive statistics table?'
+            s += '\n'
         comments['comment_on_missing_table'] = s
         return comments
 
