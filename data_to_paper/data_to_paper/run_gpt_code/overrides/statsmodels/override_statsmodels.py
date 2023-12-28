@@ -122,6 +122,20 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
                     result.summary = _get_summary_func(obj, original_summary)
                     pvalue_detected = True
 
+                if hasattr(result, 'eigenvals'):
+                    eigenvals = result.eigenvals
+                    if eigenvals is not None:
+                        min_eigenval = eigenvals[-1]
+                        assert min_eigenval == min(eigenvals)
+                        if min_eigenval < 1e-10:
+                            self.issues.append(RunIssue(
+                                issue="The eigenvalues of the covariance matrix are too small. "
+                                      "This might indicate that there are strong multicollinearity problems "
+                                      "or that the design matrix is singular.",
+                                instructions="Try to remove redundant features.",
+                                code_problem=CodeProblem.RuntimeError,
+                            ))
+
                 if pvalue_detected:
                     self._add_pvalue_creating_func(created_by)
             return result

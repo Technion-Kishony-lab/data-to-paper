@@ -56,6 +56,23 @@ def test_statsmodels_label_pvalues(func):
             assert pval.created_by == func.__name__
 
 
+@pytest.mark.parametrize('with_redundant_feature', [True, False])
+def test_statsmodels_issues_on_singular_matrix(with_redundant_feature):
+    with OverrideStatisticsPackages() as context:
+        # Example data
+        data = pd.DataFrame({'sex': ['M', 'M', 'F', 'F', 'F'] * 100, 'y': [1, 2, 3, 4, 5] * 100})
+        data = pd.get_dummies(data)
+        formula = 'y ~ sex_M'
+        if with_redundant_feature:
+            formula += ' + sex_F'
+        ols(data=data, formula=formula).fit()
+    if with_redundant_feature:
+        assert len(context.issues) == 1
+        assert 'eigenvalues' in context.issues[0].issue
+    else:
+        assert len(context.issues) == 0
+
+
 def test_statsmodels_logit():
     with StatsmodelsFitPValueOverride():
         # Example data
