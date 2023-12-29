@@ -1,9 +1,9 @@
 import functools
-from typing import Iterable
+from typing import Iterable, Callable
 from dataclasses import dataclass
 
 from data_to_paper.env import TRACK_P_VALUES
-from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext
+from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
 from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
 from ...types import RunIssue, RunUtilsError, CodeProblem
 
@@ -199,3 +199,35 @@ class StatsmodelsAnovaPValueOverride(SystematicFuncReplacerContext, TrackPValueC
             return result
 
         return wrapped
+
+
+def TukeyHSDResults__init__(self, mc_object, results_table, q_crit, reject=None,
+                            meandiffs=None, std_pairs=None, confint=None, df_total=None,
+                            reject2=None, variance=None, pvalues=None, original_func=None, context_manager=None):
+    """
+    A custom __init__ function for TukeyHSDResults that replaces the pvalues attribute with a PValue object.
+    """
+    pvalues = convert_to_p_value(pvalues, created_by='TukeyHSDResults')
+
+    p_adj_index = 3
+    for row in results_table[1:]:
+        row[p_adj_index].data = convert_to_p_value(row[p_adj_index].data, created_by='TukeyHSDResults')
+
+    context_manager._add_pvalue_creating_func('TukeyHSDResults')
+    return original_func(self, mc_object, results_table, q_crit, reject=reject,
+                         meandiffs=meandiffs, std_pairs=std_pairs, confint=confint, df_total=df_total,
+                         reject2=reject2, variance=variance, pvalues=pvalues)
+
+
+@dataclass
+class StatsmodelsMulticompPValueOverride(AttrReplacer, TrackPValueCreationFuncs):
+    package_names: Iterable[str] = ('statsmodels', )
+    obj_import_str: str = 'statsmodels.sandbox.stats.multicomp.TukeyHSDResults'
+    attr: str = '__init__'
+    wrapper: Callable = TukeyHSDResults__init__
+
+    send_context_to_wrapper: bool = True
+    send_original_to_wrapper: bool = True
+
+    def _is_called_from_data_to_paper(self) -> bool:
+        return True

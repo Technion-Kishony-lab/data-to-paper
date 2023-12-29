@@ -6,7 +6,7 @@ from .scipy.override_scipy import ScipyPValueOverride
 from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
     SklearnNNSizeOverride
 from .statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, StatsmodelsMultitestPValueOverride, \
-    StatsmodelsAnovaPValueOverride
+    StatsmodelsAnovaPValueOverride, StatsmodelsMulticompPValueOverride
 from ..base_run_contexts import RunContext, MultiRunContext
 from ..types import RunIssue, CodeProblem
 from ...utils.nice_list import NiceList
@@ -25,6 +25,7 @@ class OverrideStatisticsPackages(MultiRunContext):
         StatsmodelsFitPValueOverride(),
         StatsmodelsMultitestPValueOverride(),
         StatsmodelsAnovaPValueOverride(),
+        StatsmodelsMulticompPValueOverride(),
         SklearnSearchLimitCheck(),
         SklearnRandomStateOverride(),
         SklearnNNSizeOverride(),

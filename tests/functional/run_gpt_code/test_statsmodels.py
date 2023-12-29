@@ -116,6 +116,15 @@ def test_statsmodels_anova_lm():
         assert is_p_value(pval)
 
 
+def test_statsmodels_multicomp():
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd
+    with OverrideStatisticsPackages():
+        tukey = pairwise_tukeyhsd(endog=[1, 2, 3, 4, 5], groups=[1, 1, 2, 2, 2], alpha=0.05)
+    assert is_p_value(tukey.summary().data[1][3])
+    assert is_p_value(tukey.summary()[1][3].data)
+    assert is_p_value(tukey.pvalues[0])
+
+
 def test_statsmodels_logit_func():
     with StatsmodelsFitPValueOverride():
         # Example data
