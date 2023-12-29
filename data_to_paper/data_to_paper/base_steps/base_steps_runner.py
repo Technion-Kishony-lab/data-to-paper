@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 from dataclasses import dataclass, field
 
 from pathlib import Path
@@ -118,10 +119,15 @@ class BaseStepsRunner(ProductsHandler):
         if os.path.exists(self.output_directory):
             # delete all the files except the mock_openai file:
             for file in glob.glob(str(self.output_directory / '*')):
-                if file != str(self.output_directory / self.OPENAI_RESPONSES_FILENAME) \
-                        and file != str(self.output_directory / self.CROSSREF_RESPONSES_FILENAME) \
-                        and file != str(self.output_directory / self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME):
-                    os.remove(file)
+                if file not in [str(self.output_directory / recording_file)
+                                for recording_file in [self.OPENAI_RESPONSES_FILENAME,
+                                                       self.CROSSREF_RESPONSES_FILENAME,
+                                                       self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]:
+                    # the file can be a non-empty directory or a file. remove it anyway:
+                    if os.path.isfile(file):
+                        os.remove(file)
+                    else:
+                        shutil.rmtree(file)
         else:
             os.makedirs(self.output_directory)
 
