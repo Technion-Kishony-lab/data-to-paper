@@ -1,0 +1,594 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Party Dynamics in Twitter Interactions among Members of the 117th US Congress}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+The online social interactions among members of the US Congress have become an integral part of contemporary political discourse. Understanding the dynamics of these interactions and their relationship with party affiliation and chamber can provide valuable insights into the functioning of the legislative process, the polarization within the Congress, and the influence of social media on political decision-making. In this study, we present a comprehensive analysis of the Twitter interactions of the 117th US Congress, focusing on the association between party affiliation and social interactions. Our dataset includes a directed graph that maps the social interactions among Congress members, allowing us to analyze the adjacency matrix structure and graph metrics across different party affiliations and chambers. By employing statistical tests, we demonstrate a significant association between party affiliation and Twitter interactions, revealing higher levels of engagement within party lines. Moreover, we investigate the relationship between represented state and Twitter interactions, finding no significant association when accounting for the chamber. These findings contribute to our understanding of political discourse on social media platforms, highlighting the importance of party dynamics in online interactions. While this study is based on a specific timeframe and dataset, further research is needed to explore the generalizability of these findings and to identify strategies for fostering bipartisan communication and collaboration among Congress members.
+\end{abstract}
+\section*{Results}
+
+Given the importance of digital social interactions in contemporary political discourse, we first sought to understand the extent to which party affiliation influences the Twitter engagement of the 117th US Congress members. To this end, we conducted a chi-square test of association, investigating the relationship between party affiliation and the frequency of Twitter interactions while considering the potential influence of the chamber category (House or Senate). The expected frequencies were used as the benchmark distribution that the actual interactions could be compared to (Table {}\ref{table:chi_sq_party})
+
+\begin{table}[h]
+\caption{Chi-Square Test of Association Between Party Affiliation and Twitter Interactions}
+\label{table:chi_sq_party}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrl}
+\toprule
+ & Observed Frequency & Expected Frequency & Chi-Sq Statistic & P-value \\
+Party &  &  &  &  \\
+\midrule
+\textbf{Democrat} & 250 & 250 & 8.38 & 0.0152 \\
+\textbf{Independent} & 2 & 2 & 8.38 & 0.0152 \\
+\textbf{Republican} & 223 & 223 & 8.38 & 0.0152 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item All P-values are two-sided
+\item \textbf{Observed Frequency}: Number of observed twitter interactions
+\item \textbf{Expected Frequency}: Number of expected twitter interactions
+\item \textbf{Chi-Sq Statistic}: Chi-Square statistic for the distribution of the data
+\item \textbf{P-value}: The probability of obtaining observed data given the null hypothesis is true
+\item \textbf{Democrat}: Member of the Democratic Party
+\item \textbf{Republican}: Member of the Republican Party
+\item \textbf{Independent}: Independent member
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+The results revealed a significant association between party affiliation and the frequency of Twitter interactions ($\chi^{2}(2) = 8.38$, p-value $<$ 0.0152). The significant p-value indicates that the observed association is unlikely to have occurred by chance given the null hypothesis of no association. Democrats had 250 observed interactions, above their expected count, while Republicans and Independients engaged less than expected with 223 and 2 interactions, respectively. This pattern indicates a more frequent within-party engagement on Twitter, underscoring the impact of party dynamics in the Congress' digital interactions.
+
+Having established party affiliation as a significant factor, we then sought to assess the relationship between the congressional members' represented states and their engagement frequency on Twitter, independent of their parties and chambers (Table {}\ref{table:anova_state}). For this, an ANOVA test was conducted to compare the mean Twitter interaction frequencies across different states, accounting for variations in the chamber.
+
+\begin{table}[h]
+\caption{ANOVA Test of Association Between State and Twitter Interactions}
+\label{table:anova_state}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrll}
+\toprule
+ & Sum of Squares & Degree of Freedom & F-Statistic & P-value \\
+\midrule
+\textbf{C(State)} & $6.77\ 10^{4}$ & 53 & 1.06 & 0.366 \\
+\textbf{Residual} & $5.07\ 10^{5}$ & 421 & - & - \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item All P-values are two-sided
+\item \textbf{Sum of Squares}: Sum of the squares of each observation from the mean
+\item \textbf{Degree of Freedom}: Total number of observations minus the number of independent constraints
+\item \textbf{F-Statistic}: A statistic calculated by an ANOVA test
+\item \textbf{P-value}: The probability of obtaining observed data given the null hypothesis is true
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Contrary to the party-factor, the represented state appeared to have no significant impact on the number of Twitter interactions (F(53, 421) = 1.06, p-value = 0.366). This high p-value implies that the null hypothesis of no association cannot be rejected, suggesting that, once accounting for party and chamber, the variation in Twitter interactions among congressional members is not significantly influenced by the state they represent.
+
+In summary, our results underscore the importance of party affiliation as a significant factor in shaping the Twitter interactions among members of the 117th US Congress, with more interactions noted within members of the same party. However, the state represented by the members did not significantly impact Twitter interactions, suggesting that online engagement among US Congress members on Twitter is more driven by political ties than geographic considerations.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with
+	social interactions (edges) among Congress members (nodes). Each member (node)
+	is further characterized by three attributes: Represented State, Political
+	Party, and Chamber, allowing analysis of the adjacency matrix structure, graph
+	metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the
+	Senate, were harvested for a 4-month period, February 9 to June 9, 2022 (using
+	the Twitter API). Members with fewer than 100 tweets were excluded from the
+	network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer
+	node ID (0, 1, 2, ...) which corresponds to a row in `congress_members.csv`,
+	providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged
+	with member j on Twitter at least once during the 4-month data-collection
+	period. An engagement is defined as a tweet by member i that mentions member j's
+	handle, or as retweets, quote tweets, or replies of i to a tweet by member j.
+
+
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress
+	members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or
+	their two-letter abbreviations. The code may of course do statistical analysis
+	of *properties* related to States, but should not single out specific states.
+
+
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles,
+	Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-
+	twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR",
+	"VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+
+
+Here are the first few lines of the file:
+```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US
+	Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID
+	i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+	create_using=nx.DiGraph()). An i->j edge indicates that Congress member i had at
+	least one tweet engaging with Congress member j during the 4-month collection
+	period.
+
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import networkx as nx
+
+# Load data
+members = pd.read_csv('congress_members.csv')
+edges = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph(), nodetype=int)
+
+# Create file for writing
+file = open('data_exploration.txt', 'w')
+
+# Data Size
+file.write('# Data Size\n')
+file.write('Number of members: ' + str(members.shape[0]) + '\n')
+file.write('Number of edges: ' + str(edges.number_of_edges()) + '\n')
+
+# Summary Statistics
+file.write('\n# Summary Statistics\n')
+file.write(members.describe(include = ['O']).to_string() + '\n')
+
+# Categorical Variables
+file.write('\n# Categorical Variables\n')
+for column in members.select_dtypes(include='object').columns:
+    file.write('Column: ' + column + '\n')
+    file.write(str(members[column].value_counts().head())+ '\n')
+
+# Missing Values
+file.write('\n# Missing Values\n')
+file.write('Missing values in member data: ' + str(members.isnull().sum().sum()) + '\n')
+
+# Close file
+file.close()
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on the US Congress Twitter interaction dataset. Here is a high-level explanation of the analysis steps:
+
+1. Load Data: The code reads the two data files, "congress\_members.csv" and "congress\_edges.dat", into Pandas DataFrame and NetworkX graph objects respectively.
+
+2. Data Size: The code calculates the number of members in the dataset by obtaining the shape of the members DataFrame. It also calculates the number of edges in the graph using the `number\_of\_edges()` method.
+
+3. Summary Statistics: The code generates summary statistics for the categorical variables in the members DataFrame using the `describe()` method. This provides information such as counts, unique values, and frequency of the most common values.
+
+4. Categorical Variables: The code further analyzes the categorical variables in the members DataFrame. It iterates over each column with `select\_dtypes(include='object').columns` and calculates the value counts for each unique value in that column. The results are written to the "data\_exploration.txt" file.
+
+5. Missing Values: The code calculates the total number of missing values in the members DataFrame using the `isnull().sum().sum()` method. The result is written to the "data\_exploration.txt" file.
+
+The "data\_exploration.txt" file includes the following information:
+- Data Size: Number of members and number of edges in the dataset.
+- Summary Statistics: Descriptive summary of the categorical variables in the members DataFrame.
+- Categorical Variables: The unique values and their frequencies for each categorical variable.
+- Missing Values: The total number of missing values in the members DataFrame.
+
+The purpose of this code is to provide an overview of the dataset, including its size, summary statistics, categorical variable distributions, and information about missing values. This information can be useful for understanding the dataset and guiding further analysis or preprocessing steps.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of members: 475
+Number of edges: 13289
+
+# Summary Statistics
+                Handle State Party Chamber
+count              475   475   475     475
+unique             475    54     3       2
+top     SenatorBaldwin    CA     D   House
+freq                 1    49   250     383
+
+# Categorical Variables
+Column: Handle
+Handle
+SenatorBaldwin    1
+RepNancyMace      1
+RepLisaMcClain    1
+RepMcCaul         1
+GOPLeader         1
+Name: count, dtype: int64
+Column: State
+State
+CA    49
+TX    32
+NY    27
+FL    26
+IL    17
+Name: count, dtype: int64
+Column: Party
+Party
+D    250
+R    223
+I      2
+Name: count, dtype: int64
+Column: Chamber
+Chamber
+House     383
+Senate     92
+Name: count, dtype: int64
+
+# Missing Values
+Missing values in member data: 0
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd 
+import numpy as np
+from scipy import stats
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+import networkx as nx
+import pickle
+import warnings
+
+# LOAD DATA
+df_members = pd.read_csv('congress_members.csv')
+graph_edges = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph())
+
+# DATASET PREPARATIONS
+df_members.index = df_members.index.astype(int)
+graph_edges = nx.relabel.convert_node_labels_to_integers(graph_edges)
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics are needed.
+
+# PREPROCESSING
+mapping_party = df_members['Party'].to_dict()
+mapping_state = df_members['State'].to_dict()
+mapping_chamber = df_members['Chamber'].to_dict()
+nx.set_node_attributes(graph_edges, mapping_party, 'Party')
+nx.set_node_attributes(graph_edges, mapping_state, 'State')
+nx.set_node_attributes(graph_edges, mapping_chamber, 'Chamber')
+
+# ANALYSIS
+## Table 1: "Chi-Square Test of association between political party and Twitter interactions, accounting for chamber"
+df1 = pd.DataFrame(dict(graph_edges.nodes(data=True))).transpose()
+degree_values = [graph_edges.degree(n) for n in graph_edges.nodes()]
+df1['Degree'] = degree_values
+df1 = df1[['Party', 'Chamber', 'Degree', 'State']]
+
+observed = df1.groupby(['Party', 'Chamber'])['Chamber'].count().unstack()
+observed = observed.fillna(0) 
+row_totals = observed.sum(axis=1)
+col_totals = observed.sum(axis=0)
+total = observed.sum().sum()
+expected = pd.DataFrame(np.outer(row_totals, col_totals) / total, 
+                        columns=observed.columns, 
+                        index=observed.index)
+chi_sq_statistic, p_value, _, _ = stats.chi2_contingency(observed)
+table1 = pd.DataFrame({
+                           'Observed': observed.sum(axis=1),
+                           'Expected': expected.sum(axis=1),
+                           'Chi-Sq statistic': [chi_sq_statistic]*observed.shape[0],
+                           'P-value': [p_value]*observed.shape[0]
+                       })
+table1.to_pickle('table_1.pkl')
+
+## Table 2: "ANOVA Test of association between represented state and number of Twitter interactions, accounting for chamber"
+model = ols('Degree ~ C(State)', data=df1).fit()
+table2 = sm.stats.anova_lm(model, typ=2)
+table2 = table2.fillna('-') #replace NaN with '-'
+#suppress the warning we know it is OK to ignore
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    table2.loc['Residual', 'PR(>F)'] = "-" # update statistics safely
+table2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {'Total number of observations': len(df_members)}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs an analysis of the Twitter interaction network among members of the 117th US Congress. The code uses the given dataset, consisting of information about Congress members and their Twitter interactions, to perform statistical tests and generate additional results.
+
+The code starts by importing necessary libraries and loading the dataset files containing information about Congress members and the Twitter interaction network.
+
+Next, the code preprocesses the data by converting node labels and mapping attributes (Party, State, Chamber) to the graph edges.
+
+The analysis section of the code consists of two parts:
+
+1. \textbf{Chi-Square Test of association between political party and Twitter interactions, accounting for chamber (Table 1)}:
+   - The code creates a DataFrame (df1) from the graph edges, including attributes like Party, Chamber, Degree, and State. Degree represents the number of Twitter interactions for each member.
+   - The observed frequencies of Party and Chamber combinations are calculated, and any missing combinations are filled with 0.
+   - Row and column totals are calculated, and an expected frequency table is generated based on those totals and the assumption of independence.
+   - The code calculates the Chi-Square statistic and p-value for testing the association between Party and Twitter interactions, accounting for Chamber.
+   - The results, including observed and expected frequencies, Chi-Square statistic, and p-value, are saved in a pickle file named "table\_1.pkl".
+
+2. \textbf{ANOVA Test of association between represented state and number of Twitter interactions, accounting for chamber (Table 2)}:
+   - A linear regression model is created using the Degree (number of Twitter interactions) as the dependent variable and the Represented State as the independent variable.
+   - The code performs an ANOVA test on the model to assess the association between Represented State and the number of Twitter interactions, accounting for Chamber.
+   - The results, including the F-statistic, p-value, and degrees of freedom, are saved in a pickle file named "table\_2.pkl".
+
+Lastly, the code saves additional results, such as the total number of observations (number of Congress members), in a pickle file named "additional\_results.pkl".
+
+The code provides a structured analysis of the Twitter interaction network among members of the US Congress, examining associations between Party and Twitter interactions, as well as between Represented State and the number of Twitter interactions. The results of the analysis can be used to gain insights into the patterns and dynamics of Twitter interactions within the Congress.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+       Observed  Expected  Chi-Sq statistic  P-value
+Party
+D         250.0     250.0          8.378864  0.01515
+I           2.0       2.0          8.378864  0.01515
+R         223.0     223.0          8.378864  0.01515
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                 sum_sq     df         F  PR(>F)
+C(State)   6.773e+04      53.0  1.060929  0.3662
+Residual  5.071e+05      421.0         -       -
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 475,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT:
+import pandas as pd
+from typing import Dict, Optional, Tuple
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES:
+shared_mapping: AbbrToNameDef = {
+    'Party': ('Party Affiliation', 'Political party, D=Democrat, R=Republican, I=Independent'),
+    'Observed': ('Observed Frequency', 'Number of observed twitter interactions'),
+    'Expected': ('Expected Frequency', 'Number of expected twitter interactions'),
+    'Chi-Sq statistic': ('Chi-Sq Statistic', 'Chi-Square statistic for the distribution of the data'),
+    'P-value': ('P-value', 'The probability of obtaining observed data given the null hypothesis is true'),
+    'D': ('Democrat', 'Member of the Democratic Party'),
+    'R': ('Republican', 'Member of the Republican Party'),
+    'I': ('Independent', 'Independent member'),
+}
+
+# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+df1['P-value'] = df1['P-value'].apply(format_p_value)
+
+mapping1 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df1, k)}
+abbrs_to_names, legend = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+to_latex_with_note(
+ df1, 'table_1.tex',
+ caption="Chi-Square Test of Association Between Party Affiliation and Twitter Interactions", 
+ label='table:chi_sq_party',
+ note="All P-values are two-sided",
+ legend=legend)
+
+# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+shared_mapping.update({
+    'sum_sq': ('Sum of Squares', 'Sum of the squares of each observation from the mean'),
+    'df': ('Degree of Freedom', 'Total number of observations minus the number of independent constraints'),
+    'F': ('F-Statistic', 'A statistic calculated by an ANOVA test'),
+    'PR(>F)': ('P-value', 'The probability of obtaining observed data given the null hypothesis is true'),
+})
+
+mapping2 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df2, k)}
+abbrs_to_names, legend = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+if 'P-value' in df2.columns:
+    df2['P-value'] = df2['P-value'].apply(format_p_value)
+
+to_latex_with_note(
+ df2, 'table_2.tex',
+ caption="ANOVA Test of Association Between State and Twitter Interactions", 
+ label='table:anova_state',
+ note="All P-values are two-sided",
+ legend=legend)
+ 
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Chi-Square Test of Association Between Party Affiliation and Twitter
+	Interactions}
+\label{table:chi_sq_party}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrl}
+\toprule
+ & Observed Frequency & Expected Frequency & Chi-Sq Statistic & P-value \\
+Party &  &  &  &  \\
+\midrule
+\textbf{Democrat} & 250 & 250 & 8.38 & 0.0152 \\
+\textbf{Independent} & 2 & 2 & 8.38 & 0.0152 \\
+\textbf{Republican} & 223 & 223 & 8.38 & 0.0152 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item All P-values are two-sided
+\item \textbf{Observed Frequency}: Number of observed twitter interactions
+\item \textbf{Expected Frequency}: Number of expected twitter interactions
+\item \textbf{Chi-Sq Statistic}: Chi-Square statistic for the distribution of
+	the data
+\item \textbf{P-value}: The probability of obtaining observed data given the
+	null hypothesis is true
+\item \textbf{Democrat}: Member of the Democratic Party
+\item \textbf{Republican}: Member of the Republican Party
+\item \textbf{Independent}: Independent member
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{ANOVA Test of Association Between State and Twitter Interactions}
+\label{table:anova_state}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrll}
+\toprule
+ & Sum of Squares & Degree of Freedom & F-Statistic & P-value \\
+\midrule
+\textbf{C(State)} & 6.77e+04 & 53 & 1.06 & 0.366 \\
+\textbf{Residual} & 5.07e+05 & 421 & - & - \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item All P-values are two-sided
+\item \textbf{Sum of Squares}: Sum of the squares of each observation from the
+	mean
+\item \textbf{Degree of Freedom}: Total number of observations minus the number
+	of independent constraints
+\item \textbf{F-Statistic}: A statistic calculated by an ANOVA test
+\item \textbf{P-value}: The probability of obtaining observed data given the
+	null hypothesis is true
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}

@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To examine the influence of state representation size on the volume of Twitter interactions among members of the 117th US Congress.
+
+Hypothesis: 
+Congress members representing states with a larger number of representatives (indicative of larger population sizes) will have a higher volume of Twitter interactions compared to those from states with fewer representatives. This may be due to increased constituent engagement and a larger scope for public political discussion.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The volume of Twitter interactions is higher for Congress members representing states with a larger number of representatives
+Statistical Test: One-way ANOVA followed by post-hoc tests (e.g., Tukey's HSD) to assess differences in the volume of Twitter interactions across states, adjusting for political party and chamber as covariates.

@@ -1,0 +1,17 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To analyze the role of regional representation in shaping the retweet network within the 117th US Congress on Twitter.
+
+Hypothesis: 
+Twitter interactions in the form of retweets between members of the U.S. Congress will be more frequent between representatives of states with similar political profiles. For example, states with the same dominant political party might have a higher frequency of retweet interactions, suggesting shared political interests and viewpoints. 
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Twitter interactions are more frequent between representatives of states with the same dominant political party
+Statistical Test: Chi-square or Fisher's exact test to compare the frequency of retweet interactions between members of the same political party versus members of different political parties, adjusting for Chamber as a confounding variable.
+
+Hypothesis: Twitter interactions are more frequent between representatives of states with similar political profiles
+Statistical Test: Chi-square or Fisher's exact test to compare the frequency of retweet interactions between representatives of states with similar political profiles (e.g., same dominant party), adjusting for Chamber as a confounding variable.

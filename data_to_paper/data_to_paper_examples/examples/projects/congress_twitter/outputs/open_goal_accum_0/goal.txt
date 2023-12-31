@@ -1,0 +1,14 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To examine the role of chamber (House or Senate) in shaping the interaction network within the 117th US Congress. 
+
+Hypothesis: 
+Members of the House of Representatives will have more interactions amongst themselves in the Twitter network, compared to the members of the Senate. This could potentially be due to the larger number of members in the House, which might result in a denser network of interactions amongst them.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Members of the House have more interactions amongst themselves compared to the Senate
+Statistical Test: Chi-square test of independence, adjusting for confounding variables (Party and State)

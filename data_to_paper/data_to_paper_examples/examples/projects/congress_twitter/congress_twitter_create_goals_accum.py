@@ -29,8 +29,7 @@ if __name__ == '__main__':
             for j in range(jrun):
                 goal = read_goal_and_hypothesis(get_output_path_for_num(j))
                 project_specific_goal_guidelines += f"({j + 1})\n{goal}\n\n"
-        print(project_specific_goal_guidelines)
-        input()
+
         RUN_PARAMETERS = dict(
             project=project,
             data_filenames=["congress_members.csv", "congress_edges.dat"],
