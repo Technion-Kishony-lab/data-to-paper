@@ -159,6 +159,14 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # TODO: currently sending hypothesis testing plan to the client, need to decide what we really want to send
         self.send_product_to_client('hypothesis_testing_plan')
 
+
+        # Save the goal and plans to a file in the output directory and end:
+        with open(self.output_directory / 'goal.txt', 'w') as f:
+            f.write(products['research_goal'].description)
+            f.write('\n\n')
+            f.write(products['hypothesis_testing_plan'].description)
+
+
         # Data Preprocessing
         if self.should_do_data_preprocessing:
             self.advance_stage_and_set_active_conversation(
