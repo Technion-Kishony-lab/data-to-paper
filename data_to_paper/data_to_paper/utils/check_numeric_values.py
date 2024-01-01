@@ -202,7 +202,7 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
                                      ignore_after_smaller_than_sign: bool = True,
-                                     special_numbers_to_ignore: List[str] = ('95', '99', '100', '1.96'),
+                                     special_numbers_to_ignore: List[str] = ('95', '99', '100', '1.96', '0.05'),
                                      allow_truncating: bool = True) -> Tuple[List[str], List[str]]:
     """
     Check that all the numerical values mentioned in the target are also mentioned in the source.
