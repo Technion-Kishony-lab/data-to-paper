@@ -68,7 +68,7 @@ def test_statsmodels_issues_on_singular_matrix(with_redundant_feature):
         ols(data=data, formula=formula).fit()
     if with_redundant_feature:
         assert len(context.issues) == 1
-        assert 'eigenvalues' in context.issues[0].run_issue
+        assert 'eigenvalues' in context.issues[0].issue
     else:
         assert len(context.issues) == 0
 
@@ -158,7 +158,7 @@ def test_sklean_raise_on_multiple_fit_calls():
         from sklearn.linear_model import LinearRegression
         model = LinearRegression()
         model.fit(X, y)
-        with pytest.raises(RuntimeWarning):
+        with pytest.raises(RunUtilsError):
             model.fit(X, y)
 
 
@@ -182,7 +182,7 @@ def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
                                     allowed_read_files=None,
                                     ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
-    assert isinstance(exception.exception, RuntimeWarning)
+    assert isinstance(exception.exception, RunUtilsError)
 
 
 code0 = """
