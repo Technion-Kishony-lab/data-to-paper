@@ -635,8 +635,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             if num_tables == 1:
                 s += 'You only produced 1 table. ' \
                      'Note that research papers typically have 2 or more tables. ' \
-                     'Are you sure all relevant tables are created? Can you suggest any additional analysis leading to ' \
-                     'additional tables?'
+                     'Are you sure all relevant tables are created? Can you suggest any additional analysis leading ' \
+                     'to additional tables?'
             else:
                 assert num_tables == 2
                 s += 'Considering our research goal and hypothesis testing plan, ' \

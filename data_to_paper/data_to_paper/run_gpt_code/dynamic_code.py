@@ -10,7 +10,6 @@ import os
 import importlib
 
 from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
-from sklearn.exceptions import ConvergenceWarning
 
 from data_to_paper import chatgpt_created_scripts
 
