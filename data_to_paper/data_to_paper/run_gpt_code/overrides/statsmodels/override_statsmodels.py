@@ -90,7 +90,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             result = original_func(obj, *args, **kwargs)
             if self._is_called_from_data_to_paper():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
-                    self.issues.append(RunIssue(
+                    raise RunUtilsError(run_issue=RunIssue(
                         issue=f"The `{original_func.__name__}` function was already called on this object. ",
                         instructions=f"Multiple calls should be avoided as the same result instance is returned again.",
                         code_problem=CodeProblem.RuntimeError,
