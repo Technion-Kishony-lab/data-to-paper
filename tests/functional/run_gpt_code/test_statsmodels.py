@@ -158,7 +158,7 @@ def test_sklean_raise_on_multiple_fit_calls():
         from sklearn.linear_model import LinearRegression
         model = LinearRegression()
         model.fit(X, y)
-        with pytest.raises(RuntimeWarning):
+        with pytest.raises(RunUtilsError):
             model.fit(X, y)
 
 
@@ -182,7 +182,7 @@ def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
                                     allowed_read_files=None,
                                     ).run_code_in_separate_process()
     assert isinstance(exception, FailedRunningCode)
-    assert isinstance(exception.exception, RuntimeWarning)
+    assert isinstance(exception.exception, RunUtilsError)
 
 
 code0 = """

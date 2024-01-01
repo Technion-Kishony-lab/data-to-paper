@@ -414,12 +414,12 @@ class DebuggerConverser(BackgroundProductsConverser):
         linenos_lines, msg = e.get_lineno_line_message()
         on_line = '\n'.join(f'On line {lineno}: {line}' for lineno, line in linenos_lines)
         return RunIssue(
-            item=error.issue.item,
-            category=error.issue.category,
-            issue=f'{error.issue.issue}\n{on_line}',
-            instructions=error.issue.instructions,
-            comment=error.issue.comment,
-            code_problem=error.issue.code_problem,
+            item=error.run_issue.item,
+            category=error.run_issue.category,
+            issue=f'{error.run_issue.issue}\n{on_line}',
+            instructions=error.run_issue.instructions,
+            comment=error.run_issue.comment,
+            code_problem=error.run_issue.code_problem,
         )
 
     """

@@ -1,6 +1,6 @@
 import functools
 from dataclasses import dataclass, field
-from typing import List, Tuple, Iterable
+from typing import List, Iterable
 
 import numpy as np
 import pandas as pd

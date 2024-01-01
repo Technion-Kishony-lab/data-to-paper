@@ -107,10 +107,10 @@ class RunIssue:
 
 @dataclass
 class RunUtilsError(data_to_paperException):
-    issue: RunIssue
+    run_issue: RunIssue
 
     def __str__(self):
-        return self.issue.issue
+        return self.run_issue.issue
 
 
 class RunIssues(List[RunIssue]):
