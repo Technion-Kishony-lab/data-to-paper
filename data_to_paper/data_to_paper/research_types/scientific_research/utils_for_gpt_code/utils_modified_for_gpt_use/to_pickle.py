@@ -45,14 +45,14 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
             break
 
     if args or kwargs:
-        raise RunUtilsError(issue=RunIssue(
+        raise RunUtilsError(run_issue=RunIssue(
             issue="Please use `to_pickle(path)` with only the `path` argument.",
             instructions="Please do not specify any other arguments.",
             code_problem=CodeProblem.RuntimeError,
         ))
 
     if not isinstance(path, str):
-        raise RunUtilsError(issue=RunIssue(
+        raise RunUtilsError(run_issue=RunIssue(
             issue="Please use `to_pickle(filename)` with a filename as a string argument in the format 'table_x'",
             code_problem=CodeProblem.RuntimeError,
         ))
@@ -72,7 +72,7 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
     Check for content issues.
     """
     if args or kwargs:
-        raise RunUtilsError(issue=RunIssue(
+        raise RunUtilsError(run_issue=RunIssue(
             issue="Please use `dump(obj, file)` with only the `obj` and `file` arguments.",
             instructions="Please do not specify any other arguments.",
             code_problem=CodeProblem.RuntimeError,
@@ -80,14 +80,14 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
 
     # Check if the object is a dictionary
     if isinstance(obj, DataFrame):
-        raise RunUtilsError(issue=RunIssue(
+        raise RunUtilsError(run_issue=RunIssue(
             issue="Please use `pickle.dump` only for saving the dictionary."
                   "Use `df.to_pickle(filename)` for saving the table dataframes.",
             code_problem=CodeProblem.RuntimeError,
         ))
 
     if not isinstance(obj, dict):
-        raise RunUtilsError(issue=RunIssue(
+        raise RunUtilsError(run_issue=RunIssue(
             issue="Please use `pickle.dump` only for saving the dictionary `obj`.",
             code_problem=CodeProblem.RuntimeError,
         ))

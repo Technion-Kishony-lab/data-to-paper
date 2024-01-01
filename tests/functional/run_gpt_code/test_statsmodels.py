@@ -68,7 +68,7 @@ def test_statsmodels_issues_on_singular_matrix(with_redundant_feature):
         ols(data=data, formula=formula).fit()
     if with_redundant_feature:
         assert len(context.issues) == 1
-        assert 'eigenvalues' in context.issues[0].issue
+        assert 'eigenvalues' in context.issues[0].run_issue
     else:
         assert len(context.issues) == 0
 

@@ -58,7 +58,7 @@ def test_run_code_issues_warning():
     result, created_files, issues, contexts, e = RunCode(warnings_to_issue=[UserWarning]).run(code)
     assert e is None
     assert len(issues) == 1
-    assert 'be careful' in issues[0].issue
+    assert 'be careful' in issues[0].run_issue
     assert issues[0].linenos_and_lines == [(2, "warnings.warn('be careful', UserWarning)")]
 
 
@@ -117,7 +117,7 @@ def test_run_code_forbidden_function_print():
         a = 2
         """)
     result, created_files, issues, contexts, error = RunCode().run(code)
-    assert 'print' in issues[0].issue
+    assert 'print' in issues[0].run_issue
 
 
 @pytest.mark.parametrize("forbidden_import,module_name", [
