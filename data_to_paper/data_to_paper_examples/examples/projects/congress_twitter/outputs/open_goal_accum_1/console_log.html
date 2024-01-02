@@ -3860,8 +3860,9 @@ For example:
 p-value, CI, or STD, as applicable)?
 
 * Missing data in a table: Are we missing key variables in a given table?
+
 * Missing tables: You only produced 1 table. Note that research papers typically have 2 or more tables. Are you sure all relevant tables are created?
-Can you suggest any additional analysis leading to additional tables? Perhaps add a descriptive statistics table?
+Can you suggest any additional analysis leading to additional tables?
 * Any other issues you find.
 
 (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted
@@ -3883,10 +3884,10 @@ If you are sure that there are no issues, and the code and tables need no revisi
 then return an empty dict: `{}`.</span>
 <span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
 
-<span class="ansi31">Using gpt-4 (max 8192 tokens) for 3310 context tokens and 500 expected tokens.</span>
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 3303 context tokens and 500 expected tokens.</span>
 <span class="ansi36">[14] ==== ASSISTANT{'model_engine': gpt-4, 'temperature': 0.0} {Performer} -&gt; data_analysis_code =====================================================
 </span><span class="ansi96">
-CONTEXT TOTAL (3310 tokens):
+CONTEXT TOTAL (3303 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -3894,7 +3895,7 @@ CONTEXT TOTAL (3310 tokens):
 # 4 SURROGATE (  11 tokens): Thank you for the Hypothesis Testing Plan.
 # 5      USER (1117 tokens): Write a complete Python [...] positions.
 # 6 SURROGATE ( 454 tokens): Here is the code to perform [...] f)
-# 7      USER ( 872 tokens): I ran your code.  Here is [...] empty dict: `{}`.
+# 7      USER ( 865 tokens): I ran your code.  Here is [...] empty dict: `{}`.
 
 # 8 ASSISTANT ( 472 tokens): (1)   * DATASET [...] affiliation'.", }
                              {'model_engine': gpt-4, 'temperature': 0.0}
@@ -4263,12 +4264,12 @@ utilizes the specified packages:
 
 <span class="ansi31">AppendMessage, Debug iteration 2/20: </span>
 <span class="ansi32">[16] ---- USER {Debugger} -&gt; data_analysis_code ------------------------------------------------------------------------------------------------------
-</span><span class="ansi32">The function returned a p-value of NaN.
+</span><span class="ansi32">On line:
+40: chi_sq_statistic, p_value, _, _ = stats.chi2_contingency(observed)
+The function returned a p-value of NaN.
 
 The function was called as:
 power_divergence(&lt;ndarray, shape=(3, 2)&gt;, &lt;ndarray, shape=(3, 2)&gt;, ddof=3, axis=None, lambda_=None)
-On line 40: chi_sq_statistic, p_value, _, _ = stats.chi2_contingency(observed)
-
 Please see if you understand why this is happening and fix it.
 
 Please rewrite the complete code again with these issues corrected.
@@ -4299,7 +4300,7 @@ CONTEXT TOTAL (3408 tokens):
 # 6 SURROGATE ( 454 tokens): Here is the code to perform [...] f)
 # 7      USER ( 227 tokens): The code has some issues [...] ADDITIONAL RESULTS"
 # 8 SURROGATE ( 542 tokens): Here is the code to perform [...] f)
-# 9      USER ( 200 tokens): The function returned a [...] ADDITIONAL RESULTS"
+# 9      USER ( 200 tokens): On line: 40: [...] ADDITIONAL RESULTS"
 
 #10 ASSISTANT ( 593 tokens): It seems the issue arises [...] f)
                              {'model_engine': gpt-4}
@@ -5880,8 +5881,9 @@ For example:
 p-value, CI, or STD, as applicable)?
 
 * Missing data in a table: Are we missing key variables in a given table?
+
 * Missing tables: Considering our research goal and hypothesis testing plan, are all relevant tables created? If not, can you suggest any additional
-tables? Perhaps add a descriptive statistics table?
+tables?
 * Any other issues you find.
 
 (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted
@@ -5903,10 +5905,10 @@ If you are sure that there are no issues, and the code and tables need no revisi
 then return an empty dict: `{}`.</span>
 <span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
 
-<span class="ansi31">Using gpt-4 (max 8192 tokens) for 3665 context tokens and 500 expected tokens.</span>
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 3658 context tokens and 500 expected tokens.</span>
 <span class="ansi36">[14] ==== ASSISTANT{'model_engine': gpt-4, 'temperature': 0.0} {Performer} -&gt; data_analysis_code =====================================================
 </span><span class="ansi96">
-CONTEXT TOTAL (3665 tokens):
+CONTEXT TOTAL (3658 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -5914,7 +5916,7 @@ CONTEXT TOTAL (3665 tokens):
 # 4 SURROGATE (  11 tokens): Thank you for the Hypothesis Testing Plan.
 # 5      USER (1117 tokens): Write a complete Python [...] positions.
 # 6 SURROGATE ( 681 tokens): Here is the code to perform [...] f)
-# 7      USER (1000 tokens): I ran your code.  Here is [...] empty dict: `{}`.
+# 7      USER ( 993 tokens): I ran your code.  Here is [...] empty dict: `{}`.
 
 # 8 ASSISTANT ( 379 tokens): (1)   * DATASET [...] empty.  python {}
                              {'model_engine': gpt-4, 'temperature': 0.0}
@@ -8939,6 +8941,1805 @@ findings and to identify strategies for fostering bipartisan communication and c
 
 <span class="ansi36">[19] SURROGATE {Performer} -&gt; title_abstract_section_second : 
 latex \title{Party Dynamics in Twitter Interactions among Members of the 117th US Congress}  [...] among Congress members. \end{abstract}</span>
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                       methods                                                                        </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=methods web=[web]write paper, participants=['Performer', 'Writer']) -&gt; methods</span>
+
+<span class="ansi32">[1] SYSTEM casting  {Performer} -&gt; methods : 
+You are a data-scientist with experience writing accurate scientific research papers.  You will [...] with the scientific results we have.</span>
+
+<span class="ansi32">[2] USER {Writer} -&gt; methods &lt;background_data_file_descriptions&gt;  : 
+DESCRIPTION OF THE ORIGINAL DATASET  * Rationale: The dataset maps US Congress's Twitter [...] j during the 4-month collection period.</span>
+
+<span class="ansi36">[3] SURROGATE {Performer} -&gt; methods &lt;background_thanks_data_file_descriptions&gt;  : 
+Thank you for the Description of the Original Dataset.</span>
+
+<span class="ansi32">[4] USER {Writer} -&gt; methods &lt;background_research_goal&gt;  : 
+Here is our Research Goal   Research Goal:  To explore the potential correlations and [...] partisan lines to a certain extent.</span>
+
+<span class="ansi36">[5] SURROGATE {Performer} -&gt; methods &lt;background_thanks_research_goal&gt;  : 
+Thank you for the Research Goal.</span>
+
+<span class="ansi32">[6] USER {Writer} -&gt; methods &lt;background_codes:data_analysis&gt;  : 
+Here is our Data Analysis Code: python  # IMPORT import pandas as pd  import numpy as np from [...] as f:  pickle.dump(additional_results, f)</span>
+
+<span class="ansi36">[7] SURROGATE {Performer} -&gt; methods &lt;background_thanks_codes:data_analysis&gt;  : 
+Thank you for the Data Analysis Code.</span>
+
+<span class="ansi32">[8] ----- USER {Writer} -&gt; methods &lt;background_title_and_abstract&gt;  ----------------------------------------------------------------------------------
+</span><span class="ansi32">Here are the title and abstract of the paper:
+
+\title{Party Dynamics in Twitter Interactions among Members of the 117th US Congress}
+
+\begin{abstract}
+The online social interactions among members of the US Congress have become an integral part of contemporary political discourse. Understanding the
+dynamics of these interactions and their relationship with party affiliation and chamber can provide valuable insights into the functioning of the
+legislative process, the polarization within the Congress, and the influence of social media on political decision-making. In this study, we present a
+comprehensive analysis of the Twitter interactions of the 117th US Congress, focusing on the association between party affiliation and social
+interactions. Our dataset includes a directed graph that maps the social interactions among Congress members, allowing us to analyze the adjacency
+matrix structure and graph metrics across different party affiliations and chambers. By employing statistical tests, we demonstrate a significant
+association between party affiliation and Twitter interactions, revealing higher levels of engagement within party lines. Moreover, we investigate the
+relationship between represented state and Twitter interactions, finding no significant association when accounting for the chamber. These findings
+contribute to our understanding of political discourse on social media platforms, highlighting the importance of party dynamics in online
+interactions. While this study is based on a specific timeframe and dataset, further research is needed to explore the generalizability of these
+findings and to identify strategies for fostering bipartisan communication and collaboration among Congress members.
+\end{abstract}</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[9] SURROGATE {Performer} -&gt; methods &lt;background_thanks_title_and_abstract&gt;  : 
+Thank you for the Title and Abstract.</span>
+
+<span class="ansi34">[10] COMMENTER -&gt; methods &lt;after_background&gt;  : Background messages completed. Requesting "Methods section".</span>
+
+<span class="ansi32">[11] ---- USER {Writer} -&gt; methods -------------------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">Based on the material provided above ("Description of the Original Dataset", "Research Goal", "Data Analysis Code", "Title and Abstract"), please
+write only the Methods section for a Nature Communications article.
+Do not write any other parts!
+
+The Methods section should be enclosed within triple-backtick "latex" code block and have 3 subsections, as follows:
+
+</span><span class="ansi92">```latex
+\section{Methods}
+
+\subsection{Data Source}
+- Describe our data sources (see above "Description of the Original Dataset")
+
+\subsection{Data Preprocessing}
+- Describe preprocessing of the data done by the Python code (see above "Data Analysis Code").
+- Do not include preprocessing steps that were not performed by the code.
+- Do not include preprocessing steps that were performed by the code, but were not used as basis for further analysis affecting the result output.
+
+\subsection{Data Analysis}
+- Describe each of the specific analysis steps performed by the Python code to yield the results.
+- Do not be over technical.
+- Do not enumerate the steps as a list; instead, describe the steps in a narrative form.
+```</span><span class="ansi32">
+
+Throughout the Methods section, do NOT include any of the following:
+- Missing steps not done by the code.
+- Specific version of software packages, file names, column names.
+- Names of package functions (e.g., do not say "We used sklearn.linear_model.LinearRegression", say instead "We used a linear regression model")
+- URLs, links or references.
+
+Remember to enclose the Methods section within triple-backtick "latex" code block.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-3.5-turbo-0613 (max 4096 tokens) for 2142 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[12] ==== ASSISTANT{'model_engine': gpt-3.5-turbo-0613} {Performer} -&gt; methods =======================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (2142 tokens):
+# 0    SYSTEM (  89 tokens): You are a data-scientist [...] results we have.
+# 1      USER ( 659 tokens): DESCRIPTION OF THE ORIGINAL [...] collection period.
+# 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
+# 3      USER ( 108 tokens): Here is our Research Goal   [...] a certain extent.
+# 4 SURROGATE (   8 tokens): Thank you for the Research Goal.
+# 5      USER ( 656 tokens): Here is our Data Analysis [...] f)
+# 6 SURROGATE (   9 tokens): Thank you for the Data Analysis Code.
+# 7      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 8 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 9      USER ( 313 tokens): Based on the material [...] "latex" code block.
+
+#10 ASSISTANT ( 429 tokens): latex \section{Methods}  [...] 117th US Congress.
+                             {'model_engine': gpt-3.5-turbo-0613}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+\section{Methods}
+
+\subsection{Data Source}
+The data used in this study were sourced from two files. The first file, "congress_members.csv," contains information about the members of the 117th
+US Congress, including their Twitter handles, represented state, party affiliation, and chamber. The second file, "congress_edges.dat," provides the
+Twitter interaction network between the members of the Congress. Each line in the file represents a directed edge from one member to another,
+indicating a Twitter interaction between them during the specified 4-month data collection period.
+
+\subsection{Data Preprocessing}
+The data preprocessing was performed using Python programming language. The "congress_members.csv" file was loaded into a pandas DataFrame, and the
+"congress_edges.dat" file was read as a directed graph using the networkx library. The node labels in the graph were relabeled with integers, and the
+node attributes for party affiliation, represented state, and chamber were added to the graph.
+
+\subsection{Data Analysis}
+To analyze the relationship between party affiliation and Twitter interactions, we conducted two specific analyses.
+
+First, we performed a Chi-Square Test of association between political party and Twitter interactions, accounting for chamber. We created a DataFrame
+from the graph nodes attributes, including party affiliation, chamber, degree, and state. We then calculated the observed frequencies of party and
+chamber combinations and compared them to the expected frequencies. The Chi-Square statistic and p-value were computed to assess the significance of
+the association.
+
+Second, we conducted an ANOVA test to examine the association between represented state and the number of Twitter interactions, accounting for
+chamber. We fitted a linear regression model with the degree as the dependent variable and represented state as the independent variable. The ANOVA
+test provided insights into the variance explained by the represented state in the Twitter interactions.
+
+Throughout the data analysis, the statistical packages scipy, statsmodels, and pandas were utilized for the relevant statistical tests and
+calculations. These analyses allowed us to explore the associations and dependencies between party affiliation, represented state, and Twitter
+interactions among members of the 117th US Congress.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;11&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; methods</span>
+
+<span class="ansi36">[12] ==== SURROGATE {Performer} -&gt; methods ===========================================================================================================
+</span><span class="ansi96">```latex
+\section{Methods}
+
+\subsection{Data Source}
+The data used in this study were sourced from two files. The first file, "congress\_members.csv," contains information about the members of the 117th
+US Congress, including their Twitter handles, represented state, party affiliation, and chamber. The second file, "congress\_edges.dat," provides the
+Twitter interaction network between the members of the Congress. Each line in the file represents a directed edge from one member to another,
+indicating a Twitter interaction between them during the specified 4-month data collection period.
+
+\subsection{Data Preprocessing}
+The data preprocessing was performed using Python programming language. The "congress\_members.csv" file was loaded into a pandas DataFrame, and the
+"congress\_edges.dat" file was read as a directed graph using the networkx library. The node labels in the graph were relabeled with integers, and the
+node attributes for party affiliation, represented state, and chamber were added to the graph.
+
+\subsection{Data Analysis}
+To analyze the relationship between party affiliation and Twitter interactions, we conducted two specific analyses.
+
+First, we performed a Chi-Square Test of association between political party and Twitter interactions, accounting for chamber. We created a DataFrame
+from the graph nodes attributes, including party affiliation, chamber, degree, and state. We then calculated the observed frequencies of party and
+chamber combinations and compared them to the expected frequencies. The Chi-Square statistic and p-value were computed to assess the significance of
+the association.
+
+Second, we conducted an ANOVA test to examine the association between represented state and the number of Twitter interactions, accounting for
+chamber. We fitted a linear regression model with the degree as the dependent variable and represented state as the independent variable. The ANOVA
+test provided insights into the variance explained by the represented state in the Twitter interactions.
+
+Throughout the data analysis, the statistical packages scipy, statsmodels, and pandas were utilized for the relevant statistical tests and
+calculations. These analyses allowed us to explore the associations and dependencies between party affiliation, represented state, and Twitter
+interactions among members of the 117th US Congress.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;11&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; methods</span>
+
+<span class="ansi36">[12] SURROGATE {Performer} -&gt; methods : 
+latex \section{Methods}  \subsection{Data Source} The data used in this study were sourced from [...] among members of the 117th US Congress.</span>
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                     introduction                                                                     </span>
+<span class="ansi35">                                                                  introduction_other                                                                  </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=introduction web=[web]write paper, participants=['Performer', 'Writer']) -&gt; introduction</span>
+
+<span class="ansi32">[1] SYSTEM casting  {Performer} -&gt; introduction : 
+You are a data-scientist with experience writing accurate scientific research papers.  You will [...] with the scientific results we have.</span>
+
+<span class="ansi34">[2] COMMENTER -&gt; introduction : Background-related Literature Search:
+Here are citations from our Literature Search for papers related to the Background of our study:
+
+Query: ['Twitter interactions in politics']
+Search rank: 66
+ID: 'Hua2020CharacterizingTU'
+Title: 'Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates'
+Journal and year: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems (2020)'
+TLDR: 'This paper characterize users who adversarially interact with political figures on Twitter using mixed-method techniques and shows that among moderately active users, adversarial activity is associated with decreased centrality in the social graph and increased attention to candidates from the opposing party.'
+Citation influence: 5
+Embedding similarity: 0.81
+Query: ['social media in politics']
+Search rank: 19
+ID: 'Muragod2018TheSM'
+Title: 'The Social Media And Politics'
+Journal and year: ' (2018)'
+Citation influence: 5
+Embedding similarity: 0.8
+Query: ['Twitter interactions in politics']
+Search rank: 14
+ID: 'Bail2019AssessingTR'
+Title: 'Assessing the Russian Internet Research Agency’s impact on the political attitudes and behaviors of American Twitter users in late 2017'
+Journal and year: 'Proceedings of the National Academy of Sciences of the United States of America (2019)'
+TLDR: 'Interactions with IRA accounts were most common among respondents with strong ideological homophily within their Twitter network, high interest in politics, and high frequency of Twitter usage, suggesting that Russian trolls might have failed to sow discord because they mostly interacted with those who were already highly polarized.'
+Citation influence: 8
+Embedding similarity: 0.8
+Query: ['political discourse on social media']
+Search rank: 1
+ID: 'Garimella2018PoliticalDO'
+Title: 'Political Discourse on Social Media: Echo Chambers, Gatekeepers, and the Price of Bipartisanship'
+Journal and year: 'Proceedings of the 2018 World Wide Web Conference (2018)'
+TLDR: 'It is found that Twitter users are, to a large degree, exposed to political opinions that agree with their own, and users who try to bridge the echo chambers have to pay a »price of bipartisanship» in terms of their network centrality and content appreciation.'
+Citation influence: 17
+Embedding similarity: 0.8
+Query: ['social media in politics']
+Search rank: 53
+ID: 'Stier2018ElectionCO'
+Title: 'Election Campaigning on Social Media: Politicians, Audiences, and the Mediation of Political Communication on Facebook and Twitter'
+Journal and year: 'Political Communication (2018)'
+TLDR: 'Investigating whether election candidates address the topics most important to the mass audience and to which extent their communication is shaped by the characteristics of Facebook and Twitter finds that both prioritize different topics than themass audience.'
+Citation influence: 10
+Embedding similarity: 0.79
+Query: ['social media in politics']
+Search rank: 87
+ID: 'Kahne2018ThePS'
+Title: 'The Political Significance of Social Media Activity and Social Networks'
+Journal and year: 'Political Communication (2018)'
+Citation influence: 7
+Embedding similarity: 0.78
+Query: ['Twitter interactions in politics']
+Search rank: 59
+ID: 'Hua2020TowardsMA'
+Title: 'Towards Measuring Adversarial Twitter Interactions against Candidates in the US Midterm Elections'
+TLDR: 'This study measures the adversarial interactions against candidates for the US House of Representatives during the run-up to the 2018 US general election, and develops a new technique for detecting tweets with toxic content that are directed at any specific candidate.'
+Citation influence: 5
+Embedding similarity: 0.78
+Query: ['social media in politics']
+Search rank: 61
+ID: 'Valenzuela2019ThePO'
+Title: 'The Paradox of Participation Versus Misinformation: Social Media, Political Engagement, and the Spread of Misinformation'
+Journal and year: 'Digital Journalism (2019)'
+Citation influence: 7
+Embedding similarity: 0.76
+Query: ['social media in politics']
+Search rank: 60
+ID: 'Eady2019HowMP'
+Title: 'How Many People Live in Political Bubbles on Social Media? Evidence From Linked Survey and Twitter Data'
+Journal and year: 'SAGE Open (2019)'
+Citation influence: 10
+Embedding similarity: 0.76
+Query: ['political discourse on social media']
+Search rank: 3
+ID: 'Mendelsohn2021ModelingFI'
+Title: 'Modeling Framing in Immigration Discourse on Social Media'
+TLDR: 'It is found that the more commonly-used issue-generic frames obscure important ideological and regional patterns that are only revealed by immigration-specific frames.'
+Citation influence: 8
+Embedding similarity: 0.74
+Query: ['social media in politics']
+Search rank: 54
+ID: 'Tucker2018SocialMP'
+Title: 'Social Media, Political Polarization, and Political Disinformation: A Review of the Scientific Literature'
+Journal and year: ' (2018)'
+Citation influence: 31
+Embedding similarity: 0.74
+Query: ['political discourse on social media']
+Search rank: 98
+ID: 'Chiluwa2012SocialMN'
+Title: 'Social media networks and the discourse of resistance: A sociolinguistic CDA of Biafra online discourses'
+Journal and year: 'Discourse &amp; Society (2012)'
+Citation influence: 7
+Embedding similarity: 0.74
+
+</span>
+
+<span class="ansi34">[3] COMMENTER -&gt; introduction : Results-related Literature Search:
+Here are citations from our Literature Search for papers related to the Results of our study:
+
+Query: ['partisan Twitter interactions in US Congress']
+Search rank: 7
+ID: 'Baviera2018InfluenceIT'
+Title: 'Influence in the political Twitter sphere: Authority and retransmission in the 2015 and 2016 Spanish General Elections'
+Journal and year: 'European Journal of Communication (2018)'
+Citation influence: 1
+Embedding similarity: 0.82
+Query: ['impact of political party on Twitter engagement']
+Search rank: 4
+ID: 'Martnez-Roln2016TheUO'
+Title: 'The use of memes in the discourse of political parties at Twitter: analysis of the 2015 state of the nation debate'
+Journal and year: ' (2016)'
+Citation influence: 2
+Embedding similarity: 0.78
+Query: ['association between party affiliation and social media interactions']
+Search rank: 0
+ID: 'Marder2016AnEO'
+Title: 'An examination of impression management associated with visible political party affiliation on Facebook'
+Citation influence: 1
+Embedding similarity: 0.77
+Query: ['partisan Twitter interactions in US Congress']
+Search rank: 4
+ID: 'Luceri2019RedBD'
+Title: 'Red Bots Do It Better:Comparative Analysis of Social Bot Partisan Behavior'
+Journal and year: 'Companion Proceedings of The 2019 World Wide Web Conference (2019)'
+TLDR: 'It is shown that social bots can be accurately classified according to their political leaning and behave accordingly, and that conservative bots are more deeply embedded in the social network and more effective than liberal bots at exerting influence on humans.'
+Citation influence: 4
+Embedding similarity: 0.76
+Query: ['association between party affiliation and social media interactions']
+Search rank: 37
+ID: 'Vliet2020TheTP'
+Title: 'The Twitter parliamentarian database: Analyzing Twitter politics across 26 countries'
+Journal and year: 'PLoS ONE (2020)'
+TLDR: 'The Twitter Parliamentarian Database (TPD), a multi-source and manually validated database of parliamentarians on Twitter, is introduced, finding striking cross-party and particularly cross-national differences in how parliamentarians engage in politics on the social media platform.'
+Citation influence: 1
+Embedding similarity: 0.75
+Query: ['association between party affiliation and social media interactions']
+Search rank: 21
+ID: 'Schmuck2022PoliticsS'
+Title: 'Politics – Simply Explained? How Influencers Affect Youth’s Perceived Simplification of Politics, Political Cynicism, and Political Interest'
+Journal and year: 'The International Journal of Press/Politics (2022)'
+Citation influence: 3
+Embedding similarity: 0.71
+Query: ['association between party affiliation and social media interactions']
+Search rank: 46
+ID: 'Barber2016LessIM'
+Title: 'Less is more? How demographic sample weights can improve public opinion estimates based on Twitter data'
+TLDR: 'New machine learning methods will allow researchers to estimate the age, gender, race, party affiliation, propensity to vote, and income of any Twitter user in the U.S. with high accuracy by developing new methods to estimate sociodemographic characteristics of Twitter users.'
+Citation influence: 6
+Embedding similarity: 0.71
+Query: ['association between party affiliation and social media interactions']
+Search rank: 55
+ID: 'Taylor2014TheRO'
+Title: 'The Role of Language in Conflict and Conflict Resolution'
+Journal and year: ' (2014)'
+Citation influence: 1
+Embedding similarity: 0.66
+Query: ['association between party affiliation and social media interactions']
+Search rank: 30
+ID: 'Koster2018TheEO'
+Title: 'The effects of individual status and group performance on network ties among teammates in the National Basketball Association'
+Journal and year: 'PLoS ONE (2018)'
+TLDR: 'The results show that compared to high-status players on successful teams, high- status players on underperforming teams are less likely to follow their teammates, suggesting that individuals deemphasize their group affiliation when it jeopardizes their individual status.'
+Citation influence: 5
+Embedding similarity: 0.65
+Query: ['association between party affiliation and social media interactions']
+Search rank: 29
+ID: 'Mansoor2021AnIE'
+Title: 'An interaction effect of perceived government response on COVID-19 and government agency’s use of ICT in building trust among citizens of Pakistan'
+Journal and year: 'Transforming Government: People, Process and Policy (2021)'
+TLDR: "Results revealed that the interactive effect of government response on COVID-19 and government agency’s provision of quality information on social media strengthens the association of government presence on social social media with citizens’ perception of the agency�'s transparency and responsiveness and their trust in the agency."
+Citation influence: 3
+Embedding similarity: 0.64
+Query: ['association between party affiliation and social media interactions']
+Search rank: 79
+ID: 'Hughson1999TheBI'
+Title: 'The Boys in Blue and the Bad Blue Boys: A Case Study of Interactive Relations between the Police and Ethnic Youth in Western Sydney'
+Journal and year: 'Australian Journal of Social Issues (1999)'
+Citation influence: 1
+Embedding similarity: 0.59
+Query: ['association between party affiliation and social media interactions']
+Search rank: 18
+ID: 'White1992PygmyCS'
+Title: 'Pygmy chimpanzee social organization: Variation with party size and between study sites'
+Journal and year: 'American Journal of Primatology (1992)'
+TLDR: 'Differences between Lomako and Wamba in habitat, provisioning, and human (but not non‐human) predation, by affecting party size and composition, most likely account for the observed differences in social organization between the two sites.'
+Citation influence: 6
+Embedding similarity: 0.56
+
+</span>
+
+<span class="ansi34">[4] COMMENTER -&gt; introduction : Dataset-related Literature Search:
+Here are citations from our Literature Search for papers related to the Dataset of our study:
+
+Query: ['Congress Twitter dataset']
+Search rank: 6
+ID: 'McCreadie2013ScalableDE'
+Title: 'Scalable distributed event detection for Twitter'
+Journal and year: '2013 IEEE International Conference on Big Data (2013)'
+TLDR: 'This paper proposes a novel event detection approach that can both effectively detect events within social streams like Twitter and can scale to thousands of posts every second and shows that it can process the equivalent to the full Twitter Firehose stream while maintaining event detection accuracy and outperforming an alternative distributed event detection system.'
+Citation influence: 5
+Embedding similarity: 0
+Query: ['political social media dataset']
+Search rank: 9
+ID: 'Bohra2018ADO'
+Title: 'A Dataset of Hindi-English Code-Mixed Social Media Text for Hate Speech Detection'
+TLDR: 'This work presents a Hindi-English code-mixed dataset consisting of tweets posted online on Twitter and proposes a supervised classification system for detecting hate speech in the text using various character level, word level, and lexicon based features.'
+Citation influence: 21
+Embedding similarity: 0.57
+Query: ['political social media dataset']
+Search rank: 12
+ID: 'Addawood2019LinguisticCT'
+Title: 'Linguistic Cues to Deception: Identifying Political Trolls on Social Media'
+TLDR: 'It is shown that deceptive language cues can help to accurately identify trolls, with average F1 score of 82% and recall 88% in the 2016 U.S. elections.'
+Citation influence: 4
+Embedding similarity: 0
+Query: ['political social media dataset']
+Search rank: 21
+ID: 'Bright2018ExplainingTE'
+Title: 'Explaining the Emergence of Political Fragmentation on Social Media: The Role of Ideology and Extremism'
+Journal and year: 'J. Comput. Mediat. Commun. (2018)'
+Citation influence: 4
+Embedding similarity: 0.76
+Query: ['Congress Twitter dataset']
+Search rank: 22
+ID: 'Badawy2018AnalyzingTD'
+Title: 'Analyzing the Digital Traces of Political Manipulation: The 2016 Russian Interference Twitter Campaign'
+Journal and year: '2018 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM) (2018)'
+TLDR: 'Although an ideologically broad swath of Twitter users were exposed to Russian trolls in the period leading up to the 2016 U.S. Presidential election, it was mainly conservatives who helped amplify their message, revealing that they had a mostly conservative, pro-Trump agenda.'
+Citation influence: 11
+Embedding similarity: 0
+Query: ['political social media dataset']
+Search rank: 22
+ID: 'Haimson2021DisproportionateRA'
+Title: 'Disproportionate Removals and Differing Content Moderation Experiences for Conservative, Transgender, and Black Social Media Users: Marginalization and Moderation Gray Areas'
+Journal and year: 'Proceedings of the ACM on Human-Computer Interaction (2021)'
+TLDR: 'It is found that three groups of social media users experienced content and account removals more often than others: political conservatives, transgender people, and Black people, but the types of content removed from each group varied substantially.'
+Citation influence: 10
+Embedding similarity: 0.63
+Query: ['political social media dataset']
+Search rank: 24
+ID: 'Stecua2021SocialMC'
+Title: 'Social Media, Cognitive Reflection, and Conspiracy Beliefs'
+Citation influence: 2
+Embedding similarity: 0.71
+Query: ['political social media dataset']
+Search rank: 25
+ID: 'Mendelsohn2021ModelingFI'
+Title: 'Modeling Framing in Immigration Discourse on Social Media'
+TLDR: 'It is found that the more commonly-used issue-generic frames obscure important ideological and regional patterns that are only revealed by immigration-specific frames.'
+Citation influence: 8
+Embedding similarity: 0.74
+Query: ['Congress Twitter dataset']
+Search rank: 27
+ID: 'Badawy2018WhoFF'
+Title: 'Who Falls for Online Political Manipulation?'
+Journal and year: 'Companion Proceedings of The 2019 World Wide Web Conference (2018)'
+TLDR: 'Examination of the Russian interference campaign in the 2016 US presidential election on Twitter shows that political ideology, bot likelihood scores, and some activity-related account meta data are the most predictive features of whether a user spreads trolls’ content or not.'
+Citation influence: 5
+Embedding similarity: 0
+Query: ['Congress Twitter dataset']
+Search rank: 28
+ID: 'Badawy2018CharacterizingT2'
+Title: 'Characterizing the 2016 Russian IRA influence campaign'
+Journal and year: 'Social Network Analysis and Mining (2018)'
+TLDR: 'This study takes a closer look at users who re-shared the posts produced on Twitter by the Russian troll accounts publicly disclosed by U.S. Congress investigation, finding that conservative trolls talk about refugees, terrorism, and Islam, while liberal trolls talk more about school shootings and the police.'
+Citation influence: 3
+Embedding similarity: 0
+Query: ['Congress Twitter dataset']
+Search rank: 30
+ID: 'Qorib2022Covid19VH'
+Title: 'Covid-19 vaccine hesitancy: Text mining, sentiment analysis and machine learning on COVID-19 vaccination Twitter dataset'
+Journal and year: 'Expert Systems with Applications (2022)'
+TLDR: 'The study shows that Covid-19 vaccine hesitancy slowly decreases over time; suggesting that the public gradually feels warm and optimistic about COVID-19 vaccination.'
+Citation influence: 3
+Embedding similarity: 0.59
+Query: ['Congress Twitter dataset']
+Search rank: 32
+ID: 'Thakur2022MonkeyPox2022TweetsAL'
+Title: 'MonkeyPox2022Tweets: A Large-Scale Twitter Dataset on the 2022 Monkeypox Outbreak, Findings from Analysis of Tweets, and Open Research Questions'
+Journal and year: 'Infectious Disease Reports (2022)'
+TLDR: 'An open-access dataset of 556,427 Tweets about monkeypox that has been posted on Twitter since the first detected case of this outbreak is presented, and sentiment analysis of the Tweets shows that despite a lot of discussions, debate, opinions, information, and misinformation, on Twitter on various topics in this regard, “neutral” sentiment was present in most of theTweets.'
+Citation influence: 2
+Embedding similarity: 0.62
+
+</span>
+
+<span class="ansi34">[5] COMMENTER -&gt; introduction : Methods-related Literature Search:
+Here are citations from our Literature Search for papers related to the Methods of our study:
+
+Query: ['statistical tests for social network analysis']
+Search rank: 2
+ID: 'Farine2017AGT'
+Title: 'A guide to null models for animal social network analysis'
+Journal and year: 'Methods in Ecology and Evolution (2017)'
+TLDR: 'It is shown that permutations of the raw observational (or ‘pre‐network’) data consistently account for underlying structure in the generated social network, and thus can reduce both type I and type II error rates.'
+Citation influence: 35
+Embedding similarity: 0.63
+Query: ['statistical tests for social network analysis']
+Search rank: 5
+ID: 'Gmez2008StatisticalAO'
+Title: 'Statistical analysis of the social network and discussion threads in slashdot'
+TLDR: 'The social network emerging from the user comment activity on the website Slashdot is analyzed, showing common features of traditional social networks such as a giant component, small average path length and high clustering but differs from them showing moderate reciprocity and neutral assortativity by degree.'
+Citation influence: 30
+Embedding similarity: 0
+Query: ['statistical tests for social network analysis']
+Search rank: 8
+ID: 'James2009PotentialBS'
+Title: 'Potential banana skins in animal social network analysis'
+Journal and year: 'Behavioral Ecology and Sociobiology (2009)'
+TLDR: 'This work suggests that more attention should be given to whether relational data are representative, the potential effect of observational errors and the choice and use of statistical tests in the study of animal social networks.'
+Citation influence: 10
+Embedding similarity: 0
+Query: ['analysis of Twitter interactions']
+Search rank: 20
+ID: 'Budhwani2020CreatingCS'
+Title: 'Creating COVID-19 Stigma by Referencing the Novel Coronavirus as the “Chinese virus” on Twitter: Quantitative Analysis of Social Media Data'
+Journal and year: 'Journal of Medical Internet Research (2020)'
+TLDR: 'The rise in tweets referencing “Chinese virus” or “China virus,” along with the content of these tweets, indicate that knowledge translation may be occurring online and COVID-19 stigma is likely being perpetuated on Twitter.'
+Citation influence: 13
+Embedding similarity: 0.68
+Query: ['graph analysis of social media data']
+Search rank: 60
+ID: 'Ahmed2020COVID19AT'
+Title: 'COVID-19 and the 5G Conspiracy Theory: Social Network Analysis of Twitter Data'
+Journal and year: 'Journal of Medical Internet Research (2020)'
+TLDR: 'This study is the first to analyze the 5G conspiracy theory in the context of COVID-19 on Twitter offering practical guidance to health authorities in how, in thecontext of a pandemic, rumors may be combated in the future.'
+Citation influence: 18
+Embedding similarity: 0.73
+Query: ['statistical tests for social network analysis']
+Search rank: 91
+ID: 'Farine2015ConstructingCA'
+Title: 'Constructing, conducting and interpreting animal social network analysis'
+Journal and year: 'The Journal of Animal Ecology (2015)'
+TLDR: 'The under‐exploited potential of experimental manipulations on social networks to address research questions is highlighted, and an overview of methods for quantifying properties of nodes and networks, as well as for testing hypotheses concerning network structure and network processes are provided.'
+Citation influence: 63
+Embedding similarity: 0.67
+
+</span>
+
+<span class="ansi32">[6] USER {Writer} -&gt; introduction &lt;background_general_dataset_description&gt;  : 
+OVERALL DESCRIPTION OF THE DATASET  * Rationale: The dataset maps US Congress's Twitter [...] but should not single out specific states.</span>
+
+<span class="ansi36">[7] SURROGATE {Performer} -&gt; introduction &lt;background_thanks_general_dataset_description&gt;  : 
+Thank you for the Overall Description of the Dataset.</span>
+
+<span class="ansi32">[8] USER {Writer} -&gt; introduction &lt;background_title_and_abstract&gt;  : 
+Here are the title and abstract of the paper:  \title{Party Dynamics in Twitter Interactions [...] among Congress members. \end{abstract}</span>
+
+<span class="ansi36">[9] SURROGATE {Performer} -&gt; introduction &lt;background_thanks_title_and_abstract&gt;  : 
+Thank you for the Title and Abstract.</span>
+
+<span class="ansi32">[10] USER {Writer} -&gt; introduction &lt;background_literature_search:writing:background&gt;  : 
+Here are citations from our Literature Search for papers related to the Background of our study:  [...] &amp; Society (2012)' Citation influence: 7</span>
+
+<span class="ansi36">[11] SURROGATE {Performer} -&gt; introduction &lt;background_thanks_literature_search:writing:background&gt;  : 
+Thank you for the Background-related Literature Search.</span>
+
+<span class="ansi32">[12] USER {Writer} -&gt; introduction &lt;background_literature_search:writing:results&gt;  : 
+Here are citations from our Literature Search for papers related to the Results of our study:  [...] the two sites.' Citation influence: 6</span>
+
+<span class="ansi36">[13] SURROGATE {Performer} -&gt; introduction &lt;background_thanks_literature_search:writing:results&gt;  : 
+Thank you for the Results-related Literature Search.</span>
+
+<span class="ansi32">[14] USER {Writer} -&gt; introduction &lt;background_literature_search:writing:dataset&gt;  : 
+Here are citations from our Literature Search for papers related to the Dataset of our study:  [...] in most of theTweets.' Citation influence: 2</span>
+
+<span class="ansi36">[15] SURROGATE {Performer} -&gt; introduction &lt;background_thanks_literature_search:writing:dataset&gt;  : 
+Thank you for the Dataset-related Literature Search.</span>
+
+<span class="ansi32">[16] ---- USER {Writer} -&gt; introduction &lt;background_literature_search:writing:methods&gt;  --------------------------------------------------------------
+</span><span class="ansi32">Here are citations from our Literature Search for papers related to the Methods of our study:
+
+ID: 'Farine2017AGT'
+Title: 'A guide to null models for animal social network analysis'
+Journal and year: 'Methods in Ecology and Evolution (2017)'
+TLDR: 'It is shown that permutations of the raw observational (or ‘pre‐network’) data consistently account for underlying structure in the generated
+social network, and thus can reduce both type I and type II error rates.'
+Citation influence: 35
+ID: 'Gmez2008StatisticalAO'
+Title: 'Statistical analysis of the social network and discussion threads in slashdot'
+TLDR: 'The social network emerging from the user comment activity on the website Slashdot is analyzed, showing common features of traditional social
+networks such as a giant component, small average path length and high clustering but differs from them showing moderate reciprocity and neutral
+assortativity by degree.'
+Citation influence: 30
+ID: 'James2009PotentialBS'
+Title: 'Potential banana skins in animal social network analysis'
+Journal and year: 'Behavioral Ecology and Sociobiology (2009)'
+TLDR: 'This work suggests that more attention should be given to whether relational data are representative, the potential effect of observational
+errors and the choice and use of statistical tests in the study of animal social networks.'
+Citation influence: 10
+ID: 'Budhwani2020CreatingCS'
+Title: 'Creating COVID-19 Stigma by Referencing the Novel Coronavirus as the “Chinese virus” on Twitter: Quantitative Analysis of Social Media Data'
+Journal and year: 'Journal of Medical Internet Research (2020)'
+TLDR: 'The rise in tweets referencing “Chinese virus” or “China virus,” along with the content of these tweets, indicate that knowledge translation
+may be occurring online and COVID-19 stigma is likely being perpetuated on Twitter.'
+Citation influence: 13
+ID: 'Ahmed2020COVID19AT'
+Title: 'COVID-19 and the 5G Conspiracy Theory: Social Network Analysis of Twitter Data'
+Journal and year: 'Journal of Medical Internet Research (2020)'
+TLDR: 'This study is the first to analyze the 5G conspiracy theory in the context of COVID-19 on Twitter offering practical guidance to health
+authorities in how, in thecontext of a pandemic, rumors may be combated in the future.'
+Citation influence: 18
+ID: 'Farine2015ConstructingCA'
+Title: 'Constructing, conducting and interpreting animal social network analysis'
+Journal and year: 'The Journal of Animal Ecology (2015)'
+TLDR: 'The under‐exploited potential of experimental manipulations on social networks to address research questions is highlighted, and an overview of
+methods for quantifying properties of nodes and networks, as well as for testing hypotheses concerning network structure and network processes are
+provided.'
+Citation influence: 63</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[17] ==== SURROGATE {Performer} -&gt; introduction &lt;background_thanks_literature_search:writing:methods&gt;  ===============================================
+</span><span class="ansi36">Thank you for the Methods-related Literature Search.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[18] ---- USER {Writer} -&gt; introduction &lt;background_paper_sections:methods&gt;  -------------------------------------------------------------------------
+</span><span class="ansi32">Here is the Methods section of the paper:
+
+\section{Methods}
+
+\subsection{Data Source}
+The data used in this study were sourced from two files. The first file, "congress\_members.csv," contains information about the members of the 117th
+US Congress, including their Twitter handles, represented state, party affiliation, and chamber. The second file, "congress\_edges.dat," provides the
+Twitter interaction network between the members of the Congress. Each line in the file represents a directed edge from one member to another,
+indicating a Twitter interaction between them during the specified 4-month data collection period.
+
+\subsection{Data Preprocessing}
+The data preprocessing was performed using Python programming language. The "congress\_members.csv" file was loaded into a pandas DataFrame, and the
+"congress\_edges.dat" file was read as a directed graph using the networkx library. The node labels in the graph were relabeled with integers, and the
+node attributes for party affiliation, represented state, and chamber were added to the graph.
+
+\subsection{Data Analysis}
+To analyze the relationship between party affiliation and Twitter interactions, we conducted two specific analyses.
+
+First, we performed a Chi-Square Test of association between political party and Twitter interactions, accounting for chamber. We created a DataFrame
+from the graph nodes attributes, including party affiliation, chamber, degree, and state. We then calculated the observed frequencies of party and
+chamber combinations and compared them to the expected frequencies. The Chi-Square statistic and p-value were computed to assess the significance of
+the association.
+
+Second, we conducted an ANOVA test to examine the association between represented state and the number of Twitter interactions, accounting for
+chamber. We fitted a linear regression model with the degree as the dependent variable and represented state as the independent variable. The ANOVA
+test provided insights into the variance explained by the represented state in the Twitter interactions.
+
+Throughout the data analysis, the statistical packages scipy, statsmodels, and pandas were utilized for the relevant statistical tests and
+calculations. These analyses allowed us to explore the associations and dependencies between party affiliation, represented state, and Twitter
+interactions among members of the 117th US Congress.\subsection{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[19] ==== SURROGATE {Performer} -&gt; introduction &lt;background_thanks_paper_sections:methods&gt;  ==========================================================
+</span><span class="ansi36">Thank you for the Methods Section of the Paper.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[20] USER {Writer} -&gt; introduction &lt;background_paper_sections:results&gt;  : 
+Here is the Results section of the paper:  \section{Results}  Given the importance of digital [...] ties than geographic considerations.</span>
+
+<span class="ansi36">[21] SURROGATE {Performer} -&gt; introduction &lt;background_thanks_paper_sections:results&gt;  : 
+Thank you for the Results Section of the Paper.</span>
+
+<span class="ansi34">[22] COMMENTER -&gt; introduction &lt;after_background&gt;  : Background messages completed. Requesting "Introduction section".</span>
+
+<span class="ansi32">[23] ---- USER {Writer} -&gt; introduction --------------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">Based on the material provided above ("Overall Description of the Dataset", "Title and Abstract", "Background-related Literature Search", "Results-
+related Literature Search", "Dataset-related Literature Search", "Methods-related Literature Search", "Methods Section of the Paper", "Results Section
+of the Paper"), please write only the Introduction section for a Nature Communications article.
+Do not write any other parts!
+
+The introduction should be interesting and pique your reader’s interest.
+It should be written while citing relevant papers from the Literature Searches above.
+
+Specifically, the introduction should follow the following multi-paragraph structure:
+
+* Introduce the topic of the paper and why it is important (cite relevant papers from the above "Background-related Literature Search").
+
+* Explain what was already done and known on the topic, and what is then the research gap/question (cite relevant papers from the above "Results-
+related Literature Search"). If there is only a minor gap, you can use language such as "Yet, it is still unclear ...", "However, less is known about
+...", etc.
+
+* State how the current paper addresses this gap/question (cite relevant papers from the above "Dataset-related Literature Search" and "Results-
+related Literature Search").
+
+* Outline the methodological procedure and briefly state the main findings (cite relevant papers from the above "Methods-related Literature Search")
+
+Note: each of these paragraphs should be 5-6 sentence long. Do not just write short paragraphs with less than 5 sentences!
+
+Citations should be added in the following format: \cite{paper_id}.
+Do not add a \section{References} section, I will add it later manually.
+
+Note that it is not advisable to write about limitations, implications, or impact in the introduction.
+
+Write in tex format, escaping any math or symbols that needs tex escapes.
+
+The Introduction section should be enclosed within triple-backtick "latex" code block, like this:
+
+</span><span class="ansi92">```latex
+\section{&lt;section name&gt;}
+&lt;your latex-formatted writing here&gt;
+```</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">CreateConversation(name=introduction_other web=None, participants=['Performer', 'Writer']) -&gt; introduction_other</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Writer} -&gt; introduction_other ---------------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
+Your job is to provide constructive bullet-point feedback.
+We will write each section of the research paper separately.
+If you feel that the paper section does not need further improvements, you should reply only with:
+"The Introduction section does not require any changes".
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] USER {Performer} -&gt; introduction_other &lt;background_general_dataset_description&gt;  : 
+OVERALL DESCRIPTION OF THE DATASET  * Rationale: The dataset maps US Congress's Twitter [...] but should not single out specific states.</span>
+
+<span class="ansi36">[3] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_general_dataset_description&gt;  : 
+Thank you for the Overall Description of the Dataset.</span>
+
+<span class="ansi32">[4] USER {Performer} -&gt; introduction_other &lt;background_title_and_abstract&gt;  : 
+Here are the title and abstract of the paper:  \title{Party Dynamics in Twitter Interactions [...] among Congress members. \end{abstract}</span>
+
+<span class="ansi36">[5] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_title_and_abstract&gt;  : 
+Thank you for the Title and Abstract.</span>
+
+<span class="ansi32">[6] USER {Performer} -&gt; introduction_other &lt;background_literature_search:writing:background&gt;  : 
+Here are citations from our Literature Search for papers related to the Background of our study:  [...] &amp; Society (2012)' Citation influence: 7</span>
+
+<span class="ansi36">[7] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_literature_search:writing:background&gt;  : 
+Thank you for the Background-related Literature Search.</span>
+
+<span class="ansi32">[8] USER {Performer} -&gt; introduction_other &lt;background_literature_search:writing:results&gt;  : 
+Here are citations from our Literature Search for papers related to the Results of our study:  [...] the two sites.' Citation influence: 6</span>
+
+<span class="ansi36">[9] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_literature_search:writing:results&gt;  : 
+Thank you for the Results-related Literature Search.</span>
+
+<span class="ansi32">[10] USER {Performer} -&gt; introduction_other &lt;background_literature_search:writing:dataset&gt;  : 
+Here are citations from our Literature Search for papers related to the Dataset of our study:  [...] in most of theTweets.' Citation influence: 2</span>
+
+<span class="ansi36">[11] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_literature_search:writing:dataset&gt;  : 
+Thank you for the Dataset-related Literature Search.</span>
+
+<span class="ansi32">[12] USER {Performer} -&gt; introduction_other &lt;background_literature_search:writing:methods&gt;  : 
+Here are citations from our Literature Search for papers related to the Methods of our study:  [...] are provided.' Citation influence: 63</span>
+
+<span class="ansi36">[13] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_literature_search:writing:methods&gt;  : 
+Thank you for the Methods-related Literature Search.</span>
+
+<span class="ansi32">[14] USER {Performer} -&gt; introduction_other &lt;background_paper_sections:methods&gt;  : 
+Here is the Methods section of the paper:  \section{Methods}  \subsection{Data Source} The data [...] are provided in Supplementary Methods.</span>
+
+<span class="ansi36">[15] SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_paper_sections:methods&gt;  : 
+Thank you for the Methods Section of the Paper.</span>
+
+<span class="ansi32">[16] USER {Performer} -&gt; introduction_other &lt;background_paper_sections:results&gt;  : 
+Here is the Results section of the paper:  \section{Results}  Given the importance of digital [...] ties than geographic considerations.</span>
+
+<span class="ansi36">[17] ==== SURROGATE {Writer} -&gt; introduction_other &lt;background_thanks_paper_sections:results&gt;  =======================================================
+</span><span class="ansi36">Thank you for the Results Section of the Paper.
+
+Based on the material provided above ("Overall Description of the Dataset", "Title and Abstract", "Background-related Literature Search", "Results-
+related Literature Search", "Dataset-related Literature Search", "Methods-related Literature Search", "Methods Section of the Paper", "Results Section
+of the Paper"), please write only the Introduction section for a Nature Communications article.
+Do not write any other parts!
+
+The introduction should be interesting and pique your reader’s interest.
+It should be written while citing relevant papers from the Literature Searches above.
+
+Specifically, the introduction should follow the following multi-paragraph structure:
+
+* Introduce the topic of the paper and why it is important (cite relevant papers from the above "Background-related Literature Search").
+
+* Explain what was already done and known on the topic, and what is then the research gap/question (cite relevant papers from the above "Results-
+related Literature Search"). If there is only a minor gap, you can use language such as "Yet, it is still unclear ...", "However, less is known about
+...", etc.
+
+* State how the current paper addresses this gap/question (cite relevant papers from the above "Dataset-related Literature Search" and "Results-
+related Literature Search").
+
+* Outline the methodological procedure and briefly state the main findings (cite relevant papers from the above "Methods-related Literature Search")
+
+Note: each of these paragraphs should be 5-6 sentence long. Do not just write short paragraphs with less than 5 sentences!
+
+Citations should be added in the following format: \cite{paper_id}.
+Do not add a \section{References} section, I will add it later manually.
+
+Note that it is not advisable to write about limitations, implications, or impact in the introduction.
+
+Write in tex format, escaping any math or symbols that needs tex escapes.
+
+The Introduction section should be enclosed within triple-backtick "latex" code block, like this:
+
+</span><span class="ansi96">```latex
+\section{&lt;section name&gt;}
+&lt;your latex-formatted writing here&gt;
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 5818 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[24] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; introduction ===============================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (5818 tokens):
+# 0    SYSTEM (  89 tokens): You are a data-scientist [...] results we have.
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER (1174 tokens): Here are citations from our [...] influence: 2
+#10 SURROGATE (  10 tokens): Thank you for the Dataset-related Literature Search.
+#11      USER ( 599 tokens): Here are citations from our [...] influence: 63
+#12 SURROGATE (  10 tokens): Thank you for the Methods-related Literature Search.
+#13      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#14 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#15      USER ( 488 tokens): Here is the Results section [...] considerations.
+#16 SURROGATE (  11 tokens): Thank you for the Results Section of the Paper.
+#17      USER ( 402 tokens): Based on the material [...] writing here&gt;
+
+#18 ASSISTANT ( 570 tokens): latex [...] representation.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+\section{Introduction}
+
+The advent and subsequent global penetration of social media platforms have radically transformed political discourse and its dynamics. More
+significantly, these platforms, with Twitter at the helm, have enabled political players to directly engage with their constituents and colleagues,
+shaping the public narrative and the legislative process \cite{Muragod2018TheSM, Garimella2018PoliticalDO, Kahne2018ThePS, Tucker2018SocialMP}. Much
+of the research in this area, using complex theories and methods, has sought to unravel the nuanced layers of these politically charged interactions
+\cite{Hua2020CharacterizingTU, Bail2019AssessingTR, Stier2018ElectionCO, Eady2019HowMP, Valenzuela2019ThePO}. However, despite these significant
+strides made in characterizing the social media landscape, understanding the influence of party politics on Twitter interactions, specifically within
+the legislatures such as the US Congress, still remains largely unexplored \cite{Baviera2018InfluenceIT, Luceri2019RedBD, Marder2016AnEO}.
+
+In recent years, studies that manage to leverage massive datasets from Twitter have started to fill this gap, elucidating some of the underlying
+dynamics. A universal theme emerging from these studies is the considerable influence of political affiliation on Twitter engagement among politicians
+indicating significant polarization \cite{Luceri2019RedBD, Vliet2020TheTP, Barber2016LessIM}. Yet, it is still unclear how these dynamics play out in
+the context of the US Congress, where members not only represent a party but also specific geographic constituents. In other words, how the
+affiliation to a political party and representation of specific state influences the social interactions among the members of the US Congress remains
+an open question.
+
+This study addresses these questions by leveraging a unique dataset of Twitter interactions between members of the 117th US Congress
+\cite{McCreadie2013ScalableDE, Bohra2018ADO, Bright2018ExplainingTE}. This dataset, which maps Twitter interactions into a directed graph with
+Congress members as nodes and social interactions as edges, offers a rich context for investigating the association between political and geographical
+factors and the structure of social interactions among the Congress members.
+
+We conduct a comprehensive statistical analysis involving a Chi-square test of association to understand the association between political party and
+Twitter interactions and an ANOVA test to examine the impact of the represented state on these interactions \cite{Farine2017AGT,
+Gmez2008StatisticalAO, Farine2015ConstructingCA}. The findings provide new insights into the dynamics driving Twitter interactions among members of
+the 117th US Congress, shedding light on the critical role of party politics and revealing the relatively limited impact of geographic representation.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;23&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; introduction</span>
+
+<span class="ansi36">[24] ==== SURROGATE {Performer} -&gt; introduction ======================================================================================================
+</span><span class="ansi96">```latex
+\section{Introduction}
+
+The advent and subsequent global penetration of social media platforms have radically transformed political discourse and its dynamics. More
+significantly, these platforms, with Twitter at the helm, have enabled political players to directly engage with their constituents and colleagues,
+shaping the public narrative and the legislative process \cite{Muragod2018TheSM, Garimella2018PoliticalDO, Kahne2018ThePS, Tucker2018SocialMP}. Much
+of the research in this area, using complex theories and methods, has sought to unravel the nuanced layers of these politically charged interactions
+\cite{Hua2020CharacterizingTU, Bail2019AssessingTR, Stier2018ElectionCO, Eady2019HowMP, Valenzuela2019ThePO}. However, despite these significant
+strides made in characterizing the social media landscape, understanding the influence of party politics on Twitter interactions, specifically within
+the legislatures such as the US Congress, still remains largely unexplored \cite{Baviera2018InfluenceIT, Luceri2019RedBD, Marder2016AnEO}.
+
+In recent years, studies that manage to leverage massive datasets from Twitter have started to fill this gap, elucidating some of the underlying
+dynamics. A universal theme emerging from these studies is the considerable influence of political affiliation on Twitter engagement among politicians
+indicating significant polarization \cite{Luceri2019RedBD, Vliet2020TheTP, Barber2016LessIM}. Yet, it is still unclear how these dynamics play out in
+the context of the US Congress, where members not only represent a party but also specific geographic constituents. In other words, how the
+affiliation to a political party and representation of specific state influences the social interactions among the members of the US Congress remains
+an open question.
+
+This study addresses these questions by leveraging a unique dataset of Twitter interactions between members of the 117th US Congress
+\cite{McCreadie2013ScalableDE, Bohra2018ADO, Bright2018ExplainingTE}. This dataset, which maps Twitter interactions into a directed graph with
+Congress members as nodes and social interactions as edges, offers a rich context for investigating the association between political and geographical
+factors and the structure of social interactions among the Congress members.
+
+We conduct a comprehensive statistical analysis involving a Chi-square test of association to understand the association between political party and
+Twitter interactions and an ANOVA test to examine the impact of the represented state on these interactions \cite{Farine2017AGT,
+Gmez2008StatisticalAO, Farine2015ConstructingCA}. The findings provide new insights into the dynamics driving Twitter interactions among members of
+the 117th US Congress, shedding light on the critical role of party politics and revealing the relatively limited impact of geographic representation.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[18] ---- USER {Performer} -&gt; introduction_other -----------------------------------------------------------------------------------------------------
+</span><span class="ansi92">```latex
+\section{Introduction}
+
+The advent and subsequent global penetration of social media platforms have radically transformed political discourse and its dynamics. More
+significantly, these platforms, with Twitter at the helm, have enabled political players to directly engage with their constituents and colleagues,
+shaping the public narrative and the legislative process \cite{Muragod2018TheSM, Garimella2018PoliticalDO, Kahne2018ThePS, Tucker2018SocialMP}. Much
+of the research in this area, using complex theories and methods, has sought to unravel the nuanced layers of these politically charged interactions
+\cite{Hua2020CharacterizingTU, Bail2019AssessingTR, Stier2018ElectionCO, Eady2019HowMP, Valenzuela2019ThePO}. However, despite these significant
+strides made in characterizing the social media landscape, understanding the influence of party politics on Twitter interactions, specifically within
+the legislatures such as the US Congress, still remains largely unexplored \cite{Baviera2018InfluenceIT, Luceri2019RedBD, Marder2016AnEO}.
+
+In recent years, studies that manage to leverage massive datasets from Twitter have started to fill this gap, elucidating some of the underlying
+dynamics. A universal theme emerging from these studies is the considerable influence of political affiliation on Twitter engagement among politicians
+indicating significant polarization \cite{Luceri2019RedBD, Vliet2020TheTP, Barber2016LessIM}. Yet, it is still unclear how these dynamics play out in
+the context of the US Congress, where members not only represent a party but also specific geographic constituents. In other words, how the
+affiliation to a political party and representation of specific state influences the social interactions among the members of the US Congress remains
+an open question.
+
+This study addresses these questions by leveraging a unique dataset of Twitter interactions between members of the 117th US Congress
+\cite{McCreadie2013ScalableDE, Bohra2018ADO, Bright2018ExplainingTE}. This dataset, which maps Twitter interactions into a directed graph with
+Congress members as nodes and social interactions as edges, offers a rich context for investigating the association between political and geographical
+factors and the structure of social interactions among the Congress members.
+
+We conduct a comprehensive statistical analysis involving a Chi-square test of association to understand the association between political party and
+Twitter interactions and an ANOVA test to examine the impact of the represented state on these interactions \cite{Farine2017AGT,
+Gmez2008StatisticalAO, Farine2015ConstructingCA}. The findings provide new insights into the dynamics driving Twitter interactions among members of
+the 117th US Congress, shedding light on the critical role of party politics and revealing the relatively limited impact of geographic representation.
+```</span><span class="ansi32">
+Please provide a bullet-point list of constructive feedback on the above Introduction for my paper. Do not provide positive feedback, only provide
+actionable instructions for improvements in bullet points.
+In particular, make sure that the section is correctly grounded in the information provided above.
+If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
+
+Also, please suggest if you see any specific additional citations that are adequate to include (from the Literature Searches above).
+You should only provide feedback on the Introduction. Do not provide feedback on other sections or other parts of the paper, like LaTex Tables or
+Python code, provided above.
+
+If you don't see any flaws, respond solely with "The Introduction section does not require any changes".
+
+IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "The Introduction section does not require any changes"; If you
+chose to provide bullet-point feedback then DO NOT include "The Introduction section does not require any changes".</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 6559 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[19] ==== ASSISTANT{'model_engine': gpt-4} {Writer} -&gt; introduction_other ============================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (6559 tokens):
+# 0    SYSTEM (  69 tokens): You are a reviewer for a [...] any changes".
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER (1174 tokens): Here are citations from our [...] influence: 2
+#10 SURROGATE (  10 tokens): Thank you for the Dataset-related Literature Search.
+#11      USER ( 599 tokens): Here are citations from our [...] influence: 63
+#12 SURROGATE (  10 tokens): Thank you for the Methods-related Literature Search.
+#13      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#14 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#15      USER ( 488 tokens): Here is the Results section [...] considerations.
+#16 SURROGATE ( 413 tokens): Thank you for the Results [...] writing here&gt;
+#17      USER ( 761 tokens): latex [...] any changes".
+
+#18 ASSISTANT ( 298 tokens): * While the introduction is [...] for this research.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+* While the introduction is mostly well structured, the transition from previous work to the research gap could be smoother. Consider making it
+clearer how previous research is limited and why focusing specifically on the US Congress members is so important.
+* Please make sure to incorporate citation \cite{Garimella2018PoliticalDO} in a more contextual manner rather than simply listing it. Ideally every
+citation should be used to make a point.
+* The second paragraph includes the assumption that "political affiliation on Twitter engagement among politicians indicating significant
+polarization". It needs a clarifying phrase or sentence.
+* The statement about the dataset being "unique" can be better supported or explained. Why this specific dataset is unique? Because it's the first of
+its kind or for some other reason?
+* The third paragraph could provide a little more detail about the data collection process and exactly what types of interactions were included in the
+dataset \cite{McCreadie2013ScalableDE}.
+* You might want to explain how the study utilizes the directed graph in the analysis process and why this is meaningful for this research
+\cite{Gmez2008StatisticalAO}.
+* While it's clear that the chi-square and ANOVA tests are applied, you may wish to elaborate a bit more on why these tests are suitable for this
+analysis \cite{Farine2015ConstructingCA}.
+* The introduction could benefit from an additional concluding sentence that emphasizes the broader implications of the study or the need for this
+research.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[25] ---- USER {Writer} -&gt; introduction --------------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">* While the introduction is mostly well structured, the transition from previous work to the research gap could be smoother. Consider making it
+clearer how previous research is limited and why focusing specifically on the US Congress members is so important.
+* Please make sure to incorporate citation \cite{Garimella2018PoliticalDO} in a more contextual manner rather than simply listing it. Ideally every
+citation should be used to make a point.
+* The second paragraph includes the assumption that "political affiliation on Twitter engagement among politicians indicating significant
+polarization". It needs a clarifying phrase or sentence.
+* The statement about the dataset being "unique" can be better supported or explained. Why this specific dataset is unique? Because it's the first of
+its kind or for some other reason?
+* The third paragraph could provide a little more detail about the data collection process and exactly what types of interactions were included in the
+dataset \cite{McCreadie2013ScalableDE}.
+* You might want to explain how the study utilizes the directed graph in the analysis process and why this is meaningful for this research
+\cite{Gmez2008StatisticalAO}.
+* While it's clear that the chi-square and ANOVA tests are applied, you may wish to elaborate a bit more on why these tests are suitable for this
+analysis \cite{Farine2015ConstructingCA}.
+* The introduction could benefit from an additional concluding sentence that emphasizes the broader implications of the study or the need for this
+research.
+Please correct your response according to any points in my feedback that you find relevant and applicable.
+Send back a complete rewrite of the Introduction.
+Make sure to send the full corrected Introduction, not just the parts that were revised.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 6730 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[26] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; introduction ===============================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (6730 tokens):
+# 0    SYSTEM (  89 tokens): You are a data-scientist [...] results we have.
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER (1174 tokens): Here are citations from our [...] influence: 2
+#10 SURROGATE (  10 tokens): Thank you for the Dataset-related Literature Search.
+#11      USER ( 599 tokens): Here are citations from our [...] influence: 63
+#12 SURROGATE (  10 tokens): Thank you for the Methods-related Literature Search.
+#13      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#14 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#15      USER ( 488 tokens): Here is the Results section [...] considerations.
+#16 SURROGATE (  11 tokens): Thank you for the Results Section of the Paper.
+#17      USER ( 402 tokens): Based on the material [...] writing here&gt;
+#18 SURROGATE ( 569 tokens): latex [...] representation.
+#19      USER ( 342 tokens): * While the introduction is [...] that were revised.
+
+#20 ASSISTANT ( 526 tokens): latex [...] discourse.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+\section{Introduction}
+
+The growing ubiquity of social media platforms such as Twitter has fundamentally reshaped the landscape of political discourse, proving to be a
+significant tool for politicians to engage directly with constituents and fellow legislators \cite{Muragod2018TheSM, Garimella2018PoliticalDO}. This
+transition has prompted substantial interest from researchers seeking to decipher the dynamics that underpin politically charged social interactions
+on these platforms \cite{Hua2020CharacterizingTU, Stier2018ElectionCO, Eady2019HowMP}. Despite the extensive scholarship in this domain, a nuanced
+understanding of how party affiliation and the representation of specific geographic constituencies shape these interactions within the US Congress
+remains elusive \cite{Baviera2018InfluenceIT, Luceri2019RedBD, Marder2016AnEO}.
+
+Past studies have primarily focused on the larger political landscape on Twitter and have made significant strides in unraveling widespread political
+polarization \cite{Garimella2018PoliticalDO, Luceri2019RedBD}. However, these works provide limited insights into the specific dynamics of the Twitter
+interactions among members of a single legislative body such as the US Congress, where members not only represent their political party but also a
+specific geographic constituency. Moreover, the impact of their dual representation on their social interactions on Twitter is less understood
+\cite{Vliet2020TheTP, Barber2016LessIM}.
+
+This study aims to fill this knowledge gap by utilizing a specially curated dataset that maps Twitter interactions among members of the 117th US
+Congress into a directed graph structure \cite{McCreadie2013ScalableDE}. This dataset, unlike generic political Twitter data, allows for the detailed
+analysis of how political and geographical affiliations affect the structure and nature of these interactions.
+
+Our methodology employs various statistical analysis techniques fit for network data, including a Chi-square test of association and an ANOVA test to
+scrutinize the roles of party affiliation and geographic representation, respectively, in influencing Twitter interactions
+\cite{Farine2015ConstructingCA}. The directed graph representation of the interactions is vital in our approach as it unveils the directionality of
+interactions, shedding light on who initiates the engagements \cite{Gmez2008StatisticalAO}.
+
+Through this approach, our research provides novel insights into the influence of party politics and geographic representation on the social network
+interactions of the 117th Congress members on Twitter. This study thus adds a vital dimension to our understanding of the interplay between
+traditional political affiliations, geographical representation, and digital political discourse.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;25&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; introduction</span>
+
+<span class="ansi36">[26] SURROGATE {Performer} -&gt; introduction : 
+latex \section{Introduction}  The growing ubiquity of social media platforms such as Twitter has [...] and digital political discourse.</span>
+
+<span class="ansi31">DeleteMessages(&lt;23&gt; - &lt;-1&gt; [3 MESSAGES]) -&gt; introduction</span>
+
+<span class="ansi36">[24] SURROGATE {Performer} -&gt; introduction : 
+latex \section{Introduction}  The growing ubiquity of social media platforms such as Twitter has [...] and digital political discourse.</span>
+<span class="ansi35">==== Starting conversation ===========================================================================================================================</span>
+<span class="ansi35">                                                                      discussion                                                                      </span>
+<span class="ansi35">                                                                   discussion_other                                                                   </span>
+<span class="ansi35">======================================================================================================================================================</span>
+<span class="ansi31">CreateConversation(name=discussion web=[web]write paper, participants=['Performer', 'Writer']) -&gt; discussion</span>
+
+<span class="ansi32">[1] SYSTEM casting  {Performer} -&gt; discussion : 
+You are a data-scientist with experience writing accurate scientific research papers.  You will [...] with the scientific results we have.</span>
+
+<span class="ansi34">[2] COMMENTER -&gt; discussion : Background-related Literature Search:
+Here are citations from our Literature Search for papers related to the Background of our study:
+
+Query: ['Twitter interactions in politics']
+Search rank: 66
+ID: 'Hua2020CharacterizingTU'
+Title: 'Characterizing Twitter Users Who Engage in Adversarial Interactions against Political Candidates'
+Journal and year: 'Proceedings of the 2020 CHI Conference on Human Factors in Computing Systems (2020)'
+TLDR: 'This paper characterize users who adversarially interact with political figures on Twitter using mixed-method techniques and shows that among moderately active users, adversarial activity is associated with decreased centrality in the social graph and increased attention to candidates from the opposing party.'
+Citation influence: 5
+Embedding similarity: 0.81
+Query: ['social media in politics']
+Search rank: 19
+ID: 'Muragod2018TheSM'
+Title: 'The Social Media And Politics'
+Journal and year: ' (2018)'
+Citation influence: 5
+Embedding similarity: 0.8
+Query: ['Twitter interactions in politics']
+Search rank: 14
+ID: 'Bail2019AssessingTR'
+Title: 'Assessing the Russian Internet Research Agency’s impact on the political attitudes and behaviors of American Twitter users in late 2017'
+Journal and year: 'Proceedings of the National Academy of Sciences of the United States of America (2019)'
+TLDR: 'Interactions with IRA accounts were most common among respondents with strong ideological homophily within their Twitter network, high interest in politics, and high frequency of Twitter usage, suggesting that Russian trolls might have failed to sow discord because they mostly interacted with those who were already highly polarized.'
+Citation influence: 8
+Embedding similarity: 0.8
+Query: ['political discourse on social media']
+Search rank: 1
+ID: 'Garimella2018PoliticalDO'
+Title: 'Political Discourse on Social Media: Echo Chambers, Gatekeepers, and the Price of Bipartisanship'
+Journal and year: 'Proceedings of the 2018 World Wide Web Conference (2018)'
+TLDR: 'It is found that Twitter users are, to a large degree, exposed to political opinions that agree with their own, and users who try to bridge the echo chambers have to pay a »price of bipartisanship» in terms of their network centrality and content appreciation.'
+Citation influence: 17
+Embedding similarity: 0.8
+Query: ['social media in politics']
+Search rank: 53
+ID: 'Stier2018ElectionCO'
+Title: 'Election Campaigning on Social Media: Politicians, Audiences, and the Mediation of Political Communication on Facebook and Twitter'
+Journal and year: 'Political Communication (2018)'
+TLDR: 'Investigating whether election candidates address the topics most important to the mass audience and to which extent their communication is shaped by the characteristics of Facebook and Twitter finds that both prioritize different topics than themass audience.'
+Citation influence: 10
+Embedding similarity: 0.79
+Query: ['social media in politics']
+Search rank: 87
+ID: 'Kahne2018ThePS'
+Title: 'The Political Significance of Social Media Activity and Social Networks'
+Journal and year: 'Political Communication (2018)'
+Citation influence: 7
+Embedding similarity: 0.78
+Query: ['Twitter interactions in politics']
+Search rank: 59
+ID: 'Hua2020TowardsMA'
+Title: 'Towards Measuring Adversarial Twitter Interactions against Candidates in the US Midterm Elections'
+TLDR: 'This study measures the adversarial interactions against candidates for the US House of Representatives during the run-up to the 2018 US general election, and develops a new technique for detecting tweets with toxic content that are directed at any specific candidate.'
+Citation influence: 5
+Embedding similarity: 0.78
+Query: ['social media in politics']
+Search rank: 61
+ID: 'Valenzuela2019ThePO'
+Title: 'The Paradox of Participation Versus Misinformation: Social Media, Political Engagement, and the Spread of Misinformation'
+Journal and year: 'Digital Journalism (2019)'
+Citation influence: 7
+Embedding similarity: 0.76
+Query: ['social media in politics']
+Search rank: 60
+ID: 'Eady2019HowMP'
+Title: 'How Many People Live in Political Bubbles on Social Media? Evidence From Linked Survey and Twitter Data'
+Journal and year: 'SAGE Open (2019)'
+Citation influence: 10
+Embedding similarity: 0.76
+Query: ['political discourse on social media']
+Search rank: 3
+ID: 'Mendelsohn2021ModelingFI'
+Title: 'Modeling Framing in Immigration Discourse on Social Media'
+TLDR: 'It is found that the more commonly-used issue-generic frames obscure important ideological and regional patterns that are only revealed by immigration-specific frames.'
+Citation influence: 8
+Embedding similarity: 0.74
+Query: ['social media in politics']
+Search rank: 54
+ID: 'Tucker2018SocialMP'
+Title: 'Social Media, Political Polarization, and Political Disinformation: A Review of the Scientific Literature'
+Journal and year: ' (2018)'
+Citation influence: 31
+Embedding similarity: 0.74
+Query: ['political discourse on social media']
+Search rank: 98
+ID: 'Chiluwa2012SocialMN'
+Title: 'Social media networks and the discourse of resistance: A sociolinguistic CDA of Biafra online discourses'
+Journal and year: 'Discourse &amp; Society (2012)'
+Citation influence: 7
+Embedding similarity: 0.74
+
+</span>
+
+<span class="ansi34">[3] COMMENTER -&gt; discussion : Results-related Literature Search:
+Here are citations from our Literature Search for papers related to the Results of our study:
+
+Query: ['partisan Twitter interactions in US Congress']
+Search rank: 7
+ID: 'Baviera2018InfluenceIT'
+Title: 'Influence in the political Twitter sphere: Authority and retransmission in the 2015 and 2016 Spanish General Elections'
+Journal and year: 'European Journal of Communication (2018)'
+Citation influence: 1
+Embedding similarity: 0.82
+Query: ['impact of political party on Twitter engagement']
+Search rank: 4
+ID: 'Martnez-Roln2016TheUO'
+Title: 'The use of memes in the discourse of political parties at Twitter: analysis of the 2015 state of the nation debate'
+Journal and year: ' (2016)'
+Citation influence: 2
+Embedding similarity: 0.78
+Query: ['association between party affiliation and social media interactions']
+Search rank: 0
+ID: 'Marder2016AnEO'
+Title: 'An examination of impression management associated with visible political party affiliation on Facebook'
+Citation influence: 1
+Embedding similarity: 0.77
+Query: ['partisan Twitter interactions in US Congress']
+Search rank: 4
+ID: 'Luceri2019RedBD'
+Title: 'Red Bots Do It Better:Comparative Analysis of Social Bot Partisan Behavior'
+Journal and year: 'Companion Proceedings of The 2019 World Wide Web Conference (2019)'
+TLDR: 'It is shown that social bots can be accurately classified according to their political leaning and behave accordingly, and that conservative bots are more deeply embedded in the social network and more effective than liberal bots at exerting influence on humans.'
+Citation influence: 4
+Embedding similarity: 0.76
+Query: ['association between party affiliation and social media interactions']
+Search rank: 37
+ID: 'Vliet2020TheTP'
+Title: 'The Twitter parliamentarian database: Analyzing Twitter politics across 26 countries'
+Journal and year: 'PLoS ONE (2020)'
+TLDR: 'The Twitter Parliamentarian Database (TPD), a multi-source and manually validated database of parliamentarians on Twitter, is introduced, finding striking cross-party and particularly cross-national differences in how parliamentarians engage in politics on the social media platform.'
+Citation influence: 1
+Embedding similarity: 0.75
+Query: ['association between party affiliation and social media interactions']
+Search rank: 21
+ID: 'Schmuck2022PoliticsS'
+Title: 'Politics – Simply Explained? How Influencers Affect Youth’s Perceived Simplification of Politics, Political Cynicism, and Political Interest'
+Journal and year: 'The International Journal of Press/Politics (2022)'
+Citation influence: 3
+Embedding similarity: 0.71
+Query: ['association between party affiliation and social media interactions']
+Search rank: 46
+ID: 'Barber2016LessIM'
+Title: 'Less is more? How demographic sample weights can improve public opinion estimates based on Twitter data'
+TLDR: 'New machine learning methods will allow researchers to estimate the age, gender, race, party affiliation, propensity to vote, and income of any Twitter user in the U.S. with high accuracy by developing new methods to estimate sociodemographic characteristics of Twitter users.'
+Citation influence: 6
+Embedding similarity: 0.71
+Query: ['association between party affiliation and social media interactions']
+Search rank: 55
+ID: 'Taylor2014TheRO'
+Title: 'The Role of Language in Conflict and Conflict Resolution'
+Journal and year: ' (2014)'
+Citation influence: 1
+Embedding similarity: 0.66
+Query: ['association between party affiliation and social media interactions']
+Search rank: 30
+ID: 'Koster2018TheEO'
+Title: 'The effects of individual status and group performance on network ties among teammates in the National Basketball Association'
+Journal and year: 'PLoS ONE (2018)'
+TLDR: 'The results show that compared to high-status players on successful teams, high- status players on underperforming teams are less likely to follow their teammates, suggesting that individuals deemphasize their group affiliation when it jeopardizes their individual status.'
+Citation influence: 5
+Embedding similarity: 0.65
+Query: ['association between party affiliation and social media interactions']
+Search rank: 29
+ID: 'Mansoor2021AnIE'
+Title: 'An interaction effect of perceived government response on COVID-19 and government agency’s use of ICT in building trust among citizens of Pakistan'
+Journal and year: 'Transforming Government: People, Process and Policy (2021)'
+TLDR: "Results revealed that the interactive effect of government response on COVID-19 and government agency’s provision of quality information on social media strengthens the association of government presence on social social media with citizens’ perception of the agency�'s transparency and responsiveness and their trust in the agency."
+Citation influence: 3
+Embedding similarity: 0.64
+Query: ['association between party affiliation and social media interactions']
+Search rank: 79
+ID: 'Hughson1999TheBI'
+Title: 'The Boys in Blue and the Bad Blue Boys: A Case Study of Interactive Relations between the Police and Ethnic Youth in Western Sydney'
+Journal and year: 'Australian Journal of Social Issues (1999)'
+Citation influence: 1
+Embedding similarity: 0.59
+Query: ['association between party affiliation and social media interactions']
+Search rank: 18
+ID: 'White1992PygmyCS'
+Title: 'Pygmy chimpanzee social organization: Variation with party size and between study sites'
+Journal and year: 'American Journal of Primatology (1992)'
+TLDR: 'Differences between Lomako and Wamba in habitat, provisioning, and human (but not non‐human) predation, by affecting party size and composition, most likely account for the observed differences in social organization between the two sites.'
+Citation influence: 6
+Embedding similarity: 0.56
+
+</span>
+
+<span class="ansi32">[4] USER {Writer} -&gt; discussion &lt;background_general_dataset_description&gt;  : 
+OVERALL DESCRIPTION OF THE DATASET  * Rationale: The dataset maps US Congress's Twitter [...] but should not single out specific states.</span>
+
+<span class="ansi36">[5] SURROGATE {Performer} -&gt; discussion &lt;background_thanks_general_dataset_description&gt;  : 
+Thank you for the Overall Description of the Dataset.</span>
+
+<span class="ansi32">[6] USER {Writer} -&gt; discussion &lt;background_title_and_abstract&gt;  : 
+Here are the title and abstract of the paper:  \title{Party Dynamics in Twitter Interactions [...] among Congress members. \end{abstract}</span>
+
+<span class="ansi36">[7] SURROGATE {Performer} -&gt; discussion &lt;background_thanks_title_and_abstract&gt;  : 
+Thank you for the Title and Abstract.</span>
+
+<span class="ansi32">[8] USER {Writer} -&gt; discussion &lt;background_literature_search:writing:background&gt;  : 
+Here are citations from our Literature Search for papers related to the Background of our study:  [...] &amp; Society (2012)' Citation influence: 7</span>
+
+<span class="ansi36">[9] SURROGATE {Performer} -&gt; discussion &lt;background_thanks_literature_search:writing:background&gt;  : 
+Thank you for the Background-related Literature Search.</span>
+
+<span class="ansi32">[10] USER {Writer} -&gt; discussion &lt;background_literature_search:writing:results&gt;  : 
+Here are citations from our Literature Search for papers related to the Results of our study:  [...] the two sites.' Citation influence: 6</span>
+
+<span class="ansi36">[11] SURROGATE {Performer} -&gt; discussion &lt;background_thanks_literature_search:writing:results&gt;  : 
+Thank you for the Results-related Literature Search.</span>
+
+<span class="ansi32">[12] ---- USER {Writer} -&gt; discussion &lt;background_paper_sections:introduction&gt;  ----------------------------------------------------------------------
+</span><span class="ansi32">Here is the Introduction section of the paper:
+
+\section{Introduction}
+
+The growing ubiquity of social media platforms such as Twitter has fundamentally reshaped the landscape of political discourse, proving to be a
+significant tool for politicians to engage directly with constituents and fellow legislators \cite{Muragod2018TheSM, Garimella2018PoliticalDO}. This
+transition has prompted substantial interest from researchers seeking to decipher the dynamics that underpin politically charged social interactions
+on these platforms \cite{Hua2020CharacterizingTU, Stier2018ElectionCO, Eady2019HowMP}. Despite the extensive scholarship in this domain, a nuanced
+understanding of how party affiliation and the representation of specific geographic constituencies shape these interactions within the US Congress
+remains elusive \cite{Baviera2018InfluenceIT, Luceri2019RedBD, Marder2016AnEO}.
+
+Past studies have primarily focused on the larger political landscape on Twitter and have made significant strides in unraveling widespread political
+polarization \cite{Garimella2018PoliticalDO, Luceri2019RedBD}. However, these works provide limited insights into the specific dynamics of the Twitter
+interactions among members of a single legislative body such as the US Congress, where members not only represent their political party but also a
+specific geographic constituency. Moreover, the impact of their dual representation on their social interactions on Twitter is less understood
+\cite{Vliet2020TheTP, Barber2016LessIM}.
+
+This study aims to fill this knowledge gap by utilizing a specially curated dataset that maps Twitter interactions among members of the 117th US
+Congress into a directed graph structure \cite{McCreadie2013ScalableDE}. This dataset, unlike generic political Twitter data, allows for the detailed
+analysis of how political and geographical affiliations affect the structure and nature of these interactions.
+
+Our methodology employs various statistical analysis techniques fit for network data, including a Chi-square test of association and an ANOVA test to
+scrutinize the roles of party affiliation and geographic representation, respectively, in influencing Twitter interactions
+\cite{Farine2015ConstructingCA}. The directed graph representation of the interactions is vital in our approach as it unveils the directionality of
+interactions, shedding light on who initiates the engagements \cite{Gmez2008StatisticalAO}.
+
+Through this approach, our research provides novel insights into the influence of party politics and geographic representation on the social network
+interactions of the 117th Congress members on Twitter. This study thus adds a vital dimension to our understanding of the interplay between
+traditional political affiliations, geographical representation, and digital political discourse.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi36">[13] ==== SURROGATE {Performer} -&gt; discussion &lt;background_thanks_paper_sections:introduction&gt;  =======================================================
+</span><span class="ansi36">Thank you for the Introduction Section of the Paper.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[14] USER {Writer} -&gt; discussion &lt;background_paper_sections:methods&gt;  : 
+Here is the Methods section of the paper:  \section{Methods}  \subsection{Data Source} The data [...] are provided in Supplementary Methods.</span>
+
+<span class="ansi36">[15] SURROGATE {Performer} -&gt; discussion &lt;background_thanks_paper_sections:methods&gt;  : 
+Thank you for the Methods Section of the Paper.</span>
+
+<span class="ansi32">[16] USER {Writer} -&gt; discussion &lt;background_paper_sections:results&gt;  : 
+Here is the Results section of the paper:  \section{Results}  Given the importance of digital [...] ties than geographic considerations.</span>
+
+<span class="ansi36">[17] SURROGATE {Performer} -&gt; discussion &lt;background_thanks_paper_sections:results&gt;  : 
+Thank you for the Results Section of the Paper.</span>
+
+<span class="ansi34">[18] COMMENTER -&gt; discussion &lt;after_background&gt;  : Background messages completed. Requesting "Discussion section".</span>
+
+<span class="ansi32">[19] ---- USER {Writer} -&gt; discussion ----------------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">Based on the material provided above ("Overall Description of the Dataset", "Title and Abstract", "Background-related Literature Search", "Results-
+related Literature Search", "Introduction Section of the Paper", "Methods Section of the Paper", "Results Section of the Paper"), please write only
+the Discussion section for a Nature Communications article.
+Do not write any other parts!
+
+The Discussion section should follow the following structure:
+* Recap the subject of the study (cite relevant papers from the above "Background-related Literature Search").
+* Recap our methodology (see "Methods" section above) and the main results (see "Results Section of the Paper" above), and compare them to the results
+from prior literature (see above "Results-related Literature Search").
+* Discuss the limitations of the study.
+* End with a concluding paragraph summarizing the main results, their implications and impact, and future directions.
+
+Citations should be added in the following format: \cite{paper_id}.
+Do not add a \section{References} section, I will add it later manually.
+
+Write in tex format, escaping any math or symbols that needs tex escapes.
+
+The Discussion section should be enclosed within triple-backtick "latex" code block, like this:
+
+</span><span class="ansi92">```latex
+\section{&lt;section name&gt;}
+&lt;your latex-formatted writing here&gt;
+```</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">CreateConversation(name=discussion_other web=None, participants=['Performer', 'Writer']) -&gt; discussion_other</span>
+
+<span class="ansi32">[1] ----- SYSTEM casting  {Writer} -&gt; discussion_other -----------------------------------------------------------------------------------------------
+</span><span class="ansi32">
+You are a reviewer for a scientist who is writing a scientific paper about their data analysis results.
+Your job is to provide constructive bullet-point feedback.
+We will write each section of the research paper separately.
+If you feel that the paper section does not need further improvements, you should reply only with:
+"The Discussion section does not require any changes".
+</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi32">[2] USER {Performer} -&gt; discussion_other &lt;background_general_dataset_description&gt;  : 
+OVERALL DESCRIPTION OF THE DATASET  * Rationale: The dataset maps US Congress's Twitter [...] but should not single out specific states.</span>
+
+<span class="ansi36">[3] SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_general_dataset_description&gt;  : 
+Thank you for the Overall Description of the Dataset.</span>
+
+<span class="ansi32">[4] USER {Performer} -&gt; discussion_other &lt;background_title_and_abstract&gt;  : 
+Here are the title and abstract of the paper:  \title{Party Dynamics in Twitter Interactions [...] among Congress members. \end{abstract}</span>
+
+<span class="ansi36">[5] SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_title_and_abstract&gt;  : 
+Thank you for the Title and Abstract.</span>
+
+<span class="ansi32">[6] USER {Performer} -&gt; discussion_other &lt;background_literature_search:writing:background&gt;  : 
+Here are citations from our Literature Search for papers related to the Background of our study:  [...] &amp; Society (2012)' Citation influence: 7</span>
+
+<span class="ansi36">[7] SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_literature_search:writing:background&gt;  : 
+Thank you for the Background-related Literature Search.</span>
+
+<span class="ansi32">[8] USER {Performer} -&gt; discussion_other &lt;background_literature_search:writing:results&gt;  : 
+Here are citations from our Literature Search for papers related to the Results of our study:  [...] the two sites.' Citation influence: 6</span>
+
+<span class="ansi36">[9] SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_literature_search:writing:results&gt;  : 
+Thank you for the Results-related Literature Search.</span>
+
+<span class="ansi32">[10] USER {Performer} -&gt; discussion_other &lt;background_paper_sections:introduction&gt;  : 
+Here is the Introduction section of the paper:  \section{Introduction}  The growing ubiquity of [...] and digital political discourse.</span>
+
+<span class="ansi36">[11] SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_paper_sections:introduction&gt;  : 
+Thank you for the Introduction Section of the Paper.</span>
+
+<span class="ansi32">[12] USER {Performer} -&gt; discussion_other &lt;background_paper_sections:methods&gt;  : 
+Here is the Methods section of the paper:  \section{Methods}  \subsection{Data Source} The data [...] are provided in Supplementary Methods.</span>
+
+<span class="ansi36">[13] SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_paper_sections:methods&gt;  : 
+Thank you for the Methods Section of the Paper.</span>
+
+<span class="ansi32">[14] USER {Performer} -&gt; discussion_other &lt;background_paper_sections:results&gt;  : 
+Here is the Results section of the paper:  \section{Results}  Given the importance of digital [...] ties than geographic considerations.</span>
+
+<span class="ansi36">[15] ==== SURROGATE {Writer} -&gt; discussion_other &lt;background_thanks_paper_sections:results&gt;  =========================================================
+</span><span class="ansi36">Thank you for the Results Section of the Paper.
+
+Based on the material provided above ("Overall Description of the Dataset", "Title and Abstract", "Background-related Literature Search", "Results-
+related Literature Search", "Introduction Section of the Paper", "Methods Section of the Paper", "Results Section of the Paper"), please write only
+the Discussion section for a Nature Communications article.
+Do not write any other parts!
+
+The Discussion section should follow the following structure:
+* Recap the subject of the study (cite relevant papers from the above "Background-related Literature Search").
+* Recap our methodology (see "Methods" section above) and the main results (see "Results Section of the Paper" above), and compare them to the results
+from prior literature (see above "Results-related Literature Search").
+* Discuss the limitations of the study.
+* End with a concluding paragraph summarizing the main results, their implications and impact, and future directions.
+
+Citations should be added in the following format: \cite{paper_id}.
+Do not add a \section{References} section, I will add it later manually.
+
+Write in tex format, escaping any math or symbols that needs tex escapes.
+
+The Discussion section should be enclosed within triple-backtick "latex" code block, like this:
+
+</span><span class="ansi96">```latex
+\section{&lt;section name&gt;}
+&lt;your latex-formatted writing here&gt;
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 4428 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[20] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; discussion =================================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (4428 tokens):
+# 0    SYSTEM (  89 tokens): You are a data-scientist [...] results we have.
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER ( 531 tokens): Here is the Introduction [...] discourse.
+#10 SURROGATE (  11 tokens): Thank you for the Introduction Section of the Paper.
+#11      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#12 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#13      USER ( 488 tokens): Here is the Results section [...] considerations.
+#14 SURROGATE (  11 tokens): Thank you for the Results Section of the Paper.
+#15      USER ( 263 tokens): Based on the material [...] writing here&gt;
+
+#16 ASSISTANT ( 509 tokens): latex \section{Discussion}  [...]  \end{latex}
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT (14 LINES)
+)```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[21] ---- USER {Writer} -&gt; discussion ----------------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">You sent an incomplete triple-quoted block. Please try again.
+
+Please write the Discussion section again with this error corrected.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">DeleteMessages(&lt;-2&gt; - &lt;-1&gt; [2 MESSAGES]) -&gt; discussion</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 4428 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[20] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; discussion =================================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (4428 tokens):
+# 0    SYSTEM (  89 tokens): You are a data-scientist [...] results we have.
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER ( 531 tokens): Here is the Introduction [...] discourse.
+#10 SURROGATE (  11 tokens): Thank you for the Introduction Section of the Paper.
+#11      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#12 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#13      USER ( 488 tokens): Here is the Results section [...] considerations.
+#14 SURROGATE (  11 tokens): Thank you for the Results Section of the Paper.
+#15      USER ( 263 tokens): Based on the material [...] writing here&gt;
+
+#16 ASSISTANT ( 575 tokens): latex \section{Discussion}  [...] scenarios.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+\section{Discussion}
+
+This study delves into the dynamics of political discourse on Twitter, particularly focusing on the members of the 117th US Congress
+\cite{Hua2020CharacterizingTU, Stier2018ElectionCO, Garimella2018PoliticalDO}. Social media platforms have altered the traditional conduct of
+politics, becoming an essential medium for politicians to engage with constituents and vibrant platforms for political debates and campaign messaging
+\cite{Muragod2018TheSM}. Against this backdrop, our investigation contributes to a better understanding of the interplay between party affiliation,
+geographic representation, and online social engagement of US Congress members.
+
+In our methodology, we transformed Twitter interactions among Congress members into a directed graph structure \cite{McCreadie2013ScalableDE},
+providing an adjacency matrix and graph metrics for extensive statistical analysis. We employed chi-square tests and ANOVA to scrutinize the influence
+of party affiliation and geographic representation over Twitter interactions while accounting for the chamber category \cite{Farine2015ConstructingCA,
+Gmez2008StatisticalAO}.
+
+We discovered a significant association between party affiliation and the frequency of Twitter interactions. This observation aligns with the findings
+obtained by \cite{Garimella2018PoliticalDO} and \cite{Luceri2019RedBD}, who reported the existence of 'echo chambers' where individuals are inclined
+towards engaging with politically like-minded individuals. Our study advances this understanding by demonstrating this pattern within a specific
+legislative body, which enables us to further assess how geographical constituencies and party loyalties shape these interactions.
+
+Although party affiliation plays a significant role in Congress members' Twitter engagement, the state they represent surprisingly does not show
+significant influence. Such a result diverts from the conventional notion of politics being highly localized \cite{Barber2016LessIM, Vliet2020TheTP}.
+The finding suggests that the online sphere might be increasingly more synonymous with a national political environment rather than a reflective locus
+of geographically dispersed constituency interests.
+
+Our study has some limitations. We have considered the Twitter interactions over a specific four-month period, which may not perfectly represent the
+broader patterns of communication among Congress members. Additionally, the impact of external factors such as major political events or public crises
+occurring during the data collection period was not accounted for in this study.
+
+In conclusion, our results underscore a dominant influence of party affiliation in shaping Twitter interactions among Congress members, while
+geographic representation appears to be less impactful. This understanding calls for a reconsideration of the traditional viewpoint on political
+discourse being substantially localized, pointing towards a new era of online politics marked by a largely national scope. Future work may expand on
+these findings by incorporating more granular data such as content analysis of Tweets, studying the impact of major political and societal events, or
+extending to other legislative bodies and international scenarios.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;19&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; discussion</span>
+
+<span class="ansi36">[20] ==== SURROGATE {Performer} -&gt; discussion ========================================================================================================
+</span><span class="ansi96">```latex
+\section{Discussion}
+
+This study delves into the dynamics of political discourse on Twitter, particularly focusing on the members of the 117th US Congress
+\cite{Hua2020CharacterizingTU, Stier2018ElectionCO, Garimella2018PoliticalDO}. Social media platforms have altered the traditional conduct of
+politics, becoming an essential medium for politicians to engage with constituents and vibrant platforms for political debates and campaign messaging
+\cite{Muragod2018TheSM}. Against this backdrop, our investigation contributes to a better understanding of the interplay between party affiliation,
+geographic representation, and online social engagement of US Congress members.
+
+In our methodology, we transformed Twitter interactions among Congress members into a directed graph structure \cite{McCreadie2013ScalableDE},
+providing an adjacency matrix and graph metrics for extensive statistical analysis. We employed chi-square tests and ANOVA to scrutinize the influence
+of party affiliation and geographic representation over Twitter interactions while accounting for the chamber category \cite{Farine2015ConstructingCA,
+Gmez2008StatisticalAO}.
+
+We discovered a significant association between party affiliation and the frequency of Twitter interactions. This observation aligns with the findings
+obtained by \cite{Garimella2018PoliticalDO} and \cite{Luceri2019RedBD}, who reported the existence of 'echo chambers' where individuals are inclined
+towards engaging with politically like-minded individuals. Our study advances this understanding by demonstrating this pattern within a specific
+legislative body, which enables us to further assess how geographical constituencies and party loyalties shape these interactions.
+
+Although party affiliation plays a significant role in Congress members' Twitter engagement, the state they represent surprisingly does not show
+significant influence. Such a result diverts from the conventional notion of politics being highly localized \cite{Barber2016LessIM, Vliet2020TheTP}.
+The finding suggests that the online sphere might be increasingly more synonymous with a national political environment rather than a reflective locus
+of geographically dispersed constituency interests.
+
+Our study has some limitations. We have considered the Twitter interactions over a specific four-month period, which may not perfectly represent the
+broader patterns of communication among Congress members. Additionally, the impact of external factors such as major political events or public crises
+occurring during the data collection period was not accounted for in this study.
+
+In conclusion, our results underscore a dominant influence of party affiliation in shaping Twitter interactions among Congress members, while
+geographic representation appears to be less impactful. This understanding calls for a reconsideration of the traditional viewpoint on political
+discourse being substantially localized, pointing towards a new era of online politics marked by a largely national scope. Future work may expand on
+these findings by incorporating more granular data such as content analysis of Tweets, studying the impact of major political and societal events, or
+extending to other legislative bodies and international scenarios.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[16] ---- USER {Performer} -&gt; discussion_other -------------------------------------------------------------------------------------------------------
+</span><span class="ansi92">```latex
+\section{Discussion}
+
+This study delves into the dynamics of political discourse on Twitter, particularly focusing on the members of the 117th US Congress
+\cite{Hua2020CharacterizingTU, Stier2018ElectionCO, Garimella2018PoliticalDO}. Social media platforms have altered the traditional conduct of
+politics, becoming an essential medium for politicians to engage with constituents and vibrant platforms for political debates and campaign messaging
+\cite{Muragod2018TheSM}. Against this backdrop, our investigation contributes to a better understanding of the interplay between party affiliation,
+geographic representation, and online social engagement of US Congress members.
+
+In our methodology, we transformed Twitter interactions among Congress members into a directed graph structure \cite{McCreadie2013ScalableDE},
+providing an adjacency matrix and graph metrics for extensive statistical analysis. We employed chi-square tests and ANOVA to scrutinize the influence
+of party affiliation and geographic representation over Twitter interactions while accounting for the chamber category \cite{Farine2015ConstructingCA,
+Gmez2008StatisticalAO}.
+
+We discovered a significant association between party affiliation and the frequency of Twitter interactions. This observation aligns with the findings
+obtained by \cite{Garimella2018PoliticalDO} and \cite{Luceri2019RedBD}, who reported the existence of 'echo chambers' where individuals are inclined
+towards engaging with politically like-minded individuals. Our study advances this understanding by demonstrating this pattern within a specific
+legislative body, which enables us to further assess how geographical constituencies and party loyalties shape these interactions.
+
+Although party affiliation plays a significant role in Congress members' Twitter engagement, the state they represent surprisingly does not show
+significant influence. Such a result diverts from the conventional notion of politics being highly localized \cite{Barber2016LessIM, Vliet2020TheTP}.
+The finding suggests that the online sphere might be increasingly more synonymous with a national political environment rather than a reflective locus
+of geographically dispersed constituency interests.
+
+Our study has some limitations. We have considered the Twitter interactions over a specific four-month period, which may not perfectly represent the
+broader patterns of communication among Congress members. Additionally, the impact of external factors such as major political events or public crises
+occurring during the data collection period was not accounted for in this study.
+
+In conclusion, our results underscore a dominant influence of party affiliation in shaping Twitter interactions among Congress members, while
+geographic representation appears to be less impactful. This understanding calls for a reconsideration of the traditional viewpoint on political
+discourse being substantially localized, pointing towards a new era of online politics marked by a largely national scope. Future work may expand on
+these findings by incorporating more granular data such as content analysis of Tweets, studying the impact of major political and societal events, or
+extending to other legislative bodies and international scenarios.
+```</span><span class="ansi32">
+Please provide a bullet-point list of constructive feedback on the above Discussion for my paper. Do not provide positive feedback, only provide
+actionable instructions for improvements in bullet points.
+In particular, make sure that the section is correctly grounded in the information provided above.
+If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
+
+Also, please suggest if you see any specific additional citations that are adequate to include (from the Literature Searches above).
+You should only provide feedback on the Discussion. Do not provide feedback on other sections or other parts of the paper, like LaTex Tables or Python
+code, provided above.
+
+If you don't see any flaws, respond solely with "The Discussion section does not require any changes".
+
+IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "The Discussion section does not require any changes"; If you chose
+to provide bullet-point feedback then DO NOT include "The Discussion section does not require any changes".</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 5174 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[17] ==== ASSISTANT{'model_engine': gpt-4} {Writer} -&gt; discussion_other ==============================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (5174 tokens):
+# 0    SYSTEM (  69 tokens): You are a reviewer for a [...] any changes".
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER ( 531 tokens): Here is the Introduction [...] discourse.
+#10 SURROGATE (  11 tokens): Thank you for the Introduction Section of the Paper.
+#11      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#12 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#13      USER ( 488 tokens): Here is the Results section [...] considerations.
+#14 SURROGATE ( 274 tokens): Thank you for the Results [...] writing here&gt;
+#15      USER ( 766 tokens): latex \section{Discussion}  [...] any changes".
+
+#16 ASSISTANT ( 279 tokens): - The study's how and why [...] interactions.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+- The study's how and why needs to be clarified and reinforced. The discussion could benefit from detail about why the specific timeframe was chosen
+and how any period-related influences were controlled or accounted for.
+
+- One of the paper's limitations that was acknowledged was the lack of content analysis of the tweets. There could be an elaboration on how this could
+potentially alter the outcomes of the study and specific ways future work could incorporate this dimension.
+
+- While there is an appropriate recap of the main methods and findings, a specific discussion on how the results diverge or align with existing
+literature is missing. There should be a more explicit comparison to other studies.
+
+- The conclusion could be rephrased to better highlight the implications of the findings. Discuss how it particularly changes our understanding or
+could influence future research and practical applications.
+
+- Since this study focused on just the US Congress members, the transferability of findings to other legislative bodies or international scenarios
+could be too speculative. The discussion could instead suggest studying how these dynamics could potentially differ across varying political and
+cultural environments.
+
+- You could cite \cite{Tucker2018SocialMP} from the Background Literature Search when discussing that party dynamics seem to shape Twitter
+interactions more than geographic representation.
+
+- Also, mention \cite{Garimella2018PoliticalDO} on the influence of echo chambers on social media when discussing the significant impact of party
+affiliation on Twitter interactions.</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi32">[21] ---- USER {Writer} -&gt; discussion ----------------------------------------------------------------------------------------------------------------
+</span><span class="ansi32">- The study's how and why needs to be clarified and reinforced. The discussion could benefit from detail about why the specific timeframe was chosen
+and how any period-related influences were controlled or accounted for.
+
+- One of the paper's limitations that was acknowledged was the lack of content analysis of the tweets. There could be an elaboration on how this could
+potentially alter the outcomes of the study and specific ways future work could incorporate this dimension.
+
+- While there is an appropriate recap of the main methods and findings, a specific discussion on how the results diverge or align with existing
+literature is missing. There should be a more explicit comparison to other studies.
+
+- The conclusion could be rephrased to better highlight the implications of the findings. Discuss how it particularly changes our understanding or
+could influence future research and practical applications.
+
+- Since this study focused on just the US Congress members, the transferability of findings to other legislative bodies or international scenarios
+could be too speculative. The discussion could instead suggest studying how these dynamics could potentially differ across varying political and
+cultural environments.
+
+- You could cite \cite{Tucker2018SocialMP} from the Background Literature Search when discussing that party dynamics seem to shape Twitter
+interactions more than geographic representation.
+
+- Also, mention \cite{Garimella2018PoliticalDO} on the influence of echo chambers on social media when discussing the significant impact of party
+affiliation on Twitter interactions.
+Please correct your response according to any points in my feedback that you find relevant and applicable.
+Send back a complete rewrite of the Discussion.
+Make sure to send the full corrected Discussion, not just the parts that were revised.</span>
+<span class="ansi32">------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+
+<span class="ansi31">Using gpt-4 (max 8192 tokens) for 5326 context tokens and 500 expected tokens.</span>
+<span class="ansi36">[22] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -&gt; discussion =================================================================================
+</span><span class="ansi96">
+CONTEXT TOTAL (5326 tokens):
+# 0    SYSTEM (  89 tokens): You are a data-scientist [...] results we have.
+# 1      USER ( 336 tokens): OVERALL DESCRIPTION OF THE [...] specific states.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 280 tokens): Here are the title and [...] \end{abstract}
+# 4 SURROGATE (   9 tokens): Thank you for the Title and Abstract.
+# 5      USER ( 939 tokens): Here are citations from our [...] influence: 7
+# 6 SURROGATE (  10 tokens): Thank you for the [...] Literature Search.
+# 7      USER ( 962 tokens): Here are citations from our [...] influence: 6
+# 8 SURROGATE (  10 tokens): Thank you for the Results-related Literature Search.
+# 9      USER ( 531 tokens): Here is the Introduction [...] discourse.
+#10 SURROGATE (  11 tokens): Thank you for the Introduction Section of the Paper.
+#11      USER ( 467 tokens): Here is the Methods section [...] Methods.
+#12 SURROGATE (  11 tokens): Thank you for the Methods Section of the Paper.
+#13      USER ( 488 tokens): Here is the Results section [...] considerations.
+#14 SURROGATE (  11 tokens): Thank you for the Results Section of the Paper.
+#15      USER ( 263 tokens): Based on the material [...] writing here&gt;
+#16 SURROGATE ( 574 tokens): latex \section{Discussion}  [...] scenarios.
+#17      USER ( 323 tokens): - The study's how and why [...] that were revised.
+
+#18 ASSISTANT ( 640 tokens): latex \section{Discussion}  [...] digital politics.
+                             {'model_engine': gpt-4}
+</span><span class="ansi36">
+
+</span><span class="ansi96">```latex
+\section{Discussion}
+
+This study undertakes an in-depth exploration of the interplay between party affiliation, geographic representation, and Twitter interactions among
+members of the 117th US Congress \cite{Hua2020CharacterizingTU, Stier2018ElectionCO}. Engaging with constituents and fellow legislators through social
+media platforms has become cornerstone elements of modern political discourse \cite{Muragod2018TheSM}. Our investigation provides novel insights into
+these dynamics, specifically examining how party loyalties and geographic considerations shape online interactions among US Congress members.
+
+In our methodology, we transformed the matrix of Twitter interactions into a directed graph structure conducive to extensive statistical analysis
+\cite{McCreadie2013ScalableDE}. Guided by previous work on 'echo chambers' on social media \cite{Garimella2018PoliticalDO, Luceri2019RedBD}, where
+individuals are drawn towards engaging with others sharing their political beliefs, we performed Chi-square and ANOVA tests to scrutinize the
+association between party affiliation and Twitter interactions while controlling for the chamber variable \cite{Farine2015ConstructingCA,
+Gmez2008StatisticalAO}.
+
+Our results revealed a significant association between party affiliation and the frequency of Twitter interactions. This finding aligns with previous
+studies, substantiating the existence of 'echo chambers' within a specific legislative body, providing a more nuanced understanding of digital
+political discourse \cite{Garimella2018PoliticalDO, Luceri2019RedBD}. On the other hand, our data unveiled that the geographical representation, often
+considered paramount in politics, has minimal impact on the engagement frequency of US Congress members on Twitter. This result deviates from studies
+championing the localized nature of politics \cite{Barber2016LessIM, Vliet2020TheTP}, suggesting that in the digital realm, national politics often
+take precedence over locale-specific issues.
+
+The present investigation is not without its limitations. The chosen four-month timeframe for data collection might not comprise the broad patterns of
+Twitter interactions among Congress members. Significant political events or public crises within this period could also potentially skew the
+observations. Additionally, not incorporating the content analysis of tweets in the current analysis stands as a significant limitation, as the
+semantic aspects of interactions might offer additional insights into the dynamics of political discourse.
+
+Nevertheless, our study brings forth critical findings with valuable theoretical and practical implications. Democrats engaging more than what was
+statistically expected and Republicans less so, highlights the importance of party dynamics in today's political discourse on social media platforms
+\cite{Tucker2018SocialMP}. This understanding disrupts the conventional notion of political dialogue as being chiefly localized, suggesting a pivotal
+shift towards nationalized political discourses on online platforms.
+
+In conclusion, our findings underscore the dominance of party affiliations over geographic considerations in shaping Twitter interactions among
+members of 117th US Congress. Future studies could seek to incorporate a more holistic analysis involving tweet content analysis, analysis over a
+larger timeframe, and accounting for significant political and societal events. Also, exploring these dynamics across different political and cultural
+environments internationally could provide comparative insights, extending the discourse on the global implications of digital politics.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;21&gt; - &lt;-1&gt; [1 MESSAGES]) -&gt; discussion</span>
+
+<span class="ansi36">[22] ==== SURROGATE {Performer} -&gt; discussion ========================================================================================================
+</span><span class="ansi96">```latex
+\section{Discussion}
+
+This study undertakes an in-depth exploration of the interplay between party affiliation, geographic representation, and Twitter interactions among
+members of the 117th US Congress \cite{Hua2020CharacterizingTU, Stier2018ElectionCO}. Engaging with constituents and fellow legislators through social
+media platforms has become cornerstone elements of modern political discourse \cite{Muragod2018TheSM}. Our investigation provides novel insights into
+these dynamics, specifically examining how party loyalties and geographic considerations shape online interactions among US Congress members.
+
+In our methodology, we transformed the matrix of Twitter interactions into a directed graph structure conducive to extensive statistical analysis
+\cite{McCreadie2013ScalableDE}. Guided by previous work on 'echo chambers' on social media \cite{Garimella2018PoliticalDO, Luceri2019RedBD}, where
+individuals are drawn towards engaging with others sharing their political beliefs, we performed Chi-square and ANOVA tests to scrutinize the
+association between party affiliation and Twitter interactions while controlling for the chamber variable \cite{Farine2015ConstructingCA,
+Gmez2008StatisticalAO}.
+
+Our results revealed a significant association between party affiliation and the frequency of Twitter interactions. This finding aligns with previous
+studies, substantiating the existence of 'echo chambers' within a specific legislative body, providing a more nuanced understanding of digital
+political discourse \cite{Garimella2018PoliticalDO, Luceri2019RedBD}. On the other hand, our data unveiled that the geographical representation, often
+considered paramount in politics, has minimal impact on the engagement frequency of US Congress members on Twitter. This result deviates from studies
+championing the localized nature of politics \cite{Barber2016LessIM, Vliet2020TheTP}, suggesting that in the digital realm, national politics often
+take precedence over locale-specific issues.
+
+The present investigation is not without its limitations. The chosen four-month timeframe for data collection might not comprise the broad patterns of
+Twitter interactions among Congress members. Significant political events or public crises within this period could also potentially skew the
+observations. Additionally, not incorporating the content analysis of tweets in the current analysis stands as a significant limitation, as the
+semantic aspects of interactions might offer additional insights into the dynamics of political discourse.
+
+Nevertheless, our study brings forth critical findings with valuable theoretical and practical implications. Democrats engaging more than what was
+statistically expected and Republicans less so, highlights the importance of party dynamics in today's political discourse on social media platforms
+\cite{Tucker2018SocialMP}. This understanding disrupts the conventional notion of political dialogue as being chiefly localized, suggesting a pivotal
+shift towards nationalized political discourses on online platforms.
+
+In conclusion, our findings underscore the dominance of party affiliations over geographic considerations in shaping Twitter interactions among
+members of 117th US Congress. Future studies could seek to incorporate a more holistic analysis involving tweet content analysis, analysis over a
+larger timeframe, and accounting for significant political and societal events. Also, exploring these dynamics across different political and cultural
+environments internationally could provide comparative insights, extending the discourse on the global implications of digital politics.
+```</span>
+<span class="ansi36">======================================================================================================================================================</span>
+
+<span class="ansi31">DeleteMessages(&lt;19&gt; - &lt;-1&gt; [3 MESSAGES]) -&gt; discussion</span>
+
+<span class="ansi36">[20] SURROGATE {Performer} -&gt; discussion : 
+latex \section{Discussion}  This study undertakes an in-depth exploration of the interplay [...] the global implications of digital politics.</span>
 
 </pre>
 </body>

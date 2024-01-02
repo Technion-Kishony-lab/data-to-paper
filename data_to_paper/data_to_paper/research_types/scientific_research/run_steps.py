@@ -19,16 +19,16 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 
-# PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
-PAPER_SECTIONS_NAMES = ['title', 'abstract', 'results']
+PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
+# PAPER_SECTIONS_NAMES = ['title', 'abstract', 'results']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
 SECTIONS_TO_WRITING_CLASS = [
             (('results',), ReferringTablesSectionWriterReviewGPT),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
-            # (('methods',), MethodsSectionWriterReviewGPT),
-            # (('introduction',), IntroductionSectionWriterReviewGPT),
-            # (('discussion',), DiscussionSectionWriterReviewGPT),
+            (('methods',), MethodsSectionWriterReviewGPT),
+            (('introduction',), IntroductionSectionWriterReviewGPT),
+            (('discussion',), DiscussionSectionWriterReviewGPT),
             # (('conclusion',), ConclusionSectionWriterReviewGPT),
         ]
 
