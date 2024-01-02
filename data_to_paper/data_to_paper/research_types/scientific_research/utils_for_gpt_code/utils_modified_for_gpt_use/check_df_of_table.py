@@ -53,7 +53,7 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
 
     # Check filename:
     if not re.match(pattern=r'^table_(\d+).pkl$', string=filename):
-        issues.append(RunIssue(
+        issues.append(RunIssue.from_current_tb(
             category='Table filename',
             code_problem=CodeProblem.OutputFileContentLevelA,
             issue=f'The filename of the table should be in the format `table_<number>.pkl`, '
@@ -92,7 +92,7 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
             continue
         prior_table_values = [v for v in prior_table.values.flatten() if _is_non_integer_numeric(v)]
         if any(value in prior_table_values for value in df_values):
-            issues.append(RunIssue(
+            issues.append(RunIssue.from_current_tb(
                 category='Table contents should not overlap',
                 code_problem=CodeProblem.OutputFileContentLevelC,
                 issue=f'Table "{filename}" includes values that overlap with values in table "{prior_name}".',

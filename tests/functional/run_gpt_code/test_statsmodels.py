@@ -16,7 +16,7 @@ from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValu
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
 
-from data_to_paper.run_gpt_code.types import RunUtilsError
+from data_to_paper.run_gpt_code.types import RunIssue
 
 
 def test_fit_results_do_not_allow_summary():
@@ -24,7 +24,7 @@ def test_fit_results_do_not_allow_summary():
         data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
         model = ols('y ~ x', data=data)
         results = model.fit()
-        with pytest.raises(RunUtilsError) as e:
+        with pytest.raises(RunIssue) as e:
             results.summary()
         assert 'Do not use the `summary` function of statsmodels.' in str(e.value)
 
@@ -135,7 +135,7 @@ def test_statsmodels_logit_func():
         table2 = results.summary2().tables[1].iloc[:, 0:4]
         table2.columns = ['coef', 'std err', 'z', 'P>|z|']
         P = table2['P>|z|']
-        with pytest.raises(RunUtilsError):
+        with pytest.raises(RunIssue):
             P.astype(float)
 
 
@@ -158,7 +158,7 @@ def test_sklean_raise_on_multiple_fit_calls():
         from sklearn.linear_model import LinearRegression
         model = LinearRegression()
         model.fit(X, y)
-        with pytest.raises(RunUtilsError):
+        with pytest.raises(RunIssue):
             model.fit(X, y)
 
 
@@ -181,8 +181,7 @@ def test_sklean_raise_on_multiple_fit_calls_in_code_runner():
                                     additional_contexts={'OverrideStatisticsPackages': OverrideStatisticsPackages()},
                                     allowed_read_files=None,
                                     ).run_code_in_separate_process()
-    assert isinstance(exception, FailedRunningCode)
-    assert isinstance(exception.exception, RunUtilsError)
+    assert isinstance(exception, RunIssue)
 
 
 code0 = """
@@ -230,7 +229,7 @@ def test_scipy_label_pvalues_raise_on_nan():
     with ScipyPValueOverride():
         data = []
         popmean = 3.0
-        with pytest.raises(RunUtilsError):
+        with pytest.raises(RunIssue):
             t_statistic, p_value = stats.ttest_1samp(data, popmean)
 
 

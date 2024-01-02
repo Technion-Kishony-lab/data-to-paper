@@ -14,7 +14,7 @@ from data_to_paper.utils.print_to_file import print_and_log
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
-    RunIssue, RunIssues, RunUtilsError, OutputFileRequirements, BaseContentOutputFileRequirement
+    RunIssue, RunIssues, OutputFileRequirements, BaseContentOutputFileRequirement
 
 from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
@@ -410,18 +410,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             )
         return None
 
-    def _get_issue_for_run_utils_error(self, error: RunUtilsError, e: FailedRunningCode) -> RunIssue:
-        linenos_lines, msg = e.get_lineno_line_message()
-        on_line = '\n'.join(f'On line {lineno}: {line}' for lineno, line in linenos_lines)
-        return RunIssue(
-            item=error.run_issue.item,
-            category=error.run_issue.category,
-            issue=f'{error.run_issue.issue}\n{on_line}',
-            instructions=error.run_issue.instructions,
-            comment=error.run_issue.comment,
-            code_problem=error.run_issue.code_problem,
-        )
-
     """
     METHODS FOR RUNNING CODE
     """
@@ -588,25 +576,27 @@ class DebuggerConverser(BackgroundProductsConverser):
         # Code passes static checks. We can now run the code.
         code_and_output, issues, contexts, exception = code_runner.run_code_in_separate_process()
         if exception is not None:
-            exceptions_to_funcs = {
-                ImportError: self._get_issue_for_allowed_packages,
-                TimeoutError: self._get_issue_for_timeout,
-                UnAllowedFilesCreated: self._get_issue_for_un_allowed_files_created,
-                FileNotFoundError: self._get_issue_for_file_not_found,
-                CodeUsesForbiddenFunctions: self._get_issue_for_forbidden_functions,
-                UnAllowedDataframeMethodCall: self._get_issue_for_forbidden_method,
-                CodeImportForbiddenModule: self._get_issue_for_forbidden_import,
-                CodeWriteForbiddenFile: self._get_issue_for_forbidden_write,
-                CodeReadForbiddenFile: self._get_issue_for_forbidden_read,
-                DataFrameSeriesChange: self._get_issue_for_dataframe_series_change,
-                RunUtilsError: self._get_issue_for_run_utils_error,
-            }
-            for e_type, func in exceptions_to_funcs.items():
-                if isinstance(exception.exception, e_type):
-                    run_time_issue = func(exception.exception, exception)
-                    break
+            if isinstance(exception, RunIssue):
+                run_time_issue = exception
             else:
-                run_time_issue = self._get_issue_for_regular_exception_or_warning(exception, code_runner)
+                exceptions_to_funcs = {
+                    ImportError: self._get_issue_for_allowed_packages,
+                    TimeoutError: self._get_issue_for_timeout,
+                    UnAllowedFilesCreated: self._get_issue_for_un_allowed_files_created,
+                    FileNotFoundError: self._get_issue_for_file_not_found,
+                    CodeUsesForbiddenFunctions: self._get_issue_for_forbidden_functions,
+                    UnAllowedDataframeMethodCall: self._get_issue_for_forbidden_method,
+                    CodeImportForbiddenModule: self._get_issue_for_forbidden_import,
+                    CodeWriteForbiddenFile: self._get_issue_for_forbidden_write,
+                    CodeReadForbiddenFile: self._get_issue_for_forbidden_read,
+                    DataFrameSeriesChange: self._get_issue_for_dataframe_series_change,
+                }
+                for e_type, func in exceptions_to_funcs.items():
+                    if isinstance(exception.exception, e_type):
+                        run_time_issue = func(exception.exception, exception)
+                        break
+                else:
+                    run_time_issue = self._get_issue_for_regular_exception_or_warning(exception, code_runner)
             self._respond_to_issues(run_time_issue, code)
             return None
 

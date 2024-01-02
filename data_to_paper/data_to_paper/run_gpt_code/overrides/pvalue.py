@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
-from data_to_paper.run_gpt_code.types import RunUtilsError, RunIssue, CodeProblem
+from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 from data_to_paper.utils.mutable import Flag, Mutable
 from data_to_paper.utils.operator_value import OperatorValue
 
@@ -26,12 +26,10 @@ class PValue(OperatorValue):
     def _forbidden_func(self, func):
         if self.allow_str:
             return func(self.value)
-        raise RunUtilsError(
-            RunIssue(
+        raise RunIssue.from_current_tb(
                 issue=self.error_message_on_forbidden_func.val.format(func_name=func.__name__,
                                                                       created_by=self.created_by),
                 code_problem=CodeProblem.RuntimeError,
-            )
         )
 
     @property
@@ -55,12 +53,10 @@ class PValue(OperatorValue):
             return value
         if raise_on_nan and np.isnan(value):
             call_str = f'\nThe function was called as: \n{func_call_str}\n\n' if func_call_str else ''
-            raise RunUtilsError(
-                RunIssue(
+            raise RunIssue.from_current_tb(
                     issue=f'The function returned a p-value of NaN.\n{call_str}',
                     code_problem=CodeProblem.RuntimeError,
                     instructions='Please see if you understand why this is happening and fix it.',
-                )
             )
         return cls(value, created_by=created_by)
 

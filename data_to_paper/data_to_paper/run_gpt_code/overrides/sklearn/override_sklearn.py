@@ -6,7 +6,7 @@ from typing import Iterable
 from data_to_paper.run_gpt_code.base_run_contexts import MultiRunContext
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicMethodReplacerContext, \
     PreventAssignmentToAttrs
-from data_to_paper.run_gpt_code.types import RunUtilsError, RunIssue, CodeProblem
+from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
 
 
 @dataclass
@@ -27,11 +27,11 @@ class SklearnFitOverride(SystematicMethodReplacerContext):
             result = original_func(obj, *args, **kwargs)
             if self._is_called_from_data_to_paper():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
-                    raise RunUtilsError(run_issue=RunIssue(
+                    raise RunIssue.from_current_tb(
                         issue=f"The `{original_func.__name__}` function was already called on this object. ",
                         instructions=f"Multiple calls should be avoided as the same result instance is returned again.",
                         code_problem=CodeProblem.RuntimeError,
-                    ))
+                    )
                 obj._prior_fit_results = result
 
             return result
@@ -67,14 +67,14 @@ class SklearnSearchLimitCheck(SystematicMethodReplacerContext):
             original_len = original_func(obj, *args, **kwargs)
             if original_len > self.max_iterations:
                 estimator_class_name = self._get_estimator_class_name()
-                raise RunUtilsError(run_issue=RunIssue(
+                raise RunIssue.from_current_tb(
                     issue=f"The presumed total number of training iterations ({original_len}) for "
                           f"{estimator_class_name} exceeds the maximum allowed iterations "
                           f"({self.max_iterations}). \nNotice that the amount of iterations is a "
                           f"multiplication of the numbers of possible values for each parameter when using "
                           f"GridSearchCV or n_iter when using RandomizedSearchCV. \n",
                     instructions=f"use only a subset of the parameters or reduce the number of iterations.",
-                    code_problem=CodeProblem.RuntimeError))
+                    code_problem=CodeProblem.RuntimeError)
             return original_len
 
         return wrapped
@@ -135,17 +135,17 @@ class SklearnSingleNNSizeOverride(PreventAssignmentToAttrs):
         instructions = f"Please use a smaller hidden_layer_sizes of up to {self.max_layers} layers with " \
                        f"maximum of {self.max_neurons_per_layer} neurons per layer."
         if len(value) > self.max_layers:
-            raise RunUtilsError(run_issue=RunIssue(
+            raise RunIssue.from_current_tb(
                 issue=f"The hidden_layer_sizes ({len(value)}) is too large!\n",
                 instructions=instructions,
-                code_problem=CodeProblem.RuntimeError))
+                code_problem=CodeProblem.RuntimeError)
         # Check width:
         for layer, layer_size in enumerate(value):
             if layer_size > self.max_neurons_per_layer:
-                raise RunUtilsError(run_issue=RunIssue(
+                raise RunIssue.from_current_tb(
                     issue=f"The hidden_layer_sizes, has a layer ({layer}) with too many neurons ({layer_size})!\n",
                     instructions=instructions,
-                    code_problem=CodeProblem.RuntimeError))
+                    code_problem=CodeProblem.RuntimeError)
 
 
 @dataclass

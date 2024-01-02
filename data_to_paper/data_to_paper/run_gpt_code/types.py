@@ -17,8 +17,8 @@ from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
-from data_to_paper.exceptions import data_to_paperException
 
+from .exceptions import FailedRunningCode
 
 if TYPE_CHECKING:
     from .overrides.dataframes.dataframe_operations import DataframeOperations
@@ -91,10 +91,9 @@ class CodeProblem(IndexOrderedEnum):
             raise NotImplementedError(f'Unknown problem stage for {self}')
 
 
-@dataclass(frozen=True)
-class RunIssue:
-    code_problem: CodeProblem
-    linenos_and_lines: List[Tuple[int, str]] = None
+@dataclass
+class RunIssue(FailedRunningCode):
+    code_problem: CodeProblem = None
     category: str = ''
     item: str = ''
     issue: str = ''
@@ -104,13 +103,16 @@ class RunIssue:
     requesting_small_change: bool = False
     forgive_after: int = None  # Forgive after this many times,  None means never forgive
 
-
-@dataclass
-class RunUtilsError(data_to_paperException):
-    run_issue: RunIssue
+    @classmethod
+    def from_current_tb(cls, code_problem: CodeProblem, category: str = '', item: str = '',
+                        issue: str = '', instructions: str = '', comment: str = None, end_with: Optional[str] = None,
+                        requesting_small_change: bool = False, forgive_after: int = None):
+        return super().from_current_tb(code_problem=code_problem, category=category, item=item,
+                                       issue=issue, instructions=instructions, comment=comment, end_with=end_with,
+                                       requesting_small_change=requesting_small_change, forgive_after=forgive_after)
 
     def __str__(self):
-        return self.run_issue.issue
+        return f"{self.code_problem.value}:\n{self.issue}\n{self.instructions}\n"
 
 
 class RunIssues(List[RunIssue]):

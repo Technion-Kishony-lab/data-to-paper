@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from data_to_paper.env import TRACK_P_VALUES
 from ..attr_replacers import SystematicMethodReplacerContext, SystematicFuncReplacerContext, AttrReplacer
 from ..pvalue import convert_to_p_value, PValue, TrackPValueCreationFuncs
-from ...types import RunIssue, RunUtilsError, CodeProblem
+from ...types import RunIssue, CodeProblem
 
 
 MULTITEST_FUNCS_AND_PVAL_INDEXES = [
@@ -57,11 +57,11 @@ def _get_summary_func(self, original_func):
         """
         Prevents the use of the summary function.
         """
-        raise RunUtilsError(RunIssue(
+        raise RunIssue.from_current_tb(
             issue=f"Do not use the `summary` function of statsmodels.",
             instructions=f"Use the `summary2` function instead.",
             code_problem=CodeProblem.RuntimeError,
-        ))
+        )
 
     return custom_summary
 
@@ -90,11 +90,11 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             result = original_func(obj, *args, **kwargs)
             if self._is_called_from_data_to_paper():
                 if hasattr(obj, '_prior_fit_results') and obj._prior_fit_results is result:
-                    raise RunUtilsError(run_issue=RunIssue(
+                    raise RunIssue.from_current_tb(
                         issue=f"The `{original_func.__name__}` function was already called on this object. ",
                         instructions=f"Multiple calls should be avoided as the same result instance is returned again.",
                         code_problem=CodeProblem.RuntimeError,
-                    ))
+                    )
                 obj._prior_fit_results = result
 
             if TRACK_P_VALUES:
@@ -130,7 +130,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
                         min_eigenval = eigenvals[-1]
                         assert min_eigenval == min(eigenvals)
                         if min_eigenval < 1e-10:
-                            self.issues.append(RunIssue(
+                            self.issues.append(RunIssue.from_current_tb(
                                 issue="The eigenvalues of the covariance matrix are too small. "
                                       "This might indicate that there are strong multicollinearity problems "
                                       "or that the design matrix is singular.",
