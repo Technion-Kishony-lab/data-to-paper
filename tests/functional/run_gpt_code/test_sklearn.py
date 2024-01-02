@@ -3,7 +3,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.datasets import load_iris
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnSearchLimitCheck
-from data_to_paper.run_gpt_code.types import RunUtilsError
+from data_to_paper.run_gpt_code.types import RunIssue
 
 
 def test_grid_search_cv_limit_check():
@@ -13,7 +13,7 @@ def test_grid_search_cv_limit_check():
         param_grid = {'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
         grid_search = GridSearchCV(DecisionTreeClassifier(), param_grid, cv=3)
 
-        with pytest.raises(RunUtilsError) as excinfo:
+        with pytest.raises(RunIssue) as excinfo:
             grid_search.fit(iris.data, iris.target)
         assert "exceeds the maximum allowed iterations" in str(excinfo.value)
 
@@ -25,7 +25,7 @@ def test_randomized_search_cv_limit_check():
         param_distributions = {'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
         randomized_search = RandomizedSearchCV(DecisionTreeClassifier(), param_distributions, n_iter=20, cv=3)
 
-        with pytest.raises(RunUtilsError) as excinfo:
+        with pytest.raises(RunIssue) as excinfo:
             randomized_search.fit(iris.data, iris.target)
         assert "exceeds the maximum allowed iterations" in str(excinfo.value)
 
