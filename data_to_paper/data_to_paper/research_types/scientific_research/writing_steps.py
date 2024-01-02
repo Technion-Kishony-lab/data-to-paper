@@ -154,6 +154,20 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         ('Supplementary', False, ),
     )
 
+    aborting_phrases: Tuple[Tuple[str, bool], ...] = (
+        # (phrase, match_case)
+        ('[unknown', False),
+        ('<unknown', False),
+        ('[insert', False),
+        ('<insert', False),
+        ('[missing', False),
+        ('<missing', False),
+        ('[to be', False),
+        ('<to be', False),
+        ('xx', False),
+        ('xxx', False),
+    )
+
     allow_subsections: bool = False
 
     def __post_init__(self):
@@ -165,20 +179,34 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
             if r'\subsection' in section:
                 self._raise_self_response_error('Do not include subsections in the {goal_noun}')
 
+    @staticmethod
+    def _is_pharse_in_section(section: str, phrase: str, match_case: bool) -> bool:
+        if match_case:
+            return phrase in section
+        else:
+            return phrase.lower() in section.lower()
+
     def _check_forbidden_phrases(self, section: str):
-        used_forbidden_phrases = []
-        for phrase, match_case in self.forbidden_phrases:
-            if match_case:
-                if phrase in section:
-                    used_forbidden_phrases.append(phrase)
-            else:
-                if phrase.lower() in section.lower():
-                    used_forbidden_phrases.append(phrase)
+        used_forbidden_phrases = [
+            phrase for phrase, match_case in self.forbidden_phrases
+            if self._is_pharse_in_section(section, phrase, match_case)
+        ]
         if used_forbidden_phrases:
             self._raise_self_response_error('Do not include: {}'.format(
                 nicely_join(used_forbidden_phrases, wrap_with='"', separator=', ')))
 
+    def _check_for_aborting_phrases(self, section: str):
+        used_aborting_phrases = [
+            phrase for phrase, match_case in self.aborting_phrases
+            if self._is_pharse_in_section(section, phrase, match_case)
+        ]
+        if used_aborting_phrases:
+            print_and_log(
+                f'ABORTING DATA-TO_PAPER:\nThe LLM requires unknown values to write the section.')
+            raise FailedCreatingProductException()
+
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
+        self._check_for_aborting_phrases(section)
         section = super()._check_and_refine_section(section, section_name)
         self._check_extracted_numbers(section)
         self._check_url_in_text(section)
@@ -491,10 +519,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         return [get_table_label(table) for table in self.products.tables[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
-        if '[unknown]' in section.lower() or '[insert' in section.lower():
-            print_and_log(
-                f'ABORTING DATA-TO_PAPER:\nThe LLM requires unknown values to write section "{section_name}".')
-            raise FailedCreatingProductException()
+        result = super()._check_and_refine_section(section, section_name)
         table_labels = self._get_table_labels(section_name)
         for table_label in table_labels:
             if table_label not in section:
@@ -503,7 +528,7 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
                     Please make sure we have a sentence addressing Table "{table_label}".
                     The sentence should have a reference like this: "Table~\\ref{{{table_label}}}".
                     """))
-        return super()._check_and_refine_section(section, section_name)
+        return result
 
 
 @dataclass
