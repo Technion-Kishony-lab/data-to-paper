@@ -9,7 +9,8 @@ from typing import List, Type, TypeVar, Optional, Iterable
 from data_to_paper.env import BASE_FOLDER_NAME
 from data_to_paper.utils.mutable import Flag
 
-from .types import module_filename, RunIssues
+from .consts import module_filename
+from .run_issues import RunIssues
 
 T = TypeVar('T', bound='SingletonRegisteredRunContext')
 

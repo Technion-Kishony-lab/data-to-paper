@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Iterable
 
+from data_to_paper.utils.nice_list import NiceList
+
 from .pvalue import TrackPValueCreationFuncs
 from .scipy.override_scipy import ScipyPValueOverride
 from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
@@ -8,8 +10,7 @@ from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitChec
 from .statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, StatsmodelsMultitestPValueOverride, \
     StatsmodelsAnovaPValueOverride, StatsmodelsMulticompPValueOverride
 from ..base_run_contexts import RunContext, MultiRunContext
-from ..types import RunIssue, CodeProblem
-from ...utils.nice_list import NiceList
+from ..run_issues import CodeProblem, RunIssue
 
 
 @dataclass

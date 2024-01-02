@@ -13,14 +13,12 @@ from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
-    RunIssue, RunIssues, OutputFileRequirements, BaseContentOutputFileRequirement
-
-from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange
+from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
+from data_to_paper.run_gpt_code.output_file_requirements import BaseContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
-from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
-
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
 

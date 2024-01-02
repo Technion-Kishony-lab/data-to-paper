@@ -23,9 +23,11 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
 
-from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
-    DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
-    PickleContentOutputFileRequirement
+from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRequirement, \
+    PickleContentOutputFileRequirement, TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement, \
+    OutputFileRequirements
 from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict

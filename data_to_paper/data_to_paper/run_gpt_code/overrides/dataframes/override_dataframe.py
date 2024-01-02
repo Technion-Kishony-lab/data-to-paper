@@ -15,7 +15,7 @@ from data_to_paper.utils.mutable import Flag
 from ...base_run_contexts import RunContext
 from .dataframe_operations import DataframeOperation, ChangeSeriesDataframeOperation, DataframeOperations
 from . import df_methods
-from ...types import RunIssue, CodeProblem
+from ...run_issues import CodeProblem, RunIssue
 
 CLS_METHOD_NAMES_NEW_METHODS = [
     (DataFrame, '__init__', df_methods.__init__),

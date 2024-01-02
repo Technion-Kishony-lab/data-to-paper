@@ -10,7 +10,8 @@ from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnRandomStateOverride, \
     SklearnNNSizeOverride
-from data_to_paper.run_gpt_code.types import OutputFileRequirements, RunIssue
+from data_to_paper.run_gpt_code.run_issues import RunIssue
+from data_to_paper.run_gpt_code.output_file_requirements import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 
 

@@ -3,7 +3,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.datasets import load_iris
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnSearchLimitCheck
-from data_to_paper.run_gpt_code.types import RunIssue
+from data_to_paper.run_gpt_code.run_issues import RunIssue
 
 
 def test_grid_search_cv_limit_check():

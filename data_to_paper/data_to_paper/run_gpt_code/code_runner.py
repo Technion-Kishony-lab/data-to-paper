@@ -15,8 +15,9 @@ from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
 
 from .exceptions import FailedRunningCode, CodeTimeoutException
-from .types import CodeAndOutput, RunIssue, OutputFileRequirements
-
+from .code_and_output import CodeAndOutput
+from .run_issues import RunIssue
+from .output_file_requirements import OutputFileRequirements
 
 # process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
 FILE_BASED_TRANSFER = True

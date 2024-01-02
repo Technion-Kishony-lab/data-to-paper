@@ -1,5 +1,5 @@
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
-from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.env import TRACK_P_VALUES
 
 from ..original_utils import format_p_value

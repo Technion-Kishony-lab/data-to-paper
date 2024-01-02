@@ -8,9 +8,9 @@ import inspect
 
 from typing import Callable, Iterable, Any, Optional, Tuple, Dict, Union
 
-from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
-from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions
-from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
+from ..base_run_contexts import RegisteredRunContext
+from ..exceptions import CodeUsesForbiddenFunctions
+from ..run_issues import CodeProblem, RunIssue
 
 
 def _carefully_get_members(module):

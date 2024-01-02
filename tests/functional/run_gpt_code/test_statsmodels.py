@@ -16,7 +16,7 @@ from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValu
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
 
-from data_to_paper.run_gpt_code.types import RunIssue
+from data_to_paper.run_gpt_code.run_issues import RunIssue
 
 
 def test_fit_results_do_not_allow_summary():

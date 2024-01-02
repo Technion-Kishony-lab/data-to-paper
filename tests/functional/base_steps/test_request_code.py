@@ -10,7 +10,7 @@ from data_to_paper.research_types.scientific_research.coding_steps import Explai
     RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
-from data_to_paper.run_gpt_code.types import DataOutputFileRequirement, \
+from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRequirement, \
     TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from tests.functional.base_steps.utils import TestProductsReviewGPT, TestAgent

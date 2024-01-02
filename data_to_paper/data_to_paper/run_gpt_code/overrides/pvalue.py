@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
-from data_to_paper.run_gpt_code.types import RunIssue, CodeProblem
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils.mutable import Flag, Mutable
 from data_to_paper.utils.operator_value import OperatorValue
 

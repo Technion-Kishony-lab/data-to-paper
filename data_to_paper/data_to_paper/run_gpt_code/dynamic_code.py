@@ -23,8 +23,10 @@ from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, Provid
 
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
 from .timeout_context import timeout_context
-from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements, RunIssue
-from ..utils.singleton import undefined
+from .consts import MODULE_NAME, module_filename
+from .run_issues import RunIssue, RunIssues
+from .output_file_requirements import OutputFileRequirements
+from data_to_paper.utils.singleton import undefined
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
 module_default_filepath = os.path.join(module_dir, module_filename)

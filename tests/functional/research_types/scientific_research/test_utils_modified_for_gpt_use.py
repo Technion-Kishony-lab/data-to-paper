@@ -10,7 +10,7 @@ from data_to_paper.research_types.scientific_research.utils_for_gpt_code. \
 from data_to_paper.research_types.scientific_research.utils_for_gpt_code.\
     utils_modified_for_gpt_use.to_pickle import get_dataframe_to_pickle_attr_replacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
-from data_to_paper.run_gpt_code.types import RunIssue
+from data_to_paper.run_gpt_code.run_issues import RunIssue
 from data_to_paper.utils.file_utils import run_in_directory
 
 

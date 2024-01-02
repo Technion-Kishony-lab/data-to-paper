@@ -6,6 +6,8 @@ from typing import List, Optional, Tuple, Union
 
 from data_to_paper.exceptions import data_to_paperException
 
+from .consts import module_filename
+
 
 @dataclass
 class AnyException(data_to_paperException):
@@ -58,16 +60,12 @@ class FailedRunningCode(data_to_paperException):
         if self.tb is None:
             return None
 
-        from data_to_paper.run_gpt_code.dynamic_code import module_filename
-
         return [t for t in self.tb if t[0].endswith(module_filename)]
 
     def _extract_linono_line_from_py_spy_stack(self):
         """
         returns the line of code that caused the exception.
         """
-        from data_to_paper.run_gpt_code.dynamic_code import module_filename
-
         search_results = re.search(fr'{module_filename}:(\d+)', self.py_spy_stack_and_code[0])
         if search_results is None:
             return []

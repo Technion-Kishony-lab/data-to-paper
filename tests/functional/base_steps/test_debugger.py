@@ -5,7 +5,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.run_gpt_code.types import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 
 from .utils import TestAgent

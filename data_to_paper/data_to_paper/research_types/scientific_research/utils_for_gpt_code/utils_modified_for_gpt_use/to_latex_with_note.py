@@ -10,7 +10,7 @@ from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
-from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 from .format_p_value import is_ok_to_apply_format_p_value
 
