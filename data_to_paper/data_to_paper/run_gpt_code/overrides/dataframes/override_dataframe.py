@@ -33,7 +33,7 @@ CLS_METHOD_NAMES_NEW_METHODS = [
 
 
 @dataclass
-class DataFrameSeriesChange(data_to_paperException):
+class DataFrameSeriesChange(RunIssue):
     """
     Exception that is raised when a data frame series is changed.
     """
@@ -172,7 +172,15 @@ class TrackDataFrames(RunContext):
                 self._is_called_from_user_script(5):
             if self.allow_dataframes_to_change_existing_series is False \
                     or (self.allow_dataframes_to_change_existing_series is None and df.file_path is not None):
-                raise DataFrameSeriesChange(changed_series=series_operation.series_name)
+                raise DataFrameSeriesChange(
+                    issue=f'Your code changes the series "{series_operation.series_name}" of your dataframe.',
+                    instructions=dedent_triple_quote_str("""
+                        Instead of changing an existing dataframe series, please create a new series, and give it a \
+                        new sensible name.
+                        """),
+                    code_problem=CodeProblem.RuntimeError,
+                    comment='Code modifies dataframe series',
+                    changed_series=series_operation.series_name)
         self.dataframe_operations.append(series_operation)
 
     def _create_issues_for_unsaved_dataframes(self):

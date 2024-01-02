@@ -16,7 +16,7 @@ from data_to_paper.conversation.message_designation import RangeMessageDesignati
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.run_gpt_code.output_file_requirements import BaseContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, UnAllowedDataframeMethodCall
+from data_to_paper.run_gpt_code.overrides.dataframes import UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
@@ -370,17 +370,6 @@ class DebuggerConverser(BackgroundProductsConverser):
                 comment='Code reads from forbidden file',
             )
 
-    def _get_issue_for_dataframe_series_change(self, error: DataFrameSeriesChange, e: FailedRunningCode) -> RunIssue:
-        series = error.changed_series
-        return RunIssue(
-            issue=f'Your code changes the series "{series}" of your dataframe.',
-            instructions=dedent_triple_quote_str("""
-                Instead of changing an existing dataframe series, please create a new series, and give it a \
-                new sensible name.
-                """),
-            code_problem=CodeProblem.RuntimeError,
-            comment='Code modifies dataframe series')
-
     def _get_issues_for_output_file_content(self, requirement: BaseContentOutputFileRequirement,
                                             filename: str, content: str) -> List[RunIssue]:
         return requirement.get_issues_for_output_file_content(filename, content)
@@ -587,7 +576,6 @@ class DebuggerConverser(BackgroundProductsConverser):
                     CodeImportForbiddenModule: self._get_issue_for_forbidden_import,
                     CodeWriteForbiddenFile: self._get_issue_for_forbidden_write,
                     CodeReadForbiddenFile: self._get_issue_for_forbidden_read,
-                    DataFrameSeriesChange: self._get_issue_for_dataframe_series_change,
                 }
                 for e_type, func in exceptions_to_funcs.items():
                     if isinstance(exception.exception, e_type):
