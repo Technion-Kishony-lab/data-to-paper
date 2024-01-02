@@ -23,7 +23,7 @@ from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, Provid
 
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
 from .timeout_context import timeout_context
-from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements
+from .types import module_filename, MODULE_NAME, RunIssues, OutputFileRequirements, RunIssue
 from ..utils.singleton import undefined
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
@@ -184,6 +184,8 @@ class RunCode:
                     else:
                         module = importlib.import_module(module_filepath)
                     result = self._run_function_in_module(module)
+                except RunIssue as e:
+                    exception = e
                 except Exception as e:
                     exception = FailedRunningCode.from_exception(e)
 

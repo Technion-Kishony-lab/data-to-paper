@@ -1,5 +1,5 @@
 from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
-from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue, RunUtilsError
+from data_to_paper.run_gpt_code.types import CodeProblem, RunIssue
 from data_to_paper.env import TRACK_P_VALUES
 
 from ..original_utils import format_p_value
@@ -26,12 +26,10 @@ def _check_argument_for_format_p_value(x):
             raise ValueError(f"format_p_value should only be applied to P-value float.\n"
                              f"But got type: {type(x)}, value: {repr(x)}.")
     if not is_p_value(x):
-        raise RunUtilsError(
-            RunIssue(
+        raise RunIssue.from_current_tb(
                 code_problem=CodeProblem.RuntimeError,
                 issue=f"It seems like you are applying format_p_value to some values that are not P-Values.",
                 instructions=f"You should only apply format_p_value to P-Values.",
-            )
         )
 
 
@@ -39,5 +37,5 @@ def is_ok_to_apply_format_p_value(x):
     try:
         _check_argument_for_format_p_value(x)
         return True
-    except (RunUtilsError, ValueError):
+    except (RunIssue, ValueError):
         return False

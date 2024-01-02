@@ -13,7 +13,7 @@ from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils import dedent_triple_quote_str
 
 from .exceptions import CodeWriteForbiddenFile, CodeReadForbiddenFile, \
-    CodeImportForbiddenModule, UnAllowedFilesCreated, FailedRunningCode
+    CodeImportForbiddenModule, UnAllowedFilesCreated
 from .types import CodeProblem, RunIssue, OutputFileRequirements
 from .base_run_contexts import SingletonRegisteredRunContext
 
@@ -217,13 +217,11 @@ class WarningHandler(SingletonRegisteredRunContext):
         elif self._is_matched_cls(category, self.categories_to_ignore):
             pass
         elif self._is_matched_cls(category, self.categories_to_issue):
-            linenos_lines, _ = FailedRunningCode.from_current_tb().get_lineno_line_message()
-            self.issues.append(RunIssue(
+            self.issues.append(RunIssue.from_current_tb(
                 issue=f'Code produced an undesired warning:\n```\n{str(message).strip()}\n```',
                 instructions='Please see if you understand the cause of this warning and fix the code.\n'
                              'Alternatively, if the warning is expected, then change the code to ignore it.',
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                linenos_and_lines=linenos_lines,
             ))
         else:
             return self.original_showwarning(message, category, filename, lineno, file, line)

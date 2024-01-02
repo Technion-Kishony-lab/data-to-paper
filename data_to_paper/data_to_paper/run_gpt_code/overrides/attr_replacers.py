@@ -237,7 +237,7 @@ class PreventCalling(RegisteredRunContext):
             if not self._is_enabled or not self._is_called_from_user_script():
                 return original_func(*args, **kwargs)
             if should_only_create_issue:
-                self.issues.append(RunIssue(
+                self.issues.append(RunIssue.from_current_tb(
                     issue=f'Code uses forbidden function: "{func_name}".',
                     code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 ))

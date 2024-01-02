@@ -25,8 +25,8 @@ def convert_exception_to_any_exception_if_needed(e: Exception) -> Exception:
 
 @dataclass
 class FailedRunningCode(data_to_paperException):
-    exception: Optional[Union[Exception, AnyException]]
-    tb: Optional[List]
+    exception: Optional[Union[Exception, AnyException]] = None
+    tb: Optional[List] = None
     py_spy_stack_and_code: Optional[Tuple[str, str]] = ('', '')
     fake_file_name = "my_analysis.py"
 
@@ -35,8 +35,9 @@ class FailedRunningCode(data_to_paperException):
         return cls(exception=convert_exception_to_any_exception_if_needed(e), tb=traceback.extract_tb(e.__traceback__))
 
     @classmethod
-    def from_current_tb(cls):
-        return cls(exception=None, tb=traceback.extract_stack())
+    def from_current_tb(cls, **kwargs):
+        exception = kwargs.pop('exception', None)
+        return cls(exception=exception, tb=traceback.extract_stack(), **kwargs)
 
     @classmethod
     def from_exception_with_py_spy(cls, e: Exception, py_spy_stack_and_code: Tuple[str, str]):
@@ -45,6 +46,10 @@ class FailedRunningCode(data_to_paperException):
 
     def __str__(self):
         return f"Running the code resulted in the following exception:\n{self.exception}\n"
+
+    @property
+    def linenos_and_lines(self):
+        return self.get_lineno_line_message()[0]
 
     def _get_gpt_module_frames(self):
         """

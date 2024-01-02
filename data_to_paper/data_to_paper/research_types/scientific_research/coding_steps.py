@@ -25,7 +25,7 @@ from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_
 
 from data_to_paper.run_gpt_code.types import CodeAndOutput, TextContentOutputFileRequirement, \
     DataOutputFileRequirement, RunIssue, CodeProblem, NumericTextContentOutputFileRequirement, OutputFileRequirements, \
-    PickleContentOutputFileRequirement, RunUtilsError
+    PickleContentOutputFileRequirement
 from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
@@ -902,11 +902,11 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
     forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
 
     def _raise_exception(self, attr, value):
-        raise RunUtilsError(RunIssue(
+        raise RunIssue.from_current_tb(
             issue=f"To avoid mistakes, please do not directly assign to '{attr}'.",
             code_problem=CodeProblem.NonBreakingRuntimeIssue,
             instructions=f'Use instead `df.rename({attr}=<mapping>, inplace=True)`',
-        ))
+        )
 
 
 @dataclass
