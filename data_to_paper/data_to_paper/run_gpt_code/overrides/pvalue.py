@@ -16,7 +16,7 @@ class PValue(OperatorValue):
     An object that represents a p-value float.
     """
     allow_str = Flag(False)
-    error_message_on_forbidden_func = Mutable("Calling `{func_name}` on a PValue object is forbidden.\n")
+    error_message_on_forbidden_func = "Calling `{func_name}` on a PValue object is forbidden.\n"
     this_is_a_p_value = True
 
     def __init__(self, value, created_by: str = None):
@@ -27,9 +27,9 @@ class PValue(OperatorValue):
         if self.allow_str:
             return func(self.value)
         raise RunIssue.from_current_tb(
-                issue=self.error_message_on_forbidden_func.val.format(func_name=func.__name__,
-                                                                      created_by=self.created_by),
-                code_problem=CodeProblem.RuntimeError,
+            issue=self.error_message_on_forbidden_func.format(func_name=func.__name__,
+                                                              created_by=self.created_by),
+            code_problem=CodeProblem.RuntimeError,
         )
 
     @property

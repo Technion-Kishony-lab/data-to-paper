@@ -30,7 +30,6 @@ from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRe
     OutputFileRequirements
 from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
@@ -944,8 +943,8 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         ),
          'PValueMessage': AttrReplacer(
              obj_import_str=PValue, attr='error_message_on_forbidden_func',
-             wrapper=Mutable("Calling `{func_name}` on a PValue object is forbidden.\n "
-                             "Please use `format_p_value` instead.")
+             wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
+                     "Please use `format_p_value` instead."
         )}
     )
 
