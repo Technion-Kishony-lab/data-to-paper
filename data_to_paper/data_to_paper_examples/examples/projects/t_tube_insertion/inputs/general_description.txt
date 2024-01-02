@@ -5,7 +5,7 @@ Therefore, in pediatric patients who require mechanical ventilation, it is cruci
 Note: For brevity, we introduce the term `OTTD` to refer to the "optimal tracheal tube depth". This is not an official term that can be found in the literature.
 
 Existing methods: The gold standard to determine OTTD is by chest X-ray, which is time-consuming and requires radiation exposure.
-Alternatively, formula-based methods on patient features such as age and height are used to determine OTTD, but with limited success.
+Alternatively, formula-based models on patient features such as age and height are used to determine OTTD, but with limited success.
 
 The provided dataset focus on patients aged 0-7 year old who received post-operative mechanical ventilation after undergoing surgery at Samsung Medical Center between January 2015 and December 2018.
 For each of these patients, the dataset provides the OTTD determined by chest X-ray as well as features extracted from patient electronic health records.
