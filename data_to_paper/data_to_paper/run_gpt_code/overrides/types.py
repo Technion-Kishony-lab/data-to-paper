@@ -3,6 +3,7 @@ from typing import Optional, TYPE_CHECKING
 
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.run_gpt_code.user_script_name import is_called_from_user_script
+from data_to_paper.utils.nice_list import NiceList
 
 if TYPE_CHECKING:
     from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
@@ -47,13 +48,17 @@ class NoIterTuple:
         if self.should_raise:
             raise exception
 
+    def _get_instructions(self):
+        return ('Your code should instead keep the results object and access its attributes when needed.\n'
+                f'attributes of `{self.created_by}` results object are: '
+                f'{NiceList(self._tuple._fields, wrap_with="`")}')
+
     def __getitem__(self, item):
         if isinstance(item, int):
             self._raise_or_register_if_called_from_user_script(RunIssue.from_current_tb(
                 code_problem=CodeProblem.NonBreakingRuntimeIssue,
                 issue=f'Accessing the results of {self.created_by} by index can lead to coding mistakes.',
-                instructions='Your code should instead explicitly access the attributes of the '
-                             f'results: {", ".join(self._tuple._fields)}'
+                instructions=self._get_instructions()
             ))
         return getattr(self._tuple, item)
 
@@ -62,7 +67,6 @@ class NoIterTuple:
             code_problem=CodeProblem.NonBreakingRuntimeIssue,
             issue=f'Unpacking, or otherwise iterating over, the results of {self.created_by} '
                   f'can lead to coding mistakes.',
-            instructions='Your code should instead explicitly access the attributes of the '
-                         f'results: {", ".join(self._tuple._fields)}'
+            instructions=self._get_instructions()
         ))
         return iter(self._tuple)
