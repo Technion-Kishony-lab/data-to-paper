@@ -24,6 +24,7 @@ from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
 
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRequirement, \
     PickleContentOutputFileRequirement, TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement, \
@@ -626,6 +627,21 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
                 f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
                 f'using cross-validation (as appropriate). Also check whether the best hyperparameters are reported '
                 f'(either in the table files or in the "additional_results.pkl" file).')
+
+        # get ScipyPValueOverride:
+        stat_contexts = code_and_output.contexts['OverrideStatisticsPackages'].contexts
+        context = next((context for context in stat_contexts if isinstance(context, ScipyPValueOverride)), None)
+        if context:
+            func_to_fields = context.unpacking_func_to_fields
+            if func_to_fields:
+                s.append(f'- When unpacking or indexing the tuple results of '
+                         f'{NiceList(func_to_fields.keys(), wrap_with="`", last_separator=" or ")}, '
+                         f'are we using the correct order of fields?')
+                s.append('\n'.join(
+                    f'  The correct order for `{func}` is: {NiceList(fields, wrap_with="`")}'
+                    for func, fields in func_to_fields.items()
+                ))
+
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt

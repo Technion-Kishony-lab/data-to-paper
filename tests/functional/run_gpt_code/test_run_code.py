@@ -196,8 +196,8 @@ def test_run_code_that_creates_pvalues_using_f_oneway(tmpdir):
         from scipy.stats import f_oneway
         all_mses = [[1, 2, 3], [4, 5, 6], [7, 8, 9], 
                     pd.Series([10, 11, 12, 13 ,14]), pd.Series([15, 16, 17, 18, 19]), pd.Series([20, 21, 22, 23, 24])]
-        F, p = f_oneway(*all_mses)
-        additional_results = {'f_score': F, 'p_value': p}
+        f_oneway_result = f_oneway(*all_mses)
+        additional_results = {'f_score': f_oneway_result.statistic, 'p_value': f_oneway_result.pvalue}
         with open('additional_results.pkl', 'wb') as f:
             pickle.dump(additional_results, f)
         """)
