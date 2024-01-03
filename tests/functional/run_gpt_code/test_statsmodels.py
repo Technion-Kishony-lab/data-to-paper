@@ -12,7 +12,7 @@ from data_to_paper.run_gpt_code.exceptions import FailedRunningCode
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
-from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
+from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride, ScipyTtestResultOverride
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 from statsmodels.formula.api import ols, logit
 
@@ -268,3 +268,16 @@ def test_pvalue_from_dict():
     df = pd.DataFrame.from_dict(ttest_results, orient='index')
     pvalue = df['pvalue'][0]
     assert is_p_value(pvalue)
+
+
+def test_ttest_result_unpacking():
+    with ScipyTtestResultOverride():
+        ttest_results = TtestResult(statistic=5., pvalue=0.7, df=3534,
+                                    estimate=1, standard_error=1, alternative=1)
+        # Explicitly accessing the attributes is allowed:
+        assert ttest_results.statistic == 5.
+        assert ttest_results.pvalue == 0.7
+        with pytest.raises(RunIssue) as e:
+            # Unpacking is not allowed:
+            statistic, pvalue = ttest_results
+        assert 'Unpacking' in str(e.value)
