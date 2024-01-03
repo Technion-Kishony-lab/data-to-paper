@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from data_to_paper.env import TRACK_P_VALUES
-from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext, AttrReplacer
+from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext, \
+    SystematicMethodReplacerContext, MultiAttrReplacerContext
 from data_to_paper.utils.text_formatting import short_repr
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
@@ -50,20 +51,25 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
         return wrapped
 
 
-def TtestResult__iter__(self):
-    raise RunIssue.from_current_tb(
-        code_problem=CodeProblem.NonBreakingRuntimeIssue,
-        issue='Unpacking, or otherwise iterating over, the TtestResult object can lead to errors.',
-        instructions='You should instead explicitly access the attributes of the TtestResult object.',
-    )
-
-
 @dataclass
-class ScipyTtestResultOverride(AttrReplacer):
+class ScipyTtestResultOverride(MultiAttrReplacerContext):
     """
-    Prevent iteration over the TtestResult object, which is a namedtuple.
+    Prevent iteration over the TtestResult and PearsonRResult objects, which are namedtuples.
+    In particular, this prevents unpacking of the objects, which can lead to mistakes in the order of the values.
     """
-    package_names: Iterable[str] = ('scipy', )
-    obj_import_str: str = 'scipy.stats._stats_py.TtestResult'
-    attr: str = '__iter__'
-    wrapper: callable = TtestResult__iter__
+    def _get_all_parents(self) -> list:
+        from scipy.stats._stats_py import TtestResult, PearsonRResult
+        return [TtestResult, PearsonRResult]
+
+    def _get_all_attrs_for_parent(self, parent) -> Iterable[str]:
+        return ['__iter__']
+
+    def _get_custom_wrapper(self, parent, attr_name, original_func):
+        def __iter__(self):
+            obj_name = parent.__name__
+            raise RunIssue.from_current_tb(
+                code_problem=CodeProblem.NonBreakingRuntimeIssue,
+                issue=f'Unpacking, or otherwise iterating over, the {obj_name} object can lead to mistakes.',
+                instructions='Your code should instead explicitly access the attributes of the {obj_name} object.'
+            )
+        return __iter__

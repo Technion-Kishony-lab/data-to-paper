@@ -3,7 +3,7 @@ import statsmodels.api as sm
 import pandas as pd
 from scipy.stats import stats
 from scipy import stats as scipy_stats
-from scipy.stats._stats_py import TtestResult
+from scipy.stats._stats_py import TtestResult, PearsonRResult
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.stats.anova import anova_lm
 
@@ -270,7 +270,7 @@ def test_pvalue_from_dict():
     assert is_p_value(pvalue)
 
 
-def test_ttest_result_unpacking():
+def test_TtestResult_unpacking():
     with ScipyTtestResultOverride():
         ttest_results = TtestResult(statistic=5., pvalue=0.7, df=3534,
                                     estimate=1, standard_error=1, alternative=1)
@@ -280,4 +280,22 @@ def test_ttest_result_unpacking():
         with pytest.raises(RunIssue) as e:
             # Unpacking is not allowed:
             statistic, pvalue = ttest_results
+        assert 'Unpacking' in str(e.value)
+
+
+def test_PearsonRResult_unpacking():
+    # Sanity check:
+    pearson_results = PearsonRResult(pvalue=0.7, statistic=1, alternative=1, n=1, x=1, y=1)
+    statistic, pvalue = pearson_results
+    assert statistic == 1
+    assert pvalue == 0.7
+
+    with ScipyTtestResultOverride():
+        pearson_results = PearsonRResult(pvalue=0.7, statistic=1, alternative=1, n=1, x=1, y=1)
+        # Explicitly accessing the attributes is allowed:
+        assert pearson_results.statistic == 1
+        assert pearson_results.pvalue == 0.7
+        with pytest.raises(RunIssue) as e:
+            # Unpacking is not allowed:
+            statistic, pvalue = pearson_results
         assert 'Unpacking' in str(e.value)
