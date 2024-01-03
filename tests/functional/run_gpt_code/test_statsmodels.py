@@ -323,3 +323,17 @@ def test_do_not_allow_unpacking_and_getitem_of_chi2_contingency(data_chi2_contin
         with pytest.raises(RunIssue) as e:
             result[0]
         assert 'by index' in str(e.value)
+
+
+def test_register_unpacking_of_ttest_ind(data_for_ttest):
+    with ScipyPValueOverride(prevent_unpacking=None) as override:
+        result = scipy_stats.ttest_ind(*data_for_ttest)
+        statistic, pvalue = result
+    assert override.unpacking_func_to_fields == {'ttest_ind': ('statistic', 'pvalue')}
+
+
+def test_register_unpacking_of_chi2_contingency(data_chi2_contingency):
+    with ScipyPValueOverride(prevent_unpacking=None) as override:
+        result = scipy_stats.chi2_contingency(data_chi2_contingency)
+        statistic, pvalue, dof, expected_freq = result
+    assert override.unpacking_func_to_fields == {'chi2_contingency': ('statistic', 'pvalue', 'dof', 'expected_freq')}
