@@ -5,10 +5,11 @@ from typing import Iterable
 
 from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext, \
-    SystematicMethodReplacerContext, MultiAttrReplacerContext
+    MultiAttrReplacerContext
 from data_to_paper.utils.text_formatting import short_repr
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
+from ..types import is_namedtuple, NoIterTuple
 from ...run_issues import CodeProblem, RunIssue
 
 
@@ -44,32 +45,10 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
                                                               func_call_str=func_call_str)
                         self._add_pvalue_creating_func(created_by)
                         result = type(result)(**asdict)
+                        if is_namedtuple(result):
+                            result = NoIterTuple(result, created_by=created_by)
                 except (AttributeError, TypeError, ValueError):
                     pass
             return result
 
         return wrapped
-
-
-@dataclass
-class ScipyTtestResultOverride(MultiAttrReplacerContext):
-    """
-    Prevent iteration over the TtestResult and PearsonRResult objects, which are namedtuples.
-    In particular, this prevents unpacking of the objects, which can lead to mistakes in the order of the values.
-    """
-    def _get_all_parents(self) -> list:
-        from scipy.stats._stats_py import TtestResult, PearsonRResult
-        return [TtestResult, PearsonRResult]
-
-    def _get_all_attrs_for_parent(self, parent) -> Iterable[str]:
-        return ['__iter__']
-
-    def _get_custom_wrapper(self, parent, attr_name, original_func):
-        def __iter__(self):
-            obj_name = parent.__name__
-            raise RunIssue.from_current_tb(
-                code_problem=CodeProblem.NonBreakingRuntimeIssue,
-                issue=f'Unpacking, or otherwise iterating over, the {obj_name} object can lead to mistakes.',
-                instructions='Your code should instead explicitly access the attributes of the {obj_name} object.'
-            )
-        return __iter__
