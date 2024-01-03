@@ -278,32 +278,48 @@ def test_pvalue_from_dict():
     assert is_p_value(pvalue)
 
 
-def test_TtestResult_unpacking():
-    with ScipyTtestResultOverride():
-        ttest_results = TtestResult(statistic=5., pvalue=0.7, df=3534,
-                                    estimate=1, standard_error=1, alternative=1)
-        # Explicitly accessing the attributes is allowed:
-        assert ttest_results.statistic == 5.
-        assert ttest_results.pvalue == 0.7
+def test_do_not_allow_unpacking_and_getitem_of_ttest_ind(data_for_ttest):
+    # Sanity:
+    result = scipy_stats.ttest_ind(*data_for_ttest)
+    statistic, pvalue = result
+    assert result.statistic == statistic
+    assert result.pvalue == pvalue
+    assert len(result) == 2
+    assert result[0] == statistic
+    assert result[1] == pvalue
+
+    with ScipyPValueOverride():
+        result = scipy_stats.ttest_ind(*data_for_ttest)
+        # allowed:
+        result.pvalue
+        assert len(result) == 2
+        # not allowed:
         with pytest.raises(RunIssue) as e:
-            # Unpacking is not allowed:
-            statistic, pvalue = ttest_results
+            statistic, pvalue = result
         assert 'Unpacking' in str(e.value)
-
-
-def test_PearsonRResult_unpacking():
-    # Sanity check:
-    pearson_results = PearsonRResult(pvalue=0.7, statistic=1, alternative=1, n=1, x=1, y=1)
-    statistic, pvalue = pearson_results
-    assert statistic == 1
-    assert pvalue == 0.7
-
-    with ScipyTtestResultOverride():
-        pearson_results = PearsonRResult(pvalue=0.7, statistic=1, alternative=1, n=1, x=1, y=1)
-        # Explicitly accessing the attributes is allowed:
-        assert pearson_results.statistic == 1
-        assert pearson_results.pvalue == 0.7
         with pytest.raises(RunIssue) as e:
-            # Unpacking is not allowed:
-            statistic, pvalue = pearson_results
+            result[0]
+        assert 'by index' in str(e.value)
+
+
+def test_do_not_allow_unpacking_and_getitem_of_chi2_contingency(data_chi2_contingency):
+    # Sanity:
+    result = scipy_stats.chi2_contingency(data_chi2_contingency)
+    statistic, pvalue, dof, expected_freq = result
+    assert result.statistic == statistic
+    assert result.pvalue == pvalue
+    assert len(result) == 4
+    assert result[0] == statistic
+    assert result[1] == pvalue
+    with ScipyPValueOverride():
+        result = scipy_stats.chi2_contingency(data_chi2_contingency)
+        # allowed:
+        result.pvalue
+        assert len(result) == 4
+        # not allowed:
+        with pytest.raises(RunIssue) as e:
+            statistic, pvalue, dof, expected_freq = result
         assert 'Unpacking' in str(e.value)
+        with pytest.raises(RunIssue) as e:
+            result[0]
+        assert 'by index' in str(e.value)
