@@ -153,7 +153,7 @@ class RunCode:
         return contexts
 
     def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None, save_as: Optional[str] = None,
-            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, Any], Optional[FailedRunningCode]]:
+            ) -> Tuple[Any, ListBasedSet[str], RunIssues, Dict[str, RunContext], Optional[FailedRunningCode]]:
         """
         Run the provided code and report exceptions or specific warnings.
 
@@ -209,11 +209,11 @@ class RunCode:
             save_code_to_module_file()  # leave the module empty
 
         # Collect issues from all contexts
+        contexts = {name: context for name, context in contexts.items()
+                    if isinstance(context, RunContext) and is_serializable(context)}
         issues = RunIssues()
         for context in contexts.values():
-            if isinstance(context, RunContext):
-                issues.extend(context.issues)
-        contexts = {name: context for name, context in contexts.items() if is_serializable(context)}
+            issues.extend(context.issues)
 
         return result, created_files, issues, contexts, exception
 

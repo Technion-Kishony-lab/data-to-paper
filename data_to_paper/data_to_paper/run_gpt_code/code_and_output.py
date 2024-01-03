@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Optional, Any, TYPE_CHECKING
+from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
+from .base_run_contexts import RunContext
 
 from .output_file_requirements import OutputFileRequirementsWithContent
 
@@ -23,6 +24,7 @@ class CodeAndOutput:
     code_name: str = None
     code_explanation: Optional[str] = None
     provided_code: Optional[str] = None
+    contexts: Optional[Dict[str, RunContext]] = None
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 

@@ -13,6 +13,7 @@ from data_to_paper.env import MAX_EXEC_TIME
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, is_serializable
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
+from .base_run_contexts import RunContext
 
 from .exceptions import FailedRunningCode, CodeTimeoutException
 from .code_and_output import CodeAndOutput
@@ -88,10 +89,11 @@ class BaseCodeRunner(ABC):
                 created_files=created_files, run_folder=self.run_folder),
             dataframe_operations=contexts['TrackDataFrames'].dataframe_operations
             if 'TrackDataFrames' in contexts else None,
+            contexts=contexts,
         )
 
     def run_code(self, code: Optional[str] = None, modified_code: Optional[str] = None) \
-            -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+            -> Tuple[CodeAndOutput, List[RunIssue], Dict[str, RunContext], Optional[FailedRunningCode]]:
         """
         Run code from GPT response, and return the output and the code.
         """
@@ -105,7 +107,7 @@ class BaseCodeRunner(ABC):
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
 
     def run_code_in_separate_process(self) \
-            -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, Any], Optional[FailedRunningCode]]:
+            -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, RunContext], Optional[FailedRunningCode]]:
         """
         Run the provided code in a separate process and report exceptions or specific warnings.
         Calls `run_in_provided_process` which is a wrapper for `run`.
