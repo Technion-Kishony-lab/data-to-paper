@@ -209,11 +209,12 @@ class RunCode:
             save_code_to_module_file()  # leave the module empty
 
         # Collect issues from all contexts
-        contexts = {name: context for name, context in contexts.items()
-                    if isinstance(context, RunContext) and is_serializable(context)}
         issues = RunIssues()
         for context in contexts.values():
-            issues.extend(context.issues)
+            if hasattr(context, 'issues'):
+                issues.extend(context.issues)
+        contexts = {name: context for name, context in contexts.items()
+                    if isinstance(context, RunContext) and is_serializable(context)}
 
         return result, created_files, issues, contexts, exception
 
