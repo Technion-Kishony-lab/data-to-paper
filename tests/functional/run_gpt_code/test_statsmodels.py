@@ -288,7 +288,7 @@ def test_do_not_allow_unpacking_and_getitem_of_ttest_ind(data_for_ttest):
     assert result[0] == statistic
     assert result[1] == pvalue
 
-    with ScipyPValueOverride():
+    with ScipyPValueOverride(prevent_unpacking=True):
         result = scipy_stats.ttest_ind(*data_for_ttest)
         # allowed:
         result.pvalue
@@ -311,7 +311,7 @@ def test_do_not_allow_unpacking_and_getitem_of_chi2_contingency(data_chi2_contin
     assert len(result) == 4
     assert result[0] == statistic
     assert result[1] == pvalue
-    with ScipyPValueOverride():
+    with ScipyPValueOverride(prevent_unpacking=True):
         result = scipy_stats.chi2_contingency(data_chi2_contingency)
         # allowed:
         result.pvalue

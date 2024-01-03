@@ -13,6 +13,7 @@ from ..types import is_namedtuple, NoIterTuple
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
+    prevent_unpacking: bool = True
     package_names: Iterable[str] = ('scipy', )
     obj_import_str: str = 'scipy'
 
@@ -43,7 +44,7 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
                                                               func_call_str=func_call_str)
                         self._add_pvalue_creating_func(created_by)
                         result = type(result)(**asdict)
-                        if is_namedtuple(result):
+                        if self.prevent_unpacking and is_namedtuple(result):
                             result = NoIterTuple(result, created_by=created_by)
                 except (AttributeError, TypeError, ValueError):
                     pass
