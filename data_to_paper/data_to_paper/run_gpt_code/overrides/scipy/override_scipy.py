@@ -1,7 +1,7 @@
 import functools
 import inspect
-from dataclasses import dataclass
-from typing import Iterable
+from dataclasses import dataclass, field
+from typing import Iterable, Dict, Optional
 
 from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
@@ -13,9 +13,13 @@ from ..types import is_namedtuple, NoIterTuple
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
-    prevent_unpacking: bool = True
+    prevent_unpacking: Optional[bool] = True  # False - do not prevent;  True - prevent;  None - register unpacking
     package_names: Iterable[str] = ('scipy', )
     obj_import_str: str = 'scipy'
+    unpacking_func_to_fields: Dict[str, Iterable[str]] = field(default_factory=dict)
+
+    def register_unpacking(self, created_by: str, fields: Iterable[str]):
+        self.unpacking_func_to_fields[created_by] = fields
 
     def _should_replace(self, module, func_name, func) -> bool:
         doc = inspect.getdoc(func)
@@ -28,26 +32,30 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
         @functools.wraps(original_func)
         def wrapped(*args, **kwargs):
             result = original_func(*args, **kwargs)
+            created_by = original_func.__name__
 
             if TRACK_P_VALUES:
                 # Get function call string representation:
                 # For each arg in args, get a short representation of it, like 'array(shape=(2, 3))':
-                func_call_str = original_func.__name__ + '(' + ', '.join(
+                func_call_str = created_by + '(' + ', '.join(
                     [short_repr(arg) for arg in args] + [f'{k}={short_repr(v)}' for k, v in kwargs.items()]) + ')'
                 # Replace the pvalues attribute if it exists
                 try:
                     asdict = {k.strip('_'): v for k, v in result._asdict().items()}
                     if 'pvalue' in asdict:
-                        created_by = original_func.__name__
                         asdict['pvalue'] = convert_to_p_value(asdict['pvalue'],
                                                               created_by=created_by,
                                                               func_call_str=func_call_str)
                         self._add_pvalue_creating_func(created_by)
                         result = type(result)(**asdict)
-                        if self.prevent_unpacking and is_namedtuple(result):
-                            result = NoIterTuple(result, created_by=created_by)
                 except (AttributeError, TypeError, ValueError):
                     pass
+
+            if self.prevent_unpacking is not False and is_namedtuple(result):
+                result = NoIterTuple(result, created_by=created_by, context=self,
+                                     should_raise=self.prevent_unpacking is True,
+                                     should_register=self.prevent_unpacking is None)
+
             return result
 
         return wrapped

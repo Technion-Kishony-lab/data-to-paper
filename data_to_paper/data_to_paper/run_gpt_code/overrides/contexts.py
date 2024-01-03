@@ -21,7 +21,7 @@ class OverrideStatisticsPackages(MultiRunContext):
     issue_if_statistics_test_not_called: bool = True
 
     contexts: Iterable[RunContext] = field(default_factory=lambda: [
-        ScipyPValueOverride(prevent_unpacking=True),
+        ScipyPValueOverride(prevent_unpacking=None),
         SklearnFitOverride(),
         StatsmodelsFitPValueOverride(),
         StatsmodelsMultitestPValueOverride(),
