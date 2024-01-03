@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple, Union
 
 from data_to_paper.exceptions import data_to_paperException
 
-from .consts import module_filename
+from .user_script_name import module_filename
 
 
 @dataclass

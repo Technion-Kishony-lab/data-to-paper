@@ -1,4 +1,3 @@
-import os
 import time
 import pickle
 
@@ -8,17 +7,13 @@ from _pytest.python_api import raises
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import DataframeKeyError
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, AttrReplacer
-from tests.functional.run_gpt_code.conftest import TestDoNotAssign
-
-# get the name of this file without the path:
-THIS_FILE = os.path.basename(__file__)
+from tests.functional.run_gpt_code.types import TestDoNotAssign
 
 
 def test_prevent_assignment_to_attr():
     t = TestDoNotAssign()
     with PreventAssignmentToAttrs(obj_import_str=TestDoNotAssign,
-                                  forbidden_set_attrs=['not_allowed'],
-                                  module_filename=THIS_FILE):
+                                  forbidden_set_attrs=['not_allowed']):
         t.allowed = 1
         with raises(AttributeError) as exc:
             t.not_allowed = 1
@@ -31,8 +26,7 @@ def test_prevent_assignment_to_attr():
 def test_prevent_assignment_to_attr_is_permissive_internally():
     t = TestDoNotAssign()
     with PreventAssignmentToAttrs(obj_import_str=TestDoNotAssign,
-                                  forbidden_set_attrs=['not_allowed'],
-                                  module_filename=THIS_FILE):
+                                  forbidden_set_attrs=['not_allowed']):
         with raises(AttributeError):
             t.not_allowed = 1
         t.set_internally(7)

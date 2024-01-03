@@ -23,7 +23,7 @@ from .run_contexts import PreventFileOpen, PreventImport, WarningHandler, Provid
 
 from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutException
 from .timeout_context import timeout_context
-from .consts import MODULE_NAME, module_filename
+from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue, RunIssues
 from .output_file_requirements import OutputFileRequirements
 from data_to_paper.utils.singleton import undefined

@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import os
-import traceback
 from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass
 from typing import List, Type, TypeVar, Optional, Iterable
 
-from data_to_paper.env import BASE_FOLDER_NAME
-from data_to_paper.utils.mutable import Flag
-
-from .consts import module_filename
+from .user_script_name import is_called_from_user_script, is_called_from_data_to_paper
 from .run_issues import RunIssues
 
 T = TypeVar('T', bound='SingletonRegisteredRunContext')
@@ -68,10 +64,7 @@ class RunContext(DisableableContext):
     """
     Base context manager for running GPT code.
     """
-    _is_checking = Flag(False)
-    calling_module_name = BASE_FOLDER_NAME
     issues: Optional[RunIssues] = None
-    module_filename: str = module_filename
 
     def __enter__(self):
         self.issues = RunIssues()
@@ -81,18 +74,13 @@ class RunContext(DisableableContext):
         """
         Check if the code is called from user script.
         """
-        if self._is_checking:
-            return False  # prevent infinite recursion
-        with self._is_checking.temporary_set(True):
-            tb = traceback.extract_stack()
-        filepath = tb[-offset].filename
-        filename = os.path.basename(filepath)
-        return filename == self.module_filename or filename.startswith('test_')
+        return is_called_from_user_script(offset=offset + 1)
 
-    def _is_called_from_data_to_paper(self) -> bool:
-        tb = traceback.extract_stack()
-        filename = tb[-3].filename
-        return self.calling_module_name in filename
+    def _is_called_from_data_to_paper(self, offset: int = 3) -> bool:
+        """
+        Check if the code is called from data_to_paper.
+        """
+        return is_called_from_data_to_paper(offset=offset + 1)
 
 
 @dataclass

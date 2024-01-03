@@ -8,10 +8,12 @@ from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncRe
 from data_to_paper.utils.text_formatting import short_repr
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
+from ..types import is_namedtuple, NoIterTuple
 
 
 @dataclass
 class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFuncs):
+    prevent_unpacking: bool = True
     package_names: Iterable[str] = ('scipy', )
     obj_import_str: str = 'scipy'
 
@@ -42,6 +44,8 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
                                                               func_call_str=func_call_str)
                         self._add_pvalue_creating_func(created_by)
                         result = type(result)(**asdict)
+                        if self.prevent_unpacking and is_namedtuple(result):
+                            result = NoIterTuple(result, created_by=created_by)
                 except (AttributeError, TypeError, ValueError):
                     pass
             return result

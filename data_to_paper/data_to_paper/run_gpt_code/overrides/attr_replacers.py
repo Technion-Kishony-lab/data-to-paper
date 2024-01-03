@@ -83,42 +83,25 @@ class OverrideImportedObjContext(RegisteredRunContext):
 
 
 @dataclass
-class SystematicAttrReplacerContext(OverrideImportedObjContext):
-    recursive: bool = True
+class MultiAttrReplacerContext(OverrideImportedObjContext):
     _originals: Optional[dict] = None
 
-    def _get_all_modules(self) -> list:
-        all_modules = [self.obj]
-        if self.recursive:
-            all_modules += get_all_submodules(self.obj)
-        return all_modules
-
     def _get_all_parents(self) -> set:
-        return NotImplemented
+        raise NotImplementedError
 
-    def _is_right_type(self, obj) -> bool:
-        return NotImplemented
-
-    def _should_replace(self, parent, attr_name, attr) -> bool:
-        return NotImplemented
+    def _get_all_attrs_for_parent(self, parent) -> Iterable[str]:
+        raise NotImplementedError
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
-        return NotImplemented
+        raise NotImplementedError
 
     def __enter__(self):
-        # TODO: This doesn't work for some reason. For now, each subclass should import the needed submodules itself.
-        # import_submodules(self.obj)  # make sure all submodules are imported
         self._originals = {}
-        all_parent = self._get_all_parents()
-        for parent in all_parent:
-            for attr_name, attr_obj in parent.__dict__.items():
-                if (parent, attr_name) not in self._originals \
-                        and self._is_right_type(attr_obj) \
-                        and self._should_replace(parent, attr_name, attr_obj):
-                    original = getattr(parent, attr_name)
-                    assert original is attr_obj
-                    self._originals[(parent, attr_name)] = original
-                    setattr(parent, attr_name, self._get_custom_wrapper(parent, attr_name, original))
+        for parent in self._get_all_parents():
+            for attr_name in self._get_all_attrs_for_parent(parent):
+                original = getattr(parent, attr_name)
+                self._originals[(parent, attr_name)] = original
+                setattr(parent, attr_name, self._get_custom_wrapper(parent, attr_name, original))
         return super().__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -126,6 +109,27 @@ class SystematicAttrReplacerContext(OverrideImportedObjContext):
             setattr(parent, attr_name, original)
         self._originals = None
         return super().__exit__(exc_type, exc_val, exc_tb)
+
+
+@dataclass
+class SystematicAttrReplacerContext(MultiAttrReplacerContext):
+    recursive: bool = True
+
+    def _get_all_modules(self) -> list:
+        all_modules = [self.obj]
+        if self.recursive:
+            all_modules += get_all_submodules(self.obj)
+        return all_modules
+
+    def _is_right_type(self, obj) -> bool:
+        return NotImplemented
+
+    def _should_replace(self, parent, attr_name, attr) -> bool:
+        return NotImplemented
+
+    def _get_all_attrs_for_parent(self, parent) -> Iterable[str]:
+        return [attr_name for attr_name, attr_obj in parent.__dict__.items()
+                if self._is_right_type(attr_obj) and self._should_replace(parent, attr_name, attr_obj)]
 
 
 class SystematicMethodReplacerContext(SystematicAttrReplacerContext):

@@ -1,6 +1,7 @@
 import pytest
 import statsmodels.api as sm
 import pandas as pd
+from _pytest.fixtures import fixture
 from scipy.stats import stats
 from scipy import stats as scipy_stats
 from scipy.stats._stats_py import TtestResult
@@ -8,7 +9,6 @@ from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.stats.anova import anova_lm
 
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
-from data_to_paper.run_gpt_code.exceptions import FailedRunningCode
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnFitOverride
 from data_to_paper.run_gpt_code.overrides.statsmodels.override_statsmodels import StatsmodelsFitPValueOverride
@@ -19,10 +19,35 @@ from statsmodels.formula.api import ols, logit
 from data_to_paper.run_gpt_code.run_issues import RunIssue
 
 
-def test_fit_results_do_not_allow_summary():
+@fixture()
+def data_for_ttest():
+    return (
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10],
+    )
+
+
+@fixture()
+def data_y_x():
+    return pd.DataFrame({'y': [0, 0, 1, 1, 1], 'x': [1, 2, 3, 4, 5]})
+
+
+@fixture()
+def data_Logit(data_y_x):
+    x = data_y_x['x']
+    x = sm.add_constant(x)
+    y = data_y_x['y']
+    return y, x
+
+
+@fixture()
+def data_chi2_contingency():
+    return [[10, 10, 20], [20, 20, 20]]
+
+
+def test_fit_results_do_not_allow_summary(data_y_x):
     with OverrideStatisticsPackages():
-        data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
-        model = ols('y ~ x', data=data)
+        model = ols('y ~ x', data=data_y_x)
         results = model.fit()
         with pytest.raises(RunIssue) as e:
             results.summary()
@@ -73,14 +98,9 @@ def test_statsmodels_issues_on_singular_matrix(with_redundant_feature):
         assert len(context.issues) == 0
 
 
-def test_statsmodels_logit():
+def test_statsmodels_logit(data_Logit):
     with StatsmodelsFitPValueOverride():
-        # Example data
-        X = [1, 2, 3, 4, 5]
-        y = [0, 0, 1, 1, 1]
-        X = sm.add_constant(X)
-
-        model = sm.Logit(y, X)
+        model = sm.Logit(*data_Logit)
         results = model.fit()
 
         pval = results.pvalues[0]
@@ -92,13 +112,9 @@ def test_statsmodels_logit():
     True,
     False,
 ])
-def test_statsmodels_create_issue_if_no_fit_is_called(calling_fit):
+def test_statsmodels_create_issue_if_no_fit_is_called(calling_fit, data_Logit):
     with OverrideStatisticsPackages() as context:
-        # Example data
-        X = [1, 2, 3, 4, 5]
-        y = [0, 0, 1, 1, 1]
-        X = sm.add_constant(X)
-        model = sm.Logit(y, X)
+        model = sm.Logit(*data_Logit)
         if calling_fit:
             model.fit()
     if calling_fit:
@@ -107,10 +123,9 @@ def test_statsmodels_create_issue_if_no_fit_is_called(calling_fit):
         assert len(context.issues) == 1
 
 
-def test_statsmodels_anova_lm():
+def test_statsmodels_anova_lm(data_y_x):
     with OverrideStatisticsPackages():
-        data = pd.DataFrame({'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]})
-        model = ols('y ~ x', data=data).fit()
+        model = ols('y ~ x', data=data_y_x).fit()
         anova_result = anova_lm(model, typ=2)
         pval = anova_result.loc['x', 'PR(>F)']
         assert is_p_value(pval)
@@ -125,13 +140,9 @@ def test_statsmodels_multicomp():
     assert is_p_value(tukey.pvalues[0])
 
 
-def test_statsmodels_logit_func():
+def test_statsmodels_logit_func(data_y_x):
     with StatsmodelsFitPValueOverride():
-        # Example data
-        X = [1, 2, 3, 4, 5]
-        y = [0, 0, 1, 1, 1]
-
-        results = logit('y ~ X', data=pd.DataFrame({'y': y, 'X': X})).fit()
+        results = logit('y ~ x', data=data_y_x).fit()
         table2 = results.summary2().tables[1].iloc[:, 0:4]
         table2.columns = ['coef', 'std err', 'z', 'P>|z|']
         P = table2['P>|z|']
@@ -220,7 +231,8 @@ def test_scipy_label_pvalues():
         # Example data
         data = [2.5, 3.1, 2.8, 3.2, 3.0]
         popmean = 3.0
-        t_statistic, p_value = stats.ttest_1samp(data, popmean)
+        result = stats.ttest_1samp(data, popmean)
+        p_value = result.pvalue
         assert is_p_value(p_value)
         assert p_value.created_by == 'ttest_1samp'
 
@@ -233,20 +245,16 @@ def test_scipy_label_pvalues_raise_on_nan():
             t_statistic, p_value = stats.ttest_1samp(data, popmean)
 
 
-def test_scipy_label_pvalues_chi2_contingency():
+def test_scipy_label_pvalues_chi2_contingency(data_chi2_contingency):
     with ScipyPValueOverride():
-        # Example data
-        observed = [[10, 10, 20], [20, 20, 20]]
-        chi2, p, dof, expected = scipy_stats.chi2_contingency(observed)
-        assert is_p_value(p)
+        p_value = scipy_stats.chi2_contingency(data_chi2_contingency).pvalue
+        assert is_p_value(p_value)
 
 
-def test_scipy_label_pvalues_ttest_ind():
+def test_scipy_label_pvalues_ttest_ind(data_for_ttest):
     with ScipyPValueOverride():
         # Example data
-        data1 = [0, 1, 2, 3, 4, 5]
-        data2 = [5, 6, 7, 8, 9, 10]
-        t_statistic, p_value = scipy_stats.ttest_ind(data1, data2)
+        p_value = scipy_stats.ttest_ind(*data_for_ttest).pvalue
         assert is_p_value(p_value)
         assert p_value.created_by == 'ttest_ind'
 
@@ -268,3 +276,50 @@ def test_pvalue_from_dict():
     df = pd.DataFrame.from_dict(ttest_results, orient='index')
     pvalue = df['pvalue'][0]
     assert is_p_value(pvalue)
+
+
+def test_do_not_allow_unpacking_and_getitem_of_ttest_ind(data_for_ttest):
+    # Sanity:
+    result = scipy_stats.ttest_ind(*data_for_ttest)
+    statistic, pvalue = result
+    assert result.statistic == statistic
+    assert result.pvalue == pvalue
+    assert len(result) == 2
+    assert result[0] == statistic
+    assert result[1] == pvalue
+
+    with ScipyPValueOverride(prevent_unpacking=True):
+        result = scipy_stats.ttest_ind(*data_for_ttest)
+        # allowed:
+        result.pvalue
+        assert len(result) == 2
+        # not allowed:
+        with pytest.raises(RunIssue) as e:
+            statistic, pvalue = result
+        assert 'Unpacking' in str(e.value)
+        with pytest.raises(RunIssue) as e:
+            result[0]
+        assert 'by index' in str(e.value)
+
+
+def test_do_not_allow_unpacking_and_getitem_of_chi2_contingency(data_chi2_contingency):
+    # Sanity:
+    result = scipy_stats.chi2_contingency(data_chi2_contingency)
+    statistic, pvalue, dof, expected_freq = result
+    assert result.statistic == statistic
+    assert result.pvalue == pvalue
+    assert len(result) == 4
+    assert result[0] == statistic
+    assert result[1] == pvalue
+    with ScipyPValueOverride(prevent_unpacking=True):
+        result = scipy_stats.chi2_contingency(data_chi2_contingency)
+        # allowed:
+        result.pvalue
+        assert len(result) == 4
+        # not allowed:
+        with pytest.raises(RunIssue) as e:
+            statistic, pvalue, dof, expected_freq = result
+        assert 'Unpacking' in str(e.value)
+        with pytest.raises(RunIssue) as e:
+            result[0]
+        assert 'by index' in str(e.value)
