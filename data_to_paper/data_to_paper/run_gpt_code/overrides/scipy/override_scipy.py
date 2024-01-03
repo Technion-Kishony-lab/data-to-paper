@@ -4,10 +4,11 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from data_to_paper.env import TRACK_P_VALUES
-from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext
+from data_to_paper.run_gpt_code.overrides.attr_replacers import SystematicFuncReplacerContext, AttrReplacer
 from data_to_paper.utils.text_formatting import short_repr
 
 from ..pvalue import convert_to_p_value, TrackPValueCreationFuncs
+from ...run_issues import CodeProblem, RunIssue
 
 
 @dataclass
@@ -47,3 +48,22 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
             return result
 
         return wrapped
+
+
+def TtestResult__iter__(self):
+    raise RunIssue.from_current_tb(
+        code_problem=CodeProblem.NonBreakingRuntimeIssue,
+        issue='Unpacking, or otherwise iterating over, the TtestResult object can lead to errors.',
+        instructions='You should instead explicitly access the attributes of the TtestResult object.',
+    )
+
+
+@dataclass
+class ScipyTtestResultOverride(AttrReplacer):
+    """
+    Prevent iteration over the TtestResult object, which is a namedtuple.
+    """
+    package_names: Iterable[str] = ('scipy', )
+    obj_import_str: str = 'scipy.stats._stats_py.TtestResult'
+    attr: str = '__iter__'
+    wrapper: callable = TtestResult__iter__

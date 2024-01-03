@@ -4,7 +4,7 @@ from typing import Iterable
 from data_to_paper.utils.nice_list import NiceList
 
 from .pvalue import TrackPValueCreationFuncs
-from .scipy.override_scipy import ScipyPValueOverride
+from .scipy.override_scipy import ScipyPValueOverride, ScipyTtestResultOverride
 from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
     SklearnNNSizeOverride
 from .statsmodels.override_statsmodels import StatsmodelsFitPValueOverride, StatsmodelsMultitestPValueOverride, \
@@ -22,6 +22,7 @@ class OverrideStatisticsPackages(MultiRunContext):
 
     contexts: Iterable[RunContext] = field(default_factory=lambda: [
         ScipyPValueOverride(),
+        ScipyTtestResultOverride(),
         SklearnFitOverride(),
         StatsmodelsFitPValueOverride(),
         StatsmodelsMultitestPValueOverride(),
