@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import traceback
 from contextlib import contextmanager, ExitStack
 from dataclasses import dataclass
 from typing import List, Type, TypeVar, Optional, Iterable

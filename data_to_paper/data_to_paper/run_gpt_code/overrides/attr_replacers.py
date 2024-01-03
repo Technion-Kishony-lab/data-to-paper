@@ -87,13 +87,13 @@ class MultiAttrReplacerContext(OverrideImportedObjContext):
     _originals: Optional[dict] = None
 
     def _get_all_parents(self) -> set:
-        raise NotImplemented
+        raise NotImplementedError
 
     def _get_all_attrs_for_parent(self, parent) -> Iterable[str]:
-        raise NotImplemented
+        raise NotImplementedError
 
     def _get_custom_wrapper(self, parent, attr_name, original_func):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __enter__(self):
         self._originals = {}

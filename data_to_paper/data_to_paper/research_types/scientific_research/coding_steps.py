@@ -629,7 +629,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
 
         num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
-        is_descriptive_table = 'table_0.pkl' in code_and_output.created_files.get_created_content_files_to_contents()
+        # is_descriptive_table = 'table_0.pkl' in code_and_output.created_files.get_created_content_files_to_contents()
         if num_tables >= 3:
             s = ''
         else:
