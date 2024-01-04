@@ -48,13 +48,21 @@ class PValue(OperatorValue):
         return self._forbidden_func(float)
 
     @classmethod
-    def from_value(cls, value, created_by: str = None, raise_on_nan: bool = True, func_call_str: str = None):
+    def from_value(cls, value, created_by: str = None, raise_on_nan: bool = True,  raise_on_one: bool = True,
+                   func_call_str: str = None):
         if isinstance(value, cls):
             return value
         if raise_on_nan and np.isnan(value):
             call_str = f'\nThe function was called as: \n{func_call_str}\n\n' if func_call_str else ''
             raise RunIssue.from_current_tb(
                     issue=f'The function returned a p-value of NaN.\n{call_str}',
+                    code_problem=CodeProblem.RuntimeError,
+                    instructions='Please see if you understand why this is happening and fix it.',
+            )
+        if raise_on_one and value == 1:
+            call_str = f'\nThe function was called as: \n{func_call_str}\n\n' if func_call_str else ''
+            raise RunIssue.from_current_tb(
+                    issue=f'The function returned a p-value of 1.\n{call_str}',
                     code_problem=CodeProblem.RuntimeError,
                     instructions='Please see if you understand why this is happening and fix it.',
             )
