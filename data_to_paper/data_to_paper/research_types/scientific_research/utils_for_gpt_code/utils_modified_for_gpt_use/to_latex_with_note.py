@@ -86,15 +86,6 @@ def is_unknown_abbreviation(name: str) -> bool:
     if not isinstance(name, str):
         return False
 
-    if len(name) == 0:
-        return False
-
-    if len(name) <= 2:
-        return True
-
-    if name.isnumeric():
-        return False
-
     for abbreviation in KNOWN_ABBREVIATIONS:
         if abbreviation.endswith('.'):
             pattern = r'\b' + re.escape(abbreviation)
