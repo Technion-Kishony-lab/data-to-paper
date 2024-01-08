@@ -13,6 +13,7 @@ MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
     "meta-llama/Llama-2-7b-chat-hf": (4096, 0.0002, 0.0002),
     "meta-llama/Llama-2-70b-chat-hf": (4096, 0.0007, 0.001),
     "codellama/CodeLlama-34b-Instruct-hf": (4096, 0.0006, 0.0006),
+    "mistralai/Mixtral-8x7B-Instruct-v0.1": (32768, 0.00027, 0.00027),
 }
 
 
@@ -29,6 +30,7 @@ class ModelEngine(IndexOrderedEnum):
     LLAMA_2_7b = "meta-llama/Llama-2-7b-chat-hf"
     LLAMA_2_70b = "meta-llama/Llama-2-70b-chat-hf"
     CODELLAMA = "codellama/CodeLlama-34b-Instruct-hf"
+    MIXTRAL_8x7B = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
     def __str__(self):
         return self.value
@@ -72,6 +74,7 @@ MODELS_TO_MORE_CONTEXT = {
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
+    ModelEngine.MIXTRAL_8x7B: None,
 }
 
 
@@ -83,6 +86,7 @@ MODELS_TO_MORE_STRENGTH = {
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
+    ModelEngine.MIXTRAL_8x7B: None,
 }
 
 
@@ -125,15 +129,15 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
     },
     "open": {
-        "Converser": ModelEngine.LLAMA_2_70b,
+        "Converser": ModelEngine.MIXTRAL_8x7B,
         "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
-        "DataAnalysisCodeProductsGPT": ModelEngine.CODELLAMA,
-        "CreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
-        "GetMostSimilarCitations": ModelEngine.LLAMA_2_70b,
-        "IsGoalOK": ModelEngine.LLAMA_2_70b,
-        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2_70b,
-        "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
-        "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
+        "DataAnalysisCodeProductsGPT": ModelEngine.MIXTRAL_8x7B,
+        "CreateTablesCodeProductsGPT": ModelEngine.MIXTRAL_8x7B,
+        "GetMostSimilarCitations": ModelEngine.MIXTRAL_8x7B,
+        "IsGoalOK": ModelEngine.MIXTRAL_8x7B,
+        "TablesReviewBackgroundProductsConverser": ModelEngine.MIXTRAL_8x7B,
+        "IntroductionSectionWriterReviewGPT": ModelEngine.MIXTRAL_8x7B,
+        "DiscussionSectionWriterReviewGPT": ModelEngine.MIXTRAL_8x7B,
     },
 }
 

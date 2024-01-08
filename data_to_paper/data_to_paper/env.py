@@ -37,6 +37,10 @@ OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL = dict[Optional[ModelEn
         ("",
          "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
          DEEPINFRA_API_BASE),
+    ModelEngine.MIXTRAL_8x7B:
+        ("",
+         "Qkt0hDL5QZXndUfWcWckWRu0EBBQWlKG",
+         DEEPINFRA_API_BASE),
 })
 
 S2_API_KEY = "hqcN3JMNgl2Ue889JZ1Zd3ogYCjtdpta8V0OXv3c"
