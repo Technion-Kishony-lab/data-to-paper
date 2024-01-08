@@ -40,7 +40,7 @@ RUN_PARAMETERS = dict(
 
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
-              output_folder="easier201",
+              output_folder="easier205",
               should_mock_servers=True,
               excluded_citation_titles=[NAME_OF_REPRODUCED_PAPER],
               load_from_repo=True,

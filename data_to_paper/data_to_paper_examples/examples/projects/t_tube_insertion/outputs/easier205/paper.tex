@@ -1,0 +1,588 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Insights into Optimal Tracheal Tube Depth in Pediatric Patients}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Determining the optimal depth for tracheal tube placement in pediatric patients is essential for safe mechanical ventilation. However, existing methods are time-consuming, involve radiation exposure, and have limited success. In this study, we leverage a unique dataset of post-operative mechanical ventilation cases in pediatric patients, collected from one of the leading medical centers. Through a robust data analysis, we investigate the optimal tracheal tube depth (OTTD) and compare the accuracy of height and age-based models. Our results reveal important insights into improving tracheal tube placement. Descriptive statistics stratified by sex provide valuable information on height and age distributions. Furthermore, a comprehensive comparison of mean squared errors between height and age formulas demonstrates the superiority of age-based models in predicting OTTD. Additionally, we perform a statistical comparison of residuals, validating the effectiveness of age formulas in minimizing prediction errors. Despite the limitations, such as the relatively small sample size, our findings have significant implications for enhancing tracheal tube placement in pediatric patients, reducing complications, and ultimately improving patient outcomes in critical care settings.
+\end{abstract}
+\section*{Results}
+
+Understanding the distribution of height and age in pediatric patients is crucial for determining the optimal tracheal tube depth (OTTD). To investigate this, we analyzed a unique dataset collected from 969 pediatric patients who underwent post-operative mechanical ventilation at one of the leading medical centers. The rationale behind this analysis is that pediatric patients have a shorter tracheal length compared to adults, making accurate tracheal tube placement vital for their safety.
+
+In the descriptive analysis stratified by sex (Table {}\ref{table:descriptive_sex}), we found that the mean height for female patients was 65.4 cm (\textit{sd} = 18.7) and for male patients it was 66.5 cm (\textit{sd} = 19.4). The mean age for females was 0.73 years (\textit{sd} = 1.4) and for males it was 0.78 years (\textit{sd} = 1.47). These distributions provide valuable insights into the patient characteristics, enabling more precise tracheal tube placement and reducing complications associated with mispositioning.
+
+\begin{table}[h]
+\caption{Descriptive statistics of height and age, stratified by sex}
+\label{table:descriptive_sex}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{r}{Height} & \multicolumn{3}{r}{Age} \\
+ & count & std & mean & count & std & mean \\
+sex &  &  &  &  &  &  \\
+\midrule
+\textbf{female} & 447 & 18.7 & 65.4 & 447 & 1.4 & 0.73 \\
+\textbf{male} & 522 & 19.4 & 66.5 & 522 & 1.47 & 0.78 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Here Age and Height are depicted with mean, standard deviation, and count, stratified by sex.
+\item \textbf{Height}: Patient Height in cm
+\item \textbf{Age}: Patient Age in years, rounded to half years
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+To determine the accuracy of the height and age-based models in predicting OTTD, we calculated the mean squared error (MSE) for each model (Table {}\ref{table:MSE_comparison}). The height-based model had an MSE of 3.76, while the age-based model yielded a significantly lower MSE of 1.87. This indicates that the age-based model provides a more accurate prediction of OTTD compared to the height-based model.
+
+\begin{table}[h]
+\caption{Comparison of Mean Squared Errors from Height and Age-Based Models}
+\label{table:MSE_comparison}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & MSE \\
+\midrule
+\textbf{Height Formula} & 3.76 \\
+\textbf{Age Formula} & 1.87 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item This table compares the Mean Squared Errors of the models based on height and age.
+\item \textbf{MSE}: Mean Squared Error
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+To further validate the effectiveness of the age-based model, we performed a statistical comparison of residuals between the two models (Table {}\ref{table:statistical_comparison_res}). The analysis revealed a t-statistic of 54.6 and a p-value $<$ $10^{-6}$, indicating a significant difference between the residuals. These results support the superiority of the age-based model in minimizing prediction errors and provide additional evidence for its effectiveness in determining OTTD.
+
+\begin{table}[h]
+\caption{Statistical Comparison of Residuals of the Height and Age Formula-Based Models}
+\label{table:statistical_comparison_res}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & Values \\
+Statistics &  \\
+\midrule
+\textbf{t-statistic} & 54.6 \\
+\textbf{p-value} & $<$$10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item This table provides a statistical comparison of residuals.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+In summary, our analysis of the dataset provides important insights for tracheal tube placement in pediatric patients. The descriptive statistics of height and age stratified by sex enhance our understanding of patient characteristics. The age-based model demonstrates superior accuracy in predicting OTTD compared to the height-based model, as evidenced by its lower MSE. Additionally, the statistical comparison of residuals further validates the effectiveness of the age-based model. These findings have significant implications for improving tracheal tube placement in pediatric patients, reducing complications, and ultimately enhancing patient outcomes in critical care settings.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+Rationale: Pediatric patients have a shorter tracheal length than adults;
+	therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in 35%–50% of pediatric patients and
+	can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is
+	crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`,
+	not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal
+	tracheal tube depth". This is not an official term that can be found in the
+	literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which
+	is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height
+	are used to determine OTTD, but with limited success.
+
+The provided dataset focus on patients aged 0-7 year old who received post-
+	operative mechanical ventilation after undergoing surgery at Samsung Medical
+	Center between January 2015 and December 2018.
+For each of these patients, the dataset provides the OTTD determined by chest
+	X-ray as well as features extracted from patient electronic health records.
+
+
+1 data file:
+
+"tracheal_tube_insertion.csv"
+The csv file is a clean dataset of 969 rows (patients) and 6 columns:
+
+Tube:
+#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the
+	formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+#2 `sex` - patient sex (0=female, 1=male)
+#3 `age_c` - patient age (years, rounded to half years)
+#4 `ht` - patient height (cm)
+#5 `wt` - patient weight (kg)
+
+Target:
+#6 `tube_depth_G` - Optimal tracheal tube depth as determined by chest X-ray (in
+	cm)
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+
+# Load data
+df = pd.read_csv('tracheal_tube_insertion.csv')
+
+# Open the output file
+with open('data_exploration.txt', 'w') as f:
+
+    # Data Size
+    f.write("# Data Size\n")
+    f.write("Num Rows: " + str(df.shape[0]) + "\n")
+    f.write("Num Columns: " + str(df.shape[1]) + "\n\n")
+
+    # Summary Statistics
+    f.write("# Summary Statistics\n")
+    summary = df.describe()
+    f.write(str(summary) + "\n\n")
+
+    # Categorical Variables
+    f.write("# Categorical Variables\n")
+    if 'sex' in df.columns:
+        f.write("Sex Counts:\n")
+        f.write(str(df['sex'].value_counts()) + "\n\n")
+    # continue with other categorical variables as needed...
+
+    # Missing Values
+    f.write("# Missing Values\n")
+    missing = df.isnull().sum()
+    f.write(str(missing) + "\n\n")
+    
+    # Numeric values that stand for unknown/undefined if any
+    f.write("# Special numeric values that stand for unknown/undefined if any\n")
+    f.write("Look at the 'Description of the Dataset' for any special undefined values and check their count here... \n\n")
+
+    # Other summary as needed...
+    f.write("# Other summary you deem relevant if any\n")
+    f.write("Write here any additional summaries as needed... \n\n")
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs data exploration on the given dataset to gain insights and understand the data better. The steps of analysis are as follows:
+
+1. Data Size: The code first determines the size of the dataset, including the number of rows and columns, which provides an initial understanding of the dataset's dimensions.
+
+2. Summary Statistics: The code then computes summary statistics for the dataset using the `describe()` function. This includes measures like count, mean, standard deviation, minimum, 25th percentile, median, 75th percentile, and maximum. These statistics help in understanding the distribution and range of values for each numerical attribute.
+
+3. Categorical Variables: The code identifies categorical variables in the dataset and provides the counts for each unique value. For example, the code counts and displays the number of males and females in the 'sex' column. This information is useful for understanding the distribution of categorical variables.
+
+4. Missing Values: The code calculates the number of missing values for each attribute in the dataset using the `isnull().sum()` function. This gives an indication of the completeness of the dataset and helps in deciding how to handle missing values during further analysis.
+
+5. Special Numeric Values: The code checks for any special numeric values that indicate unknown or undefined information. This step is particularly important to identify any non-standard coding of missing values or other special cases defined in the dataset description.
+
+6. Other Summary: The code provides the flexibility to include any other relevant summaries or insights about the dataset as deemed necessary.
+
+The code writes the output of the analysis into the "data\_exploration.txt" file. The file includes the following information:
+- Data Size: Number of rows and columns in the dataset.
+- Summary Statistics: Descriptive statistics for each numerical attribute.
+- Categorical Variables: Counts of unique values for each categorical variable.
+- Missing Values: Number of missing values for each attribute.
+- Special Numeric Values: Look at "Description of the Dataset" to identify special undefined values and check their count here.
+- Other Summary: Any additional summaries or insights deemed necessary.
+
+The "data\_exploration.txt" file serves as a reference for the data exploration analysis, providing a concise summary of the dataset's characteristics and highlighting any important features or considerations for further analysis.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Num Rows: 969
+Num Columns: 6
+
+# Summary Statistics
+        tube    sex  age_c    ht    wt  tube_depth_G
+count    969    969    969   969   969           969
+mean   3.694 0.5387  0.758    66 7.127         10.19
+std   0.5681 0.4988   1.44 19.08 4.774         1.766
+min      2.5      0      0  29.5  0.57           5.9
+25%      3.5      0      0    52  3.56             9
+50%      3.5      1      0  61.5   5.7           9.8
+75%        4      1      1    76   9.5          11.2
+max        6      1      7 135.4    31          19.2
+
+# Categorical Variables
+Sex Counts:
+sex
+1    522
+0    447
+Name: count, dtype: int64
+
+# Missing Values
+tube            0
+sex             0
+age_c           0
+ht              0
+wt              0
+tube_depth_G    0
+dtype: int64
+
+# Special numeric values that stand for unknown/undefined if any
+Look at the 'Description of the Dataset' for any special undefined values and
+	check their count here...
+
+# Other summary you deem relevant if any
+Write here any additional summaries as needed...
+
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+from scipy import stats
+import pickle
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from statsmodels.stats.outliers_influence import summary_table
+import statsmodels.formula.api as sm
+
+# LOAD DATA
+df = pd.read_csv('tracheal_tube_insertion.csv')
+
+# DATASET PREPARATIONS
+# There's no missing or undefined data
+# No standardization or column modifications are needed
+
+# DESCRIPTIVE STATISTICS
+# Table 0: "Descriptive statistics of height and age stratified by sex"
+df0 = df.groupby('sex')[['ht', 'age_c']].agg({'mean', 'std', 'count'}).round(2)
+# Convert index to string to give meaningful labels for sex group
+df0.index = df0.index.map({0: 'female', 1: 'male'})
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+# Data doesn't require further preprocessing    
+
+# ANALYSIS
+# Table 1: "Comparison of Mean Squared Errors from Height and Age-Based Models"
+height_formula = df['ht'] / 10 + 5
+age_formula = np.where(df['age_c'] < 0.5, 9, 
+                np.where(df['age_c'] < 1, 10, 
+                np.where(df['age_c'] < 2, 11, 12 + (df['age_c'] * 0.5 / 365.25))))
+height_MSE = mean_squared_error(df['tube_depth_G'], height_formula)
+age_MSE = mean_squared_error(df['tube_depth_G'], age_formula)
+df1 = pd.DataFrame({"MSE": [height_MSE, age_MSE]}, 
+                   index=["Height Formula", "Age Formula"])
+df1.to_pickle('table_1.pkl')
+
+# Table 2: "Statistical Comparison of Residuals of the Height and Age Formula-Based Models"
+height_residuals = height_formula - df['tube_depth_G']
+age_residuals = age_formula - df['tube_depth_G']
+ttest_rel = stats.ttest_rel(height_residuals, age_residuals)
+df2 = pd.DataFrame({"Statistics": ['t-statistic', 'p-value'], 
+                    "Values": [ttest_rel.statistic, ttest_rel.pvalue]})
+df2.set_index('Statistics', inplace=True)
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of observations': df.shape[0], 
+}
+with open('additional_results.pkl', 'wb') as f:
+ pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs data analysis on a dataset of pediatric patients who received post-operative mechanical ventilation. The goal of the analysis is to determine the optimal tracheal tube depth (OTTD) for these patients, which is important for avoiding complications such as hypoxia and pneumothorax.
+
+The code starts by loading the dataset, which contains information on patient characteristics such as sex, age, height, weight, and the OTTD determined by chest X-ray. 
+
+Next, the code prepares the dataset by checking for missing or undefined data, and performs necessary preprocessing steps.
+
+The code then computes descriptive statistics of height and age stratified by sex and saves them in a pickle file named "table\_0.pkl". This table provides insights into the distribution of these variables within different sex groups.
+
+After that, the code compares the performance of two formula-based models for determining OTTD: one based on height and another based on age. It calculates the mean squared error (MSE) between the predictions of each model and the actual OTTD values, and saves the results in a pickle file named "table\_1.pkl". This table allows for a comparison of the accuracy of these models.
+
+Additionally, the code performs a statistical comparison of the residuals (differences between predicted and actual OTTD values) from the height-based and age-based models using a paired t-test. The t-statistic and p-value of the t-test are computed and saved in a pickle file named "table\_2.pkl". This table provides insights into whether there is a significant difference in the residuals between the two models.
+
+Finally, the code saves additional results, such as the total number of observations in the dataset, in a pickle file named "additional\_results.pkl". This file can be used to provide supplementary information about the analysis.
+
+Overall, the code performs data analysis steps including descriptive statistics, model comparison, and statistical testing to provide insights into determining the optimal tracheal tube depth for pediatric patients undergoing post-operative mechanical ventilation.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_0.pkl}
+
+\begin{Verbatim}[tabsize=4]
+          ht              age_c
+       count   std   mean count   std  mean
+sex
+female   447  18.7  65.40   447  1.40  0.73
+male     522  19.4  66.51   522  1.47  0.78
+\end{Verbatim}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                     MSE
+Height Formula  3.758860
+Age Formula     1.872395
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                 Values
+Statistics
+t-statistic   54.596816
+p-value      8.784e-298
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 969,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'ht': ('Height', 'Patient Height in cm'),
+    'age_c': ('Age', 'Patient Age in years, rounded to half years'),
+    'sex': ('Sex', 'Patient Sex: 0=Female, 1=Male'),
+    'wt': ('Weight', 'Patient Weight in kg')
+}
+
+# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping_table0 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df0, k)} 
+for old_name, (new_name, definition) in mapping_table0.items():
+    if old_name in df0.columns.get_level_values(0):
+        df0.rename(columns={old_name: new_name}, level=0, inplace=True)
+abbrs_to_names, legend = split_mapping(mapping_table0)
+
+# Save as latex:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Descriptive statistics of height and age, stratified by sex", 
+    label='table:descriptive_sex',
+    note="Here Age and Height are depicted with mean, standard deviation, and count, stratified by sex.",
+    legend=legend)
+
+# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# Save as latex:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Comparison of Mean Squared Errors from Height and Age-Based Models", 
+    label='table:MSE_comparison',
+    note="This table compares the Mean Squared Errors of the models based on height and age.",
+    legend={'MSE':'Mean Squared Error'})
+
+# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# FORMAT VALUES
+df2.loc['p-value'] = df2.loc['p-value'].apply(format_p_value)
+
+# Save as latex:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Statistical Comparison of Residuals of the Height and Age Formula-Based Models", 
+    label='table:statistical_comparison_res',
+    note="This table provides a statistical comparison of residuals.")
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_0.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Descriptive statistics of height and age, stratified by sex}
+\label{table:descriptive_sex}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{r}{Height} & \multicolumn{3}{r}{Age} \\
+ & count & std & mean & count & std & mean \\
+sex &  &  &  &  &  &  \\
+\midrule
+\textbf{female} & 447 & 18.7 & 65.4 & 447 & 1.4 & 0.73 \\
+\textbf{male} & 522 & 19.4 & 66.5 & 522 & 1.47 & 0.78 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Here Age and Height are depicted with mean, standard deviation, and count,
+	stratified by sex.
+\item \textbf{Height}: Patient Height in cm
+\item \textbf{Age}: Patient Age in years, rounded to half years
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Comparison of Mean Squared Errors from Height and Age-Based Models}
+\label{table:MSE_comparison}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & MSE \\
+\midrule
+\textbf{Height Formula} & 3.76 \\
+\textbf{Age Formula} & 1.87 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item This table compares the Mean Squared Errors of the models based on height
+	and age.
+\item \textbf{MSE}: Mean Squared Error
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Statistical Comparison of Residuals of the Height and Age Formula-Based
+	Models}
+\label{table:statistical_comparison_res}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & Values \\
+Statistics &  \\
+\midrule
+\textbf{t-statistic} & 54.6 \\
+\textbf{p-value} & $<$1e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item This table provides a statistical comparison of residuals.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}

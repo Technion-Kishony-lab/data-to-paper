@@ -1,0 +1,521 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Comparative Analysis of Formula-based Models for Optimal Tracheal Tube Depth Determination in Pediatric Patients}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Determining the optimal tracheal tube depth (OTTD) is crucial for patient safety in pediatric patients requiring mechanical ventilation. However, current methods for OTTD determination have limitations in accuracy and practicality. This study presents a comparative analysis of formula-based models, namely the height-based model and the age-based model, to assess their performance in predicting OTTD. Using a dataset of pediatric patients who underwent post-operative mechanical ventilation, we compared the square residuals of the two models to evaluate their accuracy. Our analysis reveals that the height-based model outperforms the age-based model, exhibiting significantly smaller residuals. This suggests that using patient height as a predictor for OTTD yields more accurate estimations, considering the anatomical characteristics of pediatric patients. Further research is needed to refine these models and incorporate additional variables to improve prediction accuracy. The comparative analysis of formula-based models contributes to the advancement of patient safety in pediatric mechanical ventilation by providing insights into accurate OTTD determination.
+\end{abstract}
+\section*{Results}
+
+To determine the Optimal Tracheal Tube Depth (OTTD) in pediatric patients requiring mechanical ventilation, we analyzed a dataset of 969 patients who underwent post-operative mechanical ventilation at Samsung Medical Center. The dataset included patient features such as sex, age, height, and weight, as well as the OTTD determined by chest X-ray, which served as the gold standard method.
+
+In this study, our aim was to compare the performance of two formula-based models in determining OTTD: the height-based model and the age-based model. The research question was whether these formula-based models could accurately predict the OTTD in pediatric patients. We hypothesized that the height-based model would provide more accurate predictions compared to the age-based model due to the anatomical characteristics of pediatric patients.
+
+To compare the accuracy of the two formula-based models, we calculated the square residuals for each model. The square residuals represent the discrepancies between the predicted OTTD values from the models and the OTTD values determined by chest X-ray. For the height-based model, the square residuals were calculated as the squared difference between the predicted tube depth (based on patient height) and the actual tube depth. Similarly, for the age-based model, the square residuals were calculated as the squared difference between the predicted tube depth (based on patient age) and the actual tube depth.
+
+Our analysis of the square residuals (Table \ref{table:residuals}) revealed that the height-based model exhibited significantly smaller residuals compared to the age-based model. The mean square residual for the height-based model was 3.76 cm² with a standard deviation of 6.12 cm², while the age-based model had a higher mean square residual of 23.7 cm² with a standard deviation of 49.9 cm². These findings suggest that the height-based model more accurately predicted the OTTD in pediatric patients, as indicated by its lower average residual errors.
+
+\begin{table}[h]
+\caption{Square residuals for the Height Model and the Age Model}
+\label{table:residuals}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+ & Residuals for Height Model & Residuals for Age Model \\
+\midrule
+\textbf{Mean} & 3.76 & 23.7 \\
+\textbf{Std. deviation} & 6.12 & 49.9 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table values are in cm²
+\item \textbf{Residuals for Height Model}: Square residuals for the Height Model, cm²
+\item \textbf{Residuals for Age Model}: Square residuals for the Age Model, cm²
+\item \textbf{Mean}: Average of the square residuals
+\item \textbf{Std. deviation}: Standard deviation of the square residuals
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+We further performed a paired t-test on the residuals of the two models to assess whether there was a significant difference between them (Table {}\ref{table:t_test}). The paired t-test revealed a significant difference between the residuals of the height-based model and the age-based model, with a t-statistic of -12.5 and a p-value $<$$10^{-6}$. This provides additional evidence supporting the superior performance of the height-based model in accurately determining the OTTD in pediatric patients.
+
+\begin{table}[h]
+\caption{Paired t-test results for residuals of the Height and Age Models}
+\label{table:t_test}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & T-Statistic & P-value \\
+\midrule
+\textbf{Test} & -12.5 & $<$$10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{T-Statistic}: Test statistic from the paired t-test
+\item \textbf{P-value}: P-value from the paired t-test
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+In summary, our findings support the superiority of the height-based model over the age-based model in accurately determining the OTTD in pediatric patients requiring mechanical ventilation. The height-based model exhibited smaller square residuals, indicating better accuracy and precision. These results suggest that using patient's height as a predictor for OTTD may account for the anatomical differences among pediatric patients and provide more accurate estimations. Further research is needed to refine these models and consider additional patient variables that may contribute to the prediction of OTTD. These findings have significant implications for improving tracheal tube placement and patient safety in pediatric mechanical ventilation.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+Rationale: Pediatric patients have a shorter tracheal length than adults;
+	therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in 35%–50% of pediatric patients and
+	can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is
+	crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`,
+	not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal
+	tracheal tube depth". This is not an official term that can be found in the
+	literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which
+	is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height
+	are used to determine OTTD, but with limited success.
+
+The provided dataset focus on patients aged 0-7 year old who received post-
+	operative mechanical ventilation after undergoing surgery at Samsung Medical
+	Center between January 2015 and December 2018.
+For each of these patients, the dataset provides the OTTD determined by chest
+	X-ray as well as features extracted from patient electronic health records.
+
+
+1 data file:
+
+"tracheal_tube_insertion.csv"
+The csv file is a clean dataset of 969 rows (patients) and 6 columns:
+
+Tube:
+#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the
+	formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+#2 `sex` - patient sex (0=female, 1=male)
+#3 `age_c` - patient age (years, rounded to half years)
+#4 `ht` - patient height (cm)
+#5 `wt` - patient weight (kg)
+
+Target:
+#6 `tube_depth_G` - Optimal tracheal tube depth as determined by chest X-ray (in
+	cm)
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import numpy as np
+
+# Load the data
+df = pd.read_csv("tracheal_tube_insertion.csv")
+
+# Open output file
+with open("data_exploration.txt", "w") as f:
+
+    # Data Size
+    f.write("# Data Size\n")
+    f.write("Number of Rows: " + str(df.shape[0]) + "\n")
+    f.write("Number of Columns: " + str(df.shape[1]) + "\n\n")
+
+    # Summary Statistics
+    f.write("# Summary Statistics\n")
+    summary_stats = df.describe(include='all')
+    summary_stats.to_string(f)
+    f.write("\n")
+
+    # Categorical Variables
+    f.write("# Categorical Variables\n")
+    categorical = df.select_dtypes(include=['object'])
+    for name in categorical.columns:
+        top_5 = categorical[name].describe().top
+        f.write("Most common " + name + " : " + str(top_5) + "\n")
+    f.write("\n")
+
+    # Missing Values
+    f.write("# Missing Values\n")
+    missing_data = df.isnull().sum()
+    missing_data.to_string(f)
+    f.write("\n")
+
+    # Check for special numeric values that stand for unknown/undefined 
+    f.write("# Special Numeric Values\n")
+    special_values = df[df.select_dtypes(include=[np.number]) < 0].count()
+    special_values.to_string(f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs exploratory analysis on the dataset "tracheal\_tube\_insertion.csv". The purpose of this analysis is to gain a better understanding of the dataset and extract important information.
+
+First, the code loads the dataset into a pandas DataFrame. 
+
+The code then proceeds to perform several analysis steps:
+
+1. Data Size: The code calculates the number of rows and columns in the dataset and writes this information to the output file "data\_exploration.txt".
+
+2. Summary Statistics: The code calculates summary statistics for all variables in the dataset. These statistics include count, mean, standard deviation, minimum, 25th percentile, median, 75th percentile, and maximum. The code writes these statistics to the output file.
+
+3. Categorical Variables: The code identifies categorical variables in the dataset and finds the most common value for each of these variables. It then writes the most common value for each categorical variable to the output file.
+
+4. Missing Values: The code checks for missing values in the dataset and calculates the number of missing values for each variable. It writes this information to the output file.
+
+5. Special Numeric Values: The code checks for any special numeric values in the dataset that might indicate unknown or undefined data. It counts the number of occurrences of these special values for each numeric variable and writes this information to the output file.
+
+The output file "data\_exploration.txt" contains a summary of the dataset's size, summary statistics, the most common values for categorical variables, the number of missing values for each variable, and the count of special numeric values.
+
+This exploratory analysis provides a comprehensive overview of the dataset, allowing researchers to understand its structure, identify potential data quality issues, and make informed decisions for subsequent analysis tasks.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of Rows: 969
+Number of Columns: 6
+
+# Summary Statistics
+        tube    sex  age_c    ht    wt  tube_depth_G
+count    969    969    969   969   969           969
+mean   3.694 0.5387  0.758    66 7.127         10.19
+std   0.5681 0.4988   1.44 19.08 4.774         1.766
+min      2.5      0      0  29.5  0.57           5.9
+25%      3.5      0      0    52  3.56             9
+50%      3.5      1      0  61.5   5.7           9.8
+75%        4      1      1    76   9.5          11.2
+max        6      1      7 135.4    31          19.2
+# Categorical Variables
+
+# Missing Values
+tube            0
+sex             0
+age_c           0
+ht              0
+wt              0
+tube_depth_G    0
+# Special Numeric Values
+tube            0
+sex             0
+age_c           0
+ht              0
+wt              0
+tube_depth_G    0
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pickle
+import pandas as pd
+import numpy as np
+from scipy.stats import ttest_rel
+
+# LOAD DATA
+data = pd.read_csv('tracheal_tube_insertion.csv')
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING 
+# No preprocessing is needed, because all features are numerical and there is no missing values.
+
+# ANALYSIS
+# Calculate optimal tube depth according to the two formula based models
+data['height_model'] = data['ht'] / 10 + 5
+data['age_model'] = np.select(
+    condlist=[data['age_c'] < 0.5, (0.5 <= data['age_c']) & (data['age_c'] < 1), (1 < data['age_c']) & (data['age_c'] < 2), data['age_c'] > 2],
+    choicelist=[9, 10, 11, 12 + data['age_c']*0.5]
+)
+
+# Calculate residuals for both models
+data['residual_height_model'] = (data['tube_depth_G'] - data['height_model'])**2
+data['residual_age_model'] = (data['tube_depth_G'] - data['age_model'])**2
+
+## Table 1: "Square residuals for the Height Model and Age Model"
+df1 = data[['residual_height_model', 'residual_age_model']].agg(['mean', 'std'])
+df1.to_pickle('table_1.pkl')
+
+# Perform Paired t-test on residuals
+ttest_results = ttest_rel(data['residual_height_model'], data['residual_age_model'])
+
+## Table 2: "Paired t-test results for residuals of the two models"
+df2 = pd.DataFrame(data={'T-Statistic': [ttest_results.statistic], 'p-value': [ttest_results.pvalue]}, index=['Paired T-Test'])
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of observations': len(data)
+}
+with open('additional_results.pkl', 'wb') as f:
+ pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs an analysis on the dataset of pediatric patients who received post-operative mechanical ventilation. The goal is to calculate the optimal tracheal tube depth (OTTD) using formula-based models based on patient features such as height and age, and compare their performance.
+
+The analysis steps in the code are as follows:
+
+1. Load the dataset: The code reads the "tracheal\_tube\_insertion.csv" file and imports it as a pandas DataFrame.
+
+2. Dataset preparations: No specific preparations are needed for the dataset as it is already clean and in the desired format.
+
+3. Descriptive statistics: No descriptive statistics table is generated in this code.
+
+4. Preprocessing: No preprocessing is required as all features in the dataset are numerical and there are no missing values.
+
+5. Calculation of optimal tube depth according to the formula-based models:
+   a. Height Model: The code calculates the tube depth based on the patient's height using the formula (height / 10) + 5.
+   b. Age Model: The code calculates the tube depth based on the patient's age using a conditional approach. Different age ranges are defined, and for each range, a specific formula is applied to calculate the tube depth. For example, if the age is less than 0.5 years, the tube depth is set to 9 cm. If the age is between 0.5 and 1 year, the tube depth is set to 10 cm, and so on.
+
+6. Calculation of residuals for both models: The code calculates the squared residual between the actual optimal tube depth (determined by chest X-ray) and the tube depth calculated by each model. This is done for both the Height Model and the Age Model.
+
+7. Generation of Table 1: The code calculates the mean and standard deviation of the squared residuals for both models and creates a DataFrame containing these values. The DataFrame is saved as "table\_1.pkl".
+
+8. Paired t-test on the residuals: The code performs a paired t-test on the squared residuals of the Height Model and the Age Model to determine if there is a significant difference between the two models' performance.
+
+9. Generation of Table 2: The code generates a DataFrame to store the results of the paired t-test, including the t-statistic and the p-value. The DataFrame is saved as "table\_2.pkl".
+
+10. Saving additional results: The code saves additional results, such as the total number of observations in the dataset, into a dictionary. The dictionary is stored in the "additional\_results.pkl" file using the pickle module.
+
+The generated tables and additional results can be used for further analysis and reporting of the study findings.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+      residual_height_model  residual_age_model
+mean               3.758860           23.712508
+std                6.124982           49.924703
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+               T-Statistic    p-value
+Paired T-Test    -12.50078  2.383e-33
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 969,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT
+import pandas as pd
+from typing import Dict, Any, Tuple, Optional
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+ 'residual_height_model': ('Residuals for Height Model', 'Square residuals for the Height Model, cm²'),
+ 'residual_age_model': ('Residuals for Age Model', 'Square residuals for the Age Model, cm²'),
+}
+
+# TABLE 1:
+df = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping: AbbrToNameDef = {
+key: val for key, val in shared_mapping.items() if is_str_in_df(df, key)
+}
+mapping |= {
+ 'mean': ('Mean', 'Average of the square residuals'),
+ 'std': ('Std. deviation', 'Standard deviation of the square residuals'),
+}
+
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+ df, 'table_1.tex',
+ caption="Square residuals for the Height Model and the Age Model",
+ label='table:residuals',
+ note="Table values are in cm²",
+ legend=legend)
+
+# TABLE 2:
+df = pd.read_pickle('table_2.pkl')
+
+# FORMAT VALUES
+df['p-value'] = df['p-value'].apply(format_p_value)
+
+# RENAME ROWS AND COLUMNS 
+mapping: AbbrToNameDef = {
+ 'T-Statistic': ('T-Statistic', 'Test statistic from the paired t-test'),
+ 'p-value': ('P-value', 'P-value from the paired t-test'),
+ 'Paired T-Test': ('Test', None),
+}
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+ df, 'table_2.tex',
+ caption="Paired t-test results for residuals of the Height and Age Models", 
+ label='table:t_test',
+ note=None,
+ legend=legend)
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Square residuals for the Height Model and the Age Model}
+\label{table:residuals}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+ & Residuals for Height Model & Residuals for Age Model \\
+\midrule
+\textbf{Mean} & 3.76 & 23.7 \\
+\textbf{Std. deviation} & 6.12 & 49.9 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table values are in cm²
+\item \textbf{Residuals for Height Model}: Square residuals for the Height
+	Model, cm²
+\item \textbf{Residuals for Age Model}: Square residuals for the Age Model, cm²
+\item \textbf{Mean}: Average of the square residuals
+\item \textbf{Std. deviation}: Standard deviation of the square residuals
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Paired t-test results for residuals of the Height and Age Models}
+\label{table:t_test}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & T-Statistic & P-value \\
+\midrule
+\textbf{Test} & -12.5 & $<$1e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{T-Statistic}: Test statistic from the paired t-test
+\item \textbf{P-value}: P-value from the paired t-test
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}
