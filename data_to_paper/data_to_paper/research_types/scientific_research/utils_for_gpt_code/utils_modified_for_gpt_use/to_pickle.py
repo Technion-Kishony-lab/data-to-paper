@@ -25,25 +25,6 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
         context_manager.prior_tables = prior_tables
     prior_tables[path] = df
 
-    # check that the df has only numeric, str, bool, or tuple values:
-    for value in df.values.flatten():
-        if isinstance(value, (pd.Series, pd.DataFrame)):
-            context_manager.issues.append(RunIssue(
-                item=path,
-                issue=f"Something wierd in your dataframe. Iterating over df.values.flatten() "
-                      f"returned a {type(value)} object.",
-                code_problem=CodeProblem.OutputFileContentLevelA,
-            ))
-            break
-        if not isinstance(value, (numbers.Number, str, bool, tuple, PValue)):
-            context_manager.issues.append(RunIssue(
-                item=path,
-                issue=f"Your dataframe contains a value of type {type(value)} which is not supported. "
-                      f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
-                code_problem=CodeProblem.OutputFileContentLevelA,
-            ))
-            break
-
     if args or kwargs:
         raise RunIssue.from_current_tb(
             issue="Please use `to_pickle(path)` with only the `path` argument.",

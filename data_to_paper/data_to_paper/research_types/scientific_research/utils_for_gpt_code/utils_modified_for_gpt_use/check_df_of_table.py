@@ -1,12 +1,16 @@
+import numbers
 import re
-from typing import Dict, List
+from typing import Dict
 
 import numpy as np
 import pandas as pd
 
-from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value
-from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.overrides.pvalue import is_p_value, PValue
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils import dedent_triple_quote_str
+
+MAX_COLUMNS = 10
+MAX_ROWS = 20
 
 
 def _is_non_integer_numeric(value) -> bool:
@@ -25,16 +29,36 @@ def _is_non_integer_numeric(value) -> bool:
     return True
 
 
-def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
-                                         prior_tables: Dict[str, pd.DataFrame]) -> List[RunIssue]:
-    MAX_COLUMNS = 10
-    MAX_ROWS = 20
+def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filename: str) -> RunIssues:
+    """
+    Check if the dataframe has only numeric, str, bool, or tuple values.
+    """
+    issues = RunIssues()
+    for value in df.values.flatten():
+        if isinstance(value, (pd.Series, pd.DataFrame)):
+            issues.append(RunIssue(
+                item=filename,
+                issue=f"Something wierd in your dataframe. Iterating over df.values.flatten() "
+                      f"returned a {type(value)} object.",
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+            break
+        if not isinstance(value, (numbers.Number, str, bool, tuple, PValue)):
+            issues.append(RunIssue(
+                item=filename,
+                issue=f"Your dataframe contains a value of type {type(value)} which is not supported. ",
+                instructions=f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
+                code_problem=CodeProblem.OutputFileContentLevelA,
+            ))
+            break
+    return issues
 
-    columns = df.columns
 
-    issues = []
-
-    # Check if index is just a range:
+def check_df_index_is_a_range(df: pd.DataFrame, filename: str) -> RunIssues:
+    """
+    Check if the index of the dataframe is just a numeric range.
+    """
+    issues = RunIssues()
     index_is_range = [ind for ind in df.index] == list(range(df.shape[0]))
     if index_is_range:
         issues.append(RunIssue(
@@ -50,8 +74,14 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                 then convert it from int to strings, so that it is clear that it is not a mistake.
                 """),
         ))
+    return issues
 
-    # Check filename:
+
+def check_df_filename(filename: str) -> RunIssues:
+    """
+    Check if the filename of the table is in the format `table_<number>.pkl`.
+    """
+    issues = RunIssues()
     if not re.match(pattern=r'^table_(\d+).pkl$', string=filename):
         issues.append(RunIssue.from_current_tb(
             category='Table filename',
@@ -59,12 +89,16 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
             issue=f'The filename of the table should be in the format `table_<number>.pkl`, '
                   f'but got {filename}.',
         ))
+    return issues
 
+
+def check_df_for_repeated_values(df: pd.DataFrame, filename: str) -> RunIssues:
+    """
     # Check if the table contains the same values in multiple cells
+    """
+    issues = RunIssues()
     df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
-    # TODO: This test is disabled for now. There are too many false positives - true cases of repeated values,
-    #  especially in df.describe() of small datasets.
-    if False and len(df_values) != len(set(df_values)):
+    if len(df_values) != len(set(df_values)):
         # Find the positions of the duplicated values:
         duplicated_values = [v for v in df_values if df_values.count(v) > 1]
         example_value = duplicated_values[0]
@@ -85,8 +119,16 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                 Please revise the code so that the table does not repeat the same values in multiple cells.
                 """),
         ))
+    return issues
 
-    # Check if the table numeric values overlap with values in prior tables
+
+def check_df_for_repeated_values_in_prior_tables(df: pd.DataFrame, filename: str,
+                                                    prior_tables: Dict[str, pd.DataFrame]) -> RunIssues:
+    """
+    Check if the table numeric values overlap with values in prior tables
+    """
+    issues = RunIssues()
+    df_values = [v for v in df.values.flatten() if _is_non_integer_numeric(v)]
     for prior_name, prior_table in prior_tables.items():
         if prior_table is df:
             continue
@@ -101,12 +143,16 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                     Please revise the code so that each table include its own unique data.
                     """),
             ))
-    if issues:
-        return issues
+    return issues
 
-    # Check if the table is a df.describe() table
+
+def check_df_is_describe(df: pd.DataFrame, filename: str) -> RunIssues:
+    """
+    Check if the table is a df.describe() table
+    """
+    issues = RunIssues()
     description_labels = ('mean', 'std', 'min', '25%', '50%', '75%', 'max')
-    if set(description_labels).issubset(columns) or set(description_labels).issubset(df.index):
+    if set(description_labels).issubset(df.columns) or set(description_labels).issubset(df.index):
         issues.append(RunIssue(
             category='Quantiles and min/max values should not be included in scientific tables',
             code_problem=CodeProblem.OutputFileContentLevelA,
@@ -118,10 +164,14 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                 Please revise the code so that the tables only include scientifically relevant statistics.
                 """),
         ))
-    if issues:
-        return issues
+    return issues
 
-    # Check if the table has NaN values or PValue with value of nan
+
+def check_df_for_nan_values(df: pd.DataFrame, filename: str) -> RunIssues:
+    """
+    Check if the table has NaN values or PValue with value of nan
+    """
+    issues = RunIssues()
     df_with_raw_pvalues = df.applymap(lambda v: v.value if is_p_value(v) else v)
     isnull = pd.isnull(df_with_raw_pvalues)
     num_nulls = isnull.sum().sum()
@@ -142,19 +192,24 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                          "If the NaNs are legit and stand for missing values: replace them with the string '-'.\n"
                          "Otherwise, if they are computational errors, please revise the code to fix it.",
         ))
+    return issues
 
-    # Check if the table has too many columns
-    if len(columns) > MAX_COLUMNS:
+
+def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
+    """
+    Check if the table has too many columns or rows
+    """
+    issues = RunIssues()
+    if df.shape[1] > MAX_COLUMNS:
         issues.append(RunIssue(
             category='Too many columns in a table',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
-            issue=f'The table has {len(columns)} columns, which is way too many for a scientific table.',
+            issue=f'The table has {len(df.columns)} columns, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables have just 2-5 columns "
                          f"and definitely not more than {MAX_COLUMNS}.",
         ))
 
-    # Check if the table has too many rows
     if df.shape[0] > MAX_ROWS:
         issues.append(RunIssue(
             category='Too many rows in a table',
@@ -166,5 +221,42 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
                          f"Note that simply trimming the data is not always a good solution. "
                          f"You might instead want to think of a different representation of the data.",
         ))
+    return issues
+
+
+def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
+                                         prior_tables: Dict[str, pd.DataFrame]) -> RunIssues:
+
+    issues = RunIssues()
+
+    # Check if the table has only numeric, str, bool, or tuple values
+    issues.extend(check_df_has_only_numeric_str_bool_or_tuple_values(df, filename))
+
+    # Check if the index of the dataframe is just a numeric range
+    issues.extend(check_df_index_is_a_range(df, filename))
+
+    # Check if the filename of the table is in the format `table_<number>.pkl`
+    issues.extend(check_df_filename(filename))
+
+    # Check if the table contains the same values in multiple cells
+    # issues.extend(check_df_for_repeated_values(df, filename))
+    # This test is disabled for now. There are too many false positives - true cases of repeated values,
+    #  especially in df.describe() of small datasets.
+
+    # Check if the table numeric values overlap with values in prior tables
+    issues.extend(check_df_for_repeated_values_in_prior_tables(df, filename, prior_tables))
+    if issues:
+        return issues
+
+    # Check if the table is a df.describe() table
+    issues.extend(check_df_is_describe(df, filename))
+    if issues:
+        return issues
+
+    # Check if the table has NaN values or PValue with value of nan
+    issues.extend(check_df_for_nan_values(df, filename))
+
+    # Check if the table has too many columns or rows
+    issues.extend(check_df_size(df, filename))
 
     return issues
