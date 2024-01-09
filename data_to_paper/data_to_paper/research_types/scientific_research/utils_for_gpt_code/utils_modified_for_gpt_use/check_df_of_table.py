@@ -29,6 +29,24 @@ def _is_non_integer_numeric(value) -> bool:
     return True
 
 
+def get_table_width(df: pd.DataFrame) -> float:
+    """
+    Calculate the width of the table in characters.
+
+    Go over each column, and take the max of the length of the column name and the max of the length of the values.
+    Should account for multi-index columns.
+    """
+
+    value_widths = [max(len(str(val)) for val in df.iloc[:, col_num]) for col_num in range(df.shape[1])]
+    column_header_widths = np.zeros(df.columns.nlevels, df.shape[1])
+    for level in range(df.columns.nlevels):
+        is_repeated = df.columns.get_level_values(level).duplicated()
+        column_header_widths[level, is_repeated] = 0
+        column_header_widths[level, ~is_repeated] = [len(str(val)) for val in df.columns.get_level_values(level)[~is_repeated]]
+    column_header_widths = column_header_widths.max(axis=0)
+    return sum(max(value_width, column_header_width) for value_width, column_header_width in zip(value_widths, column_header_widths))
+
+
 def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filename: str) -> RunIssues:
     """
     Check if the dataframe has only numeric, str, bool, or tuple values.
