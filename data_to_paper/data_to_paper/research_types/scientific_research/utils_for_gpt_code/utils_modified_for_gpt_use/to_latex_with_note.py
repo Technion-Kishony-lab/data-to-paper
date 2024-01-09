@@ -89,11 +89,14 @@ def is_unknown_abbreviation(name: str) -> bool:
     if len(name) == 0:
         return False
 
-    if len(name) <= 2:
-        return True
-
     if name.isnumeric():
         return False
+
+    if name in KNOWN_ABBREVIATIONS:
+        return False
+
+    if len(name) <= 2:
+        return True
 
     for abbreviation in KNOWN_ABBREVIATIONS:
         if abbreviation.endswith('.'):
