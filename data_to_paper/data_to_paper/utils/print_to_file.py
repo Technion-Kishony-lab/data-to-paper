@@ -18,7 +18,6 @@ def print_and_log(text_in_bw: str, text_in_color: Optional[str] = None, color: O
         if text_in_color is None:
             text_in_color = text_in_bw
     print(text_in_color, **kwargs)
-    should_log = True  # for consistency with old outputs
     if should_log and CONSOLE_LOG_FILE.val is not None:
         file_path_color = CONSOLE_LOG_FILE.val  # pathlib.Path
         with open(file_path_color, 'a') as f:
