@@ -229,6 +229,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                         .rewrite_section_with_citations()
             self.send_product_to_client('most_updated_paper')
 
+        # Compile paper
         paper_producer.assemble_compile_paper()
 
         return products

@@ -9,6 +9,7 @@ import numpy as np
 
 from data_to_paper.env import SUPPORTED_PACKAGES, MAX_MODEL_ENGINE, PRINT_COMMENTS
 from data_to_paper.utils import dedent_triple_quote_str, line_count
+from data_to_paper.utils.print_to_file import print_and_log
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.run_gpt_code.types import CodeAndOutput, CodeProblem, \
@@ -495,12 +496,12 @@ class DebuggerConverser(BackgroundProductsConverser):
             action = action1 if problem.get_stage() >= self.previous_code_problem.get_stage() else action2
 
         if PRINT_COMMENTS:
-            print(f'=====================\n'
-                  f'current_stage={current_stage}\n'
-                  f'      problem={problem}\n'
-                  f'prev. problem={self.previous_code_problem}\n'
-                  f'       action={action}\n'
-                  f'=====================\n')
+            print_and_log(f'=====================\n'
+                          f'current_stage={current_stage}\n'
+                          f'      problem={problem}\n'
+                          f'prev. problem={self.previous_code_problem}\n'
+                          f'       action={action}\n'
+                          f'=====================\n', should_log=False)
 
         if action.startswith("repost") or action.startswith("regen"):
             action_stage = int(action[-1])

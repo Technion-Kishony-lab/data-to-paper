@@ -3,6 +3,7 @@ from typing import Dict, List, Collection, Optional
 
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
+from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER, \
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 

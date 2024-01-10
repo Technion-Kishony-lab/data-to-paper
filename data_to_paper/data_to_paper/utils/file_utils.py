@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
@@ -29,7 +30,7 @@ def run_in_temp_directory():
     The folder is deleted after the code is done running.
     """
     cwd = os.getcwd()
-    folder = os.path.join(THIS_FOLDER, str(uuid.uuid4()))
+    folder = os.path.join(tempfile.gettempdir(), f'data_to_paper_temp_{uuid.uuid4()}')
     if not os.path.exists(folder):
         os.mkdir(folder)
     os.chdir(folder)

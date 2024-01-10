@@ -59,7 +59,10 @@ def output_to_highlighted_html(output_str: str) -> str:
 
 
 def python_to_highlighted_text(code_str: str, color: str = '') -> str:
-    return highlight(code_str, PythonLexer(), terminal_formatter)
+    if color:
+        return highlight(code_str, PythonLexer(), terminal_formatter)
+    else:
+        return code_str
 
 
 def text_to_html(text: str, textblock: bool = False) -> str:
@@ -83,14 +86,6 @@ def light_text(text: str, color: str, is_color: bool = True) -> str:
 
 def red_text(text: str, is_color: bool = True) -> str:
     return colored_text(text, colorama.Fore.RED, is_color)
-
-
-def print_color(text: str, color: str, **kwargs):
-    print(colored_text(text, color), **kwargs)
-
-
-print_red = partial(print_color, color=colorama.Fore.RED)
-print_magenta = partial(print_color, color=colorama.Fore.MAGENTA)
 
 
 def get_pre_html_format(text,
