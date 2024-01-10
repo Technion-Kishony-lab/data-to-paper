@@ -59,6 +59,6 @@ TRACK_P_VALUES = Flag(True)
 
 # Debugging switches:
 SHOW_CHATGPT_CONTEXT = Flag(True)
-SAVE_INTERMEDIATE_LATEX = Flag(True)
+SAVE_INTERMEDIATE_LATEX = Flag(False)
 PRINT_CITATIONS = Flag(True)
 PRINT_COMMENTS = Flag(True)

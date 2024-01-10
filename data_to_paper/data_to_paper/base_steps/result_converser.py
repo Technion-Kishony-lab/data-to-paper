@@ -8,7 +8,7 @@ from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 from data_to_paper.env import MAX_MODEL_ENGINE
-from data_to_paper.utils.highlighted_text import print_red
+from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
 
 
@@ -226,7 +226,7 @@ class ResultConverser(Converser):
                 if bump_model:
                     msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
                     self.apply_append_user_message(msg, conversation_name=None)  # web only
-                    print_red(msg)
+                    print_and_log_red(msg)
 
             self.apply_append_user_message(
                 Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))

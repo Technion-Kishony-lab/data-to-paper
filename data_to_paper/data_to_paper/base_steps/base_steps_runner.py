@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Union
 
 from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
+from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.conversation.conversation_actions import CreateConversation
@@ -154,8 +155,8 @@ class BaseStepsRunner(ProductsHandler):
             run()
         except FailedCreatingProductException:
             self.advance_stage(Stages.FAILURE)
-            print('----- FAILURE ------')
-            print(f'Failed creating product during stage: {self.current_stage}')
+            print_and_log(f'----- FAILURE ------\n'
+                          f'Failed creating product during stage: {self.current_stage}')
         except Exception:
             raise
         else:

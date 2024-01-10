@@ -2,7 +2,7 @@ from typing import Iterable, Optional, Union, Set
 
 import numpy as np
 
-FILEDS_TO_NAMES = {
+FIELDS_TO_NAMES = {
     'bibtex_id': 'ID',
     'title': 'Title',
     'journal': 'Journal',
@@ -95,12 +95,14 @@ class Citation(dict):
         """
         s = ''
         for field in fields:
-            name = FILEDS_TO_NAMES[field]
+            name = FIELDS_TO_NAMES[field]
             if field == 'embedding_similarity':
                 value = self.get_embedding_similarity(embedding_target)
                 value = None if value is None else round(value, 2)
             else:
                 value = getattr(self, field, field)
+            if field == 'query' and isinstance(value, set):
+                value = sorted(value)
             if value is None:
                 continue
             if is_html:

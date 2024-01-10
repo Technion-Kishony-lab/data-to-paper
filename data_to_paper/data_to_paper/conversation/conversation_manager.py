@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Set, Iterable, Union, List
 
 from data_to_paper.env import DEFAULT_MODEL_ENGINE, MAX_MODEL_ENGINE
-from data_to_paper.utils.highlighted_text import print_red
+from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.chatgpt import try_get_chatgpt_response
 from data_to_paper.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
@@ -217,7 +217,7 @@ class ConversationManager:
             except ValueError:
                 bump_model = False
             if bump_model:
-                print_red(f'############# Bumping model #############')
+                print_and_log_red(f'############# Bumping model #############')
                 openai_call_parameters.model_engine = model
                 continue
 
@@ -225,7 +225,7 @@ class ConversationManager:
             if len(indices_and_messages) <= 1:
                 # we tried removing all messages and failed.
                 raise RuntimeError('Failed accessing openai despite removing all messages from context.')
-            print_red(f'############# Removing message from context #############')
+            print_and_log_red(f'############# Removing message from context #############')
             index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
 
