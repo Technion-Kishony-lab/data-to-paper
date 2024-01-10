@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple, Union
 
 from data_to_paper.exceptions import data_to_paperException
 
-from .user_script_name import module_filename
+from .user_script_name import module_filename, get_gpt_module_frames
 
 
 @dataclass
@@ -28,7 +28,7 @@ def convert_exception_to_any_exception_if_needed(e: Exception) -> Exception:
 @dataclass
 class FailedRunningCode(data_to_paperException):
     exception: Optional[Union[Exception, AnyException]] = None
-    tb: Optional[List] = None
+    tb: Optional[traceback.StackSummary] = None
     py_spy_stack_and_code: Optional[Tuple[str, str]] = ('', '')
     fake_file_name = "my_analysis.py"
 
@@ -59,8 +59,7 @@ class FailedRunningCode(data_to_paperException):
         """
         if self.tb is None:
             return None
-
-        return [t for t in self.tb if t[0].endswith(module_filename)]
+        return get_gpt_module_frames(self.tb)
 
     def _extract_linono_line_from_py_spy_stack(self):
         """
