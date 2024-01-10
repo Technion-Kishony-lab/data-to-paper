@@ -52,8 +52,10 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
     Save a Dict[str, Any] to a pickle file.
     Check for content issues.
     """
+    filename = file.name
     if args or kwargs:
         raise RunIssue.from_current_tb(
+            item=filename,
             issue="Please use `dump(obj, file)` with only the `obj` and `file` arguments.",
             instructions="Please do not specify any other arguments.",
             code_problem=CodeProblem.RuntimeError,
@@ -62,13 +64,15 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
     # Check if the object is a dictionary
     if isinstance(obj, DataFrame):
         raise RunIssue.from_current_tb(
-            issue="Please use `pickle.dump` only for saving the dictionary."
-                  "Use `df.to_pickle(filename)` for saving the table dataframes.",
+            item=filename,
+            issue="Please use `pickle.dump` only for saving the dictionary.",
+            instructions="Use `df.to_pickle(filename)` for saving the table dataframes.",
             code_problem=CodeProblem.RuntimeError,
         )
 
     if not isinstance(obj, dict):
         raise RunIssue.from_current_tb(
+            item=filename,
             issue="Please use `pickle.dump` only for saving the dictionary `obj`.",
             code_problem=CodeProblem.RuntimeError,
         )
@@ -76,6 +80,7 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
     # Check if the keys are strings
     if not all(isinstance(key, str) for key in obj.keys()):
         context_manager.issues.append(RunIssue.from_current_tb(
+            item=filename,
             issue="Please use `dump(obj, filename)` with a dictionary `obj` with string keys.",
             code_problem=CodeProblem.RuntimeError,
         ))
