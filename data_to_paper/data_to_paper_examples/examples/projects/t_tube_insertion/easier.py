@@ -39,9 +39,10 @@ RUN_PARAMETERS = dict(
 )
 
 if __name__ == '__main__':
-    get_paper(**RUN_PARAMETERS,
-              output_folder="easier205",
-              should_mock_servers=True,
-              excluded_citation_titles=[NAME_OF_REPRODUCED_PAPER],
-              load_from_repo=True,
-              save_on_repo=True)
+    for run_name in [f'easier20{i}' for i in range(1, 10)] + ['easier210']:
+        get_paper(**RUN_PARAMETERS,
+                  output_folder=run_name,
+                  should_mock_servers=True,
+                  excluded_citation_titles=[NAME_OF_REPRODUCED_PAPER],
+                  load_from_repo=True,
+                  save_on_repo=True)
