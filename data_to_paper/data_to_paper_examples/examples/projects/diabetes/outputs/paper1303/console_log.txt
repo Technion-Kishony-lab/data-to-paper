@@ -140,7 +140,6 @@ Do not send any presumed output examples.[0m
 [34m[6] COMMENTER -> data_exploration_code : Starting to write and debug code. Revision 1/5 (attempt 1/2).[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 1403 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[7] ===== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (1403 tokens):
@@ -190,13 +189,6 @@ CONTEXT TOTAL (1403 tokens):
 This Python code is a comprehensive tool to perform the initial data exploration as required. The script uses the pandas package to load the CSV data
 file, calculate various statistics, and output these results into a text file.[0m
 [36m======================================================================================================================================================[0m
-
-=====================
-current_stage=0
-      problem=CodeProblem.OutputFileContentLevelC
-prev. problem=CodeProblem.NoCode
-       action=repost0
-=====================
 
 [31mDeleteMessages(<6> - <-1> [1 MESSAGES]) -> data_exploration_code[0m
 
@@ -277,7 +269,6 @@ can just copy-paste and run it.[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 2642 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[9] ===== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (2642 tokens):
@@ -332,13 +323,6 @@ Here is the updated code to perform the requested analysis:
 This code summarizes the statistics for each variable nicely in the output file. It discards data points like the correlation matrix that were causing
 the output file to be long and cluttersome. It also rounds off the mean and standard deviation to two decimal places for cleaner presentation.[0m
 [36m======================================================================================================================================================[0m
-
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileContentLevelA
-prev. problem=CodeProblem.OutputFileContentLevelC
-       action=repost0
-=====================
 
 [31mDeleteMessages(<6> - <-1> [3 MESSAGES]) -> data_exploration_code[0m
 
@@ -395,7 +379,6 @@ can just copy-paste and run it.[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 1899 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[9] ===== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (1899 tokens):
@@ -1523,7 +1506,7 @@ You are a scientist who needs to find most similar papers.
 [34m[2] COMMENTER -> similar_citations : Dataset-related Literature Search:
 Here are citations from our Literature Search for papers related to the Dataset of our study:
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 14
 ID: 'Brown2007DemographicCO'
 Title: 'Demographic Correlates of HIV Testing, High-Risk Behaviors, and Condom/STD Consultation Among a Multi-Ethnic Sample of Women'
@@ -1533,7 +1516,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'Diabetes risk factors BRFSS dataset'}
+Query: ['Diabetes risk factors BRFSS dataset']
 Search rank: 14
 ID: 'Metsker2020IdentificationOR'
 Title: 'Identification of risk factors for patients with diabetes: diabetic polyneuropathy case study'
@@ -1543,7 +1526,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 17
 ID: 'Kulkarni2021L3CubeMahaSentAM'
 Title: 'L3CubeMahaSent: A Marathi Tweet-based Sentiment Analysis Dataset'
@@ -1553,7 +1536,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 18
 ID: 'Zhong2019PubLayNetLD'
 Title: 'PubLayNet: Largest Dataset Ever for Document Layout Analysis'
@@ -1563,7 +1546,7 @@ Citation influence: 84
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 19
 ID: 'Tommasi2014ATF'
 Title: 'A Testbed for Cross-Dataset Analysis'
@@ -1572,7 +1555,7 @@ Citation influence: 18
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 21
 ID: 'Tang2020ComprehensiveIV'
 Title: 'Comprehensive Instructional Video Analysis: The COIN Dataset and Performance Evaluation'
@@ -1582,7 +1565,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS dataset'}
+Query: ['CDC BRFSS dataset']
 Search rank: 22
 ID: 'Lyu2021UnderstandingTP'
 Title: 'Understanding the Public Discussion about the CDC in the COVID-19 Pandemic: A text-mining analysis of Twitter data.'
@@ -1592,7 +1575,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 22
 ID: 'Shihab2023BaDLADAL'
 Title: 'BaDLAD: A Large Multi-Domain Bengali Document Layout Analysis Dataset'
@@ -1601,7 +1584,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS dataset'}
+Query: ['CDC BRFSS dataset']
 Search rank: 24
 ID: 'Cramer2021TheUS'
 Title: 'The United States COVID-19 Forecast Hub dataset'
@@ -1611,7 +1594,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'Diabetes risk factors BRFSS dataset'}
+Query: ['Diabetes risk factors BRFSS dataset']
 Search rank: 24
 ID: 'Heslin2021SexualOD'
 Title: 'Sexual Orientation Disparities in Risk Factors for Adverse COVID-19–Related Outcomes, by Race/Ethnicity — Behavioral Risk Factor Surveillance System, United States, 2017–2019'
@@ -1621,7 +1604,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset analysis'}
+Query: ['BRFSS dataset analysis']
 Search rank: 24
 ID: 'Kalervo2019CubiCasa5KAD'
 Title: 'CubiCasa5K: A Dataset and an Improved Multi-Task Model for Floorplan Image Analysis'
@@ -1630,7 +1613,7 @@ Citation influence: 6
 Embedding similarity: 0
 
 
-Query: {'Diabetes risk factors BRFSS dataset'}
+Query: ['Diabetes risk factors BRFSS dataset']
 Search rank: 26
 ID: 'Dessie2021MortalityrelatedRF'
 Title: 'Mortality-related risk factors of COVID-19: a systematic review and meta-analysis of 42 studies and 423,117 patients'
@@ -1644,7 +1627,7 @@ Embedding similarity: 0
 [34m[3] COMMENTER -> similar_citations : Questions-related Literature Search:
 Here are citations from our Literature Search for papers related to the Questions of our study:
 
-Query: {'Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence'}
+Query: ['Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence']
 Search rank: 1
 ID: 'Gucciardi2009ExplorationOT'
 Title: 'Exploration of the Relationship Between Household Food Insecurity and Diabetes in Canada'
@@ -1654,7 +1637,7 @@ Citation influence: 8
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 3
 ID: 'Zhu2017HighPO'
 Title: 'High Prevalence of Gestational Diabetes Mellitus in Beijing: Effect of Maternal Birth Weight and Other Risk Factors'
@@ -1664,7 +1647,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 5
 ID: 'Islam2021PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes among Bangladeshi adults and associated factors: Evidence from the Demographic and Health Survey, 2017-18'
@@ -1673,7 +1656,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence'}
+Query: ['Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence']
 Search rank: 6
 ID: 'Tyrer2018MultimorbidityAL'
 Title: 'Multimorbidity and lifestyle factors among adults with intellectual disabilities: a cross‐sectional analysis of a UK cohort'
@@ -1683,7 +1666,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 7
 ID: 'Chen2020RiskFF'
 Title: 'Risk Factors for Sarcopenia in the Elderly with Type 2 Diabetes Mellitus and the Effect of Metformin'
@@ -1693,7 +1676,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 10
 ID: 'Src2018LipohypertrophyII'
 Title: 'Lipohypertrophy in Individuals with Type 2 Diabetes: Prevalence and Risk Factors'
@@ -1703,7 +1686,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 12
 ID: 'Brown2022UrologicCO'
 Title: 'Urologic complications of diabetes.'
@@ -1713,7 +1696,7 @@ Citation influence: 8
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 14
 ID: 'Cundy2014GestationalDN'
 Title: 'Gestational diabetes: new criteria may triple the prevalence but effect on outcomes is unclear'
@@ -1723,7 +1706,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 15
 ID: 'Pham2019EthnicDI'
 Title: 'Ethnic Differences in the Prevalence of Type 2 Diabetes Diagnoses in the UK: Cross-Sectional Analysis of the Health Improvement Network Primary Care Database'
@@ -1733,7 +1716,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'Impact of BMI on diabetes prevalence'}
+Query: ['Impact of BMI on diabetes prevalence']
 Search rank: 16
 ID: 'Erjavec2016ImpactOT'
 Title: 'Impact of the Implementation of New WHO Diagnostic Criteria for Gestational Diabetes Mellitus on Prevalence and Perinatal Outcomes: A Population-Based Study'
@@ -1743,7 +1726,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence'}
+Query: ['Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence']
 Search rank: 22
 ID: 'Lee2022CoffeeCA'
 Title: 'Coffee consumption and diabetic retinopathy in adults with diabetes mellitus'
@@ -1753,7 +1736,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Impact of BMI on diabetes prevalence'}
+Query: ['Impact of BMI on diabetes prevalence']
 Search rank: 28
 ID: 'Nadeau2018ImpactOI'
 Title: 'Impact of Insulin and Metformin Versus Metformin Alone on β-Cell Function in Youth With Impaired Glucose Tolerance or Recently Diagnosed Type 2 Diabetes'
@@ -2069,7 +2052,7 @@ You are a scientist who needs to check research goal and hypothesis.
 [34m[2] COMMENTER -> is_goal_ok : Goal And Hypothesis-related Literature Search:
 Here are citations from our Literature Search for papers related to the Goal And Hypothesis of our study:
 
-Query: {'Relationship between vegetable consumption and diabetes prevalence', 'Relationship between fruit consumption and diabetes prevalence'}
+Query: ['Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence']
 Search rank: 1
 ID: 'Gucciardi2009ExplorationOT'
 Title: 'Exploration of the Relationship Between Household Food Insecurity and Diabetes in Canada'
@@ -2079,7 +2062,7 @@ Citation influence: 8
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 5
 ID: 'Islam2021PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes among Bangladeshi adults and associated factors: Evidence from the Demographic and Health Survey, 2017-18'
@@ -2088,7 +2071,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Relationship between vegetable consumption and diabetes prevalence', 'Relationship between fruit consumption and diabetes prevalence'}
+Query: ['Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence']
 Search rank: 6
 ID: 'Tyrer2018MultimorbidityAL'
 Title: 'Multimorbidity and lifestyle factors among adults with intellectual disabilities: a cross‐sectional analysis of a UK cohort'
@@ -2098,7 +2081,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'Effect of age on diabetes prevalence'}
+Query: ['Effect of age on diabetes prevalence']
 Search rank: 7
 ID: 'Chen2020RiskFF'
 Title: 'Risk Factors for Sarcopenia in the Elderly with Type 2 Diabetes Mellitus and the Effect of Metformin'
@@ -2108,7 +2091,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'Relationship between vegetable consumption and diabetes prevalence', 'Relationship between fruit consumption and diabetes prevalence'}
+Query: ['Relationship between fruit consumption and diabetes prevalence', 'Relationship between vegetable consumption and diabetes prevalence']
 Search rank: 22
 ID: 'Lee2022CoffeeCA'
 Title: 'Coffee consumption and diabetic retinopathy in adults with diabetes mellitus'
@@ -2200,7 +2183,6 @@ Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 1943 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[11] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> is_goal_ok =================================================================================
 [0m[96m
 CONTEXT TOTAL (1943 tokens):
@@ -2685,16 +2667,6 @@ CONTEXT TOTAL (3898 tokens):
 [38;5;15m [39m[38;5;15mpickle[39m[38;5;197m.[39m[38;5;15mdump[39m[38;5;15m([39m[38;5;15madditional_results[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mf[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-Optimization terminated successfully.
-         Current function value: 0.361329
-         Iterations 7
-=====================
-current_stage=0
-      problem=CodeProblem.OutputFileDesignLevelA
-prev. problem=CodeProblem.NoCode
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> data_analysis_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -2809,9 +2781,6 @@ Here is the updated Python code with the corrections you requested:
 [38;5;197m+[39m[38;5;15mdf0[39m[38;5;197m.[39m[38;5;15mindex[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15m[[39m[38;5;186m'[39m[38;5;186mRow[39m[38;5;186m'[39m[38;5;197m+[39m[38;5;15mstr[39m[38;5;15m([39m[38;5;15mi[39m[38;5;15m)[39m[38;5;15m [39m[38;5;81mfor[39m[38;5;15m [39m[38;5;15mi[39m[38;5;15m [39m[38;5;197min[39m[38;5;15m [39m[38;5;15mrange[39m[38;5;15m([39m[38;5;141m1[39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mlen[39m[38;5;15m([39m[38;5;15mdf0[39m[38;5;15m)[39m[38;5;197m+[39m[38;5;141m1[39m[38;5;15m)[39m[38;5;15m][39m
 [36m======================================================================================================================================================[0m
 
-Optimization terminated successfully.
-         Current function value: 0.361329
-         Iterations 7
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> data_analysis_code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -3432,7 +3401,6 @@ Do not send any presumed output examples.[0m
 [34m[12] COMMENTER -> data_to_latex_code : Starting to write and debug code. Revision 1/3 (attempt 1/2).[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 3029 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[13] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 [0m[96m
 CONTEXT TOTAL (3029 tokens):
@@ -3512,13 +3480,6 @@ script. I'm using the shared mapping through most of the tables as many variable
 standard errors, and p-value do not need an entry in the shared mapping as they're common statistical terms.[0m
 [36m======================================================================================================================================================[0m
 
-=====================
-current_stage=0
-      problem=CodeProblem.OutputFileDesignLevelB
-prev. problem=CodeProblem.NoCode
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> data_to_latex_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3586,7 +3547,7 @@ prev. problem=CodeProblem.NoCode
 The `legend` argument of `to_latex_with_note` includes only the following keys:
 ['Fruits Consumption', 'Vegetables Consumption']
 We need to add also the following abbreviated row/column labels:
-['Row3', 'Row4', 'Row2', 'Row1']
+['Row1', 'Row2', 'Row3', 'Row4']
 
 
 Please revise the code making sure all abbreviated labels (of both column and rows!) are explained in their table legend.
@@ -5305,7 +5266,7 @@ You are a data-scientist with experience writing accurate scientific research pa
 [34m[2] COMMENTER -> title_abstract_section_second : Background-related Literature Search:
 Here are citations from our Literature Search for papers related to the Background of our study:
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 40
 ID: 'Akter2014PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes and their risk factors among Bangladeshi adults: a nationwide survey.'
@@ -5315,7 +5276,7 @@ Citation influence: 17
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 53
 ID: 'Chan1994ObesityFD'
 Title: 'Obesity, Fat Distribution, and Weight Gain as Risk Factors for Clinical Diabetes in Men'
@@ -5325,7 +5286,7 @@ Citation influence: 75
 Embedding similarity: 0.75
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 59
 ID: 'Singh2013TheAQ'
 Title: 'The Age-Specific Quantitative Effects of Metabolic Risk Factors on Cardiovascular Diseases and Diabetes: A Pooled Analysis'
@@ -5335,7 +5296,7 @@ Citation influence: 8
 Embedding similarity: 0.75
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 78
 ID: 'Lam2012TheWD'
 Title: 'The worldwide diabetes epidemic'
@@ -5345,7 +5306,7 @@ Citation influence: 9
 Embedding similarity: 0.75
 
 
-Query: {'diabetes prevalence worldwide', 'risk factors for diabetes'}
+Query: ['diabetes prevalence worldwide', 'risk factors for diabetes']
 Search rank: 30
 ID: 'Wu2014RiskFC'
 Title: 'Risk Factors Contributing to Type 2 Diabetes and Recent Advances in the Treatment and Prevention'
@@ -5355,7 +5316,7 @@ Citation influence: 31
 Embedding similarity: 0.74
 
 
-Query: {'diet and diabetes'}
+Query: ['diet and diabetes']
 Search rank: 37
 ID: 'Neuenschwander2019RoleOD'
 Title: 'Role of diet in type 2 diabetes incidence: umbrella review of meta-analyses of prospective observational studies'
@@ -5365,7 +5326,7 @@ Citation influence: 11
 Embedding similarity: 0.74
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 13
 ID: 'Stamler1993DiabetesOR'
 Title: 'Diabetes, Other Risk Factors, and 12-Yr Cardiovascular Mortality for Men Screened in the Multiple Risk Factor Intervention Trial'
@@ -5375,7 +5336,7 @@ Citation influence: 106
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 45
 ID: 'Wing2011BenefitsOM'
 Title: 'Benefits of Modest Weight Loss in Improving Cardiovascular Risk Factors in Overweight and Obese Individuals With Type 2 Diabetes'
@@ -5385,7 +5346,7 @@ Citation influence: 27
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 57
 ID: 'Sung2012CombinedIO'
 Title: 'Combined Influence of Insulin Resistance, Overweight/Obesity, and Fatty Liver as Risk Factors for Type 2 Diabetes'
@@ -5395,7 +5356,7 @@ Citation influence: 8
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 73
 ID: 'Bi2012AdvancedRO'
 Title: 'Advanced research on risk factors of type 2 diabetes'
@@ -5405,7 +5366,7 @@ Citation influence: 6
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 15
 ID: 'Wild2006RiskFF'
 Title: 'Risk factors for diabetes and coronary heart disease'
@@ -5415,7 +5376,7 @@ Citation influence: 6
 Embedding similarity: 0.73
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 91
 ID: 'Garduo-Diaz2012PrevalenceRF'
 Title: 'Prevalence, risk factors and complications associated with type 2 diabetes in migrant South Asians'
@@ -5429,7 +5390,7 @@ Embedding similarity: 0.73
 [34m[3] COMMENTER -> title_abstract_section_second : Dataset-related Literature Search:
 Here are citations from our Literature Search for papers related to the Dataset of our study:
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 2
 ID: 'Caceres2019AssessingGI'
 Title: 'Assessing gender identity differences in cardiovascular disease in US adults: an analysis of data from the 2014–2017 BRFSS'
@@ -5439,7 +5400,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 2
 ID: 'Heslin2021SexualOD'
 Title: 'Sexual Orientation Disparities in Risk Factors for Adverse COVID-19–Related Outcomes, by Race/Ethnicity — Behavioral Risk Factor Surveillance System, United States, 2017–2019'
@@ -5449,7 +5410,7 @@ Citation influence: 4
 Embedding similarity: 0.65
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 10
 ID: 'McEwen2013AnalysisOB'
 Title: 'Analysis of Behavior Risk Factor Surveillance System Data to Assess the Health of Hispanics With Diabetes in US-Mexico Border Communities'
@@ -5459,7 +5420,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 10
 ID: 'Iachan2016NationalWO'
 Title: 'National weighting of data from the Behavioral Risk Factor Surveillance System (BRFSS)'
@@ -5469,7 +5430,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 20
 ID: 'Frazier1996StateAS'
 Title: 'State- and sex-specific prevalence of selected characteristics--Behavioral Risk Factor Surveillance System, 1992 and 1993.'
@@ -5479,7 +5440,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data', 'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis', 'CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 21
 ID: 'Ford2008GenderDI'
 Title: 'Gender differences in coronary heart disease and health-related quality of life: findings from 10 states from the 2004 behavioral risk factor surveillance system.'
@@ -5489,7 +5450,7 @@ Citation influence: 5
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 24
 ID: 'Ewing2003RelationshipBU'
 Title: 'Relationship between Urban Sprawl and Physical Activity, Obesity, and Morbidity'
@@ -5499,7 +5460,7 @@ Citation influence: 73
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 39
 ID: 'Hale2010DiabetesCA'
 Title: 'Diabetes Care and Outcomes: Disparities Across Rural America'
@@ -5509,7 +5470,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 40
 ID: 'Lu2013SurveillanceOI'
 Title: 'Surveillance of influenza vaccination coverage--United States, 2007-08 through 2011-12 influenza seasons.'
@@ -5519,7 +5480,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 42
 ID: 'Frieden2010AdverseCE'
 Title: 'Adverse childhood experiences reported by adults --- five states, 2009.'
@@ -5529,7 +5490,7 @@ Citation influence: 10
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 44
 ID: 'Bergen2016FallsAF'
 Title: 'Falls and Fall Injuries Among Adults Aged ≥65 Years - United States, 2014.'
@@ -5539,7 +5500,7 @@ Citation influence: 20
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 46
 ID: 'Klompas2017StateAL'
 Title: 'State and Local Chronic Disease Surveillance Using Electronic Health Record Systems'
@@ -5553,7 +5514,7 @@ Embedding similarity: 0
 [34m[4] COMMENTER -> title_abstract_section_second : Results-related Literature Search:
 Here are citations from our Literature Search for papers related to the Results of our study:
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 12
 ID: 'Martnez-Gonzlez2011LowCO'
 Title: 'Low consumption of fruit and vegetables and risk of chronic disease: a review of the epidemiological evidence and temporal trends among Spanish graduates'
@@ -5563,7 +5524,7 @@ Citation influence: 2
 Embedding similarity: 0.81
 
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 1
 ID: 'Farvid2010DeterminantsOF'
 Title: 'Determinants of fruit and vegetable consumption in type 2 diabetics in Tehran.'
@@ -5573,7 +5534,7 @@ Citation influence: 1
 Embedding similarity: 0.8
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 49
 ID: 'Conklin2016DietaryDD'
 Title: 'Dietary Diversity, Diet Cost, and Incidence of Type 2 Diabetes in the United Kingdom: A Prospective Cohort Study'
@@ -5583,7 +5544,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 34
 ID: 'Fritz2017MetabolicMO'
 Title: 'Metabolic Mediators of the Effects of Family History and Genetic Risk Score on Coronary Heart Disease—Findings From the Malmö Diet and Cancer Study'
@@ -5593,7 +5554,7 @@ Citation influence: 1
 Embedding similarity: 0.76
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 22
 ID: 'Mirmiran2017DietaryPA'
 Title: 'Dietary Protein and Amino Acid Profiles in Relation to Risk of Dysglycemia: Findings from a Prospective Population-Based Study'
@@ -5603,7 +5564,7 @@ Citation influence: 1
 Embedding similarity: 0.76
 
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 2
 ID: 'Gucciardi2009ExplorationOT'
 Title: 'Exploration of the Relationship Between Household Food Insecurity and Diabetes in Canada'
@@ -5613,7 +5574,7 @@ Citation influence: 8
 Embedding similarity: 0.75
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 56
 ID: 'Jardim2019CardiometabolicDC'
 Title: 'Cardiometabolic disease costs associated with suboptimal diet in the United States: A cost analysis based on a microsimulation model'
@@ -5623,7 +5584,7 @@ Citation influence: 5
 Embedding similarity: 0.75
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 60
 ID: 'Chen2022TheAB'
 Title: 'The Association Between Plant-Based Diet Indices and Obesity and Metabolic Diseases in Chinese Adults: Longitudinal Analyses From the China Health and Nutrition Survey'
@@ -5633,7 +5594,7 @@ Citation influence: 1
 Embedding similarity: 0.74
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 72
 ID: 'Cham2020TheSE'
 Title: 'The silent epidemic of obesity in The Gambia: evidence from a nationwide, population-based, cross-sectional health examination survey'
@@ -5643,7 +5604,7 @@ Citation influence: 2
 Embedding similarity: 0.73
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 58
 ID: 'Breuninger2021AssociationsBH'
 Title: 'Associations between habitual diet, metabolic disease, and the gut microbiota using latent Dirichlet allocation'
@@ -5653,7 +5614,7 @@ Citation influence: 2
 Embedding similarity: 0.72
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 39
 ID: 'O Dea2015CanTO'
 Title: 'Can the Onset of Type 2 Diabetes Be Delayed by a Group-Based Lifestyle Intervention in Women with Prediabetes following Gestational Diabetes Mellitus (GDM)? Findings from a Randomized Control Mixed Methods Trial'
@@ -5663,7 +5624,7 @@ Citation influence: 2
 Embedding similarity: 0.7
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 63
 ID: 'Lookens2020TheHC'
 Title: 'The Haiti cardiovascular disease cohort: study protocol for a population-based longitudinal cohort'
@@ -6335,7 +6296,7 @@ You are a data-scientist with experience writing accurate scientific research pa
 [34m[2] COMMENTER -> introduction : Background-related Literature Search:
 Here are citations from our Literature Search for papers related to the Background of our study:
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 40
 ID: 'Akter2014PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes and their risk factors among Bangladeshi adults: a nationwide survey.'
@@ -6345,7 +6306,7 @@ Citation influence: 17
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 53
 ID: 'Chan1994ObesityFD'
 Title: 'Obesity, Fat Distribution, and Weight Gain as Risk Factors for Clinical Diabetes in Men'
@@ -6355,7 +6316,7 @@ Citation influence: 75
 Embedding similarity: 0.75
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 59
 ID: 'Singh2013TheAQ'
 Title: 'The Age-Specific Quantitative Effects of Metabolic Risk Factors on Cardiovascular Diseases and Diabetes: A Pooled Analysis'
@@ -6365,7 +6326,7 @@ Citation influence: 8
 Embedding similarity: 0.75
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 78
 ID: 'Lam2012TheWD'
 Title: 'The worldwide diabetes epidemic'
@@ -6375,7 +6336,7 @@ Citation influence: 9
 Embedding similarity: 0.75
 
 
-Query: {'diabetes prevalence worldwide', 'risk factors for diabetes'}
+Query: ['diabetes prevalence worldwide', 'risk factors for diabetes']
 Search rank: 30
 ID: 'Wu2014RiskFC'
 Title: 'Risk Factors Contributing to Type 2 Diabetes and Recent Advances in the Treatment and Prevention'
@@ -6385,7 +6346,7 @@ Citation influence: 31
 Embedding similarity: 0.74
 
 
-Query: {'diet and diabetes'}
+Query: ['diet and diabetes']
 Search rank: 37
 ID: 'Neuenschwander2019RoleOD'
 Title: 'Role of diet in type 2 diabetes incidence: umbrella review of meta-analyses of prospective observational studies'
@@ -6395,7 +6356,7 @@ Citation influence: 11
 Embedding similarity: 0.74
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 13
 ID: 'Stamler1993DiabetesOR'
 Title: 'Diabetes, Other Risk Factors, and 12-Yr Cardiovascular Mortality for Men Screened in the Multiple Risk Factor Intervention Trial'
@@ -6405,7 +6366,7 @@ Citation influence: 106
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 45
 ID: 'Wing2011BenefitsOM'
 Title: 'Benefits of Modest Weight Loss in Improving Cardiovascular Risk Factors in Overweight and Obese Individuals With Type 2 Diabetes'
@@ -6415,7 +6376,7 @@ Citation influence: 27
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 57
 ID: 'Sung2012CombinedIO'
 Title: 'Combined Influence of Insulin Resistance, Overweight/Obesity, and Fatty Liver as Risk Factors for Type 2 Diabetes'
@@ -6425,7 +6386,7 @@ Citation influence: 8
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 73
 ID: 'Bi2012AdvancedRO'
 Title: 'Advanced research on risk factors of type 2 diabetes'
@@ -6435,7 +6396,7 @@ Citation influence: 6
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 15
 ID: 'Wild2006RiskFF'
 Title: 'Risk factors for diabetes and coronary heart disease'
@@ -6445,7 +6406,7 @@ Citation influence: 6
 Embedding similarity: 0.73
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 91
 ID: 'Garduo-Diaz2012PrevalenceRF'
 Title: 'Prevalence, risk factors and complications associated with type 2 diabetes in migrant South Asians'
@@ -6459,7 +6420,7 @@ Embedding similarity: 0.73
 [34m[3] COMMENTER -> introduction : Results-related Literature Search:
 Here are citations from our Literature Search for papers related to the Results of our study:
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 12
 ID: 'Martnez-Gonzlez2011LowCO'
 Title: 'Low consumption of fruit and vegetables and risk of chronic disease: a review of the epidemiological evidence and temporal trends among Spanish graduates'
@@ -6469,7 +6430,7 @@ Citation influence: 2
 Embedding similarity: 0.81
 
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 1
 ID: 'Farvid2010DeterminantsOF'
 Title: 'Determinants of fruit and vegetable consumption in type 2 diabetics in Tehran.'
@@ -6479,7 +6440,7 @@ Citation influence: 1
 Embedding similarity: 0.8
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 49
 ID: 'Conklin2016DietaryDD'
 Title: 'Dietary Diversity, Diet Cost, and Incidence of Type 2 Diabetes in the United Kingdom: A Prospective Cohort Study'
@@ -6489,7 +6450,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 34
 ID: 'Fritz2017MetabolicMO'
 Title: 'Metabolic Mediators of the Effects of Family History and Genetic Risk Score on Coronary Heart Disease—Findings From the Malmö Diet and Cancer Study'
@@ -6499,7 +6460,7 @@ Citation influence: 1
 Embedding similarity: 0.76
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 22
 ID: 'Mirmiran2017DietaryPA'
 Title: 'Dietary Protein and Amino Acid Profiles in Relation to Risk of Dysglycemia: Findings from a Prospective Population-Based Study'
@@ -6509,7 +6470,7 @@ Citation influence: 1
 Embedding similarity: 0.76
 
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 2
 ID: 'Gucciardi2009ExplorationOT'
 Title: 'Exploration of the Relationship Between Household Food Insecurity and Diabetes in Canada'
@@ -6519,7 +6480,7 @@ Citation influence: 8
 Embedding similarity: 0.75
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 56
 ID: 'Jardim2019CardiometabolicDC'
 Title: 'Cardiometabolic disease costs associated with suboptimal diet in the United States: A cost analysis based on a microsimulation model'
@@ -6529,7 +6490,7 @@ Citation influence: 5
 Embedding similarity: 0.75
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 60
 ID: 'Chen2022TheAB'
 Title: 'The Association Between Plant-Based Diet Indices and Obesity and Metabolic Diseases in Chinese Adults: Longitudinal Analyses From the China Health and Nutrition Survey'
@@ -6539,7 +6500,7 @@ Citation influence: 1
 Embedding similarity: 0.74
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 72
 ID: 'Cham2020TheSE'
 Title: 'The silent epidemic of obesity in The Gambia: evidence from a nationwide, population-based, cross-sectional health examination survey'
@@ -6549,7 +6510,7 @@ Citation influence: 2
 Embedding similarity: 0.73
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 58
 ID: 'Breuninger2021AssociationsBH'
 Title: 'Associations between habitual diet, metabolic disease, and the gut microbiota using latent Dirichlet allocation'
@@ -6559,7 +6520,7 @@ Citation influence: 2
 Embedding similarity: 0.72
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 39
 ID: 'O Dea2015CanTO'
 Title: 'Can the Onset of Type 2 Diabetes Be Delayed by a Group-Based Lifestyle Intervention in Women with Prediabetes following Gestational Diabetes Mellitus (GDM)? Findings from a Randomized Control Mixed Methods Trial'
@@ -6569,7 +6530,7 @@ Citation influence: 2
 Embedding similarity: 0.7
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 63
 ID: 'Lookens2020TheHC'
 Title: 'The Haiti cardiovascular disease cohort: study protocol for a population-based longitudinal cohort'
@@ -6583,7 +6544,7 @@ Embedding similarity: 0.7
 [34m[4] COMMENTER -> introduction : Dataset-related Literature Search:
 Here are citations from our Literature Search for papers related to the Dataset of our study:
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 2
 ID: 'Caceres2019AssessingGI'
 Title: 'Assessing gender identity differences in cardiovascular disease in US adults: an analysis of data from the 2014–2017 BRFSS'
@@ -6593,7 +6554,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 2
 ID: 'Heslin2021SexualOD'
 Title: 'Sexual Orientation Disparities in Risk Factors for Adverse COVID-19–Related Outcomes, by Race/Ethnicity — Behavioral Risk Factor Surveillance System, United States, 2017–2019'
@@ -6603,7 +6564,7 @@ Citation influence: 4
 Embedding similarity: 0.65
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 10
 ID: 'McEwen2013AnalysisOB'
 Title: 'Analysis of Behavior Risk Factor Surveillance System Data to Assess the Health of Hispanics With Diabetes in US-Mexico Border Communities'
@@ -6613,7 +6574,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 10
 ID: 'Iachan2016NationalWO'
 Title: 'National weighting of data from the Behavioral Risk Factor Surveillance System (BRFSS)'
@@ -6623,7 +6584,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 20
 ID: 'Frazier1996StateAS'
 Title: 'State- and sex-specific prevalence of selected characteristics--Behavioral Risk Factor Surveillance System, 1992 and 1993.'
@@ -6633,7 +6594,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data', 'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis', 'CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 21
 ID: 'Ford2008GenderDI'
 Title: 'Gender differences in coronary heart disease and health-related quality of life: findings from 10 states from the 2004 behavioral risk factor surveillance system.'
@@ -6643,7 +6604,7 @@ Citation influence: 5
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 24
 ID: 'Ewing2003RelationshipBU'
 Title: 'Relationship between Urban Sprawl and Physical Activity, Obesity, and Morbidity'
@@ -6653,7 +6614,7 @@ Citation influence: 73
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 39
 ID: 'Hale2010DiabetesCA'
 Title: 'Diabetes Care and Outcomes: Disparities Across Rural America'
@@ -6663,7 +6624,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 40
 ID: 'Lu2013SurveillanceOI'
 Title: 'Surveillance of influenza vaccination coverage--United States, 2007-08 through 2011-12 influenza seasons.'
@@ -6673,7 +6634,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 42
 ID: 'Frieden2010AdverseCE'
 Title: 'Adverse childhood experiences reported by adults --- five states, 2009.'
@@ -6683,7 +6644,7 @@ Citation influence: 10
 Embedding similarity: 0
 
 
-Query: {'CDC Behavioral Risk Factor Surveillance System data'}
+Query: ['CDC Behavioral Risk Factor Surveillance System data']
 Search rank: 44
 ID: 'Bergen2016FallsAF'
 Title: 'Falls and Fall Injuries Among Adults Aged ≥65 Years - United States, 2014.'
@@ -6693,7 +6654,7 @@ Citation influence: 20
 Embedding similarity: 0
 
 
-Query: {'BRFSS diabetes data analysis'}
+Query: ['BRFSS diabetes data analysis']
 Search rank: 46
 ID: 'Klompas2017StateAL'
 Title: 'State and Local Chronic Disease Surveillance Using Electronic Health Record Systems'
@@ -6707,7 +6668,7 @@ Embedding similarity: 0
 [34m[5] COMMENTER -> introduction : Methods-related Literature Search:
 Here are citations from our Literature Search for papers related to the Methods of our study:
 
-Query: {'multiple logistic regression analysis'}
+Query: ['multiple logistic regression analysis']
 Search rank: 3
 ID: 'Menard2000CoefficientsOD'
 Title: 'Coefficients of Determination for Multiple Logistic Regression Analysis'
@@ -6716,7 +6677,7 @@ Citation influence: 68
 Embedding similarity: 0.53
 
 
-Query: {'multiple logistic regression analysis'}
+Query: ['multiple logistic regression analysis']
 Search rank: 9
 ID: 'Pullinger1993AML'
 Title: 'A Multiple Logistic Regression Analysis of the Risk and Relative Odds of Temporomandibular Disorders as a Function of Common Occlusal Features'
@@ -6726,7 +6687,7 @@ Citation influence: 17
 Embedding similarity: 0
 
 
-Query: {'multiple logistic regression analysis'}
+Query: ['multiple logistic regression analysis']
 Search rank: 14
 ID: 'Miravitlles2000FactorsAW'
 Title: 'Factors Associated with Increased Risk of Exacerbation and Hospital Admission in a Cohort of Ambulatory COPD Patients: A Multiple Logistic Regression Analysis'
@@ -6736,7 +6697,7 @@ Citation influence: 16
 Embedding similarity: 0
 
 
-Query: {'multiple logistic regression analysis'}
+Query: ['multiple logistic regression analysis']
 Search rank: 31
 ID: 'Cohen1979AppliedMR'
 Title: 'Applied multiple regression/correlation analysis for the behavioral sciences'
@@ -6745,7 +6706,7 @@ Citation influence: 2024
 Embedding similarity: 0.51
 
 
-Query: {'multiple logistic regression analysis'}
+Query: ['multiple logistic regression analysis']
 Search rank: 38
 ID: 'Sperandei2014UnderstandingLR'
 Title: 'Understanding logistic regression analysis'
@@ -7289,7 +7250,7 @@ You are a data-scientist with experience writing accurate scientific research pa
 [34m[2] COMMENTER -> discussion : Background-related Literature Search:
 Here are citations from our Literature Search for papers related to the Background of our study:
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 40
 ID: 'Akter2014PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes and their risk factors among Bangladeshi adults: a nationwide survey.'
@@ -7299,7 +7260,7 @@ Citation influence: 17
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 53
 ID: 'Chan1994ObesityFD'
 Title: 'Obesity, Fat Distribution, and Weight Gain as Risk Factors for Clinical Diabetes in Men'
@@ -7309,7 +7270,7 @@ Citation influence: 75
 Embedding similarity: 0.75
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 59
 ID: 'Singh2013TheAQ'
 Title: 'The Age-Specific Quantitative Effects of Metabolic Risk Factors on Cardiovascular Diseases and Diabetes: A Pooled Analysis'
@@ -7319,7 +7280,7 @@ Citation influence: 8
 Embedding similarity: 0.75
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 78
 ID: 'Lam2012TheWD'
 Title: 'The worldwide diabetes epidemic'
@@ -7329,7 +7290,7 @@ Citation influence: 9
 Embedding similarity: 0.75
 
 
-Query: {'diabetes prevalence worldwide', 'risk factors for diabetes'}
+Query: ['diabetes prevalence worldwide', 'risk factors for diabetes']
 Search rank: 30
 ID: 'Wu2014RiskFC'
 Title: 'Risk Factors Contributing to Type 2 Diabetes and Recent Advances in the Treatment and Prevention'
@@ -7339,7 +7300,7 @@ Citation influence: 31
 Embedding similarity: 0.74
 
 
-Query: {'diet and diabetes'}
+Query: ['diet and diabetes']
 Search rank: 37
 ID: 'Neuenschwander2019RoleOD'
 Title: 'Role of diet in type 2 diabetes incidence: umbrella review of meta-analyses of prospective observational studies'
@@ -7349,7 +7310,7 @@ Citation influence: 11
 Embedding similarity: 0.74
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 13
 ID: 'Stamler1993DiabetesOR'
 Title: 'Diabetes, Other Risk Factors, and 12-Yr Cardiovascular Mortality for Men Screened in the Multiple Risk Factor Intervention Trial'
@@ -7359,7 +7320,7 @@ Citation influence: 106
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 45
 ID: 'Wing2011BenefitsOM'
 Title: 'Benefits of Modest Weight Loss in Improving Cardiovascular Risk Factors in Overweight and Obese Individuals With Type 2 Diabetes'
@@ -7369,7 +7330,7 @@ Citation influence: 27
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 57
 ID: 'Sung2012CombinedIO'
 Title: 'Combined Influence of Insulin Resistance, Overweight/Obesity, and Fatty Liver as Risk Factors for Type 2 Diabetes'
@@ -7379,7 +7340,7 @@ Citation influence: 8
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 73
 ID: 'Bi2012AdvancedRO'
 Title: 'Advanced research on risk factors of type 2 diabetes'
@@ -7389,7 +7350,7 @@ Citation influence: 6
 Embedding similarity: 0.73
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 15
 ID: 'Wild2006RiskFF'
 Title: 'Risk factors for diabetes and coronary heart disease'
@@ -7399,7 +7360,7 @@ Citation influence: 6
 Embedding similarity: 0.73
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 91
 ID: 'Garduo-Diaz2012PrevalenceRF'
 Title: 'Prevalence, risk factors and complications associated with type 2 diabetes in migrant South Asians'
@@ -7413,7 +7374,7 @@ Embedding similarity: 0.73
 [34m[3] COMMENTER -> discussion : Results-related Literature Search:
 Here are citations from our Literature Search for papers related to the Results of our study:
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 12
 ID: 'Martnez-Gonzlez2011LowCO'
 Title: 'Low consumption of fruit and vegetables and risk of chronic disease: a review of the epidemiological evidence and temporal trends among Spanish graduates'
@@ -7423,7 +7384,7 @@ Citation influence: 2
 Embedding similarity: 0.81
 
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 1
 ID: 'Farvid2010DeterminantsOF'
 Title: 'Determinants of fruit and vegetable consumption in type 2 diabetics in Tehran.'
@@ -7433,7 +7394,7 @@ Citation influence: 1
 Embedding similarity: 0.8
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 49
 ID: 'Conklin2016DietaryDD'
 Title: 'Dietary Diversity, Diet Cost, and Incidence of Type 2 Diabetes in the United Kingdom: A Prospective Cohort Study'
@@ -7443,7 +7404,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 34
 ID: 'Fritz2017MetabolicMO'
 Title: 'Metabolic Mediators of the Effects of Family History and Genetic Risk Score on Coronary Heart Disease—Findings From the Malmö Diet and Cancer Study'
@@ -7453,7 +7414,7 @@ Citation influence: 1
 Embedding similarity: 0.76
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 22
 ID: 'Mirmiran2017DietaryPA'
 Title: 'Dietary Protein and Amino Acid Profiles in Relation to Risk of Dysglycemia: Findings from a Prospective Population-Based Study'
@@ -7463,7 +7424,7 @@ Citation influence: 1
 Embedding similarity: 0.76
 
 
-Query: {'relationship between fruit and vegetable consumption and diabetes prevalence'}
+Query: ['relationship between fruit and vegetable consumption and diabetes prevalence']
 Search rank: 2
 ID: 'Gucciardi2009ExplorationOT'
 Title: 'Exploration of the Relationship Between Household Food Insecurity and Diabetes in Canada'
@@ -7473,7 +7434,7 @@ Citation influence: 8
 Embedding similarity: 0.75
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 56
 ID: 'Jardim2019CardiometabolicDC'
 Title: 'Cardiometabolic disease costs associated with suboptimal diet in the United States: A cost analysis based on a microsimulation model'
@@ -7483,7 +7444,7 @@ Citation influence: 5
 Embedding similarity: 0.75
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 60
 ID: 'Chen2022TheAB'
 Title: 'The Association Between Plant-Based Diet Indices and Obesity and Metabolic Diseases in Chinese Adults: Longitudinal Analyses From the China Health and Nutrition Survey'
@@ -7493,7 +7454,7 @@ Citation influence: 1
 Embedding similarity: 0.74
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 72
 ID: 'Cham2020TheSE'
 Title: 'The silent epidemic of obesity in The Gambia: evidence from a nationwide, population-based, cross-sectional health examination survey'
@@ -7503,7 +7464,7 @@ Citation influence: 2
 Embedding similarity: 0.73
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 58
 ID: 'Breuninger2021AssociationsBH'
 Title: 'Associations between habitual diet, metabolic disease, and the gut microbiota using latent Dirichlet allocation'
@@ -7513,7 +7474,7 @@ Citation influence: 2
 Embedding similarity: 0.72
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 39
 ID: 'O Dea2015CanTO'
 Title: 'Can the Onset of Type 2 Diabetes Be Delayed by a Group-Based Lifestyle Intervention in Women with Prediabetes following Gestational Diabetes Mellitus (GDM)? Findings from a Randomized Control Mixed Methods Trial'
@@ -7523,7 +7484,7 @@ Citation influence: 2
 Embedding similarity: 0.7
 
 
-Query: {'findings from population-based studies on diabetes and diet'}
+Query: ['findings from population-based studies on diabetes and diet']
 Search rank: 63
 ID: 'Lookens2020TheHC'
 Title: 'The Haiti cardiovascular disease cohort: study protocol for a population-based longitudinal cohort'
@@ -7925,452 +7886,6 @@ Make sure to send the full corrected Discussion, not just the parts that were re
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 5763 context tokens and 500 expected tokens.[0m
-This is BibTeX, Version 0.99d (TeX Live 2023)
-The top-level auxiliary file: paper.aux
-The style file: unsrt.bst
-Database file #1: citations.bib
-Warning--empty booktitle in Cohen1979AppliedMR
-(There was 1 warning)
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex)
- \write18 enabled.
-entering extended mode
-(./paper.tex
-LaTeX2e <2022-11-01> patch level 1
-L3 programming layer <2023-02-22>
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/size11.clo))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hyperref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/iftex.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/infwarerr/infwarerr.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/keyval.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdfescape/pdfescape.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hycolor/hycolor.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/letltxmacro/letltxmacro.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/auxhook/auxhook.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/nameref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/refcount/refcount.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/gettitlestring/gettitlestring.s
-ty (/usr/local/texlive/2023/texmf-dist/tex/latex/kvoptions/kvoptions.sty)))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/pd1enc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/intcalc/intcalc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/etexcmds/etexcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/puenc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/url/url.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bitset/bitset.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atbegshi-ltx.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hpdftex.def
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atveryend-ltx.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
-
-(/usr/local/texlive/2023/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
-))) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/booktabs/booktabs.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/multirow/multirow.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/threeparttable/threeparttable.sty
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/color.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-cfg/color.cfg)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-def/pdftex.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/mathcolor.ltx))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.cfg))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/minted/minted.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/fvextra/fvextra.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/etoolbox/etoolbox.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/upquote/upquote.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/lineno/lineno.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/ifthen.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/calc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/shellesc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/ifplatform/ifplatform.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/catchfile/catchfile.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/ifluatex.sty)
-(./paper.w18))
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.tex))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/framed/framed.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/float/float.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/sectsty/sectsty.sty
-
-LaTeX Warning: Command \underbar  has changed.
-               Check if current package is valid.
-
-
-LaTeX Warning: Command \underline  has changed.
-               Check if current package is valid.
-
-)/Applications/anaconda3/envs/data_to_paper/bin/pygmentize
- (/usr/local/texlive/2023/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
- (./paper.aux) (./paper.out) (./paper.out)
-(/usr/local/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
-[Loading MPS to PDF converter (version 2006.09.02).]
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/textcomp.sty)
-
-LaTeX Warning: Citation `Akter2014PrevalenceOD' on page 1 undefined on input li
-ne 28.
-
-
-LaTeX Warning: Citation `Lam2012TheWD' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Wu2014RiskFC' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Chan1994ObesityFD' on page 1 undefined on input line 2
-8.
-
-
-LaTeX Warning: Citation `Wild2006RiskFF' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Neuenschwander2019RoleOD' on page 1 undefined on input
- line 28.
-
-
-LaTeX Warning: Citation `Wing2011BenefitsOM' on page 1 undefined on input line 
-28.
-
-
-LaTeX Warning: Citation `Singh2013TheAQ' on page 1 undefined on input line 28.
-
-[1{/usr/local/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-
-LaTeX Warning: Citation `Martnez-Gonzlez2011LowCO' on page 2 undefined on input
- line 30.
-
-
-LaTeX Warning: Citation `Conklin2016DietaryDD' on page 2 undefined on input lin
-e 30.
-
-
-LaTeX Warning: Citation `Farvid2010DeterminantsOF' on page 2 undefined on input
- line 30.
-
-
-LaTeX Warning: Citation `Chen2022TheAB' on page 2 undefined on input line 30.
-
-
-LaTeX Warning: Citation `Caceres2019AssessingGI' on page 2 undefined on input l
-ine 32.
-
-
-LaTeX Warning: Citation `Ford2008GenderDI' on page 2 undefined on input line 32
-.
-
-
-LaTeX Warning: Citation `Iachan2016NationalWO' on page 2 undefined on input lin
-e 32.
-
-
-LaTeX Warning: Citation `McEwen2013AnalysisOB' on page 2 undefined on input lin
-e 32.
-
-
-LaTeX Warning: Citation `Cohen1979AppliedMR' on page 2 undefined on input line 
-34.
-
-
-LaTeX Warning: Citation `Sperandei2014UnderstandingLR' on page 2 undefined on i
-nput line 34.
-
-
-Overfull \hbox (57.39609pt too wide) in paragraph at lines 44--66
-[] 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[2] [3
-pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.102 
-      
-pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.102 
-      ]
-
-LaTeX Warning: Citation `Akter2014PrevalenceOD' on page 4 undefined on input li
-ne 105.
-
-
-LaTeX Warning: Citation `Lam2012TheWD' on page 4 undefined on input line 105.
-
-
-LaTeX Warning: Citation `Wu2014RiskFC' on page 4 undefined on input line 105.
-
-
-LaTeX Warning: Citation `Martnez-Gonzlez2011LowCO' on page 4 undefined on input
- line 105.
-
-
-LaTeX Warning: Citation `Chen2022TheAB' on page 4 undefined on input line 105.
-
-
-LaTeX Warning: Citation `Cohen1979AppliedMR' on page 4 undefined on input line 
-107.
-
-
-LaTeX Warning: Citation `Sperandei2014UnderstandingLR' on page 4 undefined on i
-nput line 107.
-
-
-LaTeX Warning: Citation `Singh2013TheAQ' on page 4 undefined on input line 107.
-
-
-
-LaTeX Warning: Citation `Chan1994ObesityFD' on page 4 undefined on input line 1
-07.
-
-
-LaTeX Warning: Citation `Martnez-Gonzlez2011LowCO' on page 4 undefined on input
- line 107.
-
-
-LaTeX Warning: Citation `Chen2022TheAB' on page 4 undefined on input line 107.
-
-
-LaTeX Warning: Citation `Garduo-Diaz2012PrevalenceRF' on page 4 undefined on in
-put line 111.
-
-
-LaTeX Warning: Citation `Wu2014RiskFC' on page 4 undefined on input line 111.
-
-[4]
-
-LaTeX Warning: Citation `Jardim2019CardiometabolicDC' on page 5 undefined on in
-put line 113.
-
-[5] [6] [7] (./_minted-paper/default.pygstyle)
-(./_minted-paper/AE8C6854967591DEC92A1964072FB4F1651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 7--7
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]"diabetes_binary_health_indicators_BRFSS2
-015.csv"[])|  
-[8]) [9]
-Overfull \hbox (6.8153pt too wide) in paragraph at lines 250--251
-\OT1/cmr/m/n/10.95 dian, and max-i-mum val-ues. These statis-tics pro-vide a co
-m-pre-hen-sive overview
-
-Overfull \hbox (2.41212pt too wide) in paragraph at lines 262--263
-[]\OT1/cmr/m/n/10.95 This in-for-ma-tion pro-vides a com-pre-hen-sive un-der-st
-and-ing of the dataset's
-[10] [11]
-(./_minted-paper/FCE92305610B30C77BC8B73134C83A47651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 11--11
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]^^Mdiabetes_binary_health_indicators_BRFS
-S2015.csv^^M[])|  
-[12]
-Overfull \hbox (42.40814pt too wide) in paragraph at lines 21--21
-\OT1/cmtt/m/n/10.95 values[]=[][]^^MCounts^^M[])[].[]reset_index()[].[]fillna([
-]0[])|  
-[13])
-Overfull \hbox (3.05386pt too wide) in paragraph at lines 404--405
-\OT1/cmr/m/n/10.95 tracted from the CDC's Be-hav-ioral Risk Fac-tor Surveil-lan
-ce Sys-tem (BRFSS)
-[14]
-(./_minted-paper/3D1D50FA326E8385251874D08DC59B39651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex [15] [16]) [17] [18] (./paper.bbl [19] [20]) [21] (./paper.aux)
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
- )
-(see the transcript file for additional information)</usr/local/texlive/2023/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2023/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2023/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2023/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2023/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2023/texmf-dist/font
-s/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2023/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2023/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmti10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmtt10.pfb>
-Output written on paper.pdf (21 pages, 258970 bytes).
-Transcript written on paper.log.
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex)
- \write18 enabled.
-entering extended mode
-(./paper.tex
-LaTeX2e <2022-11-01> patch level 1
-L3 programming layer <2023-02-22>
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/size11.clo))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hyperref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/iftex.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/infwarerr/infwarerr.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/keyval.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdfescape/pdfescape.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hycolor/hycolor.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/letltxmacro/letltxmacro.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/auxhook/auxhook.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/nameref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/refcount/refcount.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/gettitlestring/gettitlestring.s
-ty (/usr/local/texlive/2023/texmf-dist/tex/latex/kvoptions/kvoptions.sty)))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/pd1enc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/intcalc/intcalc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/etexcmds/etexcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/puenc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/url/url.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bitset/bitset.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atbegshi-ltx.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hpdftex.def
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atveryend-ltx.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
-
-(/usr/local/texlive/2023/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
-))) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/booktabs/booktabs.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/multirow/multirow.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/threeparttable/threeparttable.sty
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/color.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-cfg/color.cfg)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-def/pdftex.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/mathcolor.ltx))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.cfg))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/minted/minted.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/fvextra/fvextra.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/etoolbox/etoolbox.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/upquote/upquote.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/lineno/lineno.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/ifthen.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/calc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/shellesc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/ifplatform/ifplatform.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/catchfile/catchfile.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/ifluatex.sty)
-(./paper.w18))
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.tex))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/framed/framed.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/float/float.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/sectsty/sectsty.sty
-
-LaTeX Warning: Command \underbar  has changed.
-               Check if current package is valid.
-
-
-LaTeX Warning: Command \underline  has changed.
-               Check if current package is valid.
-
-)/Applications/anaconda3/envs/data_to_paper/bin/pygmentize
- (/usr/local/texlive/2023/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
- (./paper.aux) (./paper.out) (./paper.out)
-(/usr/local/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
-[Loading MPS to PDF converter (version 2006.09.02).]
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/textcomp.sty) [1{/usr/loca
-l/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (57.39609pt too wide) in paragraph at lines 44--66
-[] 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[2] [3
-pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.102 
-      
-pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.102 
-      ] [4] [5] [6] [7] (./_minted-paper/default.pygstyle)
-(./_minted-paper/AE8C6854967591DEC92A1964072FB4F1651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 7--7
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]"diabetes_binary_health_indicators_BRFSS2
-015.csv"[])|  
-[8]) [9]
-Overfull \hbox (6.8153pt too wide) in paragraph at lines 250--251
-\OT1/cmr/m/n/10.95 dian, and max-i-mum val-ues. These statis-tics pro-vide a co
-m-pre-hen-sive overview
-
-Overfull \hbox (2.41212pt too wide) in paragraph at lines 262--263
-[]\OT1/cmr/m/n/10.95 This in-for-ma-tion pro-vides a com-pre-hen-sive un-der-st
-and-ing of the dataset's
-[10] [11]
-(./_minted-paper/FCE92305610B30C77BC8B73134C83A47651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 11--11
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]^^Mdiabetes_binary_health_indicators_BRFS
-S2015.csv^^M[])|  
-[12]
-Overfull \hbox (42.40814pt too wide) in paragraph at lines 21--21
-\OT1/cmtt/m/n/10.95 values[]=[][]^^MCounts^^M[])[].[]reset_index()[].[]fillna([
-]0[])|  
-[13])
-Overfull \hbox (3.05386pt too wide) in paragraph at lines 404--405
-\OT1/cmr/m/n/10.95 tracted from the CDC's Be-hav-ioral Risk Fac-tor Surveil-lan
-ce Sys-tem (BRFSS)
-[14]
-(./_minted-paper/3D1D50FA326E8385251874D08DC59B39651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex [15] [16]) [17] [18] (./paper.bbl [19] [20]) [21] (./paper.aux) )
-(see the transcript file for additional information)</usr/local/texlive/2023/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2023/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2023/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2023/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2023/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2023/texmf-dist/font
-s/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2023/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2023/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmti10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmtt10.pfb>
-Output written on paper.pdf (21 pages, 260048 bytes).
-Transcript written on paper.log.
 [36m[22] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> discussion =================================================================================
 [0m[96m
 CONTEXT TOTAL (5763 tokens):

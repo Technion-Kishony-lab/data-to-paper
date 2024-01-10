@@ -1,20 +1,20 @@
-[31mCreateConversation(name=None web=[web]get data, participants=['Performer', 'Director'])[0m
+[31mCreateConversation(name=None web=[web]get data, participants=['Director', 'Performer'])[0m
 
-[31mCreateConversation(name=None web=[web]explore data, participants=['Performer', 'DataExplorer'])[0m
+[31mCreateConversation(name=None web=[web]explore data, participants=['DataExplorer', 'Performer'])[0m
 
 [31mCreateConversation(name=None web=[web]review goal, participants=['GoalReviewer', 'Performer'])[0m
 
-[31mCreateConversation(name=None web=[web]preprocess data, participants=['Performer', 'DataPreprocessor'])[0m
+[31mCreateConversation(name=None web=[web]preprocess data, participants=['DataPreprocessor', 'Performer'])[0m
 
-[31mCreateConversation(name=None web=[web]review plan, participants=['PlanReviewer', 'Performer'])[0m
+[31mCreateConversation(name=None web=[web]review plan, participants=['Performer', 'PlanReviewer'])[0m
 
-[31mCreateConversation(name=None web=[web]debug, participants=['Performer', 'Debugger'])[0m
+[31mCreateConversation(name=None web=[web]debug, participants=['Debugger', 'Performer'])[0m
 
-[31mCreateConversation(name=None web=[web]results interpretation, participants=['Performer', 'InterpretationReviewer'])[0m
+[31mCreateConversation(name=None web=[web]results interpretation, participants=['InterpretationReviewer', 'Performer'])[0m
 
 [31mCreateConversation(name=None web=[web]write paper, participants=['Performer', 'Writer'])[0m
 
-[31mCreateConversation(name=None web=[web]add citations, participants=['Performer', 'CitationExpert'])[0m
+[31mCreateConversation(name=None web=[web]add citations, participants=['CitationExpert', 'Performer'])[0m
 
 [31mCreateConversation(name=None web=[web]add tables, participants=['Performer', 'TableExpert'])[0m
 
@@ -22,7 +22,7 @@ AdvanceStage(data)
 
 SetActiveConversation(get data)
 
-[31mCreateConversation(name=with_director web=[web]get data, participants=['Performer', 'Director']) -> with_director[0m
+[31mCreateConversation(name=with_director web=[web]get data, participants=['Director', 'Performer']) -> with_director[0m
 
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                    with_director                                                                     [0m
@@ -33,7 +33,7 @@ AdvanceStage(exploration)
 
 SetActiveConversation(explore data)
 
-[31mCreateConversation(name=data_exploration_code web=[web]explore data, participants=['Performer', 'DataExplorer']) -> data_exploration_code[0m
+[31mCreateConversation(name=data_exploration_code web=[web]explore data, participants=['DataExplorer', 'Performer']) -> data_exploration_code[0m
 
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                data_exploration_code                                                                 [0m
@@ -140,7 +140,6 @@ Do not send any presumed output examples.[0m
 [34m[6] COMMENTER -> data_exploration_code : Starting to write and debug code. Revision 1/5 (attempt 1/2).[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 1403 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[7] ===== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (1403 tokens):
@@ -423,7 +422,6 @@ can just copy-paste and run it.[0m
 [34m[8] COMMENTER -> data_exploration_code : Starting to write and debug code. Revision 2/5 (attempt 1/2).[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 1990 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[9] ===== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (1990 tokens):
@@ -471,13 +469,6 @@ Apologies for the overlooked issues. Here is the corrected version of the code:
 [36m
 This code should now correctly generate the file 'data_exploration.txt' with the desired output format.[0m
 [36m======================================================================================================================================================[0m
-
-=====================
-current_stage=0
-      problem=CodeProblem.RuntimeError
-prev. problem=CodeProblem.AllOK
-       action=repost0
-=====================
 
 [31mDeleteMessages(<8> - <-1> [1 MESSAGES]) -> data_exploration_code[0m
 
@@ -554,7 +545,6 @@ can just copy-paste and run it.[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 2613 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[11] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (2613 tokens):
@@ -580,13 +570,6 @@ error. We can use `items()` instead which should work universally. Here is the c
 [36m
 Sorry for the confusion, and thank you for your patience. This code should now execute without any errors.[0m
 [36m======================================================================================================================================================[0m
-
-=====================
-current_stage=1
-      problem=CodeProblem.RuntimeError
-prev. problem=CodeProblem.RuntimeError
-       action=repost0
-=====================
 
 [31mDeleteMessages(<8> - <-1> [3 MESSAGES]) -> data_exploration_code[0m
 
@@ -663,7 +646,6 @@ can just copy-paste and run it.[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 2612 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[11] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_exploration_code ======================================================================
 [0m[96m
 CONTEXT TOTAL (2612 tokens):
@@ -889,7 +871,7 @@ dict is empty:
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                               data_exploration_code_0                                                                [0m
 [35m======================================================================================================================================================[0m
-[31mCreateConversation(name=data_exploration_code_0 web=[web]explore data, participants=['Performer', 'DataExplorer']) -> data_exploration_code_0[0m
+[31mCreateConversation(name=data_exploration_code_0 web=[web]explore data, participants=['DataExplorer', 'Performer']) -> data_exploration_code_0[0m
 
 [32m[1] ----- SYSTEM casting  {Performer} -> data_exploration_code_0 -------------------------------------------------------------------------------------
 [0m[32m
@@ -1095,7 +1077,7 @@ SetActiveConversation(review goal)
 [35m                                                                    research_goal                                                                     [0m
 [35m                                                                research_goal_reviewer                                                                [0m
 [35m======================================================================================================================================================[0m
-[31mCreateConversation(name=research_goal web=[web]review goal, participants=['Performer', 'GoalReviewer']) -> research_goal[0m
+[31mCreateConversation(name=research_goal web=[web]review goal, participants=['GoalReviewer', 'Performer']) -> research_goal[0m
 
 [32m[1] ----- SYSTEM casting  {Performer} -> research_goal -----------------------------------------------------------------------------------------------
 [0m[32m
@@ -1415,7 +1397,7 @@ SetActiveConversation(add citations)
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                literature_search_goal                                                                [0m
 [35m======================================================================================================================================================[0m
-[31mCreateConversation(name=literature_search_goal web=[web]add citations, participants=['Performer', 'CitationExpert']) -> literature_search_goal[0m
+[31mCreateConversation(name=literature_search_goal web=[web]add citations, participants=['CitationExpert', 'Performer']) -> literature_search_goal[0m
 
 [32m[1] ----- SYSTEM casting  {Performer} -> literature_search_goal --------------------------------------------------------------------------------------
 [0m[32m
@@ -1835,7 +1817,7 @@ Querying Semantic Scholar. Found 100 / 100 citations. Query: "Association betwee
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                  similar_citations                                                                   [0m
 [35m======================================================================================================================================================[0m
-[31mCreateConversation(name=similar_citations web=[web]review goal, participants=['Performer', 'GoalReviewer']) -> similar_citations[0m
+[31mCreateConversation(name=similar_citations web=[web]review goal, participants=['GoalReviewer', 'Performer']) -> similar_citations[0m
 
 [32m[1] ----- SYSTEM casting  {Performer} -> similar_citations -------------------------------------------------------------------------------------------
 [0m[32m
@@ -1846,7 +1828,7 @@ You are a scientist who needs to find most similar papers.
 [34m[2] COMMENTER -> similar_citations : Dataset-related Literature Search:
 Here are citations from our Literature Search for papers related to the Dataset of our study:
 
-Query: {'BRFSS dataset use'}
+Query: ['BRFSS dataset use']
 Search rank: 7
 ID: 'Brown2007DemographicCO'
 Title: 'Demographic Correlates of HIV Testing, High-Risk Behaviors, and Condom/STD Consultation Among a Multi-Ethnic Sample of Women'
@@ -1856,7 +1838,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS diabetes analysis'}
+Query: ['CDC BRFSS diabetes analysis']
 Search rank: 8
 ID: 'Frieden2010AdverseCE'
 Title: 'Adverse childhood experiences reported by adults --- five states, 2009.'
@@ -1866,7 +1848,7 @@ Citation influence: 10
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS diabetes analysis', 'BRFSS data analysis'}
+Query: ['BRFSS data analysis', 'CDC BRFSS diabetes analysis']
 Search rank: 9
 ID: 'Caceres2019AssessingGI'
 Title: 'Assessing gender identity differences in cardiovascular disease in US adults: an analysis of data from the 2014–2017 BRFSS'
@@ -1876,7 +1858,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset use'}
+Query: ['BRFSS dataset use']
 Search rank: 11
 ID: 'Schuhmann2022LAION5BAO'
 Title: 'LAION-5B: An open large-scale dataset for training next generation image-text models'
@@ -1886,7 +1868,7 @@ Citation influence: 110
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS diabetes analysis'}
+Query: ['CDC BRFSS diabetes analysis']
 Search rank: 11
 ID: 'Pan2007SelfmonitoringOB'
 Title: 'Self-monitoring of blood glucose among adults with diabetes--United States, 1997-2006.'
@@ -1895,7 +1877,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'BRFSS data analysis'}
+Query: ['BRFSS data analysis']
 Search rank: 12
 ID: 'Lu2012MultivariateLR'
 Title: 'Multivariate Logistic Regression Analysis of Complex Survey Data with Application to BRFSS Data'
@@ -1905,7 +1887,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset use'}
+Query: ['BRFSS dataset use']
 Search rank: 12
 ID: 'Lu2021CodeXGLUEAM'
 Title: 'CodeXGLUE: A Machine Learning Benchmark Dataset for Code Understanding and Generation'
@@ -1915,7 +1897,7 @@ Citation influence: 120
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS diabetes analysis'}
+Query: ['CDC BRFSS diabetes analysis']
 Search rank: 12
 ID: 'Kruger2007PrevalenceOR'
 Title: 'Prevalence of regular physical activity among adults--United States, 2001 and 2005.'
@@ -1924,7 +1906,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset use'}
+Query: ['BRFSS dataset use']
 Search rank: 13
 ID: 'MuozSabater2021SupplementaryMT'
 Title: 'Supplementary material to "ERA5-Land: A state-of-the-art global reanalysis dataset for land applications"'
@@ -1933,7 +1915,7 @@ Citation influence: 47
 Embedding similarity: 0
 
 
-Query: {'CDC BRFSS diabetes analysis'}
+Query: ['CDC BRFSS diabetes analysis']
 Search rank: 13
 ID: 'Kruger2005TrendsIL'
 Title: 'Trends in leisure-time physical inactivity by age, sex, and race/ethnicity--United States, 1994-2004.'
@@ -1943,7 +1925,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset use'}
+Query: ['BRFSS dataset use']
 Search rank: 14
 ID: 'Harris2020Version4O'
 Title: 'Version 4 of the CRU TS monthly high-resolution gridded multivariate climate dataset'
@@ -1953,7 +1935,7 @@ Citation influence: 195
 Embedding similarity: 0
 
 
-Query: {'BRFSS dataset use'}
+Query: ['BRFSS dataset use']
 Search rank: 15
 ID: 'Helber2017EuroSATAN'
 Title: 'EuroSAT: A Novel Dataset and Deep Learning Benchmark for Land Use and Land Cover Classification'
@@ -1967,7 +1949,7 @@ Embedding similarity: 0
 [34m[3] COMMENTER -> similar_citations : Questions-related Literature Search:
 Here are citations from our Literature Search for papers related to the Questions of our study:
 
-Query: {'Association between BMI and diabetes'}
+Query: ['Association between BMI and diabetes']
 Search rank: 0
 ID: 'Logue2013AssociationBB'
 Title: 'Association Between BMI Measured Within a Year After Diagnosis of Type 2 Diabetes and Mortality'
@@ -1977,7 +1959,7 @@ Citation influence: 7
 Embedding similarity: 0
 
 
-Query: {'Diabetes prevalence and physical activity'}
+Query: ['Diabetes prevalence and physical activity']
 Search rank: 1
 ID: 'Negera2020PrevalenceAP'
 Title: 'Prevalence and Predictors of Nonadherence to Diet and Physical Activity Recommendations among Type 2 Diabetes Patients in Southwest Ethiopia: A Cross-Sectional Study'
@@ -1987,7 +1969,7 @@ Citation influence: 5
 Embedding similarity: 0
 
 
-Query: {'Association between BMI and diabetes'}
+Query: ['Association between BMI and diabetes']
 Search rank: 1
 ID: 'Bhasin2020IsBH'
 Title: 'Is BMI Higher in Younger Patients with COVID‐19? Association Between BMI and COVID‐19 Hospitalization by Age'
@@ -1997,7 +1979,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Physical activity and diabetes relationship'}
+Query: ['Physical activity and diabetes relationship']
 Search rank: 2
 ID: 'Kriska1990DevelopmentOQ'
 Title: 'Development of Questionnaire to Examine Relationship of Physical Activity and Diabetes in Pima Indians'
@@ -2007,7 +1989,7 @@ Citation influence: 51
 Embedding similarity: 0
 
 
-Query: {'Association between BMI and diabetes'}
+Query: ['Association between BMI and diabetes']
 Search rank: 3
 ID: 'Mongraw-Chaffin2015TheSA'
 Title: 'The sex-specific association between BMI and coronary heart disease: a systematic review and meta-analysis of 95 cohorts with 1·2 million participants.'
@@ -2017,7 +1999,7 @@ Citation influence: 8
 Embedding similarity: 0
 
 
-Query: {'Physical activity and diabetes relationship'}
+Query: ['Physical activity and diabetes relationship']
 Search rank: 4
 ID: 'Chen2022CausalRB'
 Title: 'Causal relationship between physical activity, leisure sedentary behaviors and COVID-19 risk: a Mendelian randomization study'
@@ -2027,7 +2009,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Diabetes prevalence and physical activity'}
+Query: ['Diabetes prevalence and physical activity']
 Search rank: 4
 ID: 'Kanaley2022ExercisePhysicalAI'
 Title: 'Exercise/Physical Activity in Individuals with Type 2 Diabetes: A Consensus Statement from the American College of Sports Medicine'
@@ -2037,7 +2019,7 @@ Citation influence: 7
 Embedding similarity: 0
 
 
-Query: {'Association between BMI and diabetes'}
+Query: ['Association between BMI and diabetes']
 Search rank: 7
 ID: 'Lee2008AssociationBB'
 Title: 'Association Between BMI and Metabolic Syndrome and Adenomatous Colonic Polyps in Korean Men'
@@ -2047,7 +2029,7 @@ Citation influence: 6
 Embedding similarity: 0
 
 
-Query: {'Physical activity and diabetes relationship'}
+Query: ['Physical activity and diabetes relationship']
 Search rank: 8
 ID: 'Wahid2016QuantifyingTA'
 Title: 'Quantifying the Association Between Physical Activity and Cardiovascular Disease and Diabetes: A Systematic Review and Meta‐Analysis'
@@ -2057,7 +2039,7 @@ Citation influence: 7
 Embedding similarity: 0
 
 
-Query: {'Association between BMI and diabetes'}
+Query: ['Association between BMI and diabetes']
 Search rank: 8
 ID: 'Smith2009TheAB'
 Title: 'The association between BMI and mortality using offspring BMI as an indicator of own BMI: large intergenerational mortality study'
@@ -2067,7 +2049,7 @@ Citation influence: 3
 Embedding similarity: 0
 
 
-Query: {'Diabetes prevalence and physical activity'}
+Query: ['Diabetes prevalence and physical activity']
 Search rank: 9
 ID: 'Aguilera2020mHealthAU'
 Title: 'mHealth app using machine learning to increase physical activity in diabetes and depression: clinical trial protocol for the DIAMANTE Study'
@@ -2077,7 +2059,7 @@ Citation influence: 4
 Embedding similarity: 0
 
 
-Query: {'BMI moderating effect on physical activity and diabetes association'}
+Query: ['BMI moderating effect on physical activity and diabetes association']
 Search rank: 10
 ID: 'Cristi-Montero2018JointEO'
 Title: 'Joint effect of physical activity and sedentary behaviour on cardiovascular risk factors in Chilean adults'
@@ -2365,7 +2347,7 @@ CONTEXT TOTAL (3854 tokens):
 [36m[14] SURROGATE {Performer} -> similar_citations : 
 python {  'Logue2013AssociationBB': 'Association Between BMI Measured Within a Year After [...] A Systematic Review and Meta‐Analysis', }[0m
 
-[31mCreateConversation(name=is_goal_ok web=[web]review goal, participants=['Performer', 'GoalReviewer']) -> is_goal_ok[0m
+[31mCreateConversation(name=is_goal_ok web=[web]review goal, participants=['GoalReviewer', 'Performer']) -> is_goal_ok[0m
 
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                      is_goal_ok                                                                      [0m
@@ -2379,7 +2361,7 @@ You are a scientist who needs to check research goal and hypothesis.
 [34m[2] COMMENTER -> is_goal_ok : Goal And Hypothesis-related Literature Search:
 Here are citations from our Literature Search for papers related to the Goal And Hypothesis of our study:
 
-Query: {'Association between BMI and diabetes'}
+Query: ['Association between BMI and diabetes']
 Search rank: 0
 ID: 'Logue2013AssociationBB'
 Title: 'Association Between BMI Measured Within a Year After Diagnosis of Type 2 Diabetes and Mortality'
@@ -2389,7 +2371,7 @@ Citation influence: 7
 Embedding similarity: 0
 
 
-Query: {'Diabetes prevalence and physical activity'}
+Query: ['Diabetes prevalence and physical activity']
 Search rank: 1
 ID: 'Negera2020PrevalenceAP'
 Title: 'Prevalence and Predictors of Nonadherence to Diet and Physical Activity Recommendations among Type 2 Diabetes Patients in Southwest Ethiopia: A Cross-Sectional Study'
@@ -2399,7 +2381,7 @@ Citation influence: 5
 Embedding similarity: 0
 
 
-Query: {'Physical activity and diabetes relationship'}
+Query: ['Physical activity and diabetes relationship']
 Search rank: 4
 ID: 'Chen2022CausalRB'
 Title: 'Causal relationship between physical activity, leisure sedentary behaviors and COVID-19 risk: a Mendelian randomization study'
@@ -2409,7 +2391,7 @@ Citation influence: 2
 Embedding similarity: 0
 
 
-Query: {'Diabetes prevalence and physical activity'}
+Query: ['Diabetes prevalence and physical activity']
 Search rank: 4
 ID: 'Kanaley2022ExercisePhysicalAI'
 Title: 'Exercise/Physical Activity in Individuals with Type 2 Diabetes: A Consensus Statement from the American College of Sports Medicine'
@@ -2419,7 +2401,7 @@ Citation influence: 7
 Embedding similarity: 0
 
 
-Query: {'Physical activity and diabetes relationship'}
+Query: ['Physical activity and diabetes relationship']
 Search rank: 8
 ID: 'Wahid2016QuantifyingTA'
 Title: 'Quantifying the Association Between Physical Activity and Cardiovascular Disease and Diabetes: A Systematic Review and Meta‐Analysis'
@@ -2512,7 +2494,6 @@ Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
 [31mUsing gpt-4 (max 8192 tokens) for 2031 context tokens and 500 expected tokens.[0m
-WARNING: Consider using gpt-3.5-turbo-0613 (max 4096 tokens).
 [36m[11] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> is_goal_ok =================================================================================
 [0m[96m
 CONTEXT TOTAL (2031 tokens):
@@ -2725,7 +2706,7 @@ AdvanceStage(code)
 
 SetActiveConversation(debug)
 
-[31mCreateConversation(name=data_analysis_code web=[web]debug, participants=['Performer', 'Debugger']) -> data_analysis_code[0m
+[31mCreateConversation(name=data_analysis_code web=[web]debug, participants=['Debugger', 'Performer']) -> data_analysis_code[0m
 
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                  data_analysis_code                                                                  [0m
@@ -3020,16 +3001,6 @@ This code should perform the specified analyses and save the tables as per your 
 need any modifications or additional data.[0m
 [36m======================================================================================================================================================[0m
 
-Optimization terminated successfully.
-         Current function value: 0.336045
-         Iterations 7
-=====================
-current_stage=0
-      problem=CodeProblem.RuntimeError
-prev. problem=CodeProblem.NoCode
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> data_analysis_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3142,19 +3113,6 @@ corrected code.
 [38;5;197m-[39m[38;5;15mdf2[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mpd[39m[38;5;197m.[39m[38;5;15mDataFrame[39m[38;5;15m([39m[38;5;15mmodel2[39m[38;5;197m.[39m[38;5;15msummary[39m[38;5;15m([39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mtables[39m[38;5;15m[[39m[38;5;141m1[39m[38;5;15m][39m[38;5;197m.[39m[38;5;15mdata[39m[38;5;15m[[39m[38;5;141m1[39m[38;5;15m:[39m[38;5;15m][39m[38;5;15m,[39m[38;5;15m [39m[38;5;15mcolumns[39m[38;5;197m=[39m[38;5;15mmodel2[39m[38;5;197m.[39m[38;5;15msummary[39m[38;5;15m([39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mtables[39m[38;5;15m[[39m[38;5;141m1[39m[38;5;15m][39m[38;5;197m.[39m[38;5;15mdata[39m[38;5;15m[[39m[38;5;141m0[39m[38;5;15m][39m[38;5;15m)[39m
 [38;5;197m+[39m[38;5;15mdf2[39m[38;5;15m [39m[38;5;197m=[39m[38;5;15m [39m[38;5;15mmodel2[39m[38;5;197m.[39m[38;5;15msummary2[39m[38;5;15m([39m[38;5;15m)[39m[38;5;197m.[39m[38;5;15mtables[39m[38;5;15m[[39m[38;5;141m1[39m[38;5;15m][39m[38;5;15m [39m
 [36m======================================================================================================================================================[0m
-
-Optimization terminated successfully.
-         Current function value: 0.336045
-         Iterations 7
-Optimization terminated successfully.
-         Current function value: 0.335992
-         Iterations 7
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileDesignLevelA
-prev. problem=CodeProblem.RuntimeError
-       action=repost0
-=====================
 
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> data_analysis_code[0m
 
@@ -3271,19 +3229,6 @@ The index for the Table 0 dataframe has been replaced with proper, understandabl
 diabetes or without diabetes.[0m
 [36m======================================================================================================================================================[0m
 
-Optimization terminated successfully.
-         Current function value: 0.336045
-         Iterations 7
-Optimization terminated successfully.
-         Current function value: 0.335992
-         Iterations 7
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileContentLevelA
-prev. problem=CodeProblem.OutputFileDesignLevelA
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> data_analysis_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -3394,12 +3339,6 @@ In the revised code, I modified the descriptive statistics section to only inclu
 instructions.[0m
 [36m======================================================================================================================================================[0m
 
-Optimization terminated successfully.
-         Current function value: 0.336045
-         Iterations 7
-Optimization terminated successfully.
-         Current function value: 0.335992
-         Iterations 7
 [31mDeleteMessages(<11> - <-1> [4 MESSAGES]) -> data_analysis_code[0m
 
 [31mAppendMessage, Adding the debugged code as if it was the original response.[0m
@@ -3532,8 +3471,8 @@ As applicable, check for any data analysis issues, including:
 - Are we accounting for relevant confounding variables (consult the "Description of the Original Dataset")?
 - In linear regression, if interactions terms are included:
   * did we remember to include the main effects?
-  * did we use the `*` operator in statsmodels formula as recommended (as applicable, better use `logit("y ~ a * b", ...)` instead of trying to
-manually multiply the variables)?
+  * did we use the `*` operator in statsmodels formula as recommended (as applicable, better use the `formula = "y ~ a * b"` string notation instead
+of trying to manually multiply the variables)
 - Any other statistical analysis issues.
 
 (2) Check the created pkl tables (provided above) and return a bullet-point response addressing these points:
@@ -3572,10 +3511,10 @@ then return an empty dict: `{}`.[0m
 [31mFailedChatgptResponse -> data_analysis_code[0m
 
 [31m############# Bumping model #############[0m
-[31mUsing gpt-3.5-turbo-16k-0613 (max 16384 tokens) for 5869 context tokens and 500 expected tokens.[0m
+[31mUsing gpt-3.5-turbo-16k-0613 (max 16384 tokens) for 5870 context tokens and 500 expected tokens.[0m
 [36m[14] ==== ASSISTANT{'model_engine': gpt-3.5-turbo-16k-0613, 'temperature': 0.0} {Performer} -> data_analysis_code ====================================
 [0m[96m
-CONTEXT TOTAL (5869 tokens):
+CONTEXT TOTAL (5870 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1110 tokens): DESCRIPTION OF THE ORIGINAL [...] ,1,5,30,30,1,0,9,4,8
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -3587,7 +3526,7 @@ CONTEXT TOTAL (5869 tokens):
 # 8 SURROGATE (  11 tokens): Thank you for the Hypothesis Testing Plan.
 # 9      USER (1125 tokens): Write a complete Python [...] positions.
 #10 SURROGATE ( 506 tokens): Here is the code to perform [...] f)
-#11      USER (1620 tokens): I ran your code.  Here is [...] empty dict: `{}`.
+#11      USER (1621 tokens): I ran your code.  Here is [...] empty dict: `{}`.
 
 #12 ASSISTANT ( 480 tokens): Based on the assessment of [...] dictionary: `{}`.
                              {'model_engine': gpt-3.5-turbo-16k-0613, 'temperature': 0.0}
@@ -3644,7 +3583,7 @@ python {}[0m
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                 data_analysis_code_0                                                                 [0m
 [35m======================================================================================================================================================[0m
-[31mCreateConversation(name=data_analysis_code_0 web=[web]debug, participants=['Performer', 'Debugger']) -> data_analysis_code_0[0m
+[31mCreateConversation(name=data_analysis_code_0 web=[web]debug, participants=['Debugger', 'Performer']) -> data_analysis_code_0[0m
 
 [32m[1] ----- SYSTEM casting  {Performer} -> data_analysis_code_0 ----------------------------------------------------------------------------------------
 [0m[32m
@@ -3842,7 +3781,7 @@ while the additional results provide summary statistics and model evaluation met
 
 [31mDeleteMessages(<6> - <-1> [4 MESSAGES]) -> data_analysis_code_0[0m
 
-[31mCreateConversation(name=data_to_latex_code web=[web]debug, participants=['Performer', 'Debugger']) -> data_to_latex_code[0m
+[31mCreateConversation(name=data_to_latex_code web=[web]debug, participants=['Debugger', 'Performer']) -> data_to_latex_code[0m
 
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                                  data_to_latex_code                                                                  [0m
@@ -4113,13 +4052,6 @@ This data analysis code was written in Python:
 [38;5;15m        [39m[38;5;15mlegend[39m[38;5;197m=[39m[38;5;15mlegend[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
 
-=====================
-current_stage=0
-      problem=CodeProblem.StaticCheck
-prev. problem=CodeProblem.NoCode
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [1 MESSAGES]) -> data_to_latex_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4334,13 +4266,6 @@ I apologize for the oversight. Here's the full code with all required sections:
 [38;5;15m    [39m[38;5;15mlabel[39m[38;5;197m=[39m[38;5;186m'[39m[38;5;186mtable:phys_activity_diabetes_2[39m[38;5;186m'[39m[38;5;15m,[39m
 [38;5;15m    [39m[38;5;15mlegend[39m[38;5;197m=[39m[38;5;15mlegend[39m[38;5;15m)[39m
 [36m======================================================================================================================================================[0m
-
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileContentLevelC
-prev. problem=CodeProblem.StaticCheck
-       action=repost0
-=====================
 
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> data_to_latex_code[0m
 
@@ -4652,13 +4577,6 @@ The column names and index labels have been renamed to facilitate narrower table
 when compiling the latex document.[0m
 [36m======================================================================================================================================================[0m
 
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileDesignLevelB
-prev. problem=CodeProblem.OutputFileContentLevelC
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> data_to_latex_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -4774,7 +4692,7 @@ prev. problem=CodeProblem.OutputFileContentLevelC
 The legend of the table includes the following labels that are not in the table:
 ['Activity', 'BMI', 'Activity*BMI', 'Age', 'Smoker', 'BP', 'Chol', 'Edu', 'Income']
 Here are the available table row and column labels:
-{'Std', 'No Diabetes', None, 'Mean', 'Diabetes'}
+{None, 'Std', 'Mean', 'Diabetes', 'No Diabetes'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -4797,7 +4715,7 @@ Add the missing abbreviations and their explanations as keys and values in the `
 The legend of the table includes the following labels that are not in the table:
 ['Diabetes', 'Activity*BMI']
 Here are the available table row and column labels:
-{'BP', 'Income', 'Z', 'Intercept', 'Activity', None, '95% CI Lower', 'Edu', 'Err', 'Coef', 'Smoker', 'Age', 'Chol', '95% CI Upper', 'BMI', 'P-value'}
+{'BP', 'BMI', 'Err', 'Chol', '95% CI Lower', 'Income', 'Edu', 'Intercept', 'Activity', 'Smoker', 'Z', 'Coef', None, 'Age', '95% CI Upper', 'P-value'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -4820,8 +4738,8 @@ Add the missing abbreviations and their explanations as keys and values in the `
 The legend of the table includes the following labels that are not in the table:
 ['Diabetes']
 Here are the available table row and column labels:
-{'BP', 'Income', 'Z', 'Intercept', 'Activity', None, '95% CI Lower', 'Edu', 'Err', 'Coef', 'Smoker', 'Activity*BMI', 'Age', 'Chol', '95% CI Upper',
-'BMI', 'P-value'}
+{'BP', 'BMI', 'Err', 'Activity*BMI', 'Chol', '95% CI Lower', 'Income', 'Edu', 'Intercept', 'Activity', 'Smoker', 'Z', 'Coef', None, 'Age', '95% CI
+Upper', 'P-value'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -4844,10 +4762,10 @@ Remember, your code must contain the following sections:
 "# TABLE 2"[0m
 [32m------------------------------------------------------------------------------------------------------------------------------------------------------[0m
 
-[31mUsing gpt-4 (max 8192 tokens) for 5528 context tokens and 500 expected tokens.[0m
+[31mUsing gpt-4 (max 8192 tokens) for 5529 context tokens and 500 expected tokens.[0m
 [36m[15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 [0m[96m
-CONTEXT TOTAL (5528 tokens):
+CONTEXT TOTAL (5529 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1110 tokens): DESCRIPTION OF THE ORIGINAL [...] ,1,5,30,30,1,0,9,4,8
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -4859,7 +4777,7 @@ CONTEXT TOTAL (5528 tokens):
 # 8 SURROGATE (  15 tokens): Thank you for the Content [...] Data Analysis Code.
 # 9      USER (1110 tokens): I would like to create [...] output examples.
 #10 SURROGATE (1003 tokens): Here is the code to perform [...]  legend=legend)
-#11      USER ( 859 tokens): There are some issues that [...] 1" "# TABLE 2"
+#11      USER ( 860 tokens): There are some issues that [...] 1" "# TABLE 2"
 
 #12 ASSISTANT ( 918 tokens): I apologize for the [...] is also formatted.
                              {'model_engine': gpt-4}
@@ -4961,13 +4879,6 @@ the revised code:
 The above script will create LaTeX files for each table with the appropriate annotations and rename row/column labels to more interpretable versions.
 The 'P-value' column is also formatted.[0m
 [36m======================================================================================================================================================[0m
-
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileContentLevelC
-prev. problem=CodeProblem.OutputFileDesignLevelB
-       action=repost0
-=====================
 
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> data_to_latex_code[0m
 
@@ -5254,13 +5165,6 @@ to 'Std.Err.'. Also renamed 'Education' to 'Ed.' and added short description for
 For table 1, the P-values are formatted correctly using the 'format_p_value' function.[0m
 [36m======================================================================================================================================================[0m
 
-=====================
-current_stage=1
-      problem=CodeProblem.OutputFileDesignLevelB
-prev. problem=CodeProblem.OutputFileContentLevelC
-       action=repost0
-=====================
-
 [31mDeleteMessages(<12> - <-1> [3 MESSAGES]) -> data_to_latex_code[0m
 
 [31mAppendMessage, Code is freshly re-posted, as if it was the FIRST response.[0m
@@ -5365,15 +5269,15 @@ prev. problem=CodeProblem.OutputFileContentLevelC
 The legend of the table includes the following labels that are not in the table:
 ['Diabetes']
 Here are the available table row and column labels:
-{'Std.Err.', 'Income', 'Z', 'Intercept', 'Ed.', None, 'Physical Act.', 'High BP', 'Smoker', 'High Chol', 'Age', '[0.025', 'Coef.', '0.975]', 'BMI',
+{'BMI', '0.975]', 'Std.Err.', 'Income', 'High BP', 'Intercept', '[0.025', 'Smoker', 'Z', None, 'High Chol', 'Ed.', 'Physical Act.', 'Age', 'Coef.',
 'P-value'}
 
 * table_2.tex:
 The legend of the table includes the following labels that are not in the table:
 ['Diabetes']
 Here are the available table row and column labels:
-{'Std.Err.', 'Income', 'Z', 'Intercept', 'Ed.', None, 'Physical Act.', 'High BP', 'Smoker', 'Activity*BMI', 'High Chol', 'Age', '[0.025', 'Coef.',
-'0.975]', 'BMI', 'P-value'}
+{'BMI', 'Activity*BMI', '0.975]', 'Std.Err.', 'Income', 'High BP', 'Intercept', '[0.025', 'Smoker', 'Z', None, 'High Chol', 'Ed.', 'Physical Act.',
+'Age', 'Coef.', 'P-value'}
 
 The legend keys should be a subset of the table labels.
 
@@ -6069,7 +5973,7 @@ latex \title{The Impact of Physical Activity on Diabetes Prevalence: Insights fr
 [35m==== Starting conversation ===========================================================================================================================[0m
 [35m                                                              literature_search_writing                                                               [0m
 [35m======================================================================================================================================================[0m
-[31mCreateConversation(name=literature_search_writing web=[web]add citations, participants=['Performer', 'CitationExpert']) -> literature_search_writing[0m
+[31mCreateConversation(name=literature_search_writing web=[web]add citations, participants=['CitationExpert', 'Performer']) -> literature_search_writing[0m
 
 [32m[1] SYSTEM casting  {Performer} -> literature_search_writing : 
 You are a scientist who needs to write literature search queries.[0m
@@ -7459,7 +7363,7 @@ You are a data-scientist with experience writing accurate scientific research pa
 [34m[2] COMMENTER -> title_abstract_section_second : Background-related Literature Search:
 Here are citations from our Literature Search for papers related to the Background of our study:
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 26
 ID: 'Eckert2012ImpactOP'
 Title: 'Impact of physical activity and bodyweight on health-related quality of life in people with type 2 diabetes'
@@ -7469,7 +7373,7 @@ Citation influence: 7
 Embedding similarity: 0.83
 
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 48
 ID: 'Fox1999TheIO'
 Title: 'The influence of physical activity on mental well-being'
@@ -7479,7 +7383,7 @@ Citation influence: 78
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes', 'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes', 'risk factors for diabetes']
 Search rank: 2
 ID: 'Bohn2015ImpactOP'
 Title: 'Impact of Physical Activity on Glycemic Control and Prevalence of Cardiovascular Risk Factors in Adults With Type 1 Diabetes: A Cross-sectional Multicenter Study of 18,028 Patients'
@@ -7489,7 +7393,7 @@ Citation influence: 7
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 40
 ID: 'Akter2014PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes and their risk factors among Bangladeshi adults: a nationwide survey.'
@@ -7499,7 +7403,7 @@ Citation influence: 17
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 53
 ID: 'Chan1994ObesityFD'
 Title: 'Obesity, Fat Distribution, and Weight Gain as Risk Factors for Clinical Diabetes in Men'
@@ -7509,7 +7413,7 @@ Citation influence: 75
 Embedding similarity: 0.78
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 78
 ID: 'Lam2012TheWD'
 Title: 'The worldwide diabetes epidemic'
@@ -7519,7 +7423,7 @@ Citation influence: 9
 Embedding similarity: 0.78
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 59
 ID: 'Singh2013TheAQ'
 Title: 'The Age-Specific Quantitative Effects of Metabolic Risk Factors on Cardiovascular Diseases and Diabetes: A Pooled Analysis'
@@ -7529,7 +7433,7 @@ Citation influence: 8
 Embedding similarity: 0.78
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 91
 ID: 'Garduo-Diaz2012PrevalenceRF'
 Title: 'Prevalence, risk factors and complications associated with type 2 diabetes in migrant South Asians'
@@ -7539,7 +7443,7 @@ Citation influence: 6
 Embedding similarity: 0.78
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 15
 ID: 'Wild2006RiskFF'
 Title: 'Risk factors for diabetes and coronary heart disease'
@@ -7549,7 +7453,7 @@ Citation influence: 6
 Embedding similarity: 0.77
 
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 71
 ID: 'Holmen2016StagesOC'
 Title: 'Stages of change for physical activity and dietary habits in persons with type 2 diabetes included in a mobile health intervention: the Norwegian study in RENEWING HEALTH'
@@ -7559,7 +7463,7 @@ Citation influence: 7
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 62
 ID: 'Pi-Sunyer2007ReductionIW'
 Title: 'Reduction in Weight and Cardiovascular Disease Risk Factors in Individuals With Type 2 Diabetes'
@@ -7569,7 +7473,7 @@ Citation influence: 44
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes', 'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide', 'risk factors for diabetes']
 Search rank: 30
 ID: 'Wu2014RiskFC'
 Title: 'Risk Factors Contributing to Type 2 Diabetes and Recent Advances in the Treatment and Prevention'
@@ -7583,7 +7487,7 @@ Embedding similarity: 0.76
 [34m[3] COMMENTER -> title_abstract_section_second : Dataset-related Literature Search:
 Here are citations from our Literature Search for papers related to the Dataset of our study:
 
-Query: {'BRFSS', 'Behavioral Risk Factor Surveillance System'}
+Query: ['BRFSS', 'Behavioral Risk Factor Surveillance System']
 Search rank: 0
 ID: 'Rolle-Lake2020BehavioralRF'
 Title: 'Behavioral Risk Factor Surveillance System (BRFSS)'
@@ -7592,7 +7496,7 @@ Citation influence: 5
 Embedding similarity: 0.71
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 0
 ID: 'Preedy1989BehavioralRF'
 Title: 'Behavioral risk factor surveillance system.'
@@ -7602,7 +7506,7 @@ Citation influence: 20
 Embedding similarity: 0.74
 
 
-Query: {'health-related telephone survey'}
+Query: ['health-related telephone survey']
 Search rank: 0
 ID: 'Chung2021COVID19RH'
 Title: 'COVID-19 related health inequality exists even in a city where disease incidence is relatively low: a telephone survey in Hong Kong'
@@ -7612,7 +7516,7 @@ Citation influence: 2
 Embedding similarity: 0.73
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 1
 ID: 'Merrick2018PrevalenceOA'
 Title: 'Prevalence of Adverse Childhood Experiences From the 2011-2014 Behavioral Risk Factor Surveillance System in 23 States'
@@ -7622,7 +7526,7 @@ Citation influence: 51
 Embedding similarity: 0
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 2
 ID: 'Chou2002AnEA'
 Title: 'An Economic Analysis of Adult Obesity: Results from the Behavioral Risk Factor Surveillance System'
@@ -7632,7 +7536,7 @@ Citation influence: 125
 Embedding similarity: 0.72
 
 
-Query: {'BRFSS'}
+Query: ['BRFSS']
 Search rank: 3
 ID: 'Schauer2020ModesOM'
 Title: 'Modes of marijuana use - smoking, vaping, eating, and dabbing: Results from the 2016 BRFSS in 12 States.'
@@ -7642,7 +7546,7 @@ Citation influence: 4
 Embedding similarity: 0.65
 
 
-Query: {'health-related telephone survey'}
+Query: ['health-related telephone survey']
 Search rank: 3
 ID: 'Joseph2018HealthRelatedQO'
 Title: 'Health-Related Quality of Life and Work Productivity of Adults With ADHD: A U.K. Web-Based Cross-Sectional Survey'
@@ -7652,7 +7556,7 @@ Citation influence: 4
 Embedding similarity: 0.67
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 3
 ID: 'Heslin2021SexualOD'
 Title: 'Sexual Orientation Disparities in Risk Factors for Adverse COVID-19–Related Outcomes, by Race/Ethnicity — Behavioral Risk Factor Surveillance System, United States, 2017–2019'
@@ -7662,7 +7566,7 @@ Citation influence: 4
 Embedding similarity: 0.66
 
 
-Query: {'health-related telephone survey'}
+Query: ['health-related telephone survey']
 Search rank: 4
 ID: 'Levkovich2021DepressionAH'
 Title: 'Depression and Health-Related Quality of Life Among Elderly Patients during the COVID-19 Pandemic in Israel: A Cross-sectional Study'
@@ -7672,7 +7576,7 @@ Citation influence: 3
 Embedding similarity: 0.69
 
 
-Query: {'BRFSS'}
+Query: ['BRFSS']
 Search rank: 7
 ID: 'Waltzman2020LifetimeHO'
 Title: 'Lifetime History of Traumatic Brain Injury With Loss of Consciousness and the Likelihood for Lifetime Depression and Risk Behaviors: 2017 BRFSS North Carolina'
@@ -7682,7 +7586,7 @@ Citation influence: 2
 Embedding similarity: 0.62
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 7
 ID: 'Mirbolouk2018PrevalenceAD'
 Title: 'Prevalence and Distribution of E-Cigarette Use Among U.S. Adults: Behavioral Risk Factor Surveillance System, 2016'
@@ -7692,7 +7596,7 @@ Citation influence: 16
 Embedding similarity: 0
 
 
-Query: {'BRFSS'}
+Query: ['BRFSS']
 Search rank: 8
 ID: 'Caceres2019AssessingGI'
 Title: 'Assessing gender identity differences in cardiovascular disease in US adults: an analysis of data from the 2014–2017 BRFSS'
@@ -7706,7 +7610,7 @@ Embedding similarity: 0
 [34m[4] COMMENTER -> title_abstract_section_second : Results-related Literature Search:
 Here are citations from our Literature Search for papers related to the Results of our study:
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 18
 ID: 'Zhao2020PhysicalAL'
 Title: 'Physical Activity Levels and Diabetes Prevalence in US Adults: Findings from NHANES 2015–2016'
@@ -7716,7 +7620,7 @@ Citation influence: 1
 Embedding similarity: 0.87
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 88
 ID: 'Shi2013PhysicalAS'
 Title: 'Physical Activity, Smoking, and Alcohol Consumption in Association with Incidence of Type 2 Diabetes among Middle-Aged and Elderly Chinese Men'
@@ -7726,7 +7630,7 @@ Citation influence: 6
 Embedding similarity: 0.81
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 44
 ID: 'olak2016AssociationBT'
 Title: 'Association between the physical activity level and the quality of life of patients with type 2 diabetes mellitus'
@@ -7736,7 +7640,7 @@ Citation influence: 2
 Embedding similarity: 0.8
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 60
 ID: 'Bohn2015ImpactOP'
 Title: 'Impact of Physical Activity on Glycemic Control and Prevalence of Cardiovascular Risk Factors in Adults With Type 1 Diabetes: A Cross-sectional Multicenter Study of 18,028 Patients'
@@ -7746,7 +7650,7 @@ Citation influence: 7
 Embedding similarity: 0.79
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 55
 ID: 'Bilbeisi2017TheAB'
 Title: 'The Association between Physical Activity and the Metabolic Syndrome among Type 2 Diabetes Patients in Gaza Strip, Palestine'
@@ -7756,7 +7660,7 @@ Citation influence: 1
 Embedding similarity: 0.79
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 33
 ID: 'Liu2022PhysicalAA'
 Title: 'Physical activity attenuated the association of ambient ozone with type 2 diabetes mellitus and fasting blood glucose among rural Chinese population'
@@ -7766,7 +7670,7 @@ Citation influence: 1
 Embedding similarity: 0.78
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 64
 ID: 'Stein2015AssociationBP'
 Title: 'Association Between Physical Activity and Peripheral Artery Disease and Carotid Artery Stenosis in a Self-Referred Population of 3 Million Adults'
@@ -7776,7 +7680,7 @@ Citation influence: 3
 Embedding similarity: 0.78
 
 
-Query: {'effectiveness of physical activity in diabetes prevention'}
+Query: ['effectiveness of physical activity in diabetes prevention']
 Search rank: 26
 ID: 'Warburton2006HealthBO'
 Title: 'Health benefits of physical activity: the evidence'
@@ -7786,7 +7690,7 @@ Citation influence: 236
 Embedding similarity: 0.77
 
 
-Query: {'effectiveness of physical activity in diabetes prevention'}
+Query: ['effectiveness of physical activity in diabetes prevention']
 Search rank: 2
 ID: 'Pronk2015StructuredDA'
 Title: 'Structured diet and physical activity programmes provide strong evidence of effectiveness for type 2 diabetes prevention and improvement of cardiometabolic health'
@@ -7796,7 +7700,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'moderating effect of BMI on physical activity and diabetes relationship'}
+Query: ['moderating effect of BMI on physical activity and diabetes relationship']
 Search rank: 7
 ID: 'Swindell2020CompositionalAO'
 Title: 'Compositional analysis of the associations between 24-h movement behaviours and cardio-metabolic risk factors in overweight and obese adults with pre-diabetes from the PREVIEW study: cross-sectional baseline analysis'
@@ -7806,7 +7710,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 71
 ID: 'Moradell2022ArePA'
 Title: 'Are Physical Activity and Sedentary Screen Time Levels Associated With Food Consumption in European Adolescents? The HELENA Study.'
@@ -7816,7 +7720,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 59
 ID: 'Sudeck2021DoAW'
 Title: 'Do adults with non-communicable diseases meet the German physical activity recommendations?'
@@ -8622,7 +8526,7 @@ You are a data-scientist with experience writing accurate scientific research pa
 [34m[2] COMMENTER -> introduction : Background-related Literature Search:
 Here are citations from our Literature Search for papers related to the Background of our study:
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 26
 ID: 'Eckert2012ImpactOP'
 Title: 'Impact of physical activity and bodyweight on health-related quality of life in people with type 2 diabetes'
@@ -8632,7 +8536,7 @@ Citation influence: 7
 Embedding similarity: 0.83
 
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 48
 ID: 'Fox1999TheIO'
 Title: 'The influence of physical activity on mental well-being'
@@ -8642,7 +8546,7 @@ Citation influence: 78
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes', 'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes', 'risk factors for diabetes']
 Search rank: 2
 ID: 'Bohn2015ImpactOP'
 Title: 'Impact of Physical Activity on Glycemic Control and Prevalence of Cardiovascular Risk Factors in Adults With Type 1 Diabetes: A Cross-sectional Multicenter Study of 18,028 Patients'
@@ -8652,7 +8556,7 @@ Citation influence: 7
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 40
 ID: 'Akter2014PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes and their risk factors among Bangladeshi adults: a nationwide survey.'
@@ -8662,7 +8566,7 @@ Citation influence: 17
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 53
 ID: 'Chan1994ObesityFD'
 Title: 'Obesity, Fat Distribution, and Weight Gain as Risk Factors for Clinical Diabetes in Men'
@@ -8672,7 +8576,7 @@ Citation influence: 75
 Embedding similarity: 0.78
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 78
 ID: 'Lam2012TheWD'
 Title: 'The worldwide diabetes epidemic'
@@ -8682,7 +8586,7 @@ Citation influence: 9
 Embedding similarity: 0.78
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 59
 ID: 'Singh2013TheAQ'
 Title: 'The Age-Specific Quantitative Effects of Metabolic Risk Factors on Cardiovascular Diseases and Diabetes: A Pooled Analysis'
@@ -8692,7 +8596,7 @@ Citation influence: 8
 Embedding similarity: 0.78
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 91
 ID: 'Garduo-Diaz2012PrevalenceRF'
 Title: 'Prevalence, risk factors and complications associated with type 2 diabetes in migrant South Asians'
@@ -8702,7 +8606,7 @@ Citation influence: 6
 Embedding similarity: 0.78
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 15
 ID: 'Wild2006RiskFF'
 Title: 'Risk factors for diabetes and coronary heart disease'
@@ -8712,7 +8616,7 @@ Citation influence: 6
 Embedding similarity: 0.77
 
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 71
 ID: 'Holmen2016StagesOC'
 Title: 'Stages of change for physical activity and dietary habits in persons with type 2 diabetes included in a mobile health intervention: the Norwegian study in RENEWING HEALTH'
@@ -8722,7 +8626,7 @@ Citation influence: 7
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 62
 ID: 'Pi-Sunyer2007ReductionIW'
 Title: 'Reduction in Weight and Cardiovascular Disease Risk Factors in Individuals With Type 2 Diabetes'
@@ -8732,7 +8636,7 @@ Citation influence: 44
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes', 'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide', 'risk factors for diabetes']
 Search rank: 30
 ID: 'Wu2014RiskFC'
 Title: 'Risk Factors Contributing to Type 2 Diabetes and Recent Advances in the Treatment and Prevention'
@@ -8746,7 +8650,7 @@ Embedding similarity: 0.76
 [34m[3] COMMENTER -> introduction : Results-related Literature Search:
 Here are citations from our Literature Search for papers related to the Results of our study:
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 18
 ID: 'Zhao2020PhysicalAL'
 Title: 'Physical Activity Levels and Diabetes Prevalence in US Adults: Findings from NHANES 2015–2016'
@@ -8756,7 +8660,7 @@ Citation influence: 1
 Embedding similarity: 0.87
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 88
 ID: 'Shi2013PhysicalAS'
 Title: 'Physical Activity, Smoking, and Alcohol Consumption in Association with Incidence of Type 2 Diabetes among Middle-Aged and Elderly Chinese Men'
@@ -8766,7 +8670,7 @@ Citation influence: 6
 Embedding similarity: 0.81
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 44
 ID: 'olak2016AssociationBT'
 Title: 'Association between the physical activity level and the quality of life of patients with type 2 diabetes mellitus'
@@ -8776,7 +8680,7 @@ Citation influence: 2
 Embedding similarity: 0.8
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 60
 ID: 'Bohn2015ImpactOP'
 Title: 'Impact of Physical Activity on Glycemic Control and Prevalence of Cardiovascular Risk Factors in Adults With Type 1 Diabetes: A Cross-sectional Multicenter Study of 18,028 Patients'
@@ -8786,7 +8690,7 @@ Citation influence: 7
 Embedding similarity: 0.79
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 55
 ID: 'Bilbeisi2017TheAB'
 Title: 'The Association between Physical Activity and the Metabolic Syndrome among Type 2 Diabetes Patients in Gaza Strip, Palestine'
@@ -8796,7 +8700,7 @@ Citation influence: 1
 Embedding similarity: 0.79
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 33
 ID: 'Liu2022PhysicalAA'
 Title: 'Physical activity attenuated the association of ambient ozone with type 2 diabetes mellitus and fasting blood glucose among rural Chinese population'
@@ -8806,7 +8710,7 @@ Citation influence: 1
 Embedding similarity: 0.78
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 64
 ID: 'Stein2015AssociationBP'
 Title: 'Association Between Physical Activity and Peripheral Artery Disease and Carotid Artery Stenosis in a Self-Referred Population of 3 Million Adults'
@@ -8816,7 +8720,7 @@ Citation influence: 3
 Embedding similarity: 0.78
 
 
-Query: {'effectiveness of physical activity in diabetes prevention'}
+Query: ['effectiveness of physical activity in diabetes prevention']
 Search rank: 26
 ID: 'Warburton2006HealthBO'
 Title: 'Health benefits of physical activity: the evidence'
@@ -8826,7 +8730,7 @@ Citation influence: 236
 Embedding similarity: 0.77
 
 
-Query: {'effectiveness of physical activity in diabetes prevention'}
+Query: ['effectiveness of physical activity in diabetes prevention']
 Search rank: 2
 ID: 'Pronk2015StructuredDA'
 Title: 'Structured diet and physical activity programmes provide strong evidence of effectiveness for type 2 diabetes prevention and improvement of cardiometabolic health'
@@ -8836,7 +8740,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'moderating effect of BMI on physical activity and diabetes relationship'}
+Query: ['moderating effect of BMI on physical activity and diabetes relationship']
 Search rank: 7
 ID: 'Swindell2020CompositionalAO'
 Title: 'Compositional analysis of the associations between 24-h movement behaviours and cardio-metabolic risk factors in overweight and obese adults with pre-diabetes from the PREVIEW study: cross-sectional baseline analysis'
@@ -8846,7 +8750,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 71
 ID: 'Moradell2022ArePA'
 Title: 'Are Physical Activity and Sedentary Screen Time Levels Associated With Food Consumption in European Adolescents? The HELENA Study.'
@@ -8856,7 +8760,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 59
 ID: 'Sudeck2021DoAW'
 Title: 'Do adults with non-communicable diseases meet the German physical activity recommendations?'
@@ -8870,7 +8774,7 @@ Embedding similarity: 0.76
 [34m[4] COMMENTER -> introduction : Dataset-related Literature Search:
 Here are citations from our Literature Search for papers related to the Dataset of our study:
 
-Query: {'BRFSS', 'Behavioral Risk Factor Surveillance System'}
+Query: ['BRFSS', 'Behavioral Risk Factor Surveillance System']
 Search rank: 0
 ID: 'Rolle-Lake2020BehavioralRF'
 Title: 'Behavioral Risk Factor Surveillance System (BRFSS)'
@@ -8879,7 +8783,7 @@ Citation influence: 5
 Embedding similarity: 0.71
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 0
 ID: 'Preedy1989BehavioralRF'
 Title: 'Behavioral risk factor surveillance system.'
@@ -8889,7 +8793,7 @@ Citation influence: 20
 Embedding similarity: 0.74
 
 
-Query: {'health-related telephone survey'}
+Query: ['health-related telephone survey']
 Search rank: 0
 ID: 'Chung2021COVID19RH'
 Title: 'COVID-19 related health inequality exists even in a city where disease incidence is relatively low: a telephone survey in Hong Kong'
@@ -8899,7 +8803,7 @@ Citation influence: 2
 Embedding similarity: 0.73
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 1
 ID: 'Merrick2018PrevalenceOA'
 Title: 'Prevalence of Adverse Childhood Experiences From the 2011-2014 Behavioral Risk Factor Surveillance System in 23 States'
@@ -8909,7 +8813,7 @@ Citation influence: 51
 Embedding similarity: 0
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 2
 ID: 'Chou2002AnEA'
 Title: 'An Economic Analysis of Adult Obesity: Results from the Behavioral Risk Factor Surveillance System'
@@ -8919,7 +8823,7 @@ Citation influence: 125
 Embedding similarity: 0.72
 
 
-Query: {'BRFSS'}
+Query: ['BRFSS']
 Search rank: 3
 ID: 'Schauer2020ModesOM'
 Title: 'Modes of marijuana use - smoking, vaping, eating, and dabbing: Results from the 2016 BRFSS in 12 States.'
@@ -8929,7 +8833,7 @@ Citation influence: 4
 Embedding similarity: 0.65
 
 
-Query: {'health-related telephone survey'}
+Query: ['health-related telephone survey']
 Search rank: 3
 ID: 'Joseph2018HealthRelatedQO'
 Title: 'Health-Related Quality of Life and Work Productivity of Adults With ADHD: A U.K. Web-Based Cross-Sectional Survey'
@@ -8939,7 +8843,7 @@ Citation influence: 4
 Embedding similarity: 0.67
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 3
 ID: 'Heslin2021SexualOD'
 Title: 'Sexual Orientation Disparities in Risk Factors for Adverse COVID-19–Related Outcomes, by Race/Ethnicity — Behavioral Risk Factor Surveillance System, United States, 2017–2019'
@@ -8949,7 +8853,7 @@ Citation influence: 4
 Embedding similarity: 0.66
 
 
-Query: {'health-related telephone survey'}
+Query: ['health-related telephone survey']
 Search rank: 4
 ID: 'Levkovich2021DepressionAH'
 Title: 'Depression and Health-Related Quality of Life Among Elderly Patients during the COVID-19 Pandemic in Israel: A Cross-sectional Study'
@@ -8959,7 +8863,7 @@ Citation influence: 3
 Embedding similarity: 0.69
 
 
-Query: {'BRFSS'}
+Query: ['BRFSS']
 Search rank: 7
 ID: 'Waltzman2020LifetimeHO'
 Title: 'Lifetime History of Traumatic Brain Injury With Loss of Consciousness and the Likelihood for Lifetime Depression and Risk Behaviors: 2017 BRFSS North Carolina'
@@ -8969,7 +8873,7 @@ Citation influence: 2
 Embedding similarity: 0.62
 
 
-Query: {'Behavioral Risk Factor Surveillance System'}
+Query: ['Behavioral Risk Factor Surveillance System']
 Search rank: 7
 ID: 'Mirbolouk2018PrevalenceAD'
 Title: 'Prevalence and Distribution of E-Cigarette Use Among U.S. Adults: Behavioral Risk Factor Surveillance System, 2016'
@@ -8979,7 +8883,7 @@ Citation influence: 16
 Embedding similarity: 0
 
 
-Query: {'BRFSS'}
+Query: ['BRFSS']
 Search rank: 8
 ID: 'Caceres2019AssessingGI'
 Title: 'Assessing gender identity differences in cardiovascular disease in US adults: an analysis of data from the 2014–2017 BRFSS'
@@ -8993,7 +8897,7 @@ Embedding similarity: 0
 [34m[5] COMMENTER -> introduction : Methods-related Literature Search:
 Here are citations from our Literature Search for papers related to the Methods of our study:
 
-Query: {'logistic regression analysis'}
+Query: ['logistic regression analysis']
 Search rank: 0
 ID: 'Menard1996AppliedLR'
 Title: 'Applied Logistic Regression Analysis'
@@ -9002,7 +8906,7 @@ Citation influence: 494
 Embedding similarity: 0
 
 
-Query: {'logistic regression analysis'}
+Query: ['logistic regression analysis']
 Search rank: 1
 ID: 'Peduzzi1996ASS'
 Title: 'A simulation study of the number of events per variable in logistic regression analysis.'
@@ -9012,7 +8916,7 @@ Citation influence: 144
 Embedding similarity: 0
 
 
-Query: {'logistic regression analysis'}
+Query: ['logistic regression analysis']
 Search rank: 2
 ID: 'Rao2003RegressionMS'
 Title: 'Regression Modeling Strategies: With Applications to Linear Models, Logistic Regression, and Survival Analysis'
@@ -9022,7 +8926,7 @@ Citation influence: 372
 Embedding similarity: 0.52
 
 
-Query: {'logistic regression analysis'}
+Query: ['logistic regression analysis']
 Search rank: 4
 ID: 'Harrell2001RegressionMS'
 Title: 'Regression Modeling Strategies: With Applications to Linear Models, Logistic Regression, and Survival Analysis'
@@ -9032,7 +8936,7 @@ Citation influence: 153
 Embedding similarity: 0.48
 
 
-Query: {'moderating effect of BMI on diabetes prevalence'}
+Query: ['moderating effect of BMI on diabetes prevalence']
 Search rank: 25
 ID: 'Lunt2001TheEO'
 Title: 'The Effects of Lifestyle, Dietary Dairy Intake and Diabetes on Bone Density and Vertebral Deformity Prevalence: The EVOS Study'
@@ -9042,7 +8946,7 @@ Citation influence: 11
 Embedding similarity: 0
 
 
-Query: {'moderating effect of BMI on diabetes prevalence'}
+Query: ['moderating effect of BMI on diabetes prevalence']
 Search rank: 27
 ID: 'Luyckx1998LiverAI'
 Title: 'Liver abnormalities in severely obese subjects: Effect of drastic weight loss after gastroplasty'
@@ -9609,7 +9513,7 @@ You are a data-scientist with experience writing accurate scientific research pa
 [34m[2] COMMENTER -> discussion : Background-related Literature Search:
 Here are citations from our Literature Search for papers related to the Background of our study:
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 26
 ID: 'Eckert2012ImpactOP'
 Title: 'Impact of physical activity and bodyweight on health-related quality of life in people with type 2 diabetes'
@@ -9619,7 +9523,7 @@ Citation influence: 7
 Embedding similarity: 0.83
 
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 48
 ID: 'Fox1999TheIO'
 Title: 'The influence of physical activity on mental well-being'
@@ -9629,7 +9533,7 @@ Citation influence: 78
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes', 'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes', 'risk factors for diabetes']
 Search rank: 2
 ID: 'Bohn2015ImpactOP'
 Title: 'Impact of Physical Activity on Glycemic Control and Prevalence of Cardiovascular Risk Factors in Adults With Type 1 Diabetes: A Cross-sectional Multicenter Study of 18,028 Patients'
@@ -9639,7 +9543,7 @@ Citation influence: 7
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 40
 ID: 'Akter2014PrevalenceOD'
 Title: 'Prevalence of diabetes and prediabetes and their risk factors among Bangladeshi adults: a nationwide survey.'
@@ -9649,7 +9553,7 @@ Citation influence: 17
 Embedding similarity: 0.79
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 53
 ID: 'Chan1994ObesityFD'
 Title: 'Obesity, Fat Distribution, and Weight Gain as Risk Factors for Clinical Diabetes in Men'
@@ -9659,7 +9563,7 @@ Citation influence: 75
 Embedding similarity: 0.78
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 78
 ID: 'Lam2012TheWD'
 Title: 'The worldwide diabetes epidemic'
@@ -9669,7 +9573,7 @@ Citation influence: 9
 Embedding similarity: 0.78
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 59
 ID: 'Singh2013TheAQ'
 Title: 'The Age-Specific Quantitative Effects of Metabolic Risk Factors on Cardiovascular Diseases and Diabetes: A Pooled Analysis'
@@ -9679,7 +9583,7 @@ Citation influence: 8
 Embedding similarity: 0.78
 
 
-Query: {'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide']
 Search rank: 91
 ID: 'Garduo-Diaz2012PrevalenceRF'
 Title: 'Prevalence, risk factors and complications associated with type 2 diabetes in migrant South Asians'
@@ -9689,7 +9593,7 @@ Citation influence: 6
 Embedding similarity: 0.78
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 15
 ID: 'Wild2006RiskFF'
 Title: 'Risk factors for diabetes and coronary heart disease'
@@ -9699,7 +9603,7 @@ Citation influence: 6
 Embedding similarity: 0.77
 
 
-Query: {'impact of physical activity on diabetes'}
+Query: ['impact of physical activity on diabetes']
 Search rank: 71
 ID: 'Holmen2016StagesOC'
 Title: 'Stages of change for physical activity and dietary habits in persons with type 2 diabetes included in a mobile health intervention: the Norwegian study in RENEWING HEALTH'
@@ -9709,7 +9613,7 @@ Citation influence: 7
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes'}
+Query: ['risk factors for diabetes']
 Search rank: 62
 ID: 'Pi-Sunyer2007ReductionIW'
 Title: 'Reduction in Weight and Cardiovascular Disease Risk Factors in Individuals With Type 2 Diabetes'
@@ -9719,7 +9623,7 @@ Citation influence: 44
 Embedding similarity: 0.77
 
 
-Query: {'risk factors for diabetes', 'diabetes prevalence worldwide'}
+Query: ['diabetes prevalence worldwide', 'risk factors for diabetes']
 Search rank: 30
 ID: 'Wu2014RiskFC'
 Title: 'Risk Factors Contributing to Type 2 Diabetes and Recent Advances in the Treatment and Prevention'
@@ -9733,7 +9637,7 @@ Embedding similarity: 0.76
 [34m[3] COMMENTER -> discussion : Results-related Literature Search:
 Here are citations from our Literature Search for papers related to the Results of our study:
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 18
 ID: 'Zhao2020PhysicalAL'
 Title: 'Physical Activity Levels and Diabetes Prevalence in US Adults: Findings from NHANES 2015–2016'
@@ -9743,7 +9647,7 @@ Citation influence: 1
 Embedding similarity: 0.87
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 88
 ID: 'Shi2013PhysicalAS'
 Title: 'Physical Activity, Smoking, and Alcohol Consumption in Association with Incidence of Type 2 Diabetes among Middle-Aged and Elderly Chinese Men'
@@ -9753,7 +9657,7 @@ Citation influence: 6
 Embedding similarity: 0.81
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 44
 ID: 'olak2016AssociationBT'
 Title: 'Association between the physical activity level and the quality of life of patients with type 2 diabetes mellitus'
@@ -9763,7 +9667,7 @@ Citation influence: 2
 Embedding similarity: 0.8
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 60
 ID: 'Bohn2015ImpactOP'
 Title: 'Impact of Physical Activity on Glycemic Control and Prevalence of Cardiovascular Risk Factors in Adults With Type 1 Diabetes: A Cross-sectional Multicenter Study of 18,028 Patients'
@@ -9773,7 +9677,7 @@ Citation influence: 7
 Embedding similarity: 0.79
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 55
 ID: 'Bilbeisi2017TheAB'
 Title: 'The Association between Physical Activity and the Metabolic Syndrome among Type 2 Diabetes Patients in Gaza Strip, Palestine'
@@ -9783,7 +9687,7 @@ Citation influence: 1
 Embedding similarity: 0.79
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 33
 ID: 'Liu2022PhysicalAA'
 Title: 'Physical activity attenuated the association of ambient ozone with type 2 diabetes mellitus and fasting blood glucose among rural Chinese population'
@@ -9793,7 +9697,7 @@ Citation influence: 1
 Embedding similarity: 0.78
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 64
 ID: 'Stein2015AssociationBP'
 Title: 'Association Between Physical Activity and Peripheral Artery Disease and Carotid Artery Stenosis in a Self-Referred Population of 3 Million Adults'
@@ -9803,7 +9707,7 @@ Citation influence: 3
 Embedding similarity: 0.78
 
 
-Query: {'effectiveness of physical activity in diabetes prevention'}
+Query: ['effectiveness of physical activity in diabetes prevention']
 Search rank: 26
 ID: 'Warburton2006HealthBO'
 Title: 'Health benefits of physical activity: the evidence'
@@ -9813,7 +9717,7 @@ Citation influence: 236
 Embedding similarity: 0.77
 
 
-Query: {'effectiveness of physical activity in diabetes prevention'}
+Query: ['effectiveness of physical activity in diabetes prevention']
 Search rank: 2
 ID: 'Pronk2015StructuredDA'
 Title: 'Structured diet and physical activity programmes provide strong evidence of effectiveness for type 2 diabetes prevention and improvement of cardiometabolic health'
@@ -9823,7 +9727,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'moderating effect of BMI on physical activity and diabetes relationship'}
+Query: ['moderating effect of BMI on physical activity and diabetes relationship']
 Search rank: 7
 ID: 'Swindell2020CompositionalAO'
 Title: 'Compositional analysis of the associations between 24-h movement behaviours and cardio-metabolic risk factors in overweight and obese adults with pre-diabetes from the PREVIEW study: cross-sectional baseline analysis'
@@ -9833,7 +9737,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 71
 ID: 'Moradell2022ArePA'
 Title: 'Are Physical Activity and Sedentary Screen Time Levels Associated With Food Consumption in European Adolescents? The HELENA Study.'
@@ -9843,7 +9747,7 @@ Citation influence: 1
 Embedding similarity: 0.77
 
 
-Query: {'negative association between physical activity and diabetes prevalence'}
+Query: ['negative association between physical activity and diabetes prevalence']
 Search rank: 59
 ID: 'Sudeck2021DoAW'
 Title: 'Do adults with non-communicable diseases meet the German physical activity recommendations?'
@@ -10328,447 +10232,6 @@ the drafting of effective and inclusive public health strategies and policies.
 
 [31mDeleteMessages(<19> - <-1> [3 MESSAGES]) -> discussion[0m
 
-This is BibTeX, Version 0.99d (TeX Live 2023)
-The top-level auxiliary file: paper.aux
-The style file: unsrt.bst
-Database file #1: citations.bib
-Warning--empty booktitle in Rolle-Lake2020BehavioralRF
-Warning--empty booktitle in Menard1996AppliedLR
-(There were 2 warnings)
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex)
- \write18 enabled.
-entering extended mode
-(./paper.tex
-LaTeX2e <2022-11-01> patch level 1
-L3 programming layer <2023-02-22>
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/size11.clo))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hyperref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/iftex.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/infwarerr/infwarerr.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/keyval.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdfescape/pdfescape.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hycolor/hycolor.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/letltxmacro/letltxmacro.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/auxhook/auxhook.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/nameref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/refcount/refcount.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/gettitlestring/gettitlestring.s
-ty (/usr/local/texlive/2023/texmf-dist/tex/latex/kvoptions/kvoptions.sty)))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/pd1enc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/intcalc/intcalc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/etexcmds/etexcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/puenc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/url/url.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bitset/bitset.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atbegshi-ltx.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hpdftex.def
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atveryend-ltx.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
-
-(/usr/local/texlive/2023/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
-))) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/booktabs/booktabs.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/multirow/multirow.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/threeparttable/threeparttable.sty
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/color.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-cfg/color.cfg)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-def/pdftex.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/mathcolor.ltx))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.cfg))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/minted/minted.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/fvextra/fvextra.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/etoolbox/etoolbox.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/upquote/upquote.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/lineno/lineno.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/ifthen.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/calc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/shellesc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/ifplatform/ifplatform.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/catchfile/catchfile.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/ifluatex.sty)
-(./paper.w18))
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.tex))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/framed/framed.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/float/float.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/sectsty/sectsty.sty
-
-LaTeX Warning: Command \underbar  has changed.
-               Check if current package is valid.
-
-
-LaTeX Warning: Command \underline  has changed.
-               Check if current package is valid.
-
-)/Applications/anaconda3/envs/data_to_paper/bin/pygmentize
- (/usr/local/texlive/2023/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
- (./paper.aux) (./paper.out) (./paper.out)
-(/usr/local/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
-[Loading MPS to PDF converter (version 2006.09.02).]
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/textcomp.sty)
-
-LaTeX Warning: Citation `Akter2014PrevalenceOD' on page 1 undefined on input li
-ne 28.
-
-
-LaTeX Warning: Citation `Lam2012TheWD' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Chan1994ObesityFD' on page 1 undefined on input line 2
-8.
-
-
-LaTeX Warning: Citation `Wild2006RiskFF' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Singh2013TheAQ' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Fox1999TheIO' on page 1 undefined on input line 28.
-
-
-LaTeX Warning: Citation `Bohn2015ImpactOP' on page 1 undefined on input line 28
-.
-
-
-LaTeX Warning: Citation `Eckert2012ImpactOP' on page 1 undefined on input line 
-28.
-
-
-LaTeX Warning: Citation `Zhao2020PhysicalAL' on page 1 undefined on input line 
-30.
-
-
-LaTeX Warning: Citation `Shi2013PhysicalAS' on page 1 undefined on input line 3
-0.
-
-
-LaTeX Warning: Citation `Bohn2015ImpactOP' on page 1 undefined on input line 30
-.
-
-
-LaTeX Warning: Citation `Pi-Sunyer2007ReductionIW' on page 1 undefined on input
- line 30.
-
-[1{/usr/local/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-
-LaTeX Warning: Citation `Rolle-Lake2020BehavioralRF' on page 2 undefined on inp
-ut line 32.
-
-
-LaTeX Warning: Citation `Preedy1989BehavioralRF' on page 2 undefined on input l
-ine 32.
-
-
-LaTeX Warning: Citation `Menard1996AppliedLR' on page 2 undefined on input line
- 34.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[2] [3
-pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.105 
-      
-pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.105 
-      ]
-Overfull \hbox (4.07652pt too wide) in paragraph at lines 110--143
-[] 
-
-LaTeX Warning: Citation `Wild2006RiskFF' on page 4 undefined on input line 150.
-
-
-
-LaTeX Warning: Citation `Bohn2015ImpactOP' on page 4 undefined on input line 15
-0.
-
-
-LaTeX Warning: Citation `Akter2014PrevalenceOD' on page 4 undefined on input li
-ne 150.
-
-
-LaTeX Warning: Citation `Lam2012TheWD' on page 4 undefined on input line 150.
-
-[4
-pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.151 
-      ]
-
-LaTeX Warning: Citation `Menard1996AppliedLR' on page 5 undefined on input line
- 152.
-
-
-LaTeX Warning: Citation `Zhao2020PhysicalAL' on page 5 undefined on input line 
-154.
-
-
-LaTeX Warning: Citation `Shi2013PhysicalAS' on page 5 undefined on input line 1
-54.
-
-
-LaTeX Warning: Citation `Bohn2015ImpactOP' on page 5 undefined on input line 15
-4.
-
-
-LaTeX Warning: Citation `Pi-Sunyer2007ReductionIW' on page 5 undefined on input
- line 154.
-
-
-LaTeX Warning: Citation `Akter2014PrevalenceOD' on page 5 undefined on input li
-ne 156.
-
-
-LaTeX Warning: Citation `Chan1994ObesityFD' on page 5 undefined on input line 1
-60.
-
-
-LaTeX Warning: Citation `Singh2013TheAQ' on page 5 undefined on input line 160.
-
-
-
-LaTeX Warning: Citation `Wild2006RiskFF' on page 5 undefined on input line 160.
-
-
-[5] [6] [7] [8] (./_minted-paper/default.pygstyle)
-(./_minted-paper/2FAFFB82D5260D5380AADD8881789E43651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 7--7
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]"diabetes_binary_health_indicators_BRFSS2
-015.csv"[])|  
-[9] [10])
-Overfull \hbox (3.80205pt too wide) in paragraph at lines 323--325
-\OT1/cmr/m/n/10.95 the bal-ance of the tar-get vari-able, "Di-a-betes[]binary,"
- which in-di-cates whether
-
-Overfull \hbox (23.11383pt too wide) in paragraph at lines 326--327
-[]\OT1/cmr/m/n/10.95 Finally, the code writes the out-put to a text file named 
-"data[]exploration.txt".
-[11] [12]
-(./_minted-paper/BD8371CD00AB35A449719A08628D76B2651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex [13]
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 10--10
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]"diabetes_binary_health_indicators_BRFSS2
-015.csv"[])|  
-[14])
-Overfull \hbox (3.05386pt too wide) in paragraph at lines 451--452
-\OT1/cmr/m/n/10.95 tracted from the CDC's Be-hav-ioral Risk Fac-tor Surveil-lan
-ce Sys-tem (BRFSS)
-[15] [16]
-(./_minted-paper/1A9E6267A05CA78E24A21D5B9BF43026651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex [17] [18] [19]) [20] [21] (./paper.bbl [22] [23]) [24] (./paper.aux)
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
- )
-(see the transcript file for additional information)</usr/local/texlive/2023/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2023/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2023/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2023/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2023/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2023/texmf-dist/font
-s/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2023/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2023/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmti10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmtt10.pfb>
-Output written on paper.pdf (24 pages, 266343 bytes).
-Transcript written on paper.log.
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex)
- \write18 enabled.
-entering extended mode
-(./paper.tex
-LaTeX2e <2022-11-01> patch level 1
-L3 programming layer <2023-02-22>
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2022/07/02 v1.4n Standard LaTeX document class
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/size11.clo))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hyperref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/iftex.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/infwarerr/infwarerr.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/keyval.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/pdfescape/pdfescape.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hycolor/hycolor.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/letltxmacro/letltxmacro.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/auxhook/auxhook.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/nameref.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/refcount/refcount.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/gettitlestring/gettitlestring.s
-ty (/usr/local/texlive/2023/texmf-dist/tex/latex/kvoptions/kvoptions.sty)))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/pd1enc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/intcalc/intcalc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/etexcmds/etexcmds.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/puenc.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/url/url.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bitset/bitset.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atbegshi-ltx.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hpdftex.def
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/atveryend-ltx.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
-
-(/usr/local/texlive/2023/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
-))) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/booktabs/booktabs.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/multirow/multirow.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/threeparttable/threeparttable.sty
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/color.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-cfg/color.cfg)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-def/pdftex.def)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/mathcolor.ltx))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.cfg))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/minted/minted.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/fvextra/fvextra.sty
-(/usr/local/texlive/2023/texmf-dist/tex/latex/etoolbox/etoolbox.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/upquote/upquote.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/lineno/lineno.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/base/ifthen.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/calc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/shellesc.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/ifplatform/ifplatform.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/catchfile/catchfile.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/ifluatex.sty)
-(./paper.w18))
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.sty
-(/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.tex))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/framed/framed.sty)
-(/usr/local/texlive/2023/texmf-dist/tex/latex/float/float.sty))
-(/usr/local/texlive/2023/texmf-dist/tex/latex/sectsty/sectsty.sty
-
-LaTeX Warning: Command \underbar  has changed.
-               Check if current package is valid.
-
-
-LaTeX Warning: Command \underline  has changed.
-               Check if current package is valid.
-
-)/Applications/anaconda3/envs/data_to_paper/bin/pygmentize
- (/usr/local/texlive/2023/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)
- (./paper.aux) (./paper.out) (./paper.out)
-(/usr/local/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
-[Loading MPS to PDF converter (version 2006.09.02).]
-) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/textcomp.sty) [1{/usr/loca
-l/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[2] [3
-pdfTeX warning (ext4): destination with the same identifier (name{table.1}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.105 
-      
-pdfTeX warning (ext4): destination with the same identifier (name{table.2}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.105 
-      ]
-Overfull \hbox (4.07652pt too wide) in paragraph at lines 110--143
-[] 
-[4
-pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has
- been already used, duplicate ignored
-<argument> ...shipout:D \box_use:N \l_shipout_box 
-                                                  \__shipout_drop_firstpage_...
-l.151 
-      ] [5] [6] [7] [8] (./_minted-paper/default.pygstyle)
-(./_minted-paper/2FAFFB82D5260D5380AADD8881789E43651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 7--7
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]"diabetes_binary_health_indicators_BRFSS2
-015.csv"[])|  
-[9] [10])
-Overfull \hbox (3.80205pt too wide) in paragraph at lines 323--325
-\OT1/cmr/m/n/10.95 the bal-ance of the tar-get vari-able, "Di-a-betes[]binary,"
- which in-di-cates whether
-
-Overfull \hbox (23.11383pt too wide) in paragraph at lines 326--327
-[]\OT1/cmr/m/n/10.95 Finally, the code writes the out-put to a text file named 
-"data[]exploration.txt".
-[11] [12]
-(./_minted-paper/BD8371CD00AB35A449719A08628D76B2651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex [13]
-Overfull \hbox (19.41339pt too wide) in paragraph at lines 10--10
-\OT1/cmtt/m/n/10.95 pd[].[]read_csv([]"diabetes_binary_health_indicators_BRFSS2
-015.csv"[])|  
-[14])
-Overfull \hbox (3.05386pt too wide) in paragraph at lines 451--452
-\OT1/cmr/m/n/10.95 tracted from the CDC's Be-hav-ioral Risk Fac-tor Surveil-lan
-ce Sys-tem (BRFSS)
-[15] [16]
-(./_minted-paper/1A9E6267A05CA78E24A21D5B9BF43026651AEA050AD4F7CB11B80E65FF8C84
-9D.pygtex [17] [18] [19]) [20] [21] (./paper.bbl [22] [23]) [24] (./paper.aux) 
-)
-(see the transcript file for additional information)</usr/local/texlive/2023/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2023/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2023/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb></usr/local/texlive/2023/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2023/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2023/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2023/texmf-dist/font
-s/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2023/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2023/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/publi
-c/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/
-amsfonts/cm/cmti10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmtt10.pfb>
-Output written on paper.pdf (24 pages, 267243 bytes).
-Transcript written on paper.log.
 [36m[20] SURROGATE {Performer} -> discussion : 
 latex \section{Discussion}  Our study investigated the critical relationship between physical [...] public health strategies and policies.[0m
 

@@ -11,8 +11,9 @@ RUN_PARAMETERS = dict(
 )
 
 if __name__ == '__main__':
-    get_paper(**RUN_PARAMETERS,
-              output_folder='paper1308',
-              should_mock_servers=True,
-              load_from_repo=True,
-              save_on_repo=True)
+    for run_name in ['paper1301', 'paper1302', 'paper1303', 'paper1304', 'paper1308']:
+        get_paper(**RUN_PARAMETERS,
+                  output_folder=run_name,
+                  should_mock_servers=True,
+                  load_from_repo=True,
+                  save_on_repo=True)
