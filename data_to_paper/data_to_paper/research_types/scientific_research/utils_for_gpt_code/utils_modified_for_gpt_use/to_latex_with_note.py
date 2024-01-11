@@ -10,9 +10,9 @@ from data_to_paper.env import TRACK_P_VALUES
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
-from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
-from .check_df_of_table import check_df_headers_are_int_str_or_bool
+from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_df_of_table_for_content_issues
 from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
@@ -130,7 +130,7 @@ def is_unknown_abbreviation(name: str) -> bool:
 def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                                   note: str = None,
                                   legend: Dict[str, str] = None,
-                                  **kwargs) -> List[RunIssue]:
+                                  **kwargs) -> RunIssues:
     assert 'columns' not in kwargs, "assumes columns is None"
     columns = df.columns
     caption = kwargs.get('caption', None)
@@ -138,7 +138,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     index = kwargs.get('index', True)
     legend = {} if legend is None else legend
 
-    issues = []
+    issues = check_df_of_table_for_content_issues(df, filename)
+    if issues:
+        return issues
 
     # Check table compilation
     try:

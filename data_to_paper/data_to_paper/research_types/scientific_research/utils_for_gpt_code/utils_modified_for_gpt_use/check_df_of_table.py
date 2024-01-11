@@ -264,8 +264,8 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
 
 
 def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
-                                         prior_tables: Dict[str, pd.DataFrame]) -> RunIssues:
-
+                                         prior_tables: Dict[str, pd.DataFrame] = None) -> RunIssues:
+    prior_tables = prior_tables or {}
     issues = RunIssues()
 
     # Check if the table has only numeric, str, bool, or tuple values
@@ -277,9 +277,6 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
 
     # Check if the index of the dataframe is just a numeric range
     issues.extend(check_df_index_is_a_range(df, filename))
-
-    # Check if the filename of the table is in the format `table_<number>.pkl`
-    issues.extend(check_df_filename(filename))
 
     # Check if the table contains the same values in multiple cells
     # issues.extend(check_df_for_repeated_values(df, filename))

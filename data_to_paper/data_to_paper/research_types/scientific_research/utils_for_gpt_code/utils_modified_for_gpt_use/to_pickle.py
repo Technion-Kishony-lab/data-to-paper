@@ -9,7 +9,7 @@ from data_to_paper.run_gpt_code.overrides.attr_replacers import AttrReplacer
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
-from .check_df_of_table import check_df_of_table_for_content_issues
+from .check_df_of_table import check_df_of_table_for_content_issues, check_df_filename
 
 
 def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
@@ -38,6 +38,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
             code_problem=CodeProblem.RuntimeError,
         )
     context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, prior_tables=prior_tables))
+    context_manager.issues.extend(check_df_filename(path))
     with RegisteredRunContext.temporarily_disable_all(), PValue.allow_str.temporary_set(True):
         original_func(df, path)
 
