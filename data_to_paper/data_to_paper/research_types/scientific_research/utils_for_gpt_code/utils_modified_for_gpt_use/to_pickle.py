@@ -26,6 +26,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
 
     if args or kwargs:
         raise RunIssue.from_current_tb(
+            category='Use of `to_pickle`',
             issue="Please use `to_pickle(path)` with only the `path` argument.",
             instructions="Please do not specify any other arguments.",
             code_problem=CodeProblem.RuntimeError,
@@ -33,6 +34,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
 
     if not isinstance(path, str):
         raise RunIssue.from_current_tb(
+            category='Use of `to_pickle`',
             issue="Please use `to_pickle(filename)` with a filename as a string argument in the format 'table_x'",
             code_problem=CodeProblem.RuntimeError,
         )
@@ -53,8 +55,10 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
     Check for content issues.
     """
     filename = file.name
+    category = 'Use of `pickle.dump`'
     if args or kwargs:
         raise RunIssue.from_current_tb(
+            category=category,
             item=filename,
             issue="Please use `dump(obj, file)` with only the `obj` and `file` arguments.",
             instructions="Please do not specify any other arguments.",
@@ -64,26 +68,21 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
     # Check if the object is a dictionary
     if isinstance(obj, DataFrame):
         raise RunIssue.from_current_tb(
+            category=category,
             item=filename,
             issue="Please use `pickle.dump` only for saving the dictionary.",
             instructions="Use `df.to_pickle(filename)` for saving the table dataframes.",
             code_problem=CodeProblem.RuntimeError,
         )
 
-    if not isinstance(obj, dict):
-        raise RunIssue.from_current_tb(
-            item=filename,
-            issue="Please use `pickle.dump` only for saving the dictionary `obj`.",
-            code_problem=CodeProblem.RuntimeError,
-        )
-
-    # Check if the keys are strings
-    if not all(isinstance(key, str) for key in obj.keys()):
+    if not isinstance(obj, dict) or not all(isinstance(key, str) for key in obj.keys()):
         context_manager.issues.append(RunIssue.from_current_tb(
+            category=category,
             item=filename,
             issue="Please use `dump(obj, filename)` with a dictionary `obj` with string keys.",
             code_problem=CodeProblem.RuntimeError,
         ))
+
     with PValue.allow_str.temporary_set(True):
         original_func(obj, file)
 

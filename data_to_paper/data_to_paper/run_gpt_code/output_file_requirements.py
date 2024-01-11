@@ -109,6 +109,7 @@ class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
         if len(content.strip()) == 0:
             # The output file is empty.
             issues.append(RunIssue(
+                category='Output file content',
                 item=filename,
                 issue=f'The code created the output file "{filename}", but the file is just empty!',
                 instructions="Please revise the code to make sure it correctly writes to the output file.",
@@ -119,6 +120,8 @@ class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
                 and count_number_of_tokens_in_message(content, max(ModelEngine)) > self.max_tokens:
             # Created output file is too large.
             issues.append(RunIssue(
+                category='Output file content',
+                item=filename,
                 issue=dedent_triple_quote_str("""
                     The code created the output file "{}", but the file is too long!
 

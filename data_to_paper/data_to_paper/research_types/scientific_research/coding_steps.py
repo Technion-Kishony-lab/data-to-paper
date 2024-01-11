@@ -137,6 +137,8 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
         missing_headers = [header for header in self.headers_required_in_output if header not in content]
         if missing_headers:
             issues.append(RunIssue(
+                category='Output file content',
+                item=filename,
                 issue=f'The output file "{filename}" should have the following headers: '
                       f'{NiceList(self.headers_required_in_output, wrap_with="`")}.\n'
                       f'But, these headers are missing: '

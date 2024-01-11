@@ -58,6 +58,7 @@ def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filenam
     for value in df.values.flatten():
         if isinstance(value, (pd.Series, pd.DataFrame)):
             issues.append(RunIssue(
+                category='Table contents',
                 item=filename,
                 issue=f"Something wierd in your dataframe. Iterating over df.values.flatten() "
                       f"returned a `{type(value).__name__}` object.",
@@ -69,6 +70,7 @@ def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filenam
                              if not isinstance(value, (numbers.Number, str, bool, tuple, PValue))}
     if un_allowed_type_names:
         issues.append(RunIssue(
+            category='Table contents',
             item=filename,
             issue=f"Your dataframe contains values of types {sorted(un_allowed_type_names)} which are not supported.",
             instructions=f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
@@ -87,6 +89,7 @@ def check_df_headers_are_int_str_or_bool(headers: Union[pd.MultiIndex, pd.Index]
     for header in headers:
         if not isinstance(header, (int, str, bool)):
             issues.append(RunIssue(
+                category='Table headers',
                 item=filename,
                 issue=f"Your dataframe has a column header `{header}` of type `{type(header).__name__}` "
                       f"which is not supported.",
@@ -244,7 +247,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
     issues = RunIssues()
     if df.shape[1] > MAX_COLUMNS:
         issues.append(RunIssue(
-            category='Too many columns in a table',
+            category='Too large table',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
             issue=f'The table has {len(df.columns)} columns, which is way too many for a scientific table.',
@@ -254,7 +257,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
 
     if df.shape[0] > MAX_ROWS:
         issues.append(RunIssue(
-            category='Too many rows in a table',
+            category='Too large table',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',

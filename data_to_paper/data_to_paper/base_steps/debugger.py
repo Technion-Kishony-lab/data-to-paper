@@ -165,6 +165,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if package_base not in self.supported_packages:
             return
         return RunIssue(
+            category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
@@ -179,6 +180,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if respond_to_known_mis_imports:
             return respond_to_known_mis_imports
         return RunIssue(
+            category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
@@ -189,6 +191,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_file_not_found(self, error: FileNotFoundError, e: FailedRunningCode = None) -> RunIssue:
         return RunIssue(
+            category='Available input files',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 As noted in the data description, we only have these files:
@@ -249,8 +252,10 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions, e: FailedRunningCode = None
                                            ) -> RunIssue:
         func = error.func
+        category = 'Use of un-allowed functions'
         if func == 'print':
             return RunIssue(
+                category=category,
                 issue="Your code uses the `print` function.",
                 instructions="Do not use `print` in your code.\n"
                              "If you print conditional warning messages, please use `assert` or `raise` instead.\n" +
@@ -260,6 +265,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                 comment='Code uses `print`'
             )
         return RunIssue(
+            category=category,
             issue=f"Your code uses the function `{func}`, which is not allowed.",
             code_problem=CodeProblem.RuntimeError,
             comment=f'Code uses forbidden function {func}',

@@ -167,6 +167,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
         else:
             msg = ''
         issues.append(RunIssue.from_current_tb(
+            category='Calling to_latex_with_note',
             code_problem=CodeProblem.OutputFileDesignLevelA,
             item=filename,
             issue=f'Do not call `to_latex_with_note` with `index=False`. '
