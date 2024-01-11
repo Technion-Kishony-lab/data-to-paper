@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 
-from data_to_paper.exceptions import data_to_paperException
+from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 
 
 @dataclass
-class UnAllowedDataframeMethodCall(data_to_paperException):
-    method_name: str
-
-    def __str__(self):
-        return f"Calling dataframe method '{self.method_name}' is not allowed."
+class UnAllowedDataframeMethodCall(RunIssue):
+    method_name: str = ''
+    issue: str = "Your code uses the dataframe method `{method_name}`, which is not allowed."
+    comment: str = 'Code uses forbidden method {method_name}'
+    code_problem: CodeProblem = CodeProblem.RuntimeError
 
 
 def raise_on_call(*args, original_method=None, on_change=None, **kwargs):
-    raise UnAllowedDataframeMethodCall(method_name=original_method.__name__)
+    raise UnAllowedDataframeMethodCall.from_current_tb(method_name=original_method.__name__)

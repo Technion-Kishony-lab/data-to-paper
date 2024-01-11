@@ -16,8 +16,10 @@ def test_track_dataframe_is_pickleable():
 def test_dataframe_allows_changing_when_not_in_context():
     with TrackDataFrames(allow_dataframes_to_change_existing_series=False):
         df = pd.DataFrame({'a': [1, 2, 3]})
-        with pytest.raises(DataFrameSeriesChange):
+        with pytest.raises(DataFrameSeriesChange) as exc:
             df['a'] = [4, 5, 6]
+    assert '"a"' in str(exc.value)
+    assert "df['a'] = [4, 5, 6]" in str(exc.value)
 
     df = pd.DataFrame({'a': [1, 2, 3]})
     df['a'] = [4, 5, 6]
@@ -31,8 +33,10 @@ def test_dataframe_context_does_not_allow_changing_from_file_df(tmpdir_with_csv_
         assert df['a'].tolist() == [4, 5]
 
         df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
-        with pytest.raises(DataFrameSeriesChange):
+        with pytest.raises(DataFrameSeriesChange) as exc:
             df['a'] = [4, 5]
+    assert '"a"' in str(exc.value)
+    assert "df['a'] = [4, 5]" in str(exc.value)
 
 
 def test_dataframe_context_allows_changing(tmpdir_with_csv_file):
