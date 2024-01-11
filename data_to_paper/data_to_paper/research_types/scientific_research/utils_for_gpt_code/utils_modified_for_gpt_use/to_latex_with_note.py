@@ -12,6 +12,7 @@ from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
+from .check_df_of_table import check_df_headers_are_int_str_or_bool
 from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note
@@ -391,6 +392,12 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 Use `index=True` in the function `to_latex_with_note`.
                 """),
         ))
+    if issues:
+        return issues
+
+    # Check that the columns and rows are only strings, numbers, or booleans:
+    issues.extend(check_df_headers_are_int_str_or_bool(df.columns, filename))
+    issues.extend(check_df_headers_are_int_str_or_bool(df.index, filename))
     if issues:
         return issues
 

@@ -1,6 +1,6 @@
 import numbers
 import re
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -39,18 +39,39 @@ def check_df_has_only_numeric_str_bool_or_tuple_values(df: pd.DataFrame, filenam
             issues.append(RunIssue(
                 item=filename,
                 issue=f"Something wierd in your dataframe. Iterating over df.values.flatten() "
-                      f"returned a {type(value)} object.",
+                      f"returned a `{type(value).__name__}` object.",
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
-            break
-        if not isinstance(value, (numbers.Number, str, bool, tuple, PValue)):
+            return issues
+
+    un_allowed_type_names = {f'`{type(value).__name__}`' for value in df.values.flatten()
+                             if not isinstance(value, (numbers.Number, str, bool, tuple, PValue))}
+    if un_allowed_type_names:
+        issues.append(RunIssue(
+            item=filename,
+            issue=f"Your dataframe contains values of types {sorted(un_allowed_type_names)} which are not supported.",
+            instructions=f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
+            code_problem=CodeProblem.OutputFileContentLevelA,
+        ))
+    return issues
+
+
+def check_df_headers_are_int_str_or_bool(headers: Union[pd.MultiIndex, pd.Index], filename: str) -> RunIssues:
+    """
+    Check if the headers of the dataframe are int, str, or bool.
+    """
+    issues = RunIssues()
+    if isinstance(headers, pd.MultiIndex):
+        headers = [label for level in range(headers.nlevels) for label in headers.get_level_values(level)]
+    for header in headers:
+        if not isinstance(header, (int, str, bool)):
             issues.append(RunIssue(
                 item=filename,
-                issue=f"Your dataframe contains a value of type {type(value)} which is not supported. ",
-                instructions=f"Please make sure the saved dataframes have only numeric, str, bool, or tuple values.",
+                issue=f"Your dataframe has a column header `{header}` of type `{type(header).__name__}` "
+                      f"which is not supported.",
+                instructions=f"Please make sure the saved dataframes have only int, str, or bool headers.",
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
-            break
     return issues
 
 
@@ -231,6 +252,10 @@ def check_df_of_table_for_content_issues(df: pd.DataFrame, filename: str,
 
     # Check if the table has only numeric, str, bool, or tuple values
     issues.extend(check_df_has_only_numeric_str_bool_or_tuple_values(df, filename))
+
+    # Check if the headers of the dataframe are int, str, or bool
+    issues.extend(check_df_headers_are_int_str_or_bool(df.columns, filename))
+    issues.extend(check_df_headers_are_int_str_or_bool(df.index, filename))
 
     # Check if the index of the dataframe is just a numeric range
     issues.extend(check_df_index_is_a_range(df, filename))
