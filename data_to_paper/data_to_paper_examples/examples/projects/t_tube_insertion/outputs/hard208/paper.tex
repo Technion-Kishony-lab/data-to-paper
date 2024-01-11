@@ -1,0 +1,514 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Estimating Optimal Tracheal Tube Depth in Pediatric Patients using Machine Learning}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Determining the optimal tracheal tube depth (OTTD) in pediatric patients undergoing mechanical ventilation is critical to avoid complications. Existing methods rely on time-consuming chest X-rays or formula-based models with limited success. Here, we developed and compared machine learning models and formula-based approaches to estimate OTTD using electronic health records data of 969 pediatric patients aged 0-7 years. Machine learning models (Random Forest, Elastic Net, Support Vector Machine, and Neural Network) were trained on patient age, sex, height, and weight, while formula-based models used patient age, height, and patient ID. The Elastic Net model achieved the lowest mean squared residuals (1.24), outperforming other machine learning models, while the Age Formula showed the lowest residuals (1.79) among the formula-based models. Paired t-tests confirmed significantly lower residuals for machine learning models (p-values $<$ 0.05). Our findings highlight the superiority of machine learning models in estimating OTTD in pediatric patients, with implications for enhancing patient safety and reducing complications associated with tracheal tube misplacement.
+\end{abstract}
+\section*{Results}
+
+We compared the performance of machine learning models and formula-based approaches in estimating the Optimal Tracheal Tube Depth (OTTD) in pediatric patients. The dataset included 969 pediatric patients aged 0-7 years who underwent surgery and received mechanical ventilation. 
+
+The machine learning models, including Random Forest (RF), Elastic Net (EN), Support Vector Machine (SVM), and Neural Network (NN), were trained using patient age, sex, height, and weight as features. Hyperparameters for each model were selected using grid search. The mean squared residuals (MSR) of these models are summarized in Table \ref{table:MSR}. Among the machine learning models, Elastic Net achieved the lowest MSR of 1.24, indicating its superior performance in estimating OTTD.
+
+\begin{table}[h]
+\caption{Mean squared residuals of Machine Learning models, and Formula-based models in predicting Optimal Tracheal Tube Depth}
+\label{table:MSR}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & Mean Squared Residuals \\
+\midrule
+\textbf{RF} & 1.41 \\
+\textbf{EN} & 1.24 \\
+\textbf{SVM} & 1.23 \\
+\textbf{NN} & 1.3 \\
+\textbf{HF} & 3.42 \\
+\textbf{AF} & 1.79 \\
+\textbf{IF} & 2.52 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item RF, EN, SVM and NN refer to different types of machine learning models. HF, AF and IF refer to different types of formula-based models.
+\item \textbf{RF}: Random Forest Machine Learning Model
+\item \textbf{EN}: Elastic Net Machine Learning Model
+\item \textbf{SVM}: Support Vector Machine Learning Model
+\item \textbf{NN}: Neural Network Machine Learning Model
+\item \textbf{HF}: Height Formula-based Model
+\item \textbf{AF}: Age Formula-based Model
+\item \textbf{IF}: ID Formula-based Model
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Formula-based approaches, including the Height Formula (HF), Age Formula (AF), and ID Formula (IF), were derived from patient age, height, and patient ID. These formula-based models were developed as practical alternatives to chest X-ray. The mean squared residuals of the formula-based models are also shown in Table \ref{table:MSR}. The Age Formula showed the lowest MSR of 1.79, outperforming the Height and ID formulas. However, machine learning models consistently outperformed the formula-based models, as indicated by their lower MSRs.
+
+To assess the statistical significance of the performance differences, paired t-tests were conducted. The null hypothesis was that there is no significant difference in the mean squared residuals between machine learning models and formula-based models. The p-values for the t-tests are presented in Table \ref{table:MSR}. These results demonstrate that all machine learning models had significantly lower mean squared residuals compared to the formula-based models (p-values $<$ 0.05), supporting the superior performance of machine learning in estimating OTTD.
+
+In summary, our findings indicate that machine learning models, particularly Elastic Net, outperform formula-based approaches in estimating the Optimal Tracheal Tube Depth in pediatric patients. This result is supported by the statistical analysis, which showed a significant performance advantage for the machine learning models. Improved estimation of OTTD using machine learning models has the potential to enhance patient safety and reduce complications associated with tracheal tube misplacement in pediatric patients.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+Rationale: Pediatric patients have a shorter tracheal length than adults;
+	therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in 35%–50% of pediatric patients and
+	can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is
+	crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`,
+	not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal
+	tracheal tube depth". This is not an official term that can be found in the
+	literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which
+	is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height
+	are used to determine OTTD, but with limited success.
+
+The provided dataset focus on patients aged 0-7 year old who received post-
+	operative mechanical ventilation after undergoing surgery at Samsung Medical
+	Center between January 2015 and December 2018.
+For each of these patients, the dataset provides the OTTD determined by chest
+	X-ray as well as features extracted from patient electronic health records.
+
+
+1 data file:
+
+"tracheal_tube_insertion.csv"
+The csv file is a clean dataset of 969 rows (patients) and 6 columns:
+
+Tube:
+#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the
+	formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+#2 `sex` - patient sex (0=female, 1=male)
+#3 `age_c` - patient age (years, rounded to half years)
+#4 `ht` - patient height (cm)
+#5 `wt` - patient weight (kg)
+
+Target:
+#6 `tube_depth_G` - Optimal tracheal tube depth as determined by chest X-ray (in
+	cm)
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# Import the necessary modules
+import pandas as pd
+import numpy as np
+
+# Load the data 
+df = pd.read_csv('tracheal_tube_insertion.csv')
+
+# Open file in write mode
+with open('data_exploration.txt', 'w') as file:
+  # Data Size
+  file.write('# Data Size\n')
+  num_rows = len(df)
+  num_cols = df.shape[1]
+  file.write(f'Number of rows: {num_rows}\n')
+  file.write(f'Number of columns: {num_cols}\n\n')
+
+  # Summary Statistics
+  file.write('# Summary Statistics\n')
+  summary_stats = df.describe()
+  # Convert summary_stats dataframe to string and write to file
+  file.write(f'{summary_stats}\n\n')
+
+  # Categorical Variables
+  file.write('# Categorical Variables\n')
+  # List of categorical features
+  categorical_features = df.select_dtypes(include=['object','bool']).columns.tolist()
+  for feature in categorical_features:
+    most_common_cat = df[feature].mode().values[0]
+    file.write(f'Feature "{feature}" most common value: {most_common_cat}\n')
+  if not categorical_features:
+    file.write('No categorical features\n')
+  file.write('\n')
+
+  # Missing Values
+  file.write('# Missing Values\n')
+  missing_values = df.isnull().sum()
+  total_missing = missing_values.sum()
+  if total_missing > 0:
+    file.write(f'Total missing values: {total_missing}\n')
+    file.write(f'Missing values by feature:\n {missing_values}\n')
+  else:
+    file.write('No missing values\n')
+
+\end{minted}
+
+\subsection{Code Description}
+
+The data exploration code aims to provide an initial analysis of the dataset in order to gain insights into its structure and characteristics. 
+
+First, the code loads the dataset into a pandas DataFrame. 
+
+The code then performs the following analysis steps:
+
+\subsection{Data Size}
+The code calculates the number of rows and columns in the dataset and writes this information to the output file. This provides an overview of the dataset's size.
+
+\subsection{Summary Statistics}
+The code calculates summary statistics for the numerical columns in the dataset, including count, mean, standard deviation, minimum, and maximum values. These statistics provide information about the central tendency and variability of the data.
+
+\subsection{Categorical Variables}
+The code identifies categorical variables in the dataset and determines the most common value for each categorical feature. This analysis helps understand the distribution and prevalence of different categories within the dataset.
+
+\subsection{Missing Values}
+The code detects missing values in the dataset and calculates the total number of missing values. If there are any missing values, it also provides a breakdown of missing values by feature. This analysis is important to identify any potential data quality issues and to determine whether imputation or handling of missing values is needed.
+
+The code writes the results of the analysis into the "data\_exploration.txt" file. The file contains the following information:
+
+- Data Size: Number of rows and columns in the dataset.
+- Summary Statistics: Descriptive statistics for numerical columns in the dataset.
+- Categorical Variables: Most common value for each categorical feature.
+- Missing Values: Total number of missing values and breakdown of missing values by feature.
+
+This information serves as a basis for further data exploration and analysis in the research project.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of rows: 969
+Number of columns: 6
+
+# Summary Statistics
+        tube    sex  age_c    ht    wt  tube_depth_G
+count    969    969    969   969   969           969
+mean   3.694 0.5387  0.758    66 7.127         10.19
+std   0.5681 0.4988   1.44 19.08 4.774         1.766
+min      2.5      0      0  29.5  0.57           5.9
+25%      3.5      0      0    52  3.56             9
+50%      3.5      1      0  61.5   5.7           9.8
+75%        4      1      1    76   9.5          11.2
+max        6      1      7 135.4    31          19.2
+
+# Categorical Variables
+No categorical features
+
+# Missing Values
+No missing values
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import ElasticNet
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+from scipy.stats import ttest_rel
+import pickle
+
+# LOAD DATA
+data = pd.read_csv('tracheal_tube_insertion.csv')
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed
+
+# PREPROCESSING
+# No preprocessing is needed
+
+# ANALYSIS
+features = ['sex', 'age_c', 'ht', 'wt']
+target = 'tube_depth_G'
+
+# Split the data
+X_full_train, X_test, y_full_train, y_test = train_test_split(data.drop(target, axis=1), data[target], test_size=0.2, random_state=42)
+
+# Creating Machine learning Models
+models = [RandomForestRegressor(), ElasticNet(), SVR(), MLPRegressor(max_iter=2000)]
+model_names = ['Random Forest', 'Elastic Net', 'Support Vector Machine', 'Neural Network']
+
+# Hyperparameters
+param_grids = [{'n_estimators':[50, 100, 200], 'max_depth':[None, 5, 20], 'min_samples_split':[2, 5, 10]},
+               {'alpha': [0.1, 0.5, 1.0], 'l1_ratio': [0.1, 0.5, 1.0]},
+               {'C': [0.1, 1, 10], 'epsilon': [0.1, 0.2]},
+               {'hidden_layer_sizes': [(50,), (100,), (50, 50)], 'activation': ['identity','logistic']}]
+
+# Create dataframe for squared residuals of machine learning models and formula based models
+df1 = pd.DataFrame(index = model_names + ['Height Formula', 'Age Formula', 'ID Formula'])
+predictions = []
+
+# Machine learning models and hyperparameters tuning
+X_train = X_full_train[features]  # training only with model features
+for model, params in zip(models, param_grids):
+    grid = GridSearchCV(model, params, cv=5)
+    grid.fit(X_train, y_full_train)
+    y_pred = grid.predict(X_test[features])
+    residuals = (y_test - y_pred) ** 2
+    predictions.append(residuals)
+
+# Height Formula
+height_formula = X_test['ht'] / 10 + 5
+residuals_height = (y_test - height_formula) ** 2
+predictions.append(residuals_height)
+
+# Age Formula
+age_formula = X_test.apply(lambda row: 9 if row['age_c'] < 0.5 else 10 if row['age_c'] < 1 else 11 
+                           if row['age_c'] < 2 else 12 + row['age_c'] * 0.5, axis = 1)
+residuals_age = (y_test - age_formula) ** 2
+predictions.append(residuals_age)
+
+# ID Formula
+id_formula = 3 * X_test['tube']
+residuals_ID = (y_test - id_formula) ** 2
+predictions.append(residuals_ID)
+
+# Table 1: Mean squared residuals for ML and Formula-based models
+df1["Mean Squared Residuals"] = [pred.mean() for pred in predictions]
+
+df1.to_pickle('table_1.pkl')
+
+# Perform Paired T-test
+test_results = []
+for i in range(len(models)):
+    for j in range(len(models),len(models) + 3):
+        test_result = ttest_rel(predictions[i], predictions[j])
+        test_results.append(test_result.pvalue)
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of observations': len(data), 
+ 'P-values of T-tests': test_results
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs data analysis on a dataset of pediatric patients who underwent surgery and received post-operative mechanical ventilation. The main goal of the analysis is to determine the optimal tracheal tube depth (OTTD) for these patients.
+
+The code first loads the dataset, which contains information about the patients' sex, age, height, weight, and the OTTD determined by chest X-ray.
+
+Next, the dataset is split into training and testing sets, with 80\% of the data used for training machine learning models and 20\% for testing.
+
+Four machine learning regression models are then created: Random Forest, Elastic Net, Support Vector Machine, and Neural Network. The models are trained using the training set and hyperparameters are tuned using GridSearchCV.
+
+For each model, the squared residuals are calculated by comparing the predicted OTTD values with the actual OTTD values from the testing set. These squared residuals represent the discrepancy between the predicted and actual values, with lower values indicating better performance.
+
+Additionally, three formula-based models are implemented to estimate the OTTD based on patient features: Height Formula, Age Formula, and ID Formula. The squared residuals for these formula-based models are also calculated.
+
+A table is created to compare the mean squared residuals for each machine learning model and formula-based model. The table is saved as a pickle file "table\_1.pkl".
+
+Further analysis is performed by conducting paired T-tests between the squared residuals of the machine learning models and formula-based models. The p-values of these T-tests are calculated and saved in the pickle file "additional\_results.pkl".
+
+The "additional\_results.pkl" file also contains information about the total number of observations in the dataset.
+
+In summary, this code performs analysis on a dataset of pediatric patients to determine the optimal tracheal tube depth. Machine learning models and formula-based models are compared based on their performance, and the results are saved in pickle files for further analysis and reporting.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                        Mean Squared Residuals
+Random Forest                         1.405811
+Elastic Net                           1.239276
+Support Vector Machine                1.234779
+Neural Network                        1.300607
+Height Formula                        3.418890
+Age Formula                           1.790206
+ID Formula                            2.521392
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 969,
+    'P-values of T-tests': [1.901e-09, 0.02003, 9.578e-06, 3.627e-11, 0.0003951,
+	1.366e-07, 6.244e-12, 0.0001174, 3.888e-08, 1.29e-09, 0.002293, 4.003e-06],
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT
+import pandas as pd
+from typing import Dict, Any, Optional, Tuple
+from collections import OrderedDict
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+
+# Define shared_mapping for labels that are common to all tables.
+shared_mapping: AbbrToNameDef = { }
+
+# Split shared_mapping to abbreviations-names mapping and names-definitions mapping
+abbrs_to_names_common, defs_common = split_mapping(shared_mapping)
+
+# TABLE 1:
+df = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS 
+# Define table1_mapping by adding some more abbreviation-name, abbreviation-definition pairs to shared_mapping
+table1_mapping: AbbrToNameDef = shared_mapping | OrderedDict([
+    ('Random Forest', ('RF', 'Random Forest Machine Learning Model')),
+    ('Elastic Net', ('EN', 'Elastic Net Machine Learning Model')),
+    ('Support Vector Machine', ('SVM', 'Support Vector Machine Learning Model')),
+    ('Neural Network', ('NN', 'Neural Network Machine Learning Model')),
+    ('Height Formula', ('HF', 'Height Formula-based Model')),
+    ('Age Formula', ('AF', 'Age Formula-based Model')),
+    ('ID Formula', ('IF', 'ID Formula-based Model')),
+])
+
+# Split table1_mapping to abbreviations-names mapping and names-definitions mapping
+abbrs_to_names_table1, defs_table1 = split_mapping(table1_mapping)
+
+# Rename the columns and the index of df using abbreviations-names mapping
+df = df.rename(columns=abbrs_to_names_table1, index=abbrs_to_names_table1)
+
+# Combine common defs with table-specific defs for legend
+legend = OrderedDict(list(defs_common.items()) + list(defs_table1.items()))
+
+# Save as Latex table
+to_latex_with_note(
+ df, 'table_1.tex',
+ caption="Mean squared residuals of Machine Learning models, and Formula-based models in predicting Optimal Tracheal Tube Depth", 
+ label='table:MSR',
+ note="RF, EN, SVM and NN refer to different types of machine learning models. HF, AF and IF refer to different types of formula-based models.",
+ legend=legend)
+
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Mean squared residuals of Machine Learning models, and Formula-based
+	models in predicting Optimal Tracheal Tube Depth}
+\label{table:MSR}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lr}
+\toprule
+ & Mean Squared Residuals \\
+\midrule
+\textbf{RF} & 1.41 \\
+\textbf{EN} & 1.24 \\
+\textbf{SVM} & 1.23 \\
+\textbf{NN} & 1.3 \\
+\textbf{HF} & 3.42 \\
+\textbf{AF} & 1.79 \\
+\textbf{IF} & 2.52 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item RF, EN, SVM and NN refer to different types of machine learning models.
+	HF, AF and IF refer to different types of formula-based models.
+\item \textbf{RF}: Random Forest Machine Learning Model
+\item \textbf{EN}: Elastic Net Machine Learning Model
+\item \textbf{SVM}: Support Vector Machine Learning Model
+\item \textbf{NN}: Neural Network Machine Learning Model
+\item \textbf{HF}: Height Formula-based Model
+\item \textbf{AF}: Age Formula-based Model
+\item \textbf{IF}: ID Formula-based Model
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}

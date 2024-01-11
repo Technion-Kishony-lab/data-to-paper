@@ -56,9 +56,10 @@ RUN_PARAMETERS = dict(
 )
 
 if __name__ == '__main__':
-    get_paper(**RUN_PARAMETERS,
-              output_folder="hard201",
-              should_mock_servers=True,
-              excluded_citation_titles=[NAME_OF_REPRODUCED_PAPER],
-              load_from_repo=True,
-              save_on_repo=True)
+    for run_name in ['hard2{:02d}'.format(i) for i in range(1, 11)]:
+        get_paper(**RUN_PARAMETERS,
+                  output_folder=run_name,
+                  should_mock_servers=True,
+                  excluded_citation_titles=[NAME_OF_REPRODUCED_PAPER],
+                  load_from_repo=True,
+                  save_on_repo=True)
