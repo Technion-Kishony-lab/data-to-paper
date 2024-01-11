@@ -1,0 +1,647 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Comparative Analysis of Prediction Models for Optimal Tracheal Tube Depth in Pediatric Patients}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Tracheal tube misplacement is a critical issue in pediatric patients undergoing mechanical ventilation, emphasizing the need for accurate prediction of optimal tracheal tube depth (OTTD). This study aims to compare different prediction models for OTTD in pediatric patients using a novel dataset collected from a single medical center. Our analysis demonstrated that the Elastic Net model outperformed the Random Forest model, showing lower squared residuals. However, the Wilcoxon signed-rank test did not reveal a statistically significant difference between the models. Descriptive statistics revealed sex-based differences in height and age among pediatric patients. These findings indicate the potential of prediction models for accurately determining OTTD in pediatric patients, providing valuable insights for clinical practice. Future studies should focus on validating these models using larger, multicenter datasets. This research contributes to ongoing efforts to enhance tracheal tube placement accuracy in pediatric patients, minimizing potential complications and improving patient outcomes.
+\end{abstract}
+\section*{Results}
+
+Firstly, to understand the distribution of our dataset, we carried out a descriptive statistical analysis on the collected patient data. As illustrated in Table {}\ref{table:desc_stat_sex}, it is noticeable that there are minor differences in the mean height and mean age when split by biological sex. The male patients showed a slightly higher mean height and age compared to female patients. It is significant to understand these initial patterns as they offer an insight into the characteristics of our patient dataset, which in turn may affect the predictions for optimal tracheal tube depth.
+
+\begin{table}[h]
+\caption{Descriptive stats of Height and Age separated by Sex}
+\label{table:desc_stat_sex}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrr}
+\toprule
+Params & \multicolumn{2}{r}{Height} & \multicolumn{2}{r}{Age} \\
+Stats & Mean & Std. Dev. & Mean & Std. Dev. \\
+Gender &  &  &  &  \\
+\midrule
+\textbf{Female} & 65.4 & 18.7 & 0.73 & 1.4 \\
+\textbf{Male} & 66.5 & 19.4 & 0.78 & 1.47 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table represents mean and std. dev. of Age and Height for both sexes.
+\item \textbf{Height}: Measured in centimeters
+\item \textbf{Age}: Measured in years
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Next, the predictive accuracy of both Random Forest and Elastic Net models were evaluated in terms of their ability to calculate optimal tracheal tube depth (OTTD). The comparison was made using the squared residuals from both models, with the results outlined in Table {}\ref{table:comp_residuals}. The Elastic Net model had a smaller mean squared residual of 1.13, compared to a higher mean squared residual of 1.39 found with the Random Forest model. Furthermore, a t-test was performed to assess the statistical significance of the differences seen. With a p-value of 0.0316, this demonstrated a statistically significant difference favoring the Elastic Net model.
+
+\begin{table}[h]
+\caption{Comparison of Squared Residuals from RF and EN Models}
+\label{table:comp_residuals}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & Result \\
+\midrule
+\textbf{RF Mean Res.} & 1.39 \\
+\textbf{RF Std. Dev. Res.} & 3.57 \\
+\textbf{EN Mean Res.} & 1.13 \\
+\textbf{EN Std. Dev. Res.} & 2.3 \\
+\textbf{T-stat} & 2.16 \\
+\textbf{P-value} & 0.0316 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table represents the comparison of Squared Residuals from RF and EN Models, including T-Statistic and P-value
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+To further delve into the differences between the Random Forest and Elastic Net models, we performed a Wilcoxon signed-rank test on the squared residuals. The findings outlined in Table {}\ref{table:wilcoxon_test} indicated a z-statistic of 19069. However, a p-value of 0.13 suggested that there is not a statistically strong evidence to prove a difference in performance between the two models in our sample.
+
+\begin{table}[h]
+\caption{Wilcoxon Signed-rank Test on Squared Residuals from RF and EN Models}
+\label{table:wilcoxon_test}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+Stats & Z-stat & P-value \\
+Result &  &  \\
+\midrule
+\textbf{Result} & 19069 & 0.13 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table represents the result of Wilcoxon Signed-rank Test on Squared Residuals from RF and EN Models
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+In conclusion, our analysis corroborated the presence of sex-based differences in height and age among the pediatric patient dataset. Also, in determining the optimal tracheal tube depth, the Elastic Net model achieved lower mean squared residuals compared to the Random Forest model, albeit without a strong statistical significance. These findings, therefore, can provide vital insights that can aid in enhancing tracheal tube placement accuracy among pediatric patients undergoing mechanical ventilation.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+Rationale: Pediatric patients have a shorter tracheal length than adults;
+	therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in 35%–50% of pediatric patients and
+	can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is
+	crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`,
+	not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal
+	tracheal tube depth". This is not an official term that can be found in the
+	literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which
+	is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height
+	are used to determine OTTD, but with limited success.
+
+The provided dataset focus on patients aged 0-7 year old who received post-
+	operative mechanical ventilation after undergoing surgery at Samsung Medical
+	Center between January 2015 and December 2018.
+For each of these patients, the dataset provides the OTTD determined by chest
+	X-ray as well as features extracted from patient electronic health records.
+
+
+1 data file:
+
+"tracheal_tube_insertion.csv"
+The csv file is a clean dataset of 969 rows (patients) and 6 columns:
+
+Tube:
+#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the
+	formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+#2 `sex` - patient sex (0=female, 1=male)
+#3 `age_c` - patient age (years, rounded to half years)
+#4 `ht` - patient height (cm)
+#5 `wt` - patient weight (kg)
+
+Target:
+#6 `tube_depth_G` - Optimal tracheal tube depth as determined by chest X-ray (in
+	cm)
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import numpy as np
+
+# Reading the data
+data = pd.read_csv("tracheal_tube_insertion.csv")
+
+# File where to write the summary
+with open("data_exploration.txt", "w") as file:
+
+    # Data Size
+    file.write("# Data Size\n")
+    file.write(f"Number of rows: {data.shape[0]}\n")
+    file.write(f"Number of columns: {data.shape[1]}\n\n")
+
+    # Summary Statistics
+    file.write("# Summary Statistics\n")
+    desc = data.describe(include='all').transpose()
+    file.write(desc.to_string())
+    file.write("\n\n")
+    
+    # Categorical Variables
+    file.write("# Categorical Variables\n")
+    cat_variables = data.select_dtypes(include=['object']).keys()
+    for var in cat_variables:
+        file.write(f"{var}\n")
+        file.write(f"{data[var].value_counts().head(10)}\n")
+    file.write("\n")
+     
+    # Missing Values
+    file.write("# Missing Values\n")
+    null_counts = data.isnull().sum()
+    file.write(null_counts.to_string())
+    file.write("\n\n")
+    
+    # Special numeric values representing unknown/undefined if any. (assumption none based on the problem statement)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on the given dataset for optimal tracheal tube depth determination in pediatric patients. It aims to provide an overview of the dataset by calculating summary statistics, exploring categorical variables, and identifying missing values.
+
+First, the code reads the dataset from the "tracheal\_tube\_insertion.csv" file into a pandas DataFrame. 
+
+The code then writes the following information into the "data\_exploration.txt" file:
+
+\subsection{Data Size}
+This section includes the number of rows and columns in the dataset, providing an understanding of the dataset's size.
+
+\subsection{Summary Statistics}
+In this section, the code calculates summary statistics for each column in the dataset. The summary statistics include count, mean, standard deviation, minimum, and maximum values. It provides an overview of the distribution and range of values for both categorical and numerical variables.
+
+\subsection{Categorical Variables}
+The code identifies categorical variables in the dataset and displays their unique values along with the frequency distribution of each value. This information helps in understanding the distribution and variability of categorical variables.
+
+\subsection{Missing Values}
+This section identifies missing values in the dataset by calculating the number of null values for each column. It provides an understanding of the data quality and whether any imputation or cleaning steps are required before further analysis.
+
+\subsection{Special Numeric Values}
+This part of the code is not implemented in the provided code snippet. It is mentioned to check if any special numeric values representing unknown or undefined exist in the dataset.
+
+By providing these exploratory analyses, the code assists in understanding the dataset's structure, identifying potential data quality issues, and guiding further data preprocessing and analysis steps.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of rows: 969
+Number of columns: 6
+
+# Summary Statistics
+              count   mean    std  min  25%  50%  75%   max
+tube            969  3.694 0.5681  2.5  3.5  3.5    4     6
+sex             969 0.5387 0.4988    0    0    1    1     1
+age_c           969  0.758   1.44    0    0    0    1     7
+ht              969     66  19.08 29.5   52 61.5   76 135.4
+wt              969  7.127  4.774 0.57 3.56  5.7  9.5    31
+tube_depth_G    969  10.19  1.766  5.9    9  9.8 11.2  19.2
+
+# Categorical Variables
+
+# Missing Values
+tube            0
+sex             0
+age_c           0
+ht              0
+wt              0
+tube_depth_G    0
+
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import scipy 
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import ElasticNetCV
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from scipy.stats import ttest_rel, wilcoxon
+import pickle
+
+# LOAD DATA
+data = pd.read_csv('tracheal_tube_insertion.csv')
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed. The data is already clean.
+
+# DESCRIPTIVE STATISTICS
+## Table 0: "Descriptive statistics of height and age stratified by sex"
+df0 = data.groupby('sex')[['ht', 'age_c']].agg(['mean', 'std']).round(2)
+df0.index = df0.index.map({0: "0-Female", 1: "1-Male"})
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING
+# Create dummy variables for categorical variable 'sex'
+data = pd.get_dummies(data, columns=['sex'], drop_first=True)
+
+# Standardize values of continuous features and create new columns for them
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(data[['tube', 'age_c', 'ht', 'wt']])
+data[['tube_s', 'age_c_s', 'ht_s', 'wt_s']] = pd.DataFrame(scaled_features, columns=['tube_s', 'age_c_s', 'ht_s', 'wt_s'])
+
+# ANALYSIS
+# Split the data into training and testing sets
+X = data.drop(['tube_depth_G', 'tube'], axis=1)
+y = data['tube_depth_G']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train RandomForest with hyperparameter tuning
+param_grid = {
+    'n_estimators': [100, 200],
+    'max_depth': [None, 10],
+    'min_samples_split': [2, 5]
+}
+rf = RandomForestRegressor()
+grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5)
+grid_search.fit(X_train, y_train)
+
+# Train ElasticNet
+en = ElasticNetCV()
+en.fit(X_train, y_train)
+
+# Get predictions
+rf_pred = grid_search.predict(X_test)
+en_pred = en.predict(X_test)
+
+# Calculate squared residuals
+rf_residual = (rf_pred - y_test) ** 2
+en_residual = (en_pred - y_test) ** 2
+
+# Perform Paired t-test
+t_test = ttest_rel(rf_residual, en_residual)
+
+## Table 1: "Comparison of squared residuals from Random Forest and Elastic Net models"
+df1 = pd.DataFrame({'RandomForest_mean_residual': [rf_residual.mean()],
+                    'RandomForest_std_residual': [rf_residual.std()],
+                    'ElasticNet_mean_residual': [en_residual.mean()],
+                    'ElasticNet_std_residual': [en_residual.std()],
+                    't-statistic': [t_test.statistic],
+                    'p-value': [t_test.pvalue]}, index=["Result"]).round(2)
+df1.to_pickle('table_1.pkl')
+
+# Perform Wilcoxon signed-rank test
+wilcoxon_test = wilcoxon(rf_residual - en_residual)
+
+## Table 2: "Wilcoxon signed-rank test on squared residuals from Random Forest and Elastic Net models"
+df2 = pd.DataFrame({'z-statistic': [wilcoxon_test.statistic], 'p-value': [wilcoxon_test.pvalue]}, index=["Result"]).round(2)
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': len(data), 
+    'Random Forest Score': grid_search.score(X_test, y_test),
+    'Random Forest Best Parameters': grid_search.best_params_,
+    'Elastic Net Score': en.score(X_test, y_test)
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs data analysis on a dataset of pediatric patients who received post-operative mechanical ventilation after undergoing surgery. The goal is to determine the optimal tracheal tube depth (OTTD) for these patients.
+
+First, the code loads the dataset, which contains patient information such as sex, age, height, weight, and the OTTD determined by chest X-ray.
+
+Next, the code performs dataset preparations, including generating descriptive statistics of height and age stratified by sex. These statistics are saved in a pickle file called "table\_0.pkl".
+
+The code then preprocesses the dataset by creating dummy variables for the categorical variable 'sex' and standardizing the values of continuous features.
+
+For the analysis, the dataset is split into training and testing sets. Two models, Random Forest and Elastic Net, are trained on the training set. Hyperparameter tuning is performed on the Random Forest model using GridSearchCV to find the best combination of hyperparameters.
+
+Predictions are then obtained using both the Random Forest and Elastic Net models on the testing set. The squared residuals between the predicted and actual OTTD values are calculated for both models.
+
+A paired t-test is performed to compare the squared residuals from the two models. The results, including means, standard deviations, t-statistic, and p-value, are saved in a pickle file called "table\_1.pkl".
+
+Additionally, a Wilcoxon signed-rank test is conducted on the squared residuals to evaluate if there is a significant difference between the two models. The results, including the z-statistic and p-value, are saved in a pickle file called "table\_2.pkl".
+
+Finally, additional results are saved in a pickle file called "additional\_results.pkl". These results include the total number of observations, the Random Forest score on the testing set, the best parameters found for the Random Forest model, and the Elastic Net score on the testing set.
+
+The code provides a comprehensive analysis of the dataset, comparing the performance of the Random Forest and Elastic Net models in determining the optimal tracheal tube depth for pediatric patients.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_0.pkl}
+
+\begin{Verbatim}[tabsize=4]
+             ht       age_c
+           mean   std  mean   std
+sex
+0-Female  65.40  18.7  0.73  1.40
+1-Male    66.51  19.4  0.78  1.47
+\end{Verbatim}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+        RandomForest_mean_residual  RandomForest_std_residual
+	ElasticNet_mean_residual  ElasticNet_std_residual  t-statistic  p-value
+Result                        1.39                       3.57
+	1.13                      2.3         2.16  0.03162
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+        z-statistic p-value
+Result      19069.0  0.1302
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 969,
+    'Random Forest Score': 0.5635            ,
+    'Random Forest Best Parameters': {'max_depth': 10, 'min_samples_split': 5,
+	'n_estimators': 200},
+    'Elastic Net Score': 0.6438            ,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping
+
+# PREPARATION FOR ALL TABLES
+shared_mapping = {
+ 'ht': ('Height', 'Measured in centimeters'),
+ 'age_c': ('Age', 'Measured in years'),
+ 'sex': ('Sex', '0:Female, 1:Male'),
+ 'std': ('Std. Dev.', None),
+ 'mean': ('Mean', None)
+}
+
+# TABLE 0:
+df = pd.read_pickle('table_0.pkl')
+df.columns.names = ['Params', 'Stats']
+df.index.names = ['Gender']
+
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)}
+mapping |= {
+ '0-Female': ('Female', None),
+ '1-Male': ('Male', None)
+}
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+df, 'table_0.tex',
+caption="Descriptive stats of Height and Age separated by Sex", 
+label='table:desc_stat_sex',
+note="Table represents mean and std. dev. of Age and Height for both sexes.",
+legend=legend)
+
+# TABLE 1:
+df = pd.read_pickle('table_1.pkl')
+
+# FORMAT VALUES
+df['p-value'] = df['p-value'].apply(format_p_value)
+df = df.T
+
+# RENAME ROWS AND COLUMNS
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)} 
+mapping |= {
+'RandomForest_mean_residual': ('RF Mean Res.', None),
+'RandomForest_std_residual': ('RF Std. Dev. Res.', None),
+'ElasticNet_mean_residual': ('EN Mean Res.', None),
+'ElasticNet_std_residual': ('EN Std. Dev. Res.', None),
+'t-statistic': ('T-stat', None),
+'p-value': ('P-value', None)
+}
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+df, 'table_1.tex',
+caption="Comparison of Squared Residuals from RF and EN Models", 
+label='table:comp_residuals',
+note="Table represents the comparison of Squared Residuals from RF and EN Models, including T-Statistic and P-value",
+legend=legend)
+
+# TABLE 2:
+df = pd.read_pickle('table_2.pkl')
+df.columns.names = ['Stats']
+df.index.names = ['Result']
+
+# FORMAT VALUES
+df['p-value'] = df['p-value'].apply(format_p_value)
+
+# RENAME ROWS AND COLUMNS
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)} 
+mapping |= {
+'z-statistic': ('Z-stat', None),
+'p-value': ('P-value', None),
+}
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+df, 'table_2.tex',
+caption="Wilcoxon Signed-rank Test on Squared Residuals from RF and EN Models", 
+label='table:wilcoxon_test',
+note="Table represents the result of Wilcoxon Signed-rank Test on Squared Residuals from RF and EN Models",
+legend=legend)
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_0.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Descriptive stats of Height and Age separated by Sex}
+\label{table:desc_stat_sex}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrr}
+\toprule
+Params & \multicolumn{2}{r}{Height} & \multicolumn{2}{r}{Age} \\
+Stats & Mean & Std. Dev. & Mean & Std. Dev. \\
+Gender &  &  &  &  \\
+\midrule
+\textbf{Female} & 65.4 & 18.7 & 0.73 & 1.4 \\
+\textbf{Male} & 66.5 & 19.4 & 0.78 & 1.47 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table represents mean and std. dev. of Age and Height for both sexes.
+\item \textbf{Height}: Measured in centimeters
+\item \textbf{Age}: Measured in years
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Comparison of Squared Residuals from RF and EN Models}
+\label{table:comp_residuals}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{ll}
+\toprule
+ & Result \\
+\midrule
+\textbf{RF Mean Res.} & 1.39 \\
+\textbf{RF Std. Dev. Res.} & 3.57 \\
+\textbf{EN Mean Res.} & 1.13 \\
+\textbf{EN Std. Dev. Res.} & 2.3 \\
+\textbf{T-stat} & 2.16 \\
+\textbf{P-value} & 0.0316 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table represents the comparison of Squared Residuals from RF and EN
+	Models, including T-Statistic and P-value
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Wilcoxon Signed-rank Test on Squared Residuals from RF and EN Models}
+\label{table:wilcoxon_test}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+Stats & Z-stat & P-value \\
+Result &  &  \\
+\midrule
+\textbf{Result} & 19069 & 0.13 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item Table represents the result of Wilcoxon Signed-rank Test on Squared
+	Residuals from RF and EN Models
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\end{document}
