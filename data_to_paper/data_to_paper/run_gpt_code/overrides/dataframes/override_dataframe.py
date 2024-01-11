@@ -175,7 +175,7 @@ class TrackDataFrames(RunContext):
                 self._is_called_from_user_script(5):
             if self.allow_dataframes_to_change_existing_series is False \
                     or (self.allow_dataframes_to_change_existing_series is None and df.file_path is not None):
-                raise DataFrameSeriesChange.from_current_tb(changed_series=series_operation.series_name)
+                self.issues.append(DataFrameSeriesChange.from_current_tb(changed_series=series_operation.series_name))
         self.dataframe_operations.append(series_operation)
 
     def _create_issues_for_unsaved_dataframes(self):

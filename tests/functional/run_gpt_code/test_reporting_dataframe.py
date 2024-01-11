@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+from _pytest.fixtures import fixture
 
 from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import AddSeriesDataframeOperation
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.raise_on_call import UnAllowedDataframeMethodCall
@@ -14,12 +15,14 @@ def test_track_dataframe_is_pickleable():
 
 
 def test_dataframe_allows_changing_when_not_in_context():
-    with TrackDataFrames(allow_dataframes_to_change_existing_series=False):
+    with TrackDataFrames(allow_dataframes_to_change_existing_series=False) as tdf:
         df = pd.DataFrame({'a': [1, 2, 3]})
-        with pytest.raises(DataFrameSeriesChange) as exc:
-            df['a'] = [4, 5, 6]
-    assert '"a"' in str(exc.value)
-    assert "df['a'] = [4, 5, 6]" in str(exc.value)
+        df['a'] = [4, 5, 6]
+    issues = tdf.issues
+    assert len(issues) == 1
+    msg = str(issues[0])
+    assert '"a"' in msg
+    assert "df['a'] = [4, 5, 6]" in msg
 
     df = pd.DataFrame({'a': [1, 2, 3]})
     df['a'] = [4, 5, 6]
@@ -27,16 +30,21 @@ def test_dataframe_allows_changing_when_not_in_context():
 
 
 def test_dataframe_context_does_not_allow_changing_from_file_df(tmpdir_with_csv_file):
-    with TrackDataFrames(allow_dataframes_to_change_existing_series=None):
-        df = pd.DataFrame({'a': [1, 2]})
-        df['a'] = [4, 5]
-        assert df['a'].tolist() == [4, 5]
+    with TrackDataFrames(allow_dataframes_to_change_existing_series=None) as tdf:
+        df_denovo = pd.DataFrame({'a': [1, 2]})
+        df_denovo['a'] = [4, 5]
+        assert df_denovo['a'].tolist() == [4, 5]
 
-        df = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
-        with pytest.raises(DataFrameSeriesChange) as exc:
-            df['a'] = [4, 5]
-    assert '"a"' in str(exc.value)
-    assert "df['a'] = [4, 5]" in str(exc.value)
+        df_from_file = pd.read_csv(str(tmpdir_with_csv_file.join('test.csv')))
+        df_from_file['a'] = [6, 7]
+        assert df_from_file['a'].tolist() == [6, 7]
+
+    issues = tdf.issues
+    assert len(issues) == 1
+    msg = str(issues[0])
+    assert '"a"' in msg
+    assert "df_denovo['a'] = [4, 5]" not in msg
+    assert "df_from_file['a'] = [6, 7]" in msg
 
 
 def test_dataframe_context_allows_changing(tmpdir_with_csv_file):
