@@ -16,7 +16,6 @@ from data_to_paper.conversation.message_designation import RangeMessageDesignati
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.run_gpt_code.output_file_requirements import BaseContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.run_gpt_code.overrides.dataframes import DataFrameSeriesChange, UnAllowedDataframeMethodCall
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
@@ -166,6 +165,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if package_base not in self.supported_packages:
             return
         return RunIssue(
+            category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
@@ -180,6 +180,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         if respond_to_known_mis_imports:
             return respond_to_known_mis_imports
         return RunIssue(
+            category='Importing packages',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 Your code should only use these packages: {supported_packages}.
@@ -190,6 +191,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_file_not_found(self, error: FileNotFoundError, e: FailedRunningCode = None) -> RunIssue:
         return RunIssue(
+            category='Available input files',
             issue=_get_description_of_run_error(error),
             instructions=dedent_triple_quote_str("""
                 As noted in the data description, we only have these files:
@@ -250,8 +252,10 @@ class DebuggerConverser(BackgroundProductsConverser):
     def _get_issue_for_forbidden_functions(self, error: CodeUsesForbiddenFunctions, e: FailedRunningCode = None
                                            ) -> RunIssue:
         func = error.func
+        category = 'Use of un-allowed functions'
         if func == 'print':
             return RunIssue(
+                category=category,
                 issue="Your code uses the `print` function.",
                 instructions="Do not use `print` in your code.\n"
                              "If you print conditional warning messages, please use `assert` or `raise` instead.\n" +
@@ -261,17 +265,10 @@ class DebuggerConverser(BackgroundProductsConverser):
                 comment='Code uses `print`'
             )
         return RunIssue(
+            category=category,
             issue=f"Your code uses the function `{func}`, which is not allowed.",
             code_problem=CodeProblem.RuntimeError,
             comment=f'Code uses forbidden function {func}',
-        )
-
-    def _get_issue_for_forbidden_method(self, error: UnAllowedDataframeMethodCall, e: FailedRunningCode) -> RunIssue:
-        func = error.method_name
-        return RunIssue(
-            issue=f"Your code uses the dataframe method `{func}`, which is not allowed.",
-            comment=f'Code uses forbidden method {func}',
-            code_problem=CodeProblem.RuntimeError,
         )
 
     def _get_issue_for_forbidden_import(self, error: CodeImportForbiddenModule, e: FailedRunningCode) -> RunIssue:
@@ -369,17 +366,6 @@ class DebuggerConverser(BackgroundProductsConverser):
                 code_problem=CodeProblem.RuntimeError,
                 comment='Code reads from forbidden file',
             )
-
-    def _get_issue_for_dataframe_series_change(self, error: DataFrameSeriesChange, e: FailedRunningCode) -> RunIssue:
-        series = error.changed_series
-        return RunIssue(
-            issue=f'Your code changes the series "{series}" of your dataframe.',
-            instructions=dedent_triple_quote_str("""
-                Instead of changing an existing dataframe series, please create a new series, and give it a \
-                new sensible name.
-                """),
-            code_problem=CodeProblem.RuntimeError,
-            comment='Code modifies dataframe series')
 
     def _get_issues_for_output_file_content(self, requirement: BaseContentOutputFileRequirement,
                                             filename: str, content: str) -> List[RunIssue]:
@@ -583,11 +569,9 @@ class DebuggerConverser(BackgroundProductsConverser):
                     UnAllowedFilesCreated: self._get_issue_for_un_allowed_files_created,
                     FileNotFoundError: self._get_issue_for_file_not_found,
                     CodeUsesForbiddenFunctions: self._get_issue_for_forbidden_functions,
-                    UnAllowedDataframeMethodCall: self._get_issue_for_forbidden_method,
                     CodeImportForbiddenModule: self._get_issue_for_forbidden_import,
                     CodeWriteForbiddenFile: self._get_issue_for_forbidden_write,
                     CodeReadForbiddenFile: self._get_issue_for_forbidden_read,
-                    DataFrameSeriesChange: self._get_issue_for_dataframe_series_change,
                 }
                 for e_type, func in exceptions_to_funcs.items():
                     if isinstance(exception.exception, e_type):

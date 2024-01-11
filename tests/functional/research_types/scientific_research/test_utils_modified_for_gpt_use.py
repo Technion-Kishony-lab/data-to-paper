@@ -92,3 +92,10 @@ def test_check_df_of_table_for_content_issues_with_repeated_value_in_prior_table
     assert len(issues) == 1
     assert 'overlap' in issues[0].category
     assert 'table_0.pkl' in issues[0].issue
+
+
+def test_check_df_of_table_for_header_issues(df):
+    df.columns = [('a', 'b'), 'x']
+    issues = check_df_of_table_for_content_issues(df, 'table_1.pkl', prior_tables={})
+    assert len(issues) == 1
+    assert 'tuple' in issues[0].issue

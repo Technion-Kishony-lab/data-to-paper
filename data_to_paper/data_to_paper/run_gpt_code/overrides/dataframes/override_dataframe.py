@@ -9,7 +9,6 @@ from dataclasses import dataclass, field
 
 from pandas.core.indexing import _LocationIndexer
 
-from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
 from ...base_run_contexts import RunContext
@@ -33,14 +32,17 @@ CLS_METHOD_NAMES_NEW_METHODS = [
 
 
 @dataclass
-class DataFrameSeriesChange(data_to_paperException):
+class DataFrameSeriesChange(RunIssue):
     """
     Exception that is raised when a data frame series is changed.
     """
     changed_series: str = None
-
-    def __str__(self):
-        return f'Changed series: {self.changed_series}'
+    category: str = 'Dataframe series change'
+    issue: str = 'Your code changes the series "{changed_series}" of your dataframe.'
+    instructions: str = 'Instead of changing an existing dataframe series, please create a new series, and give it a ' \
+                        'new sensible name.'
+    code_problem: CodeProblem = CodeProblem.RuntimeError
+    comment: str = 'Code modifies dataframe series'
 
 
 def get_original_df_method(method_name):
@@ -172,7 +174,7 @@ class TrackDataFrames(RunContext):
                 self._is_called_from_user_script(5):
             if self.allow_dataframes_to_change_existing_series is False \
                     or (self.allow_dataframes_to_change_existing_series is None and df.file_path is not None):
-                raise DataFrameSeriesChange(changed_series=series_operation.series_name)
+                self.issues.append(DataFrameSeriesChange.from_current_tb(changed_series=series_operation.series_name))
         self.dataframe_operations.append(series_operation)
 
     def _create_issues_for_unsaved_dataframes(self):

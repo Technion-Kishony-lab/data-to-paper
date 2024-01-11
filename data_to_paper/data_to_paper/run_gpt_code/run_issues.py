@@ -1,8 +1,10 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List, Tuple
 
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode
 from data_to_paper.utils import word_count
+from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.types import IndexOrderedEnum, ListBasedSet
 
 MAX_WORDS_BEFORE_TERMINATING_ISSUE_LIST = 150
@@ -76,15 +78,33 @@ class RunIssue(FailedRunningCode):
     forgive_after: int = None  # Forgive after this many times,  None means never forgive
 
     @classmethod
-    def from_current_tb(cls, code_problem: CodeProblem, category: str = '', item: str = '',
-                        issue: str = '', instructions: str = '', comment: str = None, end_with: Optional[str] = None,
-                        requesting_small_change: bool = False, forgive_after: int = None):
-        return super().from_current_tb(code_problem=code_problem, category=category, item=item,
-                                       issue=issue, instructions=instructions, comment=comment, end_with=end_with,
-                                       requesting_small_change=requesting_small_change, forgive_after=forgive_after)
+    def from_current_tb(cls, code_problem: CodeProblem = None, category: str = None, item: str = None,
+                        issue: str = None, instructions: str = None, comment: str = None,
+                        end_with: Optional[str] = None,
+                        requesting_small_change: bool = False, forgive_after: int = None, **kwargs):
+        explicit_kwargs = {'code_problem': code_problem, 'category': category, 'item': item, 'issue': issue,
+                           'instructions': instructions, 'comment': comment, 'end_with': end_with,
+                           'requesting_small_change': requesting_small_change, 'forgive_after': forgive_after
+                           }
+        kwargs = kwargs | {k: v for k, v in explicit_kwargs.items() if v is not None}
+        return super().from_current_tb(**kwargs)
+
+    def formatted(self) -> RunIssue:
+        return RunIssue(
+            tb=self.tb,
+            code_problem=self.code_problem,
+            category=format_value(self, self.category),
+            item=format_value(self, self.item),
+            issue=format_value(self, self.issue),
+            instructions=format_value(self, self.instructions),
+            comment=format_value(self, self.comment),
+            end_with=format_value(self, self.end_with),
+            requesting_small_change=self.requesting_small_change,
+            forgive_after=self.forgive_after,
+        )
 
     def __str__(self):
-        return f"{self.code_problem.value}:\n{self.issue}\n{self.instructions}\n"
+        return RunIssues([self]).get_message_and_comment()[0]
 
 
 class RunIssues(List[RunIssue]):
@@ -97,7 +117,7 @@ class RunIssues(List[RunIssue]):
         """
         We compose all the issues into a single message, and a single comment.
         """
-        issues = self._get_issues(most_severe_only)
+        issues = [issue.formatted() for issue in self._get_issues(most_severe_only)]
         comments = ListBasedSet()
 
         s = ''
@@ -116,10 +136,14 @@ class RunIssues(List[RunIssue]):
                 unique_instructions = set(issue.instructions for issue in issues_in_category)
                 shared_instructions = unique_instructions.pop() if len(unique_instructions) == 1 else None
                 shared_instructions_word_count = word_count(shared_instructions) if shared_instructions else 0
+                last_linenos_and_lines = None
+                last_item = None
                 for issue in issues_in_category:
-                    if issue.item:
+                    if issue.item and issue.item != last_item:
+                        last_item = issue.item
                         note += f'* {issue.item}:\n'
-                    if issue.linenos_and_lines:
+                    if issue.linenos_and_lines and issue.linenos_and_lines != last_linenos_and_lines:
+                        last_linenos_and_lines = issue.linenos_and_lines
                         note += 'On line:\n'
                         note += '\n'.join(f'{lineno}: {line}' for lineno, line in issue.linenos_and_lines)
                         note += '\n'

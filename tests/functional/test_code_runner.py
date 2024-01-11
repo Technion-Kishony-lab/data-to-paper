@@ -161,7 +161,7 @@ print(grid_search.best_params_)
 def test_run_code_timeout_multiprocessing(code, result):
     _, _, _, exception = \
         CodeRunner(response=code,
-                   timeout_sec=3,
+                   timeout_sec=5,
                    allowed_read_files=None,
                    output_file_requirements=None,
                    ).run_code_in_separate_process()
@@ -169,4 +169,4 @@ def test_run_code_timeout_multiprocessing(code, result):
     assert isinstance(exception.exception, TimeoutError)
     lineno_lines, msg = exception.get_lineno_line_message()
     assert lineno_lines == result
-    assert msg == 'Code timeout after 3 seconds.'
+    assert msg == 'Code timeout after 5 seconds.'

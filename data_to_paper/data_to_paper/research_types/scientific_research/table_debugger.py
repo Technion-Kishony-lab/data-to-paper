@@ -38,6 +38,7 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
         created_tex_table_files = code_and_output.created_files.get_created_content_files()
         if len(created_tex_table_files) < num_created_pkl_table_files:
             return [RunIssue(
+                category='Missing output files',
                 issue=f"We have {num_created_pkl_table_files} table_?.pkl files, but only "
                       f"{len(created_tex_table_files)} tex files were created.",
                 instructions=f"Please create a tex file for each table.",
