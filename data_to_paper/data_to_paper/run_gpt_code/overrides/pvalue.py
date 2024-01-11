@@ -1,4 +1,3 @@
-import functools
 from dataclasses import dataclass, field
 from typing import List, Iterable
 
@@ -71,7 +70,7 @@ class PValue(OperatorValue):
 
     @classmethod
     def from_value(cls, value, created_by: str = None, var_name: str = None,
-                   raise_on_nan: bool = True,  raise_on_one: bool = True,
+                   raise_on_nan: bool = True, raise_on_one: bool = True,
                    func_call_str: str = None, context: RunContext = None):
 
         if raise_on_nan and np.isnan(value):

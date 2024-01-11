@@ -9,7 +9,6 @@ from dataclasses import dataclass, field
 
 from pandas.core.indexing import _LocationIndexer
 
-from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.mutable import Flag
 from ...base_run_contexts import RunContext

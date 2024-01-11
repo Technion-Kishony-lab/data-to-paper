@@ -205,7 +205,6 @@ class StatsmodelsAnovaPValueOverride(SystematicFuncReplacerContext, TrackPValueC
         return wrapped
 
 
-
 @dataclass
 class StatsmodelsMulticompPValueOverride(AttrReplacer, TrackPValueCreationFuncs):
     package_names: Iterable[str] = ('statsmodels', )
