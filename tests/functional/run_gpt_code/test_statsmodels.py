@@ -237,12 +237,26 @@ def test_scipy_label_pvalues():
         assert p_value.created_by == 'ttest_1samp'
 
 
-def test_scipy_label_pvalues_raise_on_nan():
+def test_scipy_raise_on_pvalue_nan():
     with ScipyPValueOverride():
         data = []
         popmean = 3.0
         with pytest.raises(RunIssue):
-            t_statistic, p_value = stats.ttest_1samp(data, popmean)
+            stats.ttest_1samp(data, popmean)
+
+
+def test_with_statsmodels_raise_on_pvalue_nan():
+    with StatsmodelsFitPValueOverride() as context:
+        data = pd.DataFrame({'a': [1, 2, 3], 'b': [4, None, 6], 'c': [7, 8, 9]})
+        model = ols('a ~ b + c', data=data)
+        model.fit()
+    print(context.issues.get_message_and_comment()[0])
+    assert len(context.issues) == 3
+    msg = context.issues.get_message_and_comment()[0]
+    assert 'NaN' in msg
+    assert '`b`' in msg
+    assert '`c`' in msg
+    assert '`Intercept`' in msg
 
 
 def test_scipy_label_pvalues_chi2_contingency(data_chi2_contingency):

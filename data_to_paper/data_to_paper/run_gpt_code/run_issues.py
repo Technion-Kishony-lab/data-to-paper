@@ -136,10 +136,14 @@ class RunIssues(List[RunIssue]):
                 unique_instructions = set(issue.instructions for issue in issues_in_category)
                 shared_instructions = unique_instructions.pop() if len(unique_instructions) == 1 else None
                 shared_instructions_word_count = word_count(shared_instructions) if shared_instructions else 0
+                last_linenos_and_lines = None
+                last_item = None
                 for issue in issues_in_category:
-                    if issue.item:
+                    if issue.item and issue.item != last_item:
+                        last_item = issue.item
                         note += f'* {issue.item}:\n'
-                    if issue.linenos_and_lines:
+                    if issue.linenos_and_lines and issue.linenos_and_lines != last_linenos_and_lines:
+                        last_linenos_and_lines = issue.linenos_and_lines
                         note += 'On line:\n'
                         note += '\n'.join(f'{lineno}: {line}' for lineno, line in issue.linenos_and_lines)
                         note += '\n'
