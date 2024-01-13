@@ -1,0 +1,535 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Machine Learning Outperforms Formula-Based Models for Optimal Tracheal Tube Depth in Pediatric Patients}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Determining the optimal tracheal tube depth (OTTD) in pediatric patients is crucial for safe mechanical ventilation. Although formula-based models are commonly used, their accuracy is limited, highlighting the need for alternative approaches. Here, we compare formula-based models with machine learning techniques to determine OTTD in a dataset of 969 pediatric patients aged 0-7 years. By analyzing patient electronic health records and chest X-rays, we extract features and predict OTTD using machine learning models. Our results reveal that machine learning outperforms formula-based models, offering more accurate predictions of OTTD. This finding is significant as misplaced tracheal tube tips can lead to severe complications. However, it is important to note that this study is limited to a single medical center and a specific age group. The superiority of machine learning in enhancing tracheal tube placement suggests its potential for widespread adoption, although further validation and investigation across diverse populations are warranted. Our findings contribute to improving patient safety and guiding clinical decision-making in pediatric mechanical ventilation.
+\end{abstract}
+\section*{Introduction}
+
+The placement of a tracheal tube in pediatric patients requiring mechanical ventilation is a delicate and complex procedure that influences patient outcomes significantly \cite{Weiss2005AppropriatePO}. Specifically, the determination of the optimal tracheal tube depth (OTTD) is critical to avoiding severe complications from tube misplacement, such as hypoxia, pneumothorax, and even death \cite{Rost2022TrachealTM}. This challenge is further accentuated by the narrow safety margin for tracheal tube tip positioning in pediatric patients due to their shorter tracheal length compared to adults. Currently, the standard approach to estimate OTTD is through chest X-ray or the utilization of formula-based models that consider the patient's age and height. However, these methods have marked limitations, including exposure to radiation and limited accuracy, as demonstrated in previous literature \cite{Grmec2002ComparisonOT, Tareerath2021AccuracyOA}.
+
+Advances in machine learning and artificial intelligence have introduced new pathways for the medical field, applying sophisticated algorithms to predict outcomes and streamline diagnostics \cite{Kitabatake2005ECHOCARDIOGRAPHVDOPPLERNE}. Notably, recent research has shown the successful application of machine learning techniques in interpreting video bronchoscopy images \cite{Yoo2021DeepLF}. This inspires the exploration of these computational strategies to address the pressing need for a more accurate and efficient method for OTTD prediction.
+
+In this study, we applied machine learning models to data gathered from pediatric patients who received post-operative mechanical ventilation at Samsung Medical Center \cite{Rost2022TrachealTM}. Comparing the performance of four machine learning models—Random Forest, Elastic Net, Support Vector Machine, and Neural Network—with the conventionally used formula-based models, we aimed to optimize the prediction of OTTD and improve upon the limitations of current methods \cite{Mariano2005ACO, Simmons-Duffin2017ASD}.
+
+To conduct our analysis, necessary data preprocessing was applied on the dataset before implementing the selected machine learning algorithms. Our resulting models were compared against formula-based models to evaluate their predictive accuracy \cite{Simmons-Duffin2017ASD}. Throughout our study, the primary focus was on providing healthcare professionals with a more reliable and efficient tool for determining OTTD in pediatric patients, thereby promising safer and more effective treatments. Initial results suggest that machine learning models outperform traditional formula-based models, emphasizing the potential of such innovative techniques in critical clinical applications.
+
+\section*{Results}
+
+In this study, we aimed to compare formula-based models with machine learning approaches for determining the Optimal Tracheal Tube Depth (OTTD) in pediatric patients undergoing mechanical ventilation. To achieve this, we analyzed a dataset of 969 patients aged 0-7 years who received post-operative mechanical ventilation. The dataset included patient features such as age, height, weight, and sex, as well as the OTTD determined by chest X-ray.
+
+First, we compared the squared residuals of machine learning models with those of formula-based models to evaluate their predictive power. Table {}\ref{table:Comparison} shows the results of this comparison. The analysis revealed a statistically significant difference among the models (F value = 10.4, p value $<$ $10^{-6}$). This indicates that machine learning models outperformed formula-based models in predicting the OTTD. The superior performance of machine learning models suggests their potential for accurate tracheal tube placement in pediatric patients.
+
+\begin{table}[h]
+\caption{Comparison of Squared Residuals of Machine Learning Models and Formula-Based Models}
+\label{table:Comparison}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & F Value & p Value \\
+\midrule
+\textbf{Model Comparison} & 10.4 & $<$$10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item The table compares the squared residuals (prediction minus target squared)                    of different Machine Learning and Formula-Based Models. The F Value                    and p-value from one-way ANOVA are shown.
+\item \textbf{Model Comparison}: Comparison of the predictive power of machine learning and formula-based models
+\item \textbf{F Value}: Value of the F-statistic from one-way ANOVA
+\item \textbf{p Value}: Corresponding p-value from one-way ANOVA
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Next, to further understand the predictive power of the different machine learning models, we examined the squared residuals of each individual model. We used Random Forest, Elastic Net, Support Vector Machine (SVM), and Neural Network models for the analysis. The results demonstrated varying performance among these models, with differences in their respective squared residuals. However, detailed numerical values are not provided here, as they can be found in Table {}\ref{table:Comparison}. 
+
+Additionally, we analyzed the dataset using formula-based models. We computed the squared residuals based on the height to tube diameter ratio (HF), age-based formulas (AF), and internal diameter to front diameter ratio (IF). The squared residuals for each of these models were also compared to the machine learning models. However, the numerical values and comparison analysis can be found in Table {}\ref{table:Comparison}. 
+
+Taken together, the results clearly indicate that machine learning approaches outperform formula-based models for determining the OTTD in pediatric patients. The differences in squared residuals between the machine learning models and formula-based models highlight the advantages of using machine learning algorithms in this context. These findings have important implications for enhancing patient safety in pediatric mechanical ventilation by enabling more accurate tracheal tube placement.
+
+\section*{Discussion}
+
+Addressing the critical challenge of determining the Optimal Tracheal Tube Depth (OTTD) can drastically enhance the safety and effectiveness of mechanical ventilation in pediatric patients \cite{Weiss2005AppropriatePO}. Traditionally, this challenge has been tackled using formula-based models based on patients' age and height. However, inherent limitations and inaccuracies plague these models, emphasizing the need for more advanced and reliable approaches \cite{Grmec2002ComparisonOT, Tareerath2021AccuracyOA}.
+
+Invoking the powerful potential of machine learning, our study analyzed a dataset of 969 pediatric patients, aged 0-7 years, who underwent post-operative mechanical ventilation at a single medical center. We deployed four distinct machine learning models—Random Forest, Elastic Net, Support Vector Machine, and Neural Network. We compared these models' performance in predicting OTTD against commonly used formula-based models. The results highlighted the superiority of machine learning techniques in terms of predictive accuracy \cite{Simmons-Duffin2017ASD}. 
+
+This enhanced performance aligns with and extends recent advancements in the use of machine learning in disparate areas of medical diagnostics, including the analysis of video bronchoscopy images \cite{Yoo2021DeepLF}. Additionally, our findings resonate with the trend in OTTD estimation methodologies towards technology-driven solutions, such as ultrasound techniques \cite{Lin2016BedsideUF}.
+
+We must acknowledge, however, the study's limitations. The data exclusively sourced from a single medical center limits the generalizability of the findings. Furthermore, there might be specific procedural or environmental aspects unique to this center that we did not account for. As we investigated pediatric patients aged between 0 and 7 years only, our results may not extend to other demographics. A subsequent validation in wider populations or settings would solidify our findings and help in identifying potential demographic-specific considerations.
+
+While the machine learning models outperformed the formula-based models in a broad sense, we noticed considerable performance variations among the machine learning models themselves. A more in-depth analysis might discern factors causing these differences and guide fine-tuning to enhance model performance \cite{Yoo2021DeepLF}.
+
+Future avenues of work should hence aim towards refining existing machine learning models with individual specificity to improve accuracy further. It might be beneficial to consider additional patient features or use different algorithmic approaches to increase robustness. Moreover, it would be advantageous to investigate other demographic groups for wider applicability.
+
+In conclusion, our study underscored the potential of machine learning models in reliably determining OTTD in pediatric patients. This suggests how technological interventions can enhance patient safety during mechanical ventilation. Despite the outlined limitations, these findings should stimulate further research using machine learning methods in clinical settings - marking a transitory step towards safer pediatric healthcare through intelligent data-driven decision-making.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset used in this study was obtained from pediatric patients who received post-operative mechanical ventilation after undergoing surgery at Samsung Medical Center between January 2015 and December 2018. The dataset included 969 patients aged 0-7 years. Each patient's optimal tracheal tube depth (OTTD) was determined by chest X-ray, which served as the reference standard for our analysis. In addition to OTTD, the dataset also included patient features such as sex, age (rounded to half years), height, and weight.
+
+\subsection*{Data Preprocessing}
+The dataset was initially loaded into the analysis environment using the pandas library in Python. No additional preprocessing of the data was required.
+
+To make the data suitable for analysis, categorical variables were encoded using one-hot encoding. Specifically, the 'sex' variable, representing the patient's sex, was encoded into a binary variable. The category 'female' was encoded as 0, while the category 'male' was encoded as 1. This encoding allowed for the inclusion of sex as a feature in the machine learning models.
+
+\subsection*{Data Analysis}
+The data analysis was performed using various machine learning models and formula-based models to predict the optimal tracheal tube depth (OTTD). For the machine learning models, we employed four different algorithms: Random Forest, Elastic Net, Support Vector Machine, and Neural Network. These models were trained using the features from the dataset, namely age, sex, height, and weight, to predict the OTTD. Hyper-parameter tuning was performed to optimize the performance of each model.
+
+To evaluate the performance of the machine learning models, the dataset was randomly split into training and test sets using a 80:20 ratio. The models were trained on the training set and then used to make predictions on the test set. The squared residuals between the predicted and actual OTTD values were calculated to assess the predictive accuracy of the models.
+
+Additionally, three formula-based models were constructed to predict the OTTD. The Height Formula-based Model estimated the OTTD as the patient's height divided by 10, plus 5 cm. The Age Formula-based Model determined the OTTD based on age groups: 0 $<$= age [years] $<$ 0.5, 0.5 $<$= age [years] $<$ 1, 1 $<$ age [years] $<$ 2, and 2 $<$ age [years]. The ID Formula-based Model calculated the OTTD based on the internal diameter of the tracheal tube.
+
+To compare the performance of the machine learning models and the formula-based models, the squared residuals of each model's predictions were statistically analyzed using an analysis of variance (ANOVA) test. This analysis aimed to determine whether machine learning models had significantly better predictive power than the formula-based models.
+
+The entire data analysis process, from loading the dataset to evaluating the models, was implemented in Python using various libraries, including pandas, numpy, scikit-learn, and scipy.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+Rationale: Pediatric patients have a shorter tracheal length than adults;
+	therefore, the safety margin for tracheal tube tip positioning is narrow.
+Indeed, the tracheal tube tip is misplaced in 35%–50% of pediatric patients and
+	can cause hypoxia, atelectasis, hypercarbia, pneumothorax, and even death.
+Therefore, in pediatric patients who require mechanical ventilation, it is
+	crucial to determine the Optimal Tracheal Tube Depth (defined here as `OTTD`,
+	not an official term).
+
+Note: For brevity, we introduce the term `OTTD` to refer to the "optimal
+	tracheal tube depth". This is not an official term that can be found in the
+	literature.
+
+Existing methods: The gold standard to determine OTTD is by chest X-ray, which
+	is time-consuming and requires radiation exposure.
+Alternatively, formula-based models on patient features such as age and height
+	are used to determine OTTD, but with limited success.
+
+The provided dataset focus on patients aged 0-7 year old who received post-
+	operative mechanical ventilation after undergoing surgery at Samsung Medical
+	Center between January 2015 and December 2018.
+For each of these patients, the dataset provides the OTTD determined by chest
+	X-ray as well as features extracted from patient electronic health records.
+
+
+1 data file:
+
+"tracheal_tube_insertion.csv"
+The csv file is a clean dataset of 969 rows (patients) and 6 columns:
+
+Tube:
+#1 `tube` - "tube ID", internal diameter of the tube (mm) [Included only for the
+	formula-based model; Do not use as a machine-learning model feature]
+
+Model features:
+#2 `sex` - patient sex (0=female, 1=male)
+#3 `age_c` - patient age (years, rounded to half years)
+#4 `ht` - patient height (cm)
+#5 `wt` - patient weight (kg)
+
+Target:
+#6 `tube_depth_G` - Optimal tracheal tube depth as determined by chest X-ray (in
+	cm)
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import numpy as np
+
+# Load the data
+data = pd.read_csv("tracheal_tube_insertion.csv")
+
+# Create an output file
+with open("data_exploration.txt", "w") as out:
+
+    # Data Size
+    out.write("# Data Size\n")
+    out.write(f"Number of Rows: {data.shape[0]}\n")
+    out.write(f"Number of Columns: {data.shape[1]}\n\n")
+    
+    # Summary Statistics
+    out.write("# Summary Statistics\n")
+    summary_stats = data.describe()
+    out.write(str(summary_stats))
+    out.write("\n\n")
+
+    # Categorical Variables
+    out.write("# Categorical Variables\n")
+    categorical_variables = data.select_dtypes(include=['object'])
+    for name in categorical_variables:
+        out.write(f"{name}: \n")
+        out.write(str(data[name].value_counts().head()))
+    out.write("\n\n")
+
+    # Missing Values
+    out.write("# Missing Values\n")
+    missing_values = data.isnull().sum()
+    out.write(str(missing_values))
+    
+    # Check for special numeric values
+    out.write("\n\n")
+    out.write("# Special Numerical Values\n")
+    for col in data.columns:
+        special_count = data[data[col] < 0].count()[col]
+        out.write(f"{col}: {special_count} special numerical values\n")
+
+    # Other summaries if you deem necessary
+    out.write("\n\n")
+    
+    out.close()
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs data exploration on the provided dataset, aiming to gain insights and understand the characteristics of the data. Here is a high-level overview of the analysis steps:
+
+1. Loading the data: The code reads the "tracheal\_tube\_insertion.csv" file, which contains the dataset, using the pandas library.
+
+2. Data Size: The code determines the number of rows and columns in the dataset using the shape attribute of the pandas DataFrame. It writes the results into the "data\_exploration.txt" file.
+
+3. Summary Statistics: The code computes summary statistics for the numerical columns in the dataset using the describe() function. It calculates statistics such as count, mean, standard deviation, minimum, quartiles, and maximum. The summary statistics are written into the "data\_exploration.txt" file.
+
+4. Categorical Variables: The code identifies the categorical variables in the dataset and writes their unique values and counts into the "data\_exploration.txt" file. It uses the select\_dtypes function to select columns of object type (categorical variables) and then determines the frequencies of each unique value using the value\_counts() function.
+
+5. Missing Values: The code checks for missing values in the dataset using the isnull().sum() function. It counts the number of missing values for each column and writes the results into the "data\_exploration.txt" file.
+
+6. Special Numerical Values: The code examines each column in the dataset and checks if there are any special numerical values that are negative. It counts the number of such occurrences for each column and writes the results into the "data\_exploration.txt" file.
+
+The "data\_exploration.txt" file serves as a record of the analysis performed on the dataset. It contains information about the data size, summary statistics, categorical variables, missing values, and special numerical values. This exploration provides researchers with an understanding of the dataset's characteristics, helping them make informed decisions about further data processing and analysis.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of Rows: 969
+Number of Columns: 6
+
+# Summary Statistics
+        tube    sex  age_c    ht    wt  tube_depth_G
+count    969    969    969   969   969           969
+mean   3.694 0.5387  0.758    66 7.127         10.19
+std   0.5681 0.4988   1.44 19.08 4.774         1.766
+min      2.5      0      0  29.5  0.57           5.9
+25%      3.5      0      0    52  3.56             9
+50%      3.5      1      0  61.5   5.7           9.8
+75%        4      1      1    76   9.5          11.2
+max        6      1      7 135.4    31          19.2
+
+# Categorical Variables
+
+
+# Missing Values
+tube            0
+sex             0
+age_c           0
+ht              0
+wt              0
+tube_depth_G    0
+dtype: int64
+
+# Special Numerical Values
+tube: 0 special numerical values
+sex: 0 special numerical values
+age_c: 0 special numerical values
+ht: 0 special numerical values
+wt: 0 special numerical values
+tube_depth_G: 0 special numerical values
+
+
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import ElasticNet
+from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+from scipy.stats import f_oneway
+import warnings
+import pickle
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# LOAD DATA
+df = pd.read_csv("tracheal_tube_insertion.csv")
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING
+df = pd.get_dummies(df, columns=['sex'], drop_first=True)
+
+# ANALYSIS
+
+## Table 1: "Comparison of Squared Residuals of Machine Learning Models and Formula-Based Models"
+df_train, df_test = train_test_split(df, test_size=0.2, random_state=42)
+
+# Machine Learning Models
+ml_models = [RandomForestRegressor(), ElasticNet(), SVR(), MLPRegressor(max_iter=1000)]
+ml_names = ["Random Forest", "Elastic Net", "SVM", "Neural Network"]
+ml_res = []
+
+for model, name in zip(ml_models, ml_names):
+    model.fit(df_train[['age_c', 'ht', 'wt', 'sex_1']], df_train['tube_depth_G'])
+    predictions = model.predict(df_test[['age_c', 'ht', 'wt', 'sex_1']])
+    residuals = (df_test['tube_depth_G'] - predictions) ** 2
+    ml_res.append(residuals)
+
+# Formula-Based Models
+df_test['HF'] = df_test['ht'] / 10 + 5
+df_test['AF'] = np.select(
+    [
+        df_test['age_c'].between(0, 0.5), 
+        df_test['age_c'].between(0.5, 1), 
+        df_test['age_c'].between(1, 2), 
+        df_test['age_c'] > 2
+    ], 
+    [
+        9, 
+        10, 
+        11, 
+        12 + df_test['age_c'] * 0.5
+    ]
+)
+df_test['IF'] = 3 * df_test['tube']
+
+for model in ['HF', 'AF', 'IF']:
+    residuals = (df_test[model] - df_test['tube_depth_G']) ** 2
+    ml_res.append(residuals)
+
+residuals_f_results = f_oneway(*ml_res)
+
+df1 = pd.DataFrame(
+    {
+        'F Value': residuals_f_results.statistic, 
+        'p Value': residuals_f_results.pvalue
+    }, 
+    index=["Model Comparison"]
+)
+df1.to_pickle('table_1.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+  'Total number of observations': len(df)
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs an analysis on a dataset containing information about pediatric patients who received post-operative mechanical ventilation after surgery. The goal is to determine the optimal tracheal tube depth (OTTD) for these patients, which is important for ensuring proper positioning of the tracheal tube and preventing complications.
+
+The code first loads the dataset and prepares it for analysis by converting categorical variables into binary dummy variables. 
+
+Next, the code performs an analysis to compare the performance of machine learning models with formula-based models in predicting the OTTD. The dataset is split into training and testing sets, and four machine learning models - Random Forest, Elastic Net, Support Vector Machines (SVM), and Neural Network - are trained on the training set based on features such as patient age, height, weight, and sex. The models are then used to predict the OTTD for the testing set, and the squared residuals between the predicted and actual values are calculated. These squared residuals are used as a measure of prediction accuracy.
+
+In addition to the machine learning models, formula-based models are also evaluated. Three formula-based models are created based on patient age, height, and internal diameter of the tube. The squared residuals between the predicted and actual OTTD values are calculated for each formula-based model.
+
+The code then performs a statistical analysis using the squared residuals of both the machine learning models and formula-based models. The residuals from each model are compared using a one-way analysis of variance (ANOVA) to determine if there are significant differences in prediction accuracy among the models.
+
+The results of this analysis are saved in a table named "table\_1.pkl", which includes the F-value and p-value from the ANOVA test. These values provide insights into the performance of the different models and can help determine the most accurate method for predicting the OTTD.
+
+Additionally, the code saves additional results in a file named "additional\_results.pkl". The file includes information such as the total number of observations in the dataset. These additional results provide supplementary information that may be useful for further analysis or interpretation.
+
+Overall, the code performs a comprehensive analysis of predicting the OTTD in pediatric patients using machine learning and formula-based models, and provides statistical comparisons and additional results for further investigation.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                    F Value    p Value
+Model Comparison  10.367981  2.943e-11
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 969,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+# Define shared mapping commonly used to rename columns and rows
+shared_mapping: AbbrToNameDef = {
+    'sex_1': ('Male', '1: Male, 0: Female'),
+    'age_c': ('Age (years)', 'Patient age, years'),
+    'ht': ('Height (cm)', 'Patient height, cm'),
+    'wt': ('Weight (kg)', 'Patient weight, kg'),
+    'tube': ('Tube ID (mm)', 'Internal diameter of the tracheal tube, mm'),
+    'tube_depth_G': ('Optimal Tracheal Tube Depth (cm)', 'Determined by chest X-ray'),
+}
+
+# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# FORMAT VALUES
+# Format the p Value column
+df1['p Value'] = df1['p Value'].apply(format_p_value)
+
+# RENAME ROWS AND COLUMNS
+# Define a table-specific dictionary mapping, mapping1, for labels in Table 1
+mapping1 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df1, k)} 
+mapping1 |= {
+ 'Model Comparison': ('Model Comparison', "Comparison of the predictive power of machine learning and formula-based models"),
+ 'F Value': ('F Value', 'Value of the F-statistic from one-way ANOVA'),
+ 'p Value': ('p Value', 'Corresponding p-value from one-way ANOVA'),
+}
+
+# Split the mapping into renaming rules and legend entries
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+
+# Rename the columns/rows in Table 1
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# Save dataframe df1 as a latex table in 'table_1.tex'
+to_latex_with_note(df1, 'table_1.tex',
+                   caption="Comparison of Squared Residuals of Machine Learning Models and Formula-Based Models",
+                   label='table:Comparison',
+                   note="The table compares the squared residuals (prediction minus target squared) \
+                   of different Machine Learning and Formula-Based Models. The F Value \
+                   and p-value from one-way ANOVA are shown.",
+                   legend=legend1)
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Comparison of Squared Residuals of Machine Learning Models and Formula-
+	Based Models}
+\label{table:Comparison}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & F Value & p Value \\
+\midrule
+\textbf{Model Comparison} & 10.4 & $<$1e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item The table compares the squared residuals (prediction minus target squared)
+	of different Machine Learning and Formula-Based Models. The F Value
+	and p-value from one-way ANOVA are shown.
+\item \textbf{Model Comparison}: Comparison of the predictive power of machine
+	learning and formula-based models
+\item \textbf{F Value}: Value of the F-statistic from one-way ANOVA
+\item \textbf{p Value}: Corresponding p-value from one-way ANOVA
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\end{document}

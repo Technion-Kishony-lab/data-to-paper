@@ -25,6 +25,16 @@
 \begin{abstract}
 Determining the optimal tracheal tube depth (OTTD) in pediatric patients is crucial for safe and effective mechanical ventilation. However, accurate estimation of OTTD using current methods, such as chest X-ray and formula-based models, remains challenging. This study aims to improve the estimation of OTTD in pediatric patients aged 0-7 years using machine learning. We built machine learning models utilizing patient features extracted from electronic health records, and compared their performance with formula-based models. The dataset consisted of 969 patients who underwent post-operative mechanical ventilation. Our results demonstrate that the machine learning models consistently outperformed the formula-based models in estimating OTTD. The Random Forest model achieved the highest accuracy among the evaluated models. Additionally, we highlight the limitations of our study and the need for further validation and optimization. Our findings underscore the potential of machine learning to enhance the accuracy and safety of tracheal tube depth estimation in pediatric patients, contributing to improved patient outcomes in mechanical ventilation.
 \end{abstract}
+\section*{Introduction}
+
+Providing safe mechanical ventilation in pediatric patients fundamentally depends on the accurate placement of the tracheal tube \cite{Kendirli2006MechanicalVI}. Pediatric patients have a significantly shorter tracheal length than adults, resulting in a particularly narrow safety margin for tracheal tube tip positioning \cite{Kneyber2017RecommendationsFM}. This physiological constraint can lead to tube misplacement in 35\%-50\% of pediatric patients \cite{Kollef1994EndotrachealTM}, which can in turn cause serious complications such as hypoxia, atelectasis, hypercarbia, pneumothorax, and in rare cases, death \cite{Traiber2009ProfileAC}. 
+
+Determining the optimal tracheal tube depth (OTTD) is typically achieved using chest X-ray, a methodology which is not without its drawbacks, including being time-consuming and requiring radiation exposure \cite{Rajajee2011RealtimeUP}. While formula-based models provide an alternative method of assessing OTTD, taking into account patient attributes such as age and height, their success rate often leaves room for improvement \cite{Mariano2005ACO, Takita2003TheHF, Foronda2011TheIO}. Given these considerations, the development and validation of novel methods to accurately estimate the OTTD are of paramount importance to enhance the safety and effectiveness of mechanical ventilation in pediatric patients. 
+
+This study seeks to address this research gap by employing machine learning models as a novel approach to improving OTTD estimation in children aged 0-7 years \cite{Ingelse2017EarlyFO, Steurer2018AlteredMI, Shaw2016DysbiosisIA}. We examined 969 pediatric patients who underwent post-operative mechanical ventilation and utilized features extracted from patient electronic health records as the input for our models \cite{OBoyle2014DevelopmentOL, Weiss2005AppropriatePO, Newth2017VariabilityIU}. In the quest for superior accuracy, our study further pitted these machine learning models against formula-based models that employed more traditional parameters such as patient height, age, and internal diameter for OTTD predictions \cite{Mariano2005ACO, Takita2003TheHF}. 
+
+We implemented four distinct machine learning algorithms: Random Forest, Elastic Net, Support Vector Machine, and Neural Network, with each model using patient attributes to estimate the OTTD \cite{Shaw2016DysbiosisIA}. Notably, the Random Forest model demonstrated superior performance in estimating OTTD, highlighting the potential of machine learning in improving patient safety measures. This introductory overview sets the stage for a detailed exploration of how machine learning models significantly improve the accuracy in estimating the tracheal tube depth when juxtaposed with traditional formula-based models.
+
 \section*{Results}
 
 We aimed to estimate the optimal tracheal tube depth (OTTD) in pediatric patients aged 0-7 years using machine learning models and compare their performance with formula-based models. The dataset consisted of 969 patients who underwent post-operative mechanical ventilation, and the patient attributes along with the OTTD determined by chest X-ray were extracted. Descriptive statistics of patient sex, age, height, weight, and OTTD are presented in Table {}\ref{table:descriptive_statistics}. The mean OTTD was found to be 10.2 cm (SD=1.77 cm), emphasizing the importance of accurate estimation for safe mechanical ventilation.
@@ -93,6 +103,41 @@ First, the machine learning models consistently outperformed the formula-based m
 Our analysis included a comparative evaluation of the machine learning models. The Random Forest model, with the lowest squared residue, demonstrated the highest accuracy in estimating OTTD among the evaluated models. The performance comparison revealed that machine learning models considerably improve the accuracy of OTTD estimation compared to formula-based models. These results support the potential of machine learning techniques in enhancing patient care and safety.
 
 In summary, our results confirm the enhanced performance of machine learning models in estimating OTTD compared to formula-based models. The Random Forest model exhibited the highest accuracy in predicting OTTD. These findings emphasize the potential of machine learning approaches to improve the accuracy and safety of tracheal tube depth estimation in pediatric patients aged 0-7 years, which are crucial for safe and effective mechanical ventilation.
+
+\section*{Discussion}
+
+In this study, our primary research question centered around the improvement of estimating ideal tracheal tube depth (OTTD) for pediatric patients with the assistance of machine learning models. Given the significant shortness of tracheal length in pediatric patients compared to adults and the consequential narrow safety margin for tracheal tube tip positioning, accurate placement is crucial \cite{Kendirli2006MechanicalVI, Kneyber2017RecommendationsFM}. Consequently, we utilized four machine learning models, namely Elastic Net, Neural Network, Support Vector Machine, and Random Forest, to estimate OTTD. Training data comprised features extracted from the electronic health records of a dataset of 969 pediatric patients undergoing post-operative mechanical ventilation \cite{OBoyle2014DevelopmentOL, Weiss2005AppropriatePO, Ingelse2017EarlyFO}. Our results underline the superior performance of machine learning models, specifically the Random Forest model, compared to traditional formula-based predicting methods \cite{Shaw2016DysbiosisIA}.
+
+Our findings demonstrate a clear improvement over existing formula-based models, which have shown limited success in accurately estimating OTTD, thereby suggesting a promising role for artificial intelligence in patient safety purposes \cite{Kollef1994EndotrachealTM, Rajajee2011RealtimeUP}. Moreover, focusing on previous studies, our results corroborate the potential of machine learning in improving prediction accuracy, as manifested by improved results in a diverse range of contexts, such as tumor motion tracking and indoor positioning \cite{Li2023MachineLF, Nessa2020ASO, Liu2022MachineLB}.
+
+However, our study is not devoid of limitations. Notably, the adoption of data from a single hospital over a specific period may hinder the generalizability of our models to other populations and settings. Future studies should therefore seek to leverage more diverse datasets encompassing multiple geographic locations and timeframes. On the machine learning front, limitations may arise from incomplete or misrepresented features, model overfitting, and bias-variance trade-offs, which may affect the models' precision.
+
+Despite these limitations, our study's outcomes underscore the potential of machine learning models in enhancing the safe and effective application of mechanical ventilation in pediatric patients. In this context, machine learning models not only offer more accurate estimations but also hold promise for integration into bedside clinical decision-making tools, thereby improving real-time patient care decisions. Herein lies the potential for reducing complications and improving patient outcomes arising from inaccurate tracheal tube positioning, thus holding a strong impact on clinical practice \cite{Kendirli2006MechanicalVI}.
+
+In conclusion, this study reaffirms the value of machine learning models and the superiority of the Random Forest model in forecasting OTTD in pediatric patients. Looking ahead, refining these results and tailoring models to diverse population subsets could ensure that machine learning models become an integral and beneficial part of pediatric patient care, filling the void left by traditional estimating methods. Moreover, our research highlights the need for future studies taking the regional or center-level variations into account for more accurate, reliable, and universally applicable results. The practical implementation of these models into the clinical toolbox holds substantial potential in reducing mechanical ventilation-related complications, thereby enhancing patient safety.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset used in this study was obtained from pediatric patients who received post-operative mechanical ventilation after undergoing surgery at Samsung Medical Center between January 2015 and December 2018. The dataset includes 969 patients aged 0-7 years old. For each patient, the dataset contains various features extracted from electronic health records, including sex, age, height, weight, and the optimal tracheal tube depth (OTTD) determined by chest X-ray.
+
+\subsection*{Data Preprocessing}
+Prior to analysis, the dataset was loaded into Python using the pandas library. The data was in a CSV file format, which was read into a pandas DataFrame. The 'tube' column, representing the internal diameter of the tracheal tube, was excluded as it was not used as a feature for the machine learning models.
+
+The dataset was then split into the target variable (OTTD) and the features (sex, age, height, weight) for further analysis. The features were normalized using the StandardScaler function from the scikit-learn library to ensure that they were on the same scale for modeling.
+
+The data was randomly split into training and test sets with a ratio of 80:20 using the train\_test\_split function from scikit-learn. This allowed for the evaluation of the models' performance on unseen data.
+
+\subsection*{Data Analysis}
+Four machine learning models, namely Random Forest, Elastic Net, Support Vector Machine, and Neural Network, were implemented using the scikit-learn library. These models were trained on the training set using the scaled features and the corresponding OTTD values. Hyper-parameter tuning was performed for each model to optimize their performance.
+
+In addition to the machine learning models, three formula-based models were also analyzed. The first formula-based model utilized the patient's height to estimate the OTTD, using the formula OTTD = height [cm] / 10 + 5 cm. The second formula-based model used the patient's age to determine the OTTD, with specific OTTD values assigned to different age groups. The third formula-based model estimated the OTTD based on the internal diameter of the tracheal tube using the formula OTTD (in cm) = 3 * (tube ID [mm]) * cm/mm.
+
+The performance of each model was evaluated using the mean squared error (MSE) between the predicted OTTD values and the actual OTTD values on the test set. The results were compared among the machine learning models and the formula-based models. Further statistical analysis was conducted using the t-test to determine if there were significant differences in the performance between the machine learning models and the formula-based models.
+
+Overall, the Python code performed data preprocessing, implemented various machine learning and formula-based models, and evaluated their performance on the test set. The models were trained and tested using the provided dataset, and the results were analyzed to determine the effectiveness of each approach in estimating the optimal tracheal tube depth in pediatric patients.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
 
 
 \clearpage
@@ -573,5 +618,9 @@ def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
 \end{table}
 
 \end{Verbatim}
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
 
 \end{document}

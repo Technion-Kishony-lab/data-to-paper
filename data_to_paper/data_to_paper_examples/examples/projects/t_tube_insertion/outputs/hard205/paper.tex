@@ -25,6 +25,16 @@
 \begin{abstract}
 Accurate determination of the optimal tracheal tube depth (OTTD) is critical for patient safety during mechanical ventilation in pediatric patients. However, existing formula-based models have limited success in predicting OTTD, leading to potential complications. In this study, we propose a novel machine learning-based approach to enhance the prediction of OTTD. Our analysis utilizes a dataset of 969 pediatric patients aged 0-7 years who underwent surgery, and compares the performance of machine learning models including Random Forest, Elastic Net, Support Vector Machine, and Neural Network with formula-based models. The results demonstrate the superiority of machine learning models, as they achieve significantly lower mean squared residuals. This study establishes the potential of machine learning in improving OTTD prediction accuracy and minimizing complications in pediatric mechanical ventilation. While considering the limitations of this single-center study, further validation on larger multi-center datasets is warranted, providing a foundation for leveraging machine learning to enhance patient outcomes in pediatric mechanical ventilation.
 \end{abstract}
+\section*{Introduction}
+
+Accurate positioning of the tracheal tube is crucial in pediatric patients requiring mechanical ventilation, as the pediatric trachea is shorter than the adult trachea, reducing the margin for error \cite{Principi2011ComplicationsOM}. Historically, the misplacement of tracheal tube tips in 35\%–50\% of pediatric patients has led to severe complications, such as atelectasis, hypoxia, and even death \cite{Rey2009MechanicalCD,Jack2012InlineFR}. Given the life-threatening consequences of an incorrect estimate, precision in predicting optimal tracheal tube depth (OTTD) is of utmost importance.
+
+Techniques currently in place for predicting OTTD, despite their widespread use, have significant limitations. Chest X-rays, considered the gold standard, expose the patient to radiation and demand substantial time \cite{Zhou2022PredictionOE}. Alternatively, formula-based models leveraged to estimate OTTD using age and height features have only achieved limited success, underscoring the need for more effective prediction methodologies \cite{Lee2009BedsidePO}.
+
+In this study, we propose a novel approach to the prediction of OTTD using machine learning. This approach is justified by the potential of these techniques to identify complex patterns and provide robust predictive models, thereby promising to offer improvements over existing methods. For this investigation, we used a dataset of 969 pediatric patients aged 0-7 years who underwent post-operative mechanical ventilation at Samsung Medical Center between January 2015 and December 2018 \cite{Ingelse2017EarlyFO, Choi2022PredictionMF}.
+
+Detailed analyses were carried out using machine learning models including Random Forest, Elastic Net, Support Vector Machine, and Neural Network. These models were chosen for their proven predictive capabilities in the field of healthcare and medicine \cite{Rajula2020ComparisonOC}. To assess the models' effectiveness, model performance was evaluated against three existing formula-based models using mean squared residuals as the metric. Our findings revealed machine learning models to consistently outperform the formula-based models in predicting OTTD, even those with the best performance. This study thereby highlights the potential for machine learning models to enhance OTTD prediction accuracy, ultimately contributing to improved patient safety in pediatric mechanical ventilation \cite{Lee2009BedsidePO,Rajula2020ComparisonOC}.
+
 \section*{Results}
 
 To investigate the performance of machine learning (ML) models in predicting the optimal tracheal tube depth (OTTD) in pediatric patients, we conducted a comparative analysis using a dataset of 969 patients. First, we evaluated the predictive accuracy of ML models, including Random Forest, Elastic Net, Support Vector Machine (SVM), and Neural Network. The mean squared residuals for each ML model are summarized in Table \ref{table:ml_models}. All ML models achieved significantly lower mean squared residuals compared to the formula-based models, providing robust evidence for their superiority (t-test statistic = -3.68, p-value $<$ 0.05). The Elastic Net model exhibited the lowest mean squared residuals (0.985), followed by the SVM model (1.03), Random Forest model (1.43), and Neural Network model (1.12). These findings highlight the potential of ML models in enhancing the accuracy of OTTD prediction beyond formula-based approaches.
@@ -103,6 +113,42 @@ We further conducted a t-test to compare the mean squared residuals of the ML mo
 
 
 In summary, our analysis demonstrated that ML models, including Random Forest, Elastic Net, SVM, and Neural Network, outperformed formula-based models in predicting OTTD in pediatric patients. The ML models achieved significantly lower mean squared residuals compared to the formula-based models, as supported by the t-test results. These findings highlight the potential of ML approaches to enhance OTTD prediction accuracy and improve patient outcomes in pediatric mechanical ventilation.
+
+\section*{Discussion}
+
+The successful prediction of optimal tracheal tube depth (OTTD) is paramount in the safe administration of mechanical ventilation in pediatric patients, where precise tube positioning can be the difference between life and death \cite{Principi2011ComplicationsOM}. Current formula-based models attempting to solve this prediction problem leave room for substantial improvement \cite{Lee2009BedsidePO}. Against this backdrop, our study has sought to explore the capabilities of machine learning (ML) models in enhancing the accuracy of OTTD prediction in pediatric patients.
+
+Our approach blueprint involves deploying an array of proven ML models, including Random Forest, Elastic Net, Support Vector Machine, and Neural Network, on a comprehensive dataset of 969 pediatric patients aged 0-7 years that underwent mechanical ventilation \cite{Ingelse2017EarlyFO, Choi2022PredictionMF}. Significantly, all our implemented ML models outperformed their formula-based counterparts, with the mean squared residuals of the ML models substantially lower than those of the formula-based models \cite{Ming2019MachineLT, Zhou2022PredictionOE}. While Elastic Net and Support Vector Machine models were the top performers, it's worth noting that the performance distinction between the tested ML models is minor, with all models demonstrating noteworthy superiority over the formula-based models.
+
+However, it's crucial to acknowledge the study's limitations. The findings from a single-center study may not hold true across broader, diverse populations, warranting the need for validation across multi-center datasets \cite{Ramsingh2020RelationshipBE}. Additionally, the potential to enhance the predictive accuracy of models exists, by integrating more diverse and relevant variables beyond the basic demographic and clinical variables used in this study \cite{Yan2020ImpactOC}.
+
+Despite these considerations, our study holds potential clinical implications that can revolutionize the approach to OTTD prediction, opening avenues to improve patient safety, and the quality of outcomes in pediatric mechanical ventilation \cite{Kim2016PredictionOE, Liang2015ManagementOB}. The ML models yielded more accurate predictions with significantly lower mean squared residuals, presenting a case for their consideration in practical clinical settings. Our study serves as a groundwork, providing insight into utilizing ML to enhance health outcomes, and awaits further exploration to unearth the full potential of this approach \cite{Rajula2020ComparisonOC, Rost2022TrachealTM}.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset used in this study was obtained from pediatric patients aged 0-7 years who received post-operative mechanical ventilation after undergoing surgery at Samsung Medical Center between January 2015 and December 2018. The dataset includes features extracted from patient electronic health records, such as sex, age, height, weight, and the optimal tracheal tube depth (OTTD) as determined by chest X-ray.
+
+\subsection*{Data Preprocessing}
+The preprocessing of the data involved loading the dataset into a pandas dataframe using the Python programming language. No further data preprocessing steps were necessary as the dataset already contained numerical features with no missing values. The dataset was then split into features (including sex, age, height, and weight) and the target variable (OTTD).
+
+\subsection*{Data Analysis}
+The data analysis involved the following steps:
+1. Splitting the dataset into training and test sets using a train-test split of 80\% and 20\%, respectively.
+2. Standardizing the features of the training set using standard scalar transformation.
+3. Applying four machine learning models (Random Forest, Elastic Net, Support Vector Machine, and Neural Network) to predict the OTTD using the training set.
+4. Hyperparameter tuning of each machine learning model using grid search with cross-validation.
+5. Evaluating the performance of each model by calculating the mean squared residuals between the predicted OTTD and the actual OTTD from the test set.
+6. Computing three formula-based models for the OTTD based on height, tube ID, and age, respectively.
+7. Calculating the mean squared residuals for each formula-based model.
+8. Performing a t-test to compare the mean squared residuals of the machine learning models with those of the formula-based models.
+9. Generating three tables: 
+    - Table 1: Comparison of mean squared residuals for each machine learning model.
+    - Table 2: Comparison of mean squared residuals for each formula-based model.
+    - Table 3: T-test comparing machine learning and formula-based models.
+10. Saving the tables as pickle files for further analysis and reporting.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
 
 
 \clearpage
@@ -608,5 +654,9 @@ def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
 \end{table}
 
 \end{Verbatim}
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
 
 \end{document}
