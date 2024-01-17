@@ -1,0 +1,6 @@
+,debug_attempt1,debug_attempt2,debug_attempt3,debug_attempt4,debug_attempt5,debug_attempt6,debug_attempt7,debug_attempt8,debug_attempt9,debug_attempt10
+CODELLAMA,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,8.0
+GPT4,1.0,1.0,3.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+GPT35_TURBO,1.0,1.0,1.0,1.0,1.0,2.0,1.0,1.0,1.0,1.0
+LLAMA_2_7b,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0,20.0
+LLAMA_2_70b,16.0,20.0,20.0,20.0,18.0,20.0,11.0,13.0,20.0,20.0
