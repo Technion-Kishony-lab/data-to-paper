@@ -15,8 +15,11 @@ RUN_PARAMETERS = dict(
 )
 
 if __name__ == '__main__':
-    get_paper(**RUN_PARAMETERS,
-              output_folder='CODELLAMA_run_10',
-              should_mock_servers=True,
-              load_from_repo=True,
-              save_on_repo=True)
+    for model_engine in ["CODELLAMA", "GPT4", "GPT35_TURBO", "LLAMA_2_7b", "LLAMA_2_70b"]:
+        os.environ['DATA_EXPLORATION_MODEL_ENGINE'] = model_engine
+        for run_name in ['{}_run_{:01d}'.format(model_engine, i) for i in range(1, 11)]:
+            get_paper(**RUN_PARAMETERS,
+                      output_folder=run_name,
+                      should_mock_servers=True,
+                      load_from_repo=True,
+                      save_on_repo=True)
