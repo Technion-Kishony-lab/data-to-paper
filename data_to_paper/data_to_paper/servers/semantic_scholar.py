@@ -13,7 +13,7 @@ from data_to_paper.latex.clean_latex import replace_special_latex_chars
 from data_to_paper.servers.base_server import DictServerCaller
 from data_to_paper.servers.crossref import ServerErrorCitationException
 from data_to_paper.servers.custom_types import Citation
-from data_to_paper.utils.highlighted_text import print_red
+from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.nice_list import NiceList
 
 
@@ -130,11 +130,11 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 "limit": min(rows * 2, 100),  # x2 more to make sure we get enough results after removing faulty ones
                 "fields": "title,url,abstract,tldr,journal,year,citationStyles,embedding,influentialCitationCount",
             }
-            print_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"')
+            print_and_log_red(f'QUERYING SEMANTIC SCHOLAR FOR: "{query}"', should_log=False)
             response = requests.get(PAPER_SEARCH_URL, headers=HEADERS, params=params)
 
             if response.status_code == 504:
-                print_red("ERROR: Server timed out. We wait for 5 sec and try again.")
+                print_and_log_red("ERROR: Server timed out. We wait for 5 sec and try again.", should_log=False)
                 time.sleep(5)
                 continue
 
@@ -154,7 +154,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             for word in words_to_remove_in_case_of_zero_citation_error:
                 redacted_query = remove_word(query, word)
                 if redacted_query != query:
-                    print_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY")
+                    print_and_log_red(f"NO MATCHES!  REMOVING '{word}' FROM QUERY", should_log=False)
                     query = redacted_query
                     break
             else:
@@ -193,10 +193,10 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
             citation = SemanticCitation(paper, search_rank=rank, query=query)
 
             if msg:
-                print_red(f"ERROR: {msg}. ({citation.year}) {citation.journal}, {citation.title}")
+                print_and_log_red(f"ERROR: {msg}. ({citation.year}) {citation.journal}, {citation.title}")
 
             if len(citation.bibtex_id) <= 4:
-                print_red(f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}")
+                print_and_log_red(f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}")
                 continue
             citations.append(citation)
         return citations

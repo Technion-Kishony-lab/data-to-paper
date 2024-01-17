@@ -468,7 +468,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             else:
                 labels = column_labels
                 index_or_column = 'column'
-            unallowed_labels = [label for label in labels if char in label]
+            unallowed_labels = sorted([label for label in labels if char in label])
             if unallowed_labels:
                 issues.append(RunIssue(
                     category=f'Table row/column labels contain un-allowed characters',
@@ -493,7 +493,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     # For compatability with `mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}`:
     abbr_labels = [label for label in abbr_labels if label in df.columns or label in df.index]
 
-    un_mentioned_abbr_labels = [label for label in abbr_labels if label not in legend]
+    un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in legend])
     if un_mentioned_abbr_labels:
         instructions = dedent_triple_quote_str("""
             Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \

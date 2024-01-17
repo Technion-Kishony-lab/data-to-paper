@@ -13,7 +13,7 @@ from data_to_paper.conversation import ConversationManager, GeneralMessageDesign
 from data_to_paper.servers.openai_models import ModelEngine
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
-from data_to_paper.utils.highlighted_text import print_red, print_magenta
+from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log_magenta
 from data_to_paper.base_cast import Agent
 
 
@@ -96,9 +96,9 @@ class Converser(Copier):
     def initialize_conversation_if_needed(self, print_header: bool = True):
         if self.conversation_manager.initialize_conversation_if_needed():
             if print_header:
-                print_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
-                print_magenta(self.conversation_name.center(TEXT_WIDTH))
-                print_magenta('=' * TEXT_WIDTH)
+                print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
+                print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
+                print_and_log_magenta('=' * TEXT_WIDTH)
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 
@@ -114,7 +114,7 @@ class Converser(Copier):
                 tag=tag,
                 **kwargs)
         else:
-            print_red(comment)
+            print_and_log_red(comment)
 
     def apply_get_and_append_assistant_message(self, tag: Optional[StrOrReplacer] = None,
                                                comment: Optional[StrOrReplacer] = None,

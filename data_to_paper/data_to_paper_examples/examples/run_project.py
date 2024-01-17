@@ -7,7 +7,8 @@ from typing import List, Optional
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.researches_types.scientific_research.run_steps import ScientificStepsRunner
-
+from data_to_paper.utils.console_log_to_html import convert_console_log_to_html
+from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE
 
 THIS_FOLDER = Path(__file__).parent
 
@@ -75,11 +76,14 @@ def get_input_path(project: str, load_from_repo: bool = False) -> Path:
 def get_paper(project: str, data_filenames: List[str], research_goal: Optional[str], output_folder: str,
               should_do_data_exploration: bool = True, should_mock_servers: bool = True,
               load_from_repo: bool = True,
+              should_remove_temp_folder: bool = True,
               save_on_repo: bool = True):
     input_path = get_input_path(project, load_from_repo)
     temp_folder_to_run_in = input_path / 'temp_folder'
     copy_datafiles_to_data_folder(data_filenames, input_path, temp_folder_to_run_in)
 
+    output_directory = get_output_path(project, output_folder, save_on_repo)
+    CONSOLE_LOG_FILE.set(output_directory / 'console_log.txt')
     ScientificStepsRunner(
         data_file_descriptions=get_file_descriptions(input_path, data_filenames, temp_folder_to_run_in),
         research_goal=research_goal,
@@ -88,3 +92,8 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
         should_do_data_exploration=should_do_data_exploration,
         latex_document=LatexDocument(fontsize=11),
     ).run_all_steps()
+
+    convert_console_log_to_html(CONSOLE_LOG_FILE.val)
+
+    if should_remove_temp_folder:
+        shutil.rmtree(temp_folder_to_run_in, ignore_errors=True)  # remove temp folder and all its content
