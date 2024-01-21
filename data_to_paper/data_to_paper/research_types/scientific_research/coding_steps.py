@@ -531,7 +531,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_review_prompts: Tuple[str] = (
         dedent_triple_quote_str("""
         Please follow these two steps:
-        
+
         (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
 
         * DATASET PREPARATIONS:
@@ -571,7 +571,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         {
             "The model does not adequately account for confounding variables": \
             "revise the code to add the following confounding variables ...",
-            
+
             "The descriptive statistics is performed on the wrong data": \
             "revise the code to perform the descriptive statistics on the preprocessed data.",
         }
@@ -588,7 +588,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         {created_file_contents_explanation}
 
         Please follow these two steps:
-        
+
         (1) Check the created pkl tables (provided above) and \
         return a bullet-point response addressing these points:
         * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.

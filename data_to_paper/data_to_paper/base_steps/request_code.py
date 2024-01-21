@@ -236,11 +236,11 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             if issues_to_solutions:
                 self.apply_append_user_message(dedent_triple_quote_str("""
                     The code has some issues that need to be fixed:
-        
+
                     {issues_to_solutions}
-        
+
                     - And please fix any other issues that you may find.
-        
+
                     {prompt_to_append_at_end_of_response}
                     """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
                                                                 for issue, solution in issues_to_solutions.items()),

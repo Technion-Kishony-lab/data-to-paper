@@ -34,4 +34,3 @@ def apply_deeply(obj, func: Callable, should_apply: Callable = None):
         return func(obj)
     else:
         return obj
-
