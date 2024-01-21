@@ -1,6 +1,6 @@
 import pickle
 from dataclasses import dataclass, field
-from typing import Type, Any, Dict, Optional
+from typing import Type, Any, Dict, Optional, Tuple, Union
 
 from _pytest.fixtures import fixture
 
@@ -25,7 +25,7 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)})
     enforce_saving_altered_dataframes: bool = True
-    offer_revision_prompt: str = None
+    code_review_prompts: Optional[Union[str, Tuple[str]]] = None
     code_name: str = 'Testing'
     temp_dir: str = None
 
@@ -76,7 +76,7 @@ def code_running_converser(tmpdir_with_csv_file):
         temp_dir=tmpdir_with_csv_file,
         code_name='Testing',
         conversation_name='testing',
-        offer_revision_prompt='Output:\n{created_file_contents_explanation}\nRevise?',
+        code_review_prompts='Output:\n{created_file_contents_explanation}\nRevise?',
         output_file_requirements=OutputFileRequirements(
             [DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
     )

@@ -205,7 +205,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
+    code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
         {created_file_contents_explanation}
@@ -366,7 +366,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
+    code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
         {created_file_contents_explanation}
@@ -528,7 +528,7 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
+    code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
         {created_file_contents_explanation}
@@ -1091,7 +1091,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Do not send any presumed output examples.
         ''')
 
-    offer_revision_prompt: str = None
+    code_review_prompts: str = None
 
     @property
     def first_table_number(self):
