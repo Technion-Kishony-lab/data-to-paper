@@ -524,7 +524,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 """).format(legend_keys=list(legend.keys()), un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         else:
             issue = dedent_triple_quote_str("""
-                The table needs a legend explaining the following abbreviated labels
+                The table needs a legend explaining the following abbreviated labels:
                 {un_mentioned_abbr_labels}
                 """).format(un_mentioned_abbr_labels=un_mentioned_abbr_labels)
         issues.append(RunIssue(

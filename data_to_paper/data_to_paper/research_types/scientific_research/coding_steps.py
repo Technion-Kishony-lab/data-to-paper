@@ -934,7 +934,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
     phrases_required_in_code: Tuple[str, ...] = \
-        ('\nfrom my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping', )
+        ('\nfrom my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         CreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code', )
 
@@ -1076,9 +1076,9 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         abbrs_to_names, legend = split_mapping(mapping)
         df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
 
-        # Save as latex:
+        # SAVE AS LATEX:
         to_latex_with_note(
-            df, 'table_1.tex',
+            df, 'table_{first_table_number}.tex',
             caption="<choose a caption suitable for a table in a scientific paper>", 
             label='table:<chosen table label>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
