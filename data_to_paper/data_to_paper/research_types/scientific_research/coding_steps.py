@@ -934,7 +934,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
     phrases_required_in_code: Tuple[str, ...] = \
-        ('\nfrom my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef', )
+        ('\nfrom my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         CreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code', )
 
@@ -985,9 +985,6 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             - None: Outputs LaTeX file.
             """
 
-        def format_p_value(x):
-            returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
-
         def is_str_in_df(df: pd.DataFrame, s: str):
             return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \
         getattr(df.columns, 'levels', [df.columns]))
@@ -1037,7 +1034,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         ```
         # IMPORT
         import pandas as pd
-        from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+        from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES
 
@@ -1060,9 +1057,6 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         # FORMAT VALUES <include this sub-section only as applicable>
         < Rename technical values to scientifically-suitable values. For example: >
         df{first_table_number}['MRSA'] = df{first_table_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
-
-        < If the table has P-values from statistical tests, format them with `format_p_value`. For example: >
-        df['PV'] = df['PV'].apply(format_p_value)
 
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
         < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
