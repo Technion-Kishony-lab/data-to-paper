@@ -934,7 +934,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
     phrases_required_in_code: Tuple[str, ...] = \
-        ('\nfrom my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping', )
+        ('\nfrom my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         CreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code', )
 
@@ -985,9 +985,6 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
             - None: Outputs LaTeX file.
             """
 
-        def format_p_value(x):
-            returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
-
         def is_str_in_df(df: pd.DataFrame, s: str):
             return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \
         getattr(df.columns, 'levels', [df.columns]))
@@ -1006,7 +1003,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         I would like to create latex tables for our scientific paper from the dataframes created \
         in the code above ("table_?.pkl" files). 
 
-        I would like to convert these dataframes to latex tables, using the following 4 custom functions that I wrote: 
+        I would like to convert these dataframes to latex tables, using the following 3 custom functions that I wrote: 
 
         ```python
         {provided_code}
@@ -1037,7 +1034,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         ```
         # IMPORT
         import pandas as pd
-        from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+        from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES
 
@@ -1055,34 +1052,33 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         and definitions. >
 
         # TABLE {first_table_number}:
-        df = pd.read_pickle('table_{first_table_number}.pkl')
+        df{first_table_number} = pd.read_pickle('table_{first_table_number}.pkl')
 
         # FORMAT VALUES <include this sub-section only as applicable>
         < Rename technical values to scientifically-suitable values. For example: >
-        df['MRSA'] = df['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
-
-        < If the table has P-values from statistical tests, format them with `format_p_value`. For example: >
-        df['PV'] = df['PV'].apply(format_p_value)
+        df{first_table_number}['MRSA'] = df{first_table_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
 
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
         < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
         < Use the `shared_mapping` if applicable. For example: >
-        mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df, k)} 
-        mapping |= {
+        mapping{first_table_number} = {k: v for k, v in shared_mapping.items() \
+        if is_str_in_df(df{first_table_number}, k)} 
+        mapping{first_table_number} |= {
             'PV': ('P-value', None),
             'CI': (None, '95% Confidence Interval'),
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
         }
-        abbrs_to_names, legend = split_mapping(mapping)
-        df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+        abbrs_to_names{first_table_number}, legend{first_table_number} = split_mapping(mapping{first_table_number})
+        df{first_table_number} = df{first_table_number}.rename(columns=abbrs_to_names{first_table_number}, \
+        index=abbrs_to_names{first_table_number})
 
-        # Save as latex:
+        # SAVE AS LATEX:
         to_latex_with_note(
-            df, 'table_1.tex',
+            df{first_table_number}, 'table_{first_table_number}.tex',
             caption="<choose a caption suitable for a table in a scientific paper>", 
             label='table:<chosen table label>',
             note="<If needed, add a note to provide any additional information that is not captured in the caption>",
-            legend=legend)
+            legend=legend{first_table_number})
 
 
         # TABLE <?>:
