@@ -4,7 +4,7 @@ from pathlib import Path
 setup_directory = Path(__file__).parent
 
 setup(
-    description='Data to Paper',
+    description='data-to-paper',
     author="Kishony lab, Technion Israel Institute of Technology",
     author_email="rkishony@technion.ac.il",
     url="https://github.com/Technion-Kishony-lab/data_to_paper",
@@ -26,9 +26,6 @@ setup(
     long_description_content_type='text/markdown',
     packages=find_packages(),
     package_data={
-        'data_to_paper': [
-            'data_to_paper/researches_type/scientific_research/templates/*',
-        ],
         '': ['*.tex']
     },
     install_requires=[

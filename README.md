@@ -23,7 +23,14 @@ Check out one of the papers it produced (example paper).
 See [INSTALL.md](INSTALL.md) for installation instructions.
 
 ### How to run
-We suggest starting with running the recorded example `diabetes.py`
+1. Follow the installation instructions in [INSTALL.md](INSTALL.md).
+2. We suggest starting with running the 5 recorded examples in the example branch `diabetes` (on the docker shell):
+   1. `docker run -it --name data-to-paper data-to-paper` // run the docker image
+   2. `git switch -f examples/diabetes` // checkout the diabetes branch
+   3. `cd data_to_paper/data_to_paper_examples/examples/projects/diabetes/` // change directory to the diabetes project
+   4. `python diabetes.py` // run the project
+   5. This will run all the 5 examples in the diabetes project one after the other, presenting the conversations for each example on the terminal, outputting the generated codes, logs, tex file and paper to the `outputs/<example_name>` folder.
+3. This can be also done for the other example branches, by changing the branch name and adapting the path to the project folder accordingly.
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager for feedback and suggestions.
