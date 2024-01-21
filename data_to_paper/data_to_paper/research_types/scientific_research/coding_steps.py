@@ -205,7 +205,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
+    code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
         {created_file_contents_explanation}
@@ -366,7 +366,7 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
+    code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
         {created_file_contents_explanation}
@@ -528,10 +528,9 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
-        I ran your code.
-
-        {created_file_contents_explanation}
+    code_review_prompts: Tuple[str] = (
+        dedent_triple_quote_str("""
+        Please follow these two steps:
 
         (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
 
@@ -540,43 +539,31 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         or with special numeric values that stand for unknown/undefined \
         (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
         - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
-        - Are we restricting the analysis to the correct data (based on the study goal)?
+        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \
+        (based on the study goal)?
 
         * DESCRIPTIVE STATISTICS:
         If applicable: 
-        - did we correctly report descriptive statistics? Does the choice of variables for such \
-        statistics make sense for our study?
+        - Did we correctly report descriptive statistics? 
+        - Is the choice of descriptive statistics and chosen variables contribute to the scope of study?
         - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
 
         * PREPROCESSING:
-        Review the description of the data files (see above "{data_file_descriptions}") \
-        and the data exploration output (see above "{outputs:data_exploration}"), then check the code for any \
-        data preprocessing steps that the code performs but are not needed, or that are needed but are not performed.
+        Review the above "{data_file_descriptions}" and "{outputs:data_exploration}", then check our \
+        data preprocessing:
+        - Are we performing any preprocessing steps that are not needed?
+        - Are we missing any preprocessing steps that are needed?
 
         * ANALYSIS:
         As applicable, check for any data analysis issues, including: 
         - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
+        - Analysis that should be performed on the original data is mistakenly performed on the preprocessed data.
         - Incorrect choice of statistical test.
         - Imperfect implementation of statistical tests.
         - Did we correctly chose the variables that best represent the tested hypothesis? 
         {specific_comments_for_code_and_output}- Any other statistical analysis issues.
 
-        (2) Check the created pkl tables (provided above) and \
-        return a bullet-point response addressing these points:
-        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
-        For example: 
-        - If the table reports the mean of a variable, is the mean value sensible?
-        - If the table reports CI, are the CI values flanking the mean?
-        - Do values have correct signs?
-        - Do you see any values that are not sensible (too large, too small)?
-
-        * Measures of uncertainty: If the table reports nominal values (like for regression coefs), does \
-        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
-
-        * Missing data in a table: Are we missing key variables in a given table?
-        {comment_on_missing_table}* Any other issues you find.
-
-        (3) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
 
         For example:
@@ -585,6 +572,45 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
             "The model does not adequately account for confounding variables": \
             "revise the code to add the following confounding variables ...",
 
+            "The descriptive statistics is performed on the wrong data": \
+            "revise the code to perform the descriptive statistics on the preprocessed data.",
+        }
+        ```
+
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If you are sure that there are no issues, and the code and tables need no revision, \
+        then return an empty dict: `{}`. 
+        """),
+        dedent_triple_quote_str("""
+        I ran your code.
+
+        {created_file_contents_explanation}
+
+        Please follow these two steps:
+
+        (1) Check the created pkl tables (provided above) and \
+        return a bullet-point response addressing these points:
+        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
+        For example: 
+        - If a table reports the mean of a variable, is the mean value sensible?
+        - If a table reports CI, are the CI values flanking the mean?
+        - Do values have correct signs?
+        - Do you see any values that are not sensible (too large, too small)?
+
+        * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \
+        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+
+        * Missing data in a table: Are we missing key variables in a given table?
+        {comment_on_missing_table}
+        * Any other issues you find.
+
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+
+        For example:
+        ```python
+        {
             "A table is missing": \
             "revise the code to add the following new table '<your suggested table caption>'",
 
@@ -595,9 +621,10 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision,
+        If you are sure that there are no issues, and the code and tables need no revision, \
         then return an empty dict: `{}`. 
-        """)  # set to None to skip option for revision
+        """)
+    )
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
         linear_regression_funcs = ['ols(', 'OLS(', 'logit(', 'Logit(', 'glm(', 'GLM(']
@@ -1091,7 +1118,7 @@ class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
         Do not send any presumed output examples.
         ''')
 
-    offer_revision_prompt: str = None
+    code_review_prompts: str = None
 
     @property
     def first_table_number(self):

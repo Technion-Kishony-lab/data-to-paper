@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any
+from typing import Optional, Tuple, Dict, Type, Any, Union
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
@@ -78,7 +78,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         ```
         """)  # set to None to not present code
 
-    offer_revision_prompt: str = dedent_triple_quote_str("""
+    code_review_prompts: Optional[Union[str, Tuple[str]]] = dedent_triple_quote_str("""
         I ran your code. 
 
         {created_file_contents_explanation}
@@ -208,40 +208,43 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         If true, set the conversation to the state where the user ask ChatGPT to revise the code.
         """
         created_file_contents_explanation = self.get_created_file_contents_explanation(code_and_output)
-        if self.offer_revision_prompt is None or created_file_contents_explanation is None:
+        code_review_prompts = self.code_review_prompts
+        if not code_review_prompts:
             return False
+        if isinstance(code_review_prompts, str):
+            code_review_prompts = (code_review_prompts, )
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
         conversation_len = len(self.conversation)
-        issues_to_solutions = RequestIssuesToSolutions.from_(
-            self,
-            model_engine=self.model_engine,
-            is_new_conversation=False,
-            background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-            user_initiation_prompt=Replacer(
-                self, self.offer_revision_prompt,
-                kwargs=dict(
-                    created_file_contents_explanation=created_file_contents_explanation,
-                    **{k: Replacer(self, v).format_text() for k, v in specific_attrs_for_code_and_output.items()},
-                )),
-        ).run_and_get_valid_result()
-
-        if not issues_to_solutions:
-            return False
-
         prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)
+        for code_review_prompt in code_review_prompts:
+            issues_to_solutions = RequestIssuesToSolutions.from_(
+                self,
+                model_engine=self.model_engine,
+                is_new_conversation=False,
+                background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
+                user_initiation_prompt=Replacer(
+                    self, code_review_prompt,
+                    kwargs=dict(
+                        created_file_contents_explanation=created_file_contents_explanation,
+                        **{k: Replacer(self, v).format_text() for k, v in specific_attrs_for_code_and_output.items()},
+                    )),
+            ).run_and_get_valid_result()
 
-        # rewind the conversation to the point where the user asked for a revision:
-        self.apply_delete_messages(RangeMessageDesignation.from_(start=conversation_len, end=-1))
-        self.apply_append_user_message(dedent_triple_quote_str("""
-            The code has some issues that need to be fixed:
+            # rewind the conversation to the point where the user asked for a revision:
+            self.apply_delete_messages(RangeMessageDesignation.from_(start=conversation_len, end=-1))
 
-            {issues_to_solutions}
+            if issues_to_solutions:
+                self.apply_append_user_message(dedent_triple_quote_str("""
+                    The code has some issues that need to be fixed:
 
-            - And please fix any other issues that you may find.
+                    {issues_to_solutions}
 
-            {prompt_to_append_at_end_of_response}
-            """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
-                                                        for issue, solution in issues_to_solutions.items()),
-                        prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+                    - And please fix any other issues that you may find.
 
-        return True
+                    {prompt_to_append_at_end_of_response}
+                    """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
+                                                                for issue, solution in issues_to_solutions.items()),
+                                prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+                return True
+
+        return False
