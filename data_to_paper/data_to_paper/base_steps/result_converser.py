@@ -56,6 +56,22 @@ class Rewind(Enum):
     # delete all previous responses including the original user initiation prompt
 
 
+class BumpModel(Enum):
+    """
+    An enum for the different ways to bump the model upon invalid response.
+    """
+
+    HIGHER_STRENGTH = 'higher_strength'
+    # bump the model to a model with higher strength
+
+    HIGHER_CONTEXT = 'higher_context'
+    # bump the model to a model with higher context
+
+    @classmethod
+    def from_is_higher_context(cls, is_higher_context: bool):
+        return cls.HIGHER_CONTEXT if is_higher_context else cls.HIGHER_STRENGTH
+
+
 @dataclass
 class SelfResponseError(data_to_paperException):
     """
@@ -63,7 +79,7 @@ class SelfResponseError(data_to_paperException):
     """
     error_message: StrOrReplacer = None
     rewind: Rewind = None
-    bump_model: bool = False
+    bump_model: Optional[BumpModel] = None
     add_iterations: int = 0
     # if positive, we will *reduce* the iteration count so that we have more iterations to correct the response
 
@@ -123,7 +139,7 @@ class ResultConverser(Converser):
 
     def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
                                    add_iterations: int = 0,
-                                   bump_model: bool = False):
+                                   bump_model: Optional[BumpModel] = None):
         """
         Raise a SelfResponseError with the given error message and instructions for how to rewind the conversation.
         """
@@ -219,11 +235,14 @@ class ResultConverser(Converser):
             self._self_response_iteration_count -= response_error.add_iterations
             if response_error.bump_model:
                 try:
-                    self.model_engine = self.model_engine.get_model_with_more_strength()
-                    bump_model = True
+                    if response_error.bump_model == BumpModel.HIGHER_STRENGTH:
+                        self.model_engine = self.model_engine.get_model_with_more_strength()
+                    elif response_error.bump_model == BumpModel.HIGHER_CONTEXT:
+                        self.model_engine = self.model_engine.get_model_with_more_context()
+                    model_was_bumped = True
                 except ValueError:
-                    bump_model = False
-                if bump_model:
+                    model_was_bumped = False
+                if model_was_bumped:
                     msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
                     self.apply_append_user_message(msg, conversation_name=None)  # web only
                     print_and_log_red(msg)

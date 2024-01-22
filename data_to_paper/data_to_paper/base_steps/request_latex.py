@@ -22,7 +22,7 @@ from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_sec
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
-from .result_converser import Rewind, NoResponse
+from .result_converser import Rewind, NoResponse, BumpModel
 
 
 def is_similar_bibtex_ids(incorrect_id: str, correct_id: str) -> bool:
@@ -178,8 +178,10 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             try:
                 response = extract_content_of_triple_quote_block(response, 'latex', 'latex')
             except FailedExtractingBlock as e:
-                self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock),
-                                                rewind=Rewind.REGENERATE)
+                self._raise_self_response_error(
+                    str(e),
+                    bump_model=BumpModel.from_is_higher_context(isinstance(e, IncompleteBlockFailedExtractingBlock)),
+                    rewind=Rewind.REGENERATE)
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:
@@ -187,7 +189,8 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             tags = tags_list[0]
             self._raise_self_response_error(
                 str(e),
-                bump_model=len(tags_list) == 1 and tags[0] in response and tags[1] not in response
+                bump_model=BumpModel.from_is_higher_context(
+                    len(tags_list) == 1 and tags[0] in response and tags[1] not in response)
             )
 
     def _process_non_math_parts(self, section: str) -> str:

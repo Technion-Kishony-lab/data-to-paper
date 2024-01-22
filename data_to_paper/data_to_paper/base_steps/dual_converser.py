@@ -12,7 +12,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
     IncompleteBlockFailedExtractingBlock
 
 from .converser import Converser
-from .result_converser import ResultConverser, Rewind
+from .result_converser import ResultConverser, Rewind, BumpModel
 
 
 class CycleStatus(Enum):
@@ -416,8 +416,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         try:
             return extract_content_of_triple_quote_block(response, self.goal_noun, None)
         except FailedExtractingBlock as e:
-            self._raise_self_response_error(str(e), bump_model=isinstance(e, IncompleteBlockFailedExtractingBlock),
-                                            rewind=Rewind.REGENERATE)
+            self._raise_self_response_error(
+                str(e),
+                bump_model=BumpModel.from_is_higher_context(isinstance(e, IncompleteBlockFailedExtractingBlock)),
+                rewind=Rewind.REGENERATE)
 
     def _check_flanked_response_is_not_just_header(self, response: str):
         if response.count('\n') < 2 and response.count(' ') < 5:

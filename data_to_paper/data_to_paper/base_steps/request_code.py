@@ -15,7 +15,7 @@ from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
-from .result_converser import Rewind, SelfResponseError
+from .result_converser import Rewind, SelfResponseError, BumpModel
 
 
 @dataclass
@@ -25,11 +25,11 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
 
     def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
                                    add_iterations: int = 0,
-                                   bump_model: bool = False):
+                                   bump_model: Optional[BumpModel] = None) -> None:
         msg = dedent_triple_quote_str("""
-                Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
-                to suggested solutions (values).
-                If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
+            Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
+            to suggested solutions (values).
+            If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
             """)
         raise SelfResponseError(msg, rewind=Rewind.AS_FIRST_CORRECTION, bump_model=bump_model,
                                 add_iterations=add_iterations)

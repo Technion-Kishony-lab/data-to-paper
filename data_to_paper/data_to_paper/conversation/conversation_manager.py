@@ -213,10 +213,10 @@ class ConversationManager:
             # we failed to get a response. We start by bumping the model, if possible:
             try:
                 model = model.get_model_with_more_context()
-                bump_model = True
+                model_was_bumped = True
             except ValueError:
-                bump_model = False
-            if bump_model:
+                model_was_bumped = False
+            if model_was_bumped:
                 print_and_log_red(f'############# Bumping model #############')
                 openai_call_parameters.model_engine = model
                 continue
