@@ -50,7 +50,7 @@ NAME_OF_REPRODUCED_PAPER = 'Machine learning model for predicting the optimal de
                            'in pediatric patients: A retrospective cohort study'
 
 RUN_PARAMETERS = dict(
-    project="t_tube_insertion",
+    project="tube_levels",
     data_filenames=["tracheal_tube_insertion.csv"],
     research_goal=goal,
     should_do_data_exploration=True,

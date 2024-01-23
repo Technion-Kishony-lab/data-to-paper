@@ -4,28 +4,22 @@ goal = """
 ## Research Goal:
 
 To construct and test \
-1 machine-learning model and 1 formula-based model \
+2 different machine-learning models \
 for the optimal tracheal tube depth \
 (defined here as `OTTD`, not an official term). 
 
-### ML MODEL:
+### ML MODELS:
 Using the provided features (age, sex, height, weight), your analysis code should create \
-and evaluate the following 1 machine learning model for predicting the OTTD:
+and evaluate the following 2 machine learning models for predicting the OTTD:
 
 - Random Forest (RF)
+- Elastic Net (EN)
 
-Important: It is necessary to hyper-parameter tune the model.
-
-### FORMULA-BASED MODEL:
-Your analysis code should compute the following 1 formula-based model for the OTTD:
-
-- Height Formula-based Model:
-OTTD = height [cm] / 10 + 5 cm 
-
+Important: It is necessary to hyper-parameter tune each of the models.
 
 ## Hypothesis:
 
-- The machine-learning model will have a significantly better predictive power than the formula-based model \
+- The two machine-learning models will significantly differ in their predictive power \
 (as measured by their squared residuals on the same test set). 
 
 """
@@ -35,14 +29,14 @@ NAME_OF_REPRODUCED_PAPER = 'Machine learning model for predicting the optimal de
                            'in pediatric patients: A retrospective cohort study'
 
 RUN_PARAMETERS = dict(
-    project="t_tube_insertion",
+    project="tube_levels",
     data_filenames=["tracheal_tube_insertion.csv"],
     research_goal=goal,
     should_do_data_exploration=True,
 )
 
 if __name__ == '__main__':
-    for run_name in ['medium2{:02d}'.format(i) for i in range(1, 11)]:
+    for run_name in ['easy2{:02d}'.format(i) for i in range(1, 11)]:
         get_paper(**RUN_PARAMETERS,
                   output_folder=run_name,
                   should_mock_servers=True,
