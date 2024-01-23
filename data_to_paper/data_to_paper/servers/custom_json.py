@@ -29,6 +29,9 @@ def _de_serialize_item(item):
                 exception = getattr(openai.error, exception_type)(*args, param=None)
             else:
                 exception = getattr(openai.error, exception_type)(*args)
+        elif exception_type == 'UserAbort':
+            from data_to_paper.servers.chatgpt import UserAbort
+            exception = UserAbort(*args)
         else:
             exception = Exception(*args)
         return exception

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass
+from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 
 import openai
 
@@ -91,6 +92,22 @@ class OpenaiSeverCaller(ListServerCaller):
         """
         Connect with openai to get response to conversation.
         """
+        while True:
+            user_choice = input(dedent_triple_quote_str("""
+            Please carefully check that you are willing to proceed with this LLM API call.\n \
+            We suggest reading the current ongoing conversation and especially the last USER message \
+            to understand the instructions we are sending to the LLM.\n \
+            If you are willing to proceed, please type Y, otherwise type N \n\n \
+            Note: if you choose N, the program will immediately abort.\n"""))
+            
+            if user_choice.lower() == 'n':
+                raise UserAbort()
+            elif user_choice.lower() != 'y':
+                print_and_log_red('Invalid input. Please choose Y/N.')
+                continue
+            else:
+                break
+
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
