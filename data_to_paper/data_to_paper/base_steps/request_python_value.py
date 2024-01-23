@@ -5,7 +5,7 @@ from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundPr
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
-from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.base_steps.result_converser import Rewind, NoResponse
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict
@@ -45,9 +45,10 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
         Return a response that contains just the python value.
         """
         if self.json_mode:
+            return response
+        if isinstance(self.returned_result, NoResponse):
             return super()._get_fresh_looking_response(response)
-        response = self.returned_result
-        return super()._get_fresh_looking_response(f"```python\n{response}\n```")
+        return super()._get_fresh_looking_response(f"```python\n{self.returned_result}\n```")
 
     def _check_and_extract_result_from_self_response(self, response: str):
         response_value_str = self._extract_str_of_python_value_from_response(response)

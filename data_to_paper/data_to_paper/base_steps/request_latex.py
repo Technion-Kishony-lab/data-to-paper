@@ -158,11 +158,12 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         """
         Return a response that looks fresh.
         """
-        if not isinstance(self.returned_result, NoResponse):
-            response = '\n\n'.join(self.returned_result)
-            if self.request_triple_quote_block:
-                response = wrap_text_with_triple_quotes(response, 'latex')
-        return super()._get_fresh_looking_response(response)
+        if isinstance(self.returned_result, NoResponse):
+            return super()._get_fresh_looking_response(response)
+        response = '\n\n'.join(self.returned_result)
+        if self.request_triple_quote_block:
+            response = wrap_text_with_triple_quotes(response, 'latex')
+        return response
 
     def _get_allowed_bibtex_citation_ids(self) -> List[str]:
         r"""
