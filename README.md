@@ -1,5 +1,3 @@
-![data-to-paper-logo](https://github.com/Technion-Kishony-lab/data-to-paper/assets/65530510/4af63803-f0b2-40c2-974d-61bd5dd11c49)
-
 # data-to-paper: a platform for automating scientific research
 
 **data-to-paper** is a framework for systematically navigating the power of AI to perform complete end-to-end 
@@ -19,16 +17,16 @@ but also a detailed account of the research methodologies.
 We run **data-to-paper** on several datasets:
 
 * "Health Indicators"
-branch: `diabetes`
+branch: `examples/diabetes`
 
 * "Social Network"
-branch: `congress_social_network`
+branch: `examples/congress_social_network`
 
 * "Treatment Policy"
-branch: `nicu`
+branch: `examples/nicu`
 
 * "Treatment Optimization"
-branch: `tube_levels`
+branch: `examples/tube_levels`
 
 
 ### Installation
