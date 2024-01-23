@@ -10,7 +10,7 @@ from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values
 from data_to_paper.conversation import Message, GeneralMessageDesignation
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 
 from .result_converser import ResultConverser, Rewind, BumpModel
 from .dual_converser import ReviewDialogDualConverserGPT

@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional, Set, Iterable, Union, List
 
-from data_to_paper.env import DEFAULT_MODEL_ENGINE
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
 from data_to_paper.servers.chatgpt import try_get_chatgpt_response
-from data_to_paper.servers.openai_models import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters
+from data_to_paper.servers.model_engine import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters, ModelEngine
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
@@ -199,7 +198,7 @@ class ConversationManager:
 
         # we try to get a response. if we fail we bump the model, and then gradually remove messages from the top,
         # starting at message 1 (we don't remove message 0, which is the system message).
-        model = openai_call_parameters.model_engine or DEFAULT_MODEL_ENGINE
+        model = openai_call_parameters.model_engine or ModelEngine.DEFAULT
         while True:
             message = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
                                                                 previous_code=previous_code,

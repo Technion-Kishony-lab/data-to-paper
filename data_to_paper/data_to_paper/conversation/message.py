@@ -11,7 +11,7 @@ from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, 
 from data_to_paper.base_cast import Agent
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingBlock
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
-from data_to_paper.servers.openai_models import OpenaiCallParameters, ModelEngine
+from data_to_paper.servers.model_engine import OpenaiCallParameters, ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks, line_count
 from data_to_paper.utils.highlighted_text import colored_text
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes

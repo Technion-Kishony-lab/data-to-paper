@@ -9,7 +9,8 @@ from data_to_paper.latex.tables import get_table_label
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, \
     DEFAULT_LITERATURE_SEARCH_STYLE
-from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
+from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.servers.custom_types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str

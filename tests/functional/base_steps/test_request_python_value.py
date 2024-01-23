@@ -8,7 +8,7 @@ from data_to_paper.base_steps import PythonValueReviewBackgroundProductsConverse
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.types import ListBasedSet
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses, \

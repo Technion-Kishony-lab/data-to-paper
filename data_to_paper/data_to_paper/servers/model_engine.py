@@ -1,19 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import List, Tuple
 
 from data_to_paper.utils.types import IndexOrderedEnum
-
-
-MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
-    "gpt-3.5-turbo-0613": (4096, 0.0015, 0.002),
-    "gpt-3.5-turbo-16k-0613": (16384, 0.003, 0.004),
-    "gpt-4": (8192, 0.03, 0.06),
-    "gpt-4-1106-preview": (128000, 0.01, 0.03),
-    # "gpt-4-32k": (32768, 0.06, 0.12),
-    "meta-llama/Llama-2-7b-chat-hf": (4096, 0.0002, 0.0002),
-    "meta-llama/Llama-2-70b-chat-hf": (4096, 0.0007, 0.001),
-    "codellama/CodeLlama-34b-Instruct-hf": (4096, 0.0006, 0.0006),
-}
 
 
 class ModelEngine(IndexOrderedEnum):
@@ -21,6 +9,11 @@ class ModelEngine(IndexOrderedEnum):
     Enum for the different model engines available in openai.
     Support comparison operators, according to the order of the enum.
     """
+
+    # ignore:
+    _ignore_ = ['DEFAULT']
+
+    DEFAULT = None
     GPT35_TURBO = "gpt-3.5-turbo-0613"  # latest version that supports better system prompt adherence
     GPT35_TURBO_16 = "gpt-3.5-turbo-16k-0613"
     GPT4 = "gpt-4"
@@ -40,20 +33,20 @@ class ModelEngine(IndexOrderedEnum):
         return hash(self.value)
 
     def get_model_with_more_strength(self):
-        model = MODELS_TO_MORE_STRENGTH[self]
+        model = ModelEngine.MODELS_TO_MORE_STRENGTH[self]
         if model is None:
             raise ValueError(f"Model {self} has no stronger model")
         return model
 
     def get_model_with_more_context(self):
-        model = MODELS_TO_MORE_CONTEXT[self]
+        model = ModelEngine.MODELS_TO_MORE_CONTEXT[self]
         if model is None:
             raise ValueError(f"Model {self} has no model with more context")
         return model
 
     @property
     def max_tokens(self):
-        return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][0]
+        return ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][0]
 
     @property
     def pricing(self) -> Tuple[float, float]:
@@ -61,10 +54,12 @@ class ModelEngine(IndexOrderedEnum):
         Return the pricing for the model engine.
         (in_dollar_per_token, out_dollar_per_token)
         """
-        return MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][1:]
+        return ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR[self.value][1:]
 
 
-MODELS_TO_MORE_CONTEXT = {
+ModelEngine.DEFAULT = ModelEngine.GPT35_TURBO
+
+ModelEngine.MODELS_TO_MORE_CONTEXT = {
     ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
@@ -75,7 +70,7 @@ MODELS_TO_MORE_CONTEXT = {
 }
 
 
-MODELS_TO_MORE_STRENGTH = {
+ModelEngine.MODELS_TO_MORE_STRENGTH = {
     ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
     ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
@@ -83,6 +78,18 @@ MODELS_TO_MORE_STRENGTH = {
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
     ModelEngine.CODELLAMA: None,
+}
+
+
+ModelEngine.MODEL_ENGINE_TO_MAX_TOKENS_AND_IN_OUT_DOLLAR = {
+    "gpt-3.5-turbo-0613": (4096, 0.0015, 0.002),
+    "gpt-3.5-turbo-16k-0613": (16384, 0.003, 0.004),
+    "gpt-4": (8192, 0.03, 0.06),
+    "gpt-4-1106-preview": (128000, 0.01, 0.03),
+    # "gpt-4-32k": (32768, 0.06, 0.12),
+    "meta-llama/Llama-2-7b-chat-hf": (4096, 0.0002, 0.0002),
+    "meta-llama/Llama-2-70b-chat-hf": (4096, 0.0007, 0.001),
+    "codellama/CodeLlama-34b-Instruct-hf": (4096, 0.0006, 0.0006),
 }
 
 
@@ -110,34 +117,4 @@ class OpenaiCallParameters:
         return all(v is None for v in self.to_dict().values())
 
 
-OPENAI_CALL_PARAMETERS_NAMES = list(OpenaiCallParameters.__dataclass_fields__.keys())
-
-TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
-    "closed": {
-        "Converser": ModelEngine.GPT35_TURBO,
-        "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
-        "DataAnalysisCodeProductsGPT": ModelEngine.GPT4,
-        "CreateTablesCodeProductsGPT": ModelEngine.GPT4,
-        "GetMostSimilarCitations": ModelEngine.GPT4,
-        "IsGoalOK": ModelEngine.GPT4,
-        "TablesReviewBackgroundProductsConverser": ModelEngine.GPT4,
-        "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
-        "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
-    },
-    "open": {
-        "Converser": ModelEngine.LLAMA_2_70b,
-        "DataExplorationCodeProductsGPT": ModelEngine.GPT4,
-        "DataAnalysisCodeProductsGPT": ModelEngine.CODELLAMA,
-        "CreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
-        "GetMostSimilarCitations": ModelEngine.LLAMA_2_70b,
-        "IsGoalOK": ModelEngine.LLAMA_2_70b,
-        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2_70b,
-        "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
-        "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
-    },
-}
-
-
-def get_model_engine_for_class(class_: type) -> ModelEngine:
-    from data_to_paper.env import TYPE_OF_MODELS  # avoid circular import
-    return TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES[TYPE_OF_MODELS][class_.__name__]
+OPENAI_CALL_PARAMETERS_NAMES = [field.name for field in fields(OpenaiCallParameters)]

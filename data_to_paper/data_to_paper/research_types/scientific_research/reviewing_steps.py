@@ -2,7 +2,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional, Iterable, List
 
-from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
+from data_to_paper.servers.model_engine import ModelEngine
+from .model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
