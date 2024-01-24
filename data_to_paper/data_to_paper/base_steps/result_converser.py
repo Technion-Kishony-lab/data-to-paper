@@ -162,12 +162,20 @@ class ResultConverser(Converser):
         """
         return self._get_fresh_looking_response(response)
 
+    def _get_fresh_looking_response_from_returned_results(self, returned_results: str, response: str) -> str:
+        """
+        Based on extracted returned_results, craft a response that looks as if it was the first response.
+        """
+        return response
+
     def _get_fresh_looking_response(self, response) -> str:
         """
         Convert the response to a response that looks as if it was the first response.
         This is called after _check_and_extract_result_from_self_response, so the method can use `returned_result`.
         """
-        return response
+        if isinstance(self.returned_result, NoResponse):
+            return response
+        return self._get_fresh_looking_response_from_returned_results(self.returned_result, response)
 
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """

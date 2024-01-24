@@ -401,11 +401,8 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
-    def _get_fresh_looking_response(self, response) -> str:
-        if isinstance(self.returned_result, str):
-            return 'Here is the {goal_noun}:\n\n```' + self.returned_result + '```\n\n'
-        else:
-            return super()._get_fresh_looking_response(response)
+    def _get_fresh_looking_response_from_returned_results(self, returned_result, response) -> str:
+        return 'Here is the {goal_noun}:\n\n```' + returned_result + '```\n\n'
 
     def _check_and_extract_result_from_self_response(self, response: str):
         extracted_result = self._extract_quoted_result_from_self_response(response)

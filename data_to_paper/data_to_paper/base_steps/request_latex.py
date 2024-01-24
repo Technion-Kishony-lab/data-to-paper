@@ -154,15 +154,14 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ')
 
-    def _get_fresh_looking_response(self, response) -> str:
+    def _get_fresh_looking_response_from_returned_results(self, returned_result, response) -> str:
         """
         Return a response that looks fresh.
         """
-        if not isinstance(self.returned_result, NoResponse):
-            response = '\n\n'.join(self.returned_result)
-            if self.request_triple_quote_block:
-                response = wrap_text_with_triple_quotes(response, 'latex')
-        return super()._get_fresh_looking_response(response)
+        s = '\n\n'.join(returned_result)
+        if self.request_triple_quote_block:
+            s = wrap_text_with_triple_quotes(s, 'latex')
+        return s
 
     def _get_allowed_bibtex_citation_ids(self) -> List[str]:
         r"""
