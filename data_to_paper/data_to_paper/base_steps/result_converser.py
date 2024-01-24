@@ -123,7 +123,7 @@ class ResultConverser(Converser):
     _self_response_iteration_count: int = 0
 
     # Output:
-    returned_result: Any = field(default_factory=NoResponse)
+    valid_result: Any = field(default_factory=NoResponse)
 
     def initialize_conversation_if_needed(self, print_header: bool = True):
         super().initialize_conversation_if_needed(print_header=print_header)
@@ -137,6 +137,13 @@ class ResultConverser(Converser):
         if self.user_initiation_prompt:
             self.apply_append_user_message(self.user_initiation_prompt)
 
+    @property
+    def _has_valid_result(self) -> bool:
+        """
+        Return whether we have a result.
+        """
+        return not isinstance(self.valid_result, NoResponse)
+
     def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
                                    add_iterations: int = 0,
                                    bump_model: Optional[BumpModel] = None):
@@ -149,11 +156,11 @@ class ResultConverser(Converser):
     def _check_and_extract_result_from_self_response(self, response: str):
         """
         Check the response from self.
-        Extract any needed information into returned_result.
+        Extract any needed information into valid_result.
         If the there are errors that require self to revise the response, raise an SelfResponseError describing
         the problem.
         """
-        self.returned_result = response
+        self.valid_result = response
 
     def _alter_self_response(self, response: str) -> str:
         """
@@ -162,7 +169,7 @@ class ResultConverser(Converser):
         """
         return self._get_fresh_looking_response(response)
 
-    def _get_fresh_looking_response_from_returned_results(self, returned_results: str, response: str) -> str:
+    def _get_fresh_looking_response_from_valid_result(self, valid_result: str, response: str) -> str:
         """
         Based on extracted returned_results, craft a response that looks as if it was the first response.
         """
@@ -171,11 +178,11 @@ class ResultConverser(Converser):
     def _get_fresh_looking_response(self, response) -> str:
         """
         Convert the response to a response that looks as if it was the first response.
-        This is called after _check_and_extract_result_from_self_response, so the method can use `returned_result`.
+        This is called after _check_and_extract_result_from_self_response, so the method can use `valid_result`.
         """
-        if isinstance(self.returned_result, NoResponse):
+        if not self._has_valid_result:
             return response
-        return self._get_fresh_looking_response_from_returned_results(self.returned_result, response)
+        return self._get_fresh_looking_response_from_valid_result(self.valid_result, response)
 
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """
@@ -266,7 +273,7 @@ class ResultConverser(Converser):
             elif response_error.rewind == Rewind.AS_FIRST_CORRECTION:
                 self._rewind_conversation_to_first_response(offset=2, last=-3)
         else:
-            if isinstance(self.returned_result, NoResponse):
+            if not self._has_valid_result:
                 raise FailedCreatingProductException()
 
     def run_and_get_valid_result(self):
@@ -275,6 +282,6 @@ class ResultConverser(Converser):
         return self.get_valid_result()
 
     def get_valid_result(self):
-        if isinstance(self.returned_result, NoResponse):
+        if not self._has_valid_result:
             raise FailedCreatingProductException()
-        return self.returned_result
+        return self.valid_result

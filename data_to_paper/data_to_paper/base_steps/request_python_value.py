@@ -40,20 +40,20 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def parent_type(self) -> type:
         return get_origin(self.value_type)
 
-    def _get_fresh_looking_response_from_returned_results(self, returned_result, response) -> str:
+    def _get_fresh_looking_response_from_valid_result(self, valid_result: str, response: str) -> str:
         """
         Return a response that contains just the python value.
         """
         if self.json_mode:
             return response
-        return f"```python\n{returned_result}\n```"
+        return f"```python\n{valid_result}\n```"
 
     def _check_and_extract_result_from_self_response(self, response: str):
         response_value_str = self._extract_str_of_python_value_from_response(response)
         response_value = self._evaluate_python_value_from_str(response_value_str)
         response_value = self._validate_value_type(response_value)
         response_value = self._check_response_value(response_value)
-        self.returned_result = response_value
+        self.valid_result = response_value
 
     def _extract_str_of_python_value_from_response(self, response: str) -> str:
         """

@@ -154,11 +154,11 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ')
 
-    def _get_fresh_looking_response_from_returned_results(self, returned_result, response) -> str:
+    def _get_fresh_looking_response_from_valid_result(self, valid_result: str, response: str) -> str:
         """
         Return a response that looks fresh.
         """
-        s = '\n\n'.join(returned_result)
+        s = '\n\n'.join(valid_result)
         if self.request_triple_quote_block:
             s = wrap_text_with_triple_quotes(s, 'latex')
         return s
@@ -274,7 +274,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
     def _check_and_extract_result_from_self_response(self, response: str):
         """
-        Check the response and extract latex sections from it into returned_result.
+        Check the response and extract latex sections from it into valid_result.
         Raise if there are errors that require self to revise the response.
         """
 
@@ -294,7 +294,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
         # store the result if there are no exceptions, forgiving TooWideTableOrText:
         if exception is None or isinstance(exception, TooWideTableOrText):
-            self.returned_result = section_contents
+            self.valid_result = section_contents
 
         # raise the compilation errors
         if exception is not None:

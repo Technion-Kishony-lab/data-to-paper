@@ -39,4 +39,4 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
 
     def _check_and_extract_result_from_self_response(self, response: str):
         chosen_choice = self._get_chosen_choice_from_response(response)
-        self.returned_result = chosen_choice
+        self.valid_result = chosen_choice

@@ -279,7 +279,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
     def run_one_cycle(self) -> Tuple[Optional[str], CycleStatus]:
         """
-        Run one cycle of the dialog. Makes updates to returned_result by calling
+        Run one cycle of the dialog. Makes updates to valid_result by calling
         _check_and_extract_value_from_self_response().
         """
         is_last_round = self.round_num >= self.max_reviewing_rounds
@@ -401,13 +401,13 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
 
-    def _get_fresh_looking_response_from_returned_results(self, returned_result, response) -> str:
-        return 'Here is the {goal_noun}:\n\n```' + returned_result + '```\n\n'
+    def _get_fresh_looking_response_from_valid_result(self, valid_result: str, response: str) -> str:
+        return 'Here is the {goal_noun}:\n\n```' + valid_result + '```\n\n'
 
     def _check_and_extract_result_from_self_response(self, response: str):
         extracted_result = self._extract_quoted_result_from_self_response(response)
         self._check_flanked_response_is_not_just_header(extracted_result)
-        self.returned_result = extracted_result
+        self.valid_result = extracted_result
 
     def _extract_quoted_result_from_self_response(self, response: str) -> str:
         try:
