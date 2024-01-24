@@ -7,27 +7,37 @@ scientific papers.
 Towards this goal, **data-to-paper** systematically channels information and multiple interacting 
 LLM and rule-based agents through the conventional scientific path, from annotated data, through creating 
 research hypotheses, writing data analysis code, and interpreting the results in light of prior literature,
-and ultimately writing to a complete research paper.
+and ultimately the step-by-step writing of a complete research paper.
 
 This process is aimed at producing transparent and verifiable manuscripts that provide not only an end result, 
-but also a detailed account of the research methodologies.
+but also a detailed account of the research process and methodologies.
 
 ### Examples
 
-We run **data-to-paper** on several datasets:
+We run **data-to-paper** on the following datasets:
 
-* "Health Indicators"
-branch: `examples/diabetes`
+* **Health Indicators.** A clean unweighted subset of CDC’s Behavioral Risk Factor Surveillance System (BRFSS) 2015 annual dataset 
+  ([Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset)).
+ 
+  Branch: `examples/diabetes`
 
-* "Social Network"
-branch: `examples/congress_social_network`
 
-* "Treatment Policy"
-branch: `examples/nicu`
+* **Social Network.** A directed graph of Twitter interactions among the 117th Congress members
+  ([Fink et al](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10493874/)).
 
-* "Treatment Optimization"
-branch: `examples/tube_levels`
+  Branch: `examples/congress_social_network`
 
+
+* **Treatment Policy.** A dataset on treatment and outcomes of non-vigorous infants admitted to the Neonatal Intensive Care Unit (NICU), before and after a change to treatment guidelines was implemented
+  ([Saint-Fleur et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0289945)).
+
+  Branch: `examples/nicu`
+
+
+* **Treatment Optimization.** A dataset of pediatric patients, which received mechanical ventilation after undergoing surgery, including an x-ray-based determination of the optimal tracheal tube intubation depth and a set of personalized patient attributes to be used in machine learning and formula-based models to predict this optimal depth
+  ([Shim et al](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0257069)).
+
+  Branch: `examples/tube_levels`
 
 ### Installation
 See [INSTALL.md](INSTALL.md) for installation instructions.
@@ -40,7 +50,10 @@ See [INSTALL.md](INSTALL.md) for installation instructions.
    3. ```cd data_to_paper/data_to_paper_examples/examples/projects/diabetes/```   # change directory to the diabetes project
    4. ```python diabetes.py```   # run the project
    This will run all the 5 examples in the diabetes project one after the other, presenting the conversations for each example in the terminal, outputting the generated codes, logs, tex file and paper to the `outputs/<example_name>` folder.
-3. This can be also done for the other example branches, by changing the branch name and adapting the path to the project folder accordingly.
+3. This can also be done for the other example branches, by changing the branch name and adapting the path to the project folder accordingly.
+4. You can similarly introduce and run with other datasets. 
+   We advise that the quality of produced papers depend on providing clear, accurate, formal 
+   descriptions of the data (see the provided examples for reference). 
 
 ### Contributing
 We invite people to try out **data-to-paper** with their own data and are eager for feedback and suggestions.
