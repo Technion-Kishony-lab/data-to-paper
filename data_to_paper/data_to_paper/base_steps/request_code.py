@@ -15,7 +15,7 @@ from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
-from .result_converser import Rewind, SelfResponseError, BumpModel
+from .result_converser import Rewind, BumpModel
 
 
 @dataclass
@@ -31,8 +31,8 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
             to suggested solutions (values).
             If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
             """)
-        raise SelfResponseError(msg, rewind=Rewind.AS_FIRST_CORRECTION, bump_model=bump_model,
-                                add_iterations=add_iterations)
+        rewind = Rewind.AS_FIRST_CORRECTION
+        super()._raise_self_response_error(msg, rewind=rewind, add_iterations=add_iterations, bump_model=bump_model)
 
 
 @dataclass

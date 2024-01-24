@@ -22,7 +22,7 @@ from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_sec
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
-from .result_converser import Rewind, NoResponse, BumpModel
+from .result_converser import Rewind, BumpModel
 
 
 def is_similar_bibtex_ids(incorrect_id: str, correct_id: str) -> bool:

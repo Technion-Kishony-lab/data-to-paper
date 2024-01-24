@@ -160,8 +160,6 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
 class PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser(
         PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     allowed_values_for_keys: Dict[str, Iterable] = None  # The values that the dict may contain.
-    is_new_conversation: bool = False
-    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
 
     def __post_init__(self):
         super().__post_init__()

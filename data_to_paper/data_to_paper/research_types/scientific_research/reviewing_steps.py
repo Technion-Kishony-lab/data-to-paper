@@ -113,7 +113,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     is_new_conversation: bool = None  # this will create "similar_citations_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
-    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \
@@ -163,7 +162,6 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
-    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Given the related papers listed above, please follow these 3 steps:

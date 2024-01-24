@@ -1160,7 +1160,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions',)
     max_reviewing_rounds: int = 0
     rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
-    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
     should_remove_citations_from_section: bool = True
     section_names: Tuple[str, ...] = ('Code Explanation',)
 

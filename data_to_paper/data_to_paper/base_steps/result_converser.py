@@ -117,7 +117,7 @@ class ResultConverser(Converser):
     # Can be:
     # DELETE_ALL: leave the conversation as if the exchange never happened
     # REPOST_AS_FRESH: rewind back to right after the user initiation prompt and post the last response as fresh
-    # ACCUMULATE (all `None`): do not do anything. the exchange is left as is.
+    # ACCUMULATE (or `None`): do not do anything. the exchange is left as is.
 
     _conversation_len_before_first_response: int = None
     _self_response_iteration_count: int = 0
