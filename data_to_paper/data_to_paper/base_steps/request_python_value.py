@@ -5,7 +5,7 @@ from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundPr
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
-from data_to_paper.base_steps.result_converser import Rewind, BumpModel
+from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict
@@ -73,9 +73,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
                 f'{e}\n'
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'within a triple backtick code block.',
-                rewind=Rewind.ACCUMULATE,
-                bump_model=BumpModel.from_is_higher_context(isinstance(e, IncompleteBlockFailedExtractingBlock))
-            )
+                missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
 
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
@@ -84,7 +82,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             self._raise_self_response_error(
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.',
-                bump_model=BumpModel.from_is_higher_context(tags[0] in response and tags[1] not in response))
+                missing_end=tags[0] in response and tags[1] not in response)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         if self.json_mode:

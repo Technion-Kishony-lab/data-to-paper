@@ -8,6 +8,7 @@ from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.exceptions import data_to_paperException
+from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
 
@@ -62,6 +63,8 @@ class BumpModel(Enum):
     An enum for the different ways to bump the model upon invalid response.
     """
 
+    DO_NOT_BUMP = 'do_not_bump'
+
     HIGHER_STRENGTH = 'higher_strength'
     # bump the model to a model with higher strength
 
@@ -71,6 +74,9 @@ class BumpModel(Enum):
     @classmethod
     def from_is_higher_context(cls, is_higher_context: bool):
         return cls.HIGHER_CONTEXT if is_higher_context else cls.HIGHER_STRENGTH
+
+    def __bool__(self):
+        return self != self.DO_NOT_BUMP
 
 
 @dataclass
@@ -117,6 +123,13 @@ class ResultConverser(Converser):
     response_to_self_error: str = "{}"
     # {} is the error message. subclasses can add additional text you want to send to self upon error in its response.
 
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH
+    # Can be any of the Rewind options. In particular:
+    # ACCUMULATE: just add and accumulate the response and the error message.
+    # AS_FRESH: reformat the response as fresh and repost as if it was the first response.
+    # AS_FRESH_CORRECTION: reformat the response as fresh and repost as if it was the second response.
+    #                      (the first response is left as is; this is good for responses that include chain-of-thought)
+
     rewind_after_getting_a_valid_response: Optional[Rewind] = None
     # Can be:
     # DELETE_ALL: leave the conversation as if the exchange never happened
@@ -125,6 +138,7 @@ class ResultConverser(Converser):
 
     _conversation_len_before_first_response: int = None
     _self_response_iteration_count: int = 0
+    _is_extracting: Flag = field(default_factory=Flag)
 
     # Output:
     valid_result: Any = field(default_factory=NoResponse)
@@ -148,12 +162,44 @@ class ResultConverser(Converser):
         """
         return not isinstance(self.valid_result, NoResponse)
 
-    def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
-                                   add_iterations: int = 0,
+    def _raise_self_response_error(self,
+                                   error_message: StrOrReplacer,
+                                   missing_end: bool = False,
+                                   rewind: Optional[Rewind] = None,
+                                   add_iterations: Optional[int] = None,
                                    bump_model: Optional[BumpModel] = None):
         """
         Raise a SelfResponseError with the given error message and instructions for how to rewind the conversation.
+
+        If we are extracting the result:
+        Since we could not extract the result, we cannot repost it as fresh.
+        Therefore, the default behavior is:
+        - if this is the first response, we add the error message (accumulate).
+        - otherwise, we regenerate the response. Because:
+          if the first response was extractable, we already have example of a correctly formatted response.
+          If the first response was not extractable, we already answered with formatting instructions.
         """
+        is_first_response = self._conversation_len_before_first_response == len(self.conversation) - 1
+        if self._is_extracting:
+            if rewind is None:
+                if is_first_response:
+                    rewind = Rewind.ACCUMULATE
+                else:
+                    rewind = Rewind.REGENERATE
+            if add_iterations is None:
+                add_iterations = 0
+            if bump_model is None:
+                if missing_end:
+                    bump_model = BumpModel.HIGHER_CONTEXT
+                else:
+                    bump_model = BumpModel.DO_NOT_BUMP
+        else:
+            if rewind is None:
+                rewind = self.default_rewind_for_result_error
+            if add_iterations is None:
+                add_iterations = 0
+            if bump_model is None:
+                bump_model = BumpModel.DO_NOT_BUMP
         raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
 
@@ -168,6 +214,7 @@ class ResultConverser(Converser):
     def _check_extracted_result_and_get_valid_result(self, extracted_result: ExtractedResult):
         """
         Check the extracted_result and extract the needed information into valid_result.
+        If there are errors that require self to revise the response, call _raise_self_response_error.
         """
         self.valid_result = extracted_result
 
@@ -232,7 +279,8 @@ class ResultConverser(Converser):
             response_error = None
             extracted_results = None
             try:
-                extracted_results = self._check_response_and_get_extracted_result(self_response)
+                with self._is_extracting.temporary_set(True):
+                    extracted_results = self._check_response_and_get_extracted_result(self_response)
             except SelfResponseError as e:
                 response_error = e
             if not response_error:

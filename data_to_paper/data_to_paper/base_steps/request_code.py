@@ -8,31 +8,26 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem
 from data_to_paper.run_gpt_code.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
-from data_to_paper.utils.replacer import Replacer, StrOrReplacer
+from data_to_paper.utils.replacer import Replacer
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
-from .result_converser import Rewind, BumpModel
+from .result_converser import Rewind
 
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     CHATGPT_PARAMETERS = {'temperature': 0.0}
     value_type: type = Dict[str, str]
-
-    def _raise_self_response_error(self, error_message: StrOrReplacer, rewind: Rewind = Rewind.ACCUMULATE,
-                                   add_iterations: int = 0,
-                                   bump_model: Optional[BumpModel] = None) -> None:
-        msg = dedent_triple_quote_str("""
-            Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
-            to suggested solutions (values).
-            If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
-            """)
-        rewind = Rewind.AS_FRESH_CORRECTION
-        super()._raise_self_response_error(msg, rewind=rewind, add_iterations=add_iterations, bump_model=bump_model)
+    response_to_self_error: str = dedent_triple_quote_str("""
+        Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
+        to suggested solutions (values).
+        If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
+        """)
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION
 
 
 @dataclass

@@ -22,7 +22,7 @@ from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_sec
     SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS
 
 from .base_products_conversers import ReviewBackgroundProductsConverser
-from .result_converser import Rewind, BumpModel
+from .result_converser import Rewind
 
 
 def is_similar_bibtex_ids(incorrect_id: str, correct_id: str) -> bool:
@@ -181,8 +181,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             except FailedExtractingBlock as e:
                 self._raise_self_response_error(
                     str(e),
-                    bump_model=BumpModel.from_is_higher_context(isinstance(e, IncompleteBlockFailedExtractingBlock)),
-                    rewind=Rewind.REGENERATE)
+                    missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
         try:
             return extract_latex_section_from_response(response, section_name)
         except FailedToExtractLatexContent as e:
@@ -190,9 +189,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             tags = tags_list[0]
             self._raise_self_response_error(
                 str(e),
-                bump_model=BumpModel.from_is_higher_context(
-                    len(tags_list) == 1 and tags[0] in response and tags[1] not in response)
-            )
+                missing_end=len(tags_list) == 1 and tags[0] in response and tags[1] not in response)
 
     def _process_non_math_parts(self, section: str) -> str:
         return process_latex_text_and_math(section)
@@ -273,14 +270,6 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
             self._raise_self_response_error(
                 f'You must only write the {self.pretty_section_names} section.'
             )
-
-    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[List[str]]) -> str:
-        """
-        Return a response that looks fresh.
-        """
-        if extracted_results is None:
-            return response
-        return '\n\n'.join(extracted_results)
 
     def _check_response_and_get_extracted_result(self, response: str) -> List[str]:
         """

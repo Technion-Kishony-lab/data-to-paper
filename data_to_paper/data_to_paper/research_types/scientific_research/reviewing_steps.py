@@ -8,7 +8,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
-from data_to_paper.base_steps.result_converser import Rewind
+
 from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.servers.custom_types import Citation

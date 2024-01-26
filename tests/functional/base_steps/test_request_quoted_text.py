@@ -39,7 +39,7 @@ def test_request_quoted_text_with_error(left, right):
         ),
         correct_value=enclosed_text,
         error_texts=("Now it is good",),
-        error_message_number=2)
+        error_message_number=4)
 
 
 def test_request_quoted_text_bumps_model_to_more_context():
@@ -54,20 +54,6 @@ def test_request_quoted_text_bumps_model_to_more_context():
     models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
     assert ModelEngine.DEFAULT.get_model_with_more_strength() != ModelEngine.DEFAULT.get_model_with_more_context()
     assert models_used == [ModelEngine.DEFAULT, ModelEngine.DEFAULT.get_model_with_more_context()]
-
-
-def test_request_quoted_text_bumps_model_to_more_strength():
-    with OPENAI_SERVER_CALLER.mock(
-            ['I am not sending any enclosed text',
-             'Now, as a stronger model, I can get this right: \n```\nthe secret recipe is to add chocolate\n```'],
-            record_more_if_needed=False):
-        requester = TestBaseProductsQuotedReviewGPT(model_engine=ModelEngine.GPT35_TURBO)
-        assert requester.run_dialog_and_get_valid_result() == '\nthe secret recipe is to add chocolate\n'
-
-    # assert context as sent to the server:
-    models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
-    assert ModelEngine.DEFAULT.get_model_with_more_strength() != ModelEngine.DEFAULT.get_model_with_more_context()
-    assert models_used == [ModelEngine.DEFAULT, ModelEngine.DEFAULT.get_model_with_more_strength()]
 
 
 def test_request_quoted_text_repost_correct_response_as_fresh():
