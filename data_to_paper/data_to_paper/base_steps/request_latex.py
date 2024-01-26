@@ -154,11 +154,13 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ')
 
-    def _get_fresh_looking_response_from_valid_result(self, valid_result: str, response: str) -> str:
+    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[List[str]]) -> str:
         """
         Return a response that looks fresh.
         """
-        s = '\n\n'.join(valid_result)
+        if extracted_results is None:
+            return response
+        s = '\n\n'.join(extracted_results)
         if self.request_triple_quote_block:
             s = wrap_text_with_triple_quotes(s, 'latex')
         return s
@@ -272,29 +274,35 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
                 f'You must only write the {self.pretty_section_names} section.'
             )
 
-    def _check_and_extract_result_from_self_response(self, response: str):
+    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[List[str]]) -> str:
         """
-        Check the response and extract latex sections from it into valid_result.
-        Raise if there are errors that require self to revise the response.
+        Return a response that looks fresh.
         """
+        if extracted_results is None:
+            return response
+        return '\n\n'.join(extracted_results)
 
+    def _check_response_and_get_extracted_result(self, response: str) -> List[str]:
+        """
+        Check the response from self and extract the needed information into extracted_result.
+        """
         self._check_no_additional_sections(response)
+        return [self._extract_latex_section_from_response(response, section_name)
+                for section_name in self.section_names]
 
-        # extract the latex sections
-        section_contents = [self._extract_latex_section_from_response(response, section_name)
-                            for section_name in self.section_names]
+    def _check_extracted_result_and_get_valid_result(self, extracted_result: List[str]):
 
         # check and refine the sections
-        for i in range(len(section_contents)):
-            section_contents[i] = self._check_and_refine_section(section_contents[i], self.section_names[i])
+        for i in range(len(extracted_result)):
+            extracted_result[i] = self._check_and_refine_section(extracted_result[i], self.section_names[i])
 
         # check the latex compilation
         exception = self._check_latex_compilation(
-            {section_name: section for section_name, section in zip(self.section_names, section_contents)})
+            {section_name: section for section_name, section in zip(self.section_names, extracted_result)})
 
         # store the result if there are no exceptions, forgiving TooWideTableOrText:
         if exception is None or isinstance(exception, TooWideTableOrText):
-            self.valid_result = section_contents
+            self.valid_result = extracted_result
 
         # raise the compilation errors
         if exception is not None:

@@ -589,11 +589,11 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
-    def _extract_str_of_python_value_from_response(self, response: str) -> str:
+    def _check_response_and_get_extracted_result(self, response: str) -> str:
         # we check the entire response to avoid cases that the response was not correctly formatted, yet included \
         # the correct flanking tags {} as part of a latex formula, rather than as part of a Python dict.
         self._check_extracted_numbers(response)
-        return super()._extract_str_of_python_value_from_response(response)
+        return super()._check_response_and_get_extracted_result(response)
 
 
 @dataclass

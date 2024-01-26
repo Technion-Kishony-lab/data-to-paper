@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Tuple, Union, Iterable
 
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
@@ -91,6 +91,9 @@ class NoResponse:
     pass
 
 
+ExtractedResult = Union[str, Iterable[str]]
+
+
 @dataclass
 class ResultConverser(Converser):
 
@@ -153,36 +156,38 @@ class ResultConverser(Converser):
         raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
 
-    def _check_and_extract_result_from_self_response(self, response: str):
+    def _check_response_and_get_extracted_result(self, response: str) -> ExtractedResult:
         """
-        Check the response from self.
-        Extract any needed information into valid_result.
-        If the there are errors that require self to revise the response, raise an SelfResponseError describing
-        the problem.
+        Check the response from self and extract the part(s) that should be used to get the valid result and
+        to compose a fresh looking response.
+        If there are errors that require self to revise the response, call _raise_self_response_error.
         """
-        self.valid_result = response
+        return response
 
-    def _alter_self_response(self, response: str) -> str:
+    def _check_extracted_result_and_get_valid_result(self, extracted_result: ExtractedResult):
+        """
+        Check the extracted_result and extract the needed information into valid_result.
+        """
+        self.valid_result = extracted_result
+
+    def _alter_self_response(self, response: str, extracted_results: Optional[ExtractedResult]) -> str:
         """
         Alter the response from self when posted to web.
         This method also used to alter the response to send to other in dual_conversation.
         """
-        return self._get_fresh_looking_response(response)
+        return self._get_fresh_looking_response(response, extracted_results)
 
-    def _get_fresh_looking_response_from_valid_result(self, valid_result: str, response: str) -> str:
-        """
-        Based on extracted returned_results, craft a response that looks as if it was the first response.
-        """
-        return response
-
-    def _get_fresh_looking_response(self, response) -> str:
+    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[ExtractedResult]) -> str:
         """
         Convert the response to a response that looks as if it was the first response.
-        This is called after _check_and_extract_result_from_self_response, so the method can use `valid_result`.
+        This is called after _check_extracted_result_and_get_valid_result, so the method can in principle
+        also use `valid_result`.
         """
-        if not self._has_valid_result:
+        if extracted_results is None:
             return response
-        return self._get_fresh_looking_response_from_valid_result(self.valid_result, response)
+        if isinstance(extracted_results, str):
+            return extracted_results
+        return '\n\n'.join(extracted_results)
 
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """
@@ -194,7 +199,7 @@ class ResultConverser(Converser):
         self.apply_delete_messages(
             RangeMessageDesignation.from_(start + offset, last))
 
-    def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Optional[str]:
+    def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Tuple[Optional[str], Optional[str]]:
         """
         Iterate until we get a valid response from self.
         If we started with a pre-existing self response which was valid, we return it.
@@ -224,27 +229,33 @@ class ResultConverser(Converser):
 
             # check if the response is valid:
             response_error = None
+            extracted_results = None
             try:
-                self._check_and_extract_result_from_self_response(self_response)
+                extracted_results = self._check_response_and_get_extracted_result(self_response)
             except SelfResponseError as e:
                 response_error = e
+            if not response_error:
+                try:
+                    self._check_extracted_result_and_get_valid_result(extracted_results)
+                except SelfResponseError as e:
+                    response_error = e
 
             if not is_preexisting_self_response:
                 self.apply_append_surrogate_message(
                     content=(self_response if response_error or not alter_web_response
-                             else self._alter_self_response(self_response)),
+                             else self._alter_self_response(self_response, extracted_results)),
                     conversation_name=None, context=self_message.context)
 
             if response_error and response_error.rewind == Rewind.REPOST_AS_FRESH \
                     or not response_error and self.rewind_after_getting_a_valid_response == Rewind.REPOST_AS_FRESH:
                 self._rewind_conversation_to_first_response()
-                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response),
+                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response, extracted_results),
                                                     web_conversation_name=None)
 
             if not response_error:
                 if self.rewind_after_getting_a_valid_response == Rewind.DELETE_ALL:
                     self._rewind_conversation_to_first_response(-1)  # delete including the user initiation prompt
-                return self_response
+                return self_response, extracted_results
 
             # The response is not valid
             self._self_response_iteration_count -= response_error.add_iterations
@@ -275,6 +286,7 @@ class ResultConverser(Converser):
         else:
             if not self._has_valid_result:
                 raise FailedCreatingProductException()
+        return None, None
 
     def run_and_get_valid_result(self):
         self.initialize_conversation_if_needed()
