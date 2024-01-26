@@ -181,10 +181,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     max_reviewing_rounds: int = 3
     max_reviewer_attempts: int = 4
 
-    rewind_after_end_of_review: Optional[Rewind] = Rewind.REPOST_AS_FRESH
+    rewind_after_end_of_review: Optional[Rewind] = Rewind.AS_FRESH
     # can be
     # DELETE_ALL: delete the entire review including the user initiation prompt.
-    # REPOST_AS_FRESH: keep only the last response posted as fresh
+    # AS_FRESH: keep only the last response posted as fresh
     # ACCUMULATE (default, also None): keep all responses
 
     def __post_init__(self):
@@ -271,7 +271,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 
         if self.rewind_after_end_of_review == Rewind.DELETE_ALL:
             self._rewind_conversation_to_first_response(-1, -1, start=conversation_len_before_first_round)
-        elif self.rewind_after_end_of_review == Rewind.REPOST_AS_FRESH:
+        elif self.rewind_after_end_of_review == Rewind.AS_FRESH:
             self._rewind_conversation_to_first_response(0, -1, start=conversation_len_before_first_round)
             self.apply_append_surrogate_message(self._get_fresh_looking_response(response, extracted_result),
                                                 web_conversation_name=None)
@@ -399,7 +399,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
         {quote_request}
         """)
 
-    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
 
     def _get_fresh_looking_response(self, response: str, extracted_results: Optional[str]) -> str:
         if extracted_results is None:
@@ -421,4 +421,4 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     def _check_flanked_response_is_not_just_header(self, response: str):
         if response.count('\n') < 2 and response.count(' ') < 5:
-            self._raise_self_response_error(self.flanked_header, rewind=Rewind.REPOST_AS_FRESH)
+            self._raise_self_response_error(self.flanked_header, rewind=Rewind.AS_FRESH)

@@ -6,7 +6,7 @@ from typing import Any, Optional, Tuple, Union, Iterable
 
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
-from data_to_paper.conversation.message_designation import RangeMessageDesignation
+from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
@@ -31,9 +31,9 @@ class Rewind(Enum):
 
     REGENERATE: delete (6)-(7)
     RESTART: delete (2)-(7)
-    REPOST_AS_FRESH: delete (2)-(5) and change (6) to look fresh
+    AS_FRESH: delete (2)-(5) and change (6) to look fresh
     ACCUMULATE: do nothing
-    AS_FIRST_CORRECTION: delete (4)-(5)
+    AS_FRESH_CORRECTION: delete (4)-(5)
     DELETE_ALL: delete (1)-(7)
     """
 
@@ -43,14 +43,15 @@ class Rewind(Enum):
     RESTART = 'restart'
     # deleted all iterations and get a fresh response
 
-    REPOST_AS_FRESH = 'repost_as_fresh'
-    # delete all previous iterations and modify and post the current response as if it was first iteration
+    AS_FRESH = 'as_fresh'
+    # delete all previous responses and modify and post the current response as a fresh response
 
     ACCUMULATE = 'accumulate'
     # just normally add the current response and the feedback
 
-    AS_FIRST_CORRECTION = 'as_first_correction'
-    # delete any previous erroneous responses, making the current response the first correction
+    AS_FRESH_CORRECTION = 'as_fresh_correction'
+    # delete any previous erroneous responses except the first one and modify and post the current response as a fresh
+    # response
 
     DELETE_ALL = 'delete_all'
     # delete all previous responses including the original user initiation prompt
@@ -119,7 +120,7 @@ class ResultConverser(Converser):
     rewind_after_getting_a_valid_response: Optional[Rewind] = None
     # Can be:
     # DELETE_ALL: leave the conversation as if the exchange never happened
-    # REPOST_AS_FRESH: rewind back to right after the user initiation prompt and post the last response as fresh
+    # AS_FRESH: rewind back to right after the user initiation prompt and post the last response as fresh
     # ACCUMULATE (or `None`): do not do anything. the exchange is left as is.
 
     _conversation_len_before_first_response: int = None
@@ -246,43 +247,52 @@ class ResultConverser(Converser):
                              else self._alter_self_response(self_response, extracted_results)),
                     conversation_name=None, context=self_message.context)
 
-            if response_error and response_error.rewind == Rewind.REPOST_AS_FRESH \
-                    or not response_error and self.rewind_after_getting_a_valid_response == Rewind.REPOST_AS_FRESH:
-                self._rewind_conversation_to_first_response()
+            if response_error:
+                self._self_response_iteration_count -= response_error.add_iterations
+                if response_error.bump_model:
+                    try:
+                        if response_error.bump_model == BumpModel.HIGHER_STRENGTH:
+                            self.model_engine = self.model_engine.get_model_with_more_strength()
+                        elif response_error.bump_model == BumpModel.HIGHER_CONTEXT:
+                            self.model_engine = self.model_engine.get_model_with_more_context()
+                        model_was_bumped = True
+                    except ValueError:
+                        model_was_bumped = False
+                    if model_was_bumped:
+                        msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
+                        self.apply_append_user_message(msg, conversation_name=None)  # web only
+                        print_and_log_red(msg)
+
+            rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
+
+            # replace the response with a fresh looking response if needed:
+            if rewind in [Rewind.AS_FRESH, Rewind.AS_FRESH_CORRECTION]:
+                self.apply_delete_messages(SingleMessageDesignation(-1))
                 self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response, extracted_results),
                                                     web_conversation_name=None)
+            # add the error message:
+            if response_error:
+                self.apply_append_user_message(
+                    Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
+
+            # rewind:
+            if rewind == Rewind.RESTART:
+                self._rewind_conversation_to_first_response()
+            elif rewind == Rewind.ACCUMULATE or rewind is None:
+                pass
+            elif rewind == Rewind.REGENERATE:
+                assert response_error
+                self.apply_delete_messages(RangeMessageDesignation.from_(-2, -1))
+            elif rewind == Rewind.AS_FRESH_CORRECTION:
+                assert response_error
+                self._rewind_conversation_to_first_response(offset=2, last=-3)
+            elif rewind == Rewind.DELETE_ALL:
+                self._rewind_conversation_to_first_response(-1)  # delete including the user initiation prompt
+            elif rewind == Rewind.AS_FRESH:
+                self._rewind_conversation_to_first_response(offset=0, last=-3 if response_error else -2)
 
             if not response_error:
-                if self.rewind_after_getting_a_valid_response == Rewind.DELETE_ALL:
-                    self._rewind_conversation_to_first_response(-1)  # delete including the user initiation prompt
                 return self_response, extracted_results
-
-            # The response is not valid
-            self._self_response_iteration_count -= response_error.add_iterations
-            if response_error.bump_model:
-                try:
-                    if response_error.bump_model == BumpModel.HIGHER_STRENGTH:
-                        self.model_engine = self.model_engine.get_model_with_more_strength()
-                    elif response_error.bump_model == BumpModel.HIGHER_CONTEXT:
-                        self.model_engine = self.model_engine.get_model_with_more_context()
-                    model_was_bumped = True
-                except ValueError:
-                    model_was_bumped = False
-                if model_was_bumped:
-                    msg = f"You seem totally drunk. Let's Bump you to {self.model_engine} and try again..."
-                    self.apply_append_user_message(msg, conversation_name=None)  # web only
-                    print_and_log_red(msg)
-
-            self.apply_append_user_message(
-                Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
-            if response_error.rewind == Rewind.RESTART:
-                self._rewind_conversation_to_first_response()
-            elif response_error.rewind == Rewind.ACCUMULATE:
-                pass
-            elif response_error.rewind == Rewind.REGENERATE:
-                self.apply_delete_messages(RangeMessageDesignation.from_(-2, -1))
-            elif response_error.rewind == Rewind.AS_FIRST_CORRECTION:
-                self._rewind_conversation_to_first_response(offset=2, last=-3)
         else:
             if not self._has_valid_result:
                 raise FailedCreatingProductException()

@@ -31,7 +31,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
             to suggested solutions (values).
             If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
             """)
-        rewind = Rewind.AS_FIRST_CORRECTION
+        rewind = Rewind.AS_FRESH_CORRECTION
         super()._raise_self_response_error(msg, rewind=rewind, add_iterations=add_iterations, bump_model=bump_model)
 
 

@@ -121,7 +121,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
         Please {goal_verb} the {goal_noun} again with this error corrected.
         """)
-    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
 
     request_triple_quote_block: Optional[str] = None  # `None` or "" - do not request triple-quoted.
     # or, can be something like: 'Please send your response as a triple-backtick "latex" block.'

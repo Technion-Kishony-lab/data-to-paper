@@ -322,7 +322,7 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
             else:
                 self._raise_self_response_error(
                     Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
-                    rewind=Rewind.REPOST_AS_FRESH,
+                    rewind=Rewind.AS_FRESH,
                     add_iterations=add_iterations,
                     bump_model=BumpModel.HIGHER_STRENGTH,
                 )
@@ -334,6 +334,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         if 'http' in text or 'www.' in text or 'mailto' in text:
             self._raise_self_response_error(
                 'The text contains a URL which is not allowed.',
-                rewind=Rewind.REPOST_AS_FRESH,
+                rewind=Rewind.AS_FRESH,
             )
         return text

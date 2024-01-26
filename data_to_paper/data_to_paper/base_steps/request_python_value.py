@@ -28,7 +28,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
     value_type: type = None
-    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
     json_mode: bool = False
 
     def __post_init__(self):
