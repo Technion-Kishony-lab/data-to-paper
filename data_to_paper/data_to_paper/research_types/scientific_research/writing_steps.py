@@ -9,13 +9,13 @@ from data_to_paper.latex.tables import get_table_label
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, \
     DEFAULT_LITERATURE_SEARCH_STYLE
-from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
+from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.servers.custom_types import Citation
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.nice_list import nicely_join
-from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.utils.types import ListBasedSet
 
 
@@ -405,9 +405,10 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     section_review_specific_instructions: str = "{section_specific_instructions}"
 
-    def _check_and_extract_result_from_self_response(self, response: str):
+    def _check_extracted_result_and_get_valid_result(self, extracted_result: List[str]):
         # Warn on "version = ..." :
         # e.g. "version = 1.2.3", "version 1.2.3", "Python 3.7", "Python 3.7.1"
+        response = self._get_fresh_looking_response('', extracted_result)
         pattern = r'version(?:\s*=\s*|\s+)(\d+\.\d+(\.\d+)?)|Python\s+(\d+\.\d+)'
         if re.findall(pattern, response):
             self._raise_self_response_error(
@@ -420,7 +421,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
             self._raise_self_response_error(
                 f'The Methods section should only have the following 3 subsections: '
                 f'Data Source, Data Preprocessing, Data Analysis. ')
-        return super()._check_and_extract_result_from_self_response(response)
+        return super()._check_extracted_result_and_get_valid_result(extracted_result)
 
     def run_dialog_and_get_valid_result(self) -> list:
         # Add code availability statement:

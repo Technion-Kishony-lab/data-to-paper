@@ -29,7 +29,8 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRequirement, \
     PickleContentOutputFileRequirement, TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement, \
     OutputFileRequirements
-from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
+from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
@@ -1159,7 +1160,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions',)
     max_reviewing_rounds: int = 0
     rewind_after_end_of_review: Rewind = Rewind.DELETE_ALL
-    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
     should_remove_citations_from_section: bool = True
     section_names: Tuple[str, ...] = ('Code Explanation',)
 

@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from data_to_paper.base_steps import BaseCodeProductsGPT
 from cast import DemoAgent
 from data_to_paper.run_gpt_code.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 from products import DemoProducts
 
 from data_to_paper.utils import dedent_triple_quote_str

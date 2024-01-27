@@ -2,12 +2,14 @@ import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional, Iterable, List
 
-from data_to_paper.servers.openai_models import ModelEngine, get_model_engine_for_class
+from data_to_paper.servers.model_engine import ModelEngine
+from .model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
-from data_to_paper.base_steps.result_converser import Rewind
+
 from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.servers.custom_types import Citation
@@ -112,7 +114,6 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     is_new_conversation: bool = None  # this will create "similar_citations_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
-    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \
@@ -154,6 +155,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(IsGoalOK))
     value_type: type = Dict[str, str]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
     goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -162,7 +164,6 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
-    rewind_after_getting_a_valid_response: Rewind = Rewind.REPOST_AS_FRESH
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Given the related papers listed above, please follow these 3 steps:
@@ -232,6 +233,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     max_valid_response_iterations: int = 4
     max_hypothesis_count: int = 3
     max_reviewing_rounds: int = 0  # 0 for no review cycles
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
@@ -590,11 +592,11 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
         If you are satisfied, respond with "{termination_phrase}".
         """)
 
-    def _extract_str_of_python_value_from_response(self, response: str) -> str:
+    def _check_response_and_get_extracted_result(self, response: str) -> str:
         # we check the entire response to avoid cases that the response was not correctly formatted, yet included \
         # the correct flanking tags {} as part of a latex formula, rather than as part of a Python dict.
         self._check_extracted_numbers(response)
-        return super()._extract_str_of_python_value_from_response(response)
+        return super()._check_response_and_get_extracted_result(response)
 
 
 @dataclass

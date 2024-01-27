@@ -3,8 +3,6 @@ from pathlib import Path
 from typing import List, Tuple, Optional
 
 from data_to_paper.base_products import Products
-from .result_converser import ResultConverser, Rewind
-from .dual_converser import ReviewDialogDualConverserGPT
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.nice_list import NiceList
@@ -12,8 +10,10 @@ from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values
 from data_to_paper.conversation import Message, GeneralMessageDesignation
+from data_to_paper.servers.model_engine import ModelEngine
 
-from data_to_paper.servers.openai_models import ModelEngine
+from .result_converser import ResultConverser, Rewind, BumpModel
+from .dual_converser import ReviewDialogDualConverserGPT
 
 
 @dataclass
@@ -322,9 +322,9 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
             else:
                 self._raise_self_response_error(
                     Replacer(self, self.report_non_match_prompt, args=(ListBasedSet(non_matching),)),
-                    rewind=Rewind.REPOST_AS_FRESH,
+                    rewind=Rewind.AS_FRESH,
                     add_iterations=add_iterations,
-                    bump_model=True,
+                    bump_model=BumpModel.HIGHER_STRENGTH,
                 )
 
     def _check_url_in_text(self, text: str) -> str:
@@ -334,6 +334,6 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         if 'http' in text or 'www.' in text or 'mailto' in text:
             self._raise_self_response_error(
                 'The text contains a URL which is not allowed.',
-                rewind=Rewind.REPOST_AS_FRESH,
+                rewind=Rewind.AS_FRESH,
             )
         return text

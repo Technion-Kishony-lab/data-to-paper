@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
-    NoBlocksFailedExtractingBlock
+    NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
@@ -28,7 +28,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
     value_type: type = None
-    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.REPOST_AS_FRESH
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
     json_mode: bool = False
 
     def __post_init__(self):
@@ -40,23 +40,23 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def parent_type(self) -> type:
         return get_origin(self.value_type)
 
-    def _get_fresh_looking_response(self, response) -> str:
+    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[str]) -> str:
         """
         Return a response that contains just the python value.
         """
         if self.json_mode:
-            return super()._get_fresh_looking_response(response)
-        response = self.returned_result
-        return super()._get_fresh_looking_response(f"```python\n{response}\n```")
+            return response
+        if extracted_results is None:
+            return response
+        return f"```python\n{extracted_results}\n```"
 
-    def _check_and_extract_result_from_self_response(self, response: str):
-        response_value_str = self._extract_str_of_python_value_from_response(response)
-        response_value = self._evaluate_python_value_from_str(response_value_str)
+    def _check_extracted_result_and_get_valid_result(self, extracted_result: str):
+        response_value = self._evaluate_python_value_from_str(extracted_result)
         response_value = self._validate_value_type(response_value)
         response_value = self._check_response_value(response_value)
-        self.returned_result = response_value
+        self.valid_result = response_value
 
-    def _extract_str_of_python_value_from_response(self, response: str) -> str:
+    def _check_response_and_get_extracted_result(self, response: str) -> str:
         """
         Extracts the string of the python value from chatgpt response.
         If there is an error extracting the value, _raise_self_response_error is called.
@@ -73,8 +73,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
                 f'{e}\n'
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'within a triple backtick code block.',
-                rewind=Rewind.ACCUMULATE,
-                bump_model=True)
+                missing_end=isinstance(e, IncompleteBlockFailedExtractingBlock))
 
         tags = TYPES_TO_TAG_PAIRS.get(self.parent_type)
         try:
@@ -83,7 +82,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
             self._raise_self_response_error(
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.',
-                bump_model=tags[0] in response and tags[1] not in response)
+                missing_end=tags[0] in response and tags[1] not in response)
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         if self.json_mode:
@@ -160,8 +159,6 @@ class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictRevie
 class PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser(
         PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     allowed_values_for_keys: Dict[str, Iterable] = None  # The values that the dict may contain.
-    is_new_conversation: bool = False
-    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
 
     def __post_init__(self):
         super().__post_init__()

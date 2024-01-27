@@ -6,11 +6,13 @@ import sys
 
 from data_to_paper.base_steps import PythonValueReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
+from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.types import ListBasedSet
 
-from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
+from .utils import TestProductsReviewGPT, check_wrong_and_right_responses, \
+    replace_apply_get_and_append_assistant_message
 
 PYTHON_VERSION_MINOR = sys.version_info[1]
 
@@ -87,6 +89,37 @@ def test_request_python_value_with_error(
                                                                    rewind_after_getting_a_valid_response=None),
         correct_value=eval(correct_python_value),
         error_texts=error_should_include)
+
+
+@pytest.mark.parametrize('default_rewind, answers_contexts', [
+    (Rewind.AS_FRESH, [
+        (correct_list_str_value.replace("]", ""), []),
+        (correct_list_str_value.replace("]", ""), ['#0', 'flanked']),  # 'flanked' -> format error
+        (correct_list_str_value.replace("'c'", "5"), ['#0', 'flanked']),  # 'flanked' -> format error
+        (correct_list_str_value, ['python', '`str`']),  # 'python' -> reposted as fresh; `str` -> content error
+    ]),
+    (Rewind.AS_FRESH_CORRECTION, [
+        (correct_list_str_value.replace("]", ""), []),
+        (correct_list_str_value.replace("]", ""), ['#0', 'flanked']),
+        (correct_list_str_value.replace("'c'", "5"), ['#0', 'flanked']),
+        (correct_list_str_value, ['#0', 'flanked', 'python', '`str`']),
+    ]),
+])
+def test_request_python_error_messages(default_rewind, answers_contexts):
+    responses = [f'#{i} is {answer_and_context[0]}' for i, answer_and_context in enumerate(answers_contexts)]
+    contexts = [answer_and_context[1] for answer_and_context in answers_contexts]
+    requester = TestPythonValueReviewBackgroundProductsConverser(
+        value_type=List[str],
+        default_rewind_for_result_error=default_rewind
+    )
+    replace_apply_get_and_append_assistant_message(requester)
+    with OPENAI_SERVER_CALLER.mock(responses, record_more_if_needed=False):
+        assert requester.run_and_get_valid_result() == eval(correct_list_str_value)
+    for i, context in enumerate(contexts):
+        called_with_context = requester.called_with_contexts[i][2:]  # remove SYSTEM and USER PROMPT
+        assert len(called_with_context) == len(context)
+        for message, context_part in zip(called_with_context, context):
+            assert context_part in message.content
 
 
 @pytest.mark.parametrize('non_correct_python_value, correct_python_value, value_type, error_should_include', [

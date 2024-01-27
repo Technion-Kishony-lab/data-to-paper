@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pytest
 
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 
@@ -39,22 +39,21 @@ def test_request_quoted_text_with_error(left, right):
         ),
         correct_value=enclosed_text,
         error_texts=("Now it is good",),
-        error_message_number=2)
+        error_message_number=4)
 
 
-def test_request_quoted_text_bumps_model():
+def test_request_quoted_text_bumps_model_to_more_context():
     with OPENAI_SERVER_CALLER.mock(
-            ['I am not sending any enclosed text',
-             'I am starting to write, but fails: \n```\nthe secret recipe is\n',
-             'Now, as a bumped-up model, I can finish this though: \n```\nthe secret recipe is to add chocolate\n```'],
+            ['I am starting to write, but fail in the middle: \n```\nthe secret recipe is\n',
+             'Now, with more context, I can finish this though: \n```\nthe secret recipe is to add chocolate\n```'],
             record_more_if_needed=False):
         requester = TestBaseProductsQuotedReviewGPT(model_engine=ModelEngine.GPT35_TURBO)
         assert requester.run_dialog_and_get_valid_result() == '\nthe secret recipe is to add chocolate\n'
 
     # assert context as sent to the server:
     models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
-    assert models_used == [ModelEngine.GPT35_TURBO, ModelEngine.GPT35_TURBO,
-                           ModelEngine.GPT35_TURBO.get_model_with_more_strength()]
+    assert ModelEngine.DEFAULT.get_model_with_more_strength() != ModelEngine.DEFAULT.get_model_with_more_context()
+    assert models_used == [ModelEngine.DEFAULT, ModelEngine.DEFAULT.get_model_with_more_context()]
 
 
 def test_request_quoted_text_repost_correct_response_as_fresh():

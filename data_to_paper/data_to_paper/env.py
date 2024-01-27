@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 
 BASE_FOLDER_NAME = 'data-to-paper'
@@ -41,7 +41,6 @@ OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL = dict[Optional[ModelEn
 
 S2_API_KEY = "hqcN3JMNgl2Ue889JZ1Zd3ogYCjtdpta8V0OXv3c"
 
-TYPE_OF_MODELS = "closed"
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 
 # Text width for conversation output:

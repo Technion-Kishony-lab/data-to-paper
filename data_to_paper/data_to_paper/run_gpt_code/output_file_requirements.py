@@ -8,7 +8,7 @@ from typing import Optional, Any, List, Tuple, Iterable, Dict
 
 from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
-from data_to_paper.servers.openai_models import ModelEngine
+from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats

@@ -11,13 +11,13 @@ from typing import List, Union, Optional
 
 import tiktoken
 
-from data_to_paper.env import DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
+from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
 
 from .base_server import ListServerCaller
-from .openai_models import ModelEngine
+from .model_engine import ModelEngine
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine
     """
     Return the actual model engine to use for the given model engine.
     """
-    return model_engine or DEFAULT_MODEL_ENGINE
+    return model_engine or ModelEngine.DEFAULT
 
 
 class OpenaiSeverCaller(ListServerCaller):
@@ -65,7 +65,7 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        if False and model_engine > DEFAULT_MODEL_ENGINE:
+        if False and model_engine > ModelEngine.DEFAULT:
             while True:
                 answer = input(f'CONFIRM USING {model_engine} (y/n): ').lower()
                 if answer == 'y':
@@ -151,7 +151,7 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
     try:
         encoding = tiktoken.encoding_for_model(model_engine.value)
     except KeyError:
-        encoding = tiktoken.encoding_for_model(DEFAULT_MODEL_ENGINE.value)
+        encoding = tiktoken.encoding_for_model(ModelEngine.GPT35_TURBO.value)
     if isinstance(messages, str):
         num_tokens = len(encoding.encode(messages))
     else:
@@ -181,8 +181,8 @@ def try_get_chatgpt_response(messages: List[Message],
         return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine.max_tokens)
     print_and_log_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
                       f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
-    if tokens + expected_tokens_in_response < DEFAULT_MODEL_ENGINE.max_tokens and model_engine > DEFAULT_MODEL_ENGINE:
-        print_and_log(f'WARNING: Consider using {DEFAULT_MODEL_ENGINE} (max {DEFAULT_MODEL_ENGINE.max_tokens} tokens).',
+    if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
+        print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
 
     try:

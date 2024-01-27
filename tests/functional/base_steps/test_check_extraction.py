@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 from data_to_paper.base_steps import CheckExtractionReviewBackgroundProductsConverser
 from dataclasses import dataclass
@@ -17,14 +17,14 @@ class TestCheckExtractionReviewBackgroundProductsConverser(TestProductsReviewGPT
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = ()
     max_reviewing_rounds: int = 0
     rewind_after_end_of_review: Rewind = Rewind.ACCUMULATE
-    rewind_after_getting_a_valid_response: Rewind = Rewind.ACCUMULATE
+    rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '0.123, 0.236, 4.56e-04, 9876321, 4321'
 
-    def _check_and_extract_result_from_self_response(self, response: str):
+    def _check_response_and_get_extracted_result(self, response: str):
         response = self._check_extracted_numbers(response)
-        return super()._check_and_extract_result_from_self_response(response)
+        return super()._check_response_and_get_extracted_result(response)
 
 
 correct_response = 'Correct extractions: 0.12, 0.23, 0.24, 24%, 0.00046, 9,876,000, 4{,}300'
