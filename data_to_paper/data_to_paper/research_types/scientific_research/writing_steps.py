@@ -16,7 +16,6 @@ from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.nice_list import nicely_join
-from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.utils.types import ListBasedSet
 
 

@@ -91,17 +91,26 @@ def test_request_python_value_with_error(
         error_texts=error_should_include)
 
 
-def test_request_python_error_messages():
-    answers_contexts = [
+@pytest.mark.parametrize('default_rewind, answers_contexts', [
+    (Rewind.AS_FRESH, [
         (correct_list_str_value.replace("]", ""), []),
         (correct_list_str_value.replace("]", ""), ['#0', 'flanked']),  # 'flanked' -> format error
         (correct_list_str_value.replace("'c'", "5"), ['#0', 'flanked']),  # 'flanked' -> format error
         (correct_list_str_value, ['python', '`str`']),  # 'python' -> reposted as fresh; `str` -> content error
-    ]
+    ]),
+    (Rewind.AS_FRESH_CORRECTION, [
+        (correct_list_str_value.replace("]", ""), []),
+        (correct_list_str_value.replace("]", ""), ['#0', 'flanked']),
+        (correct_list_str_value.replace("'c'", "5"), ['#0', 'flanked']),
+        (correct_list_str_value, ['#0', 'flanked', 'python', '`str`']),
+    ]),
+])
+def test_request_python_error_messages(default_rewind, answers_contexts):
     responses = [f'#{i} is {answer_and_context[0]}' for i, answer_and_context in enumerate(answers_contexts)]
     contexts = [answer_and_context[1] for answer_and_context in answers_contexts]
     requester = TestPythonValueReviewBackgroundProductsConverser(
         value_type=List[str],
+        default_rewind_for_result_error=default_rewind
     )
     replace_apply_get_and_append_assistant_message(requester)
     with OPENAI_SERVER_CALLER.mock(responses, record_more_if_needed=False):
