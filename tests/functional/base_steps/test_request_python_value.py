@@ -37,8 +37,9 @@ correct_list_str_value = r"""['a', 'b', 'c']"""
 
 def test_request_python_value_json_mode():
     with OPENAI_SERVER_CALLER.mock([
-        '[\n"{\n    \"primes\": [2, 3, 5, 7, 11, 13, 17, 19]\n}"\n]'
-    ]):
+        '\n{\n    \"primes\": [2, 3, 5, 7, 11, 13, 17, 19]\n}\n'
+    ],
+            record_more_if_needed=False):
         converser = TestPythonValueReviewBackgroundProductsConverser(
             value_type=Dict[str, Any],
             json_mode=True,
