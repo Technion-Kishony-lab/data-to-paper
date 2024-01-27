@@ -10,17 +10,17 @@ from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CL
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
+from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.conversation.conversation_actions import CreateConversation
 from data_to_paper.conversation.stage import Stages, AdvanceStage, SetActiveConversation, SetProduct, Stage, \
     SendFinalProduct
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
+from data_to_paper.exceptions import TerminateException
+from data_to_paper.base_products import DataFileDescriptions
 
 from .base_products_conversers import ProductsHandler
-from .exceptions import FailedCreatingProductException
-from data_to_paper.base_products import DataFileDescriptions
 
 
 @dataclass
@@ -159,10 +159,12 @@ class BaseStepsRunner(ProductsHandler):
 
         try:
             run()
-        except FailedCreatingProductException:
+        except TerminateException as e:
             self.advance_stage(Stages.FAILURE)
-            print_and_log(f'----- FAILURE ------\n'
-                          f'Failed creating product during stage: {self.current_stage}')
+            print_and_log(f'----- TERMINATING RUN ------\n'
+                          f'Run terminated during stage `{self.current_stage}`.\n'
+                          f'{e}\n'
+                          f'----------------------------\n')
         except Exception:
             raise
         else:

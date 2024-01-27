@@ -148,7 +148,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         while True:
             code_and_output, debugger = self._run_debugger(code_and_output.code)
             if code_and_output is None:
-                raise FailedCreatingProductException()
+                raise FailedCreatingProductException("Code debugging failed.")
             if self.revision_round == self.max_code_revisions:
                 break
             if not self._are_further_code_revisions_needed(code_and_output, debugger):

@@ -20,15 +20,14 @@ class data_to_paperException(Exception, metaclass=ABCMeta):
             return super().__reduce__()
 
 
-class UserRejectException(data_to_paperException):
-    def __str__(self):
-        return "Output was disapproved by user."
-
-
-@dataclass
-class FailedRunningStep(data_to_paperException):
-    step: int
-    func_name: str
+@dataclass(frozen=True)
+class TerminateException(data_to_paperException):
+    """
+    Base class for all exceptions that terminate data-to-paper run.
+    """
+    reason: str = None
 
     def __str__(self):
-        return f"Failed running {self.func_name} (step {self.step})"
+        if self.reason is None:
+            return f"{type(self).__name__}"
+        return f"{type(self).__name__}: {self.reason}"

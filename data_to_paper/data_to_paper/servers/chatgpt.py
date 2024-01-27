@@ -14,14 +14,12 @@ import tiktoken
 from data_to_paper.env import DEFAULT_MODEL_ENGINE, OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
+from data_to_paper.exceptions import TerminateException
 
 from .base_server import ListServerCaller
 from .openai_models import ModelEngine
 
 from typing import TYPE_CHECKING
-
-from data_to_paper.exceptions import data_to_paperException
-
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
 
@@ -48,9 +46,8 @@ class TooManyTokensInMessageError(Exception):
                f'maximum number of tokens: {self.max_tokens}.'
 
 
-class UserAbort(data_to_paperException):
-    def __str__(self):
-        return 'user aborted.'
+class UserAbort(TerminateException):
+    pass
 
 
 def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine:
@@ -101,12 +98,11 @@ class OpenaiSeverCaller(ListServerCaller):
             Note: if you choose N, the program will immediately abort.\n"""))
             
             if user_choice.lower() == 'n':
-                raise UserAbort()
-            elif user_choice.lower() != 'y':
-                print_and_log_red('Invalid input. Please choose Y/N.')
-                continue
-            else:
+                raise UserAbort(reason="User chose to abort the program.")
+            elif user_choice.lower() == 'y':
                 break
+            else:
+                print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
 
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
