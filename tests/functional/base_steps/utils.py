@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from data_to_paper.base_cast import Agent
 from data_to_paper.base_cast.types import Profile
+from data_to_paper.base_steps.result_converser import ResultConverser
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
 
@@ -48,3 +49,19 @@ def check_wrong_and_right_responses(responses, requester, correct_value,
             if error_text not in error_message.content:
                 print(f'error_text: {error_text}, error_message: {error_message.content}')
                 assert False
+
+
+def replace_apply_get_and_append_assistant_message(converser: ResultConverser):
+    """
+    Record all calls to apply_get_and_append_assistant_message.
+    record in converser.assistant_messages
+    """
+    converser.called_with_contexts = []
+    original_apply_get_and_append_assistant_message = converser.apply_get_and_append_assistant_message
+
+    def apply_get_and_append_assistant_message(*args, **kwargs):
+        result = original_apply_get_and_append_assistant_message(*args, **kwargs)
+        converser.called_with_contexts.append(converser.conversation[-1].context)
+        return result
+
+    converser.apply_get_and_append_assistant_message = apply_get_and_append_assistant_message
