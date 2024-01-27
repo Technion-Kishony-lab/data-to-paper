@@ -5,6 +5,7 @@ from typing import Tuple, Dict, Any, Optional, Iterable, List
 from data_to_paper.servers.model_engine import ModelEngine
 from .model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
+from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
     PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
@@ -154,6 +155,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(IsGoalOK))
     value_type: type = Dict[str, str]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
     goal_noun: str = 'research goal and hypothesis'
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
@@ -231,6 +233,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     max_valid_response_iterations: int = 4
     max_hypothesis_count: int = 3
     max_reviewing_rounds: int = 0  # 0 for no review cycles
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
                                                   'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
