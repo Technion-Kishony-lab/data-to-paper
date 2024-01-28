@@ -76,7 +76,7 @@ def code_running_converser(tmpdir_with_csv_file):
         temp_dir=tmpdir_with_csv_file,
         code_name='Testing',
         conversation_name='testing',
-        code_review_prompts='Output:\n{created_file_contents_explanation}\nRevise?',
+        code_review_prompts='Output:\n{created_file_contents_str}\nRevise?',
         output_file_requirements=OutputFileRequirements(
             [DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
     )

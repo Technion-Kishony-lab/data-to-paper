@@ -209,7 +209,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
-        {created_file_contents_explanation}
+        Here is the content of the output file(s) that the code created:
+        {created_file_contents_str}
 
         Please follow these two steps:
 
@@ -370,7 +371,8 @@ class DataAnalysisCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_review_prompts: str = dedent_triple_quote_str("""
         I ran your code.
 
-        {created_file_contents_explanation}
+        Here is the content of the output file(s) that the code created:
+        {created_file_contents_str}
 
         Considering the scientific tables we want to create ("{tables_names}", above), \
         please follow these two steps:
@@ -586,7 +588,8 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         dedent_triple_quote_str("""
         I ran your code.
 
-        {created_file_contents_explanation}
+        Here is the content of the output file(s) that the code created:
+        {created_file_contents_str}
 
         Please follow these two steps:
 
