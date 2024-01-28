@@ -162,7 +162,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'is_goal_ok'
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+    background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
