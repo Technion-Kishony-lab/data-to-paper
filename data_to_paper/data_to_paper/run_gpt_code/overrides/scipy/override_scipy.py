@@ -18,7 +18,7 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
     obj_import_str: str = 'scipy'
     unpacking_func_to_fields: Dict[str, Iterable[str]] = field(default_factory=dict)
 
-    def register_unpacking(self, created_by: str, fields: Iterable[str]):
+    def record_unpacking(self, created_by: str, fields: Iterable[str]):
         self.unpacking_func_to_fields[created_by] = fields
 
     def _should_replace(self, module, func_name, func) -> bool:
@@ -53,7 +53,7 @@ class ScipyPValueOverride(SystematicFuncReplacerContext, TrackPValueCreationFunc
             if self.prevent_unpacking is not False and is_namedtuple(result):
                 result = NoIterTuple(result, created_by=created_by, context=self,
                                      should_raise=self.prevent_unpacking is True,
-                                     should_register=self.prevent_unpacking is None)
+                                     should_record=self.prevent_unpacking is None)
 
             return result
 
