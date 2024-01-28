@@ -82,8 +82,12 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         """
         return []
 
-    def get_pretty_content(self, content: Any) -> str:
-        return str(content)
+    def get_pretty_content(self, content: Any, filename: str = None) -> str:
+        content = str(content)
+        if filename is not None:
+            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
+            return f'"{filename}":\n```{label}\n{content}\n```\n\n'
+        return content
 
 
 @dataclass(frozen=True)
@@ -142,9 +146,9 @@ class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
     target_precision: int = 4
     source_precision: int = 10
 
-    def get_pretty_content(self, content: str) -> str:
-        content = super().get_pretty_content(content)
-        return round_floats(content, self.target_precision, self.source_precision)
+    def get_pretty_content(self, content: Any, filename: str = None) -> str:
+        content = round_floats(str(content), self.target_precision, self.source_precision)
+        return super().get_pretty_content(content, filename)
 
 
 class OutputFileRequirements(Tuple[OutputFileRequirement]):
@@ -226,22 +230,22 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                 for filename in files_to_contents.keys()
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
 
-    def get_created_content_files_to_contents(self, is_clean: bool = True, match_filename: str = '*') -> Dict[str, str]:
+    def get_created_content_files_to_contents(self, is_clean: bool = True,
+                                              match_filename: str = '*', is_block: bool = False) -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content.
         """
-        return {filename: requirement.get_pretty_content(content) if is_clean else content
+        return {filename:
+                requirement.get_pretty_content(content, filename if is_block else None) if is_clean else content
                 for requirement, files_to_contents in self.items()
                 for filename, content in files_to_contents.items()
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)}
 
     def get_created_content_files_description(self, match_filename: str = '*'):
-        files_to_contents = self.get_created_content_files_to_contents(is_clean=True, match_filename=match_filename)
-        s = ''
-        for filename, content in files_to_contents.items():
-            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
-            s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
-        return s
+        files_to_contents = self.get_created_content_files_to_contents(is_clean=True,
+                                                                       match_filename=match_filename,
+                                                                       is_block=True)
+        return '\n\n'.join(files_to_contents.values())
 
     def get_single_output(self, is_clean: bool = True) -> Optional[str]:
         """

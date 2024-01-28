@@ -699,18 +699,18 @@ class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
 
-    def get_pretty_content(self, content: Any) -> str:
+    def get_pretty_content(self, content: Any, filename: str = None) -> str:
         with PValue.allow_str.temporary_set(True):
-            return super().get_pretty_content(content)
+            return super().get_pretty_content(content, filename)
 
 
 class DataFramePickleContentOutputFileRequirement(NumericTextContentOutputFileRequirement,
                                                   PickleContentOutputFileRequirement,
                                                   ):
 
-    def get_pretty_content(self, content: DataFrame) -> str:
+    def get_pretty_content(self, content: Any, filename: str = None) -> str:
         with PValue.allow_str.temporary_set(True):
-            return super().get_pretty_content(content.to_string())
+            return super().get_pretty_content(content.to_string(), filename)
 
 
 class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement,
