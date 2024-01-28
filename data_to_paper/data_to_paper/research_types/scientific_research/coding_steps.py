@@ -294,237 +294,16 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 @dataclass
-class CreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
+class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     max_debug_iterations_per_attempt: int = 20
     max_code_revisions: int = 3
-    debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
-    headers_required_in_code: Tuple[str, ...] = (
-        '# IMPORT',
-        '# LOAD DATA',
-        '# PREPROCESSING',
-        '# ANALYSIS',
-        '# CREATE TABLES',
-        '# OUTPUT TEXT FILE',
-    )
-    latex_document: LatexDocument = field(default_factory=LatexDocument)
+    headers_required_in_code: Tuple[str, ...] = ()
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'headers_required_in_code')
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(CreateTablesCodeProductsGPT))
-    code_step: str = 'data_analysis'
-    background_product_fields: Tuple[str, ...] = \
-        ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
-         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan')
-    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
-        ('outputs:data_exploration', 'research_goal')
+        BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code', )
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: get_model_engine_for_class(BaseCreateTablesCodeProductsGPT))
     user_agent: ScientificAgent = ScientificAgent.Debugger
-    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
-
-    output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [NumericTextContentOutputFileRequirement('results.txt'),
-         TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
-    additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: _get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                                         enforce_saving_altered_dataframes=False))
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to analyze the data and create latex Tables for our scientific paper.
-
-        The code must have the following sections (with these exact capitalized headers):
-
-        # IMPORT
-        from my_utils import to_latex_with_note, format_p_value
-        <import here any other packages you need>
-
-        As needed, you can use the following packages which are already installed:
-        {supported_packages}
-
-
-        # LOAD DATA
-        Load the data from the original data files described above (see "{data_file_descriptions}").\
-        {list_additional_data_files_if_any}
-
-
-        # PREPROCESSING 
-        Perform any preprocessing steps needed to prepare the data for the analysis.
-        For example, as applicable:
-        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
-        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
-        consider also the "{outputs:data_exploration}").
-        * Normalization of numeric values with different units into same-unit values.
-        * Any other data preprocessing you deem relevant.
-        * If no preprocessing is needed, write: "# No preprocessing is needed, because <your reasons here>."
-
-
-        # ANALYSIS 
-        Perform the analysis and appropriate statistical tests \
-        (see above our "{hypothesis_testing_plan}").
-        The statistical analysis should account for any relevant confounding variables, as applicable. 
-        Consult with the "{hypothesis_testing_plan}" (above) for suggested tests to perform.
-        Note that you may need to perform more than one test for each hypothesis.
-
-
-        # CREATE TABLES
-        Considering our study goals and the hypothesis testing plan (see above "{research_goal}" and \
-        " "{hypothesis_testing_plan}"), create 2-4 tables for our scientific paper, summarizing \
-        the results of the statistical analysis.
-
-        For each such scientific table, create a dataframe and save it to a tex file using my custom function:
-        `to_latex_with_note(df, filename: str, caption: str, label: str, \
-        note: str = None, legend: Dict[str, str] = None, **kwargs)`
-
-        This function calls pandas `df.to_latex(filename, caption=caption, label=label, **kwargs)` method, \
-        and allows adding below the table an optional note (if `note` is provided) as well as an optional \
-        legend mapping any abbreviated column or row names to their full names (if `legend` is provided).
-
-        Overall, the section should have the following structure:
-        ## Table 1: <your chosen table name here. e.g "Descriptive statistics of ... stratified by ...">
-        <write here the code to create a dataframe of table 1 and save it using \
-        `to_latex_with_note(<dataframe>, 'table_1.tex', ...)`>
-
-        ## Table 2: <your chosen table name here. e.g "Model xxx ...">
-        <write here the code to create a dateframe of table 2 and save it using \
-        `to_latex_with_note(<dataframe>, 'table_2.tex', ...)`>
-
-        etc, up to 4 tables.
-
-        When writing the code for the Tables, consider these guidelines (as applicable):
-
-        [a] List of tables to create:
-        * Create 2-4 tables relevant to our {research_goal} and {hypothesis_testing_plan}.
-        * Typically, the first table could be descriptive statistics of the data, \
-        and then we should have at least one table for each of the hypothesis tests.
-
-        [b] What to include in each table:
-        * Only include information that is relevant and suitable for inclusion in a table of a scientific paper.
-        * Nominal values should be accompanied by a measure of uncertainty (CI or STD).
-        * Exclude data not important to the research goal, or that are too technical. \
-        For example, when reporting descriptive statistics it is typically not necessary to include \
-        quartile or min/max values. 
-        * Make sure you do not repeat the same data in multiple tables.
-
-        [c] P-values:
-        If you are reporting P-values of statistical tests, convert them using the provided `format_p_value` func.
-        This function returns: `"{:.3g}".format(x) if x >= 1e-06 else "<1e-06"`
-        For example, if you have a p-value column named "p-value", then:
-        `df['p-value'] = df['p-value'].apply(format_p_value)`
-
-
-        # OUTPUT TEXT FILE 
-        At the end of the code, after completing the tables, create an output text file named "{output_filename}", \
-        and write to this file any important data that was not included in the tables.
-
-        For example: 
-
-        ```output                
-        Total number of observations: <xxx>
-        Model accuracy: <xxx>
-        etc, any other global measures
-        ```
-
-        Avoid the following:
-        Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
-        Do not create any graphics, figures or any plots.
-        Do not send any presumed output examples.
-        """)
-
-    code_review_prompts: Tuple[str] = (
-        dedent_triple_quote_str("""
-        Please follow these two steps:
-
-        (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
-
-        * DATASET PREPARATIONS:
-        - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \
-        or with special numeric values that stand for unknown/undefined \
-        (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
-        - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
-        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \
-        (based on the study goal)?
-
-        * DESCRIPTIVE STATISTICS:
-        If applicable: 
-        - Did we correctly report descriptive statistics? 
-        - Is the choice of descriptive statistics and chosen variables contribute to the scope of study?
-        - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
-
-        * PREPROCESSING:
-        Review the above "{data_file_descriptions}" and "{outputs:data_exploration}", then check our \
-        data preprocessing:
-        - Are we performing any preprocessing steps that are not needed?
-        - Are we missing any preprocessing steps that are needed?
-
-        * ANALYSIS:
-        As applicable, check for any data analysis issues, including: 
-        - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
-        - Analysis that should be performed on the original data is mistakenly performed on the preprocessed data.
-        - Incorrect choice of statistical test.
-        - Imperfect implementation of statistical tests.
-        - Did we correctly chose the variables that best represent the tested hypothesis? 
-        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-
-        For example:
-        ```python
-        {
-            "The model does not adequately account for confounding variables": \
-            "revise the code to add the following confounding variables ...",
-
-            "The descriptive statistics is performed on the wrong data": \
-            "revise the code to perform the descriptive statistics on the preprocessed data.",
-        }
-        ```
-
-        Try to be as specific as possible when describing the issues and proposed fixes.
-        Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision, \
-        then return an empty dict: `{}`. 
-        """),
-        dedent_triple_quote_str("""
-        I ran your code.
-
-        Here is the content of the output file(s) that the code created:
-        {created_file_contents_str}
-
-        Please follow these two steps:
-
-        (1) Check the created pkl tables (provided above) and \
-        return a bullet-point response addressing these points:
-        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
-        For example: 
-        - If a table reports the mean of a variable, is the mean value sensible?
-        - If a table reports CI, are the CI values flanking the mean?
-        - Do values have correct signs?
-        - Do you see any values that are not sensible (too large, too small)?
-
-        * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \
-        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
-
-        * Missing data in a table: Are we missing key variables in a given table?
-        {comment_on_missing_table}
-        * Any other issues you find.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-
-        For example:
-        ```python
-        {
-            "A table is missing": \
-            "revise the code to add the following new table '<your suggested table caption>'",
-
-            "Table <n> reports nominal values without measures of uncertainty": \
-            "revise the code to add STD and p-value.", 
-        }
-        ```
-
-        Try to be as specific as possible when describing the issues and proposed fixes.
-        Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision, \
-        then return an empty dict: `{}`. 
-        """)
-    )
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
         linear_regression_funcs = ['ols(', 'OLS(', 'logit(', 'Logit(', 'glm(', 'GLM(']
@@ -679,7 +458,8 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
 
 
 @dataclass
-class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
+class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
+    code_step: str = 'data_analysis'
     debugger_cls: Type[DebuggerConverser] = StatisticalTestingDebuggerConverser
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
@@ -692,6 +472,13 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
     )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseScientificCodeProductsGPT.attrs_to_send_to_debugger + ('headers_required_in_code', )
+
+    background_product_fields: Tuple[str, ...] = \
+        ('data_file_descriptions', 'outputs:data_exploration', 'codes:data_preprocessing',
+         'created_files_headers:data_preprocessing', 'research_goal', 'hypothesis_testing_plan')
+    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
+        ('outputs:data_exploration', 'research_goal')
+    allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', 'data_preprocessing')
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn', 'pickle')
 
@@ -832,6 +619,105 @@ class CreateTableDataframesCodeProductsGPT(CreateTablesCodeProductsGPT):
         rather than integer-based column/index positions. 
         """)
 
+    code_review_prompts: Tuple[str] = (
+        dedent_triple_quote_str("""
+        Please follow these two steps:
+
+        (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
+
+        * DATASET PREPARATIONS:
+        - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \
+        or with special numeric values that stand for unknown/undefined \
+        (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
+        - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
+        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \
+        (based on the study goal)?
+
+        * DESCRIPTIVE STATISTICS:
+        If applicable: 
+        - Did we correctly report descriptive statistics? 
+        - Is the choice of descriptive statistics and chosen variables contribute to the scope of study?
+        - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
+
+        * PREPROCESSING:
+        Review the above "{data_file_descriptions}" and "{outputs:data_exploration}", then check our \
+        data preprocessing:
+        - Are we performing any preprocessing steps that are not needed?
+        - Are we missing any preprocessing steps that are needed?
+
+        * ANALYSIS:
+        As applicable, check for any data analysis issues, including: 
+        - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
+        - Analysis that should be performed on the original data is mistakenly performed on the preprocessed data.
+        - Incorrect choice of statistical test.
+        - Imperfect implementation of statistical tests.
+        - Did we correctly chose the variables that best represent the tested hypothesis? 
+        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
+
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+
+        For example:
+        ```python
+        {
+            "The model does not adequately account for confounding variables": \
+            "revise the code to add the following confounding variables ...",
+
+            "The descriptive statistics is performed on the wrong data": \
+            "revise the code to perform the descriptive statistics on the preprocessed data.",
+        }
+        ```
+
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If you are sure that there are no issues, and the code and tables need no revision, \
+        then return an empty dict: `{}`. 
+        """),
+        dedent_triple_quote_str("""
+        I ran your code.
+
+        Here is the content of the output file(s) that the code created:
+        {created_file_contents_str}
+
+        Please follow these two steps:
+
+        (1) Check the created pkl tables (provided above) and \
+        return a bullet-point response addressing these points:
+        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
+        For example: 
+        - If a table reports the mean of a variable, is the mean value sensible?
+        - If a table reports CI, are the CI values flanking the mean?
+        - Do values have correct signs?
+        - Do you see any values that are not sensible (too large, too small)?
+
+        * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \
+        it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
+
+        * Missing data in a table: Are we missing key variables in a given table?
+        {comment_on_missing_table}
+        * Any other issues you find.
+
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+
+        For example:
+        ```python
+        {
+            "A table is missing": \
+            "revise the code to add the following new table '<your suggested table caption>'",
+
+            "Table <n> reports nominal values without measures of uncertainty": \
+            "revise the code to add STD and p-value.", 
+        }
+        ```
+
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If you are sure that there are no issues, and the code and tables need no revision, \
+        then return an empty dict: `{}`. 
+        """)
+    )
+
     @property
     def mediation_note_if_applicable(self):
         keywords = ['mediated', 'mediation', 'mediates', 'mediator', 'mediators']
@@ -857,13 +743,18 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 
 
 @dataclass
-class CreateLatexTablesCodeProductsGPT(CreateTablesCodeProductsGPT):
+class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
-    headers_required_in_code: Tuple[str, ...] = ('# IMPORT', '# PREPARATION FOR ALL TABLES')
+    debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    headers_required_in_code: Tuple[str, ...] = (
+        '# IMPORT',
+        '# PREPARATION FOR ALL TABLES',
+    )
+    latex_document: LatexDocument = field(default_factory=LatexDocument)
     phrases_required_in_code: Tuple[str, ...] = \
         ('\nfrom my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
-        CreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('phrases_required_in_code', )
+        BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'phrases_required_in_code', )
 
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',

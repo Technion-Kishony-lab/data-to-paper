@@ -6,7 +6,7 @@ from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckL
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts, DataExplorationCodeProductsGPT, RequestCodeExplanation, \
-    DataPreprocessingCodeProductsGPT, CreateTableDataframesCodeProductsGPT, CreateLatexTablesCodeProductsGPT
+    DataPreprocessingCodeProductsGPT, CreateDataframesTableCodeProductsGPT, CreateLatexTablesCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
@@ -175,7 +175,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         RequestCodeProducts.from_(self,
                                   code_step='data_analysis',
                                   latex_document=self.latex_document,
-                                  code_writing_class=CreateTableDataframesCodeProductsGPT,
+                                  code_writing_class=CreateDataframesTableCodeProductsGPT,
                                   explain_code_class=RequestCodeExplanation,
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
