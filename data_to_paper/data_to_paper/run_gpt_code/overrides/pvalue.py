@@ -1,4 +1,6 @@
+import numbers
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import List, Iterable
 
 import numpy as np
@@ -6,8 +8,34 @@ import pandas as pd
 
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
-from data_to_paper.utils.mutable import Flag
+from data_to_paper.utils.mutable import Flag, Mutable
 from data_to_paper.utils.operator_value import OperatorValue
+
+P_VALUE_MIN = 1e-6  # values smaller than this will be formatted as "<1e-6"
+EPSILON = 1e-12  # 0 is formatted as "1e-12"
+
+# We show to chatgpt 0 pvalues as some small epsilon sot that it will not attempt to fix them.
+# These values will be formatted as "<1e-6" in the latex tables.
+
+
+class OnStr(Enum):
+    RAISE = 0
+    NORMAL = 1
+    SMALLER_THAN = 2  # with P_VALUE_MIN, e.g. "<1e-6"
+    WITH_EPSILON = 3  # with EPSILON, e.g. "1e-12"
+
+
+def format_p_value(x):
+    """
+    Format a p-value to a string.
+    """
+    if not isinstance(x, numbers.Number):
+        return x
+    if x > 1 or x < 0:
+        raise ValueError(f"p-value should be in the range [0, 1]. Got: {x}")
+    if np.isinf(x) or np.isnan(x):
+        return str(x)
+    return "{:.3g}".format(x) if x >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
 
 
 @dataclass
@@ -35,7 +63,15 @@ class PValue(OperatorValue):
     """
     An object that represents a p-value float.
     """
-    allow_str = Flag(False)
+
+    # Sensible operators to perform on p-values:
+    OPERATORS_RETURNING_NEW_PVALUE = {'__mul__', '__truediv__', '__floordiv__'}
+    OPERATORS_RETURNING_NORMAL_VALUE = {'__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__',
+                                        '__bool__', '__hash__'}
+    # All other operators are not allowed
+
+    BEHAVE_NORMALLY = Flag(False)
+    ON_STR = Mutable(OnStr.RAISE)
     error_message_on_forbidden_func = "Calling `{func_name}` on a PValue object is forbidden.\n"
     this_is_a_p_value = True
 
@@ -44,29 +80,40 @@ class PValue(OperatorValue):
         self.created_by = created_by
         self.var_name = var_name
 
-    def _forbidden_func(self, func):
-        if self.allow_str:
-            return func(self.value)
+    def _get_new_object(self, value):
+        return self.__class__(value, created_by=self.created_by, var_name=self.var_name)
+
+    def _raise_if_forbidden_func(self, method_name):
         raise RunIssue.from_current_tb(
-            issue=self.error_message_on_forbidden_func.format(func_name=func.__name__,
-                                                              created_by=self.created_by),
+            issue=self.error_message_on_forbidden_func.format(func_name=method_name, created_by=self.created_by),
             code_problem=CodeProblem.RuntimeError,
         )
 
+    def _apply_post_operator(self, op, method_name, value):
+        if self.BEHAVE_NORMALLY:
+            return value
+        if method_name in ['__str__', '__repr__']:
+            on_str = self.ON_STR.val
+            if on_str == OnStr.NORMAL:
+                return value
+            if on_str == OnStr.SMALLER_THAN:
+                return format_p_value(self.value)
+            if on_str == OnStr.WITH_EPSILON:
+                return str(max(self.value, EPSILON))
+            if on_str == OnStr.RAISE:
+                self._raise_if_forbidden_func(method_name)
+            assert False, f'Unknown value for ON_STR: {on_str}'
+        if method_name in self.OPERATORS_RETURNING_NEW_PVALUE:
+            return self._get_new_object(value)
+        if method_name in self.OPERATORS_RETURNING_NORMAL_VALUE:
+            return value
+        self._raise_if_forbidden_func(method_name)
+
     @property
     def __class__(self):
-        if not self.allow_str:
-            return type(self.value)
-        return PValue
-
-    def __str__(self):
-        return self._forbidden_func('{:.4g}'.format)
-
-    def __repr__(self):
-        return self._forbidden_func('{:.4g}'.format)
-
-    def __float__(self):
-        return self._forbidden_func(float)
+        if self.BEHAVE_NORMALLY:
+            return PValue
+        return type(self.value)
 
     @classmethod
     def from_value(cls, value, created_by: str = None, var_name: str = None,

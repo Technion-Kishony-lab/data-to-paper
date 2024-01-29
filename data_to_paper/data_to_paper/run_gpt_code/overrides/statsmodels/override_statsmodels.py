@@ -51,7 +51,7 @@ class StatsmodelsFitPValueOverride(SystematicMethodReplacerContext, TrackPValueC
             A custom summary2 function that replaces the pvalues attribute of the summary tables with a PValue objects.
             Replaces "P>|t|" and "P>|z|" with PValue objects.
             """
-            with PValue.allow_str.temporary_set(True):
+            with PValue.BEHAVE_NORMALLY.temporary_set(True):
                 result = original_func(obj, *args, **kwargs)
 
             tables = result.tables

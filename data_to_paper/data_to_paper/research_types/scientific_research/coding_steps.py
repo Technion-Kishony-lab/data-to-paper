@@ -19,7 +19,7 @@ from data_to_paper.research_types.scientific_research.table_debugger import Tabl
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr
 
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
@@ -376,7 +376,7 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
 
     def get_pretty_content(self, content: Any, filename: str = None) -> str:
-        with PValue.allow_str.temporary_set(True):
+        with PValue.ON_STR.temporary_set(OnStr.WITH_EPSILON):
             return super().get_pretty_content(content, filename)
 
 
@@ -385,7 +385,7 @@ class DataFramePickleContentOutputFileRequirement(NumericTextContentOutputFileRe
                                                   ):
 
     def get_pretty_content(self, content: Any, filename: str = None) -> str:
-        with PValue.allow_str.temporary_set(True):
+        with PValue.ON_STR.temporary_set(OnStr.WITH_EPSILON):
             return super().get_pretty_content(content.to_string(), filename)
 
 
