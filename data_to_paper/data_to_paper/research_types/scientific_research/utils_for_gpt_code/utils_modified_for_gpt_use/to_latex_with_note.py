@@ -5,7 +5,6 @@ import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
-from data_to_paper.env import TRACK_P_VALUES
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
@@ -14,7 +13,6 @@ from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssu
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
 from data_to_paper.utils.iterators import apply_deeply
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_df_of_table_for_content_issues
-from .format_p_value import is_ok_to_apply_format_p_value
 
 from ..original_utils import to_latex_with_note, format_p_value
 
@@ -236,83 +234,6 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                         There is no need to add corresponding comments to the code. 
                         """),
                 ))
-
-    # Check P-value formatting
-    if TRACK_P_VALUES:
-        # Check if the entire table is p-values:
-        if sum(is_p_value(v) for v in df.values.flatten()) > 1 \
-                and all(is_ok_to_apply_format_p_value(v) for v in df.values.flatten()):
-            raise RunIssue(
-                    category='P-value formatting',
-                    code_problem=CodeProblem.RuntimeError,
-                    item=filename,
-                    issue='P-values should be formatted with `format_p_value` before calling `to_latex_with_note`',
-                    instructions=dedent_triple_quote_str(f"""
-                        In particular, the dataframe should be formatted as:
-                        `df = df.applymap(format_p_value)`
-                        """),
-                )
-
-        # Check if there are columns which are all p-values:
-        p_value_columns = []
-        for icol in range(df.shape[1]):
-            column_label = df.columns[icol]
-            data = df.iloc[:, icol]
-            if any(is_p_value(v) for v in data) \
-                    and all(is_ok_to_apply_format_p_value(v) for v in data):
-                p_value_columns.append(column_label)
-        if p_value_columns:
-            if len(p_value_columns) == 1:
-                p_value_columns = p_value_columns[0]
-            raise RunIssue(
-                    category='P-value formatting',
-                    code_problem=CodeProblem.RuntimeError,
-                    item=filename,
-                    issue='P-values should be formatted with `format_p_value`',
-                    instructions=f'In particular, the p-value columns should be formatted as:\n'
-                                 f'`df[{repr(p_value_columns)}] = df[{repr(p_value_columns)}].apply(format_p_value)`',
-            )
-        # Check if there is a row which is all p-values:
-        p_value_rows = []
-        for irow in range(df.shape[0]):
-            row_label = df.index[irow]
-            data = df.iloc[irow, :]
-            if any(is_p_value(v) for v in data) \
-                    and all(is_ok_to_apply_format_p_value(v) for v in data):
-                p_value_rows.append(row_label)
-        if p_value_rows:
-            if len(p_value_rows) == 1:
-                p_value_rows = p_value_rows[0]
-            raise RunIssue(
-                    category='P-value formatting',
-                    code_problem=CodeProblem.RuntimeError,
-                    item=filename,
-                    issue='P-values should be formatted with `format_p_value`',
-                    instructions=f'In particular, the p-value rows should be formatted as:\n'
-                                 f'`df.loc[{repr(p_value_rows)}] = df.loc[{repr(p_value_rows)}].apply(format_p_value)`',
-            )
-
-        # Check if there are individual p-value cells that are not formatted:
-        cells_with_p_value = []
-        for irow in range(df.shape[0]):
-            row_label = df.index[irow]
-            for icol in range(df.shape[1]):
-                column_label = df.columns[icol]
-                v = df.iloc[irow, icol]
-                if is_p_value(v):
-                    cells_with_p_value.append((row_label, column_label))
-        if cells_with_p_value:
-            row, col = cells_with_p_value[0]
-            raise RunIssue(
-                    category='P-value formatting',
-                    code_problem=CodeProblem.RuntimeError,
-                    item=filename,
-                    issue='P-values should be formatted with `format_p_value`',
-                    instructions=f"In particular, the dataframe has P-value in the cells: {cells_with_p_value}.\n"
-                                 f"Please format them using `format_p_value` "
-                                 f"(e.g., `df.loc[{repr(row)}, {repr(col)}] = "
-                                 f"format_p_value(df.loc[{repr(row)}, {repr(col)}]).",
-            )
 
     if not isinstance(e, float):
         issues.append(RunIssue(
