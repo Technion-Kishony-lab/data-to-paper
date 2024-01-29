@@ -4,15 +4,23 @@ import numpy as np
 
 
 class OperatorValue:
+    OPERATORS_RETURNING_NEW_OBJECT = {}
+
     UNARY_METHODS_TO_OPERATORS = {
         '__neg__': operator.neg,
         '__pos__': operator.pos,
         '__abs__': operator.abs,
         '__invert__': operator.invert,
         '__round__': round,
+        '__float__': float,
         '__floor__': np.floor,
         '__ceil__': np.ceil,
         '__trunc__': np.trunc,
+        '__hash__': hash,
+        '__format__': format,
+        '__str__': str,
+        '__repr__': repr,
+        '__bool__': bool,
     }
 
     BINARY_METHODS_TO_OPERATORS = {
@@ -51,40 +59,38 @@ class OperatorValue:
     def __init__(self, value):
         self.value = value
 
-    def __eq__(self, other):
-        return self.value == other.value
+    def _get_new_object(self, value):
+        return self.__class__(value)
 
-    def __hash__(self):
-        return hash(self.value)
+    def _apply_post_operator(self, op, method_name, value):
+        if method_name in self.OPERATORS_RETURNING_NEW_OBJECT:
+            return self._get_new_object(value)
+        return value
 
-    def __float__(self):
-        return self.value
+    def _raise_on_forbidden_operator(self, op, method_name):
+        if op is None:
+            raise NotImplementedError(f'Operator {method_name} is not allowed on {self.__class__.__name__}')
 
-    def __format__(self, format_spec):
-        return format(self.value, format_spec)
-
-    def __str__(self):
-        return str(self.value)
-
-    def _binary_op(self, other, op):
+    def _binary_op(self, other, op, method_name):
+        self._raise_on_forbidden_operator(op, method_name)
         if isinstance(other, OperatorValue):
             other = other.value
-        return op(self.value, other)
+        return self._apply_post_operator(op, method_name, op(self.value, other))
+
+    def _unary_op(self, op, *args, method_name=None, **kwargs):
+        self._raise_on_forbidden_operator(op, method_name)
+        return self._apply_post_operator(op, method_name, op(self.value, *args, **kwargs))
 
     @classmethod
     def add_methods(cls):
         for method_name, op in cls.BINARY_METHODS_TO_OPERATORS.items():
-            def method(self, other, op=op):
-                if op is None:
-                    raise NotImplementedError(f'Operator {method_name} is not allowed on {self.__class__.__name__}')
-                return self._binary_op(other, op)
+            def method(self, other, op=op, method_name=method_name):
+                return self._binary_op(other, op, method_name)
             setattr(cls, method_name, method)
 
         for method_name, op in cls.UNARY_METHODS_TO_OPERATORS.items():
-            def method(self, *args, op=op, **kwargs):
-                if op is None:
-                    raise NotImplementedError(f'Operator {method_name} is not allowed on {self.__class__.__name__}')
-                return op(self.value, *args, **kwargs)
+            def method(self, *args, op=op, method_name=method_name, **kwargs):
+                return self._unary_op(op, *args, method_name=method_name, **kwargs)
             setattr(cls, method_name, method)
         return cls
 
