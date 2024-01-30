@@ -6,6 +6,7 @@ from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
 from data_to_paper.run_gpt_code.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
@@ -220,8 +221,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 content_files_to_contents = {None: None}
             else:
                 content_files_to_contents = \
-                    code_and_output.created_files.get_created_content_files_to_contents(
-                        match_filename=wildcard_filename, is_block=True)
+                    code_and_output.created_files.get_created_content_files_to_pretty_contents(
+                        match_filename=wildcard_filename, is_block=True, pvalue_on_str=OnStr.WITH_EPSILON)
                 if len(content_files_to_contents) == 0:
                     continue
                 if not individually:

@@ -376,23 +376,13 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         return comments
 
 
-class PValuePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-
-    def get_pretty_content(self, content: Any, filename: str = None) -> str:
-        with PValue.ON_STR.temporary_set(OnStr.WITH_EPSILON):
-            return super().get_pretty_content(content, filename)
-
-
 class DataFramePickleContentOutputFileRequirement(NumericTextContentOutputFileRequirement,
                                                   PickleContentOutputFileRequirement,
                                                   ):
-
-    def get_pretty_content(self, content: Any, filename: str = None) -> str:
-        with PValue.ON_STR.temporary_set(OnStr.WITH_EPSILON):
-            return super().get_pretty_content(content.to_string(), filename)
+    pass
 
 
-class DictPickleContentOutputFileRequirement(PValuePickleContentOutputFileRequirement,
+class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
                                              NumericTextContentOutputFileRequirement):
 
     def get_content(self, file_path: str) -> Dict:
@@ -775,7 +765,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
     @staticmethod
     def _get_table_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
-        tables = code_and_output.created_files.get_created_content_files_to_contents(match_filename='table_*.pkl')
+        tables = code_and_output.created_files.get_created_content_files_to_contents(
+            match_filename='table_*.pkl')
         num_tables = len(tables)
         # is_descriptive_table = 'table_0.pkl' in tables
         if num_tables == 0:

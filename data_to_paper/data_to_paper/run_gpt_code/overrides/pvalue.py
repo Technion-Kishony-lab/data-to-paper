@@ -1,7 +1,7 @@
 import numbers
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Iterable
+from typing import List, Iterable, Optional
 
 import numpy as np
 import pandas as pd
@@ -71,7 +71,7 @@ class PValue(OperatorValue):
     # All other operators are not allowed
 
     BEHAVE_NORMALLY = Flag(False)
-    ON_STR = Mutable(OnStr.RAISE)
+    ON_STR = OnStr.RAISE
     error_message_on_forbidden_func = "Calling `{func_name}` on a PValue object is forbidden.\n"
     this_is_a_p_value = True
 
@@ -93,7 +93,7 @@ class PValue(OperatorValue):
         if self.BEHAVE_NORMALLY:
             return value
         if method_name in ['__str__', '__repr__']:
-            on_str = self.ON_STR.val
+            on_str = self.ON_STR
             if on_str == OnStr.NORMAL:
                 return value
             if on_str == OnStr.SMALLER_THAN:
@@ -199,3 +199,20 @@ class TrackPValueCreationFuncs(RunContext):
     def _add_pvalue_creating_func(self, func_name: str):
         if self._is_enabled and self._is_called_from_user_script(4):
             self.pvalue_creating_funcs.append(func_name)
+
+
+class OnStrPValue:
+    """
+    A context manager for temporarily changing the ON_STR value of PValue.
+    """
+    def __init__(self, on_str: Optional[OnStr] = None):
+        self.on_str = on_str
+        self.prev_on_str = PValue.ON_STR
+
+    def __enter__(self):
+        if self.on_str is not None:
+            PValue.ON_STR = self.on_str
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        PValue.ON_STR = self.prev_on_str
+        return False

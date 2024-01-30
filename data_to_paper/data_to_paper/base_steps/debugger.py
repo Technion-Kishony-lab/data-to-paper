@@ -373,7 +373,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         issues = []
-        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=False)
+        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents()
         for requirement in self.output_file_requirements:
             if isinstance(requirement, BaseContentOutputFileRequirement):
                 for filename in code_and_output.created_files[requirement]:

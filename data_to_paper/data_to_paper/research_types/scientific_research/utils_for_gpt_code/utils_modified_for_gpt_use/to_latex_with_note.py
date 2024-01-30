@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStr
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStr, is_containing_p_value
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
@@ -59,20 +59,20 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
     return to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
-                              pvalue_formatting=OnStr.SMALLER_THAN, **kwargs)
+                              pvalue_on_str=OnStr.SMALLER_THAN, **kwargs)
 
 
 def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
                                  note: str = None,
                                  legend: Dict[str, str] = None,
-                                 pvalue_formatting: Optional[OnStr] = None,
+                                 pvalue_on_str: Optional[OnStr] = None,
                                  **kwargs):
     assert 'columns' not in kwargs, "assumes columns is None"
     index = kwargs.pop('index', True)
     header = kwargs.pop('header', True)
     header, index = index, header
-    return to_latex_with_note(df.T, filename, *args, note=note, legend=legend, index=index, header=header,
-                              pvalue_formatting=pvalue_formatting, **kwargs)
+    return to_latex_with_note(df.T, filename, note=note, legend=legend, pvalue_on_str=pvalue_on_str, index=index,
+                              header=header, **kwargs)
 
 
 def contains_both_letter_and_numbers(name: str) -> bool:
@@ -153,7 +153,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     file_stem, _ = filename.split('.')
     with RegisteredRunContext.temporarily_disable_all():
         latex = to_latex_with_note(df, None, *args, note=note, legend=legend,
-                                   pvalue_formatting=OnStr.SMALLER_THAN, **kwargs)
+                                   pvalue_on_str=OnStr.SMALLER_THAN, **kwargs)
         if compilation_func is None:
             e = 0
         else:
@@ -204,7 +204,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     for icol in range(df.shape[1]):
         column_label = df.columns[icol]
         data = df.iloc[:, icol]
-        if any(is_p_value(v) for v in data):
+        if is_containing_p_value(data):
             continue
         try:
             data_unique = data.unique()
@@ -259,7 +259,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     elif e > 1.3:
         # Try to compile the transposed table:
         latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend,
-                                                       pvalue_formatting=OnStr.SMALLER_THAN, **kwargs)
+                                                       pvalue_on_str=OnStr.SMALLER_THAN, **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:

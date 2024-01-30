@@ -25,9 +25,9 @@ introduction_citation_id = next(iter(introduction_citation)).bibtex_id
 @fixture()
 def code_and_output():
     code_and_output = mock.Mock()
-    # return value for function get_created_content_files_to_contents:
+    # return value for function get_created_content_files_to_pretty_contents:
     code_and_output.created_files = OutputFileRequirementsWithContent()
-    code_and_output.get_created_content_files_to_contents.return_value = {
+    code_and_output.get_created_content_files_to_pretty_contents.return_value = {
         'table_1.tex': """\\begin{table}
 \\centering
 \\begin{tabular}{ *{3}{c} }

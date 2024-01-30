@@ -5,7 +5,7 @@ from typing import Optional, Dict
 import pandas as pd
 
 from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_latex_text_and_math
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, PValue
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, PValue, OnStrPValue
 from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 
@@ -43,16 +43,14 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
                        legend: Dict[str, str] = None,
                        is_wide: bool = True,
                        float_num_digits: int = 4,
-                       pvalue_formatting: Optional[OnStr] = None,
+                       pvalue_on_str: Optional[OnStr] = None,
                        **kwargs):
     """
     Create a latex table with a note.
     Same as df.to_latex, but with a note and legend.
     """
 
-    with ExitStack() as stack:
-        if pvalue_formatting is not None:
-            stack.enter_context(PValue.ON_STR.temporary_set(pvalue_formatting))
+    with OnStrPValue(pvalue_on_str):
         regular_latex_table = df.to_latex(None, caption=None, label=None, **kwargs)
 
     index = kwargs.get('index', True)
