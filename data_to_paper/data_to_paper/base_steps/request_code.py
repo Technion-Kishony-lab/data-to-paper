@@ -93,6 +93,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             I ran your code. 
 
             Here is the content of the output file(s) that the code created:
+            
             {file_contents_str}
 
             Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
@@ -224,7 +225,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 if len(content_files_to_contents) == 0:
                     continue
                 if not individually:
-                    content_files_to_contents = {wildcard_filename: '\n\n'.join(content_files_to_contents.values())}
+                    content_files_to_contents = {wildcard_filename: '\n'.join(content_files_to_contents.values())}
             for filename, file_contents_str in content_files_to_contents.items():
                 formatted_code_review_prompt = \
                     Replacer(

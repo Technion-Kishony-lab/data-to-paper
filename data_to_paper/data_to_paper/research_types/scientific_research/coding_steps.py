@@ -209,8 +209,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         I ran your code.
 
         Here is the content of the output file that the code created:
-        {file_contents_str}
 
+        {file_contents_str}
+        
         Please follow these two steps:
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
@@ -304,72 +305,74 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
     user_agent: ScientificAgent = ScientificAgent.Debugger
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'statsmodels', 'sklearn')
 
-    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+    @staticmethod
+    def _get_regression_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        if 'statsmodels' not in code_and_output.code:
+            return ''
         linear_regression_funcs = ['ols(', 'OLS(', 'logit(', 'Logit(', 'glm(', 'GLM(']
-        comments = {}
-        s = []
         code = code_and_output.code
-        s.append('- Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?')
         func_names = [func for func in linear_regression_funcs if func in code]
-        if func_names:
-            s.append(f'- In linear regression, if interactions terms are included:\n'
-                     f'  * did we remember to include the main effects?\n'
-                     f'  * did we use the `*` operator in statsmodels formula as recommended '
-                     f'(as applicable, better use the `formula = "y ~ a * b"` string notation instead of trying to '
-                     f'manually multiply the variables)')
-        if 'mediation' in code.lower():
-            s.append("- In mediation analysis:\n"
-                     "  * did we calculate the mediation effect (e.g., using the Sobel test or other)?\n"
-                     "  * did we account for relevant confounding factors "
-                     "(by adding these same confounding factors to both the 'a' and 'b' paths)?")
+        if not func_names:
+            return ''
+        return dedent_triple_quote_str("""
+            - In linear regression, if interactions terms are included:
+              * did we remember to include the main effects?
+              * did we use the `*` operator in statsmodels formula as recommended? \
+            (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \
+            manually multiply the variables)
+            """)
 
+    @staticmethod
+    def _get_mediation_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        if 'mediation' not in code_and_output.code.lower():
+            return ''
+        return dedent_triple_quote_str("""
+            - In mediation analysis:
+              * did we calculate the mediation effect (e.g., using the Sobel test or other)?
+              * did we account for relevant confounding factors? \
+            (by adding these same confounding factors to both the 'a' and 'b' paths)
+            """)
+
+    @staticmethod
+    def _get_machine_learning_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        if 'sklearn' not in code_and_output.code:
+            return ''
         ml_funcs = ['RandomForestClassifier(', 'RandomForestRegressor(',
                     'ElasticNet(', 'SVR(', 'SVC(', 'MLPRegressor(',
                     'DecisionTreeClassifier(',
                     'DecisionTreeRegressor(', 'LogisticRegression(']
-        func_names = [func for func in ml_funcs if func in code]
-        if func_names:
-            # func_name = func_names[0][:-1]
-            s.append(
-                f'- For created Machine-Learning models, check whether we adequately perform hyperparameter tuning '
-                f'using cross-validation (as appropriate). Also check whether the best hyperparameters are reported '
-                f'(either in the table files or in the "additional_results.pkl" file).')
+        func_names = [func for func in ml_funcs if func in code_and_output.code]
+        if not func_names:
+            return ''
+        return dedent_triple_quote_str("""
+            - For created Machine-Learning models:
+              * Check whether we adequately perform hyperparameter tuning using cross-validation (as appropriate). 
+              * Check whether the best hyperparameters are reported \
+              (either in a table file or in the "additional_results.pkl" file).
+            """)
 
-        # get ScipyPValueOverride:
+    @staticmethod
+    def _get_scipy_unpacking_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
         override_stats = code_and_output.contexts['OverrideStatisticsPackages']
         assert isinstance(override_stats, OverrideStatisticsPackages)
         stat_contexts = override_stats.contexts
-        context = next((context for context in stat_contexts if isinstance(context, ScipyPValueOverride)), None)
-        if context:
-            func_to_fields = context.unpacking_func_to_fields
+        scipy_context = next((context for context in stat_contexts if isinstance(context, ScipyPValueOverride)), None)
+        if scipy_context:
+            func_to_fields = scipy_context.unpacking_func_to_fields
             if func_to_fields:
-                s.append(f'- When unpacking or indexing the tuple results of '
-                         f'{NiceList(func_to_fields.keys(), wrap_with="`", last_separator=" or ")}, '
-                         f'are we using the correct order of fields?')
-                s.append('\n'.join(
-                    f'  The correct order for `{func}` is: {NiceList(fields, wrap_with="`")}'
-                    for func, fields in func_to_fields.items()
-                ))
+                s = '- When unpacking or indexing the results of {}, are we using the correct order of fields?\n'. \
+                    format(NiceList(func_to_fields.keys(), wrap_with="`", last_separator=" or "))
+                for func, fields in func_to_fields.items():
+                    s += f'  The correct order for `{func}` is: {NiceList(fields, wrap_with="`")}.\n'
+                return s
+        return ''
 
-        comments['specific_comments_for_code_and_output'] = '\n'.join(s) + '\n'
-
-        num_tables = len(code_and_output.created_files.get_created_content_files_to_contents()) - 1  # -1 for result.txt
-        # is_descriptive_table = 'table_0.pkl' in code_and_output.created_files.get_created_content_files_to_contents()
-        if num_tables >= 3:
-            s = ''
-        else:
-            s = '\n* Missing tables: '
-            if num_tables == 1:
-                s += 'You only produced 1 table. ' \
-                     'Note that research papers typically have 2 or more tables. ' \
-                     'Are you sure all relevant tables are created? Can you suggest any additional analysis leading ' \
-                     'to additional tables?'
-            else:
-                assert num_tables == 2
-                s += 'Considering our research goal and hypothesis testing plan, ' \
-                     'are all relevant tables created? If not, can you suggest any additional tables?'
-            s += '\n'
-        comments['comment_on_missing_table'] = s
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        comments = super()._get_specific_attrs_for_code_and_output(code_and_output)
+        comments['regression_comments'] = self._get_regression_comments_for_code_and_output(code_and_output)
+        comments['mediation_comments'] = self._get_mediation_comments_for_code_and_output(code_and_output)
+        comments['machine_learning_comments'] = self._get_machine_learning_comments_for_code_and_output(code_and_output)
+        comments['scipy_unpacking_comments'] = self._get_scipy_unpacking_comments_for_code_and_output(code_and_output)
         return comments
 
 
@@ -570,7 +573,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Try using inherent functionality and syntax provided in functions from the available \
         Python packages (above) and avoid, as possible, manually implementing generically available functionality.
         For example, to include interactions in regression analysis (if applicable), use the "x * y" string syntax \
-        in statsmodels formulas.{mediation_note_if_applicable}
+        in statsmodels formulas.
+        {mediation_note_if_applicable}\
 
         [c] Create and save a dataframe for a scientific table
         * Create a dataframe containing the data needed for the table (`df1`, `df2`, etc). 
@@ -660,7 +664,12 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Incorrect choice of statistical test.
         - Imperfect implementation of statistical tests.
         - Did we correctly chose the variables that best represent the tested hypothesis? 
-        {specific_comments_for_code_and_output}- Any other statistical analysis issues.
+        - Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?
+        {regression_comments}\
+        {mediation_comments}\
+        {machine_learning_comments}\
+        {scipy_unpacking_comments}\
+        - Any other statistical analysis issues.
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
@@ -682,23 +691,24 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:
+        
         {file_contents_str}
-
+        
         Please review the table and follow these two steps:
 
-        (1) Check the created table and \
-        return a bullet-point response addressing these points:
+        (1) Check the created table and return a bullet-point response addressing these points:
         * Sensible numeric values: Check each numeric value in the table and make sure it is sensible.
         For example:
         - If the table reports the mean of a variable, is the mean value sensible?
         - If the table reports CI, are the CI values flanking the mean?
         - Do values have correct signs?
         - Do you see any values that are not sensible (too large, too small)?
+        - Do you see any 0 values that do not make sense?
 
         * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
 
-        * Missing data in a table: Are we missing key variables in a given table?
+        * Missing data: Are we missing key variables, or important results, that we should calculate and report? 
 
         * Any other issues you find.
 
@@ -722,6 +732,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         I ran your code.
 
         Here is the content of the file(s) that the code created for our scientific paper:
+        
         {file_contents_str}
 
         Please review the code and theses output files and return a bullet-point response addressing these points:
@@ -740,7 +751,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         it also report its measures of uncertainty (CI, or STD, as applicable)?
 
         * Missing data in a table: Are we missing key variables in a given table?
-        {comment_on_missing_table} 
+
+        {missing_tables_comments}
         * Any other issues you find.
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
@@ -761,15 +773,49 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         """)),
     )
 
+    @staticmethod
+    def _get_table_comments_for_code_and_output(code_and_output: CodeAndOutput) -> str:
+        tables = code_and_output.created_files.get_created_content_files_to_contents(match_filename='table_*.pkl')
+        num_tables = len(tables)
+        # is_descriptive_table = 'table_0.pkl' in tables
+        if num_tables == 0:
+            return dedent_triple_quote_str("""
+                * Missing tables: \
+                You did not create any tables. \
+                Note that research papers typically have 2 or more tables. \
+                Please suggest which tables to create and additional analysis needed.\n
+                """)
+        if num_tables == 1:
+            return dedent_triple_quote_str("""
+                * Missing tables: \
+                You only produced 1 table. \
+                Note that research papers typically have 2 or more tables. \
+                Are you sure all relevant tables are created? Can you suggest any additional analysis leading \
+                to additional tables?'\n
+                """)
+        if num_tables == 2:
+            return dedent_triple_quote_str("""
+                * Missing tables: \
+                Considering our research goal and hypothesis testing plan, \
+                are all relevant tables created? If not, can you suggest any additional tables?\n
+                """)
+        return ''
+
+    def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
+        comments = super()._get_specific_attrs_for_code_and_output(code_and_output)
+        comments['missing_tables_comments'] = self._get_table_comments_for_code_and_output(code_and_output)
+        return comments
+
     @property
     def mediation_note_if_applicable(self):
         keywords = ['mediated', 'mediation', 'mediates', 'mediator', 'mediators']
         for hypothesis, plan in self.products.hypothesis_testing_plan.items():
             if any(keyword in hypothesis.lower() or keyword in plan.lower() for keyword in keywords):
-                return f"\n" \
-                       f"- If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' " \
-                       f"paths (and add the same confounding variables to both paths, as needed)."
-        return ''
+                return dedent_triple_quote_str("""
+                   - If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' \
+                   paths (and add the same confounding variables to both paths, as needed).
+                   """)
+        return ""
 
 
 @dataclass
@@ -952,7 +998,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Do not send any presumed output examples.
         ''')
 
-    code_review_prompts: str = None
+    code_review_prompts: Iterable[Tuple[str, bool, str]] = ()
 
     @property
     def first_table_number(self):

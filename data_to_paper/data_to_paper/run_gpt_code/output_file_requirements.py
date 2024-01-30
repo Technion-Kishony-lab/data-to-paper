@@ -86,7 +86,7 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         content = str(content)
         if filename is not None:
             label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
-            return f'"{filename}":\n```{label}\n{content}\n```\n\n'
+            return f'"{filename}":\n```{label}\n{content}\n```\n'
         return content
 
 
