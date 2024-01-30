@@ -504,15 +504,6 @@ class ScientificProducts(Products):
                 ScientificStages.TABLES,
                 lambda: {'tables': self.get_tables_names_and_content()}),
 
-            'results_file': NameDescriptionStageGenerator(
-                'Other Numeric Values for the Paper',
-                'Here is the content of the "results.txt" file providing some additional numeric values '
-                'we can use to write the results of the paper:\n\n{}',
-                ScientificStages.CODE,
-                lambda: self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents()[
-                    'results.txt']
-            ),
-
             'numeric_values': NameDescriptionStageGenerator(
                 'Other Numeric Values for the Paper',
                 'Here are some other numeric values we can use to write the results of the paper:\n\n{}',

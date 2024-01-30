@@ -597,24 +597,3 @@ class KeyNumericalResultsExtractorReviewGPT(PythonDictReviewBackgroundProductsCo
         # the correct flanking tags {} as part of a latex formula, rather than as part of a Python dict.
         self._check_extracted_numbers(response)
         return super()._check_response_and_get_extracted_result(response)
-
-
-@dataclass
-class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
-    max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'tables', 'results_file')
-    conversation_name: str = 'results_interpretation'
-    goal_noun: str = '"description and interpretation" of data analysis results'
-    goal_verb: str = 'write'
-    assistant_agent: ScientificAgent = ScientificAgent.Performer
-    user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
-    sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide feedback on the above {goal_noun}, with specific attention to whether this description \
-        is fully supported by our data (pay specific attention to the output of our analysis code, above).
-
-        If you are satisfied, respond with "{termination_phrase}".
-        """)
-    user_initiation_prompt: str = "Please {goal_verb} {goal_noun}. " + \
-                                  "Briefly mention the tools used to preform the analysis.\n\n" \
-                                  "{quote_request}"
