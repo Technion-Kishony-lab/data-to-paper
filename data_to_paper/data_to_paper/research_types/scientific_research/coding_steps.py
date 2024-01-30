@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, List, Any
-
-from pandas.core.frame import DataFrame
+from typing import Optional, Tuple, Dict, Type, List, Any, Iterable
 
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
@@ -206,11 +204,12 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Do not send any presumed output examples.
         """)
 
-    code_review_prompts: str = dedent_triple_quote_str("""
+    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
+        ('*', False, dedent_triple_quote_str("""
         I ran your code.
 
-        Here is the content of the output file(s) that the code created:
-        {created_file_contents_str}
+        Here is the content of the output file that the code created:
+        {file_contents_str}
 
         Please follow these two steps:
 
@@ -247,8 +246,8 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * If there are no critical issues, then return an empty dict: `{}`.
         * Do not create positive issues that require no change in the code. In particular, do not write \
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
-
-        """)  # set to None to skip option for revision
+        """)),
+    )
 
 
 @dataclass
@@ -337,7 +336,9 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
                 f'(either in the table files or in the "additional_results.pkl" file).')
 
         # get ScipyPValueOverride:
-        stat_contexts = code_and_output.contexts['OverrideStatisticsPackages'].contexts
+        override_stats = code_and_output.contexts['OverrideStatisticsPackages']
+        assert isinstance(override_stats, OverrideStatisticsPackages)
+        stat_contexts = override_stats.contexts
         context = next((context for context in stat_contexts if isinstance(context, ScipyPValueOverride)), None)
         if context:
             func_to_fields = context.unpacking_func_to_fields
@@ -619,8 +620,15 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         rather than integer-based column/index positions. 
         """)
 
-    code_review_prompts: Tuple[str] = (
-        dedent_triple_quote_str("""
+    code_review_formatting_instructions: str = dedent_triple_quote_str("""
+        Try to be as specific as possible when describing the issues and proposed fixes.
+        Include in the dict as many issues as you find. 
+        If you are sure that there are no issues, and the code and tables need no revision, \
+        then return an empty dict: `{}`. 
+        """)
+
+    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
+        (None, False, dedent_triple_quote_str("""
         Please follow these two steps:
 
         (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
@@ -668,25 +676,22 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         }
         ```
 
-        Try to be as specific as possible when describing the issues and proposed fixes.
-        Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision, \
-        then return an empty dict: `{}`. 
-        """),
-        dedent_triple_quote_str("""
+        {code_review_formatting_instructions}
+        """)),
+        ('table_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
-        Here is the content of the output file(s) that the code created:
-        {created_file_contents_str}
+        Here is the content of the table '{filename}' that the code created for our scientific paper:
+        {file_contents_str}
 
-        Please follow these two steps:
+        Please review the table and follow these two steps:
 
-        (1) Check the created pkl tables (provided above) and \
+        (1) Check the created table and \
         return a bullet-point response addressing these points:
-        * Sensible numeric values: Check each numeric value in the tables and make sure it is sensible.
-        For example: 
-        - If a table reports the mean of a variable, is the mean value sensible?
-        - If a table reports CI, are the CI values flanking the mean?
+        * Sensible numeric values: Check each numeric value in the table and make sure it is sensible.
+        For example:
+        - If the table reports the mean of a variable, is the mean value sensible?
+        - If the table reports CI, are the CI values flanking the mean?
         - Do values have correct signs?
         - Do you see any values that are not sensible (too large, too small)?
 
@@ -694,7 +699,48 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
 
         * Missing data in a table: Are we missing key variables in a given table?
-        {comment_on_missing_table}
+
+        * Any other issues you find.
+
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
+        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
+
+        For example:
+        ```python
+        {
+            "Table {filename} reports incomplete results": \
+            "revise the code to add the following new column '<your suggested column name>'",
+
+            "Table {filename} reports nominal values without measures of uncertainty": \
+            "revise the code to add STD and p-value.", 
+        }
+        ```
+
+        {code_review_formatting_instructions}
+        """)),
+        ('*', False, dedent_triple_quote_str("""
+        I ran your code.
+
+        Here is the content of the file(s) that the code created for our scientific paper:
+        {file_contents_str}
+
+        Please review the code and theses output files and return a bullet-point response addressing these points:
+
+        * Does the code create and output all needed results to address our {hypothesis_testing_plan}?
+
+        * Sensible numeric values: Check each numeric value in the tables and in the additional results file \
+        and make sure it is sensible.
+        For example: 
+        - If a table reports the mean of a variable, is the mean value sensible?
+        - If a table reports CI, are the CI values flanking the mean?
+        - Do values have correct signs?
+        - Do you see any values that are not sensible (too large, too small)?
+
+        * Measures of uncertainty: If a table reports a nominal value (like mean of a variable), does \
+        it also report its measures of uncertainty (CI, or STD, as applicable)?
+
+        * Missing data in a table: Are we missing key variables in a given table?
+        {comment_on_missing_table} 
         * Any other issues you find.
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
@@ -711,11 +757,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         }
         ```
 
-        Try to be as specific as possible when describing the issues and proposed fixes.
-        Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision, \
-        then return an empty dict: `{}`. 
-        """)
+        {code_review_formatting_instructions}
+        """)),
     )
 
     @property
@@ -732,7 +775,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 @dataclass
 class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
     obj_import_str: str = 'pandas.DataFrame'
-    forbidden_set_attrs: Tuple[str, ...] = ('columns', 'index')
+    forbidden_set_attrs: Iterable[str] = ('columns', 'index')
 
     def _raise_exception(self, attr, value):
         raise RunIssue.from_current_tb(

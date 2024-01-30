@@ -96,7 +96,7 @@ class OpenaiSeverCaller(ListServerCaller):
             to understand the instructions we are sending to the LLM.\n \
             If you are willing to proceed, please type Y, otherwise type N \n\n \
             Note: if you choose N, the program will immediately abort.\n"""))
-            
+
             if user_choice.lower() == 'n':
                 raise UserAbort(reason="User chose to abort the program.")
             elif user_choice.lower() == 'y':
