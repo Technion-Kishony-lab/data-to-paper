@@ -483,8 +483,8 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(2.0 - 2 * 0.3)}, \\num{exp(2.0 + 2 * 0.3)}])."
 
         * p-values:
-        When mentioning p-values, use the $<$ symbol to indicate that the p-value is smaller than the \
-        relevant value.
+        As relevant, P-values should be cited as they appear in the Tables or in "{additional_results}". 
+        P-values smaller than 1e-6 should be cited as "$<$ 1e-6". 
 
         * Accuracy: 
         Make sure that you are only mentioning details that are explicitly found within the Tables and \

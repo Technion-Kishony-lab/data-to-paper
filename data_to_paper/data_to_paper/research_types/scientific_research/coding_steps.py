@@ -192,10 +192,14 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         <As applicable, counts of special numeric values that stand for unknown/undefined if any \
         (check in the "{all_file_descriptions}" above for any)>
 
-        # <other summary you deem relevant, if any>
-        <summary>
-        ```
+        # <title of other summary you deem relevant, if any>
+        <Add any other summary of the data you deem relevant>
 
+        # <etc for any other summary you deem relevant.>
+        ```
+        
+        If any of the above sections is not applicable, then write "Not Applicable" under that section.
+        
         If needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -218,7 +222,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file? In particular, do we have a short label for each result?
         * Are there any results that are missing. Check that under each header in the output file there is \
-        a corresponding meaningful result.
+        a corresponding meaningful result (or "Not Applicable" if not applicable).
         * Any other issues you find.
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \
