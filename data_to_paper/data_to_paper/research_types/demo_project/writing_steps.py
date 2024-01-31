@@ -41,7 +41,7 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({actual_background_product_names}), \
+        Based on the material provided above ({actual_background_product_names}), \t
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
 
@@ -51,7 +51,7 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         """)
 
     latex_instructions: str = dedent_triple_quote_str("""
-        Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \
+        Write in tex format including the \\title{} and \\begin{abstract} ... \\end{abstract} commands, \t
         and any math or symbols that needs tex escapes.
         """)
 
@@ -69,18 +69,18 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
     """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \
-        for my paper. Do not provide positive feedback, only provide actionable instructions for improvements in \
+        Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \t
+        for my paper. Do not provide positive feedback, only provide actionable instructions for improvements in \t
         bullet points. 
-        In particular, make sure that the section is correctly grounded in the information provided above, \
+        In particular, make sure that the section is correctly grounded in the information provided above, \t
         yet is written in a funny way.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
 
-        You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
+        You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \t
         or other parts of the paper, like tables or Python code, provided above.
 
         If you don't see any flaws, respond solely with "{termination_phrase}".
 
-        IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "{termination_phrase}"; \
+        IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "{termination_phrase}"; \t
         If you chose to provide bullet-point feedback then DO NOT include "{termination_phrase}".
         """)

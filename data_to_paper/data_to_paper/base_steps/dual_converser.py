@@ -166,9 +166,9 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     #  list of strings, containing the feedback. or empty of for no feedback.
 
     # dedent_triple_quote_str("""
-    #     Your answer is confusing because you have both provided feedback and included the phrase \
+    #     Your answer is confusing because you have both provided feedback and included the phrase \t
     #     "{termination_phrase}".
-    #     Please correct your response so that you EITHER include constructive feedback, OR just say \
+    #     Please correct your response so that you EITHER include constructive feedback, OR just say \t
     #     "{termination_phrase}" without any other text.
     #     Do not apologize for your mistake/confusion - just provide the answer as is.
     #     """)
@@ -325,12 +325,12 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 
     other_system_prompt: str = dedent_triple_quote_str("""
         You are a {reviewer} for a {performer} who needs to {goal_verb} {goal_noun}.
-        Your job is to advise me, the {performer}, and provide constructive bullet-point feedback in repeated cycles \
+        Your job is to advise me, the {performer}, and provide constructive bullet-point feedback in repeated cycles \t
         of improvements and feedback.
 
         When you feel that the goal has been achieved, respond explicitly with: 
         "{termination_phrase}" (approving-phrase)
-        If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged \
+        If you feel that the initial {goal_noun} is already good enough, it is perfectly fine and encouraged \t
         to respond with the approving-phrase immediately, without requesting any improvement cycles.
     """)
 

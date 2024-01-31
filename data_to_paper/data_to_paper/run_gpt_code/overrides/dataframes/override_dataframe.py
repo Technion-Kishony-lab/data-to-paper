@@ -192,7 +192,7 @@ class TrackDataFrames(RunContext):
                     {read_but_unsaved_filenames}.
                     """),
                 instructions=dedent_triple_quote_str("""
-                    The code should use `to_csv` to save any modified dataframe in a new file \
+                    The code should use `to_csv` to save any modified dataframe in a new file \t
                     in the same directory as the code.
                     """),
                 comment='Not all modified dataframes were saved',

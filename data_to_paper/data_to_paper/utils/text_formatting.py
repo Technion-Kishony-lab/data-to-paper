@@ -15,15 +15,14 @@ def format_with_args_or_kwargs(text: str, args_or_kwargs: ArgsOrKwargs) -> str:
         return text.format(**args_or_kwargs)
 
 
-def dedent_triple_quote_str(s: str, remove_repeated_spaces: bool = True):
+def dedent_triple_quote_str(s: str):
     """
     Format a triple-quote string to remove extra indentation and leading newline.
     """
     if s.startswith('\n'):
         s = s[1:]
     s = textwrap.dedent(s)
-    if remove_repeated_spaces:
-        s = re.sub(r' +', ' ', s)
+    s = s.replace('\t\n', '')  # allows continuing lines in triple-quote strings by ending with \t
     return s
 
 

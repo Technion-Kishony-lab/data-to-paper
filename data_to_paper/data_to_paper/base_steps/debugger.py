@@ -94,8 +94,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             Please rewrite the complete code again with these issues corrected.
 
             GENERAL FORMATTING INSTRUCTIONS:
-            Even if you are changing just a few lines, you must return the complete code again in a single code block, \
-            including the unchanged parts, so that I can just copy-paste and run it.
+            Even if you are changing just a few lines, you must return the complete code again in a \t
+            single code block, including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
         """)
     runner_cls: Type[BaseCodeRunner] = CodeRunner

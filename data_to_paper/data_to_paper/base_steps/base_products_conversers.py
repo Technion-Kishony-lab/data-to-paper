@@ -70,7 +70,7 @@ class BackgroundProductsConverser(ProductsConverser):
     fake_reviewer_agree_to_help: str = dedent_triple_quote_str("""
         Sure, I am happy to guide you {goal_verb} the {goal_noun} and can also provide feedback.
 
-        Note that your {goal_noun} should be based on the following research products that you have now \
+        Note that your {goal_noun} should be based on the following research products that you have now \t
         already obtained:
         ```highlight
         {vertical_actual_background_product_names}
@@ -241,33 +241,33 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
         """)
 
     report_non_match_prompt: str = dedent_triple_quote_str("""
-        Any numeric value in your section must be based on the `provided data` above, namely on numerical values \
+        Any numeric value in your section must be based on the `provided data` above, namely on numerical values \t
         extracted from: 
         {names_of_products_from_which_to_extract}
 
-        However, upon reviewing your section, I've identified certain `potentially problematic values`, \
+        However, upon reviewing your section, I've identified certain `potentially problematic values`, \t
         which don't directly match the `provided data`. They are: 
         {}
 
-        For transparency, please revise your section such that it includes only values \
+        For transparency, please revise your section such that it includes only values \t
         explicitly extracted from the `provided data` above, or derived from them using the `\\num{<formula>}` syntax. 
 
         Examples:
         - If you would like to report the difference between two provided values 87 and 65, you should write:
         "The initial price of 87 was changed to 65, representing a difference of \\num{87 - 65}"
 
-        - If you would like to report the odds ratio corresponding to a provided regression coefficient of 1.234, \
+        - If you would like to report the odds ratio corresponding to a provided regression coefficient of 1.234, \t
         you should write:
         "The regression coefficient was 1.234 corresponding to an odds ratio of \\num{exp(1.234)}"
 
-        - If the provided data includes a distance of 9.1e3 cm, and you would like to report the distance in meters, \
+        - If the provided data includes a distance of 9.1e3 cm, and you would like to report the distance in meters, \t
         you should write: 
         "Our analysis revealed a distance of \\num{9.1e3 / 100} meters"
 
         IMPORTANT NOTE:
-        If we need to include a numeric value that was not calculated or is not explicitly given in the \
-        Tables or "{additional_results}", \
-        and cannot be derived from them, \
+        If we need to include a numeric value that was not calculated or is not explicitly given in the \t
+        Tables or "{additional_results}", \t
+        and cannot be derived from them, \t
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:

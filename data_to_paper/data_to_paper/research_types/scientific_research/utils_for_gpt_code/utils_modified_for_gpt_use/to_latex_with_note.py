@@ -175,7 +175,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             issue=f'Do not call `to_latex_with_note` with `index=False`. '
                   f'I want to be able to extract the row labels from the index.',
             instructions=dedent_triple_quote_str("""
-                Please revise the code making sure all tables are created with `index=True`, and that the index is \
+                Please revise the code making sure all tables are created with `index=True`, and that the index is \t
                 meaningful.
                 """) + msg,
         ))
@@ -225,12 +225,10 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                     issue=f'The column "{column_label}" has the same unique value for all rows.',
                     instructions=dedent_triple_quote_str(f"""
                         Please revise the code so that it:
-                        * Finds the unique values \
-                        (use `{column_label}_unique = df["{column_label}"].unique()`)
-                        * Asserts that there is only one value. \
-                        (use `assert len({column_label}_unique) == 1`)
+                        * Finds the unique values (use `{column_label}_unique = df["{column_label}"].unique()`)
+                        * Asserts that there is only one value. (use `assert len({column_label}_unique) == 1`)
                         * Creates the table without this column (use `df.drop(columns=["{column_label}"])`)
-                        * Adds the unique value, {column_label}_unique[0], \
+                        * Adds the unique value, {column_label}_unique[0], \t
                         in the table note (use `note=` in the function `to_latex_with_note`).
 
                         There is no need to add corresponding comments to the code. 
@@ -270,9 +268,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
             transpose_message = ''
         if all(len(label) < 10 for label in axes_labels):
             drop_column_message = dedent_triple_quote_str("""\n
-                - Drop unnecessary columns. \
-                If the labels cannot be shortened much, consider whether there might be any \
-                unnecessary columns that we can drop. \
+                - Drop unnecessary columns. \t
+                If the labels cannot be shortened much, consider whether there might be any \t
+                unnecessary columns that we can drop. \t
                 Use `to_latex_with_note(df, filename, columns=...)`.
                 """)
         else:
@@ -380,9 +378,9 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
                 Captions should be suitable for a table in a scientific paper.
                 Labels should be in the format `table:<your table label here>`.
                 In addition, you can add:
-                - an optional note for further explanations \
+                - an optional note for further explanations \t
                 (use the argument `note` of the function `to_latex_with_note`)
-                - a legend mapping any abbreviated row/column labels to their definitions \
+                - a legend mapping any abbreviated row/column labels to their definitions \t
                 (use the argument `legend` of the function `to_latex_with_note`) 
                 """),
         ))
@@ -433,14 +431,14 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     un_mentioned_abbr_labels = sorted([label for label in abbr_labels if label not in legend])
     if un_mentioned_abbr_labels:
         instructions = dedent_triple_quote_str("""
-            Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \
+            Please revise the code making sure all abbreviated labels (of both column and rows!) are explained \t
             in their table legend.
-            Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \
+            Add the missing abbreviations and their explanations as keys and values in the `legend` argument of the \t
             function `to_latex_with_note`.
             """)
         if e < 0.8:
             instructions += dedent_triple_quote_str("""
-                Alternatively, since the table is not too wide, you can also replace the abbreviated labels with \
+                Alternatively, since the table is not too wide, you can also replace the abbreviated labels with \t
                 their full names in the dataframe itself.
                 """)
         if legend:

@@ -23,7 +23,7 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     CHATGPT_PARAMETERS = {'temperature': 0.0}
     value_type: type = Dict[str, str]
     response_to_self_error: str = dedent_triple_quote_str("""
-        Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
+        Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \t
         to suggested solutions (values).
         If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
         """)
@@ -97,7 +97,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
             {file_contents_str}
 
-            Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
+            Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \t
             that may indicate that code improvements are needed).
 
             {code_review_formatting_instructions}

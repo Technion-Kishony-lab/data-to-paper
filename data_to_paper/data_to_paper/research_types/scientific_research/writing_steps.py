@@ -102,7 +102,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         """)
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Based on the material provided above ({actual_background_product_names}), \
+        Based on the material provided above ({actual_background_product_names}), \t
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
         {section_specific_instructions}
@@ -127,19 +127,19 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     """)
 
     sentence_to_add_at_the_end_of_performer_response: str = dedent_triple_quote_str("""
-        Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \
-        for my paper. Do not provide positive feedback, only provide actionable instructions for improvements in \
+        Please provide a bullet-point list of constructive feedback on the above {pretty_section_names} \t
+        for my paper. Do not provide positive feedback, only provide actionable instructions for improvements in \t
         bullet points. 
         In particular, make sure that the section is correctly grounded in the information provided above.
         If you find any inconsistencies or discrepancies, please mention them explicitly in your feedback.
         {section_review_specific_instructions}
 
-        You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \
+        You should only provide feedback on the {pretty_section_names}. Do not provide feedback on other sections \t
         or other parts of the paper, like LaTex Tables or Python code, provided above.
 
         If you don't see any flaws, respond solely with "{termination_phrase}".
 
-        IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "{termination_phrase}"; \
+        IMPORTANT: You should EITHER provide bullet-point feedback, or respond solely with "{termination_phrase}"; \t
         If you chose to provide bullet-point feedback then DO NOT include "{termination_phrase}".
         """)
 
@@ -250,12 +250,12 @@ class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProd
         * convey the main message, focusing on discovery not on methodology nor on the data source.
         * not include punctuation marks, such as ":,;" characters.
 
-        The Abstract should provide a concise, interesting to read, single-paragraph summary of the paper, \
+        The Abstract should provide a concise, interesting to read, single-paragraph summary of the paper, \t
         with the following structure:
         * short statement of the subject and its importance. 
         * description of the research gap/question/motivation.
         * short, non-technical, description of the dataset used and a non-technical explanation of the methodology.
-        * summary of each of the main results. It should summarize each key result which is evident from the tables, \
+        * summary of each of the main results. It should summarize each key result which is evident from the tables, \t
         but without referring to specific numeric values from the tables.
         * statement of limitations and implications.
         """)
@@ -286,15 +286,15 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
                                              'literature_search:writing:results',
                                              'title_and_abstract')
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Bases on the material provided above ({actual_background_product_names}), please help me improve the \
+        Bases on the material provided above ({actual_background_product_names}), please help me improve the \t
         title and abstract for a {journal_name} research paper. 
 
         {section_specific_instructions}
 
         I especially want you to:
-        (1) Make sure that the abstract clearly states the main results of the paper \
+        (1) Make sure that the abstract clearly states the main results of the paper \t
         (see above the {paper_sections:results}).
-        (2) Make sure that the abstract correctly defines the literature gap/question/motivation \
+        (2) Make sure that the abstract correctly defines the literature gap/question/motivation \t
         (see above Literature Searches for list of related papers).
 
         {latex_instructions}
@@ -322,22 +322,22 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 
         Specifically, the introduction should follow the following multi-paragraph structure:
 
-        * Introduce the topic of the paper and why it is important \
+        * Introduce the topic of the paper and why it is important \t
         (cite relevant papers from the above "{literature_search:writing:background}"). 
 
-        * Explain what was already done and known on the topic, and what is then the research gap/question \
-        (cite relevant papers from the above "{literature_search:writing:results}"). If there is only a minor gap, \
-        you can use language such as "Yet, it is still unclear ...", "However, less is known about ...", \
+        * Explain what was already done and known on the topic, and what is then the research gap/question \t
+        (cite relevant papers from the above "{literature_search:writing:results}"). If there is only a minor gap, \t
+        you can use language such as "Yet, it is still unclear ...", "However, less is known about ...", \t
         etc.
 
-        * State how the current paper addresses this gap/question \
-        (cite relevant papers from the above "{literature_search:writing:dataset}" and \
+        * State how the current paper addresses this gap/question \t
+        (cite relevant papers from the above "{literature_search:writing:dataset}" and \t
         "{literature_search:writing:results}").
 
-        * Outline the methodological procedure and briefly state the main findings \
+        * Outline the methodological procedure and briefly state the main findings \t
         (cite relevant papers from the above "{literature_search:writing:methods}")
 
-        Note: each of these paragraphs should be 5-6 sentence long. Do not just write short paragraphs with less \
+        Note: each of these paragraphs should be 5-6 sentence long. Do not just write short paragraphs with less \t
         than 5 sentences!  
 
         Citations should be added in the following format: \\cite{paper_id}.
@@ -346,7 +346,7 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
         Note that it is not advisable to write about limitations, implications, or impact in the introduction.
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
-        Also, please suggest if you see any specific additional citations that are adequate to include \
+        Also, please suggest if you see any specific additional citations that are adequate to include \t
         (from the Literature Searches above).
         """)
 
@@ -381,7 +381,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         \\subsection{Data Preprocessing}
         - Describe preprocessing of the data done by the Python code (see above "{codes:data_analysis}").
         - Do not include preprocessing steps that were not performed by the code. 
-        - Do not include preprocessing steps that were performed by the code, but were not used as basis \
+        - Do not include preprocessing steps that were performed by the code, but were not used as basis \t
         for further analysis affecting the result output.
 
         \\subsection{Data Analysis}
@@ -393,7 +393,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         Throughout the Methods section, do NOT include any of the following:
         - Missing steps not done by the code.
         - Specific version of software packages, file names, column names.
-        - Names of package functions (e.g., do not say "We used sklearn.linear_model.LinearRegression", say instead \
+        - Names of package functions (e.g., do not say "We used sklearn.linear_model.LinearRegression", say instead \t
         "We used a linear regression model") 
         - URLs, links or references.""")
 
@@ -455,31 +455,31 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         Use the following guidelines when writing the Results:
 
         * Include 3-4 paragraphs, each focusing on one of the Tables:
-        You should typically have a separate paragraph describing each of the Tables. \
-        In each such paragraph, indicate the motivation/question for the analysis, the methodology, \
-        and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \
+        You should typically have a separate paragraph describing each of the Tables. \t
+        In each such paragraph, indicate the motivation/question for the analysis, the methodology, \t
+        and only then describe the results. You should refer to the Tables by their labels (using \\ref{table:xxx}) \t
         and explain their content, but do not add the tables themselves (I will add the tables later manually).
 
         * Story-like flow: 
-        It is often nice to have a story-like flow between the paragraphs, so that the reader \
+        It is often nice to have a story-like flow between the paragraphs, so that the reader \t
         can follow the analysis process with emphasis on the reasoning/motivation behind each analysis step. 
         For example, the first sentence of each paragraph can be a story-guiding sentences like: 
-        "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \
+        "First, to understand whether xxx, we conducted a simple analysis of ..."; "Then, to test yyy, we performed a \t
         ..."; "Finally, to further verify the effect of zzz, we tested whether ...".
 
         * Conclude with a summary of the results:
-        You can summarize the results at the end, with a sentence like: "In summary, these results show ...", \
+        You can summarize the results at the end, with a sentence like: "In summary, these results show ...", \t
         or "Taken together, these results suggest ...".
-        IMPORTANT NOTE: Your summary SHOULD NOT include a discussion of conclusions, implications, limitations, \
+        IMPORTANT NOTE: Your summary SHOULD NOT include a discussion of conclusions, implications, limitations, \t
         or of future work.
         (These will be added later as part the Discussion section, not the Results section). 
 
         * Numeric values:
-        You can extract and mention numeric values from the latex Tables as well as from the \
-        "{additional_results}" listed above. If you are mentioning a numeric value that is not explicitly \
-        mentioned in the Tables or in "{additional_results}", but is rather derived from them, \
+        You can extract and mention numeric values from the latex Tables as well as from the \t
+        "{additional_results}" listed above. If you are mentioning a numeric value that is not explicitly \t
+        mentioned in the Tables or in "{additional_results}", but is rather derived from them, \t
         you should provide it using the \\num command. For example:
-        "Our regression analysis shows a coefficient of 2.0 (SE=0.3, p-value $<$ 1e-6), \
+        "Our regression analysis shows a coefficient of 2.0 (SE=0.3, p-value $<$ 1e-6), \t
         corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(2.0 - 2 * 0.3)}, \\num{exp(2.0 + 2 * 0.3)}])."
 
         * p-values:
@@ -487,12 +487,12 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         P-values smaller than 1e-6 should be cited as "$<$ 1e-6". 
 
         * Accuracy: 
-        Make sure that you are only mentioning details that are explicitly found within the Tables and \
+        Make sure that you are only mentioning details that are explicitly found within the Tables and \t
         Numerical Values.
 
         * Unknown values:
-        If we need to include a numeric value that was not calculated or is not explicitly given in the \
-        Tables or "{additional_results}", and cannot be derived from them, \
+        If we need to include a numeric value that was not calculated or is not explicitly given in the \t
+        Tables or "{additional_results}", and cannot be derived from them, \t
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:
@@ -500,17 +500,17 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
         Specifically, pay attention to:
-        whether the {goal_noun} contains only information that is explicitly extracted from the \
-        "{tables}" and "{additional_results}" provided above. \
+        whether the {goal_noun} contains only information that is explicitly extracted from the \t
+        "{tables}" and "{additional_results}" provided above. \t
 
-        Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \
+        Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \t
         mention any discrepancies that need to be fixed.
 
-        Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \
-        only suggest changes that are relevant to the Results section itself and that are supported by the given \
+        Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \t
+        only suggest changes that are relevant to the Results section itself and that are supported by the given \t
         Tables and Numerical Values.
 
-        Do not suggest changes to the {goal_noun} that may require data not available in the the \
+        Do not suggest changes to the {goal_noun} that may require data not available in the the \t
         Tables and Numerical Values.
         """)
 
@@ -545,17 +545,17 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
     model_engine: ModelEngine = \
         field(default_factory=lambda: get_model_engine_for_class(DiscussionSectionWriterReviewGPT))
     section_review_specific_instructions: str = dedent_triple_quote_str("""\n
-        Also, please suggest if you see any specific additional citations that are adequate to include \
+        Also, please suggest if you see any specific additional citations that are adequate to include \t
         (from the Literature Searches above).
         """)
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         The Discussion section should follow the following structure:
         * Recap the subject of the study (cite relevant papers from the above "{literature_search:writing:background}").  
-        * Recap our methodology (see "Methods" section above) and the main results \
-        (see "{paper_sections:results}" above), \
+        * Recap our methodology (see "Methods" section above) and the main results \t
+        (see "{paper_sections:results}" above), \t
         and compare them to the results from prior literature (see above "{literature_search:writing:results}"). 
         * Discuss the limitations of the study.
-        * End with a concluding paragraph summarizing the main results, their implications and impact, \
+        * End with a concluding paragraph summarizing the main results, their implications and impact, \t
         and future directions.
 
         Citations should be added in the following format: \\cite{paper_id}.

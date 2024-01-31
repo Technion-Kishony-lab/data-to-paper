@@ -91,11 +91,12 @@ class OpenaiSeverCaller(ListServerCaller):
         """
         while True:
             user_choice = input(dedent_triple_quote_str("""
-            Please carefully check that you are willing to proceed with this LLM API call.\n \
-            We suggest reading the current ongoing conversation and especially the last USER message \
-            to understand the instructions we are sending to the LLM.\n \
-            If you are willing to proceed, please type Y, otherwise type N \n\n \
-            Note: if you choose N, the program will immediately abort.\n"""))
+            Please carefully check that you are willing to proceed with this LLM API call.
+            We suggest reading the current ongoing conversation and especially the last USER message \t
+            to understand the instructions we are sending to the LLM.
+            If you are willing to proceed, please type Y, otherwise type N.
+            Note: if you choose N, the program will immediately abort.
+            """))
 
             if user_choice.lower() == 'n':
                 raise UserAbort(reason="User chose to abort the program.")

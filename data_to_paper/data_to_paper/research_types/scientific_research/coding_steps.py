@@ -166,13 +166,13 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        As part of a data-exploration phase, please write a complete short Python code for getting a \
+        As part of a data-exploration phase, please write a complete short Python code for getting a \t
         first sense of the data. 
 
-        Your code should create an output text file named "{output_filename}", which should \
+        Your code should create an output text file named "{output_filename}", which should \t
         contain a summary of the data.
 
-        The output file should be self-contained; any results you choose to save to this file \
+        The output file should be self-contained; any results you choose to save to this file \t
         should be accompanied with a short header.
 
         The output file should be formatted as follows:
@@ -189,7 +189,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         # Missing Values
         <Counts of missing, unknown, or undefined values>
-        <As applicable, counts of special numeric values that stand for unknown/undefined if any \
+        <As applicable, counts of special numeric values that stand for unknown/undefined if any \t
         (check in the "{all_file_descriptions}" above for any)>
 
         # <title of other summary you deem relevant, if any>
@@ -221,26 +221,26 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
         * Are there any unexpected NaN values in the output.
         * Can results be understood from the output file? In particular, do we have a short label for each result?
-        * Are there any results that are missing. Check that under each header in the output file there is \
+        * Are there any results that are missing. Check that under each header in the output file there is \t
         a corresponding meaningful result (or "Not Applicable" if not applicable).
         * Any other issues you find.
 
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \
+        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted \t
         above (dict keys) to specific suggested corrections/improvements in the code (dict values).
 
         For example:
         ```python
         {
-            "The result of the average of variable ... is missing": \
+            "The result of the average of variable ... is missing": \t
             "Add the missing calculation of ... to the code.",
-            "The average of the variable <xxx> is `Nan`": \
+            "The average of the variable <xxx> is `Nan`": \t
             "Remove missing values in the calculation."
         }
         ```
 
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
-        If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \
+        If there are no issues, and the code and tables are just perfect and need no corrections or enhancements, \t
         then return an empty dict: 
         ```python
         {}
@@ -249,7 +249,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Important:
         * Do not return the revised code, only the issues and suggested fixes.
         * If there are no critical issues, then return an empty dict: `{}`.
-        * Do not create positive issues that require no change in the code. In particular, do not write \
+        * Do not create positive issues that require no change in the code. In particular, do not write \t
         {"No issues found": "No corrections or improvements are needed."}, return an empty dict instead.
         """)),
     )
@@ -269,14 +269,14 @@ class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
                                                          enforce_saving_altered_dataframes=True))
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        As part of a data-preprocessing phase, please write a complete short Python code for getting a \
-        cleaned, normalized, same-unit, balanced version of the data, ready for use in following analysis \
+        As part of a data-preprocessing phase, please write a complete short Python code for getting a \t
+        cleaned, normalized, same-unit, balanced version of the data, ready for use in following analysis \t
         steps that will include statistical tests and/or machine learning models on the processed data.
 
-        Your code should create one or more new csv files containing the preprocessed data, saved with \
+        Your code should create one or more new csv files containing the preprocessed data, saved with \t
         sensible file names.
 
-        Depending on the specifics of the dataset and the goal and hypothesis specified above, \
+        Depending on the specifics of the dataset and the goal and hypothesis specified above, \t
         you might want to preform the following steps:
 
         * Dealing with missing values - imputation, deletion, etc.
@@ -321,8 +321,8 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         return dedent_triple_quote_str("""
             - In linear regression, if interactions terms are included:
               * did we remember to include the main effects?
-              * did we use the `*` operator in statsmodels formula as recommended? \
-            (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \
+              * did we use the `*` operator in statsmodels formula as recommended? \t
+            (as applicable, better use `formula = "y ~ a * b"`, instead of trying to \t
             manually multiply the variables)
             """)
 
@@ -333,7 +333,7 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         return dedent_triple_quote_str("""
             - In mediation analysis:
               * did we calculate the mediation effect (e.g., using the Sobel test or other)?
-              * did we account for relevant confounding factors? \
+              * did we account for relevant confounding factors? \t
             (by adding these same confounding factors to both the 'a' and 'b' paths)
             """)
 
@@ -351,7 +351,7 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         return dedent_triple_quote_str("""
             - For created Machine-Learning models:
               * Check whether we adequately perform hyperparameter tuning using cross-validation (as appropriate). 
-              * Check whether the best hyperparameters are reported \
+              * Check whether the best hyperparameters are reported \t
               (either in a table file or in the "additional_results.pkl" file).
             """)
 
@@ -495,7 +495,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     )
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
-        Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \
+        Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \t
         for our paper.
 
         The code must have the following sections (with these exact capitalized headers):
@@ -507,26 +507,26 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
 
         `# LOAD DATA`
-        Load the data from the original data files described above (see "{data_file_descriptions}").\
+        Load the data from the original data files described above (see "{data_file_descriptions}").\t
         {list_additional_data_files_if_any}
 
 
         `# DATASET PREPARATIONS`
         * Join dataframes as needed.
-        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \
-        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \
+        * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \t
+        unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \t
         consider also the "{outputs:data_exploration}").
         * Create new columns as needed.
         * Remove records based on exclusion/inclusion criteria (to match study goal, if applicable).
         * Standardization of numeric values with different units into same-unit values.
 
-        If no dataset preparations are needed, write below this header: \
+        If no dataset preparations are needed, write below this header: \t
         `# No dataset preparations are needed.`
 
 
         `# DESCRIPTIVE STATISTICS`
-        * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \
-        "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \
+        * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \t
+        "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \t
         the paper and create a relevant table.
 
         For example:
@@ -534,7 +534,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Write here the code to create a descriptive statistics dataframe `df0` and save it using:
         `df0.to_pickle('table_0.pkl')`
 
-        If no descriptive statistics are needed, write: \
+        If no descriptive statistics are needed, write: \t
         `# No descriptive statistics table is needed.`
 
 
@@ -549,8 +549,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
 
         # ANALYSIS
-        Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 tables \
-        (in addition to the above descriptive statistics, if any) we should create for our scientific paper. \
+        Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 tables \t
+        (in addition to the above descriptive statistics, if any) we should create for our scientific paper. \t
         Typically, we should have at least one table for each hypothesis test.
 
         For each such scientific table:
@@ -564,11 +564,11 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
         - The statistical analysis should account for any relevant confounding variables, as applicable.
         - Note that you may need to perform more than one test for each hypothesis.
-        - Try using inherent functionality and syntax provided in functions from the available \
+        - Try using inherent functionality and syntax provided in functions from the available \t
         Python packages (above) and avoid, as possible, manually implementing generically available functionality.
-        For example, to include interactions in regression analysis (if applicable), use the "x * y" string syntax \
+        For example, to include interactions in regression analysis (if applicable), use the "x * y" string syntax \t
         in statsmodels formulas.
-        {mediation_note_if_applicable}\
+        {mediation_note_if_applicable}\t
 
         [c] Create and save a dataframe for a scientific table
         * Create a dataframe containing the data needed for the table (`df1`, `df2`, etc). 
@@ -593,8 +593,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
 
         # SAVE ADDITIONAL RESULTS
-        At the end of the code, after completing the tables, create a dict containing any additional \
-        results you deem important to include in the scientific paper, and save it to a pkl file \
+        At the end of the code, after completing the tables, create a dict containing any additional \t
+        results you deem important to include in the scientific paper, and save it to a pkl file \t
         'additional_results.pkl'. 
 
         For example:
@@ -612,16 +612,16 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Do not provide a sketch or pseudocode; write a complete runnable code including all '# HEADERS' sections.
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
-        Avoid convoluted or indirect methods of data extraction and manipulation; \
+        Avoid convoluted or indirect methods of data extraction and manipulation; \t
         Where possible, use direct attribute access for clarity and simplicity.
-        Where possible, access dataframes using string-based column/index names, \
+        Where possible, access dataframes using string-based column/index names, \t
         rather than integer-based column/index positions. 
         """)
 
     code_review_formatting_instructions: str = dedent_triple_quote_str("""
         Try to be as specific as possible when describing the issues and proposed fixes.
         Include in the dict as many issues as you find. 
-        If you are sure that there are no issues, and the code and tables need no revision, \
+        If you are sure that there are no issues, and the code and tables need no revision, \t
         then return an empty dict: `{}`. 
         """)
 
@@ -632,11 +632,11 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
 
         * DATASET PREPARATIONS:
-        - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \
-        or with special numeric values that stand for unknown/undefined \
+        - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \t
+        or with special numeric values that stand for unknown/undefined \t
         (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
         - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
-        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \
+        - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \t
         (based on the study goal)?
 
         * DESCRIPTIVE STATISTICS:
@@ -646,7 +646,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
 
         * PREPROCESSING:
-        Review the above "{data_file_descriptions}" and "{outputs:data_exploration}", then check our \
+        Review the above "{data_file_descriptions}" and "{outputs:data_exploration}", then check our \t
         data preprocessing:
         - Are we performing any preprocessing steps that are not needed?
         - Are we missing any preprocessing steps that are needed?
@@ -659,10 +659,10 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Imperfect implementation of statistical tests.
         - Did we correctly chose the variables that best represent the tested hypothesis? 
         - Are we accounting for relevant confounding variables (consult the "{data_file_descriptions}")?
-        {regression_comments}\
-        {mediation_comments}\
-        {machine_learning_comments}\
-        {scipy_unpacking_comments}\
+        {regression_comments}\t
+        {mediation_comments}\t
+        {machine_learning_comments}\t
+        {scipy_unpacking_comments}\t
         - Any other statistical analysis issues.
 
         (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
@@ -671,10 +671,10 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "The model does not adequately account for confounding variables": \
+            "The model does not adequately account for confounding variables": \t
             "revise the code to add the following confounding variables ...",
 
-            "The descriptive statistics is performed on the wrong data": \
+            "The descriptive statistics is performed on the wrong data": \t
             "revise the code to perform the descriptive statistics on the preprocessed data.",
         }
         ```
@@ -699,7 +699,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Do you see any values that are not sensible (too large, too small)?
         - Do you see any 0 values that do not make sense?
 
-        * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \
+        * Measures of uncertainty: If the table reports nominal values (like regression coefs), does \t
         it also report their measures of uncertainty (like p-value, CI, or STD, as applicable)?
 
         * Missing data: Are we missing key variables, or important results, that we should calculate and report? 
@@ -712,10 +712,10 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "Table {filename} reports incomplete results": \
+            "Table {filename} reports incomplete results": \t
             "revise the code to add the following new column '<your suggested column name>'",
 
-            "Table {filename} reports nominal values without measures of uncertainty": \
+            "Table {filename} reports nominal values without measures of uncertainty": \t
             "revise the code to add STD and p-value.", 
         }
         ```
@@ -733,7 +733,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         * Does the code create and output all needed results to address our {hypothesis_testing_plan}?
 
-        * Sensible numeric values: Check each numeric value in the tables and in the additional results file \
+        * Sensible numeric values: Check each numeric value in the tables and in the additional results file \t
         and make sure it is sensible.
         For example: 
         - If a table reports the mean of a variable, is the mean value sensible?
@@ -741,7 +741,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Do values have correct signs?
         - Do you see any values that are not sensible (too large, too small)?
 
-        * Measures of uncertainty: If a table reports a nominal value (like mean of a variable), does \
+        * Measures of uncertainty: If a table reports a nominal value (like mean of a variable), does \t
         it also report its measures of uncertainty (CI, or STD, as applicable)?
 
         * Missing data in a table: Are we missing key variables in a given table?
@@ -755,10 +755,10 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         For example:
         ```python
         {
-            "A table is missing": \
+            "A table is missing": \t
             "revise the code to add the following new table '<your suggested table caption>'",
 
-            "Table <n> reports nominal values without measures of uncertainty": \
+            "Table <n> reports nominal values without measures of uncertainty": \t
             "revise the code to add STD and p-value.", 
         }
         ```
@@ -775,23 +775,23 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         # is_descriptive_table = 'table_0.pkl' in tables
         if num_tables == 0:
             return dedent_triple_quote_str("""
-                * Missing tables: \
-                You did not create any tables. \
-                Note that research papers typically have 2 or more tables. \
+                * Missing tables: \t
+                You did not create any tables. \t
+                Note that research papers typically have 2 or more tables. \t
                 Please suggest which tables to create and additional analysis needed.\n
                 """)
         if num_tables == 1:
             return dedent_triple_quote_str("""
-                * Missing tables: \
-                You only produced 1 table. \
-                Note that research papers typically have 2 or more tables. \
-                Are you sure all relevant tables are created? Can you suggest any additional analysis leading \
+                * Missing tables: \t
+                You only produced 1 table. \t
+                Note that research papers typically have 2 or more tables. \t
+                Are you sure all relevant tables are created? Can you suggest any additional analysis leading \t
                 to additional tables?'\n
                 """)
         if num_tables == 2:
             return dedent_triple_quote_str("""
-                * Missing tables: \
-                Considering our research goal and hypothesis testing plan, \
+                * Missing tables: \t
+                Considering our research goal and hypothesis testing plan, \t
                 are all relevant tables created? If not, can you suggest any additional tables?\n
                 """)
         return ''
@@ -807,7 +807,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         for hypothesis, plan in self.products.hypothesis_testing_plan.items():
             if any(keyword in hypothesis.lower() or keyword in plan.lower() for keyword in keywords):
                 return dedent_triple_quote_str("""
-                   - If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' \
+                   - If you are doing a mediation analysis, don't forget to calculate both the 'a' and 'b' \t
                    paths (and add the same confounding variables to both paths, as needed).
                    """)
         return ""
@@ -872,7 +872,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
 
     provided_code: str = dedent_triple_quote_str('''
-        def to_latex_with_note(df, filename: str, caption: str, label: str, \
+        def to_latex_with_note(df, filename: str, caption: str, label: str, \t
         note: str = None, legend: Dict[str, str] = None, **kwargs):
             """
             Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
@@ -888,21 +888,21 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             """
 
         def is_str_in_df(df: pd.DataFrame, s: str):
-            return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \
+            return any(s in level for level in getattr(df.index, 'levels', [df.index]) + \t
         getattr(df.columns, 'levels', [df.columns]))
 
         AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
 
         def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
-            abbrs_to_names = {abbr: name for abbr, (name, definition) in \
+            abbrs_to_names = {abbr: name for abbr, (name, definition) in \t
         abbrs_to_names_and_definitions.items() if name is not None}
-            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in \
+            names_to_definitions = {name or abbr: definition for abbr, (name, definition) in \t
         abbrs_to_names_and_definitions.items() if definition is not None}
             return abbrs_to_names, names_to_definitions
         ''')
 
     user_initiation_prompt: str = dedent_triple_quote_str('''
-        I would like to create latex tables for our scientific paper from the dataframes created \
+        I would like to create latex tables for our scientific paper from the dataframes created \t
         in the code above ("table_?.pkl" files). 
 
         I would like to convert these dataframes to latex tables, using the following 3 custom functions that I wrote: 
@@ -911,24 +911,24 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         {provided_code}
         ```
 
-        Please write a complete Python code that uses the above functions to convert our dataframes \
+        Please write a complete Python code that uses the above functions to convert our dataframes \t
         to latex tables suitable for our scientific paper. Follow these instructions:
 
-        Rename column and row names: You should provide a new name to any column or row label that is abbreviated \
+        Rename column and row names: You should provide a new name to any column or row label that is abbreviated \t
         or technical, or that is otherwise not self-explanatory.
 
-        Full definitions: You should provide an optional full definition for any name (or new name) \
+        Full definitions: You should provide an optional full definition for any name (or new name) \t
         that satisfies any of the following: 
         - Remains abbreviated, or not self-explanatory, even after renaming
         - Is an ordinal/categorical value that requires clarification of the meaning of each value.
         - Contains possibly unclear notation, like '*' or ':'
         - Is a numeric value that has units, that need to be specified.        
 
-        To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \
-        `mapping: AbbrToNameDef`, which maps any original \
-        column and row labels that are abbreviated or not self-explanatory to an optional new name, \
+        To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \t
+        `mapping: AbbrToNameDef`, which maps any original \t
+        column and row labels that are abbreviated or not self-explanatory to an optional new name, \t
         and an optional definition.
-        If different tables share several common labels, then you can build these table-specific mappings \
+        If different tables share several common labels, then you can build these table-specific mappings \t
         from a `shared_mapping`. See example below.
 
         Overall, the code must have the following structure:
@@ -949,8 +949,8 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
             ...: (..., ...),
         }
-        < This is of course just an example. Consult with the "{data_file_descriptions}" \
-        and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \
+        < This is of course just an example. Consult with the "{data_file_descriptions}" \t
+        and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \t
         and definitions. >
 
         # TABLE {first_table_number}:
@@ -963,7 +963,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
         < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
         < Use the `shared_mapping` if applicable. For example: >
-        mapping{first_table_number} = {k: v for k, v in shared_mapping.items() \
+        mapping{first_table_number} = {k: v for k, v in shared_mapping.items() \t
         if is_str_in_df(df{first_table_number}, k)} 
         mapping{first_table_number} |= {
             'PV': ('P-value', None),
@@ -971,7 +971,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             'Sex_Age': ('Age * Sex', 'Interaction term between Age and Sex'),
         }
         abbrs_to_names{first_table_number}, legend{first_table_number} = split_mapping(mapping{first_table_number})
-        df{first_table_number} = df{first_table_number}.rename(columns=abbrs_to_names{first_table_number}, \
+        df{first_table_number} = df{first_table_number}.rename(columns=abbrs_to_names{first_table_number}, \t
         index=abbrs_to_names{first_table_number})
 
         # SAVE AS LATEX:
@@ -1045,8 +1045,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please return a triple-backtick Latex Block explaining what the code above does. 
-        Do not provide a line-by-line explanation, rather provide a \
-        high-level explanation of the code in a language suitable for a Methods section of a research \
+        Do not provide a line-by-line explanation, rather provide a \t
+        high-level explanation of the code in a language suitable for a Methods section of a research \t
         paper.
         Focus on analysis steps. There is no need to explain trivial parts, like reading/writing a file, etc.  
         {actual_requesting_output_explanation}
@@ -1095,15 +1095,15 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
         {columns}.
 
         Explain the content of the file, and how it was derived from the original data. 
-        Importantly: do NOT explain the content of columns that are already explained for the \
+        Importantly: do NOT explain the content of columns that are already explained for the \t
         original dataset (see above DESCRIPTION OF THE DATASET).
         """)
 
     requesting_explanation_for_a_modified_dataframe: str = dedent_triple_quote_str("""
         Explain the content of all the new or modified columns of "{dataframe_file_name}".
 
-        Return your explanation as a dictionary, where the keys are the column names {columns}, and the values are the \
-        strings that explain the content of each column.
+        Return your explanation as a dictionary, where the keys are the column names {columns}, \t 
+        and the values are the strings that explain the content of each column.
 
         All information you think is important should be encoded in this dictionary. 
         Do not send additional free text beside the text in the dictionary.  
