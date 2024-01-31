@@ -479,21 +479,27 @@ class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProduct
         You can extract and mention numeric values from the latex Tables as well as from the \t
         "{additional_results}" listed above. If you are mentioning a numeric value that is not explicitly \t
         mentioned in the Tables or in "{additional_results}", but is rather derived from them, \t
-        you should provide it using the \\num command. For example:
-        "Our regression analysis shows a coefficient of 2.0 (SE=0.3, p-value $<$ 1e-6), \t
-        corresponding to an odds ratio of \\num{exp(2.0)} (CI: [\\num{exp(2.0 - 2 * 0.3)}, \\num{exp(2.0 + 2 * 0.3)}])."
+        you should provide it using the \\num command. 
+
+        For example: suppose that the Tables contain a regression coefficient of 1.23, \t
+        with a standard error of 0.45, and we want to mention the odds ratio of this coefficient. \t
+        We can write:
+
+        "The regression coefficient for the anti-cancer drug was \\num{1.23} (SE: \\num{0.45}). \t 
+        corresponding to odds ratio of \t
+        \\num{exp(1.23)} (CI: [\\num{exp(1.23 - 2 * 0.45)}, \\num{exp(1.23 + 2 * 0.45)}])."
 
         * p-values:
         As relevant, P-values should be cited as they appear in the Tables or in "{additional_results}". 
-        P-values smaller than 1e-6 should be cited as "$<$ 1e-6". 
+        P-values smaller than 1e-6 should be cited as "$<$1e-6". 
 
         * Accuracy: 
         Make sure that you are only mentioning details that are explicitly found within the Tables and \t
         Numerical Values.
 
         * Unknown values:
-        If we need to include a numeric value that was not calculated or is not explicitly given in the \t
-        Tables or "{additional_results}", and cannot be derived from them, \t
+        If we need to include a numeric value that is not explicitly given in the \t
+        Tables or "{additional_results}", and cannot be derived from them using the \\num command, \t
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:

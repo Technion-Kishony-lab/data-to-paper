@@ -512,23 +512,23 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         `# IMPORT`
         `import pickle`
-        You can also import here any other packages you need from the following list: 
+        You can also import here any other packages you need from: 
         {supported_packages}
 
 
         `# LOAD DATA`
-        Load the data from the original data files described above (see "{data_file_descriptions}").\t
-        {list_additional_data_files_if_any}
+        Load the data from the original data files described above (see "{data_file_descriptions}").
+        {list_additional_data_files_if_any}\t
 
 
         `# DATASET PREPARATIONS`
-        * Join dataframes as needed.
+        * Join data files as needed.
         * Dealing with missing, unknown, or undefined values, or with special numeric values that stand for \t
         unknown/undefined (check in the "{data_file_descriptions}" for any such values, and \t
         consider also the "{outputs:data_exploration}").
-        * Create new columns as needed.
-        * Remove records based on exclusion/inclusion criteria (to match study goal, if applicable).
-        * Standardization of numeric values with different units into same-unit values.
+        * Create new variables as needed.
+        * Restrict the data based on exclusion/inclusion criteria (to match study goal, if applicable).
+        * Standardize numeric values with different units into same-unit values.
 
         If no dataset preparations are needed, write below this header: \t
         `# No dataset preparations are needed.`
@@ -537,7 +537,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         `# DESCRIPTIVE STATISTICS`
         * In light of our study goals and the hypothesis testing plan (see above "{research_goal}" and \t
         "{hypothesis_testing_plan}"), decide whether and which descriptive statistics are needed to be included in \t
-        the paper and create a relevant table.
+        the research paper and create a relevant table.
 
         For example:
         `## Table 0: "Descriptive statistics of height and age stratified by sex"`
@@ -548,17 +548,17 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         `# No descriptive statistics table is needed.`
 
 
-        # PREPROCESSING 
-        Perform any preprocessing steps needed to further prepare the data for the analysis.
+        `# PREPROCESSING` 
+        Perform any preprocessing steps needed to prepare the data for the analysis.
         For example, as applicable:
-        * Creating dummy variables for categorical variables (as needed).
+        * Creating dummy variables for categorical variables.
         * Any other data preprocessing you deem relevant.
 
-        If no preprocessing is needed, write:
+        If no preprocessing is needed, write: \t
         `# No preprocessing is needed, because <your reasons here>.`
 
 
-        # ANALYSIS
+        `# ANALYSIS`
         Considering our "{research_goal}" and "{hypothesis_testing_plan}", decide on 1-3 tables \t
         (in addition to the above descriptive statistics, if any) we should create for our scientific paper. \t
         Typically, we should have at least one table for each hypothesis test.
@@ -572,33 +572,32 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         [b] Perform analysis
         - Perform appropriate analysis and/or statistical tests (see above our "{hypothesis_testing_plan}").
-        - The statistical analysis should account for any relevant confounding variables, as applicable.
+        - Account for relevant confounding variables, as applicable.
         - Note that you may need to perform more than one test for each hypothesis.
         - Try using inherent functionality and syntax provided in functions from the available \t
-        Python packages (above) and avoid, as possible, manually implementing generically available functionality.
-        For example, to include interactions in regression analysis (if applicable), use the "x * y" string syntax \t
-        in statsmodels formulas.
+        Python packages (above). Avoid, as possible, manually implementing generically available functionality.
+        For example, to include interactions in regression analysis (if applicable), use the `formula = "y ~ a * b"` \t
+        syntax in statsmodels formulas, rather than trying to manually multiply the variables.
         {mediation_note_if_applicable}\t
 
-        [c] Create and save a dataframe for a scientific table
-        * Create a dataframe containing the data needed for the table (`df1`, `df2`, etc). 
+        [c] Create and save a dataframe representing the scientific table (`df1`, `df2`, etc): 
         * Only include information that is relevant and suitable for inclusion in a scientific table.
         * Nominal values should be accompanied by a measure of uncertainty (CI or STD and p-value).
         * Exclude data not important to the research goal, or that are too technical.
-        * Make sure you do not repeat the same data in multiple tables.
-        * The table should have labels for the both the columns and the index (rows): 
-            - Do not invent new names; just keep the original variable names from the dataset.
-            - As applicable, also keep unmodified any attr names from statistical test results.
+        * Do not repeat the same data in multiple tables.
+        * The table should have labels for both the columns and the index (rows): 
+            - As possible, do not invent new names; just keep the original variable names from the dataset.
+            - As applicable, also keep any attr names from statistical test results.
 
 
         Overall, the section should have the following structure:
 
-        # ANALYSIS
-        ## Table 1: <your chosen table name here>
-        <write here the code to analyze the data and create a dataframe df1 for the table 1>
-        df1.to_pickle('table_1.pkl')
+        `# ANALYSIS`
+        `## Table 1: <your chosen table name here>`
+        Write here the code to analyze the data and create a dataframe df1 for the table 1
+        `df1.to_pickle('table_1.pkl')`
 
-        ## Table 2: <your chosen table name here>
+        `## Table 2: <your chosen table name here>`
         etc, up to 3 tables.
 
 
@@ -611,7 +610,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         `additional_results = {
             'Total number of observations': <xxx>,         
-            'accuracy of regression model': <xxx>,
+            'accuracy of <mode name> model': <xxx>,
             # etc, any other results and important parameters that are not included in the tables
         }
         with open('additional_results.pkl', 'wb') as f:
@@ -623,8 +622,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Do not create any graphics, figures or any plots.
         Do not send any presumed output examples.
         Avoid convoluted or indirect methods of data extraction and manipulation; \t
-        Where possible, use direct attribute access for clarity and simplicity.
-        Where possible, access dataframes using string-based column/index names, \t
+        For clarity, use direct attribute access for clarity and simplicity.
+        For clarity, access dataframes using string-based column/index names, \t
         rather than integer-based column/index positions. 
         """)
 
@@ -889,9 +888,6 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             - note (optional): Additional note below the table.
             - legend (optional): Dictionary mapping abbreviations to full names.
             - **kwargs: Additional arguments for `df.to_latex`.
-
-            Returns:
-            - None: Outputs LaTeX file.
             """
 
         def is_str_in_df(df: pd.DataFrame, s: str):
@@ -909,46 +905,43 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         ''')
 
     user_initiation_prompt: str = dedent_triple_quote_str('''
-        I would like to create latex tables for our scientific paper from the dataframes created \t
-        in the code above ("table_?.pkl" files). 
+        Please write a Python code to convert and re-style the "table_?.pkl" dataframes created \t
+        by our "{codes:data_analysis}" into latex tables suitable for our scientific paper.
 
-        I would like to convert these dataframes to latex tables, using the following 3 custom functions that I wrote: 
+        Your code should use the following 3 custom functions provided for import from `my_utils`: 
 
         ```python
         {provided_code}
         ```
 
-        Please write a complete Python code that uses the above functions to convert our dataframes \t
-        to latex tables suitable for our scientific paper. Follow these instructions:
+        Your code should:
 
-        Rename column and row names: You should provide a new name to any column or row label that is abbreviated \t
+        * Rename column and row names: You should provide a new name to any column or row label that is abbreviated \t
         or technical, or that is otherwise not self-explanatory.
 
-        Full definitions: You should provide an optional full definition for any name (or new name) \t
+        * Provide legend definitions: You should provide a full definition for any name (or new name) \t
         that satisfies any of the following: 
-        - Remains abbreviated, or not self-explanatory, even after renaming
-        - Is an ordinal/categorical value that requires clarification of the meaning of each value.
-        - Contains possibly unclear notation, like '*' or ':'
-        - Is a numeric value that has units, that need to be specified.        
+        - Remains abbreviated, or not self-explanatory, even after renaming.
+        - Is an ordinal/categorical variable that requires clarification of the meaning of each of its possible values.
+        - Contains unclear notation, like '*' or ':'
+        - Represents a numeric variable that has units, that need to be specified.        
 
-        To avoid re-naming mistakes, I strongly suggest you define for each table a dictionary, \t
+        To avoid re-naming mistakes, you should define for each table a dictionary, \t
         `mapping: AbbrToNameDef`, which maps any original \t
-        column and row labels that are abbreviated or not self-explanatory to an optional new name, \t
+        column and row names that are abbreviated or not self-explanatory to an optional new name, \t
         and an optional definition.
-        If different tables share several common labels, then you can build these table-specific mappings \t
-        from a `shared_mapping`. See example below.
+        If different tables share several common labels, then you can build a `shared_mapping`, \t
+        from which you can extract the relevant labels for each table.
 
         Overall, the code must have the following structure:
 
-        ```
+        ```python
         # IMPORT
         import pandas as pd
         from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
 
         # PREPARATION FOR ALL TABLES
-
-        < As applicable, define a shared mapping for labels that are common to all tables. For example: >
-
+        # <As applicable, define a shared mapping for labels that are common to all tables. For example:>
         shared_mapping: AbbrToNameDef = {
             'AvgAge': ('Avg. Age', 'Average age, years'),
             'BT': ('Body Temperature', '1: Normal, 2: High, 3: Very High'),
@@ -956,22 +949,22 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             'MRSA': (None, 'Infected with Methicillin-resistant Staphylococcus aureus, 1: Yes, 0: No'),
             ...: (..., ...),
         }
-        < This is of course just an example. Consult with the "{data_file_descriptions}" \t
-        and the "{codes:data_analysis}" for choosing the common labels and their appropriate scientific names \t
-        and definitions. >
+        # <This is of course just an example. Consult with the "{data_file_descriptions}" \t
+        and the "{codes:data_analysis}" for choosing the labels and their proper scientific names \t
+        and definitions.>
 
         # TABLE {first_table_number}:
         df{first_table_number} = pd.read_pickle('table_{first_table_number}.pkl')
 
         # FORMAT VALUES <include this sub-section only as applicable>
-        < Rename technical values to scientifically-suitable values. For example: >
+        # <Rename technical values to scientifically-suitable values. For example:>
         df{first_table_number}['MRSA'] = df{first_table_number}['MRSA'].apply(lambda x: 'Yes' if x == 1 else 'No')
 
         # RENAME ROWS AND COLUMNS <include this sub-section only as applicable>
-        < Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names. >
-        < Use the `shared_mapping` if applicable. For example: >
-        mapping{first_table_number} = {k: v for k, v in shared_mapping.items() \t
-        if is_str_in_df(df{first_table_number}, k)} 
+        # <Rename any abbreviated or not self-explanatory table labels to scientifically-suitable names.>
+        # <Use the `shared_mapping` if applicable. For example:>
+        mapping{first_table_number} = dict((k, v) for k, v in shared_mapping.items() \t
+        if is_str_in_df(df{first_table_number}, k)) 
         mapping{first_table_number} |= {
             'PV': ('P-value', None),
             'CI': (None, '95% Confidence Interval'),
@@ -991,7 +984,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
 
         # TABLE <?>:
-        < etc, all 'table_?.pkl' files >
+        # <etc, all 'table_?.pkl' files>
         ```
 
         Avoid the following:
