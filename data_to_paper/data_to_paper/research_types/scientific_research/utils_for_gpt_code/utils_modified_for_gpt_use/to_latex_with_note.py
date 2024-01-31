@@ -4,14 +4,14 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value, OnStr, is_containing_p_value
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, is_containing_p_value
 
 from data_to_paper.run_gpt_code.base_run_contexts import RegisteredRunContext
 from data_to_paper.run_gpt_code.run_contexts import ProvideData, IssueCollector
 
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
 from data_to_paper.utils.dataframe import extract_df_row_labels, extract_df_column_labels, extract_df_axes_labels
-from data_to_paper.utils.iterators import apply_deeply
+
 from .check_df_of_table import check_df_headers_are_int_str_or_bool, check_df_of_table_for_content_issues
 
 from ..original_utils import to_latex_with_note

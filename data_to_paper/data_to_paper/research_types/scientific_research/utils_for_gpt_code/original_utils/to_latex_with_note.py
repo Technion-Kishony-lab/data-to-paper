@@ -1,11 +1,10 @@
 import re
-from contextlib import ExitStack
 from typing import Optional, Dict
 
 import pandas as pd
 
 from data_to_paper.latex.clean_latex import replace_special_latex_chars, process_latex_text_and_math
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, PValue, OnStrPValue
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
 from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.utils.dataframe import extract_df_axes_labels
 

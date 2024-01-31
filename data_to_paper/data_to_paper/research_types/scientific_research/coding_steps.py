@@ -19,7 +19,7 @@ from data_to_paper.research_types.scientific_research.table_debugger import Tabl
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
 
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
@@ -197,9 +197,9 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
         # <etc for any other summary you deem relevant.>
         ```
-        
+
         If any of the above sections is not applicable, then write "Not Applicable" under that section.
-        
+
         If needed, you can use the following packages which are already installed:
         {supported_packages}
 
@@ -215,7 +215,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         Here is the content of the output file that the code created:
 
         {file_contents_str}
-        
+
         Please follow these two steps:
 
         (1) Check the code and the output for any issues, and return a bullet-point response addressing these points:
@@ -685,9 +685,9 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:
-        
+
         {file_contents_str}
-        
+
         Please review the table and follow these two steps:
 
         (1) Check the created table and return a bullet-point response addressing these points:
@@ -726,7 +726,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         I ran your code.
 
         Here is the content of the file(s) that the code created for our scientific paper:
-        
+
         {file_contents_str}
 
         Please review the code and theses output files and return a bullet-point response addressing these points:
