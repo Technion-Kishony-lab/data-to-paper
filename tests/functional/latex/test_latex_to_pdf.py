@@ -64,6 +64,22 @@ math with two dollar signs: $$x^2$$
 
 
 @fixture()
+def latex_content_with_hyperlinks():
+    return r'''
+\documentclass{article}
+\usepackage[colorlinks]{hyperref}
+\begin{document}
+\section{A section}
+Content with a hyperlink to some later \hyperlink{linkB}{\hypertarget{linkA}{content}}.
+
+\clearpage
+\section{Another section}
+Content with a hyperlink to some earlier \hypertarget{linkB}{\hyperlink{linkA}{content}}.  
+\end{document}
+'''
+
+
+@fixture()
 def citations():
     return {
         CrossrefCitation(
@@ -126,6 +142,12 @@ def test_latex_to_pdf_error_handling(tmpdir, latex_content_with_unescaped_charac
     assert not os.path.exists(os.path.join(tmpdir.strpath, file_name + '.log'))
 
 
+def test_latex_to_pdf_with_hyperlinks(tmpdir, latex_content_with_hyperlinks):
+    save_latex_and_compile_to_pdf(latex_content_with_hyperlinks, file_name, tmpdir.strpath)
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.tex'))
+    assert os.path.exists(os.path.join(tmpdir.strpath, file_name + '.pdf'))
+
+
 @pytest.mark.parametrize('latex, expected', [
     ('Hello & World!', r'Hello \& World!'),
     ('Hello % World!', r'Hello \% World!'),
@@ -145,6 +167,7 @@ def test_latex_to_pdf_exception(tmpdir, wrong_latex_content):
 
 
 def test_evaluate_latex_expression():
-    assert evaluate_latex_num_command(r'I have \num{1+1} apples') == 'I have 2 apples'
+    assert evaluate_latex_num_command(r'I have \num{1+2} apples') == \
+           ('I have 3 apples', {'0': '1+2 = 3'})
     assert evaluate_latex_num_command(r'this number must be rounded \num{7.95 - 3.64}') == \
-           'this number must be rounded 4.31'
+           ('this number must be rounded 4.31', {'0': '7.95 - 3.64 = 4.31'})
