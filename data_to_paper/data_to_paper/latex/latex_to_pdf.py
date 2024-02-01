@@ -9,7 +9,7 @@ import numpy as np
 
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
-from PyPDF2 import PdfWriter, PdfReader
+import fitz  # PyMuPDF
 
 from .exceptions import LatexCompilationError, TooWideTableOrText
 
@@ -49,24 +49,24 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
 
 def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = None):
     """
-    Add watermark to pdf
-    :param pdf_path: path to pdf file
-    :param output_path: path to output file
-    :param watermark_path: path to watermark file
+    Add watermark to each page of a PDF while preserving hyperlinks using PyMuPDF (fitz).
+    :param pdf_path: Path to the PDF file to be watermarked.
+    :param watermark_path: Path to the watermark PDF file. The first page of this file will be used as the watermark.
+    :param output_path: Path for the output watermarked PDF file. If None, the original PDF will be overwritten.
     """
     if output_path is None:
         output_path = pdf_path
-    with open(pdf_path, "rb") as input_file, open(watermark_path, "rb") as watermark_file:
-        input_pdf = PdfReader(input_file, strict=False)
-        output = PdfWriter()
-        for i in range(len(input_pdf.pages)):
-            watermark_pdf = PdfReader(watermark_file, strict=False)
-            watermark_page = watermark_pdf.pages[0]
-            pdf_page = input_pdf.pages[i]
-            watermark_page.merge_page(pdf_page)
-            output.add_page(watermark_page)
-        with open(output_path, "wb") as merged_file:
-            output.write(merged_file)
+
+    # Open the PDF and watermark files
+    pdf_doc = fitz.open(pdf_path)
+    watermark_doc = fitz.open(watermark_path)
+
+    for page in pdf_doc:
+        # Overlay the watermark onto the page by adding the XObject
+        page.show_pdf_page(page.rect, watermark_doc, 0)
+
+    # Save the watermarked PDF
+    pdf_doc.save(output_path, incremental=True, encryption=0)
 
 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
@@ -76,7 +76,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
-    pdflatex_params = ['pdflatex', '--shell-escape', '-interaction', 'nonstopmode', latex_file_name]
+    pdflatex_params = ['pdflatex', '--shell-escape', latex_file_name]
     with run_in_temp_directory():
 
         # Create the bib file:
