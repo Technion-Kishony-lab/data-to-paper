@@ -40,7 +40,7 @@ def dataframe_to_pickle_with_checks(df: pd.DataFrame, path: str, *args,
         )
     context_manager.issues.extend(check_df_of_table_for_content_issues(df, path, prior_tables=prior_tables))
     context_manager.issues.extend(check_df_filename(path))
-    with RegisteredRunContext.temporarily_disable_all(), PValue.allow_str.temporary_set(True):
+    with RegisteredRunContext.temporarily_disable_all(), PValue.BEHAVE_NORMALLY.temporary_set(True):
         original_func(df, path)
 
 
@@ -83,7 +83,7 @@ def pickle_dump_with_checks(obj, file, *args, original_func=None, context_manage
             code_problem=CodeProblem.RuntimeError,
         ))
 
-    with PValue.allow_str.temporary_set(True):
+    with PValue.BEHAVE_NORMALLY.temporary_set(True):
         original_func(obj, file)
 
 

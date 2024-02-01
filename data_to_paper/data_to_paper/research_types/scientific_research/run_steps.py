@@ -6,13 +6,13 @@ from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckL
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
 from .coding_steps import RequestCodeProducts, DataExplorationCodeProductsGPT, RequestCodeExplanation, \
-    DataPreprocessingCodeProductsGPT, CreateTableDataframesCodeProductsGPT, CreateLatexTablesCodeProductsGPT
+    DataPreprocessingCodeProductsGPT, CreateDataframesTableCodeProductsGPT, CreateLatexTablesCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    ResultsInterpretationReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+    HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
@@ -47,7 +47,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_prepare_hypothesis_testing_plan: bool = True
     should_do_literature_search: bool = True
     should_add_citations: bool = False
-    should_interpret_results: bool = False
 
     excluded_citation_titles: List[str] = None,  # Title of papers that we don't allow to be cited
 
@@ -134,7 +133,10 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
             goal_refinement_iteration += 1
-            products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            products.research_goal = ReGoalReviewGPT.from_(
+                self,
+                project_specific_goal_guidelines=self.project_specific_goal_guidelines
+            ).run_dialog_and_get_valid_result()
         # TODO: need to decide what and how to send to the client, we need to somehow split between
         #  stages and produces
         self.send_product_to_client('research_goal')
@@ -175,7 +177,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         RequestCodeProducts.from_(self,
                                   code_step='data_analysis',
                                   latex_document=self.latex_document,
-                                  code_writing_class=CreateTableDataframesCodeProductsGPT,
+                                  code_writing_class=CreateDataframesTableCodeProductsGPT,
                                   explain_code_class=RequestCodeExplanation,
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
@@ -190,13 +192,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
                                                        ScientificAgent.InterpretationReviewer)
-
-        # Results interpretation
-        if self.should_interpret_results:
-            self.advance_stage_and_set_active_conversation(
-                ScientificStages.INTERPRETATION, ScientificAgent.InterpretationReviewer)
-            products.results_summary = ResultsInterpretationReviewGPT.from_(self).get_value()
-            self.send_product_to_client('results_summary')
 
         # literature review and scope
         self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,

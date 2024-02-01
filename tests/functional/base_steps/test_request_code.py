@@ -1,6 +1,6 @@
 import pickle
 from dataclasses import dataclass, field
-from typing import Type, Any, Dict, Optional, Tuple, Union
+from typing import Type, Any, Dict, Optional, Tuple, Iterable
 
 from _pytest.fixtures import fixture
 
@@ -25,7 +25,7 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)})
     enforce_saving_altered_dataframes: bool = True
-    code_review_prompts: Optional[Union[str, Tuple[str]]] = None
+    code_review_prompts: Iterable[Tuple[str, bool, str]] = ()
     code_name: str = 'Testing'
     temp_dir: str = None
 
@@ -76,9 +76,6 @@ def code_running_converser(tmpdir_with_csv_file):
         temp_dir=tmpdir_with_csv_file,
         code_name='Testing',
         conversation_name='testing',
-        code_review_prompts='Output:\n{created_file_contents_explanation}\nRevise?',
-        output_file_requirements=OutputFileRequirements(
-            [DataOutputFileRequirement('*.csv'), TextContentOutputFileRequirement('output.txt')]),
     )
 
 
@@ -143,22 +140,21 @@ the column explanation is:
 """
 
 
-code1 = r"""
-with open('output.txt', 'w') as f:
-    f.write('Output with mistakes')
-"""
+def get_code_that_creates_files(*args):
+    """
+    args: file1, content1, file2, content2 ...
 
+    returns code that creates the files:
 
-code2 = r"""
-with open('output.txt', 'w') as f:
-    f.write('Improved output')
-"""
-
-
-code3 = r"""
-with open('output.txt', 'w') as f:
-    f.write('Best output')
-"""
+    with open('file1', 'w') as f:
+        f.write('content1')
+    with open('file2', 'w') as f:
+        f.write('content2')
+    """
+    s = '\n'
+    for file, content in zip(args[::2], args[1::2]):
+        s += f"with open('{file}', 'w') as f:\n    f.write('{content}')\n"
+    return s
 
 
 def test_dataframe_tracker_is_pickleable(code_running_converser):
@@ -166,6 +162,15 @@ def test_dataframe_tracker_is_pickleable(code_running_converser):
 
 
 def test_request_code_with_revisions(code_running_converser):
+    file = 'output.txt'
+    code_running_converser.code_review_prompts = (
+        ('*', True, 'Output:\n{file_contents_str}\nplease list all issue.'),
+    )
+    code_running_converser.output_file_requirements = OutputFileRequirements(
+        [TextContentOutputFileRequirement(file)])
+    code1 = get_code_that_creates_files(file, "Output with mistakes")
+    code2 = get_code_that_creates_files(file, "Improved output")
+    code3 = get_code_that_creates_files(file, "Best output")
     with OPENAI_SERVER_CALLER.mock(
             [f'Here is my first attempt:\n```python{code1}```\n',
              '{"key issue is ...": "you must make this change ..."}',
@@ -178,6 +183,34 @@ def test_request_code_with_revisions(code_running_converser):
         code_and_output = code_running_converser.get_code_and_output()
     assert code_and_output.code == code3
     assert code_and_output.created_files.get_single_output() == 'Best output'
+    assert len(code_running_converser.conversation) == 3
+
+
+def test_request_code_with_file_review_revisions(code_running_converser):
+    file = 'table_?.txt'
+    code_running_converser.code_review_prompts = (
+        (None, True, 'Review the code.'),
+        ('table_?.txt', True, 'Review {filename}\n{file_contents_str}'),
+    )
+    code_running_converser.output_file_requirements = OutputFileRequirements(
+        [TextContentOutputFileRequirement(file)])
+    code1 = get_code_that_creates_files('table_1.txt', "Output1 with mistakes", 'table_2.txt', "Output2 with mistakes")
+    code2 = get_code_that_creates_files('table_1.txt', "Improved output1", 'table_2.txt', "Improved output2")
+    with OPENAI_SERVER_CALLER.mock(
+            [f'Here is my first attempt:\n```python{code1}```\n',
+             'Code is ok {}',
+             'table_1.txt is ok {}',
+             'table_2.txt has errors {"key issue is ...": "please fix ..."}',
+             f'Here is the improved code:\n```python{code2}```\n',
+             'Code is ok {}',
+             'table_1.txt is ok {}',
+             'table_2.txt is ok {}',
+             ],
+            record_more_if_needed=False):
+        code_and_output = code_running_converser.get_code_and_output()
+    assert code_and_output.code == code2
+    assert code_and_output.created_files.get_created_content_files_to_pretty_contents() == \
+           {'table_1.txt': 'Improved output1', 'table_2.txt': 'Improved output2'}
     assert len(code_running_converser.conversation) == 3
 
 

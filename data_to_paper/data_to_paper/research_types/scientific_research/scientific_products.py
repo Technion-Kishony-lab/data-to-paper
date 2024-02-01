@@ -10,6 +10,7 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
@@ -118,7 +119,8 @@ class ScientificProducts(Products):
         """
         return {'results': [
             content for file, content
-            in self.codes_and_outputs['data_to_latex'].created_files.get_created_content_files_to_contents().items()
+            in self.codes_and_outputs[
+                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents().items()
             if file.endswith('.tex')]}
 
     @property
@@ -353,7 +355,7 @@ class ScientificProducts(Products):
                 'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {'output':
-                                   self.codes_and_outputs[code_step].created_files.get_single_output(is_clean=True),
+                                   self.codes_and_outputs[code_step].created_files.get_single_output(is_pretty=True),
                                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
@@ -378,13 +380,11 @@ class ScientificProducts(Products):
 
             'codes_and_outputs_with_explanations:{}': NameDescriptionStageGenerator(
                 '{code_name} Code and Output',
-                '{code_description}\n\n{output_description}\n\n{code_explanation}',
+                '{description}',
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
-                    'code_description': self.get_description("codes:" + code_step),
-                    'output_description': self.get_description("outputs:" + code_step),
-                    'code_explanation': self.get_description("code_explanation:" + code_step)},
+                    'description': self.codes_and_outputs[code_step].to_text()},
             ),
 
             'created_files:{}': NameDescriptionStageGenerator(
@@ -403,7 +403,9 @@ class ScientificProducts(Products):
                 lambda code_step, filespec: {
                     'created_files_content':
                         self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
-                            match_filename=filespec),
+                            match_filename=filespec,
+                            pvalue_on_str=OnStr.SMALLER_THAN,
+                        ),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
             ),
@@ -494,8 +496,9 @@ class ScientificProducts(Products):
                 'Here are some additional numeric values that may be helpful in writing the paper '
                 '(as saved to "additional_results.pkl"):\n\n{}',
                 ScientificStages.INTERPRETATION,
-                lambda: self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents()[
-                    'additional_results.pkl'],
+                lambda: self.codes_and_outputs[
+                    'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
+                    pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
             ),
 
             'tables_and_tables_names': NameDescriptionStageGenerator(
@@ -503,15 +506,6 @@ class ScientificProducts(Products):
                 '{tables}',
                 ScientificStages.TABLES,
                 lambda: {'tables': self.get_tables_names_and_content()}),
-
-            'results_file': NameDescriptionStageGenerator(
-                'Other Numeric Values for the Paper',
-                'Here is the content of the "results.txt" file providing some additional numeric values '
-                'we can use to write the results of the paper:\n\n{}',
-                ScientificStages.CODE,
-                lambda: self.codes_and_outputs['data_analysis'].created_files.get_created_content_files_to_contents()[
-                    'results.txt']
-            ),
 
             'numeric_values': NameDescriptionStageGenerator(
                 'Other Numeric Values for the Paper',

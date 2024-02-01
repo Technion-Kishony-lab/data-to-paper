@@ -40,7 +40,7 @@ class DemoCodeProductsGPT(BaseCodeProductsGPT):
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please write a short Python code for finding the largest number below our chosen max number.
 
-        Your code should create an output text file named "{output_filename}", which should \
+        Your code should create an output text file named "{output_filename}", which should \t
         contain the following text:
         "The largest prime number below xxx is yyy".
 

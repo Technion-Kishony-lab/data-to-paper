@@ -94,8 +94,8 @@ class DebuggerConverser(BackgroundProductsConverser):
             Please rewrite the complete code again with these issues corrected.
 
             GENERAL FORMATTING INSTRUCTIONS:
-            Even if you are changing just a few lines, you must return the complete code again in a single code block, \
-            including the unchanged parts, so that I can just copy-paste and run it.
+            Even if you are changing just a few lines, you must return the complete code again in a \t
+            single code block, including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
         """)
     runner_cls: Type[BaseCodeRunner] = CodeRunner
@@ -316,7 +316,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         for phrase in self.phrases_required_in_code:
             if phrase not in code:
                 issues.append(RunIssue(
-                    issue=f"Your code must explicitly use:\n`{phrase}`.",
+                    issue=f"Your code must explicitly use:\n`{phrase.strip()}`.",
                     comment=f'Code does not use required phrase.',
                     code_problem=CodeProblem.StaticCheck,
                 ))
@@ -373,7 +373,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
         issues = []
-        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents(is_clean=False)
+        files_to_contents = code_and_output.created_files.get_created_content_files_to_contents()
         for requirement in self.output_file_requirements:
             if isinstance(requirement, BaseContentOutputFileRequirement):
                 for filename in code_and_output.created_files[requirement]:

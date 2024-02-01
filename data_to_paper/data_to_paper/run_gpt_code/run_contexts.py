@@ -120,8 +120,8 @@ class TrackCreatedFiles(SingletonRegisteredRunContext):
                 # The specified number of output files were not created.
                 if requirement.is_wildcard():
                     issue = dedent_triple_quote_str(f"""
-                        The code was supposed to create at least {requirement.minimal_count} files \
-                        of "{requirement.filename}", \
+                        The code was supposed to create at least {requirement.minimal_count} files \t
+                        of "{requirement.filename}", \t
                         but it only created {len(output_files)} files of this type.
                         """)
                 else:

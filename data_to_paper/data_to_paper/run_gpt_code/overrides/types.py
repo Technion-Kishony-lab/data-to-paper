@@ -15,12 +15,12 @@ def is_namedtuple(obj):
 
 class NoIterTuple:
     def __init__(self, _tuple, created_by: Optional[str] = None, context: Optional[ScipyPValueOverride] = None,
-                 should_raise: bool = True, should_register: bool = True):
+                 should_raise: bool = True, should_record: bool = True):
         self._tuple = _tuple
         self.created_by = created_by
         self.context = context
         self.should_raise = should_raise
-        self.should_register = should_register
+        self.should_record = should_record
 
     def __getattr__(self, item):
         return getattr(self._tuple, item)
@@ -43,8 +43,8 @@ class NoIterTuple:
     def _raise_or_register_if_called_from_user_script(self, exception: RunIssue):
         if not is_called_from_user_script(offset=4):
             return
-        if self.should_register and self.context:
-            self.context.register_unpacking(self.created_by, self._get_fields())
+        if self.should_record and self.context:
+            self.context.record_unpacking(self.created_by, self._get_fields())
         if self.should_raise:
             raise exception
 

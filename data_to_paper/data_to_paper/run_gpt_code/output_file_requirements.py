@@ -6,12 +6,13 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional, Any, List, Tuple, Iterable, Dict
 
-from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
+from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, NUM_DIGITS_FOR_FLOATS
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
+from .overrides.pvalue import OnStr, OnStrPValue
 
 from .run_issues import CodeProblem, RunIssue
 
@@ -82,8 +83,13 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         """
         return []
 
-    def get_pretty_content(self, content: Any) -> str:
-        return str(content)
+    def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:
+        with OnStrPValue(pvalue_on_str):
+            content = str(content)
+        if filename is not None:
+            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
+            return f'"{filename}":\n```{label}\n{content}\n```\n'
+        return content
 
 
 @dataclass(frozen=True)
@@ -139,11 +145,11 @@ class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
 
 @dataclass(frozen=True)
 class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
-    target_precision: int = 4
+    target_precision: int = NUM_DIGITS_FOR_FLOATS
     source_precision: int = 10
 
-    def get_pretty_content(self, content: str) -> str:
-        content = super().get_pretty_content(content)
+    def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:
+        content = super().get_pretty_content(content, filename, pvalue_on_str)
         return round_floats(content, self.target_precision, self.source_precision)
 
 
@@ -226,31 +232,52 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                 for filename in files_to_contents.keys()
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
 
-    def get_created_content_files_to_contents(self, is_clean: bool = True, match_filename: str = '*') -> Dict[str, str]:
+    def _get_created_content_files_to_contents(self, is_pretty: bool = True, pvalue_on_str: Optional[OnStr] = None,
+                                               match_filename: str = '*', is_block: bool = False) -> Dict[str, Any]:
         """
-        Return the names of the files created by the run, and their content.
+        Return the names of the files created by the run, and their content, formatted for display if needed.
         """
-        return {filename: requirement.get_pretty_content(content) if is_clean else content
+        return {filename:
+                requirement.get_pretty_content(
+                    content=content,
+                    filename=filename if is_block else None,
+                    pvalue_on_str=pvalue_on_str,
+                ) if is_pretty else content
                 for requirement, files_to_contents in self.items()
                 for filename, content in files_to_contents.items()
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)}
 
-    def get_created_content_files_description(self, match_filename: str = '*'):
-        files_to_contents = self.get_created_content_files_to_contents(is_clean=True, match_filename=match_filename)
-        s = ''
-        for filename, content in files_to_contents.items():
-            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
-            s += f'"{filename}":\n```{label}\n{content}\n```\n\n'
-        return s
+    def get_created_content_files_to_pretty_contents(self,
+                                                     pvalue_on_str: Optional[OnStr] = None,
+                                                     match_filename: str = '*',
+                                                     is_block: bool = False) -> Dict[str, str]:
+        """
+        Return the names of the files created by the run, and their content formatted for display.
+        """
+        return self._get_created_content_files_to_contents(is_pretty=True, pvalue_on_str=pvalue_on_str,
+                                                           match_filename=match_filename, is_block=is_block)
 
-    def get_single_output(self, is_clean: bool = True) -> Optional[str]:
+    def get_created_content_files_to_contents(self, match_filename: str = '*') -> Dict[str, Any]:
+        """
+        Return the names of the files created by the run, and their content.
+        """
+        return self._get_created_content_files_to_contents(is_pretty=False, match_filename=match_filename)
+
+    def get_created_content_files_description(self, match_filename: str = '*', pvalue_on_str: Optional[OnStr] = None):
+        files_to_contents = self.get_created_content_files_to_pretty_contents(pvalue_on_str=pvalue_on_str,
+                                                                              match_filename=match_filename,
+                                                                              is_block=True)
+        return '\n\n'.join(files_to_contents.values())
+
+    def get_single_output(self, is_pretty: bool = True, pvalue_on_str: Optional[OnStr] = None) -> Optional[str]:
         """
         Return the output of the run, if it is a single content file.
         """
         single_content_filename = self.get_single_content_file()
         if single_content_filename is None:
             return None
-        return self.get_created_content_files_to_contents(is_clean)[single_content_filename]
+        return self._get_created_content_files_to_contents(
+            is_pretty=is_pretty, pvalue_on_str=pvalue_on_str)[single_content_filename]
 
     def get_created_data_files(self, match_filename: str = '*') -> List[str]:
         """

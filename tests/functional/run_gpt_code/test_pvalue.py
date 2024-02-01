@@ -2,6 +2,7 @@ import pickle
 
 from _pytest.fixtures import fixture
 from pandas.core.dtypes.inference import is_list_like
+from pandas import DataFrame
 
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_p_value
 
@@ -33,3 +34,11 @@ def test_pvalue_pickleability(pvalue):
     assert isinstance(unpickled_pvalue, PValue)
     assert unpickled_pvalue.value == pvalue.value
     assert unpickled_pvalue.created_by == pvalue.created_by
+
+
+def test_pvalue_unique():
+    df = DataFrame({'a': [PValue(2), PValue(1), PValue(2)]})
+    data = df.iloc[:, 0]
+    data_unique = data.unique()
+    assert len(data_unique) == 2
+    assert isinstance(data_unique[0], PValue)

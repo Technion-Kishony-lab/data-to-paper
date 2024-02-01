@@ -147,15 +147,15 @@ class RunIssues(List[RunIssue]):
                         note += 'On line:\n'
                         note += '\n'.join(f'{lineno}: {line}' for lineno, line in issue.linenos_and_lines)
                         note += '\n'
-                    note += f'{issue.issue}\n'
+                    note += f'{issue.issue.strip()}\n'
                     if shared_instructions is None and issue.instructions is not None:
-                        note += f'{issue.instructions}\n'
+                        note += f'{issue.instructions.strip()}\n'
                     note += '\n'
                     if issue.comment:
                         comments.add(issue.comment)
                     if word_count(note) + shared_instructions_word_count > MAX_WORDS_BEFORE_TERMINATING_ISSUE_LIST:
                         break
-                if shared_instructions is not None:
+                if shared_instructions:
                     note += f'{shared_instructions}\n'
                 notes.append(note)
             s += '\n\n'.join(notes)

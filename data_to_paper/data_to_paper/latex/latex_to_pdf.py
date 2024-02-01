@@ -3,7 +3,7 @@ import re
 import shutil
 import subprocess
 
-from typing import Optional, Collection
+from typing import Optional, Collection, Tuple, Dict
 
 import numpy as np
 
@@ -17,21 +17,34 @@ BIB_FILENAME: str = 'citations.bib'
 WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
 
 
-def evaluate_latex_num_command(latex_str):
-    """
+def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str, str]]:
+    r"""
     Evaluates all expressions of the form \num{...} in the given latex string and replaces them with the result.
+    if ref_prefix, then add \hyperlink{ref_prefix?}{result}, where ? is the index of the expression.
+    Return the new latex string and a mapping from the index to "expression = result".
     """
     pattern = r'\\num{(.+?)}'
     matches = re.findall(pattern, latex_str)
-    for match in matches:
+    notes_to_expressions = {}
+    for index, match in enumerate(matches):
         try:
             result = eval(match,
                           {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
                            'e': np.e, 'sqrt': np.sqrt, 'log2': np.log2, 'log10': np.log10})
-            latex_str = latex_str.replace(f'\\num{{{match}}}', '{:.4g}'.format(result))
+            if isinstance(result, float):
+                result = '{:.4g}'.format(result)
+            else:
+                result = str(result)
+            note = f'{ref_prefix}{index}'
+            if ref_prefix:
+                replace_with = f'\\hyperlink{{{note}}}{{{result}}}'
+            else:
+                replace_with = result
+            latex_str = latex_str.replace(f'\\num{{{match}}}', replace_with)
+            notes_to_expressions[note] = f'{match} = {result}'
         except (SyntaxError, NameError):
             pass
-    return latex_str
+    return latex_str, notes_to_expressions
 
 
 def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = None):
@@ -59,7 +72,7 @@ def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
                                   references: Collection[Citation] = None, format_cite: bool = True,
                                   raise_on_too_wide: bool = True) -> str:
-    latex_content = evaluate_latex_num_command(latex_content)
+    latex_content = evaluate_latex_num_command(latex_content)[0]
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'

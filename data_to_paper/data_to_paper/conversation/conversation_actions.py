@@ -262,6 +262,13 @@ class FailedChatgptResponse(BaseChatgptResponse):
 
     exception: Exception = None
 
+    def pretty_repr(self, is_color: bool = True, with_conversation_name: bool = True) -> str:
+        s = f': FAILED:\n{self.exception}'
+        if is_color:
+            s = red_text(s)
+        s = super().pretty_repr(is_color=is_color, with_conversation_name=False) + s
+        return s
+
     def apply(self):
         pass
 

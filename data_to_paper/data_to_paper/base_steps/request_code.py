@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any, Union
+from typing import Optional, Tuple, Dict, Type, Any, Iterable
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
 from data_to_paper.run_gpt_code.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
-from data_to_paper.conversation.message_designation import RangeMessageDesignation
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
@@ -23,10 +23,12 @@ class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
     CHATGPT_PARAMETERS = {'temperature': 0.0}
     value_type: type = Dict[str, str]
     response_to_self_error: str = dedent_triple_quote_str("""
-        Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \
+        Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \t
         to suggested solutions (values).
         If you are sure that there are no issues, you should respond with an empty dictionary, `{}`.
         """)
+    is_new_conversation: Optional[bool] = False
+    rewind_after_getting_a_valid_response: Rewind = Rewind.DELETE_ALL
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION
 
 
@@ -73,21 +75,37 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         ```
         """)  # set to None to not present code
 
-    code_review_prompts: Optional[Union[str, Tuple[str]]] = dedent_triple_quote_str("""
-        I ran your code. 
-
-        {created_file_contents_explanation}
-
-        Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \
-        that may indicate that code improvements are needed).
-
+    code_review_formatting_instructions: str = dedent_triple_quote_str("""
         Return your choice as a Python Dict[str, str], mapping possible issues to suggested changes in the code.
 
         If you have no suggestions for improvement, return an empty dict:
         ```python
         {}
-        ```` 
-        """)  # set to None to skip option for revision
+        ```
+        """)
+
+    # (wildcard_filename, individually, prompt)
+    # set to () to skip option for revision
+    # use {filename} to include the name of the created file
+    # use {file_contents_str} to include the content of the created file(s)
+    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
+        ('*', False,
+         dedent_triple_quote_str("""
+            I ran your code. 
+
+            Here is the content of the output file(s) that the code created:
+
+            {file_contents_str}
+
+            Please check if there is anything wrong in these results (like unexpected NaN values, or anything else \t
+            that may indicate that code improvements are needed).
+
+            {code_review_formatting_instructions}
+            """)
+         ),
+    )
+
+    file_review_prompts: Iterable[Tuple[str, str]] = ()  # (wildcard_filename, prompt)
 
     @property
     def output_filename(self) -> str:
@@ -102,12 +120,6 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             return f'It creates the file "{created_file}".'
         else:
             return f'It creates the files: {list(created_files)}.'
-
-    def get_created_file_contents_explanation(self, code_and_output: CodeAndOutput) -> Optional[str]:
-        description = code_and_output.created_files.get_created_content_files_description()
-        if len(description) == 0:
-            return None
-        return f'Here is the content of the output file(s) that the code created:\n\n{description}'
 
     def _get_specific_attrs_for_code_and_output(self, code_and_output: CodeAndOutput) -> Dict[str, str]:
         return {}
@@ -202,44 +214,51 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         Return True/False indicating if ChatGPT wants to revise the code.
         If true, set the conversation to the state where the user ask ChatGPT to revise the code.
         """
-        created_file_contents_explanation = self.get_created_file_contents_explanation(code_and_output)
-        code_review_prompts = self.code_review_prompts
-        if not code_review_prompts:
-            return False
-        if isinstance(code_review_prompts, str):
-            code_review_prompts = (code_review_prompts, )
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
-        conversation_len = len(self.conversation)
         prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)
-        for code_review_prompt in code_review_prompts:
-            issues_to_solutions = RequestIssuesToSolutions.from_(
-                self,
-                model_engine=self.model_engine,
-                is_new_conversation=False,
-                background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                user_initiation_prompt=Replacer(
-                    self, code_review_prompt,
-                    kwargs=dict(
-                        created_file_contents_explanation=created_file_contents_explanation,
-                        **{k: Replacer(self, v).format_text() for k, v in specific_attrs_for_code_and_output.items()},
-                    )),
-            ).run_and_get_valid_result()
+        for wildcard_filename, individually, code_review_prompt in self.code_review_prompts:
+            if wildcard_filename is None:
+                content_files_to_contents = {None: None}
+            else:
+                content_files_to_contents = \
+                    code_and_output.created_files.get_created_content_files_to_pretty_contents(
+                        match_filename=wildcard_filename, is_block=True, pvalue_on_str=OnStr.SMALLER_THAN)
+                # TODO: check if less confusing for the LLM if we use pvalue_on_str=OnStr.EPSILON
+                if len(content_files_to_contents) == 0:
+                    continue
+                if not individually:
+                    content_files_to_contents = {wildcard_filename: '\n'.join(content_files_to_contents.values())}
+            for filename, file_contents_str in content_files_to_contents.items():
+                formatted_code_review_prompt = \
+                    Replacer(
+                        self, code_review_prompt,
+                        kwargs=dict(
+                            file_contents_str=file_contents_str,
+                            filename=filename,
+                            **{k: Replacer(self, v).format_text()
+                               for k, v in specific_attrs_for_code_and_output.items()},
+                        ))
+                if not formatted_code_review_prompt:
+                    continue
+                issues_to_solutions = RequestIssuesToSolutions.from_(
+                    self,
+                    model_engine=self.model_engine,
+                    background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
+                    user_initiation_prompt=formatted_code_review_prompt,
+                ).run_and_get_valid_result()
 
-            # rewind the conversation to the point where the user asked for a revision:
-            self.apply_delete_messages(RangeMessageDesignation.from_(start=conversation_len, end=-1))
+                if issues_to_solutions:
+                    self.apply_append_user_message(dedent_triple_quote_str("""
+                        The code has some issues that need to be fixed:
 
-            if issues_to_solutions:
-                self.apply_append_user_message(dedent_triple_quote_str("""
-                    The code has some issues that need to be fixed:
+                        {issues_to_solutions}
 
-                    {issues_to_solutions}
+                        - And please fix any other issues that you may find.
 
-                    - And please fix any other issues that you may find.
-
-                    {prompt_to_append_at_end_of_response}
-                    """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
-                                                                for issue, solution in issues_to_solutions.items()),
-                                prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
-                return True
+                        {prompt_to_append_at_end_of_response}
+                        """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
+                                                                    for issue, solution in issues_to_solutions.items()),
+                                    prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+                    return True
 
         return False

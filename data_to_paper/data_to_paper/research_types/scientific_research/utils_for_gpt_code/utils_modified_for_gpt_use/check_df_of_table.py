@@ -115,7 +115,7 @@ def check_df_index_is_a_range(df: pd.DataFrame, filename: str) -> RunIssues:
                 Please revise the code making sure the table is built with an index that has meaningful row labels.
 
                 Labeling row with sequential numbers is not common in scientific tables. 
-                Though, if you are sure that starting each row with a sequential number is really what you want, \
+                Though, if you are sure that starting each row with a sequential number is really what you want, \t
                 then convert it from int to strings, so that it is clear that it is not a mistake.
                 """),
         ))
@@ -204,7 +204,7 @@ def check_df_is_describe(df: pd.DataFrame, filename: str) -> RunIssues:
             item=filename,
             issue=f'The table includes mean, std, as well as quantiles and min/max values.',
             instructions=dedent_triple_quote_str("""
-                Note that in scientific tables, it is not customary to include quantiles, or min/max values, \
+                Note that in scientific tables, it is not customary to include quantiles, or min/max values, \t
                 especially if the mean and std are also included.
                 Please revise the code so that the tables only include scientifically relevant statistics.
                 """),
