@@ -133,7 +133,10 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
             goal_refinement_iteration += 1
-            products.research_goal = ReGoalReviewGPT.from_(self).run_dialog_and_get_valid_result()
+            products.research_goal = ReGoalReviewGPT.from_(
+                self,
+                project_specific_goal_guidelines=self.project_specific_goal_guidelines
+            ).run_dialog_and_get_valid_result()
         # TODO: need to decide what and how to send to the client, we need to somehow split between
         #  stages and produces
         self.send_product_to_client('research_goal')

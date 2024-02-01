@@ -201,7 +201,8 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
             if self._is_pharse_in_section(section, phrase, match_case)
         ]
         if used_aborting_phrases:
-            raise FailedCreatingProductException("The LLM requires unknown values to write the section.")
+            raise FailedCreatingProductException(f"The LLM requires unknown values to write the section; "
+                                                 f"it used the following aborting phrases:\n{used_aborting_phrases}")
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         self._check_for_aborting_phrases(section)

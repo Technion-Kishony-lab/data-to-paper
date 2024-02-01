@@ -222,7 +222,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             else:
                 content_files_to_contents = \
                     code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                        match_filename=wildcard_filename, is_block=True, pvalue_on_str=OnStr.WITH_EPSILON)
+                        match_filename=wildcard_filename, is_block=True, pvalue_on_str=OnStr.SMALLER_THAN)
+                # TODO: check if less confusing for the LLM if we use pvalue_on_str=OnStr.EPSILON
                 if len(content_files_to_contents) == 0:
                     continue
                 if not individually:

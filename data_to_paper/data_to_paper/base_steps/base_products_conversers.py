@@ -83,8 +83,9 @@ class BackgroundProductsConverser(ProductsConverser):
     def replacer_kwargs(self):
         if self.background_product_fields is None:
             return {}
+        fields_to_hide = self.background_product_fields_to_hide or ()
         return {field: self.products[field].name for field in self.background_product_fields
-                if self.products.is_product_available(field)}
+                if field not in fields_to_hide and self.products.is_product_available(field)}
 
     @property
     def actual_background_product_fields(self) -> Optional[Tuple[str, ...]]:

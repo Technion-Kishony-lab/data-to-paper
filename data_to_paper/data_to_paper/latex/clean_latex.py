@@ -19,6 +19,17 @@ CHARS = {
     '^': r'\textasciicircum{}',
     '<': r'$<$',
     '>': r'$>$',
+    '≤': r'$\leq$',
+    '≥': r'$\geq$',
+    '≠': r'$\neq$',
+    '±': r'$\pm$',
+    '×': r'$\times$',
+    '÷': r'$\div$',
+    '°': r'$^{\circ}$',
+    '∞': r'$\infty$',
+    '√': r'$\sqrt{}$',
+    '∑': r'$\sum$',
+    '∏': r'$\prod$',
     '|': r'\textbar{}',
 }
 

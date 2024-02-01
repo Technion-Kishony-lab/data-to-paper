@@ -38,12 +38,12 @@ class TooManyTokensInMessageError(Exception):
     """
     tokens: int
     expected_tokens_in_response: int
-    max_tokens: int
+    model_engine: ModelEngine
 
     def __str__(self):
-        return f'number of tokens in message ({self.tokens}) is too large. ' \
-               f'expected number of tokens in response: {self.expected_tokens_in_response}. ' \
-               f'maximum number of tokens: {self.max_tokens}.'
+        return f'Number of tokens in context ({self.tokens}) is too large. ' \
+               f'Expected number of tokens in response: {self.expected_tokens_in_response}. ' \
+               f'Maximum number of tokens for {self.model_engine}: {self.model_engine.max_tokens}.'
 
 
 class UserAbort(TerminateException):
@@ -179,7 +179,7 @@ def try_get_chatgpt_response(messages: List[Message],
     model_engine = _get_actual_model_engine(model_engine)
     tokens = count_number_of_tokens_in_message(messages, model_engine)
     if tokens + expected_tokens_in_response > model_engine.max_tokens:
-        return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine.max_tokens)
+        return TooManyTokensInMessageError(tokens, expected_tokens_in_response, model_engine)
     print_and_log_red(f'Using {model_engine} (max {model_engine.max_tokens} tokens) '
                       f'for {tokens} context tokens and {expected_tokens_in_response} expected tokens.')
     if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:

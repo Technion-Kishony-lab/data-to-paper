@@ -403,7 +403,9 @@ class ScientificProducts(Products):
                 lambda code_step, filespec: {
                     'created_files_content':
                         self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
-                            match_filename=filespec),
+                            match_filename=filespec,
+                            pvalue_on_str=OnStr.SMALLER_THAN,
+                        ),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
             ),

@@ -20,12 +20,15 @@ EPSILON = 1e-12  # 0 is formatted as "1e-12"
 
 class OnStr(Enum):
     RAISE = 0
-    NORMAL = 1
+    AS_FLOAT = 1
     SMALLER_THAN = 2  # with P_VALUE_MIN, e.g. "<1e-6"
+    LATEX_SMALLER_THAN = 3  # with P_VALUE_MIN, e.g. "$<1e-6$"
     WITH_EPSILON = 3  # with EPSILON, e.g. "1e-12"
+    WITH_ZERO = 4  # just format. no minimal value
+    DEBUG = 5
 
 
-def format_p_value(x):
+def format_p_value(x, minimal_value=P_VALUE_MIN, smaller_than_sign: str = '<'):
     """
     Format a p-value to a string.
     """
@@ -35,7 +38,9 @@ def format_p_value(x):
         raise ValueError(f"p-value should be in the range [0, 1]. Got: {x}")
     if np.isinf(x) or np.isnan(x):
         return str(x)
-    return "{:.3g}".format(x) if x >= P_VALUE_MIN else "<{}".format(P_VALUE_MIN)
+    if x >= minimal_value:
+        return "{:.3g}".format(x)
+    return smaller_than_sign + "{}".format(minimal_value)
 
 
 @dataclass
@@ -94,12 +99,18 @@ class PValue(OperatorValue):
             return value
         if method_name in ['__str__', '__repr__']:
             on_str = self.ON_STR
-            if on_str == OnStr.NORMAL:
+            if on_str == OnStr.AS_FLOAT:
                 return value
             if on_str == OnStr.SMALLER_THAN:
-                return format_p_value(self.value)
+                return format_p_value(self.value, minimal_value=P_VALUE_MIN, smaller_than_sign='<')
+            if on_str == OnStr.LATEX_SMALLER_THAN:
+                return format_p_value(self.value, minimal_value=P_VALUE_MIN, smaller_than_sign='$<$')
             if on_str == OnStr.WITH_EPSILON:
-                return str(max(self.value, EPSILON))
+                return format_p_value(self.value, minimal_value=EPSILON, smaller_than_sign='')
+            if on_str == OnStr.WITH_ZERO:
+                return format_p_value(self.value, minimal_value=0, smaller_than_sign='')
+            if on_str == OnStr.DEBUG:
+                return f'PValue({value})'
             if on_str == OnStr.RAISE:
                 self._raise_if_forbidden_func(method_name)
             assert False, f'Unknown value for ON_STR: {on_str}'
@@ -111,7 +122,7 @@ class PValue(OperatorValue):
 
     @property
     def __class__(self):
-        if self.BEHAVE_NORMALLY:
+        if self.BEHAVE_NORMALLY or self.ON_STR != OnStr.RAISE and self.ON_STR != OnStr.AS_FLOAT:
             return PValue
         return type(self.value)
 

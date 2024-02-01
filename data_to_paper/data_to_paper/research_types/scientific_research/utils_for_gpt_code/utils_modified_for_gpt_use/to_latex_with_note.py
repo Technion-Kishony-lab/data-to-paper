@@ -59,7 +59,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
     return to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
-                              pvalue_on_str=OnStr.SMALLER_THAN, **kwargs)
+                              pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
 
 
 def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
@@ -153,7 +153,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     file_stem, _ = filename.split('.')
     with RegisteredRunContext.temporarily_disable_all():
         latex = to_latex_with_note(df, None, *args, note=note, legend=legend,
-                                   pvalue_on_str=OnStr.SMALLER_THAN, **kwargs)
+                                   pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
         if compilation_func is None:
             e = 0
         else:
@@ -257,7 +257,7 @@ def _check_for_table_style_issues(df: pd.DataFrame, filename: str, *args,
     elif e > 1.3:
         # Try to compile the transposed table:
         latex_transpose = to_latex_with_note_transpose(df, None, *args, note=note, legend=legend,
-                                                       pvalue_on_str=OnStr.SMALLER_THAN, **kwargs)
+                                                       pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
         with RegisteredRunContext.temporarily_disable_all():
             e_transpose = compilation_func(latex_transpose, file_stem + '_transpose')
         if isinstance(e_transpose, float) and e_transpose < 1.1:

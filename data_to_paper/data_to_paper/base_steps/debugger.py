@@ -316,7 +316,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         for phrase in self.phrases_required_in_code:
             if phrase not in code:
                 issues.append(RunIssue(
-                    issue=f"Your code must explicitly use:\n`{phrase}`.",
+                    issue=f"Your code must explicitly use:\n`{phrase.strip()}`.",
                     comment=f'Code does not use required phrase.',
                     code_problem=CodeProblem.StaticCheck,
                 ))

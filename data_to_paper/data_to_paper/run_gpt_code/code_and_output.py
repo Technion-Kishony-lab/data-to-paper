@@ -42,7 +42,7 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.NORMAL)
+        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.WITH_ZERO)
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, output in outputs.items():
@@ -61,7 +61,7 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "Code Description:\n"
             s += self.code_explanation + '\n\n'
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.NORMAL)
+        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.WITH_ZERO)
         if outputs:
             s += "Code Output:\n"
             for filename, output in outputs.items():

@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional, Any, List, Tuple, Iterable, Dict
 
-from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS
+from data_to_paper.env import MAX_SENSIBLE_OUTPUT_SIZE_TOKENS, NUM_DIGITS_FOR_FLOATS
 from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
@@ -145,7 +145,7 @@ class TextContentOutputFileRequirement(BaseContentOutputFileRequirement):
 
 @dataclass(frozen=True)
 class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
-    target_precision: int = 4
+    target_precision: int = NUM_DIGITS_FOR_FLOATS
     source_precision: int = 10
 
     def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:

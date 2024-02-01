@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Iterable
 
+import pandas as pd
+
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
@@ -19,7 +21,9 @@ from data_to_paper.research_types.scientific_research.table_debugger import Tabl
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
+from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import temporarily_change_float_format, \
+    STR_FLOAT_FORMAT
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr, OnStrPValue
 
 from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
@@ -380,10 +384,12 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
         return comments
 
 
-class DataFramePickleContentOutputFileRequirement(NumericTextContentOutputFileRequirement,
-                                                  PickleContentOutputFileRequirement,
-                                                  ):
-    pass
+class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
+    def get_pretty_content(self, content: pd.DataFrame, filename: str = None,
+                           pvalue_on_str: Optional[OnStr] = None) -> str:
+        with OnStrPValue(pvalue_on_str), temporarily_change_float_format(STR_FLOAT_FORMAT):
+            content = content.to_string()
+        return super().get_pretty_content(content, filename, pvalue_on_str)
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
@@ -447,8 +453,12 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
             if class_name + '(' in code:
                 issues.append(RunIssue(
                     issue=f'You are using the "{class_name}" class. ',
-                    instructions=f'You should use the "{from_formula}" function instead, so that the '
-                                 f'formula is clearly specified as a string.',
+                    instructions=dedent_triple_quote_str(f"""
+                        You should use the "{from_formula}" function instead, so that the formula is clearly \t
+                        specified as a string. 
+                        Reminder: For interactions, if any, use the `*` operator in the formula, rather than \t
+                        manually multiplying the variables.
+                        """),
                     code_problem=CodeProblem.StaticCheck,
                 ))
 
@@ -634,7 +644,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         * DATASET PREPARATIONS:
         - Missing values. If applicable, did we deal with missing, unknown, or undefined values, \t
         or with special numeric values that stand for unknown/undefined \t
-        (check the "{data_file_descriptions}" and "{outputs:data_exploration}" for any such missing values)? 
+        (check the "{data_file_descriptions}" for any such missing values)? 
         - Units. If applicable, did we correctly standardize numeric values with different units into same-unit values? 
         - Data restriction. If applicable, are we restricting the analysis to the correct part of the data \t
         (based on the study goal)?
@@ -646,8 +656,7 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Is descriptive analysis done on the correct data (for example, before any data normalization steps)?
 
         * PREPROCESSING:
-        Review the above "{data_file_descriptions}" and "{outputs:data_exploration}", then check our \t
-        data preprocessing:
+        Review the above "{data_file_descriptions}", then check our data preprocessing:
         - Are we performing any preprocessing steps that are not needed?
         - Are we missing any preprocessing steps that are needed?
 
@@ -843,8 +852,6 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
          'created_files_content:data_analysis:table_?.pkl')
-    background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = \
-        ('research_goal', 'codes:data_preprocessing', 'created_files_content:data_analysis:*.pkl')
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     additional_contexts: Optional[Dict[str, Any]] = field(

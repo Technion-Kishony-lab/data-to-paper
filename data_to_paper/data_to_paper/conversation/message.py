@@ -133,18 +133,14 @@ class Message:
         Detect if the message contains incomplete code.
         """
         content = self.content.strip()
+        if not content:
+            return content, False
         formatted_sections = FormattedSections.from_text(content)
         if len(formatted_sections) == 0:
-            return content, False
-        last_section = formatted_sections.get_last_block()
-
-        is_incomplete_code = HIDE_INCOMPLETE_CODE and last_section is not None and not last_section.is_complete
-        if is_incomplete_code:
-            partial_code = last_section.section
-            last_section.section = \
-                f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n)"
-            last_section.is_complete = True
-            content = formatted_sections.to_text()
+            is_incomplete_code = False
+        else:
+            last_section = formatted_sections.get_last_block()
+            is_incomplete_code = HIDE_INCOMPLETE_CODE and last_section is not None and not last_section.is_complete
         return content, is_incomplete_code
 
     def get_number_of_tokens(self, model_engine: ModelEngine = None) -> int:
@@ -174,7 +170,7 @@ class Message:
                 header += f'CONTEXT TOTAL ({self.get_number_of_tokens_in_context()} tokens):\n'
                 for i, message in enumerate(self.context):
                     header += f'#{i:>2} {message.get_short_description(model=self.get_chatgpt_model())}\n'
-            header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 29 + \
+            header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 49 + \
                       f'{chatgpt_parameters}'
             header = wrap_text_with_triple_quotes(header, 'header')
             content = header + '\n\n' + content
@@ -188,7 +184,7 @@ class Message:
         content, _ = self._get_triple_quote_formatted_content(with_header)
         return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html)
 
-    def get_short_description(self, left: int = 35, right: int = -20, model: ModelEngine = None) -> str:
+    def get_short_description(self, left: int = 55, right: int = -20, model: ModelEngine = None) -> str:
         return f'{self.role.name:>9} ({self.get_number_of_tokens(model):>4} tokens): ' \
                f'{get_dot_dot_dot_text(self.content, left, right)}'
 
@@ -234,6 +230,21 @@ class CodeMessage(Message):
         # we remove the first 3 lines, which are the header of the diff:
         diff = list(diff)[3:]
         return '\n'.join(diff)
+
+    def get_content_after_hiding_incomplete_code(self) -> (str, bool):
+        """
+        Detect if the message contains incomplete code.
+        """
+        content, is_incomplete_code = super().get_content_after_hiding_incomplete_code()
+        if is_incomplete_code:
+            formatted_sections = FormattedSections.from_text(content)
+            last_section = formatted_sections.get_last_block()
+            partial_code = last_section.section
+            last_section.section = \
+                f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n"
+            last_section.is_complete = True
+            content = formatted_sections.to_text()
+        return content, is_incomplete_code
 
     def pretty_content(self, text_color, width, is_html=False, with_header: bool = True) -> str:
         """

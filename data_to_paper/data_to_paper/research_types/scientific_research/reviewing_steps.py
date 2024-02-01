@@ -53,7 +53,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         * Try to avoid trivial hypotheses (like just testing for simple linear associations).
         Instead, you could perhaps explore more complex associations and relationships, like testing for \t
         moderation effects or interactions between variables.
-        
+
         * Do not limit yourself to the provided data structure and variables; \t
         you can create new variables from the existing ones, and use them in your hypotheses.
 

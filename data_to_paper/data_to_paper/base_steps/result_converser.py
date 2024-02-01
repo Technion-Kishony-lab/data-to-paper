@@ -314,7 +314,8 @@ class ResultConverser(Converser):
             rewind = response_error.rewind if response_error else self.rewind_after_getting_a_valid_response
 
             # replace the response with a fresh looking response if needed:
-            if rewind in [Rewind.AS_FRESH, Rewind.AS_FRESH_CORRECTION]:
+            cycle_num = (len(self.conversation) - self._conversation_len_before_first_response + 1) // 2
+            if rewind == Rewind.AS_FRESH or rewind == Rewind.AS_FRESH_CORRECTION and cycle_num > 1:
                 self.apply_delete_messages(SingleMessageDesignation(-1))
                 self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response, extracted_results),
                                                     web_conversation_name=None)
