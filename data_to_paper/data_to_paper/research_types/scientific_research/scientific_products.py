@@ -230,6 +230,13 @@ class ScientificProducts(Products):
                 lambda: self.data_file_descriptions,
             ),
 
+            'data_file_descriptions_no_headers': NameDescriptionStageGenerator(
+                'Description of the Original Dataset',
+                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
+                ScientificStages.DATA,
+                lambda: self.data_file_descriptions.pretty_repr(num_lines=0),
+            ),
+
             'all_file_descriptions': NameDescriptionStageGenerator(
                 'Description of the Dataset',
                 'Description of the Dataset:\n\n{}',

@@ -10,7 +10,7 @@ from data_to_paper.research_types.scientific_research.scientific_products import
 class GoalLiteratureSearchReviewGPT(BaseLiteratureSearchReviewGPT):
     products: ScientificProducts = None
     requested_keys: Collection[str] = ('dataset', 'questions', )
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal')
     conversation_name: str = 'literature_search_goal'
     is_new_conversation: bool = None
     goal_noun: str = 'literature search queries'
@@ -22,8 +22,8 @@ class GoalLiteratureSearchReviewGPT(BaseLiteratureSearchReviewGPT):
 @dataclass
 class WritingLiteratureSearchReviewGPT(GoalLiteratureSearchReviewGPT):
     requested_keys: Collection[str] = ('background', 'dataset', 'methods', 'results')
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'hypothesis_testing_plan',
-                                                  'title_and_abstract')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
+                                                  'hypothesis_testing_plan', 'title_and_abstract')
     conversation_name: str = 'literature_search_writing'
 
     def get_abstract(self) -> Optional[str]:

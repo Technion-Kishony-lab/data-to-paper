@@ -57,7 +57,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     Base class for the writer of a paper section in latex format.
     """
     products: ScientificProducts = None
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'codes:data_analysis', 'tables', 'additional_results',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
@@ -354,7 +354,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 
 @dataclass
 class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
+                                                  'codes:data_preprocessing',
                                                   'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     enforced_sub_headers: Tuple[str, ...] = ('Data Source', 'Data Preprocessing', 'Data Analysis')
@@ -448,9 +449,10 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
+        ('title_and_abstract', 'data_file_descriptions_no_headers', 'codes:data_analysis',
+         'tables', 'additional_results')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
+        ('data_file_descriptions_no_headers', 'codes:data_analysis', 'tables', 'additional_results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
