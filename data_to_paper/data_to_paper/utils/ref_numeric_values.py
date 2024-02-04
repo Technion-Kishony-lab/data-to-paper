@@ -2,8 +2,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from functools import partial
-from typing import Tuple, List, Optional
-
+from typing import Tuple, List, Optional, Union
 
 TARGET = r'\hypertarget'
 REFERENCE = r'\hyperlink'
@@ -76,6 +75,37 @@ class ReferencedValue:
         return value / 100 if is_percent else value
 
 
+@dataclass
+class ReferencableText:
+    """
+    A text which can be converted to hypertargeted text/
+    """
+    text: str
+    hypertarget_prefix: Optional[str] = None  # if None, no hypertargets are created
+
+    def __str__(self):
+        return self.text
+
+    def get_text(self, should_hypertarget: bool = True) -> str:
+        if not should_hypertarget or self.hypertarget_prefix is None:
+            return self.text
+        return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[0]
+
+    def get_references(self) -> List[ReferencedValue]:
+        if self.hypertarget_prefix is None:
+            return []
+        return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[1]
+
+
+def hypertarget_if_referencable_text(text: Union[str, ReferencableText], should_hypertarget: bool = True) -> str:
+    """
+    Create hypertargets if the text is referencable, otherwise return the text.
+    """
+    if isinstance(text, ReferencableText):
+        return text.get_text(should_hypertarget)
+    return text
+
+
 def _num_to_letters(num: int) -> str:
     """
     Convert a number to letters.
@@ -89,7 +119,7 @@ def _num_to_letters(num: int) -> str:
     return letters
 
 
-def create_hypertargets_to_numeric_values(text: str, prefix: str = '',
+def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = None,
                                           pattern: str = numeric_values_in_products_pattern
                                           ) -> Tuple[str, List[ReferencedValue]]:
     """
@@ -97,6 +127,9 @@ def create_hypertargets_to_numeric_values(text: str, prefix: str = '',
     Replace the numeric values with the references.
     Return the text with the references and the references.
     """
+
+    if prefix is None:
+        return text, []
 
     def replace_numeric_value_with_hypertarget(match, prefix_):
         value = match.group(0)

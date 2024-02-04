@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 
 from data_to_paper.base_steps import LiteratureSearch
@@ -25,6 +26,16 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
     'data_to_latex': (ScientificStages.CODE, 'LaTeX Table Design', ScientificAgent.Debugger),
 }
+
+
+class HypertargetPrefix(Enum):
+    """
+    Prefixes for hypertargets.
+    """
+    GENERAL_FILE_DESCRIPTION = 'S'
+    FILE_DESCRIPTIONS = ('T', 'U', 'V', 'W', 'X', 'Y', 'Z')
+    ADDITIONAL_RESULTS = ('R',)
+    LATEX_TABLES = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H')
 
 
 def get_code_stage(code_step: str) -> Stage:
