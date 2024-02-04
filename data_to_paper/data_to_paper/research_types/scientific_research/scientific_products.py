@@ -109,7 +109,7 @@ class ScientificProducts(Products):
         return len(self.get_created_df_tables())
 
     @property
-    def tables(self) -> Dict[str, List[str]]:
+    def latex_tables(self) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
@@ -128,11 +128,11 @@ class ScientificProducts(Products):
                          for hypothesis, test in self.hypothesis_testing_plan.items())
 
     @property
-    def all_tables(self) -> List[str]:
+    def all_latex_tables(self) -> List[str]:
         """
         Return the tables from all sections.
         """
-        return [table for tables in self.tables.values() for table in tables]
+        return [table for tables in self.latex_tables.values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -191,8 +191,8 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: section if section_name not in self.tables
-                else add_tables_to_paper_section(section, self.tables[section_name])
+        return {section_name: section if section_name not in self.latex_tables
+                else add_tables_to_paper_section(section, self.latex_tables[section_name])
                 for section_name, section in self.paper_sections_without_citations.items()}
 
     def get_title(self) -> str:
@@ -440,14 +440,14 @@ class ScientificProducts(Products):
                                       },
             ),
 
-            'tables': NameDescriptionStageGenerator(
+            'latex_tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes):\n\n{}',
                 ScientificStages.TABLES,
-                lambda: None if not self.all_tables else
+                lambda: None if not self.all_latex_tables else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
-                             f'```latex\n{table}\n```' for table in self.all_tables]),
+                             f'```latex\n{table}\n```' for table in self.all_latex_tables]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(

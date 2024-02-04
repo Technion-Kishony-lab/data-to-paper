@@ -58,7 +58,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
     """
     products: ScientificProducts = None
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
-                                                  'codes:data_analysis', 'tables', 'additional_results',
+                                                  'codes:data_analysis', 'latex_tables', 'additional_results',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     should_remove_citations_from_section: bool = True
@@ -228,7 +228,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description',
-                                             'codes:data_analysis', 'tables', 'additional_results')
+                                             'codes:data_analysis', 'latex_tables', 'additional_results')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
 
@@ -450,9 +450,9 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
     background_product_fields: Tuple[str, ...] = \
         ('title_and_abstract', 'data_file_descriptions_no_headers', 'codes:data_analysis',
-         'tables', 'additional_results')
+         'latex_tables', 'additional_results')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('data_file_descriptions_no_headers', 'codes:data_analysis', 'tables', 'additional_results')
+        ('data_file_descriptions_no_headers', 'codes:data_analysis', 'latex_tables', 'additional_results')
     max_reviewing_rounds: int = 1
     section_specific_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
@@ -524,7 +524,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         """)
 
     def _get_table_labels(self, section_name: str) -> List[str]:
-        return [get_table_label(table) for table in self.products.tables[section_name]]
+        return [get_table_label(table) for table in self.products.latex_tables[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         result = super()._check_and_refine_section(section, section_name)
