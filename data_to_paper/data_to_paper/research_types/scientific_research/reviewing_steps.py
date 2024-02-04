@@ -1,16 +1,13 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Optional, Iterable, List
+from typing import Tuple, Dict, Any, Iterable, List
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps.result_converser import Rewind
-from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, LatexReviewBackgroundProductsConverser, \
-    PythonDictReviewBackgroundProductsConverser, CheckExtractionReviewBackgroundProductsConverser, \
+from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
 
-from data_to_paper.latex.clean_latex import escape_special_chars_and_symbols_in_table
-from data_to_paper.latex.tables import get_table_label
 from data_to_paper.servers.custom_types import Citation
 
 from .cast import ScientificAgent
@@ -285,4 +282,3 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
             {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
                     repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
-

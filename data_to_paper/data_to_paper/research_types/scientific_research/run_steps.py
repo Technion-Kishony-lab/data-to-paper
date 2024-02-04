@@ -15,14 +15,14 @@ from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, IsGo
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
-    MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
+    MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ResultsSectionWriterReviewGPT, \
     DiscussionSectionWriterReviewGPT
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
 SECTIONS_TO_WRITING_CLASS = [
-            (('results',), ReferringTablesSectionWriterReviewGPT),
+            (('results',), ResultsSectionWriterReviewGPT),
             (('title', 'abstract'), SecondTitleAbstractSectionWriterReviewGPT),
             (('methods',), MethodsSectionWriterReviewGPT),
             (('introduction',), IntroductionSectionWriterReviewGPT),

@@ -434,7 +434,7 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
 
 @dataclass
-class ReferringTablesSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
+class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     forbidden_phrases: Tuple[Tuple[str, bool], ...] = \
         SectionWriterReviewBackgroundProductsConverser.forbidden_phrases + \
         (
