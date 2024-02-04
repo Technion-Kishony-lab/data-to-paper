@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import pickle
 import platform
+import gipc
 import tempfile
 import uuid
 from abc import abstractmethod, ABC
@@ -118,12 +119,12 @@ class BaseCodeRunner(ABC):
             queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
             queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
         else:
-            queue_or_filepath = multiprocessing.Queue()
-
-        process = multiprocessing.Process(target=self._run_code_and_put_result_in_queue,
-                                          args=(queue_or_filepath, code, modified_code))
+            reader, queue_or_filepath = gipc.pipe()
         try:
-            process.start()
+            process = gipc.start_process(
+                self._run_code_and_put_result_in_queue,
+                args=(queue_or_filepath, code, modified_code),
+            )
         except (AttributeError, TypeError):
             for k, v in self.__dict__.items():
                 if not is_serializable(v):
@@ -147,9 +148,9 @@ class BaseCodeRunner(ABC):
                     result = pickle.load(f)
                 os.remove(queue_or_filepath)
             else:
-                result = queue_or_filepath.get()
+                result = reader.get()
             if isinstance(result, Exception):
-                raise result  # unexpected exception; not from the run code
+                raise result
         return result
 
     def _run_code_and_put_result_in_queue(self, queue_or_filepath, code: str, modified_code: str):
