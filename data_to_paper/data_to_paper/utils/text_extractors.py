@@ -90,27 +90,31 @@ def extract_text_between_brackets(text: str, open_bracket: str, leave_brackets: 
     return text[start + 1:end - 1]
 
 
-def extract_all_external_brackets(text: str, open_bracket: str):
+def extract_all_external_brackets(text: str, open_bracket: str, close_bracket: str = None, open_phrase: str = None):
     """
     Extract all text between the open bracket and the matching closing bracket.
     For example, if open_bracket is '[', and text is 'hello [world [inner]], what is your [name]', then return
     ['[world [inner]]', '[name]'].
     if there are no open brackets, return an empty list.
     """
-    start = text.find(open_bracket)
+    if close_bracket is None:
+        close_bracket = FROM_OPEN_BRACKET_TO_CLOSE_BRACKET[open_bracket]
+    if open_phrase is None:
+        open_phrase = open_bracket
+    start = text.find(open_phrase)
     if start == -1:
         return []
-    end = start + 1
+    end = start + len(open_phrase)
     stack = [open_bracket]
     while len(stack) > 0:
         if end == len(text):
             return []
         if text[end] == open_bracket:
             stack.append(open_bracket)
-        elif text[end] == FROM_OPEN_BRACKET_TO_CLOSE_BRACKET[open_bracket]:
+        elif text[end] == close_bracket:
             stack.pop()
         end += 1
-    return [text[start:end]] + extract_all_external_brackets(text[end:], open_bracket)
+    return [text[start:end]] + extract_all_external_brackets(text[end:], open_bracket, close_bracket, open_phrase)
 
 
 def _extract_to_nearest(text: str, max_length: int, char: str = '\n'):
