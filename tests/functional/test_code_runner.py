@@ -124,6 +124,7 @@ def test_runner_raise_code_timeout_exception():
                    ).run_code_in_separate_process()
     assert f"1 seconds" in str(exception.exception)
 
+
 # TODO: In this following test example we can't get the traceback properly because gevent wraps the child process
 #  run with hub object, need to find a way to get the traceback properly.
 code_multi_process1 = """

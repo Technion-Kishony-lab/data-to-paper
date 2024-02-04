@@ -18,7 +18,6 @@ from data_to_paper.base_products import DataFileDescriptions, DataFileDescriptio
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
 from data_to_paper_server.consts import BASE_DIRECTORY
-from data_to_paper_server.serializers import SerializedAction
 from data_to_paper_server.websocket_messenger import QueueMessenger
 import gipc
 
