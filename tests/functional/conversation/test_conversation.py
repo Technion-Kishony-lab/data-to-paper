@@ -1,9 +1,28 @@
 import os.path
 
 import openai
+import pytest
 
 from data_to_paper import Conversation, Message, Role
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER, try_get_chatgpt_response
+from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER, try_get_chatgpt_response, \
+    count_number_of_tokens_in_message
+from data_to_paper.servers.model_engine import ModelEngine
+
+
+@pytest.mark.parametrize('text, expected', [
+    ("10", 1),
+    ("hypertarget", 3),
+    ("hyperlink", 2),
+    ("ref", 1),
+    ("\hypertarget{C37}{10}", 10),
+    ("refC37{10}", 6),
+    ("hypertarget_C37{10}", 8),
+    ("10refC37", 4),
+    ("10hypertarget_C37", 6),
+])
+def test_count_number_of_tokens_in_message(text, expected):
+    for model_engine in [ModelEngine.GPT4, ModelEngine.GPT4_TURBO]:
+        assert count_number_of_tokens_in_message(text, model_engine) == expected
 
 
 def test_failed_gpt_response(conversation, openai_exception):
