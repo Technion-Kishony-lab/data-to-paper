@@ -211,27 +211,6 @@ class ReGoalReviewGPT(GoalReviewGPT):
 
 
 @dataclass
-class PlanReviewGPT(ScientificProductsQuotedReviewGPT):
-    max_reviewing_rounds: int = 1  # 0 for no review cycles
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
-                                                  'research_goal')
-    conversation_name: str = 'analysis_plan'
-    goal_noun: str = 'short data analysis plan'
-    goal_verb: str = 'write'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
-        Please {goal_verb} {goal_noun}. 
-        Do not include any data visualization steps.
-        Explicitly specify all relevant analysis results and values that should be calculated.
-        If there are any specific statistical tests that should be performed, specify how they should be performed.
-
-        Do not specify data exploration steps, as they are already performed.
-        {quote_request}
-        """)
-    assistant_agent: ScientificAgent = ScientificAgent.Performer
-    user_agent: ScientificAgent = ScientificAgent.PlanReviewer
-
-
-@dataclass
 class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser):
     value_type: type = Dict[str, str]
     max_valid_response_iterations: int = 4

@@ -11,8 +11,7 @@ from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureS
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
-from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
@@ -43,7 +42,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
     should_do_data_exploration: bool = True
     should_do_data_preprocessing: bool = False
-    should_prepare_data_analysis_plan: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
     should_do_literature_search: bool = True
     should_add_citations: bool = False
@@ -143,10 +141,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
-        # Analysis plan
-        if self.should_prepare_data_analysis_plan:
-            products.analysis_plan = PlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
-            # self.send_product_to_client('analysis_plan')
 
         # Hypotheses testing plan
         if self.should_prepare_hypothesis_testing_plan:
@@ -154,9 +148,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
 
-        if not self.should_prepare_data_analysis_plan and not self.should_prepare_hypothesis_testing_plan:
-            raise ValueError("At least one of the following should be True: "
-                             "should_prepare_data_analysis_plan, should_prepare_hypothesis_testing_plan")
         # TODO: currently sending hypothesis testing plan to the client, need to decide what we really want to send
         self.send_product_to_client('hypothesis_testing_plan')
 
