@@ -9,7 +9,7 @@ if TYPE_OF_MODELS == 'closed':
         "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4,
         "GetMostSimilarCitations": ModelEngine.GPT4,
         "IsGoalOK": ModelEngine.GPT4,
-        "TablesReviewBackgroundProductsConverser": ModelEngine.GPT4,
+        'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4_TURBO,
         "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
     }
@@ -20,7 +20,6 @@ elif TYPE_OF_MODELS == 'open':
         "BaseCreateTablesCodeProductsGPT": ModelEngine.CODELLAMA,
         "GetMostSimilarCitations": ModelEngine.LLAMA_2_70b,
         "IsGoalOK": ModelEngine.LLAMA_2_70b,
-        "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2_70b,
         "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
         "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
     }

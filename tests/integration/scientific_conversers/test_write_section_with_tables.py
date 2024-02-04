@@ -26,8 +26,6 @@ def products():
     return ScientificProducts(
         research_goal="Find fastest recursive algorithm for calculating Fibonacci sequence, calculate the 20 first "
                       "terms.",
-        results_summary="The 20 first terms of the Fibonacci sequence are: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, "
-                        "55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181.",
         cited_paper_sections_and_citations={
             'title': (r"\\title{Fast recursive Fibonacci sequence algorithm} ", set()),
             'abstract': (r"\\begin{abstract} The algorithm uses recursion to calculate the "

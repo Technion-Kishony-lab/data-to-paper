@@ -4,7 +4,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
-from data_to_paper.research_types.scientific_research.reviewing_steps import GoalReviewGPT, PlanReviewGPT
+from data_to_paper.research_types.scientific_research.reviewing_steps import GoalReviewGPT
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 
 
@@ -35,30 +35,9 @@ def goal_reviewer(data_file_descriptions, actions_and_conversations):
     )
 
 
-@fixture()
-def plan_reviewer(data_file_descriptions, actions_and_conversations):
-    return PlanReviewGPT(
-        actions_and_conversations=actions_and_conversations,
-        suppress_printing_other_conversation=False,
-        products=ScientificProducts(
-            data_file_descriptions=data_file_descriptions,
-            research_goal='to test whether there is a gender bias in the birth records',
-        )
-    )
-
-
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_goal_reviewer(goal_reviewer):
     research_goal = goal_reviewer.run_dialog_and_get_valid_result()
 
     # depending on openai response, these conditions may not be necessarily be met:
     assert 'gender' in research_goal
-
-
-@OPENAI_SERVER_CALLER.record_or_replay()
-def test_plan_reviewer(plan_reviewer):
-    plan = plan_reviewer.run_dialog_and_get_valid_result()
-
-    # depending on openai response, these conditions may not be necessarily be met:
-    assert 'male' in plan
-    assert 'female' in plan

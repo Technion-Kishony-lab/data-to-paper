@@ -78,7 +78,7 @@ class BaseScientificCodeProductsHandler:
 @dataclass
 class BaseScientificCodeProductsGPT(BaseScientificCodeProductsHandler, BaseCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, )  # None for the raw data files, () for no data files
-    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal', 'analysis_plan')
+    background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal')
     gpt_script_filename: str = None
 
     def __post_init__(self):
