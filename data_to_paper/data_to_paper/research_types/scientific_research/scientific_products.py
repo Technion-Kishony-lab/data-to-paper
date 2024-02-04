@@ -97,11 +97,7 @@ class ScientificProducts(Products):
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
     literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
-    analysis_plan: Optional[str] = None
     hypothesis_testing_plan: Optional[Dict[str, str]] = None
-    tables_names: Dict[str, str] = field(default_factory=dict)
-    numeric_values: Dict[str, str] = field(default_factory=dict)
-    results_summary: Optional[str] = None
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
@@ -130,29 +126,6 @@ class ScientificProducts(Products):
         """
         return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
                          for hypothesis, test in self.hypothesis_testing_plan.items())
-
-    @property
-    def pretty_tables_names(self) -> str:
-        """
-        Return the tables names in a pretty way.
-        """
-        return '\n'.join(f'({table_num + 1}) "{table_name}"'
-                         for table_num, table_name in enumerate(self.tables_names.values()))
-
-    def get_tables_names_and_content(self) -> str:
-        """
-        Return the tables names and content.
-        """
-        s = 'We are creating a total of {} tables:\n\n'.format(len(self.tables_names))
-        tables = self.tables['results']
-        for i, (table_num, table_name) in enumerate(self.tables_names.items()):
-            s += f'{table_num}: "{table_name}":\n'
-            if i < len(tables):
-                s += f'{tables[i]}'
-            else:
-                s += f'Not created yet.'
-            s += '\n\n'
-        return s
 
     @property
     def all_tables(self) -> List[str]:
@@ -272,13 +245,6 @@ class ScientificProducts(Products):
                 'Here is our Research Goal\n\n{}',
                 ScientificStages.GOAL,
                 lambda: self.research_goal,
-            ),
-
-            'analysis_plan': NameDescriptionStageGenerator(
-                'Data Analysis Plan',
-                'Here is our Data Analysis Plan:\n\n{}',
-                ScientificStages.PLAN,
-                lambda: self.analysis_plan,
             ),
 
             'hypothesis_testing_plan': NameDescriptionStageGenerator(
@@ -434,13 +400,6 @@ class ScientificProducts(Products):
             # WRITING
             # =======
 
-            'results_summary': NameDescriptionStageGenerator(
-                'Results Summary',
-                'Here is our Results Summary:\n\n{}',
-                ScientificStages.INTERPRETATION,
-                lambda: self.results_summary,
-            ),
-
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
@@ -474,13 +433,6 @@ class ScientificProducts(Products):
                                       },
             ),
 
-            'tables_names': NameDescriptionStageGenerator(
-                'Captions of the Tables for the Paper',
-                'Here are the Captions of the Tables for the Paper:\n\n{}',
-                ScientificStages.TABLES,
-                lambda: None if not self.tables_names else self.pretty_tables_names,
-            ),
-
             'tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
                 'Here are the tables created by our data analysis code '
@@ -499,30 +451,5 @@ class ScientificProducts(Products):
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
                     pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
-            ),
-
-            'tables_and_tables_names': NameDescriptionStageGenerator(
-                'Tables of the Paper',
-                '{tables}',
-                ScientificStages.TABLES,
-                lambda: {'tables': self.get_tables_names_and_content()}),
-
-            'numeric_values': NameDescriptionStageGenerator(
-                'Other Numeric Values for the Paper',
-                'Here are some other numeric values we can use to write the results of the paper:\n\n{}',
-                ScientificStages.INTERPRETATION,
-                lambda: None if not self.numeric_values else
-                NiceList([f"({i + 1}) {numeric_value_name}:\n {numeric_value_content}"
-                          for i, (numeric_value_name, numeric_value_content) in
-                          enumerate(self.numeric_values.items())],
-                         separator='\n\n'),
-            ),
-
-            'tables_and_numeric_values': NameDescriptionStageGenerator(
-                'Tables and Numeric Values of the Paper',
-                '{tables}\n\n{numeric_values}',
-                ScientificStages.INTERPRETATION,
-                lambda: {'tables': self.get_description('tables'),
-                         'numeric_values': self.get_description('numeric_values')},
             ),
         }

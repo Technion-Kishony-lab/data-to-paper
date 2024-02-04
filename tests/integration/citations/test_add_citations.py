@@ -12,7 +12,6 @@ SECTIONS_TO_ADD_CITATIONS_TO = ['introduction']
 def products():
     return ScientificProducts(
         research_goal="Find the distance to the moon.",
-        results_summary="The distance to the moon is 384,400 km.",
         paper_sections_and_optional_citations={
             'title': "\\title{The distance to the moon} ",
             'abstract': "\\begin{abstract} The distance to the moon is 384,400 km. "
