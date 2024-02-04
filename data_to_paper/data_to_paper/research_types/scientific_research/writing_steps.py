@@ -568,14 +568,3 @@ class DiscussionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConv
         Citations should be added in the following format: \\cite{paper_id}.
         Do not add a \\section{References} section, I will add it later manually.
         """)
-
-
-@dataclass
-class ConclusionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str, ...] = ('research_goal', 'title_and_abstract',
-                                                  'paper_sections:results',
-                                                  'paper_sections:discussion')
-    max_reviewing_rounds: int = 1
-    section_specific_instructions: str = dedent_triple_quote_str("""\n
-        Summarize the main results and their implications, impact, and future directions.
-        """)
