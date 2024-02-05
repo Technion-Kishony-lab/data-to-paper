@@ -16,7 +16,7 @@ from data_to_paper.latex.latex_doc import LatexDocument
 
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
-    get_code_agent
+    get_code_agent, HypertargetPrefix
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
@@ -492,7 +492,8 @@ class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
         [DataFramePickleContentOutputFileRequirement('table_?.pkl', 1),
-         DictPickleContentOutputFileRequirement('additional_results.pkl', 1),
+         DictPickleContentOutputFileRequirement('additional_results.pkl', 1,
+                                                hypertarget_prefixes=HypertargetPrefix.ADDITIONAL_RESULTS.value)
          ])
 
     additional_contexts: Optional[Dict[str, Any]] = field(
@@ -875,7 +876,8 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     )
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None)])
+        [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None,
+                                          hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value)])
 
     provided_code: str = dedent_triple_quote_str('''
         def to_latex_with_note(df, filename: str, caption: str, label: str, \t

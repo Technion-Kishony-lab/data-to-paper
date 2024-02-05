@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Tuple, List, Set, Optional, Iterable
 
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
-    CheckExtractionReviewBackgroundProductsConverser
+    CheckReferencedNumericReviewBackgroundProductsConverser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
@@ -52,13 +52,15 @@ class ShowCitationProducts:
 @dataclass
 class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
                                                      LatexReviewBackgroundProductsConverser,
-                                                     CheckExtractionReviewBackgroundProductsConverser):
+                                                     CheckReferencedNumericReviewBackgroundProductsConverser):
     """
     Base class for the writer of a paper section in latex format.
     """
     products: ScientificProducts = None
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
-                                                  'codes:data_analysis', 'tables', 'additional_results',
+    model_engine: ModelEngine = \
+        field(default_factory=lambda: get_model_engine_for_class(SectionWriterReviewBackgroundProductsConverser))
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
+                                                  'codes:data_analysis', 'latex_tables', 'additional_results',
                                                   'title_and_abstract')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = None
     should_remove_citations_from_section: bool = True
@@ -228,7 +230,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
 class FirstTitleAbstractSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
     goal_noun: str = 'title and abstract for a research paper'
     background_product_fields: Tuple[str] = ('general_dataset_description',
-                                             'codes:data_analysis', 'tables', 'additional_results')
+                                             'codes:data_analysis', 'latex_tables', 'additional_results')
     max_reviewing_rounds: int = 1
     conversation_name: str = 'title_abstract_section_first'
 
@@ -354,7 +356,8 @@ class IntroductionSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsCo
 
 @dataclass
 class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConverser):
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
+                                                  'codes:data_preprocessing',
                                                   'codes:data_analysis', 'title_and_abstract')
     max_reviewing_rounds: int = 0
     enforced_sub_headers: Tuple[str, ...] = ('Data Source', 'Data Preprocessing', 'Data Analysis')
@@ -448,11 +451,21 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     # (phrase, match_case)
 
     background_product_fields: Tuple[str, ...] = \
-        ('title_and_abstract', 'data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
+        ('title_and_abstract', 'data_file_descriptions_no_headers_linked', 'codes:data_analysis',
+         'latex_tables_linked', 'additional_results_linked')
     product_fields_from_which_response_is_extracted: Tuple[str, ...] = \
-        ('data_file_descriptions', 'codes:data_analysis', 'tables', 'additional_results')
+        ('data_file_descriptions_no_headers_linked', 'latex_tables_linked', 'additional_results_linked')
+    self_products_to_other_products: Tuple[Tuple[str, str]] = (
+        ('latex_tables_linked', 'latex_tables'),
+        ('additional_results_linked', 'additional_results'),
+        ('data_file_descriptions_no_headers_linked', 'data_file_descriptions_no_headers'),
+    )
     max_reviewing_rounds: int = 1
-    section_specific_instructions: str = dedent_triple_quote_str("""\n
+    section_specific_instructions: str = dedent_triple_quote_str("""
+        {general_result_instructions}
+        {numeric_values_instructions}
+        """)
+    general_result_instructions: str = dedent_triple_quote_str("""\n
         Use the following guidelines when writing the Results:
 
         * Include 3-4 paragraphs, each focusing on one of the Tables:
@@ -472,26 +485,54 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         You can summarize the results at the end, with a sentence like: "In summary, these results show ...", \t
         or "Taken together, these results suggest ...".
         IMPORTANT NOTE: Your summary SHOULD NOT include a discussion of conclusions, implications, limitations, \t
-        or of future work.
-        (These will be added later as part the Discussion section, not the Results section). 
-
+        or of future work. \t
+        (These will be added later as part the Discussion section, not the Results section).
+        """)
+    numeric_values_instructions: str = dedent_triple_quote_str("""
         * Numeric values:
-        You can extract and mention numeric values from the latex Tables as well as from the \t
-        "{additional_results}" listed above. If you are mentioning a numeric value that is not explicitly \t
-        mentioned in the Tables or in "{additional_results}", but is rather derived from them, \t
-        you should provide it using the \\num command. 
+        
+        - Source: 
+        You can extract numeric values from the above provided: "{latex_tables_linked}", \t
+        "{additional_results_linked}", and "{data_file_descriptions_no_headers_linked}". 
+        
+        - Format: 
+        Any numeric value extracted from the above sources should be written with a proper \\hyperlink to its \t
+        corresponding source \\hypertarget.
+        
+        - Calculating dependent values using `\\num` command.
+        You can use \\num{formula} to calculate dependent values from the provided numeric values (the formula \t
+        will be automatically replaced with the actual numeric values in pdf compilation).
+        The \\num formula should be used whenever you would like mentioning a numeric value that is not explicitly \t
+        provided in the above sources, but could rather be derived from them. 
+        For example, use the \\num syntax for: changing units, \t
+        calculating differences, transforming regression coefficients into odds ratios, etc. (see examples below).
 
-        For example: suppose that the Tables contain a regression coefficient of 1.23, \t
-        with a standard error of 0.45, and we want to mention the odds ratio of this coefficient. \t
-        We can write:
+        - Toy example for citing and calculating numeric values:
+        
+        Suppose the provided source data includes:
+        ```
+        No-drug average response: \\hypertarget{Z1a}{65.4} 
+        With-drug average response: \\hypertarget{Z2a}{87.3}
+        Regression coef: \\hypertarget{Z3a}{1.234}; STD: \\hypertarget{Z3b}{0.123}; Pvalue: \\hypertarget{Z3c}{0.017}
+        ```
 
-        "The regression coefficient for the anti-cancer drug was \\num{1.23} (SE: \\num{0.45}). \t 
-        corresponding to odds ratio of \t
-        \\num{exp(1.23)} (CI: [\\num{exp(1.23 - 2 * 0.45)}, \\num{exp(1.23 + 2 * 0.45)}])."
+        Then, here are some examples of proper ways to include these source values as well as derived values:
+        
+        -- Citing the raw values:
+        "The control group had an average response of \\hyperlink{Z1a}{65.4} and the treatment group had \t
+        an average response of \\hyperlink{Z2a}{87.3}."
+        
+        "The regression coefficient was \\hyperlink{Z3a}{1.234} with a standard deviation of \t
+        \\hyperlink{Z3b}{0.123} (P-value: \\hyperlink{Z3c}{0.017})."
 
-        * p-values:
-        As relevant, P-values should be cited as they appear in the Tables or in "{additional_results}". 
-        P-values smaller than 1e-6 should be cited as "$<$1e-6". 
+        -- Citing dependent values using the \\num command:
+        "The difference in average response was \\num{\\hyperlink{Z2a}{87.3} - \\hyperlink{Z1a}{65.4}}."
+
+        "The regression coefficient was \\hyperlink{Z3a}{1.234} \t
+        (STD: \\hyperlink{Z3b}{0.123}) corresponding to an odds ratio of \t 
+        \\num{exp(\\hyperlink{Z3a}{1.234})} (CI: \t 
+        \\num{exp(\\hyperlink{Z3a}{1.234} - 1.96 * \\hyperlink{Z3b}{0.123})}, \t
+        \\num{exp(\\hyperlink{Z3a}{1.234} + 1.96 * \\hyperlink{Z3b}{0.123})})."
 
         * Accuracy: 
         Make sure that you are only mentioning details that are explicitly found within the Tables and \t
@@ -499,20 +540,21 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
         * Unknown values:
         If we need to include a numeric value that is not explicitly given in the \t
-        Tables or "{additional_results}", and cannot be derived from them using the \\num command, \t
+        Tables or "{additional_results_linked}", and cannot be derived from them using the \\num command, \t
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:
-        "The regression coefficient for the anti-cancer drugs was [unknown]."
+        "The no-drug average response was \\hypertarget{Z1a}{65.4} (STD: [unknown])."
+        """)
+    other_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the material provided above, please write the Results section for a {journal_name} research paper.
+        
+        {general_result_instructions}
+        
+        * You can use the \\num command to calculate dependent values from the provided numeric values \t
+        (they will be automatically replaced with the actual numeric values in compilation).
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""
-        Specifically, pay attention to:
-        whether the {goal_noun} contains only information that is explicitly extracted from the \t
-        "{tables}" and "{additional_results}" provided above. \t
-
-        Compare the numbers in the {goal_noun} with the numbers in the Tables and Numerical Values and explicitly \t
-        mention any discrepancies that need to be fixed.
-
         Do not suggest adding missing information, or stating whats missing from the Tables and Numerical Values, \t
         only suggest changes that are relevant to the Results section itself and that are supported by the given \t
         Tables and Numerical Values.
@@ -522,7 +564,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         """)
 
     def _get_table_labels(self, section_name: str) -> List[str]:
-        return [get_table_label(table) for table in self.products.tables[section_name]]
+        return [get_table_label(table) for table in self.products.get_latex_tables()[section_name]]
 
     def _check_and_refine_section(self, section: str, section_name: str) -> str:
         result = super()._check_and_refine_section(section, section_name)

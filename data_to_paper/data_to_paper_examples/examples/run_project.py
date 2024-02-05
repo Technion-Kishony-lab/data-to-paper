@@ -7,8 +7,10 @@ from typing import List, Optional
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
+from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
 from data_to_paper.utils.console_log_to_html import convert_console_log_to_html
 from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE
+from data_to_paper.utils.ref_numeric_values import ReferencableText
 
 THIS_FOLDER = Path(__file__).parent
 
@@ -27,7 +29,7 @@ def read_general_file_description(directory: Path):
     return read_file_description(directory, 'general_description.txt')
 
 
-def get_file_description(directory: Path, data_filename: str):
+def get_file_description(directory: Path, data_filename: str, file_num: int):
     description = read_file_description(directory, data_filename + '.description.txt')
     first_line = description.split('\n')[0]
     if first_line == 'TEXT':
@@ -40,16 +42,19 @@ def get_file_description(directory: Path, data_filename: str):
         description = '\n'.join(description.split('\n')[1:])
     return DataFileDescription(
         file_path=data_filename,
-        description=description,
+        description=ReferencableText(description,
+                                     hypertarget_prefix=HypertargetPrefix.FILE_DESCRIPTIONS.value[file_num]),
         is_binary=is_binary,
     )
 
 
 def get_file_descriptions(input_directory: Path, data_filenames: List[str], data_folder: Path):
-    return DataFileDescriptions([get_file_description(input_directory, data_filename)
-                                 for data_filename in data_filenames],
-                                data_folder=data_folder,
-                                general_description=read_general_file_description(input_directory))
+    return DataFileDescriptions(
+        [get_file_description(input_directory, data_filename, j) for j, data_filename in enumerate(data_filenames)],
+        data_folder=data_folder,
+        general_description=ReferencableText(read_general_file_description(input_directory),
+                                             hypertarget_prefix=HypertargetPrefix.GENERAL_FILE_DESCRIPTION.value)
+    )
 
 
 def copy_datafiles_to_data_folder(data_filenames: List[str], input_path: Path, data_folder: Path):

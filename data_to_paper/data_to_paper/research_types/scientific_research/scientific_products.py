@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 
 from data_to_paper.base_steps import LiteratureSearch
@@ -25,6 +26,16 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
     'data_to_latex': (ScientificStages.CODE, 'LaTeX Table Design', ScientificAgent.Debugger),
 }
+
+
+class HypertargetPrefix(Enum):
+    """
+    Prefixes for hypertargets.
+    """
+    GENERAL_FILE_DESCRIPTION = 'S'
+    FILE_DESCRIPTIONS = ('T', 'U', 'V', 'W', 'X', 'Y', 'Z')
+    ADDITIONAL_RESULTS = ('R',)
+    LATEX_TABLES = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H')
 
 
 def get_code_stage(code_step: str) -> Stage:
@@ -108,15 +119,15 @@ class ScientificProducts(Products):
     def get_number_of_created_df_tables(self) -> int:
         return len(self.get_created_df_tables())
 
-    @property
-    def tables(self) -> Dict[str, List[str]]:
+    def get_latex_tables(self, should_hypertarget: bool = False) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
         return {'results': [
             content for file, content
             in self.codes_and_outputs[
-                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents().items()
+                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(
+                should_hypertarget=should_hypertarget).items()
             if file.endswith('.tex')]}
 
     @property
@@ -127,12 +138,12 @@ class ScientificProducts(Products):
         return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
                          for hypothesis, test in self.hypothesis_testing_plan.items())
 
-    @property
-    def all_tables(self) -> List[str]:
+    def get_all_latex_tables(self, should_hypertarget: bool = False) -> List[str]:
         """
         Return the tables from all sections.
         """
-        return [table for tables in self.tables.values() for table in tables]
+        return [table for tables in self.get_latex_tables(
+            should_hypertarget=should_hypertarget).values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -191,8 +202,9 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        return {section_name: section if section_name not in self.tables
-                else add_tables_to_paper_section(section, self.tables[section_name])
+        latex_tables = self.get_latex_tables(should_hypertarget=True)
+        return {section_name: section if section_name not in latex_tables
+                else add_tables_to_paper_section(section, latex_tables[section_name])
                 for section_name, section in self.paper_sections_without_citations.items()}
 
     def get_title(self) -> str:
@@ -228,6 +240,21 @@ class ScientificProducts(Products):
                 'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
+            ),
+
+            'data_file_descriptions_no_headers': NameDescriptionStageGenerator(
+                'Description of the Original Dataset',
+                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
+                ScientificStages.DATA,
+                lambda: self.data_file_descriptions.pretty_repr(num_lines=0),
+            ),
+
+            'data_file_descriptions_no_headers_linked': NameDescriptionStageGenerator(
+                'Description of the Original Dataset',
+                'DESCRIPTION OF THE ORIGINAL DATASET (with hypertargets)\n\n{}',
+                ScientificStages.DATA,
+                lambda: self.data_file_descriptions.pretty_repr(
+                    num_lines=0, should_hypertarget=True),
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
@@ -433,14 +460,24 @@ class ScientificProducts(Products):
                                       },
             ),
 
-            'tables': NameDescriptionStageGenerator(
+            'latex_tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes):\n\n{}',
                 ScientificStages.TABLES,
-                lambda: None if not self.all_tables else
+                lambda: None if not self.get_all_latex_tables() else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
-                             f'```latex\n{table}\n```' for table in self.all_tables]),
+                             f'```latex\n{table}\n```' for table in self.get_all_latex_tables()]),
+            ),
+
+            'latex_tables_linked': NameDescriptionStageGenerator(
+                'Tables of the Paper with hypertargets',
+                'Here are the tables created by our data analysis code '
+                '(a latex representation of the table_?.pkl dataframes, with hypertargets):\n\n{}',
+                ScientificStages.TABLES,
+                lambda: None if not self.get_all_latex_tables(True) else
+                '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
+                             f'```latex\n{table}\n```' for table in self.get_all_latex_tables(True)]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(
@@ -450,6 +487,17 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
+                    pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
+            ),
+
+            'additional_results_linked': NameDescriptionStageGenerator(
+                'Additional Results (additional_results.pkl) with hypertargets',
+                'Here are some additional numeric values that may be helpful in writing the paper '
+                '(as saved to "additional_results.pkl"):\n\n{}',
+                ScientificStages.INTERPRETATION,
+                lambda: self.codes_and_outputs[
+                    'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
+                    should_hypertarget=True,
                     pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
             ),
         }

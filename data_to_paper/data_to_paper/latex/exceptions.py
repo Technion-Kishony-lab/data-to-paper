@@ -17,7 +17,12 @@ class FailedToExtractLatexContent(data_to_paperException, ValueError):
 
 
 @dataclass
-class LatexProblemInCompilation(data_to_paperException, ValueError):
+class BaseLatexProblemInCompilation(data_to_paperException, ValueError):
+    pass
+
+
+@dataclass
+class LatexProblemInCompilation(BaseLatexProblemInCompilation):
     """
     Raised when the latex content could not be compiled.
     """
@@ -74,6 +79,30 @@ class LatexCompilationError(LatexProblemInCompilation):
     Raised when the latex content could not be compiled.
     """
     problem_starting_term: str = '! '
+
+
+@dataclass
+class LatexNumCommandError(BaseLatexProblemInCompilation):
+    """
+    Raised when there is an error evaluating the latex \num command.
+    """
+    expression: str
+    exception: Exception
+
+    def __str__(self):
+        return f'Failed to evaluate the latex \\num command for the expression:\n{self.expression}\n' \
+               f'Got the following exception:\n{self.exception}'
+
+
+@dataclass
+class LatexNestedNumCommandError(BaseLatexProblemInCompilation):
+    """
+    Raised when there is an error evaluating the latex \num command.
+    """
+    expression: str
+
+    def __str__(self):
+        return f'Nested \\num commands are not supported. In:\n{self.expression}'
 
 
 @dataclass

@@ -11,7 +11,8 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.file_utils import get_non_existing_file_name
 from data_to_paper.latex import FailedToExtractLatexContent, extract_latex_section_from_response
-from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, LatexProblemInCompilation, TooWideTableOrText
+from data_to_paper.latex.exceptions import UnwantedCommandsUsedInLatex, TooWideTableOrText, \
+    BaseLatexProblemInCompilation
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.citataion_utils import find_citation_ids
@@ -61,7 +62,7 @@ class CheckLatexCompilation:
                                         tolerance_for_too_wide_in_pts: Optional[float] = None,
                                         is_table: bool = False,
                                         should_save: bool = True,
-                                        ) -> Optional[Union[float, LatexProblemInCompilation]]:
+                                        ) -> Optional[Union[float, BaseLatexProblemInCompilation]]:
         if SAVE_INTERMEDIATE_LATEX and should_save and output_directory is not None:
             if section_name is None:
                 file_stem = f'{conversation_name}'
@@ -80,7 +81,7 @@ class CheckLatexCompilation:
         except TooWideTableOrText as e:
             if tolerance_for_too_wide_in_pts is not None and e.overflow_in_pts > tolerance_for_too_wide_in_pts:
                 return e
-        except LatexProblemInCompilation as e:
+        except BaseLatexProblemInCompilation as e:
             return e
 
     def _get_static_latex_compilation_func(self):
@@ -94,10 +95,10 @@ class CheckLatexCompilation:
                                  section_name: Optional[str] = None,
                                  is_table: bool = False,
                                  should_save: bool = True,
-                                 ) -> Optional[Union[float, LatexProblemInCompilation]]:
+                                 ) -> Optional[Union[float, BaseLatexProblemInCompilation]]:
         """
         Check that the latex compiles.
-        Return a LatexProblemInCompilation if it does not.
+        Return a BaseLatexProblemInCompilation if it does not.
 
         For tables, set is_table=True: do not raise on too wide, and return the table width as fraction of textwidth.
         """

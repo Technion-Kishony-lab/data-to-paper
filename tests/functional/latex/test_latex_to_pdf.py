@@ -166,8 +166,9 @@ def test_latex_to_pdf_exception(tmpdir, wrong_latex_content):
     assert e.get_latex_exception_line_number() == 3
 
 
-def test_evaluate_latex_expression():
-    assert evaluate_latex_num_command(r'I have \num{1+2} apples') == \
-           ('I have 3 apples', {'0': '1+2 = 3'})
-    assert evaluate_latex_num_command(r'this number must be rounded \num{7.95 - 3.64}') == \
-           ('this number must be rounded 4.31', {'0': '7.95 - 3.64 = 4.31'})
+@pytest.mark.parametrize('latex, expected', [
+    (r'I have \num{1+2} apples.', ('I have 3 apples.', {'0': '1+2 = 3'})),
+    (r'must be rounded \num{7.95 - 3.64}.', ('must be rounded 4.31.', {'0': '7.95 - 3.64 = 4.31'})),
+])
+def test_evaluate_latex_expression(latex, expected):
+    assert evaluate_latex_num_command(latex) == expected

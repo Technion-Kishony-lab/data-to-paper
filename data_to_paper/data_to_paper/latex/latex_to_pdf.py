@@ -1,17 +1,17 @@
 import os
-import re
 import shutil
 import subprocess
+import fitz  # PyMuPDF
+import numpy as np
 
 from typing import Optional, Collection, Tuple, Dict
 
-import numpy as np
-
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
-import fitz  # PyMuPDF
+from data_to_paper.utils.ref_numeric_values import replace_hyperlinks_with_values
+from data_to_paper.utils.text_extractors import extract_all_external_brackets
 
-from .exceptions import LatexCompilationError, TooWideTableOrText
+from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandError, LatexNestedNumCommandError
 
 BIB_FILENAME: str = 'citations.bib'
 WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
@@ -23,28 +23,32 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
     if ref_prefix, then add \hyperlink{ref_prefix?}{result}, where ? is the index of the expression.
     Return the new latex string and a mapping from the index to "expression = result".
     """
-    pattern = r'\\num{(.+?)}'
-    matches = re.findall(pattern, latex_str)
-    notes_to_expressions = {}
-    for index, match in enumerate(matches):
+    command = r'\num{'
+    matches = extract_all_external_brackets(latex_str, '{', '}', open_phrase=command)
+    labels_to_expressions = {}
+    for index, full_match in enumerate(matches):
+        match = full_match[len(command):-1]
+        if r'\num{' in match:
+            raise LatexNestedNumCommandError(expression=full_match)
+        match_without_hyperlinks = replace_hyperlinks_with_values(match)
         try:
-            result = eval(match,
+            result = eval(match_without_hyperlinks,
                           {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
                            'e': np.e, 'sqrt': np.sqrt, 'log2': np.log2, 'log10': np.log10})
-            if isinstance(result, float):
-                result = '{:.4g}'.format(result)
-            else:
-                result = str(result)
-            note = f'{ref_prefix}{index}'
-            if ref_prefix:
-                replace_with = f'\\hyperlink{{{note}}}{{{result}}}'
-            else:
-                replace_with = result
-            latex_str = latex_str.replace(f'\\num{{{match}}}', replace_with)
-            notes_to_expressions[note] = f'{match} = {result}'
-        except (SyntaxError, NameError):
-            pass
-    return latex_str, notes_to_expressions
+        except Exception as e:
+            raise LatexNumCommandError(expression=match, exception=e)
+        if isinstance(result, float):
+            result = '{:.4g}'.format(result)
+        else:
+            result = str(result)
+        label = f'{ref_prefix}{index}'
+        if ref_prefix:
+            replace_with = f'\\hyperlink{{{label}}}{{{result}}}'
+        else:
+            replace_with = result
+        latex_str = latex_str.replace(f'\\num{{{match}}}', replace_with)
+        labels_to_expressions[label] = f'{match} = {result}'
+    return latex_str, labels_to_expressions
 
 
 def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = None):

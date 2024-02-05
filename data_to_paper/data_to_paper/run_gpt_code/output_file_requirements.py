@@ -12,8 +12,9 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
-from .overrides.pvalue import OnStr, OnStrPValue
+from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeric_values
 
+from .overrides.pvalue import OnStr, OnStrPValue
 from .run_issues import CodeProblem, RunIssue
 
 
@@ -69,6 +70,7 @@ class DataOutputFileRequirement(OutputFileRequirement):
 class BaseContentOutputFileRequirement(OutputFileRequirement):
     should_keep_file: bool = NotImplemented
     minimal_count: int = 1
+    hypertarget_prefixes: Optional[Tuple[str]] = None
 
     def get_content(self, file_path: str) -> str:
         """
@@ -233,28 +235,38 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
 
     def _get_created_content_files_to_contents(self, is_pretty: bool = True, pvalue_on_str: Optional[OnStr] = None,
+                                               should_hypertarget: bool = False,
                                                match_filename: str = '*', is_block: bool = False) -> Dict[str, Any]:
         """
         Return the names of the files created by the run, and their content, formatted for display if needed.
         """
-        return {filename:
-                requirement.get_pretty_content(
-                    content=content,
-                    filename=filename if is_block else None,
-                    pvalue_on_str=pvalue_on_str,
-                ) if is_pretty else content
-                for requirement, files_to_contents in self.items()
-                for filename, content in files_to_contents.items()
-                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)}
+        # same code but with a normal for loop
+        result = {}
+        for requirement, files_to_contents in self.items():
+            for num_file, (filename, content) in enumerate(files_to_contents.items()):
+                if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename):
+                    if is_pretty:
+                        content = requirement.get_pretty_content(
+                            content=content,
+                            filename=filename if is_block else None,
+                            pvalue_on_str=pvalue_on_str,
+                        )
+                    if should_hypertarget and requirement.hypertarget_prefixes:
+                        content, _ = create_hypertargets_to_numeric_values(
+                            content, prefix=requirement.hypertarget_prefixes[num_file])
+                    result[filename] = content
+        return result
 
     def get_created_content_files_to_pretty_contents(self,
                                                      pvalue_on_str: Optional[OnStr] = None,
+                                                     should_hypertarget: bool = False,
                                                      match_filename: str = '*',
                                                      is_block: bool = False) -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content formatted for display.
         """
         return self._get_created_content_files_to_contents(is_pretty=True, pvalue_on_str=pvalue_on_str,
+                                                           should_hypertarget=should_hypertarget,
                                                            match_filename=match_filename, is_block=is_block)
 
     def get_created_content_files_to_contents(self, match_filename: str = '*') -> Dict[str, Any]:

@@ -170,7 +170,7 @@ class Message:
                 header += f'CONTEXT TOTAL ({self.get_number_of_tokens_in_context()} tokens):\n'
                 for i, message in enumerate(self.context):
                     header += f'#{i:>2} {message.get_short_description(model=self.get_chatgpt_model())}\n'
-            header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 49 + \
+            header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 79 + \
                       f'{chatgpt_parameters}'
             header = wrap_text_with_triple_quotes(header, 'header')
             content = header + '\n\n' + content
@@ -184,7 +184,7 @@ class Message:
         content, _ = self._get_triple_quote_formatted_content(with_header)
         return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html)
 
-    def get_short_description(self, left: int = 55, right: int = -20, model: ModelEngine = None) -> str:
+    def get_short_description(self, left: int = 85, right: int = -20, model: ModelEngine = None) -> str:
         return f'{self.role.name:>9} ({self.get_number_of_tokens(model):>4} tokens): ' \
                f'{get_dot_dot_dot_text(self.content, left, right)}'
 

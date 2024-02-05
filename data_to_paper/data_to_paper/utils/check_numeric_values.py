@@ -48,7 +48,7 @@ def is_int_below_max(str_number: str, max_int: int) -> bool:
     """
     Check if the given string number is an int below the given max int.
     """
-    return '.' not in str_number and ',' not in str_number \
+    return '.' not in str_number and ',' not in str_number and 'e' not in str_number.lower() \
         and abs(int(str_number)) < max_int
 
 
@@ -198,6 +198,26 @@ def split_number_and_power(str_number: str) -> Tuple[str, int]:
     return str_number, power
 
 
+def is_number_legit(str_number: str,
+                    ignore_int_below: int = 0,
+                    ignore_one_with_zeros: bool = True,
+                    special_numbers_to_ignore: List[str] = ('95', '99', '100', '1.96', '0.05'),
+                    ) -> bool:
+    """
+    Check if the given string number is ok even if not found in the source.
+    """
+    if ignore_int_below and is_int_below_max(str_number, ignore_int_below):
+        return True
+
+    # we do not check numbers like 1, 0.1, 0.01, etc., or 1, 10, 100, etc.:
+    if ignore_one_with_zeros and is_one_with_zeros(str_number):
+        return True
+
+    # check if the string number is a special number that we want to ignore:
+    if str_number.strip('-').strip('+') in special_numbers_to_ignore:
+        return True
+
+
 def find_non_matching_numeric_values(source: str, target: str, ignore_int_below: int = 0,
                                      remove_trailing_zeros: bool = False,
                                      ignore_one_with_zeros: bool = True,
@@ -223,22 +243,14 @@ def find_non_matching_numeric_values(source: str, target: str, ignore_int_below:
 
         str_target_number = str_target_number.lower()
 
-        str_target_number, power = split_number_and_power(str_target_number)
-
-        if ignore_int_below and is_int_below_max(str_target_number, ignore_int_below):
-            continue
-
-        # we do not check numbers like 1, 0.1, 0.01, etc., or 1, 10, 100, etc.:
-        if ignore_one_with_zeros and is_one_with_zeros(str_target_number):
+        if is_number_legit(str_target_number, ignore_int_below, ignore_one_with_zeros, special_numbers_to_ignore):
             continue
 
         # check if the string number appears after a '<' sign:
         if ignore_after_smaller_than_sign and is_after_smaller_than_sign(str_target_number, target):
             continue
 
-        # check if the string number is a special number that we want to ignore:
-        if str_target_number.strip('-').strip('+') in special_numbers_to_ignore:
-            continue
+        str_target_number, power = split_number_and_power(str_target_number)
 
         num_digits = get_number_of_significant_figures(str_target_number, remove_trailing_zeros)
 

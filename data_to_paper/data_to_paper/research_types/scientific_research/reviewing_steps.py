@@ -33,7 +33,8 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     CHATGPT_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration')
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
+                                                  'codes_and_outputs:data_exploration')
     conversation_name: str = 'research_goal'
     other_conversation_name: str = 'research_goal_reviewer'
     goal_noun: str = 'research goal and hypothesis'
@@ -113,7 +114,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'similar_citations'
     is_new_conversation: bool = None  # this will create "similar_citations_0", etc.
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'research_goal',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
@@ -196,7 +197,8 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
 class ReGoalReviewGPT(GoalReviewGPT):
     is_new_conversation: bool = None
     max_reviewing_rounds: int = 0
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
+                                                  'codes_and_outputs:data_exploration',
                                                   'research_goal', 'literature_search:goal:goal and hypothesis')
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \t
@@ -214,7 +216,8 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     max_hypothesis_count: int = 3
     max_reviewing_rounds: int = 0  # 0 for no review cycles
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
-    background_product_fields: Tuple[str, ...] = ('data_file_descriptions', 'codes_and_outputs:data_exploration',
+    background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
+                                                  'codes_and_outputs:data_exploration',
                                                   'research_goal')
     conversation_name: str = 'hypothesis_testing_plan'
     is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
