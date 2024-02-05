@@ -210,14 +210,14 @@ class LatexDocument:
 
         s += self._style_section(all_sections)
 
+        # References:
+        if references:
+            s += CITATION_TEMPLATE + '\n'
+
         # Appendix:
         if appendix is not None:
             s += START_APPENDIX + '\n'
             s += appendix + '\n\n'
-
-        # References:
-        if references:
-            s += CITATION_TEMPLATE + '\n'
 
         # End document:
         s += r'\end{document}' + '\n'
