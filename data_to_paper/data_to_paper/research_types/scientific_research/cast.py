@@ -17,13 +17,13 @@ class ScientificAgent(Agent):
     Director = 'Director'
     DataExplorer = 'DataExplorer'
     GoalReviewer = 'GoalReviewer'
-    DataPreprocessor = 'DataPreprocessor'
+    # DataPreprocessor = 'DataPreprocessor'
     PlanReviewer = 'PlanReviewer'
     Debugger = 'Debugger'
     InterpretationReviewer = 'InterpretationReviewer'
     Writer = 'Writer'
     CitationExpert = 'CitationExpert'
-    TableExpert = 'TableExpert'
+    # TableExpert = 'TableExpert'
 
     @classmethod
     def get_primary_agent(cls) -> Agent:
@@ -51,12 +51,12 @@ AGENTS_TO_CONVERSATION_NAMES = {
     ScientificAgent.Performer: None,
     ScientificAgent.Director: 'get data',
     ScientificAgent.DataExplorer: 'explore data',
-    ScientificAgent.DataPreprocessor: 'preprocess data',
+    # ScientificAgent.DataPreprocessor: 'preprocess data',
     ScientificAgent.GoalReviewer: 'review goal',
     ScientificAgent.PlanReviewer: 'review plan',
     ScientificAgent.Debugger: 'debug',
-    ScientificAgent.InterpretationReviewer: 'results interpretation',
+    ScientificAgent.InterpretationReviewer: 'interpretation',
     ScientificAgent.Writer: 'write paper',
     ScientificAgent.CitationExpert: 'add citations',
-    ScientificAgent.TableExpert: 'add tables',
+    # ScientificAgent.TableExpert: 'add tables',
 }

@@ -263,7 +263,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_preprocessing'
     background_product_fields: Tuple[str, ...] = ('research_goal', 'all_file_descriptions', 'outputs:data_exploration')
-    user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
+    # user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
