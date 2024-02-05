@@ -33,7 +33,7 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
         notes = self._get_all_notes()
         if not notes:
             return ''
-        return f"\\section{{Notes}}\n\n" + \
+        return f"\\section{{Notes}}\n\n\\noindent" + \
             '\n\n'.join([f'\\hypertarget{{{note}}}{{{text}}}' for note, text in notes.items()])
 
     def _get_appendix(self):

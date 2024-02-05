@@ -6,6 +6,7 @@ from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
+from data_to_paper.utils.ref_numeric_values import find_hyperlinks
 from .base_run_contexts import RunContext
 
 from .output_file_requirements import OutputFileRequirementsWithContent
@@ -42,13 +43,31 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.WITH_ZERO,
-                                                                                  should_hypertarget=should_hypertarget)
-        if outputs:
-            s += '\n\n' + "\\subsection{Code Output}"
-            for filename, output in outputs.items():
-                s += f'\n\n\\subsubsection*{{{replace_special_latex_chars(filename)}}}'
-                s += '\n\n' + wrap_with_lstlisting(output)
+        if should_hypertarget:
+            outputs_with_references = self.created_files.get_created_content_files_to_pretty_contents(
+                pvalue_on_str=OnStr.WITH_ZERO,
+                should_hypertarget=True)
+            outputs_without_references = self.created_files.get_created_content_files_to_pretty_contents(
+                pvalue_on_str=OnStr.WITH_ZERO,
+                should_hypertarget=False)
+            if outputs_with_references:
+                s += '\n\n' + "\\subsection{Code Output}"
+                for (filename, output_with_references), (_, output_without_references) in (
+                        zip(outputs_with_references.items(), outputs_without_references.items())):
+                    references = find_hyperlinks(output_with_references, is_targets=True)
+                    s += '\n'
+                    for reference in references:
+                        s += f'\\hypertarget{{{reference.reference}}}{{}}'
+                    s += f'\n\n\\subsubsection*{{{replace_special_latex_chars(filename)}}}'
+                    s += '\n\n' + wrap_with_lstlisting(output_without_references)
+        else:
+            outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.WITH_ZERO,
+                                                                                      should_hypertarget=False)
+            if outputs:
+                s += '\n\n' + "\\subsection{Code Output}"
+                for filename, output in outputs.items():
+                    s += f'\n\n\\subsubsection*{{{replace_special_latex_chars(filename)}}}'
+                    s += '\n\n' + wrap_with_lstlisting(output)
         return s
 
     def to_text(self):
