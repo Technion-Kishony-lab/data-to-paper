@@ -7,7 +7,7 @@ from typing import Optional, List, Union
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
-from data_to_paper.utils.ref_numeric_values import ReferencableText, hypertarget_if_referencable_text
+from data_to_paper.utils.ref_numeric_values import ReferencableText, hypertarget_if_referencable_text, find_hyperlinks
 
 
 @dataclass(frozen=True)
@@ -135,6 +135,12 @@ class DataFileDescriptions(List[DataFileDescription]):
                  label: str = 'sec:data_description',
                  text: str = 'Here is the data description, as provided by the user:',
                  should_hypertarget: bool = False) -> str:
-        s = f"\\section{{{section_name}}} \\label{{{label}}} {text}"
-        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0, should_hypertarget=should_hypertarget))
+        s = ''
+        if should_hypertarget:
+            section_with_references = self.pretty_repr(num_lines=0, should_hypertarget=True)
+            references = find_hyperlinks(section_with_references, is_targets=True)
+            for reference in references:
+                s += f'\\hypertarget{{{reference.reference}}}{{}}'
+        s += f"\\section{{{section_name}}} \\label{{{label}}} {text}"
+        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0, should_hypertarget=False))
         return s
