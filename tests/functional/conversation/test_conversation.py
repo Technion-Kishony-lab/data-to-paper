@@ -14,7 +14,7 @@ from data_to_paper.servers.model_engine import ModelEngine
     ("hypertarget", 3),
     ("hyperlink", 2),
     ("ref", 1),
-    ("\hypertarget{C37}{10}", 10),
+    (r"\hypertarget{C37}{10}", 10),
     ("refC37{10}", 6),
     ("hypertarget_C37{10}", 8),
     ("10refC37", 4),

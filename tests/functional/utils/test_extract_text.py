@@ -30,18 +30,17 @@ def test_extract_text_between_tags(text, start_tag, end_tag, keep_tags, expected
     assert extract_text_between_tags(text, start_tag, end_tag, keep_tags) == expected
 
 
-@pytest.mark.parametrize('text, start_tag, end_tag, expected', [
-    (text_1, '[', None, ['[1, 2, 3, [4], 5]']),
-    (text_4, '[', None, ['[world [inner]]', '[name]']),
-    (text_5, '[', None, ['[world [inner]]']),
-    ("'hello [world [inner] [inner2]], what is your [name]'", '[', None, ["[world [inner] [inner2]]", "[name]"]),
-    ("I have /num{1+2} apples.", '/num{', '}', ['/num{1+2}']),
-    ("I have /num{/hypoerlink{a}{1}+2} apples.", '/num{', '}', ['/num{/hypoerlink{a}{1}+2}']),
-    ("I have /num{/hypoerlink{a}{1}+2} apples and /num{3} bananas.", '/num{', '}',
-     ['/num{/hypoerlink{a}{1}+2}', '/num{3}']),
+@pytest.mark.parametrize('text, start_tag, expected', [
+    (text_1, '[', ['[1, 2, 3, [4], 5]']),
+    (text_4, '[', ['[world [inner]]', '[name]']),
+    (text_5, '[', ['[world [inner]]']),
+    ("'hello [world [inner] [inner2]], what is your [name]'", '[', ["[world [inner] [inner2]]", "[name]"]),
+    ("I have /num{1+2} apples.", '/num{', ['/num{1+2}']),
+    ("I have /num{/hyperlink{a}{1}+2} apples.", '/num{', ['/num{/hyperlink{a}{1}+2}']),
+    ("I have /num{/hyperlink{a}{1}+2} apples and /num{3} bananas.", '/num{', ['/num{/hyperlink{a}{1}+2}', '/num{3}']),
 ])
-def test_extract_all_external_brackets(text, start_tag, end_tag, expected):
-    assert extract_all_external_brackets(text, start_tag, end_tag) == expected
+def test_extract_all_external_brackets(text, start_tag, expected):
+    assert extract_all_external_brackets(text, start_tag[-1], None, open_phrase=start_tag) == expected
 
 
 def test_extract_all_external_brackets_with_open_phrase():

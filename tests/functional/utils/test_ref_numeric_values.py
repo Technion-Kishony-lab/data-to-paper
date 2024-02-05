@@ -5,9 +5,9 @@ from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeri
 
 
 @pytest.mark.parametrize('text, expected_text', [
-    ('The number 1.2 is a numeric value.', r'The number \hypertarget{A0}{1.2} is a numeric value.'),
-    ('Numbers: 1.2e-3 and -7.8.', 'Numbers: \hypertarget{A0}{1.2e-3} and \hypertarget{A1}{-7.8}.'),
-    ('In year 2015.', 'In year \hypertarget{A0}{2015}.'),
+    ('The number 1.2 is a numeric value.', r'The number \hypertarget{A0a}{1.2} is a numeric value.'),
+    ('Numbers: 1.2e-3 and -7.8.', r'Numbers: \hypertarget{A0a}{1.2e-3} and \hypertarget{A0b}{-7.8}.'),
+    ('In year 2015.', r'In year \hypertarget{A0a}{2015}.'),
 ])
 def test_create_references_to_numeric_values(text, expected_text):
     assert create_hypertargets_to_numeric_values(text, 'A')[0] == expected_text
@@ -36,10 +36,10 @@ def test_find_numeric_values(text, expected):
 
 
 @pytest.mark.parametrize('text, expected_references, expected_unreferenced', [
-    ('The number 1.2 is a numeric value.', [], ['1.2']),
-    ('The numbers \hyperlink{A0}{1.2e-3} and \hyperlink{A1}{-7.8}.',
+    (r'The number 1.2 is a numeric value.', [], ['1.2']),
+    (r'The numbers \hyperlink{A0}{1.2e-3} and \hyperlink{A1}{-7.8}.',
         [ReferencedValue(value='1.2e-3', reference='A0'), ReferencedValue(value='-7.8', reference='A1')], []),
-    ('The numbers \hyperlink{A0}{1.2e-3} and -7.8.',
+    (r'The numbers \hyperlink{A0}{1.2e-3} and -7.8.',
      [ReferencedValue(value='1.2e-3', reference='A0')], ['-7.8']),
     (r'The numbers \num{\hyperlink{A0}{1.2e-3} + 3} and -7.8.',
      [ReferencedValue(value='1.2e-3', reference='A0')], ['3', '-7.8']),
