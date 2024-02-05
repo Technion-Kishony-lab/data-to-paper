@@ -8,6 +8,7 @@ from typing import Optional, Collection, Tuple, Dict
 
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
+from data_to_paper.utils.ref_numeric_values import replace_hyperlinks_with_values
 from data_to_paper.utils.text_extractors import extract_all_external_brackets
 
 from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandError, LatexNestedNumCommandError
@@ -29,10 +30,11 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
         match = full_match[len(command):-1]
         if r'\num{' in match:
             raise LatexNestedNumCommandError(expression=full_match)
+        match_without_hyperlinks = replace_hyperlinks_with_values(match)
         try:
-            result = eval(match,
-                      {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
-                       'e': np.e, 'sqrt': np.sqrt, 'log2': np.log2, 'log10': np.log10})
+            result = eval(match_without_hyperlinks,
+                          {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
+                           'e': np.e, 'sqrt': np.sqrt, 'log2': np.log2, 'log10': np.log10})
         except Exception as e:
             raise LatexNumCommandError(expression=match, exception=e)
         if isinstance(result, float):

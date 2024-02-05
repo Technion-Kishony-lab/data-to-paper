@@ -5,7 +5,7 @@ from functools import partial
 from typing import Tuple, List, Optional, Union
 
 TARGET = r'\hypertarget'
-REFERENCE = r'\hyperlink'
+LINK = r'\hyperlink'
 
 
 def get_numeric_value_pattern(must_follow: Optional[str] = None, allow_commas: bool = True) -> str:
@@ -32,8 +32,13 @@ def get_numeric_value_pattern(must_follow: Optional[str] = None, allow_commas: b
 numeric_values_in_products_pattern = get_numeric_value_pattern(must_follow=r'[$,{<=\s\n\(\[]', allow_commas=True)
 numeric_values_in_response_pattern = get_numeric_value_pattern(must_follow=r'[$,{<=\s\n\(\[]', allow_commas=True)
 
-# regex pattern to match \hyperlink{reference}{value}
-hyperlink_pattern = fr'\{REFERENCE}{{(?P<reference>[^}}]*)}}{{(?P<value>[^}}]*)}}'
+
+def get_hyperlink_pattern(is_target: bool = False) -> str:
+    """
+    Get a pattern for a hyperlink.
+    """
+    command = TARGET if is_target else LINK
+    return fr'\{command}{{(?P<reference>[^}}]*)}}{{(?P<value>[^}}]*)}}'
 
 
 @dataclass
@@ -51,7 +56,7 @@ class ReferencedValue:
         if self.is_target:
             command = TARGET
         else:
-            command = REFERENCE
+            command = LINK
         return fr'{command}{{{self.reference}}}{{{self.value}}}'
 
     def get_numeric_value_and_is_percent(self) -> Tuple[Optional[str], bool]:
@@ -153,25 +158,27 @@ def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = Non
     return text, references
 
 
-def find_hyperlinks(text: str) -> List[ReferencedValue]:
+def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue]:
     """
     Find all references in the text.
     """
+    pattern = get_hyperlink_pattern(is_targets)
     references = []
-    for match in re.finditer(hyperlink_pattern, text):
+    for match in re.finditer(pattern, text):
         references.append(ReferencedValue(value=match.group('value'), reference=match.group('reference'),
                                           is_target=False))
     return references
 
 
-def replace_hyperlinks_with_values(text: str) -> str:
+def replace_hyperlinks_with_values(text: str, is_targets: bool = False) -> str:
     """
     Replace all references in the text with the referenced values.
     """
     def replace_hyperlink_with_value(match):
         return match.group('value')
 
-    return re.sub(hyperlink_pattern, replace_hyperlink_with_value, text)
+    pattern = get_hyperlink_pattern(is_targets)
+    return re.sub(pattern, replace_hyperlink_with_value, text)
 
 
 def find_numeric_values(text: str, remove_hyperlinks: bool = True,
@@ -183,7 +190,7 @@ def find_numeric_values(text: str, remove_hyperlinks: bool = True,
     text = ' ' + text + ' '
     # remove all references from the text
     if remove_hyperlinks:
-        text = re.sub(hyperlink_pattern, '', text)
+        text = re.sub(get_hyperlink_pattern(is_target=False), '', text)
     # find all numeric values
     return re.findall(pattern, text)
 

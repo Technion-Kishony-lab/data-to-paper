@@ -31,7 +31,8 @@ from .base_products_conversers import BackgroundProductsConverser
 from .base_products_conversers import ReviewBackgroundProductsConverser
 
 # Addon to check if response correctly extracts from provided products:
-from .base_products_conversers import CheckExtractionReviewBackgroundProductsConverser
+from .base_products_conversers import \
+    CheckExtractionReviewBackgroundProductsConverser, CheckReferencedNumericReviewBackgroundProductsConverser
 
 # Requesting quote-enclosed text (with optional gpt-review):
 from .request_quoted_text import BaseProductsQuotedReviewGPT

@@ -1,4 +1,6 @@
+from cmath import isclose
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import List, Tuple, Optional
 
@@ -8,9 +10,11 @@ from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.utils.types import ListBasedSet
-from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values
+from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values, is_number_legit
 from data_to_paper.conversation import Message, GeneralMessageDesignation
 from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.utils.ref_numeric_values import find_hyperlinks, find_numeric_values, find_matching_reference, \
+    replace_hyperlinks_with_values, TARGET, LINK
 
 from .result_converser import ResultConverser, Rewind, BumpModel
 from .dual_converser import ReviewDialogDualConverserGPT
@@ -84,8 +88,8 @@ class BackgroundProductsConverser(ProductsConverser):
         if self.background_product_fields is None:
             return {}
         fields_to_hide = self.background_product_fields_to_hide or ()
-        return {field: self.products[field].name for field in self.background_product_fields
-                if field not in fields_to_hide and self.products.is_product_available(field)}
+        return {field_: self.products.get_name(field_) for field_ in self.background_product_fields
+                if field_ not in fields_to_hide and self.products.is_product_available(field_)}
 
     @property
     def actual_background_product_fields(self) -> Optional[Tuple[str, ...]]:
@@ -200,6 +204,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     suppress_printing_other_conversation: bool = False
     max_reviewing_rounds: int = 1
     termination_phrase: str = "The {goal_noun} does not require any changes"
+    other_initiation_prompt: Optional[str] = None  # None: use the user_initiation_prompt
     sentence_to_add_at_the_end_of_performer_response: str = \
         'Please provide constructive feedback, or, if you are satisfied, respond with "{termination_phrase}".'
 
@@ -219,7 +224,8 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
 
     def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
         acknowledgement, tag = self._get_acknowledgement_and_tag(product_field)
-        acknowledgement += f'\n{self.user_initiation_prompt}' if is_last else ''
+        other_initiation_prompt = self.other_initiation_prompt or self.user_initiation_prompt
+        acknowledgement += f'\n{other_initiation_prompt}' if is_last else ''
         self.apply_to_other_append_surrogate_message(acknowledgement, tag=tag, is_background=True)
 
     def _add_other_product_description(self, product_field: str):
@@ -338,3 +344,114 @@ class CheckExtractionReviewBackgroundProductsConverser(ReviewBackgroundProductsC
                 rewind=Rewind.AS_FRESH,
             )
         return text
+
+
+@dataclass
+class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionReviewBackgroundProductsConverser):
+    should_apply_numeric_referencing_to_other: bool = False
+    self_products_to_other_products: Tuple[Tuple[str, str]] = ()
+
+    report_non_match_prompt: str = dedent_triple_quote_str("""
+        Your section contains some improperly referenced numeric values, specifically:
+
+        {}
+
+        Numeric values must be included with \\hyperlinks matching the \\hypertargets in the provided data above.
+        Like this: \\hyperlink{Z12b}{7.8e-2} 
+
+        Remember, you can also include such hyperlinked numeric values within a \\num{<formula>}.
+        This allows you to derive new numeric values from the provided data. \t 
+        See the examples I provided in my previous message.
+
+        Either provided outside or within \\num{}, all numeric values must be properly referenced.
+
+        IMPORTANT NOTE:
+        If we need to include a numeric value that is not explicitly provided in the Tables and other results above, \t
+        and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
+
+        For example:
+        "The p-value of the regression coefficient of the drug treatment was [unknown]."
+        """)
+
+    def _get_text_from_which_response_should_be_extracted(self) -> str:
+        return '\n'.join(self.products.get_description(product_field)
+                         for product_field in self.product_fields_from_which_response_is_extracted
+                         if self.products.is_product_available(product_field))
+
+    def _replace_product_field_from_self_to_other(self, product_field: str) -> str:
+        if not self.should_apply_numeric_referencing_to_other:
+            self_products_to_other_products = dict(self.self_products_to_other_products)
+            return self_products_to_other_products.get(product_field, product_field)
+        return product_field
+
+    def _add_other_product_description(self, product_field: str):
+        product_field = self._replace_product_field_from_self_to_other(product_field)
+        super()._add_other_product_description(product_field)
+
+    def _add_other_acknowledgement(self, product_field: str, is_last: bool = False):
+        product_field = self._replace_product_field_from_self_to_other(product_field)
+        super()._add_other_acknowledgement(product_field, is_last=is_last)
+
+    def _alter_self_response(self, response: str, expected_result: Optional[str] = None) -> str:
+        response = super()._alter_self_response(response, expected_result)
+        if not self.should_apply_numeric_referencing_to_other:
+            response = replace_hyperlinks_with_values(response, is_targets=False)
+        return response
+
+    def _check_extracted_numbers(self, text: str,
+                                 ignore_int_below: int = 100,
+                                 remove_trailing_zeros: bool = True,
+                                 allow_truncating: bool = True):
+        if self.product_fields_from_which_response_is_extracted is None:
+            return
+
+        if TARGET.replace('\\', '') in text:
+            self._raise_self_response_error(
+                f'Do not use `{TARGET}`, use `{LINK}` instead.',
+                rewind=Rewind.AS_FRESH,
+            )
+
+        source_hypertargets = find_hyperlinks(self._get_text_from_which_response_should_be_extracted(), is_targets=True)
+
+        numeric_values_without_hyperlinks = find_numeric_values(text, remove_hyperlinks=True)
+        numeric_values_without_hyperlinks = [v for v in numeric_values_without_hyperlinks
+                                             if not is_number_legit(v, ignore_int_below=100)]
+        hyperlinked_values = find_hyperlinks(text, is_targets=False)
+        hyperlinked_values_not_numeric = []
+        hyperlinked_values_with_no_matching_target = []
+        hyperlinked_values_not_matching_target_values = []
+        for hyperlinked_value in hyperlinked_values:
+            matching_target = find_matching_reference(hyperlinked_value, source_hypertargets)
+            float_value = hyperlinked_value.to_float()
+            if matching_target is None:
+                # the reference does not exist in the provided data
+                hyperlinked_values_with_no_matching_target.append(hyperlinked_value)
+            elif float_value is None:
+                # the value is not numeric
+                hyperlinked_values_not_numeric.append(hyperlinked_value)
+            elif not (isclose(abs(float_value), abs(matching_target.to_float()))
+                      or isclose(abs(float_value), abs(matching_target.to_float()) * 100)):
+                hyperlinked_values_not_matching_target_values.append((hyperlinked_value, matching_target))
+        s = ''
+        nice_list = partial(NiceList, wrap_with='"', separator='\n', last_separator=None)
+        if numeric_values_without_hyperlinks:
+            s += f'Some numeric values appear without a hyperlink:\n' \
+                 f'{numeric_values_without_hyperlinks}\n\n'
+        if hyperlinked_values_not_numeric:
+            s += f'Some hyperlinks have non-numeric values:\n' \
+                 f'{nice_list(hyperlinked_values_not_numeric)}\n\n'
+        if hyperlinked_values_with_no_matching_target:
+            s += f'Some hyperlinks have labels that do not exist as hypertarget in our `provided data`:\n' \
+                 f'{nice_list(hyperlinked_values_with_no_matching_target)}\n\n'
+        if hyperlinked_values_not_matching_target_values:
+            s += f'Some hyperlinks have values that do not exactly match the hypertarget values:\n'
+            for hyperlink, hypertarget in hyperlinked_values_not_matching_target_values:
+                s += f'"{hyperlink}" not matching "{hypertarget}"\n'
+            s += '\n'
+
+        if s:
+            self._raise_self_response_error(
+                Replacer(self, self.report_non_match_prompt, args=(s,)),
+                rewind=Rewind.AS_FRESH,
+                bump_model=BumpModel.HIGHER_STRENGTH,
+            )
