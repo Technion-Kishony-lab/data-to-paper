@@ -109,7 +109,7 @@ class DataFileDescriptions(List[DataFileDescription]):
             s += self.get_pretty_description_for_file_and_children(child, index)
         return s
 
-    def pretty_repr(self, num_lines: int = 4, should_hypertarget: bool = True):
+    def pretty_repr(self, num_lines: int = 4, should_hypertarget: bool = False):
         s = ''
         if self.general_description is not None:
             s += hypertarget_if_referencable_text(self.general_description, should_hypertarget) + '\n\n'

@@ -38,9 +38,9 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
 
     def _get_appendix(self):
         s = ''
-        s += self.products.data_file_descriptions.to_latex()
-        for code_and_output in self.products.codes_and_outputs.values():
-            s += '\n\n' + code_and_output.to_latex()
+        s += self.products.data_file_descriptions.to_latex(should_hypertarget=True)
+        for code_name, code_and_output in self.products.codes_and_outputs.items():
+            s += '\n\n' + code_and_output.to_latex(should_hypertarget=code_name == 'data_analysis')
         notes_appendix = self._get_notes_appendix()
         if notes_appendix:
             s += '\n\n' + notes_appendix

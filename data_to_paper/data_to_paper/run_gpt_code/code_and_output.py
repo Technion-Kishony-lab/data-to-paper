@@ -29,7 +29,7 @@ class CodeAndOutput:
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 
-    def to_latex(self):
+    def to_latex(self, should_hypertarget: bool = True):
         s = f"\\section{{{self.name}}}\n"
         if self.code:
             s += "\\subsection{{Code}}\n"
@@ -42,7 +42,8 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.WITH_ZERO)
+        outputs = self.created_files.get_created_content_files_to_pretty_contents(pvalue_on_str=OnStr.WITH_ZERO,
+                                                                                  should_hypertarget=should_hypertarget)
         if outputs:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, output in outputs.items():
