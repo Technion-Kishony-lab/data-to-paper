@@ -35,11 +35,11 @@ class CodeAndOutput:
         if self.code:
             s += "\\subsection{{Code}}\n"
             s += f"The {self.name} was carried out using the following custom code:\n"
-            s += '\n\\begin{minted}[linenos, breaklines]{python}\n' + self.code + '\n\\end{minted}\n\n'
+            s += '\n\\begin{python}\n' + self.code + '\n\\end{python}\n\n'
         if self.provided_code:
             s += f"\\subsection{{Provided Code}}\n"
             s += f"The code above is using the following provided functions:\n"
-            s += '\n\\begin{minted}[linenos, breaklines]{python}\n' + self.provided_code + '\n\\end{minted}\n\n'
+            s += '\n\\begin{python}\n' + self.provided_code + '\n\\end{python}\n\n'
         if self.code_explanation:
             s += "\\subsection{Code Description}\n"
             s += '\n' + self.code_explanation
