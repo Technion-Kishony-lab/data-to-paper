@@ -199,12 +199,11 @@ class ScientificProducts(Products):
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n')
 
-    @property
-    def tabled_paper_sections(self) -> Dict[str, str]:
+    def get_tabled_paper_sections(self, hypertarget_position: HypertargetPosition) -> Dict[str, str]:
         """
         Return the actual tabled paper sections.
         """
-        latex_tables = self.get_latex_tables(hypertarget_position=HypertargetPosition.WRAP)
+        latex_tables = self.get_latex_tables(hypertarget_position=hypertarget_position)
         return {section_name: section if section_name not in latex_tables
                 else add_tables_to_paper_section(section, latex_tables[section_name])
                 for section_name, section in self.paper_sections_without_citations.items()}
@@ -441,7 +440,7 @@ class ScientificProducts(Products):
                 'Most Updated Draft of the Paper',
                 '{}',
                 ScientificStages.WRITING,
-                lambda: '\n\n'.join(self.tabled_paper_sections.values())
+                lambda: '\n\n'.join(self.get_tabled_paper_sections(HypertargetPosition.WRAP).values())
             ),
 
             'paper_sections:{}': NameDescriptionStageGenerator(
@@ -453,14 +452,6 @@ class ScientificProducts(Products):
                                       },
             ),
 
-            'tabled_paper_sections:{}': NameDescriptionStageGenerator(
-                '{section_name} Section of the Paper with Tables',
-                'Here is the {section_name} section of the paper with tables:\n\n{content}',
-                ScientificStages.TABLES,
-                lambda section_name: {'section_name': section_name.title(),
-                                      'content': self.tabled_paper_sections[section_name],
-                                      },
-            ),
 
             'latex_tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
@@ -477,9 +468,10 @@ class ScientificProducts(Products):
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes, with hypertargets):\n\n{}',
                 ScientificStages.TABLES,
-                lambda: None if not self.get_all_latex_tables(True) else
+                lambda: None if not self.get_all_latex_tables(HypertargetPosition.WRAP) else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
-                             f'```latex\n{table}\n```' for table in self.get_all_latex_tables(True)]),
+                             f'```latex\n{table}\n```'
+                             for table in self.get_all_latex_tables(HypertargetPosition.WRAP)]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(
@@ -499,7 +491,7 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    hypertarget_position=True,
+                    hypertarget_position=HypertargetPosition.WRAP,
                     pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
             ),
         }

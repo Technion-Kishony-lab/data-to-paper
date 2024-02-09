@@ -35,10 +35,11 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
+from data_to_paper.utils.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
-    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
+    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer, get_read_pickle_attr_replacer
 
 
 def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = False,
@@ -385,11 +386,13 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def get_pretty_content(self, content: pd.DataFrame, filename: str = None,
-                           pvalue_on_str: Optional[OnStr] = None) -> str:
+    def get_pretty_content(self, content: pd.DataFrame, filename: str = None, is_block: bool = False,
+                           pvalue_on_str: Optional[OnStr] = None,
+                           num_file: int = 0, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
+                           ) -> str:
         with OnStrPValue(pvalue_on_str), temporarily_change_float_format(STR_FLOAT_FORMAT):
             content = content.to_string()
-        return super().get_pretty_content(content, filename, pvalue_on_str)
+        return super().get_pretty_content(content, filename, is_block, pvalue_on_str, num_file, hypertarget_position)
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
@@ -868,6 +871,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
          'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
             forbidden_set_attrs=['columns', 'index'],
         ),
+         'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
          'PValueMessage': AttrReplacer(
              obj_import_str=PValue, attr='error_message_on_forbidden_func',
              wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "

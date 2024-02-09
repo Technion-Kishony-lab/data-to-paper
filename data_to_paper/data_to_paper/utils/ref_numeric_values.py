@@ -48,7 +48,7 @@ class ReferencedValue:
     A numeric value with a reference to it.
     """
     value: str
-    reference: Optional[str] = None  # if None for un-referenced numeric values
+    label: Optional[str] = None  # if None for un-referenced numeric values
     is_target: bool = False
 
     @property
@@ -56,14 +56,16 @@ class ReferencedValue:
         return TARGET if self.is_target else LINK
 
     def to_str(self, hypertarget_position: HypertargetPosition) -> str:
-        if hypertarget_position == HypertargetPosition.NONE or self.reference is None:
+        if hypertarget_position == HypertargetPosition.NONE or self.label is None:
             return self.value
         if hypertarget_position == HypertargetPosition.WRAP:
-            return fr'{self.command}{{{self.reference}}}{{{self.value}}}'
+            return fr'{self.command}{{{self.label}}}{{{self.value}}}'
         if hypertarget_position == HypertargetPosition.HEADER:
             return self.value
         if hypertarget_position == HypertargetPosition.RAISED:
-            return fr'\raisebox{{2ex}}{{{self.command}{{{self.reference}}}{{}}}}{self.value}'
+            return fr'\raisebox{{2ex}}{{{self.command}{{{self.label}}}{{}}}}{self.value}'
+        if hypertarget_position == HypertargetPosition.RAISED_ESCAPE:
+            return fr'(*@{self.to_str(HypertargetPosition.RAISED)}@*)'
         raise ValueError(f'Invalid hypertarget position: {hypertarget_position}')
 
     def __str__(self):
@@ -90,28 +92,6 @@ class ReferencedValue:
         return value / 100 if is_percent else value
 
 
-@dataclass
-class ReferencableText:
-    """
-    A text which can be converted to hypertargeted text/
-    """
-    text: str
-    hypertarget_prefix: Optional[str] = None  # if None, no hypertargets are created
-
-    def __str__(self):
-        return self.text
-
-    def get_text(self, hypertarget_position: HypertargetPosition) -> str:
-        if not hypertarget_position or self.hypertarget_prefix is None:
-            return self.text
-        return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[0]
-
-    def get_references(self) -> List[ReferencedValue]:
-        if self.hypertarget_prefix is None:
-            return []
-        return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[1]
-
-
 class HypertargetPosition(Enum):
     """
     Whether and and which position to put hypertargets.
@@ -120,69 +100,10 @@ class HypertargetPosition(Enum):
     WRAP = 1  # Header ... \hypertarget{target}{value}
     HEADER = 2  # \hypertarget{target}Header ... value
     RAISED = 3  # Header ... \raisebox{2ex}{\hypertarget{target}{}}value
+    RAISED_ESCAPE = 4  # Header ...  (*@\raisebox{2ex}{\hypertarget{target}{}}value@*)
 
     def __bool__(self):
         return self != HypertargetPosition.NONE
-
-
-def hypertarget_if_referencable_text(text: Union[str, ReferencableText], hypertarget_position: HypertargetPosition
-                                     ) -> str:
-    """
-    Create hypertargets if the text is referencable, otherwise return the text.
-    """
-    if isinstance(text, ReferencableText):
-        return text.get_text(hypertarget_position)
-    return text
-
-
-def _num_to_letters(num: int) -> str:
-    """
-    Convert a number to letters.
-    1 -> a, 2 -> b, 3 -> c, ...
-    200 -> gv
-    """
-    letters = ''
-    while num > 0:
-        num, remainder = divmod(num - 1, 26)
-        letters = chr(ord('a') + remainder) + letters
-    return letters
-
-
-def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = None,
-                                          pattern: str = numeric_values_in_products_pattern,
-                                          hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
-                                          ) -> Tuple[str, List[ReferencedValue]]:
-    """
-    Find all numeric values in text and create references to them.
-    Replace the numeric values with the references.
-    Return the text with the references and the references.
-    """
-
-    if prefix is None or not hypertarget_position:
-        return text, []
-
-    def replace_numeric_value_with_hypertarget(match, prefix_):
-        value = match.group(0)
-        in_line_letter = _num_to_letters(len(references_per_line) + 1)
-        reference = ReferencedValue(value=value, reference=f'{prefix_}{in_line_letter}', is_target=True)
-        references_per_line.append(reference)
-        return reference.to_str(hypertarget_position)
-
-    references = []
-    lines = text.split('\n')
-    num_line_with_ref = 0
-    for i, line in enumerate(lines):
-        references_per_line = []
-        line = re.sub(pattern,
-                      partial(replace_numeric_value_with_hypertarget, prefix_=f'{prefix}{num_line_with_ref}'), line)
-        if references_per_line:
-            num_line_with_ref += 1
-            lines[i] = line
-            references.extend(references_per_line)
-    text = '\n'.join(lines)
-    if hypertarget_position == HypertargetPosition.HEADER:
-        text = ''.join([str(reference) for reference in references]) + text
-    return text, references
 
 
 def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue]:
@@ -192,7 +113,7 @@ def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue
     pattern = get_hyperlink_pattern(is_targets)
     references = []
     for match in re.finditer(pattern, text):
-        references.append(ReferencedValue(value=match.group('value'), reference=match.group('reference'),
+        references.append(ReferencedValue(value=match.group('value'), label=match.group('reference'),
                                           is_target=False))
     return references
 
@@ -230,6 +151,6 @@ def find_matching_reference(query: ReferencedValue,
     Return None if no match was found.
     """
     for reference in references:
-        if query.reference == reference.reference:
+        if query.label == reference.label:
             return reference
     return None

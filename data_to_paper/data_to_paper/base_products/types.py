@@ -7,14 +7,14 @@ from typing import Optional, List, Union
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
-from data_to_paper.utils.ref_numeric_values import ReferencableText, hypertarget_if_referencable_text, find_hyperlinks, \
-    HypertargetPosition
+from data_to_paper.utils.ref_numeric_values import find_hyperlinks, HypertargetPosition
+from data_to_paper.utils.referencable_text import NumericReferenceableText, hypertarget_if_referencable_text
 
 
 @dataclass(frozen=True)
 class DataFileDescription:
     file_path: str  # relative to the data directory.  should normally just be the file name
-    description: Optional[Union[str, ReferencableText]] = None  # a user provided description of the file
+    description: Optional[Union[str, NumericReferenceableText]] = None  # a user provided description of the file
     originated_from: Optional[str] = None  # None for raw file
     is_binary: Optional[bool] = None  # None for auto based on file extension
 
@@ -60,7 +60,7 @@ class DataFileDescriptions(List[DataFileDescription]):
     """
 
     def __init__(self, *args, data_folder: Optional[Union[str, Path]] = None,
-                 general_description: Optional[Union[str, ReferencableText]] = None,
+                 general_description: Optional[Union[str, NumericReferenceableText]] = None,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.data_folder = data_folder

@@ -10,7 +10,7 @@ from data_to_paper.research_types.scientific_research.run_steps import Scientifi
 from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
 from data_to_paper.utils.console_log_to_html import convert_console_log_to_html
 from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE
-from data_to_paper.utils.ref_numeric_values import ReferencableText
+from data_to_paper.utils.referencable_text import NumericReferenceableText
 
 THIS_FOLDER = Path(__file__).parent
 
@@ -42,8 +42,8 @@ def get_file_description(directory: Path, data_filename: str, file_num: int):
         description = '\n'.join(description.split('\n')[1:])
     return DataFileDescription(
         file_path=data_filename,
-        description=ReferencableText(description,
-                                     hypertarget_prefix=HypertargetPrefix.FILE_DESCRIPTIONS.value[file_num]),
+        description=NumericReferenceableText(text=description,
+                                             hypertarget_prefix=HypertargetPrefix.FILE_DESCRIPTIONS.value[file_num]),
         is_binary=is_binary,
     )
 
@@ -52,8 +52,8 @@ def get_file_descriptions(input_directory: Path, data_filenames: List[str], data
     return DataFileDescriptions(
         [get_file_description(input_directory, data_filename, j) for j, data_filename in enumerate(data_filenames)],
         data_folder=data_folder,
-        general_description=ReferencableText(read_general_file_description(input_directory),
-                                             hypertarget_prefix=HypertargetPrefix.GENERAL_FILE_DESCRIPTION.value)
+        general_description=NumericReferenceableText(text=read_general_file_description(input_directory),
+                                                     hypertarget_prefix=HypertargetPrefix.GENERAL_FILE_DESCRIPTION.value)
     )
 
 

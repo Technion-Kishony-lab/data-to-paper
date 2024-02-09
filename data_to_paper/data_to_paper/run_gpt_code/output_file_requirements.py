@@ -12,7 +12,8 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
-from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeric_values, HypertargetPosition
+from data_to_paper.utils.ref_numeric_values import HypertargetPosition
+from data_to_paper.utils.referencable_text import NumericReferenceableText
 
 from .overrides.pvalue import OnStr, OnStrPValue
 from .run_issues import CodeProblem, RunIssue
@@ -85,12 +86,24 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         """
         return []
 
-    def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:
+    def get_pretty_content(self, content: Any, filename: str = None, is_block: bool = False,
+                           pvalue_on_str: Optional[OnStr] = None,
+                           num_file: int = 0, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
+                           ) -> str:
+
         with OnStrPValue(pvalue_on_str):
             content = str(content)
-        if filename is not None:
+        if is_block:
             label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
-            return f'"{filename}":\n```{label}\n{content}\n```\n'
+            content = f'"{filename}":\n```{label}\n{content}\n```\n'
+        if hypertarget_position and self.hypertarget_prefixes:
+            content = NumericReferenceableText(
+                text=content,
+                hypertarget_prefix=self.hypertarget_prefixes[num_file],
+            ).get_text(hypertarget_position)
+            if hypertarget_position == HypertargetPosition.RAISED_ESCAPE:
+                # add a header hypertarget:
+                content = f'\\hypertarget{{{filename}}}{{}}\n' + content
         return content
 
 
@@ -150,8 +163,11 @@ class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
     target_precision: int = NUM_DIGITS_FOR_FLOATS
     source_precision: int = 10
 
-    def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:
-        content = super().get_pretty_content(content, filename, pvalue_on_str)
+    def get_pretty_content(self, content: Any, filename: str = None, is_block: bool = False,
+                           pvalue_on_str: Optional[OnStr] = None,
+                           num_file: int = 0, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
+                           ) -> str:
+        content = super().get_pretty_content(content, filename, is_block, pvalue_on_str, num_file, hypertarget_position)
         return round_floats(content, self.target_precision, self.source_precision)
 
 
@@ -240,7 +256,6 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
         """
         Return the names of the files created by the run, and their content, formatted for display if needed.
         """
-        # same code but with a normal for loop
         result = {}
         for requirement, files_to_contents in self.items():
             for num_file, (filename, content) in enumerate(files_to_contents.items()):
@@ -248,13 +263,12 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                     if is_pretty:
                         content = requirement.get_pretty_content(
                             content=content,
-                            filename=filename if is_block else None,
+                            filename=filename,
+                            is_block=is_block,
                             pvalue_on_str=pvalue_on_str,
+                            num_file=num_file,
+                            hypertarget_position=hypertarget_position,
                         )
-                    if hypertarget_position and requirement.hypertarget_prefixes:
-                        content, _ = create_hypertargets_to_numeric_values(
-                            content, prefix=requirement.hypertarget_prefixes[num_file],
-                            hypertarget_position=hypertarget_position)
                     result[filename] = content
         return result
 
