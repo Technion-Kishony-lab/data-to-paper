@@ -89,7 +89,7 @@ class LatexDocument:
 
     replace_scientific_exponents: bool = True
 
-    author: str = 'Data to Paper'
+    author: str = 'data-to-paper'
     packages: List[str] = field(default_factory=lambda: list(DEFAULT_PACKAGES))
 
     allow_table_tilde: bool = False
