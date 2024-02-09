@@ -1,6 +1,7 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass
+from enum import Enum
 from functools import partial
 from typing import Tuple, List, Optional, Union
 
@@ -50,14 +51,23 @@ class ReferencedValue:
     reference: Optional[str] = None  # if None for un-referenced numeric values
     is_target: bool = False
 
-    def __str__(self):
-        if self.reference is None:
+    @property
+    def command(self) -> str:
+        return TARGET if self.is_target else LINK
+
+    def to_str(self, hypertarget_position: HypertargetPosition) -> str:
+        if hypertarget_position == HypertargetPosition.NONE or self.reference is None:
             return self.value
-        if self.is_target:
-            command = TARGET
-        else:
-            command = LINK
-        return fr'{command}{{{self.reference}}}{{{self.value}}}'
+        if hypertarget_position == HypertargetPosition.WRAP:
+            return fr'{self.command}{{{self.reference}}}{{{self.value}}}'
+        if hypertarget_position == HypertargetPosition.HEADER:
+            return self.value
+        if hypertarget_position == HypertargetPosition.RAISED:
+            return fr'\raisebox{{2ex}}{{{self.command}{{{self.reference}}}{{}}}}{self.value}'
+        raise ValueError(f'Invalid hypertarget position: {hypertarget_position}')
+
+    def __str__(self):
+        return self.to_str(HypertargetPosition.WRAP)
 
     def get_numeric_value_and_is_percent(self) -> Tuple[Optional[str], bool]:
         """
@@ -91,8 +101,8 @@ class ReferencableText:
     def __str__(self):
         return self.text
 
-    def get_text(self, should_hypertarget: bool = True) -> str:
-        if not should_hypertarget or self.hypertarget_prefix is None:
+    def get_text(self, hypertarget_position: HypertargetPosition) -> str:
+        if not hypertarget_position or self.hypertarget_prefix is None:
             return self.text
         return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[0]
 
@@ -102,12 +112,26 @@ class ReferencableText:
         return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[1]
 
 
-def hypertarget_if_referencable_text(text: Union[str, ReferencableText], should_hypertarget: bool = True) -> str:
+class HypertargetPosition(Enum):
+    """
+    Whether and and which position to put hypertargets.
+    """
+    NONE = 0  # Header ... value
+    WRAP = 1  # Header ... \hypertarget{target}{value}
+    HEADER = 2  # \hypertarget{target}Header ... value
+    RAISED = 3  # Header ... \raisebox{2ex}{\hypertarget{target}{}}value
+
+    def __bool__(self):
+        return self != HypertargetPosition.NONE
+
+
+def hypertarget_if_referencable_text(text: Union[str, ReferencableText], hypertarget_position: HypertargetPosition
+                                     ) -> str:
     """
     Create hypertargets if the text is referencable, otherwise return the text.
     """
     if isinstance(text, ReferencableText):
-        return text.get_text(should_hypertarget)
+        return text.get_text(hypertarget_position)
     return text
 
 
@@ -125,7 +149,8 @@ def _num_to_letters(num: int) -> str:
 
 
 def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = None,
-                                          pattern: str = numeric_values_in_products_pattern
+                                          pattern: str = numeric_values_in_products_pattern,
+                                          hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
                                           ) -> Tuple[str, List[ReferencedValue]]:
     """
     Find all numeric values in text and create references to them.
@@ -133,7 +158,7 @@ def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = Non
     Return the text with the references and the references.
     """
 
-    if prefix is None:
+    if prefix is None or not hypertarget_position:
         return text, []
 
     def replace_numeric_value_with_hypertarget(match, prefix_):
@@ -141,7 +166,7 @@ def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = Non
         in_line_letter = _num_to_letters(len(references_per_line) + 1)
         reference = ReferencedValue(value=value, reference=f'{prefix_}{in_line_letter}', is_target=True)
         references_per_line.append(reference)
-        return str(reference)
+        return reference.to_str(hypertarget_position)
 
     references = []
     lines = text.split('\n')
@@ -155,6 +180,8 @@ def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = Non
             lines[i] = line
             references.extend(references_per_line)
     text = '\n'.join(lines)
+    if hypertarget_position == HypertargetPosition.HEADER:
+        text = ''.join([str(reference) for reference in references]) + text
     return text, references
 
 

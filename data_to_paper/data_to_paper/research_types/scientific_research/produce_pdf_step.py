@@ -5,6 +5,7 @@ from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.crossref import CrossrefCitation
+from data_to_paper.utils.ref_numeric_values import HypertargetPosition
 
 
 @dataclass
@@ -38,9 +39,11 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
 
     def _get_appendix(self):
         s = ''
-        s += self.products.data_file_descriptions.to_latex(should_hypertarget=True)
+        hypertarget_position = HypertargetPosition.HEADER
+        s += self.products.data_file_descriptions.to_latex(hypertarget_position=hypertarget_position)
         for code_name, code_and_output in self.products.codes_and_outputs.items():
-            s += '\n\n' + code_and_output.to_latex(should_hypertarget=code_name == 'data_analysis')
+            s += '\n\n' + code_and_output.to_latex(
+                hypertarget_position=hypertarget_position if code_name == 'data_analysis' else HypertargetPosition.NONE)
         notes_appendix = self._get_notes_appendix()
         if notes_appendix:
             s += '\n\n' + notes_appendix

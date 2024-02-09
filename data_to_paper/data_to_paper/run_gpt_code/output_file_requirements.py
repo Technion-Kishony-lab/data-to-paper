@@ -12,7 +12,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
-from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeric_values
+from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeric_values, HypertargetPosition
 
 from .overrides.pvalue import OnStr, OnStrPValue
 from .run_issues import CodeProblem, RunIssue
@@ -235,7 +235,7 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
 
     def _get_created_content_files_to_contents(self, is_pretty: bool = True, pvalue_on_str: Optional[OnStr] = None,
-                                               should_hypertarget: bool = False,
+                                               hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
                                                match_filename: str = '*', is_block: bool = False) -> Dict[str, Any]:
         """
         Return the names of the files created by the run, and their content, formatted for display if needed.
@@ -251,22 +251,24 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                             filename=filename if is_block else None,
                             pvalue_on_str=pvalue_on_str,
                         )
-                    if should_hypertarget and requirement.hypertarget_prefixes:
+                    if hypertarget_position and requirement.hypertarget_prefixes:
                         content, _ = create_hypertargets_to_numeric_values(
-                            content, prefix=requirement.hypertarget_prefixes[num_file])
+                            content, prefix=requirement.hypertarget_prefixes[num_file],
+                            hypertarget_position=hypertarget_position)
                     result[filename] = content
         return result
 
-    def get_created_content_files_to_pretty_contents(self,
-                                                     pvalue_on_str: Optional[OnStr] = None,
-                                                     should_hypertarget: bool = False,
-                                                     match_filename: str = '*',
-                                                     is_block: bool = False) -> Dict[str, str]:
+    def get_created_content_files_to_pretty_contents(
+            self,
+            pvalue_on_str: Optional[OnStr] = None,
+            hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
+            match_filename: str = '*',
+            is_block: bool = False) -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content formatted for display.
         """
         return self._get_created_content_files_to_contents(is_pretty=True, pvalue_on_str=pvalue_on_str,
-                                                           should_hypertarget=should_hypertarget,
+                                                           hypertarget_position=hypertarget_position,
                                                            match_filename=match_filename, is_block=is_block)
 
     def get_created_content_files_to_contents(self, match_filename: str = '*') -> Dict[str, Any]:

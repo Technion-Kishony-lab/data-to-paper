@@ -17,6 +17,7 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
+from data_to_paper.utils.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -119,7 +120,8 @@ class ScientificProducts(Products):
     def get_number_of_created_df_tables(self) -> int:
         return len(self.get_created_df_tables())
 
-    def get_latex_tables(self, should_hypertarget: bool = False) -> Dict[str, List[str]]:
+    def get_latex_tables(self, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE
+                         ) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
@@ -127,7 +129,7 @@ class ScientificProducts(Products):
             content for file, content
             in self.codes_and_outputs[
                 'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(
-                should_hypertarget=should_hypertarget).items()
+                hypertarget_position=hypertarget_position).items()
             if file.endswith('.tex')]}
 
     @property
@@ -138,12 +140,12 @@ class ScientificProducts(Products):
         return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
                          for hypothesis, test in self.hypothesis_testing_plan.items())
 
-    def get_all_latex_tables(self, should_hypertarget: bool = False) -> List[str]:
+    def get_all_latex_tables(self, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE) -> List[str]:
         """
         Return the tables from all sections.
         """
         return [table for tables in self.get_latex_tables(
-            should_hypertarget=should_hypertarget).values() for table in tables]
+            hypertarget_position=hypertarget_position).values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -202,7 +204,7 @@ class ScientificProducts(Products):
         """
         Return the actual tabled paper sections.
         """
-        latex_tables = self.get_latex_tables(should_hypertarget=True)
+        latex_tables = self.get_latex_tables(hypertarget_position=HypertargetPosition.WRAP)
         return {section_name: section if section_name not in latex_tables
                 else add_tables_to_paper_section(section, latex_tables[section_name])
                 for section_name, section in self.paper_sections_without_citations.items()}
@@ -254,7 +256,7 @@ class ScientificProducts(Products):
                 'DESCRIPTION OF THE ORIGINAL DATASET (with hypertargets)\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(
-                    num_lines=0, should_hypertarget=True),
+                    num_lines=0, hypertarget_position=True),
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
@@ -497,7 +499,7 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    should_hypertarget=True,
+                    hypertarget_position=True,
                     pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
             ),
         }

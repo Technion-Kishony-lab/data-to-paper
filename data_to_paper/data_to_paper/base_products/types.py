@@ -7,7 +7,8 @@ from typing import Optional, List, Union
 from data_to_paper.latex.clean_latex import wrap_with_lstlisting
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
-from data_to_paper.utils.ref_numeric_values import ReferencableText, hypertarget_if_referencable_text, find_hyperlinks
+from data_to_paper.utils.ref_numeric_values import ReferencableText, hypertarget_if_referencable_text, find_hyperlinks, \
+    HypertargetPosition
 
 
 @dataclass(frozen=True)
@@ -41,11 +42,11 @@ class DataFileDescription:
                     head.append('UnicodeDecodeError\n')
             return ''.join(head)
 
-    def pretty_repr(self, num_lines: int = 4, should_hypertarget: bool = False):
+    def pretty_repr(self, num_lines: int = 4, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE):
         s = f'"{self.file_path}"\n'
         description = self.description
         if description is not None:
-            description = hypertarget_if_referencable_text(description, should_hypertarget)
+            description = hypertarget_if_referencable_text(description, hypertarget_position)
             s += f'{description}\n\n'
         if num_lines > 0 and not self.get_is_binary():
             s += f'Here are the first few lines of the file:\n' \
@@ -97,34 +98,35 @@ class DataFileDescriptions(List[DataFileDescription]):
                                      if data_file_description.originated_from is None],
                                     data_folder=self.data_folder)
 
-    def get_pretty_description_for_file_and_children(self, data_file: DataFileDescription, index: Mutable = None,
-                                                     should_hypertarget: bool = False):
+    def get_pretty_description_for_file_and_children(
+            self, data_file: DataFileDescription, index: Mutable = None,
+            hypertarget_position: HypertargetPosition = HypertargetPosition.NONE):
         """
         Return a pretty description for the given data file and all its children.
         """
         children = self.get_children(data_file)
         index.val += 1
-        s = f"File #{index.val}: {data_file.pretty_repr(0 if children else 4, should_hypertarget=should_hypertarget)}\n"
+        s = f"File #{index.val}: {data_file.pretty_repr(0 if children else 4, hypertarget_position=hypertarget_position)}\n"
         for child in children:
             s += self.get_pretty_description_for_file_and_children(child, index)
         return s
 
-    def pretty_repr(self, num_lines: int = 4, should_hypertarget: bool = False):
+    def pretty_repr(self, num_lines: int = 4, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE):
         s = ''
         if self.general_description is not None:
-            s += hypertarget_if_referencable_text(self.general_description, should_hypertarget) + '\n\n'
+            s += hypertarget_if_referencable_text(self.general_description, hypertarget_position) + '\n\n'
         with run_in_directory(self.data_folder):
             if len(self) == 0:
                 s += 'No data files'
             elif len(self) == 1:
                 s += "1 data file:\n\n"
-                s += self[0].pretty_repr(num_lines, should_hypertarget=should_hypertarget)
+                s += self[0].pretty_repr(num_lines, hypertarget_position=hypertarget_position)
             else:
                 s += f"{len(self)} data files:\n"
                 index = Mutable(0)
                 for parent in self.get_all_raw_files():
                     s += self.get_pretty_description_for_file_and_children(parent, index,
-                                                                           should_hypertarget=should_hypertarget)
+                                                                           hypertarget_position=hypertarget_position)
             return s
 
     def get_data_filenames(self):
@@ -134,13 +136,8 @@ class DataFileDescriptions(List[DataFileDescription]):
                  section_name: str = 'Data Description',
                  label: str = 'sec:data_description',
                  text: str = 'Here is the data description, as provided by the user:',
-                 should_hypertarget: bool = False) -> str:
+                 hypertarget_position: HypertargetPosition = HypertargetPosition.NONE) -> str:
         s = ''
-        if should_hypertarget:
-            section_with_references = self.pretty_repr(num_lines=0, should_hypertarget=True)
-            references = find_hyperlinks(section_with_references, is_targets=True)
-            for reference in references:
-                s += f'\\hypertarget{{{reference.reference}}}{{}}'
         s += f"\\section{{{section_name}}} \\label{{{label}}} {text}"
-        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0, should_hypertarget=False))
+        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0, hypertarget_position=hypertarget_position))
         return s
