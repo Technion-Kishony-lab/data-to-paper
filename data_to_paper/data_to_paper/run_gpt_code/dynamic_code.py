@@ -155,6 +155,10 @@ class RunCode:
             for context_name, context in self.additional_contexts.items():
                 assert context_name not in contexts, f"Context name {context_name} already exists."
                 contexts[context_name] = context
+
+        # name all contexts
+        for name, context in contexts.items():
+            context.name = name
         return contexts
 
     def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None, save_as: Optional[str] = None,

@@ -65,6 +65,7 @@ class RunContext(DisableableContext):
     Base context manager for running GPT code.
     """
     issues: Optional[RunIssues] = None
+    name: Optional[str] = None
 
     def __enter__(self):
         self.issues = RunIssues()
