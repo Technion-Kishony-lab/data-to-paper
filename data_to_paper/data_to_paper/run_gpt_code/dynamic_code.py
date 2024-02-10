@@ -24,7 +24,7 @@ from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutE
 from .timeout_context import timeout_context
 from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue, RunIssues
-from .output_file_requirements import OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 from data_to_paper.utils.singleton import undefined
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)

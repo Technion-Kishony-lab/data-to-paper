@@ -10,7 +10,7 @@ from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_ca
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
-from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList

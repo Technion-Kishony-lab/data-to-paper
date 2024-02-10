@@ -25,10 +25,10 @@ from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import t
     STR_FLOAT_FORMAT
 from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr, OnStrPValue
 
-from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
-from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRequirement, \
+from data_to_paper.code_and_output_files.output_file_requirements import DataOutputFileRequirement, \
     PickleContentOutputFileRequirement, TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement, \
     OutputFileRequirements
 from data_to_paper.servers.model_engine import ModelEngine

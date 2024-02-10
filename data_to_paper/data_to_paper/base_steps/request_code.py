@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable
 
 from data_to_paper.env import SUPPORTED_PACKAGES
-from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
-from data_to_paper.run_gpt_code.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict
 
 from stage import DemoStages
-from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 
 from data_to_paper.base_products import Products, NameDescriptionStageGenerator, DataFileDescriptions
 

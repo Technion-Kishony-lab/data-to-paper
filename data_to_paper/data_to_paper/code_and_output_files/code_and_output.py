@@ -6,14 +6,14 @@ from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
-from data_to_paper.utils.ref_numeric_values import find_hyperlinks, HypertargetPosition
-from .base_run_contexts import RunContext
+from data_to_paper.utils.ref_numeric_values import HypertargetPosition
+from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
-from .output_file_requirements import OutputFileRequirementsWithContent
-from .overrides.pvalue import OnStr
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 
 if TYPE_CHECKING:
-    from .overrides.dataframes.dataframe_operations import DataframeOperations
+    from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import DataframeOperations
 
 
 @dataclass

@@ -15,8 +15,8 @@ from data_to_paper.utils.text_numeric_formatting import round_floats
 from data_to_paper.utils.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.referencable_text import NumericReferenceableText
 
-from .overrides.pvalue import OnStr, OnStrPValue
-from .run_issues import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, OnStrPValue
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
 
 EXTS_TO_LABELS = {
