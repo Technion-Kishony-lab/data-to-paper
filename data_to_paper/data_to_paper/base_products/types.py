@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
-from data_to_paper.latex.clean_latex import wrap_with_lstlisting
+from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.ref_numeric_values import ReferencableText, hypertarget_if_referencable_text, find_hyperlinks, \
@@ -139,5 +139,6 @@ class DataFileDescriptions(List[DataFileDescription]):
                  hypertarget_position: HypertargetPosition = HypertargetPosition.NONE) -> str:
         s = ''
         s += f"\\section{{{section_name}}} \\label{{{label}}} {text}"
-        s += '\n\n' + wrap_with_lstlisting(self.pretty_repr(num_lines=0, hypertarget_position=hypertarget_position))
+        s += '\n\n' + wrap_as_latex_code_output(
+            self.pretty_repr(num_lines=0, hypertarget_position=hypertarget_position))
         return s

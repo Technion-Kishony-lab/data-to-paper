@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
-from data_to_paper.latex.clean_latex import wrap_with_lstlisting, replace_special_latex_chars
+from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
 from data_to_paper.utils.ref_numeric_values import find_hyperlinks, HypertargetPosition
 from .base_run_contexts import RunContext
 
@@ -51,7 +51,7 @@ class CodeAndOutput:
             s += '\n\n' + "\\subsection{Code Output}"
             for filename, output in outputs.items():
                 s += f'\n\n\\subsubsection*{{{replace_special_latex_chars(filename)}}}'
-                s += '\n\n' + wrap_with_lstlisting(output)
+                s += '\n\n' + wrap_as_latex_code_output(output)
         return s
 
     def to_text(self):

@@ -162,9 +162,9 @@ def process_latex_text_and_math(text, process_text=replace_special_latex_chars, 
     return "".join(result)
 
 
-def wrap_with_lstlisting(paragraph, width: int = PDF_TEXT_WIDTH):
-    return "\\begin{Verbatim}[tabsize=4]\n" + \
-        wrap_string(paragraph, width=width, new_line_indent=True) + "\n\\end{Verbatim}"
+def wrap_as_latex_code_output(paragraph, width: int = PDF_TEXT_WIDTH):
+    return "\\begin{codeoutput}\n" + \
+        wrap_string(paragraph, width=width, new_line_indent=True) + "\n\\end{codeoutput}"
 
 
 def check_usage_of_un_allowed_commands(latex_content: str, unwanted_commands: Iterable[str]):

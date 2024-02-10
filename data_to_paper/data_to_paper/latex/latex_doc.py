@@ -19,7 +19,6 @@ DEFAULT_PACKAGES = (
     '{fancyvrb}',
     '{color}',
     '{listings}',
-    '{minted}',
     '{sectsty}',
 )
 
@@ -34,7 +33,8 @@ DEFAULT_INITIATION_COMMANDS = (
     \definecolor{deepblue}{rgb}{0,0,0.5}
     \definecolor{deepred}{rgb}{0.6,0,0}
     \definecolor{deepgreen}{rgb}{0,0.5,0}
-    \definecolor{cyan}{rgb}{0.0, 0.6, 0.6}
+    \definecolor{cyan}{rgb}{0.0,0.6,0.6}
+    \definecolor{gray}{rgb}{0.5,0.5,0.5}
     
     % Python style for highlighting
     \newcommand\pythonstyle{\lstset{
@@ -47,6 +47,7 @@ DEFAULT_INITIATION_COMMANDS = (
     breaklines=true,
     postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
     showstringspaces=false
+    escapeinside={(*@}{@*)},            % Define escape delimiters
     }}
     
     
@@ -65,6 +66,25 @@ DEFAULT_INITIATION_COMMANDS = (
     
     % Python for inline
     \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+    
+    
+    % Code output style for highlighting
+    \newcommand\outputstyle{\lstset{
+        language=,
+        basicstyle=\ttfamily\footnotesize\color{gray},
+        breaklines=true,
+        showstringspaces=false,
+        escapeinside={(*@}{@*)},            % Define escape delimiters
+    }}
+    
+    % Code output environment
+    \lstnewenvironment{codeoutput}[1][]
+    {
+        \outputstyle
+        \lstset{#1}
+    }
+    {}
+
 """,
 )
 
