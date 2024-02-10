@@ -72,6 +72,7 @@ class TrackDataFrames(RunContext):
     str_float_format: str = field(default_factory=lambda: df_methods.STR_FLOAT_FORMAT)
 
     df_creating_func_names_and_is_file: Iterable[str] = (
+        ('read_pickle', True),
         ('read_csv', True),
         ('read_excel', True),
         ('read_json', True),

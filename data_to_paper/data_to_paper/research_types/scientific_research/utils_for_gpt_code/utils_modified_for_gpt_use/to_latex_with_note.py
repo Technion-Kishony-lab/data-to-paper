@@ -58,8 +58,15 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
     issues = _check_for_table_style_issues(df, filename, caption=caption, label=label, note=note, legend=legend,
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
-    return to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
-                              pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
+    # get the ReadPickleAttrReplacer instance:
+    pickle_filename = next((context.last_read_pickle_filename for context in RegisteredRunContext.get_all_runtime_instances()
+                            if context.name == 'ReadPickleAttrReplacer'), None)
+
+    if caption and pickle_filename:
+        caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
+    latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
+                               pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)
+    return latex
 
 
 def to_latex_with_note_transpose(df: pd.DataFrame, filename: Optional[str], *args,
