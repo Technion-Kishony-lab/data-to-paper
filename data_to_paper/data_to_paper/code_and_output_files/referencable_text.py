@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Union
 
-from data_to_paper.utils.ref_numeric_values import HypertargetPosition, numeric_values_in_products_pattern, \
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition, numeric_values_in_products_pattern, \
     ReferencedValue
 
 

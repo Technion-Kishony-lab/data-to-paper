@@ -17,7 +17,7 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
-from data_to_paper.utils.ref_numeric_values import HypertargetPosition
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 

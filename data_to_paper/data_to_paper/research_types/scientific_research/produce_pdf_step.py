@@ -5,8 +5,8 @@ from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.servers.crossref import CrossrefCitation
-from data_to_paper.utils.ref_numeric_values import HypertargetPosition, ReferencedValue
-from data_to_paper.utils.referencable_text import ListReferenceableText
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition, ReferencedValue
+from data_to_paper.code_and_output_files.referencable_text import ListReferenceableText
 
 
 @dataclass

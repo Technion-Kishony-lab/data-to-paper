@@ -10,7 +10,7 @@ from data_to_paper.research_types.scientific_research.run_steps import Scientifi
 from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
 from data_to_paper.utils.console_log_to_html import convert_console_log_to_html
 from data_to_paper.utils.print_to_file import CONSOLE_LOG_FILE
-from data_to_paper.utils.referencable_text import NumericReferenceableText
+from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText
 
 THIS_FOLDER = Path(__file__).parent
 

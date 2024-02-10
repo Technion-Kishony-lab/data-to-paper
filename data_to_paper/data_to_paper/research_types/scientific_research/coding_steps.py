@@ -35,7 +35,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
-from data_to_paper.utils.ref_numeric_values import HypertargetPosition
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \

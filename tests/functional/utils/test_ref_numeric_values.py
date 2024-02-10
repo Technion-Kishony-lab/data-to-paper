@@ -1,6 +1,6 @@
 import pytest
 
-from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeric_values, \
+from data_to_paper.code_and_output_files.ref_numeric_values import create_hypertargets_to_numeric_values, \
     ReferencedValue, find_hyperlinks, find_numeric_values
 
 

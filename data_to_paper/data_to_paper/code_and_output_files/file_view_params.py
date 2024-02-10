@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
-from data_to_paper.utils.ref_numeric_values import HypertargetPosition
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
 
 
 @dataclass(frozen=True)

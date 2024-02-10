@@ -6,7 +6,7 @@ from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
-from data_to_paper.utils.ref_numeric_values import HypertargetPosition
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent

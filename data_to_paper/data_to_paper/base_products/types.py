@@ -7,8 +7,8 @@ from typing import Optional, List, Union
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
-from data_to_paper.utils.ref_numeric_values import find_hyperlinks, HypertargetPosition
-from data_to_paper.utils.referencable_text import NumericReferenceableText, hypertarget_if_referencable_text
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
+from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, hypertarget_if_referencable_text
 
 
 @dataclass(frozen=True)
