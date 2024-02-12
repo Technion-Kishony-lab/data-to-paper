@@ -2,8 +2,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Iterable
 
-import pandas as pd
-
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
@@ -23,7 +21,7 @@ from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPack
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import temporarily_change_float_format, \
     STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr, OnStrPValue
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value
 
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
@@ -35,7 +33,6 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.research_types.scientific_research.model_engines import get_model_engine_for_class
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList, NiceDict
-from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
@@ -386,13 +383,10 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def get_pretty_content(self, content: pd.DataFrame, filename: str = None, is_block: bool = False,
-                           pvalue_on_str: Optional[OnStr] = None,
-                           num_file: int = 0, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE,
-                           ) -> str:
-        with OnStrPValue(pvalue_on_str), temporarily_change_float_format(STR_FLOAT_FORMAT):
-            content = content.to_string()
-        return super().get_pretty_content(content, filename, is_block, pvalue_on_str, num_file, hypertarget_position)
+
+    def _to_str(self, content: Any) -> str:
+        with temporarily_change_float_format(STR_FLOAT_FORMAT):
+            return content.to_string()
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,

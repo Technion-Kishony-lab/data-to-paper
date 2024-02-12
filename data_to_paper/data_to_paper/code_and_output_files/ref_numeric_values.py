@@ -2,8 +2,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from enum import Enum
-from functools import partial
-from typing import Tuple, List, Optional, Union
+from typing import Tuple, List, Optional
 
 TARGET = r'\hypertarget'
 LINK = r'\hyperlink'
@@ -49,27 +48,32 @@ class ReferencedValue:
     """
     value: str
     label: Optional[str] = None  # if None for un-referenced numeric values
-    is_target: bool = False
+    is_target: bool = True
 
     @property
     def command(self) -> str:
         return TARGET if self.is_target else LINK
 
-    def to_str(self, hypertarget_position: HypertargetPosition) -> str:
-        if hypertarget_position == HypertargetPosition.NONE or self.label is None:
-            return self.value
-        if hypertarget_position == HypertargetPosition.WRAP:
-            return fr'{self.command}{{{self.label}}}{{{self.value}}}'
-        if hypertarget_position == HypertargetPosition.HEADER:
-            return self.value
-        if hypertarget_position == HypertargetPosition.RAISED:
-            return fr'\raisebox{{2ex}}{{{self.command}{{{self.label}}}{{}}}}{self.value}'
-        if hypertarget_position == HypertargetPosition.RAISED_ESCAPE:
-            return fr'(*@{self.to_str(HypertargetPosition.RAISED)}@*)'
-        raise ValueError(f'Invalid hypertarget position: {hypertarget_position}')
-
-    def __str__(self):
-        return self.to_str(HypertargetPosition.WRAP)
+    def to_str(self, hypertarget_format: HypertargetFormat) -> str:
+        value = self.value
+        if hypertarget_format.position == HypertargetPosition.NONE or self.label is None:
+            return value
+        target = fr'{self.command}{{{self.label}}}'
+        if hypertarget_format.position == HypertargetPosition.WRAP:
+            target += fr'{{{value}}}'
+            value = ''
+        elif hypertarget_format.position == HypertargetPosition.ADJACENT:
+            target += fr'{{}}'
+        elif hypertarget_format.position == HypertargetPosition.HEADER:
+            target += fr'{{}}'
+            value = ''
+        else:
+            raise ValueError(f'Invalid hypertarget position: {hypertarget_format.position}')
+        if hypertarget_format.raised:
+            target = fr'\raisebox{{2ex}}{{{target}}}'
+        if hypertarget_format.escaped:
+            target = fr'(*@{target}@*)'
+        return target + value
 
     def get_numeric_value_and_is_percent(self) -> Tuple[Optional[str], bool]:
         """
@@ -93,17 +97,23 @@ class ReferencedValue:
 
 
 class HypertargetPosition(Enum):
-    """
-    Whether and and which position to put hypertargets.
-    """
-    NONE = 0  # Header ... value
-    WRAP = 1  # Header ... \hypertarget{target}{value}
-    HEADER = 2  # \hypertarget{target}Header ... value
-    RAISED = 3  # Header ... \raisebox{2ex}{\hypertarget{target}{}}value
-    RAISED_ESCAPE = 4  # Header ...  (*@\raisebox{2ex}{\hypertarget{target}{}}value@*)
+    NONE = 0  # do noit create hypertargets
+    WRAP = 1  # \hypertarget{target}{value}
+    ADJACENT = 2  # \hypertarget{target}{}value
+    HEADER = 3  # \hypertarget{target}{} ... value
 
     def __bool__(self):
         return self != HypertargetPosition.NONE
+
+
+@dataclass
+class HypertargetFormat:
+    position: HypertargetPosition = HypertargetPosition.NONE
+    raised: bool = False  # \raisebox{2ex}{...}
+    escaped: bool = False  # (*@ ... @*)
+
+    def __bool__(self):
+        return self.position
 
 
 def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue]:

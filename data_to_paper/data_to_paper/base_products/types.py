@@ -4,11 +4,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
+from data_to_paper.code_and_output_files.file_view_params import ContentView
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.mutable import Mutable
-from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
-from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, hypertarget_if_referencable_text
+from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, \
+    hypertarget_if_referencable_text
 
 
 @dataclass(frozen=True)
@@ -42,11 +43,11 @@ class DataFileDescription:
                     head.append('UnicodeDecodeError\n')
             return ''.join(head)
 
-    def pretty_repr(self, num_lines: int = 4, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE):
+    def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None):
         s = f'"{self.file_path}"\n'
         description = self.description
         if description is not None:
-            description = hypertarget_if_referencable_text(description, hypertarget_position)
+            description = hypertarget_if_referencable_text(description, content_view)
             s += f'{description}\n\n'
         if num_lines > 0 and not self.get_is_binary():
             s += f'Here are the first few lines of the file:\n' \
@@ -99,34 +100,32 @@ class DataFileDescriptions(List[DataFileDescription]):
                                     data_folder=self.data_folder)
 
     def get_pretty_description_for_file_and_children(
-            self, data_file: DataFileDescription, index: Mutable = None,
-            hypertarget_position: HypertargetPosition = HypertargetPosition.NONE):
+            self, data_file: DataFileDescription, index: Mutable = None, content_view: ContentView = None):
         """
         Return a pretty description for the given data file and all its children.
         """
         children = self.get_children(data_file)
         index.val += 1
-        s = f"File #{index.val}: {data_file.pretty_repr(0 if children else 4, hypertarget_position=hypertarget_position)}\n"
+        s = f"File #{index.val}: {data_file.pretty_repr(0 if children else 4, content_view=content_view)}\n"
         for child in children:
             s += self.get_pretty_description_for_file_and_children(child, index)
         return s
 
-    def pretty_repr(self, num_lines: int = 4, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE):
+    def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None) -> str:
         s = ''
         if self.general_description is not None:
-            s += hypertarget_if_referencable_text(self.general_description, hypertarget_position) + '\n\n'
+            s += hypertarget_if_referencable_text(self.general_description, content_view) + '\n\n'
         with run_in_directory(self.data_folder):
             if len(self) == 0:
                 s += 'No data files'
             elif len(self) == 1:
                 s += "1 data file:\n\n"
-                s += self[0].pretty_repr(num_lines, hypertarget_position=hypertarget_position)
+                s += self[0].pretty_repr(num_lines, content_view=content_view)
             else:
                 s += f"{len(self)} data files:\n"
                 index = Mutable(0)
                 for parent in self.get_all_raw_files():
-                    s += self.get_pretty_description_for_file_and_children(parent, index,
-                                                                           hypertarget_position=hypertarget_position)
+                    s += self.get_pretty_description_for_file_and_children(parent, index, content_view=content_view)
             return s
 
     def get_data_filenames(self):
@@ -136,9 +135,9 @@ class DataFileDescriptions(List[DataFileDescription]):
                  section_name: str = 'Data Description',
                  label: str = 'sec:data_description',
                  text: str = 'Here is the data description, as provided by the user:',
-                 hypertarget_position: HypertargetPosition = HypertargetPosition.NONE) -> str:
+                 content_view: ContentView = None) -> str:
         s = ''
         s += f"\\section{{{section_name}}} \\label{{{label}}} {text}"
         s += '\n\n' + wrap_as_latex_code_output(
-            self.pretty_repr(num_lines=0, hypertarget_position=hypertarget_position))
+            self.pretty_repr(num_lines=0, content_view=content_view))
         return s

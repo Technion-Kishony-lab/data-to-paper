@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 
 from data_to_paper.base_steps import LiteratureSearch
+from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
@@ -11,13 +12,11 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
 from data_to_paper.servers.crossref import CrossrefCitation
-from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -120,16 +119,14 @@ class ScientificProducts(Products):
     def get_number_of_created_df_tables(self) -> int:
         return len(self.get_created_df_tables())
 
-    def get_latex_tables(self, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE
-                         ) -> Dict[str, List[str]]:
+    def get_latex_tables(self, content_view: ContentView = None) -> Dict[str, List[str]]:
         """
         Return the tables.
         """
         return {'results': [
             content for file, content
             in self.codes_and_outputs[
-                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(
-                hypertarget_position=hypertarget_position).items()
+                'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(content_view).items()
             if file.endswith('.tex')]}
 
     @property
@@ -140,12 +137,11 @@ class ScientificProducts(Products):
         return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
                          for hypothesis, test in self.hypothesis_testing_plan.items())
 
-    def get_all_latex_tables(self, hypertarget_position: HypertargetPosition = HypertargetPosition.NONE) -> List[str]:
+    def get_all_latex_tables(self, content_view: ContentView) -> List[str]:
         """
         Return the tables from all sections.
         """
-        return [table for tables in self.get_latex_tables(
-            hypertarget_position=hypertarget_position).values() for table in tables]
+        return [table for tables in self.get_latex_tables(content_view).values() for table in tables]
 
     @property
     def all_file_descriptions(self) -> DataFileDescriptions:
@@ -199,11 +195,11 @@ class ScientificProducts(Products):
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n')
 
-    def get_tabled_paper_sections(self, hypertarget_position: HypertargetPosition) -> Dict[str, str]:
+    def get_tabled_paper_sections(self, content_view: ContentView) -> Dict[str, str]:
         """
         Return the actual tabled paper sections.
         """
-        latex_tables = self.get_latex_tables(hypertarget_position=hypertarget_position)
+        latex_tables = self.get_latex_tables(content_view)
         return {section_name: section if section_name not in latex_tables
                 else add_tables_to_paper_section(section, latex_tables[section_name])
                 for section_name, section in self.paper_sections_without_citations.items()}
@@ -255,7 +251,7 @@ class ScientificProducts(Products):
                 'DESCRIPTION OF THE ORIGINAL DATASET (with hypertargets)\n\n{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(
-                    num_lines=0, hypertarget_position=True),
+                    num_lines=0, content_view=ContentViewPurpose.HYPERTARGET_PRODUCT),
             ),
 
             'all_file_descriptions': NameDescriptionStageGenerator(
@@ -348,9 +344,10 @@ class ScientificProducts(Products):
                 'Output of the {code_name} Code',
                 'Here is the Output of our {code_name} code:\n```output\n{output}\n```\n',
                 lambda code_step: get_code_stage(code_step),
-                lambda code_step: {'output':
-                                   self.codes_and_outputs[code_step].created_files.get_single_output(is_pretty=True),
-                                   'code_name': self.codes_and_outputs[code_step].name},
+                lambda code_step: {
+                    'output': self.codes_and_outputs[code_step].created_files.get_single_output(
+                        content_view=ContentViewPurpose.PRODUCT),
+                    'code_name': self.codes_and_outputs[code_step].name},
             ),
 
             'code_explanation:{}': NameDescriptionStageGenerator(
@@ -398,7 +395,7 @@ class ScientificProducts(Products):
                     'created_files_content':
                         self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
                             match_filename=filespec,
-                            pvalue_on_str=OnStr.SMALLER_THAN,
+                            content_view=ContentViewPurpose.PRODUCT,
                         ),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
@@ -440,7 +437,7 @@ class ScientificProducts(Products):
                 'Most Updated Draft of the Paper',
                 '{}',
                 ScientificStages.WRITING,
-                lambda: '\n\n'.join(self.get_tabled_paper_sections(HypertargetPosition.WRAP).values())
+                lambda: '\n\n'.join(self.get_tabled_paper_sections(ContentViewPurpose.FINAL_INLINE).values())
             ),
 
             'paper_sections:{}': NameDescriptionStageGenerator(
@@ -458,9 +455,10 @@ class ScientificProducts(Products):
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes):\n\n{}',
                 ScientificStages.TABLES,
-                lambda: None if not self.get_all_latex_tables() else
+                lambda: None if not self.get_all_latex_tables(ContentViewPurpose.PRODUCT) else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
-                             f'```latex\n{table}\n```' for table in self.get_all_latex_tables()]),
+                             f'```latex\n{table}\n```'
+                             for table in self.get_all_latex_tables(ContentViewPurpose.PRODUCT)]),
             ),
 
             'latex_tables_linked': NameDescriptionStageGenerator(
@@ -468,10 +466,10 @@ class ScientificProducts(Products):
                 'Here are the tables created by our data analysis code '
                 '(a latex representation of the table_?.pkl dataframes, with hypertargets):\n\n{}',
                 ScientificStages.TABLES,
-                lambda: None if not self.get_all_latex_tables(HypertargetPosition.WRAP) else
+                lambda: None if not self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT) else
                 '\n\n'.join([f'- "{get_table_caption(table)}":\n\n'
                              f'```latex\n{table}\n```'
-                             for table in self.get_all_latex_tables(HypertargetPosition.WRAP)]),
+                             for table in self.get_all_latex_tables(ContentViewPurpose.HYPERTARGET_PRODUCT)]),
             ),
 
             'additional_results': NameDescriptionStageGenerator(
@@ -481,7 +479,7 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
+                    content_view=ContentViewPurpose.PRODUCT)['additional_results.pkl'],
             ),
 
             'additional_results_linked': NameDescriptionStageGenerator(
@@ -491,7 +489,6 @@ class ScientificProducts(Products):
                 ScientificStages.INTERPRETATION,
                 lambda: self.codes_and_outputs[
                     'data_analysis'].created_files.get_created_content_files_to_pretty_contents(
-                    hypertarget_position=HypertargetPosition.WRAP,
-                    pvalue_on_str=OnStr.SMALLER_THAN)['additional_results.pkl'],
+                    content_view=ContentViewPurpose.HYPERTARGET_PRODUCT)['additional_results.pkl'],
             ),
         }

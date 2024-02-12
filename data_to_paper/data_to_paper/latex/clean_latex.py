@@ -3,10 +3,6 @@ import regex
 
 from typing import Iterable
 
-from data_to_paper.utils.text_formatting import wrap_string
-
-from data_to_paper.env import PDF_TEXT_WIDTH
-
 from .exceptions import UnwantedCommandsUsedInLatex
 
 CHARS = {
@@ -162,9 +158,8 @@ def process_latex_text_and_math(text, process_text=replace_special_latex_chars, 
     return "".join(result)
 
 
-def wrap_as_latex_code_output(paragraph, width: int = PDF_TEXT_WIDTH):
-    return "\\begin{codeoutput}\n" + \
-        wrap_string(paragraph, width=width, new_line_indent=True) + "\n\\end{codeoutput}"
+def wrap_as_latex_code_output(paragraph):
+    return "\\begin{codeoutput}\n" + paragraph + "\n\\end{codeoutput}"
 
 
 def check_usage_of_un_allowed_commands(latex_content: str, unwanted_commands: Iterable[str]):

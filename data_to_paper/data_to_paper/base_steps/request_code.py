@@ -5,8 +5,8 @@ from typing import Optional, Tuple, Dict, Type, Any, Iterable
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
-from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
-from data_to_paper.run_gpt_code.overrides.pvalue import OnStr
+from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
+    OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
@@ -16,6 +16,7 @@ from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
+from ..code_and_output_files.file_view_params import ContentViewPurpose
 
 
 @dataclass
@@ -111,7 +112,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def output_filename(self) -> str:
         return self.output_file_requirements.get_single_content_file()
 
-    def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:
+    def get_created_file_names_explanation(self, code_and_output: CodeAndOutput) -> str:  # noqa
         created_files = code_and_output.created_files.get_all_created_files()
         if len(created_files) == 0:
             return ''
@@ -146,7 +147,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     def _request_code_tag(self):
         return f'code_revision_{self.revision_round}'
 
-    def _get_initial_code_and_output(self) -> CodeAndOutput:
+    def _get_initial_code_and_output(self) -> CodeAndOutput:  # noqa
         return CodeAndOutput()
 
     def get_code_and_output(self) -> Optional[CodeAndOutput]:
@@ -222,7 +223,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             else:
                 content_files_to_contents = \
                     code_and_output.created_files.get_created_content_files_to_pretty_contents(
-                        match_filename=wildcard_filename, is_block=True, pvalue_on_str=OnStr.SMALLER_THAN)
+                        match_filename=wildcard_filename, content_view=ContentViewPurpose.CODE_REVIEW)
                 # TODO: check if less confusing for the LLM if we use pvalue_on_str=OnStr.EPSILON
                 if len(content_files_to_contents) == 0:
                     continue
