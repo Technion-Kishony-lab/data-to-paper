@@ -98,7 +98,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             single code block, including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
         """)
-    runner_cls: Type[BaseCodeRunner] = CodeRunner
 
     max_debug_iterations: int = 5
     debug_iteration = 0
@@ -109,6 +108,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     previous_code_problem: CodeProblem = CodeProblem.NoCode
     gpt_script_filename: str = 'debugger_gpt'
     code_runner_cls: Type[BaseCodeRunner] = CodeRunner
+    code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
 
     """
     PROPERTIES
@@ -408,6 +408,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             runtime_available_objects=self._get_runtime_available_objects(),
             additional_contexts=self.additional_contexts,
             timeout_sec=self.timeout_sec,
+            code_and_output_cls=self.code_and_output_cls,
         )
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None

@@ -34,6 +34,7 @@ class BaseCodeRunner(ABC):
     additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
+    code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     _lines_added_in_front_of_code: int = None
     timeout_sec: int = MAX_EXEC_TIME.val
 
@@ -82,7 +83,7 @@ class BaseCodeRunner(ABC):
         """
         Return the CodeAndOutput object for the given result and created files.
         """
-        return CodeAndOutput(
+        return self.code_and_output_cls(
             code=code,
             result=result,
             created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(

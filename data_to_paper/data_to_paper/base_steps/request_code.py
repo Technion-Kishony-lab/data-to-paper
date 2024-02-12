@@ -40,6 +40,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     max_debug_iterations_per_attempt: int = 12
     background_product_fields_to_hide_during_code_revision: Tuple[str, ...] = ()
     debugger_cls: Type[DebuggerConverser] = DebuggerConverser
+    code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     supported_packages: Tuple[str, ...] = SUPPORTED_PACKAGES
     additional_contexts: Optional[Dict[str, Any]] = None
 
@@ -184,6 +185,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 gpt_script_filename=f"{self.gpt_script_filename}_revision{self.revision_round}_attempt{attempt}",
                 background_product_fields_to_hide=(() if self.revision_round == 0
                                                    else self.background_product_fields_to_hide_during_code_revision),
+                code_and_output_cls=self.code_and_output_cls,
                 previous_code=previous_code,
                 previous_code_problem=CodeProblem.NoCode if previous_code is None else CodeProblem.AllOK,
                 **{k: getattr(self, k) for k in self.attrs_to_send_to_debugger},
