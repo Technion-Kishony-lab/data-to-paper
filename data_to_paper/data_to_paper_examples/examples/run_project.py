@@ -52,8 +52,9 @@ def get_file_descriptions(input_directory: Path, data_filenames: List[str], data
     return DataFileDescriptions(
         [get_file_description(input_directory, data_filename, j) for j, data_filename in enumerate(data_filenames)],
         data_folder=data_folder,
-        general_description=NumericReferenceableText(text=read_general_file_description(input_directory),
-                                                     hypertarget_prefix=HypertargetPrefix.GENERAL_FILE_DESCRIPTION.value)
+        general_description=NumericReferenceableText(
+            text=read_general_file_description(input_directory),
+            hypertarget_prefix=HypertargetPrefix.GENERAL_FILE_DESCRIPTION.value)
     )
 
 

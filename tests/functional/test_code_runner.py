@@ -4,7 +4,8 @@ import os
 from data_to_paper.run_gpt_code.code_runner import CodeRunner
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, FailedRunningCode
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock
-from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
+    OutputFileRequirements
 
 OUTPUT_FILE = "output.txt"
 

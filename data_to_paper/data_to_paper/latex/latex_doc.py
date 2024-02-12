@@ -22,68 +22,67 @@ DEFAULT_PACKAGES = (
     '{sectsty}',
 )
 
-DEFAULT_INITIATION_COMMANDS = (
-    r"""
-    % Default fixed font does not support bold face
-    \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
-    \DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
-    
-    % Custom colors
-    \usepackage{color}
-    \definecolor{deepblue}{rgb}{0,0,0.5}
-    \definecolor{deepred}{rgb}{0.6,0,0}
-    \definecolor{deepgreen}{rgb}{0,0.5,0}
-    \definecolor{cyan}{rgb}{0.0,0.6,0.6}
-    \definecolor{gray}{rgb}{0.5,0.5,0.5}
-    
-    % Python style for highlighting
-    \newcommand\pythonstyle{\lstset{
-    language=Python,
-    basicstyle=\ttfamily\footnotesize,
-    morekeywords={self, import, as, from, if, for, while},              % Add keywords here
-    keywordstyle=\color{deepblue},
-    stringstyle=\color{deepred},
-    commentstyle=\color{cyan},
+DEFAULT_INITIATION_COMMANDS = (r"""
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
     breaklines=true,
+    showstringspaces=false,
     escapeinside={(*@}{@*)},            % Define escape delimiters
-    postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
-    showstringspaces=false
-    }}
-    
-    
-    % Python environment
-    \lstnewenvironment{python}[1][]
-    {
-    \pythonstyle
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
     \lstset{#1}
-    }
-    {}
-    
-    % Python for external files
-    \newcommand\pythonexternal[2][]{{
-    \pythonstyle
-    \lstinputlisting[#1]{#2}}}
-    
-    % Python for inline
-    \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
-    
-    
-    % Code output style for highlighting
-    \newcommand\outputstyle{\lstset{
-        language=,
-        basicstyle=\ttfamily\footnotesize\color{gray},
-        breaklines=true,
-        showstringspaces=false,
-        escapeinside={(*@}{@*)},            % Define escape delimiters
-    }}
-    
-    % Code output environment
-    \lstnewenvironment{codeoutput}[1][]
-    {
-        \outputstyle
-        \lstset{#1}
-    }
-    {}
+}
+{}
 
 """,
 )

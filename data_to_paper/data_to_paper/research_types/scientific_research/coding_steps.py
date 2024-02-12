@@ -20,8 +20,8 @@ from data_to_paper.research_types.scientific_research.cast import ScientificAgen
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent, HypertargetPrefix
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
-from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_latex_with_note import \
-    TABLE_COMMENT_HEADER
+from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_latex_with_note \
+    import TABLE_COMMENT_HEADER
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames

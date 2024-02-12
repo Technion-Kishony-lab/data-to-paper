@@ -61,7 +61,8 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                                            **kwargs)
     IssueCollector.get_runtime_instance().issues.extend(issues)
     # get the ReadPickleAttrReplacer instance:
-    pickle_filename = next((context.last_read_pickle_filename for context in RegisteredRunContext.get_all_runtime_instances()
+    pickle_filename = next((context.last_read_pickle_filename
+                            for context in RegisteredRunContext.get_all_runtime_instances()
                             if context.name == 'ReadPickleAttrReplacer'), None)
     if pickle_filename:
         comment = TABLE_COMMENT_HEADER + f'`{pickle_filename}`'
