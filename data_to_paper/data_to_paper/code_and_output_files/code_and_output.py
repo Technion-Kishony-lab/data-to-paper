@@ -6,7 +6,9 @@ from typing import Optional, Any, TYPE_CHECKING, Dict
 
 from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
-from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
+    ReferencedValue
+from data_to_paper.code_and_output_files.referencable_text import convert_filename_to_latex_label
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
@@ -30,12 +32,48 @@ class CodeAndOutput:
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 
+    def _get_code_header_for_file(self, filename: str) -> str:
+        """
+        Return a string which can be found in the line where we should go to when we want to see the code
+        that created the file.
+        """
+        return filename
+
+    def _get_lineno_for_file(self, code: str, filename: str) -> Optional[int]:
+        header = self._get_code_header_for_file(filename)
+        lines = code.split('\n')
+        for i, line in enumerate(lines):
+            if header in line:
+                return i + 1
+        return None
+
+    @staticmethod
+    def _add_hypertarget_to_code(code: str, label: str, lineno: int) -> str:
+        """
+        Add hypertarget to the code at the beginning of the line with the lineno
+        """
+        lines = code.split('\n')
+        hypertarget_format = HypertargetFormat(position=HypertargetPosition.WRAP, raised=True, escaped=True)
+        lines[lineno - 1] = ReferencedValue(label, '').to_str(hypertarget_format) + lines[lineno - 1]
+        return '\n'.join(lines)
+
+    def _get_label_for_file(self, filename: str) -> str:
+        return self.name + convert_filename_to_latex_label(filename)
+
+    def _get_code_with_hypertargets(self) -> str:
+        code = self.code
+        for filename in self.created_files.get_created_content_files():
+            lineno = self._get_lineno_for_file(code, filename)
+            if lineno is not None:
+                code = self._add_hypertarget_to_code(code, self._get_label_for_file(filename), lineno)
+        return code
+
     def to_latex(self, content_view: ContentView) -> str:
         s = f"\\section{{{self.name}}}\n"
         if self.code:
             s += "\\subsection{{Code}}\n"
             s += f"The {self.name} was carried out using the following custom code:\n"
-            s += '\n\\begin{python}\n' + self.code + '\n\\end{python}\n\n'
+            s += '\n\\begin{python}\n' + self._get_code_with_hypertargets() + '\n\\end{python}\n\n'
         if self.provided_code:
             s += f"\\subsection{{Provided Code}}\n"
             s += f"The code above is using the following provided functions:\n"
@@ -51,7 +89,9 @@ class CodeAndOutput:
                 content, references = output.get_hypertarget_text_and_header_references(content_view)
                 s += '\n'.join(reference.to_str(HypertargetFormat(HypertargetPosition.HEADER))
                                for reference in references)
-                s += f'\n\n\\subsubsection*{{{replace_special_latex_chars(filename)}}}'
+                header = replace_special_latex_chars(filename)
+                header = f'\\hyperlink{{{self._get_label_for_file(filename)}}}{{{header}}}'
+                s += f'\n\n\\subsubsection*{{{header}}}'
                 s += '\n\n' + wrap_as_latex_code_output(content)
         return s
 

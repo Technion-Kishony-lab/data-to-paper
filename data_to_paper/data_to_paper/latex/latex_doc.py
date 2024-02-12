@@ -45,9 +45,9 @@ DEFAULT_INITIATION_COMMANDS = (
     stringstyle=\color{deepred},
     commentstyle=\color{cyan},
     breaklines=true,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
     postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
     showstringspaces=false
-    escapeinside={(*@}{@*)},            % Define escape delimiters
     }}
     
     
