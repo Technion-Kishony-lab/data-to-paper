@@ -1,10 +1,10 @@
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, List, Tuple, Union, Dict, ClassVar
+from typing import Optional, List, Tuple, Union
 
 from data_to_paper.code_and_output_files.file_view_params import \
-    ContentViewPurpose, ContentViewParams, ContentView, DEFAULT_VIEW_PURPOSE_TO_PARAMS
+    ContentViewParams, ContentView, ContentViewPurposeConverter
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetPosition, \
     numeric_values_in_products_pattern, ReferencedValue
 
@@ -42,18 +42,7 @@ class BaseReferenceableText:
     """
     hypertarget_prefix: Optional[str] = None  # if None, no hypertargets are created
     filename: Optional[str] = None
-    content_view_purpose_to_params: ClassVar[Dict[Optional[ContentViewPurpose], ContentViewParams]] = \
-        DEFAULT_VIEW_PURPOSE_TO_PARAMS
-
-    @classmethod
-    def convert_content_view_to_params(cls, content_view: ContentView) -> ContentViewParams:
-        if isinstance(content_view, ContentViewPurpose) or content_view is None:
-            return cls.content_view_purpose_to_params[content_view]
-        elif isinstance(content_view, ContentViewParams):
-            return content_view
-        else:
-            raise ValueError(f'content_view should be either ContentViewPurpose or ContentViewParams, '
-                             f'but got {content_view}')
+    content_view_purpose_converter: ContentViewPurposeConverter = field(default_factory=ContentViewPurposeConverter)
 
     def get_header_label(self) -> str:
         if self.filename:
@@ -70,13 +59,13 @@ class BaseReferenceableText:
         return f'"{self.filename}":\n```{label}\n{content}\n```\n'
 
     def get_hypertarget_text_with_header(self, content_view: ContentView) -> str:
-        view_params = self.convert_content_view_to_params(content_view)
+        view_params = self.content_view_purpose_converter.convert_content_view_to_params(content_view)
         content, references = self.get_hypertarget_text_and_header_references(content_view)
         return '\n'.join(reference.to_str(view_params.hypertarget_format) for reference in references) + content
 
     def get_hypertarget_text_and_header_references(self, content_view: ContentView
                                                    ) -> Tuple[str, List[ReferencedValue]]:
-        view_params = self.convert_content_view_to_params(content_view)
+        view_params = self.content_view_purpose_converter.convert_content_view_to_params(content_view)
         content, references = self._get_text_and_references(view_params)
         if view_params.is_block:
             content = self._wrap_as_block(content)

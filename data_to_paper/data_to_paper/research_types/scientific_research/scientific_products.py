@@ -4,6 +4,7 @@ from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
+from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
@@ -229,7 +230,8 @@ class ScientificProducts(Products):
                 'Overall Description of the Dataset',
                 'OVERALL DESCRIPTION OF THE DATASET\n\n{}',
                 ScientificStages.DATA,
-                lambda: self.data_file_descriptions.general_description,
+                lambda: hypertarget_if_referencable_text(self.data_file_descriptions.general_description,
+                                                         ContentViewPurpose.PRODUCT),
             ),
 
             'data_file_descriptions': NameDescriptionStageGenerator(

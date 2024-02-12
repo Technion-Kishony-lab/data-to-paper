@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Union, Optional
@@ -20,9 +21,9 @@ class ContentViewParams:
     Parameters for how to present the content of the file.
     """
     hypertarget_format: HypertargetFormat
-    with_hyper_header: bool
-    is_block: bool
-    pvalue_on_str: Optional[OnStr]
+    with_hyper_header: bool = False
+    is_block: bool = False
+    pvalue_on_str: Optional[OnStr] = None
 
 
 ContentView = Union[Optional[ContentViewPurpose], ContentViewParams]
@@ -69,3 +70,25 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[Optional[ContentViewPurpose], ContentViewPa
         is_block=True,
         pvalue_on_str=OnStr.SMALLER_THAN),
 }
+
+
+class ContentViewPurposeConverter:
+    def __init__(self, view_purpose_to_params: Dict[Optional[ContentViewPurpose], ContentViewParams] = None):
+        view_purpose_to_params = view_purpose_to_params or DEFAULT_VIEW_PURPOSE_TO_PARAMS
+        self.view_purpose_to_params = copy.deepcopy(view_purpose_to_params)
+
+    def convert_content_view_to_params(self, content_view: ContentView) -> ContentViewParams:
+        if isinstance(content_view, ContentViewPurpose) or content_view is None:
+            return self.view_purpose_to_params[content_view]
+        elif isinstance(content_view, ContentViewParams):
+            return content_view
+        else:
+            raise ValueError(f'content_view should be either ContentViewPurpose or ContentViewParams, '
+                             f'but got {content_view}')
+
+    def __hash__(self):
+        return hash(tuple(self.view_purpose_to_params.items()))
+
+    def __eq__(self, other):
+        return isinstance(other, ContentViewPurposeConverter) \
+            and self.view_purpose_to_params == other.view_purpose_to_params

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 import pickle
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional, Any, List, Tuple, Iterable, Dict
@@ -17,7 +17,7 @@ from data_to_paper.code_and_output_files.referencable_text import NumericReferen
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
-from .file_view_params import ContentView
+from .file_view_params import ContentView, ContentViewPurposeConverter
 
 
 @dataclass(frozen=True)
@@ -67,6 +67,7 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
     minimal_count: int = 1
     hypertarget_prefixes: Optional[Tuple[str]] = None
     referenceable_text_cls: type = NumericReferenceableText
+    content_view_purpose_converter: ContentViewPurposeConverter = field(default_factory=ContentViewPurposeConverter)
 
     def get_content(self, file_path: str) -> str:
         """
@@ -91,13 +92,14 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
 
     def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
                               content_view: ContentView = None) -> BaseReferenceableText:
-        content_view = self.referenceable_text_cls.convert_content_view_to_params(content_view)
+        content_view = self.content_view_purpose_converter.convert_content_view_to_params(content_view)
         with OnStrPValue(content_view.pvalue_on_str):
             content = self._to_str(content)
         return self.referenceable_text_cls(
             text=content,
             filename=filename,
             hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
+            content_view_purpose_converter=self.content_view_purpose_converter,
         )
 
 

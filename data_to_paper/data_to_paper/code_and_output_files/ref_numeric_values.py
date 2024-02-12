@@ -106,7 +106,7 @@ class HypertargetPosition(Enum):
         return self != HypertargetPosition.NONE
 
 
-@dataclass
+@dataclass(frozen=True)
 class HypertargetFormat:
     position: HypertargetPosition = HypertargetPosition.NONE
     raised: bool = False  # \raisebox{2ex}{...}
