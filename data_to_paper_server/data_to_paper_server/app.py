@@ -18,14 +18,13 @@ from data_to_paper.base_products import DataFileDescriptions, DataFileDescriptio
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.run_steps import ScientificStepsRunner
 from data_to_paper_server.consts import BASE_DIRECTORY
-from data_to_paper_server.serializers import SerializedAction
 from data_to_paper_server.websocket_messenger import QueueMessenger
 import gipc
 
 """
 SET RUN PARAMETERS HERE
 """
-PROJECT: Optional[str] = 'meconium'  # None to get from web ui
+PROJECT: Optional[str] = 'diabetes'  # None to get from web ui
 
 if PROJECT:
     load_from_repo = True  # False to load from local examples folder (outside the repo)
@@ -40,7 +39,7 @@ if PROJECT:
 
     # Choose OUTPUT_DIRECTORY. `None` for TEMP_FOLDER_TO_RUN_IN/output, or set to the local examples output folder:
     OUTPUT_DIRECTORY: Optional[Path] = get_output_path(PROJECT,
-                                                       'client_example', save_on_repo=True)
+                                                       'test_paper2', save_on_repo=True)
 
     # Choose MOCK_SERVERS.
     # `False` to avoid mocking servers
@@ -127,7 +126,10 @@ def hello_world():
 
 @app.route('/papers/<id_>/products/<name>')
 def get_product(id_, name):
-    output_directory = BASE_DIRECTORY / id_ / 'output'
+    if OUTPUT_DIRECTORY is None:
+        output_directory = BASE_DIRECTORY / id_ / 'output'
+    else:
+        output_directory = Path(OUTPUT_DIRECTORY)
     return send_from_directory(output_directory, name, as_attachment=True)
 
 

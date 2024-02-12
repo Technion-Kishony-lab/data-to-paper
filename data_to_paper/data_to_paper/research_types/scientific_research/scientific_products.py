@@ -22,9 +22,9 @@ from data_to_paper.servers.custom_types import Citation
 
 CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]] = {
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
-    'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
+    # 'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
-    'data_to_latex': (ScientificStages.CODE, 'LaTeX Table Design', ScientificAgent.Debugger),
+    'data_to_latex': (ScientificStages.INTERPRETATION, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
 }
 
 

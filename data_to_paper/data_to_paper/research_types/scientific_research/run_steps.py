@@ -153,8 +153,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:
-            self.advance_stage_and_set_active_conversation(
-                ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
+            # self.advance_stage_and_set_active_conversation(
+                # ScientificStages.PREPROCESSING, ScientificAgent.DataPreprocessor)
             RequestCodeProducts.from_(self,
                                       code_step='data_preprocessing',
                                       code_writing_class=DataPreprocessingCodeProductsGPT,
@@ -172,6 +172,9 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                   explain_code_class=RequestCodeExplanation,
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
+        self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
+        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
+                                                       ScientificAgent.InterpretationReviewer)
         RequestCodeProducts.from_(self,
                                   code_step='data_to_latex',
                                   latex_document=self.latex_document,
@@ -179,10 +182,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                   explain_code_class=None,
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
-        self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
-
-        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
-                                                       ScientificAgent.InterpretationReviewer)
+        self.send_product_to_client('codes_and_outputs_with_explanations:data_to_latex')
 
         # literature review and scope
         self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,

@@ -263,7 +263,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 class DataPreprocessingCodeProductsGPT(BaseScientificCodeProductsGPT):
     code_step: str = 'data_preprocessing'
     background_product_fields: Tuple[str, ...] = ('research_goal', 'all_file_descriptions', 'outputs:data_exploration')
-    user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
+    # user_agent: ScientificAgent = ScientificAgent.DataPreprocessor
     allow_data_files_from_sections: Tuple[Optional[str]] = (None, 'data_exploration', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy', 'imblearn')
 
@@ -848,7 +848,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         ('\nfrom my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef', )
     attrs_to_send_to_debugger: Tuple[str, ...] = \
         BaseCreateTablesCodeProductsGPT.attrs_to_send_to_debugger + ('latex_document', 'phrases_required_in_code', )
-
+    user_agent: ScientificAgent = ScientificAgent.InterpretationReviewer
     background_product_fields: Tuple[str, ...] = \
         ('data_file_descriptions', 'research_goal', 'codes:data_preprocessing', 'codes:data_analysis',
          'created_files_content:data_analysis:table_?.pkl')
