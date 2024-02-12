@@ -397,7 +397,7 @@ class ScientificProducts(Products):
                     'created_files_content':
                         self.codes_and_outputs[code_step].created_files.get_created_content_files_description(
                             match_filename=filespec,
-                            content_view=ContentViewPurpose.PRODUCT,
+                            content_view=ContentViewPurpose.CODE_REVIEW,
                         ),
                     'which_files': 'all files' if filespec == '*' else f'files "{filespec}"',
                     'code_name': self.codes_and_outputs[code_step].name},
