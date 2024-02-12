@@ -28,11 +28,11 @@ def _num_to_letters(num: int) -> str:
     return letters
 
 
-def convert_filename_to_latex_label(filename: str) -> str:
+def convert_str_to_latex_label(text: str, prefix: str = 'label') -> str:
     """
-    Convert the filename into  valid latex hypertaget label
+    Convert str, like filename, into valid latex hypertaget label
     """
-    return f'file-{filename.replace(".", "-").replace("_", "-")}'
+    return f'{prefix}-{text.replace(".", "-").replace("_", "-")}'
 
 
 @dataclass
@@ -57,7 +57,7 @@ class BaseReferenceableText:
 
     def get_header_label(self) -> str:
         if self.filename:
-            return convert_filename_to_latex_label(self.filename)
+            return convert_str_to_latex_label(self.filename, 'file')
         if self.hypertarget_prefix:
             return self.hypertarget_prefix
         raise ValueError('Either filename or hypertarget_prefix should be set')

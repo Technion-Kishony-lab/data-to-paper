@@ -398,6 +398,27 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
 
 
 @dataclass
+class DataAnalysisCodeAndOutput(CodeAndOutput):
+    def _get_code_header_for_file(self, filename: str) -> str:
+        # 'table_?.pkl' -> '# Table ?'
+        if filename.startswith('table_') and filename.endswith('.pkl'):
+            return f'# Table {filename[6:-4]}'
+        # 'additional_results.pkl' -> '# Additional Results'
+        if filename == 'additional_results.pkl':
+            return '# SAVE ADDITIONAL RESULTS'
+        return super()._get_code_header_for_file(filename)
+
+
+@dataclass
+class CreateLatexTablesCodeAndOutput(CodeAndOutput):
+    def _get_code_header_for_file(self, filename: str) -> str:
+        # 'table_?.tex' -> '# TABLE ?'
+        if filename.startswith('table_') and filename.endswith('.tex'):
+            return f'# TABLE {filename[6:-4]}'
+        return super()._get_code_header_for_file(filename)
+
+
+@dataclass
 class DataAnalysisDebuggerConverser(DebuggerConverser):
     class_and_from_formula: Tuple[str, str] = (
         ('GLS', 'gls'),
@@ -423,11 +444,11 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         ('ConditionalPoisson', 'conditional_poisson'),
     )
 
-    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         """
         Check that a PValue instance appear in at least one of the created tables.
         """
-        issues = super()._get_issues_for_created_output_files(code_and_output)
+        issues = super()._get_issues_for_created_output_files(code_and_output, contexts)
         any_pvalues = False
         for names_to_contents in code_and_output.created_files.values():
             for content in names_to_contents.values():
@@ -443,15 +464,15 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
             ))
         if issues:
             return issues
-        return self._get_issues_for_table_comments(code_and_output)
+        return self._get_issues_for_table_comments(code_and_output, contexts)
 
-    def _get_issues_for_table_comments(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
-        context = self.additional_contexts['ToPickleAttrReplacer']
+    def _get_issues_for_table_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+        context = contexts['ToPickleAttrReplacer']
         prior_tables = getattr(context, 'prior_tables', {})
         code = code_and_output.code
         issues = []
         for table_file_name in prior_tables.keys():
-            table_name = table_file_name.split('.')[0]
+            table_name = table_file_name.split('.')[0].replace('_', ' ').title()
             if f'## {table_name}' not in code:
                 issues.append(RunIssue(
                     category="Each saved table should have a header comment with the table name.\n",
@@ -459,7 +480,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
                     instructions='Please make sure all saved tables have a header comment with the table name.\n'
                                  'If you are creating multiple tables in the same section of the code, '
                                  'you should precede this section with a separate comment for each of the tables.',
-                    code_problem=CodeProblem.StaticCheck,
+                    code_problem=CodeProblem.OutputFileContentLevelA,
                 ))
         return issues
 
@@ -486,6 +507,7 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
 class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_analysis'
     debugger_cls: Type[DebuggerConverser] = DataAnalysisDebuggerConverser
+    code_and_output_cls: Type[CodeAndOutput] = DataAnalysisCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
@@ -856,6 +878,7 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
 class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    code_and_output_cls: Type[CodeAndOutput] = CreateLatexTablesCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# PREPARATION FOR ALL TABLES',

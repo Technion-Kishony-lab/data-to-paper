@@ -8,7 +8,7 @@ from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
 from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition, \
     ReferencedValue
-from data_to_paper.code_and_output_files.referencable_text import convert_filename_to_latex_label
+from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
@@ -54,11 +54,11 @@ class CodeAndOutput:
         """
         lines = code.split('\n')
         hypertarget_format = HypertargetFormat(position=HypertargetPosition.WRAP, raised=True, escaped=True)
-        lines[lineno - 1] = ReferencedValue(label, '').to_str(hypertarget_format) + lines[lineno - 1]
+        lines[lineno - 1] = ReferencedValue('', label).to_str(hypertarget_format) + lines[lineno - 1]
         return '\n'.join(lines)
 
     def _get_label_for_file(self, filename: str) -> str:
-        return self.name + convert_filename_to_latex_label(filename)
+        return convert_str_to_latex_label(self.name + '-' + filename, 'code')
 
     def _get_code_with_hypertargets(self) -> str:
         code = self.code

@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 
-from data_to_paper.code_and_output_files.referencable_text import convert_filename_to_latex_label
+from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.run_gpt_code.overrides.pvalue import OnStr, is_containing_p_value
 
@@ -64,7 +64,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                             if context.name == 'ReadPickleAttrReplacer'), None)
 
     if caption and pickle_filename:
-        pickle_filename = convert_filename_to_latex_label(pickle_filename)
+        pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
         caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
     latex = to_latex_with_note(df, filename, caption=caption, label=label, note=note, legend=legend,
                                pvalue_on_str=OnStr.LATEX_SMALLER_THAN, **kwargs)

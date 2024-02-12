@@ -371,7 +371,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                                             filename: str, content: str) -> List[RunIssue]:
         return requirement.get_issues_for_output_file_content(filename, content)
 
-    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         issues = []
         files_to_contents = code_and_output.created_files.get_created_content_files_to_contents()
         for requirement in self.output_file_requirements:
@@ -587,7 +587,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         # We now check for issues in the output files as well as issues collected during the run:
         output_issues = []
         output_issues.extend(issues)
-        output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
+        output_issues.extend(self._get_issues_for_created_output_files(code_and_output, contexts))
 
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:

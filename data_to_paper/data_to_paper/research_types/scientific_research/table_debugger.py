@@ -33,7 +33,7 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
     def _get_runtime_available_objects(self) -> dict:
         return {'compile_to_pdf_func': partial(self._get_static_latex_compilation_func(), is_table=True)}
 
-    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         num_created_pkl_table_files = self.products.get_number_of_created_df_tables()
         created_tex_table_files = code_and_output.created_files.get_created_content_files()
         if len(created_tex_table_files) < num_created_pkl_table_files:
@@ -44,4 +44,4 @@ class TablesDebuggerConverser(CheckLatexCompilation, DebuggerConverser):
                 instructions=f"Please create a tex file for each table.",
                 code_problem=CodeProblem.OutputFileContentLevelA,
             )]
-        return super()._get_issues_for_created_output_files(code_and_output)
+        return super()._get_issues_for_created_output_files(code_and_output, contexts)
