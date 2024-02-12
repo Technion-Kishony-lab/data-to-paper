@@ -441,6 +441,26 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
                 instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
+        if issues:
+            return issues
+        return self._get_issues_for_table_comments(code_and_output)
+
+    def _get_issues_for_table_comments(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+        context = self.additional_contexts['ToPickleAttrReplacer']
+        prior_tables = getattr(context, 'prior_tables', {})
+        code = code_and_output.code
+        issues = []
+        for table_file_name in prior_tables.keys():
+            table_name = table_file_name.split('.')[0]
+            if f'## {table_name}' not in code:
+                issues.append(RunIssue(
+                    category="Each saved table should have a header comment with the table name.\n",
+                    issue=f'Your code is missing a comment "## {table_name}".',
+                    instructions='Please make sure all saved tables have a header comment with the table name.\n'
+                                 'If you are creating multiple tables in the same section of the code, '
+                                 'you should precede this section with a separate comment for each of the tables.',
+                    code_problem=CodeProblem.StaticCheck,
+                ))
         return issues
 
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
