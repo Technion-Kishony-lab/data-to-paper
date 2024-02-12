@@ -398,7 +398,7 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
 
 
 @dataclass
-class StatisticalTestingDebuggerConverser(DebuggerConverser):
+class DataAnalysisDebuggerConverser(DebuggerConverser):
     class_and_from_formula: Tuple[str, str] = (
         ('GLS', 'gls'),
         ('WLS', 'wls'),
@@ -483,9 +483,9 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
 
 
 @dataclass
-class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
+class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_analysis'
-    debugger_cls: Type[DebuggerConverser] = StatisticalTestingDebuggerConverser
+    debugger_cls: Type[DebuggerConverser] = DataAnalysisDebuggerConverser
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
