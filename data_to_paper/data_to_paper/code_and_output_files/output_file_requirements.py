@@ -269,7 +269,7 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
         return {filename: content.get_hypertarget_text_with_header(content_view)
                 for filename, content in result.items()}
 
-    def get_created_content_files_to_pretty_contents(self, content_view: ContentView,
+    def get_created_content_files_to_pretty_contents(self, content_view: ContentView = None,
                                                      match_filename: str = '*') -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content formatted for display.
@@ -288,7 +288,7 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                                                                               match_filename=match_filename)
         return '\n\n'.join(files_to_contents.values())
 
-    def get_single_output(self, content_view: ContentView) -> Optional[str]:
+    def get_single_output(self, content_view: ContentView = None) -> Optional[str]:
         """
         Return the output of the run, if it is a single content file.
         """
