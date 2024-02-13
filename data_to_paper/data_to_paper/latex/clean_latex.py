@@ -27,6 +27,8 @@ CHARS = {
     '∑': r'$\sum$',
     '∏': r'$\prod$',
     '|': r'\textbar{}',
+    '\u200b': r'',  # zero width space
+    '\u202f': r' ',  # narrow no-break space
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())
