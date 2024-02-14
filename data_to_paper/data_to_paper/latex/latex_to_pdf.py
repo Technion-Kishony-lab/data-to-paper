@@ -80,7 +80,7 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
-    pdflatex_params = ['pdflatex', '--shell-escape', latex_file_name]
+    pdflatex_params = ['pdflatex', '--shell-escape', '-interaction=nonstopmode', latex_file_name]
     with run_in_temp_directory():
 
         # Create the bib file:
