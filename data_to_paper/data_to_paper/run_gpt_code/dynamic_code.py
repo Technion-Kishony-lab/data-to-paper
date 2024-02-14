@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
 
-import matplotlib.pyplot as plt
 import os
 import importlib
 
@@ -69,9 +68,15 @@ DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS = (
         (builtins, 'eval', False),
         (builtins, 'exit', False),
         (builtins, 'quit', False),
-        (plt, 'savefig', False),
         # (builtins, 'exec', False),
     )
+
+try:
+    import matplotlib.pyplot as plt
+    DEFAULT_FORBIDDEN_MODULES_AND_FUNCTIONS += ((plt, 'show', True),)
+except ImportError:
+    pass
+
 
 DEFAULT_FORBIDDEN_IMPORTS = ('os', 'sys', 'subprocess', 'shutil', 'matplotlib')
 
