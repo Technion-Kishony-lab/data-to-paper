@@ -19,7 +19,7 @@ class UtilsCodeRunner(CodeRunner):
         modified_code, lines_added = super()._modify_code(code)
         modified_code = code.replace(
             'from my_utils',
-            'from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use')
+            'from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use')
         return modified_code, lines_added
 
 
