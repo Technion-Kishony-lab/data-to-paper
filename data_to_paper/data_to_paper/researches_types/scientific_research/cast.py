@@ -19,6 +19,7 @@ class ScientificAgent(Agent):
     GoalReviewer = 'GoalReviewer'
     DataPreprocessor = 'DataPreprocessor'
     PlanReviewer = 'PlanReviewer'
+    AnalysisReviewer = 'AnalysisReviewer'
     Debugger = 'Debugger'
     InterpretationReviewer = 'InterpretationReviewer'
     Writer = 'Writer'
@@ -54,6 +55,7 @@ AGENTS_TO_CONVERSATION_NAMES = {
     ScientificAgent.DataPreprocessor: 'preprocess data',
     ScientificAgent.GoalReviewer: 'review goal',
     ScientificAgent.PlanReviewer: 'review plan',
+    ScientificAgent.AnalysisReviewer: 'review analysis',
     ScientificAgent.Debugger: 'debug',
     ScientificAgent.InterpretationReviewer: 'results interpretation',
     ScientificAgent.Writer: 'write paper',

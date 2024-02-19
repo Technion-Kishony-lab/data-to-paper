@@ -13,7 +13,7 @@ from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
     ResultsInterpretationReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
-    GetMostSimilarCitations
+    GetMostSimilarCitations, ReflectOnAnalysisGPT
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -39,6 +39,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_add_citations: bool = False
     should_add_tables: bool = True
     should_interpret_results: bool = False
+    should_reflect_on_analysis: bool = True
 
     def get_sections_to_writing_class(
             self) -> List[Tuple[Union[str, Tuple[str, ...]], Type[SectionWriterReviewBackgroundProductsConverser]]]:
@@ -228,6 +229,9 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                                conversation_name=f'add_citations_to_{section_name}') \
                         .rewrite_section_with_citations()
             self.send_product_to_client('most_updated_paper')
+
+        if self.should_reflect_on_analysis:
+            ReflectOnAnalysisGPT.from_(self).save_reflection()
 
         # Compile paper
         paper_producer.assemble_compile_paper()
