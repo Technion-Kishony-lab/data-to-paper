@@ -19,6 +19,7 @@ class ScientificAgent(Agent):
     GoalReviewer = 'GoalReviewer'
     # DataPreprocessor = 'DataPreprocessor'
     PlanReviewer = 'PlanReviewer'
+    AnalysisReviewer = 'AnalysisReviewer'
     Debugger = 'Debugger'
     InterpretationReviewer = 'InterpretationReviewer'
     Writer = 'Writer'

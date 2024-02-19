@@ -1,3 +1,4 @@
+import pickle
 import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Iterable, List
@@ -285,3 +286,69 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
             {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
                     repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
+
+@dataclass
+class ReflectOnAnalysisGPT(PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
+    products: ScientificProducts = None
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(ReflectOnAnalysisGPT))
+    value_type: type = Dict[str, str]
+    allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda:
+    {'simplicity': range(1, 11),
+     'clarity': range(1, 11),
+     'adequate_hypothesis':range(1, 11),
+     'adequate_data': range(1, 11),
+     'error_free': range(1, 11)})
+    default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
+    goal_noun: str = 'qualities and correctness of the analysis'
+    goal_verb: str = 'reflect'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.AnalysisReviewer
+    conversation_name: str = 'reflect_on_analysis'
+    is_new_conversation: bool = None
+    background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'data_file_descriptions_no_headers',
+                                                  'hypothesis_testing_plan', 'codes_and_outputs:data_analysis')
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the data description, the hypothesis testing plan, and the data analysis code, evaluate the \
+        following 5 criteria of the task at hand and the provided code:
+        
+        - Simplicity: How complex is the task? Very simple tasks (1) correspond to single regression analysis or \
+        similar, while very complex tasks (10) require several analysis steps, such as the generation of new \
+        data columns, complicated data analysis functions such as machine learning models and/or complex data input \
+        files, such as non-tabular data.
+        
+        - Clarity: How readable and understandable is the code? In very clear code (10), all variables have \
+        non-ambiguous names and all data transformations are easy to follow. Further, code comments are helpful and \
+        also non-ambiguous. Unclear codes (1) contain, for example, convoluted data operations, such as for loops and \
+        unclear variable naming, and no or limited code comments.
+        
+        - Adequate code for hypothesis testing plan: How well does the data analysis code align with the hypothesis \
+        testing plan? A very adequate code (10) performs all analyses that are specified in the \
+        hypothesis testing plan, but not any other analysis, while an inadequate code (1) performs only analyses \
+        which are not specified in the hypothesis testing plan.
+        
+        - Adequate code for data features: How adequate is the code in light of the data features? Are all relevant \
+        data features used in the code, while not relevant information is not included? For example, an adequate code \
+        (10) includes all relevant confounding factors, while inadequate code leaves out relevant data features.
+        
+        - Error free: Is there any error in the code? For example, are all the mathematical formulas, if applicable, \
+        correct? Do variables correspond to the respective output? If the code is error free, evaluate it with 10. \
+        If there are major errors, such as errors in formulas, it corresponds to 1.
+        
+        Your response should start with a reflection on the relevant points for each criterion, concluding with a \
+        final score from 1 to 10 according to that reflection.
+        
+        At the end of your resonse you should provide a final verdict that should be formatted as a Python dictionary \
+        mapping each of the 5 criteria: ['simplicity','clarity','adequate_hypothesis','adequate_data','error_free'] \
+        to a score from 1 to 10. 
+        For example, it may look as something like that:
+        {'simplicity': 4,
+        'clarity': 10,
+        'adequate_hypothesis': 8,
+        'adequate_data': 5,
+        'error_free': 10}
+        """)
+
+    def save_reflection(self):
+        with open('reflection_on_analysis.pkl', 'wb') as f:
+            pickle.dump(self.run_and_get_valid_result(), f)
