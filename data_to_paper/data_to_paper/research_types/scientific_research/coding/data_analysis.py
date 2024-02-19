@@ -188,7 +188,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: get_additional_contexts(
-            allow_dataframes_to_change_existing_series=False,
+            allow_dataframes_to_change_existing_series=True,
             enforce_saving_altered_dataframes=False,
             issue_if_statistics_test_not_called=True) |
         {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
