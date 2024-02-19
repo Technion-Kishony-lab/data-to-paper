@@ -8,6 +8,8 @@ CreateConversation(name=None web=[web]preprocess data, participants=['DataPrepro
 
 CreateConversation(name=None web=[web]review plan, participants=['Performer', 'PlanReviewer'])
 
+CreateConversation(name=None web=[web]review analysis, participants=['AnalysisReviewer', 'Performer'])
+
 CreateConversation(name=None web=[web]debug, participants=['Debugger', 'Performer'])
 
 CreateConversation(name=None web=[web]results interpretation, participants=['InterpretationReviewer', 'Performer'])
@@ -1844,7 +1846,7 @@ Std: 1.433
 PARA:
 Count: 223
 Mean: 1.422             
-Std: 0.9163            
+Std: 0.9163           
 
 HypertensiveDisorders:
 Count: 223
@@ -1854,7 +1856,7 @@ Std: 0.1622
 MaternalDiabetes:
 Count: 223
 Mean: 0.1166             
-Std: 0.3217             
+Std: 0.3217            
 
 FetalDistress:
 Count: 223
@@ -1864,7 +1866,7 @@ Std: 0.475
 ProlongedRupture:
 Count: 222
 Mean: 0.1847             
-Std: 0.3889            
+Std: 0.3889             
 
 Chorioamnionitis:
 Count: 222
@@ -1874,7 +1876,7 @@ Std: 0.4965
 GestationalAge:
 Count: 223
 Mean: 39.67           
-Std: 1.305             
+Std: 1.305            
 
 BirthWeight:
 Count: 223
@@ -1884,12 +1886,12 @@ Std: 0.4935
 APGAR1:
 Count: 223
 Mean: 4.175            
-Std: 2.133             
+Std: 2.133            
 
 APGAR5:
 Count: 223
 Mean: 7.278            
-Std: 1.707             
+Std: 1.707            
 
 PPV:
 Count: 223
@@ -1914,7 +1916,7 @@ Std: 0.1748
 RespiratoryReasonAdmission:
 Count: 223
 Mean: 0.6188            
-Std: 0.4868            
+Std: 0.4868             
 
 RespiratoryDistressSyndrome:
 Count: 223
@@ -1924,12 +1926,12 @@ Std: 0.2989
 TransientTachypnea:
 Count: 223
 Mean: 0.3049             
-Std: 0.4614             
+Std: 0.4614            
 
 MeconiumAspirationSyndrome:
 Count: 223
 Mean: 0.2018             
-Std: 0.4022             
+Std: 0.4022            
 
 OxygenTherapy:
 Count: 223
@@ -1949,12 +1951,12 @@ Std: 0.1622
 Pneumothorax:
 Count: 223
 Mean: 0.1345             
-Std: 0.342             
+Std: 0.342              
 
 AntibioticsDuration:
 Count: 223
 Mean: 2.769             
-Std: 3.273             
+Std: 3.273            
 
 Breastfeeding:
 Count: 223
@@ -1974,7 +1976,7 @@ Std: 14.45
 ProlongedRupture_non_nan:
 Count: 223
 Mean: 0.1839             
-Std: 0.3882            
+Std: 0.3882             
 
 Chorioamnionitis_non_nan:
 Count: 223
@@ -2054,16 +2056,16 @@ Important:
 are needed."}, return an empty dict instead.
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 3680 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 3677 context tokens and 500 expected tokens.
 [8] ===== ASSISTANT{'model_engine': gpt-4, 'temperature': 0.0} {Performer} -> data_exploration_code ==================================================
 
-CONTEXT TOTAL (3680 tokens):
+CONTEXT TOTAL (3677 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1306 tokens): Description of the Dataset: [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  10 tokens): Thank you for the Description of the Dataset.
 # 3      USER ( 268 tokens): As part of a [...] output examples.
 # 4 SURROGATE ( 666 tokens): Here is the code to perform [...] {num}\n")
-# 5      USER (1413 tokens): I ran your code.  Here is [...] empty dict instead.
+# 5      USER (1410 tokens): I ran your code.  Here is [...] empty dict instead.
 
 # 6 ASSISTANT ( 212 tokens): python {  "The result of [...] from the code." }
                              {'model_engine': gpt-4, 'temperature': 0.0}
@@ -2271,7 +2273,7 @@ Std: 1.433
 PARA:
 Count: 223
 Mean: 1.422             
-Std: 0.9163            
+Std: 0.9163           
 
 HypertensiveDisorders:
 Count: 223
@@ -2281,7 +2283,7 @@ Std: 0.1622
 MaternalDiabetes:
 Count: 223
 Mean: 0.1166             
-Std: 0.3217             
+Std: 0.3217            
 
 FetalDistress:
 Count: 223
@@ -2291,7 +2293,7 @@ Std: 0.475
 ProlongedRupture:
 Count: 222
 Mean: 0.1847             
-Std: 0.3889            
+Std: 0.3889             
 
 Chorioamnionitis:
 Count: 222
@@ -2301,7 +2303,7 @@ Std: 0.4965
 GestationalAge:
 Count: 223
 Mean: 39.67           
-Std: 1.305             
+Std: 1.305            
 
 BirthWeight:
 Count: 223
@@ -2311,12 +2313,12 @@ Std: 0.4935
 APGAR1:
 Count: 223
 Mean: 4.175            
-Std: 2.133             
+Std: 2.133            
 
 APGAR5:
 Count: 223
 Mean: 7.278            
-Std: 1.707             
+Std: 1.707            
 
 PPV:
 Count: 223
@@ -2341,7 +2343,7 @@ Std: 0.1748
 RespiratoryReasonAdmission:
 Count: 223
 Mean: 0.6188            
-Std: 0.4868            
+Std: 0.4868             
 
 RespiratoryDistressSyndrome:
 Count: 223
@@ -2351,12 +2353,12 @@ Std: 0.2989
 TransientTachypnea:
 Count: 223
 Mean: 0.3049             
-Std: 0.4614             
+Std: 0.4614            
 
 MeconiumAspirationSyndrome:
 Count: 223
 Mean: 0.2018             
-Std: 0.4022             
+Std: 0.4022            
 
 OxygenTherapy:
 Count: 223
@@ -2376,12 +2378,12 @@ Std: 0.1622
 Pneumothorax:
 Count: 223
 Mean: 0.1345             
-Std: 0.342             
+Std: 0.342              
 
 AntibioticsDuration:
 Count: 223
 Mean: 2.769             
-Std: 3.273             
+Std: 3.273            
 
 Breastfeeding:
 Count: 223
@@ -2462,16 +2464,16 @@ Important:
 are needed."}, return an empty dict instead.
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 3302 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 3298 context tokens and 500 expected tokens.
 [8] ===== ASSISTANT{'model_engine': gpt-4, 'temperature': 0.0} {Performer} -> data_exploration_code ==================================================
 
-CONTEXT TOTAL (3302 tokens):
+CONTEXT TOTAL (3298 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1306 tokens): Description of the Dataset: [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  10 tokens): Thank you for the Description of the Dataset.
 # 3      USER ( 268 tokens): As part of a [...] output examples.
 # 4 SURROGATE ( 433 tokens): Here is the code to perform [...] {num}\n")
-# 5      USER (1268 tokens): I ran your code.  Here is [...] empty dict instead.
+# 5      USER (1264 tokens): I ran your code.  Here is [...] empty dict instead.
 
 # 6 ASSISTANT ( 153 tokens): python {  "The result of [...] the output file." }
                              {'model_engine': gpt-4, 'temperature': 0.0}
@@ -2662,7 +2664,7 @@ Std: 1.433
 PARA:
 Count: 223
 Mean: 1.422             
-Std: 0.9163            
+Std: 0.9163           
 
 HypertensiveDisorders:
 Count: 223
@@ -2672,7 +2674,7 @@ Std: 0.1622
 MaternalDiabetes:
 Count: 223
 Mean: 0.1166             
-Std: 0.3217             
+Std: 0.3217            
 
 FetalDistress:
 Count: 223
@@ -2682,7 +2684,7 @@ Std: 0.475
 ProlongedRupture:
 Count: 222
 Mean: 0.1847             
-Std: 0.3889            
+Std: 0.3889             
 
 Chorioamnionitis:
 Count: 222
@@ -2692,7 +2694,7 @@ Std: 0.4965
 GestationalAge:
 Count: 223
 Mean: 39.67           
-Std: 1.305             
+Std: 1.305            
 
 BirthWeight:
 Count: 223
@@ -2702,12 +2704,12 @@ Std: 0.4935
 APGAR1:
 Count: 223
 Mean: 4.175            
-Std: 2.133             
+Std: 2.133            
 
 APGAR5:
 Count: 223
 Mean: 7.278            
-Std: 1.707             
+Std: 1.707            
 
 PPV:
 Count: 223
@@ -2732,7 +2734,7 @@ Std: 0.1748
 RespiratoryReasonAdmission:
 Count: 223
 Mean: 0.6188            
-Std: 0.4868            
+Std: 0.4868             
 
 RespiratoryDistressSyndrome:
 Count: 223
@@ -2742,12 +2744,12 @@ Std: 0.2989
 TransientTachypnea:
 Count: 223
 Mean: 0.3049             
-Std: 0.4614             
+Std: 0.4614            
 
 MeconiumAspirationSyndrome:
 Count: 223
 Mean: 0.2018             
-Std: 0.4022             
+Std: 0.4022            
 
 OxygenTherapy:
 Count: 223
@@ -2767,12 +2769,12 @@ Std: 0.1622
 Pneumothorax:
 Count: 223
 Mean: 0.1345             
-Std: 0.342             
+Std: 0.342              
 
 AntibioticsDuration:
 Count: 223
 Mean: 2.769             
-Std: 3.273             
+Std: 3.273            
 
 Breastfeeding:
 Count: 223
@@ -2855,7 +2857,7 @@ Important:
 are needed."}, return an empty dict instead.
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 3468 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 3464 context tokens and 500 expected tokens.
 [8] ASSISTANT{'model_engine': gpt-4, 'temperature': 0.0} {Performer} -> data_exploration_code : 
 python {  "The result of the average of variable 'ProlongedRupture' is missing": "Add the missing [...] of 'SNAPPE_II_SCORE' to the code." }
 
@@ -3648,7 +3650,7 @@ Std: 1.433
 
 PARA:
 Mean: 1.422             
-Std: 0.9163            
+Std: 0.9163           
 
 HypertensiveDisorders:
 Mean: 0.02691             
@@ -3656,7 +3658,7 @@ Std: 0.1622
 
 MaternalDiabetes:
 Mean: 0.1166             
-Std: 0.3217             
+Std: 0.3217            
 
 FetalDistress:
 Mean: 0.3408             
@@ -3664,7 +3666,7 @@ Std: 0.475
 
 ProlongedRupture:
 Mean: 0.1847             
-Std: 0.3889            
+Std: 0.3889             
 
 Chorioamnionitis:
 Mean: 0.5676            
@@ -3672,7 +3674,7 @@ Std: 0.4965
 
 GestationalAge:
 Mean: 39.67           
-Std: 1.305             
+Std: 1.305            
 
 BirthWeight:
 Mean: 3.442            
@@ -3680,11 +3682,11 @@ Std: 0.4935
 
 APGAR1:
 Mean: 4.175            
-Std: 2.133             
+Std: 2.133            
 
 APGAR5:
 Mean: 7.278            
-Std: 1.707             
+Std: 1.707            
 
 PPV:
 Mean: 0.722             
@@ -3704,7 +3706,7 @@ Std: 0.1748
 
 RespiratoryReasonAdmission:
 Mean: 0.6188            
-Std: 0.4868            
+Std: 0.4868             
 
 RespiratoryDistressSyndrome:
 Mean: 0.09865            
@@ -3712,11 +3714,11 @@ Std: 0.2989
 
 TransientTachypnea:
 Mean: 0.3049             
-Std: 0.4614             
+Std: 0.4614            
 
 MeconiumAspirationSyndrome:
 Mean: 0.2018             
-Std: 0.4022             
+Std: 0.4022            
 
 OxygenTherapy:
 Mean: 0.4439            
@@ -3732,11 +3734,11 @@ Std: 0.1622
 
 Pneumothorax:
 Mean: 0.1345             
-Std: 0.342             
+Std: 0.342              
 
 AntibioticsDuration:
 Mean: 2.769             
-Std: 3.273             
+Std: 3.273            
 
 Breastfeeding:
 Mean: 0.6771            
@@ -3836,14 +3838,14 @@ study goal.
 Remember to return a valid Python dictionary Dict[str, str].
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-3.5-turbo-0613 (max 4096 tokens) for 3147 context tokens and 500 expected tokens.
+Using gpt-3.5-turbo-0613 (max 4096 tokens) for 3143 context tokens and 500 expected tokens.
 [10] ==== ASSISTANT{'model_engine': gpt-3.5-turbo-0613} {Performer} -> hypothesis_testing_plan =======================================================
 
-CONTEXT TOTAL (3147 tokens):
+CONTEXT TOTAL (3143 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who [...] testing plan.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER (1331 tokens): Here is our Data [...] and outcomes.
+# 3      USER (1327 tokens): Here is our Data [...] and outcomes.
 # 4 SURROGATE (  11 tokens): Thank you for the Data Exploration Code and Output.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -3898,14 +3900,14 @@ with `eval()`
 FailedChatgptResponse -> hypothesis_testing_plan
 
 ############# Bumping model #############
-Using gpt-3.5-turbo-16k-0613 (max 16384 tokens) for 3742 context tokens and 500 expected tokens.
+Using gpt-3.5-turbo-16k-0613 (max 16384 tokens) for 3738 context tokens and 500 expected tokens.
 [12] ==== ASSISTANT{'model_engine': gpt-3.5-turbo-16k-0613} {Performer} -> hypothesis_testing_plan ===================================================
 
-CONTEXT TOTAL (3742 tokens):
+CONTEXT TOTAL (3738 tokens):
 # 0    SYSTEM (  12 tokens): You are a scientist who [...] testing plan.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER (1331 tokens): Here is our Data [...] and outcomes.
+# 3      USER (1327 tokens): Here is our Data [...] and outcomes.
 # 4 SURROGATE (  11 tokens): Thank you for the Data Exploration Code and Output.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -3989,7 +3991,7 @@ Std: 1.433
 
 PARA:
 Mean: 1.422             
-Std: 0.9163            
+Std: 0.9163           
 
 HypertensiveDisorders:
 Mean: 0.02691             
@@ -3997,7 +3999,7 @@ Std: 0.1622
 
 MaternalDiabetes:
 Mean: 0.1166             
-Std: 0.3217             
+Std: 0.3217            
 
 FetalDistress:
 Mean: 0.3408             
@@ -4005,7 +4007,7 @@ Std: 0.475
 
 ProlongedRupture:
 Mean: 0.1847             
-Std: 0.3889            
+Std: 0.3889             
 
 Chorioamnionitis:
 Mean: 0.5676            
@@ -4013,7 +4015,7 @@ Std: 0.4965
 
 GestationalAge:
 Mean: 39.67           
-Std: 1.305             
+Std: 1.305            
 
 BirthWeight:
 Mean: 3.442            
@@ -4021,11 +4023,11 @@ Std: 0.4935
 
 APGAR1:
 Mean: 4.175            
-Std: 2.133             
+Std: 2.133            
 
 APGAR5:
 Mean: 7.278            
-Std: 1.707             
+Std: 1.707            
 
 PPV:
 Mean: 0.722             
@@ -4045,7 +4047,7 @@ Std: 0.1748
 
 RespiratoryReasonAdmission:
 Mean: 0.6188            
-Std: 0.4868            
+Std: 0.4868             
 
 RespiratoryDistressSyndrome:
 Mean: 0.09865            
@@ -4053,11 +4055,11 @@ Std: 0.2989
 
 TransientTachypnea:
 Mean: 0.3049             
-Std: 0.4614             
+Std: 0.4614            
 
 MeconiumAspirationSyndrome:
 Mean: 0.2018             
-Std: 0.4022             
+Std: 0.4022            
 
 OxygenTherapy:
 Mean: 0.4439            
@@ -4073,11 +4075,11 @@ Std: 0.1622
 
 Pneumothorax:
 Mean: 0.1345             
-Std: 0.342             
+Std: 0.342              
 
 AntibioticsDuration:
 Mean: 2.769             
-Std: 3.273             
+Std: 3.273            
 
 Breastfeeding:
 Mean: 0.6771            
@@ -4266,14 +4268,14 @@ Where possible, access dataframes using string-based column/index names, rather 
 
 [12] COMMENTER -> data_analysis_code : Starting to write and debug code. Revision 1/3 (attempt 1/2).
 
-Using gpt-4 (max 8192 tokens) for 3536 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 3532 context tokens and 500 expected tokens.
 [13] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (3536 tokens):
+CONTEXT TOTAL (3532 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -4428,14 +4430,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4145 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4141 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4145 tokens):
+CONTEXT TOTAL (4141 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -4551,14 +4553,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4148 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4144 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4148 tokens):
+CONTEXT TOTAL (4144 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -4649,14 +4651,14 @@ AppendMessage, Debug iteration 3/20: Runtime exception in code
 [14] USER {Debugger} -> data_analysis_code : 
 I ran the code and got the following error message:   File "my_analysis.py", line 39, in [...] "# ANALYSIS" "# SAVE ADDITIONAL RESULTS"
 
-Using gpt-4 (max 8192 tokens) for 4146 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4142 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4146 tokens):
+CONTEXT TOTAL (4142 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -4774,14 +4776,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4171 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4167 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4171 tokens):
+CONTEXT TOTAL (4167 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -4887,14 +4889,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4916 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4912 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4916 tokens):
+CONTEXT TOTAL (4912 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5075,14 +5077,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4915 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4911 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4915 tokens):
+CONTEXT TOTAL (4911 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5208,14 +5210,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4303 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4299 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4303 tokens):
+CONTEXT TOTAL (4299 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5341,14 +5343,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4348 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4344 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4348 tokens):
+CONTEXT TOTAL (4344 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5460,14 +5462,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5119 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5115 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5119 tokens):
+CONTEXT TOTAL (5115 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5605,14 +5607,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5103 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5099 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5103 tokens):
+CONTEXT TOTAL (5099 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5784,14 +5786,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5068 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5064 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5068 tokens):
+CONTEXT TOTAL (5064 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -5926,14 +5928,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5168 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5164 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5168 tokens):
+CONTEXT TOTAL (5164 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6113,14 +6115,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5301 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5297 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5301 tokens):
+CONTEXT TOTAL (5297 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6268,14 +6270,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5045 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5041 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5045 tokens):
+CONTEXT TOTAL (5041 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6325,14 +6327,14 @@ Please rewrite the complete code again with all the required sections.
 
 DeleteMessages(<-2> - <-1> [2 MESSAGES]) -> data_analysis_code, REGENERATE (back to stage 2)
 
-Using gpt-4 (max 8192 tokens) for 5045 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5041 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5045 tokens):
+CONTEXT TOTAL (5041 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6447,14 +6449,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5031 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5027 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5031 tokens):
+CONTEXT TOTAL (5027 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6642,14 +6644,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5119 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5115 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (5119 tokens):
+CONTEXT TOTAL (5115 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6833,14 +6835,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4331 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4327 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4331 tokens):
+CONTEXT TOTAL (4327 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -6994,14 +6996,14 @@ Remember, your code must contain the following sections:
 "# SAVE ADDITIONAL RESULTS"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4412 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4408 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4412 tokens):
+CONTEXT TOTAL (4408 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -7129,14 +7131,14 @@ DeleteMessages(<12> - <-1> [2 MESSAGES]) -> data_analysis_code
 
 [14] COMMENTER -> data_analysis_code : Starting to write and debug code. Revision 1/3 (attempt 2/2).
 
-Using gpt-4 (max 8192 tokens) for 3536 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 3532 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (3536 tokens):
+CONTEXT TOTAL (3532 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -7269,14 +7271,14 @@ AppendMessage, Debug iteration 1/20:
 [16] USER {Debugger} -> data_analysis_code : 
 There are some issues that need to be corrected:  # Index is just a numeric range * table_0.pkl: [...] "# ANALYSIS" "# SAVE ADDITIONAL RESULTS"
 
-Using gpt-4 (max 8192 tokens) for 4510 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4506 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_analysis_code =========================================================================
 
-CONTEXT TOTAL (4510 tokens):
+CONTEXT TOTAL (4506 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
-# 3      USER ( 828 tokens): Here is the Output of our [...] and outcomes.
+# 3      USER ( 824 tokens): Here is the Output of our [...] and outcomes.
 # 4 SURROGATE (  12 tokens): Thank you for the Output of the Data Exploration Code.
 # 5      USER (  62 tokens): Here is our Research Goal   [...] apgar scores, etc.
 # 6 SURROGATE (   8 tokens): Thank you for the Research Goal.
@@ -8613,7 +8615,7 @@ Add the missing abbreviations and their explanations as keys and values in the `
 The legend of the table includes the following labels that are not in the table:
 ['P-value']
 Here are the available table row and column labels:
-{None, 'p-value', 'Intervention', 'PPV', 'Endo.Suc'}
+{'PPV', 'Intervention', None, 'p-value', 'Endo.Suc'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -8626,7 +8628,7 @@ table as a whole, rather than to a specific label.
 The legend of the table includes the following labels that are not in the table:
 ['P-value']
 Here are the available table row and column labels:
-{None, 'p-value', 'A1', 'Stay', 'Outcome', 'A5'}
+{'A1', None, 'A5', 'Stay', 'p-value', 'Outcome'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -8649,10 +8651,10 @@ Remember, your code must contain the following sections:
 "# TABLE 2"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4671 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4669 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 
-CONTEXT TOTAL (4671 tokens):
+CONTEXT TOTAL (4669 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -8664,7 +8666,7 @@ CONTEXT TOTAL (4671 tokens):
 # 8 SURROGATE (  15 tokens): Thank you for the Content [...] Data Analysis Code.
 # 9      USER (1110 tokens): I would like to create [...] output examples.
 #10 SURROGATE ( 682 tokens): Here is the code to perform [...]  legend=legend2)
-#11      USER ( 447 tokens): There are some issues that [...] 1" "# TABLE 2"
+#11      USER ( 445 tokens): There are some issues that [...] 1" "# TABLE 2"
 
 #12 ASSISTANT ( 739 tokens): Here's how you can [...] `df1` and `df2`.
                              {'model_engine': gpt-4}
@@ -8727,10 +8729,10 @@ Remember, your code must contain the following sections:
 "# TABLE 2"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5572 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5570 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 
-CONTEXT TOTAL (5572 tokens):
+CONTEXT TOTAL (5570 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -8742,7 +8744,7 @@ CONTEXT TOTAL (5572 tokens):
 # 8 SURROGATE (  15 tokens): Thank you for the Content [...] Data Analysis Code.
 # 9      USER (1110 tokens): I would like to create [...] output examples.
 #10 SURROGATE ( 682 tokens): Here is the code to perform [...]  legend=legend2)
-#11      USER ( 447 tokens): There are some issues that [...] 1" "# TABLE 2"
+#11      USER ( 445 tokens): There are some issues that [...] 1" "# TABLE 2"
 #12 ASSISTANT ( 739 tokens): Here's how you can [...] `df1` and `df2`.
 #13      USER ( 162 tokens): I ran the code and got the [...] 1" "# TABLE 2"
 
@@ -8865,7 +8867,7 @@ Add the missing abbreviations and their explanations as keys and values in the `
 The legend of the table includes the following labels that are not in the table:
 ['P-value']
 Here are the available table row and column labels:
-{None, 'EndotrachealSuction', 'p-value', 'PPV', 'Intervention'}
+{'PPV', 'Intervention', None, 'p-value', 'EndotrachealSuction'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -8878,7 +8880,7 @@ table as a whole, rather than to a specific label.
 The legend of the table includes the following labels that are not in the table:
 ['P-value']
 Here are the available table row and column labels:
-{None, 'p-value', 'A1', 'Stay', 'Outcome', 'A5'}
+{'A1', None, 'A5', 'Stay', 'p-value', 'Outcome'}
 The legend keys should be a subset of the table labels.
 
 Please revise the code changing either the legend keys, or the table labels, accordingly.
@@ -8901,10 +8903,10 @@ Remember, your code must contain the following sections:
 "# TABLE 2"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4656 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4654 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 
-CONTEXT TOTAL (4656 tokens):
+CONTEXT TOTAL (4654 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -8916,7 +8918,7 @@ CONTEXT TOTAL (4656 tokens):
 # 8 SURROGATE (  15 tokens): Thank you for the Content [...] Data Analysis Code.
 # 9      USER (1110 tokens): I would like to create [...] output examples.
 #10 SURROGATE ( 665 tokens): Here is the code to perform [...]  legend=legend2)
-#11      USER ( 449 tokens): There are some issues that [...] 1" "# TABLE 2"
+#11      USER ( 447 tokens): There are some issues that [...] 1" "# TABLE 2"
 
 #12 ASSISTANT ( 743 tokens): I apologize for the [...] columns and rows.
                              {'model_engine': gpt-4}
@@ -9023,13 +9025,13 @@ There are some issues that need to be corrected:
 The legend of the table includes the following labels that are not in the table:
 ['P-value']
 Here are the available table row and column labels:
-{None, 'p-value', 'PPV', 'Intervention', 'ETS'}
+{'PPV', 'Intervention', None, 'ETS', 'p-value'}
 
 * table_2.tex:
 The legend of the table includes the following labels that are not in the table:
 ['P-value']
 Here are the available table row and column labels:
-{None, 'p-value', 'A1', 'Stay', 'Outcome', 'A5'}
+{'A1', None, 'A5', 'Stay', 'p-value', 'Outcome'}
 
 The legend keys should be a subset of the table labels.
 
@@ -9052,10 +9054,10 @@ Remember, your code must contain the following sections:
 "# TABLE 2"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 4519 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 4517 context tokens and 500 expected tokens.
 [15] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 
-CONTEXT TOTAL (4519 tokens):
+CONTEXT TOTAL (4517 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -9067,7 +9069,7 @@ CONTEXT TOTAL (4519 tokens):
 # 8 SURROGATE (  15 tokens): Thank you for the Content [...] Data Analysis Code.
 # 9      USER (1110 tokens): I would like to create [...] output examples.
 #10 SURROGATE ( 693 tokens): Here is the code to perform [...]  legend=legend2)
-#11      USER ( 284 tokens): There are some issues that [...] 1" "# TABLE 2"
+#11      USER ( 282 tokens): There are some issues that [...] 1" "# TABLE 2"
 
 #12 ASSISTANT ( 709 tokens): You're correct, my previous [...] in each table.
                              {'model_engine': gpt-4}
@@ -9115,10 +9117,10 @@ Remember, your code must contain the following sections:
 "# TABLE 2"
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Using gpt-4 (max 8192 tokens) for 5390 context tokens and 500 expected tokens.
+Using gpt-4 (max 8192 tokens) for 5388 context tokens and 500 expected tokens.
 [17] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> data_to_latex_code =========================================================================
 
-CONTEXT TOTAL (5390 tokens):
+CONTEXT TOTAL (5388 tokens):
 # 0    SYSTEM (  17 tokens): You are a brilliant data [...] to analyze data.
 # 1      USER (1308 tokens): DESCRIPTION OF THE ORIGINAL [...] 0,0,1,0,0,10,0,28,16
 # 2 SURROGATE (  11 tokens): Thank you for the Description of the Original Dataset.
@@ -9130,7 +9132,7 @@ CONTEXT TOTAL (5390 tokens):
 # 8 SURROGATE (  15 tokens): Thank you for the Content [...] Data Analysis Code.
 # 9      USER (1110 tokens): I would like to create [...] output examples.
 #10 SURROGATE ( 693 tokens): Here is the code to perform [...]  legend=legend2)
-#11      USER ( 284 tokens): There are some issues that [...] 1" "# TABLE 2"
+#11      USER ( 282 tokens): There are some issues that [...] 1" "# TABLE 2"
 #12 ASSISTANT ( 709 tokens): You're correct, my previous [...] in each table.
 #13      USER ( 162 tokens): I ran the code and got the [...] 1" "# TABLE 2"
 
@@ -13826,6 +13828,158 @@ DeleteMessages(<19> - <-1> [3 MESSAGES]) -> discussion
 latex \section{Discussion}  The thrust of this study was to evaluate the effects of the 2015 [...] impacting their immediate health outcomes.
 
 SetProduct(writing_discussion, paper_sections:discussion)
+
+CreateConversation(name=reflect_on_analysis web=[web]review analysis, participants=['AnalysisReviewer', 'Performer']) -> reflect_on_analysis
+
+==== Starting conversation ===========================================================================================================================
+                                                                 reflect_on_analysis                                                                  
+======================================================================================================================================================
+[1] ----- SYSTEM casting  {Performer} -> reflect_on_analysis -----------------------------------------------------------------------------------------
+
+You are a scientific reviewer for a scientist who needs to reflect the qualities and correctness of the analysis.
+
+You should be very thorough and strict with your evaluation, to give high score in one of the criteria
+the analysis should be perfect in that aspect. Do not try to please the scientist, but rather be
+as objective as possible.
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[2] USER {AnalysisReviewer} -> reflect_on_analysis <background_general_dataset_description>  : 
+OVERALL DESCRIPTION OF THE DATASET  A change in Neonatal Resuscitation Program (NRP) guidelines [...] malformations/anomalies present at birth.
+
+[3] SURROGATE {Performer} -> reflect_on_analysis <background_thanks_general_dataset_description>  : 
+Thank you for the Overall Description of the Dataset.
+
+[4] USER {AnalysisReviewer} -> reflect_on_analysis <background_hypothesis_testing_plan>  : 
+Here is our Hypothesis Testing Plan:  Hypothesis: Change in treatment policy led to change in [...] a clustering or random effects approach.
+
+[5] SURROGATE {Performer} -> reflect_on_analysis <background_thanks_hypothesis_testing_plan>  : 
+Thank you for the Hypothesis Testing Plan.
+
+[6] USER {AnalysisReviewer} -> reflect_on_analysis <background_codes:data_analysis>  : 
+Here is our Data Analysis Code: python  # IMPORT import pandas as pd import pickle from [...] as f:  pickle.dump(additional_results, f)
+
+[7] SURROGATE {Performer} -> reflect_on_analysis <background_thanks_codes:data_analysis>  : 
+Thank you for the Data Analysis Code.
+
+[8] COMMENTER -> reflect_on_analysis <after_background>  : Background messages completed. Requesting "qualities and correctness of the analysis".
+
+[9] ----- USER {AnalysisReviewer} -> reflect_on_analysis ---------------------------------------------------------------------------------------------
+Based on the data description, the hypothesis testing plan, and the data analysis code, evaluate the
+following 5 criteria of the task at hand and the provided code:
+
+- Simplicity: How complex is the task? Very simple tasks (10) correspond to single regression analysis or
+similar, while very complex tasks (1) require several analysis steps, such as the generation of new
+data columns, complicated data analysis functions such as machine learning models and/or complex data input
+files, such as non-tabular data.
+
+- Clarity: How readable and understandable is the code? In very clear code (10), all variables have
+non-ambiguous names and all data transformations are easy to follow. Further, code comments are helpful and
+also non-ambiguous. Unclear codes (1) contain, for example, convoluted data operations, such as for loops and
+unclear variable naming, and no or limited code comments.
+
+- Adequate code for hypothesis testing plan: How well does the data analysis code align with the hypothesis
+testing plan? A very adequate code (10) performs all analyses that are specified in the
+hypothesis testing plan, but not any other analysis, while an inadequate code (1) performs only analyses
+which are not specified in the hypothesis testing plan.
+
+- Adequate code for data features: How adequate is the code in light of the data features? Are all relevant
+data features used in the code, while not relevant information is not included? Are the data features which
+are used in the analysis reflect what they stand for? For example, an adequate code (10) includes all
+relevant confounding factors, while inadequate code leaves out relevant data features and uses far
+fetched proxies, for example using economic status as a proxy for happiness. As part of this reflection, list
+all the variables that are requested to be tested in the hypothesis testing plan and their corresponding
+counterpart in the code, and vice versa - list all the variables in the code and their corresponding
+counterpart in the hypothesis testing plan. If there exists a mismatch, the score corresponds to (1).
+
+- Error free: Is there any error in the code? For example, are all the mathematical formulas, if applicable,
+correct? Do variables correspond to the respective output? If the code is error free, evaluate it with 10.
+If there are major errors, such as errors in formulas, it corresponds to 1.
+
+Your response should start with a reflection on the relevant points for each criterion, this reflection should
+include examples from the provided scientific products and be very thorough. It should conclude with a
+final score from 1 to 10 representing a summary of the reflection.
+
+At the end of your response you should provide a final verdict, it should be formatted as a Python dictionary
+mapping each of the 5 criteria: ['simplicity','clarity','adequate_hypothesis','adequate_data','error_free']
+to a score from 1 to 10.
+For example, it may look as something like that:
+{'simplicity': 1,
+'clarity': 7,
+'adequate_hypothesis': 4,
+'adequate_data': 5,
+'error_free': 8}
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Using gpt-4 (max 8192 tokens) for 1855 context tokens and 500 expected tokens.
+[10] ==== ASSISTANT{'model_engine': gpt-4} {Performer} -> reflect_on_analysis ========================================================================
+
+CONTEXT TOTAL (1855 tokens):
+# 0    SYSTEM (  67 tokens): You are a scientific [...] as possible.
+# 1      USER ( 197 tokens): OVERALL DESCRIPTION OF THE [...] present at birth.
+# 2 SURROGATE (  11 tokens): Thank you for the Overall Description of the Dataset.
+# 3      USER ( 166 tokens): Here is our Hypothesis [...] effects approach.
+# 4 SURROGATE (  11 tokens): Thank you for the Hypothesis Testing Plan.
+# 5      USER ( 731 tokens): Here is our Data Analysis [...] f)
+# 6 SURROGATE (   9 tokens): Thank you for the Data Analysis Code.
+# 7      USER ( 663 tokens): Based on the data [...] 5, 'error_free': 8}
+
+# 8 ASSISTANT ( 542 tokens): Simplicity:   The task is [...] 'error_free': 10 }
+                             {'model_engine': gpt-4}
+
+
+Simplicity:
+
+The task is relatively complex, involving multiple analytical steps such as chi-square test and linear regression analysis, preprocessing steps such
+as dealing with missing values and standardizing variables, and the creation of dummy variables for categorical variables. It's not very complex as
+machine learning models aren't employed and data is in a structured, tabular form. However, the complexity is increased due to the need to adjust for
+potential confounders and consideration of multiple comparison correction.
+
+Score: 5
+
+Clarity:
+
+The code is presented in a very clear and readable way. Importantly, the Python code uses comments throughout the script to provide brief explanations
+of what is being done which enhances understanding. The variable names are descriptive and non-ambiguous. The usage of distinct blocks for different
+parts of the code like preprocessing, analysis and saving results adds clarity.
+
+Score: 9
+
+Adequate code for hypothesis testing plan:
+
+The data analysis code is directly aligned with the hypothesis testing plan. The plan outlines two primary hypotheses based on the policy change, all
+of which are addressed in the Python code. The chi-square test is applied to test the first hypothesis concerning a change in treatment following
+policy implementation. A linear regression model is employed to test the second hypothesis regarding changes in neonatal outcomes as a result of this
+policy shift. The variables declared in the hypothesis testing plan are duly included in the code.
+
+Score: 10
+
+Adequate code for data features:
+
+The provided code is quite adept at handling the unique features of the dataset. All the variables that were mentioned in the hypothesis testing plan,
+like 'PrePost', 'PPV', 'EndotrachealSuction', 'LengthStay', and 'APGAR' scores have found their place in code. The code also considersage, gravidity,
+hypertensive disorders, and mode of delivery as confounding variables which matches the hypothesis testing plan. However, potentially relevant
+variables like 'Sepsis', 'Gender', 'MeconiumConsistency', and 'ReasonAdmission' are only used for creating dummy variables and are not integrated into
+testing the main hypotheses.
+
+Score: 7
+
+Error free:
+
+From the provided code, no clear errors are present. The syntax is correct, and the mathematical formulas used, such as Chi-square test and linear
+regression, seem to be applied properly. The variables used in the analysis are matching with the output variables, and there is no apparent logic
+error.
+
+Score: 10
+
+Final verdict:
+{
+'simplicity': 5,
+'clarity': 9,
+'adequate_hypothesis': 10,
+'adequate_data': 7,
+'error_free': 10
+}
+======================================================================================================================================================
 
 SendFinalProduct(None)
 
