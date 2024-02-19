@@ -5,9 +5,9 @@ from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 
 
 def get_additional_contexts(allow_dataframes_to_change_existing_series: bool = False,
-                             enforce_saving_altered_dataframes: bool = False,
-                             issue_if_statistics_test_not_called: bool = False,
-                             ) -> Dict[str, Any]:
+                            enforce_saving_altered_dataframes: bool = False,
+                            issue_if_statistics_test_not_called: bool = False,
+                            ) -> Dict[str, Any]:
     return {
         'TrackDataFrames': TrackDataFrames(
             allow_dataframes_to_change_existing_series=allow_dataframes_to_change_existing_series,

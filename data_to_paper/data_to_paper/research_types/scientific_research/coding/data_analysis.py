@@ -5,8 +5,8 @@ from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
-from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseScientificCodeProductsGPT, \
-    BaseCreateTablesCodeProductsGPT
+from data_to_paper.research_types.scientific_research.coding.base_code_conversers import \
+    BaseScientificCodeProductsGPT, BaseCreateTablesCodeProductsGPT
 from data_to_paper.research_types.scientific_research.coding.utils import get_additional_contexts
 from data_to_paper.research_types.scientific_research.coding.utils_modified_for_gpt_use.to_pickle import \
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
@@ -190,10 +190,11 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
          ])
 
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: get_additional_contexts(allow_dataframes_to_change_existing_series=False,
-                                                        enforce_saving_altered_dataframes=False,
-                                                        issue_if_statistics_test_not_called=True) |
-                                {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
+        default_factory=lambda: get_additional_contexts(
+            allow_dataframes_to_change_existing_series=False,
+            enforce_saving_altered_dataframes=False,
+            issue_if_statistics_test_not_called=True) |
+        {'ToPickleAttrReplacer': get_dataframe_to_pickle_attr_replacer(),
          'PickleDump': get_pickle_dump_attr_replacer(),
          }
     )

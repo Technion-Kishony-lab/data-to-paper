@@ -101,9 +101,10 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     allow_data_files_from_sections: Tuple[Optional[str]] = ('data_analysis', )
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'my_utils')
     additional_contexts: Optional[Dict[str, Any]] = field(
-        default_factory=lambda: get_additional_contexts(allow_dataframes_to_change_existing_series=True,
-                                                        enforce_saving_altered_dataframes=False) |
-                                {'CustomPreventMethods': PreventCalling(
+        default_factory=lambda: get_additional_contexts(
+            allow_dataframes_to_change_existing_series=True,
+            enforce_saving_altered_dataframes=False) |
+        {'CustomPreventMethods': PreventCalling(
             modules_and_functions=(
                 ('pandas.DataFrame', 'to_latex', False),
                 ('pandas.DataFrame', 'to_html', False),
@@ -111,14 +112,14 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             )
         ),
          'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
-            forbidden_set_attrs=['columns', 'index'],
-        ),
+             forbidden_set_attrs=['columns', 'index'],
+         ),
          'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
          'PValueMessage': AttrReplacer(
              obj_import_str=PValue, attr='error_message_on_forbidden_func',
              wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
                      "Please use `format_p_value` instead."
-        )}
+         )}
     )
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
