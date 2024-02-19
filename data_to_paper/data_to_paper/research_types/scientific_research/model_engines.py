@@ -12,6 +12,7 @@ if TYPE_OF_MODELS == 'closed':
         'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4_TURBO,
         "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
+        "ReflectOnAnalysisGPT": ModelEngine.GPT4,
     }
 elif TYPE_OF_MODELS == 'open':
     ModelEngine.DEFAULT = ModelEngine.LLAMA_2_70b

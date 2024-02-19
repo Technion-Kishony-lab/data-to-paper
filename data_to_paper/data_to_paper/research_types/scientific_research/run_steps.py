@@ -227,7 +227,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             self.send_product_to_client('most_updated_paper')
 
         if self.should_reflect_on_analysis:
-            ReflectOnAnalysisGPT.from_(self).get_reflection()
+            ReflectOnAnalysisGPT.from_(self).save_reflection()
 
         # Compile paper
         paper_producer.assemble_compile_paper()
