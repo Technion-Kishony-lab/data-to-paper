@@ -1,3 +1,4 @@
+import pickle
 import re
 from dataclasses import dataclass, field
 from typing import Tuple, Dict, Any, Optional, Iterable, List
@@ -15,6 +16,7 @@ from data_to_paper.servers.types import Citation
 from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
+from ...utils.file_utils import run_in_directory
 
 
 @dataclass
@@ -617,3 +619,84 @@ class ResultsInterpretationReviewGPT(ScientificProductsQuotedReviewGPT):
     user_initiation_prompt: str = "Please {goal_verb} {goal_noun}. " + \
                                   "Briefly mention the tools used to preform the analysis.\n\n" \
                                   "{quote_request}"
+
+
+@dataclass
+class ReflectOnAnalysisGPT(PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
+    products: ScientificProducts = None
+    model_engine: ModelEngine = ModelEngine.GPT4
+    value_type: type = Dict[str, int]
+    allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda:
+    {'simplicity': range(1, 11),
+     'clarity': range(1, 11),
+     'adequate_hypothesis': range(1, 11),
+     'adequate_data': range(1, 11),
+     'error_free': range(1, 11)})
+    default_rewind_for_result_error: Rewind = Rewind.AS_FIRST_CORRECTION
+    goal_noun: str = 'qualities and correctness of the analysis'
+    goal_verb: str = 'reflect'
+    assistant_agent: ScientificAgent = ScientificAgent.Performer
+    user_agent: ScientificAgent = ScientificAgent.AnalysisReviewer
+    conversation_name: str = 'reflect_on_analysis'
+    is_new_conversation: bool = None
+    background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'data_file_descriptions_no_headers',
+                                                  'hypothesis_testing_plan', 'codes:data_analysis')
+    system_prompt: str = dedent_triple_quote_str("""
+        You are a {reviewer} for a {performer} who needs to {goal_verb} the {goal_noun}.
+        
+        You should be very thorough and strict with your evaluation, to give high score in one of the criteria \t
+        the analysis should be perfect in that aspect. Do not try to please the {performer}, but rather be \t
+        as objective as possible.
+        """)
+
+    user_initiation_prompt: str = dedent_triple_quote_str("""
+        Based on the data description, the hypothesis testing plan, and the data analysis code, evaluate the \t
+        following 5 criteria of the task at hand and the provided code:
+        
+        - Simplicity: How complex is the task? Very simple tasks (10) correspond to single regression analysis or \t
+        similar, while very complex tasks (1) require several analysis steps, such as the generation of new \t
+        data columns, complicated data analysis functions such as machine learning models and/or complex data input \t
+        files, such as non-tabular data.
+        
+        - Clarity: How readable and understandable is the code? In very clear code (10), all variables have \t
+        non-ambiguous names and all data transformations are easy to follow. Further, code comments are helpful and \t
+        also non-ambiguous. Unclear codes (1) contain, for example, convoluted data operations, such as for loops and \t
+        unclear variable naming, and no or limited code comments.
+        
+        - Adequate code for hypothesis testing plan: How well does the data analysis code align with the hypothesis \t
+        testing plan? A very adequate code (10) performs all analyses that are specified in the \t
+        hypothesis testing plan, but not any other analysis, while an inadequate code (1) performs only analyses \t
+        which are not specified in the hypothesis testing plan.
+        
+        - Adequate code for data features: How adequate is the code in light of the data features? Are all relevant \t
+        data features used in the code, while not relevant information is not included? Are the data features which \t
+        are used in the analysis reflect what they stand for? For example, an adequate code (10) includes all \t
+        relevant confounding factors, while inadequate code leaves out relevant data features and uses far \t
+        fetched proxies, for example using economic status as a proxy for happiness. As part of this reflection, list \t
+        all the variables that are requested to be tested in the hypothesis testing plan and their corresponding \t
+        counterpart in the code, and vice versa - list all the variables in the code and their corresponding \t
+        counterpart in the hypothesis testing plan. If there exists a mismatch, the score corresponds to (1).
+        
+        - Error free: Is there any error in the code? For example, are all the mathematical formulas, if applicable, \t
+        correct? Do variables correspond to the respective output? If the code is error free, evaluate it with 10. \t
+        If there are major errors, such as errors in formulas, it corresponds to 1.
+        
+        Your response should start with a reflection on the relevant points for each criterion, this reflection should
+        include examples from the provided scientific products and be very thorough. It should conclude with a \t
+        final score from 1 to 10 representing a summary of the reflection. 
+        
+        At the end of your response you should provide a final verdict, it should be formatted as a Python dictionary \t
+        mapping each of the 5 criteria: ['simplicity','clarity','adequate_hypothesis','adequate_data','error_free'] \t
+        to a score from 1 to 10. 
+        For example, it may look as something like that:
+        {'simplicity': 1,
+        'clarity': 7,
+        'adequate_hypothesis': 4,
+        'adequate_data': 5,
+        'error_free': 8}
+        """)
+
+    def save_reflection(self):
+        with run_in_directory(self.output_directory):
+            with open('reflection_on_analysis.pkl', 'wb') as f:
+                pickle.dump(self.run_and_get_valid_result(), f)
