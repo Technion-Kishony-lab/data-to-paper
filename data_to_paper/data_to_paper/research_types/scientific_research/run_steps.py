@@ -5,8 +5,11 @@ from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckL
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
-from .coding_steps import RequestCodeProducts, DataExplorationCodeProductsGPT, RequestCodeExplanation, \
-    DataPreprocessingCodeProductsGPT, DataAnalysisCodeProductsGPT, CreateLatexTablesCodeProductsGPT
+from .coding.after_coding import RequestCodeExplanation, RequestCodeProducts
+from .coding.latex_tables import CreateLatexTablesCodeProductsGPT
+from .coding.preprocessing import DataPreprocessingCodeProductsGPT
+from .coding.data_analysis import DataAnalysisCodeProductsGPT
+from .coding.data_exploration import DataExplorationCodeProductsGPT
 from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureSearchReviewGPT
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts

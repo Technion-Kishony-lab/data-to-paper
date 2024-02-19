@@ -41,7 +41,8 @@ def test_find_numeric_values(text, expected):
 @pytest.mark.parametrize('text, expected_references, expected_unreferenced', [
     (r'The number 1.2 is a numeric value.', [], ['1.2']),
     (r'The numbers \hyperlink{A0}{1.2e-3} and \hyperlink{A1}{-7.8}.',
-     [ReferencedValue(value='1.2e-3', label='A0', is_target=False), ReferencedValue(value='-7.8', label='A1', is_target=False)], []),
+     [ReferencedValue(value='1.2e-3', label='A0', is_target=False),
+      ReferencedValue(value='-7.8', label='A1', is_target=False)], []),
     (r'The numbers \hyperlink{A0}{1.2e-3} and -7.8.',
      [ReferencedValue(value='1.2e-3', label='A0', is_target=False)], ['-7.8']),
     (r'The numbers \num{\hyperlink{A0}{1.2e-3} + 3} and -7.8.',

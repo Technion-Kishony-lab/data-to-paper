@@ -85,7 +85,7 @@ showstringspaces=false
 {}
 
 """,
-)
+)  # noqa
 
 START_APPENDIX = r"""
 \clearpage

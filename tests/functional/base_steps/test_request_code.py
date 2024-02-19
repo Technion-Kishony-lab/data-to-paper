@@ -6,8 +6,9 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import BaseCodeProductsGPT
-from data_to_paper.research_types.scientific_research.coding_steps import ExplainCreatedDataframe, \
-    RequestCodeProducts, BaseScientificCodeProductsGPT, RequestCodeExplanation
+from data_to_paper.research_types.scientific_research.coding.after_coding import RequestCodeExplanation, \
+    ExplainCreatedDataframe, RequestCodeProducts
+from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseScientificCodeProductsGPT
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.code_and_output_files.output_file_requirements import DataOutputFileRequirement, \

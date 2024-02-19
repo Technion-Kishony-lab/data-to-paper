@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from data_to_paper.research_types.scientific_research.coding_steps import DictPickleContentOutputFileRequirement
+from data_to_paper.research_types.scientific_research.coding.data_analysis import DictPickleContentOutputFileRequirement
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, FailedRunningCode
 from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
     CodeWriteForbiddenFile, CodeImportForbiddenModule, UnAllowedFilesCreated
