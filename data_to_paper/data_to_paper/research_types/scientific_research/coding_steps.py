@@ -2,33 +2,37 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, List, Any, Iterable
 
-import pandas as pd
-
 from data_to_paper.base_products import DataFileDescription, DataFileDescriptions
 from data_to_paper.base_steps import BaseCodeProductsGPT, PythonDictWithDefinedKeysReviewBackgroundProductsConverser, \
     BackgroundProductsConverser, LatexReviewBackgroundProductsConverser
 from data_to_paper.base_steps.base_products_conversers import ProductsConverser, ReviewBackgroundProductsConverser
 from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose, ContentViewParams, ContentView
+from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFormat, HypertargetPosition
+from data_to_paper.code_and_output_files.referencable_text import BaseReferenceableText, convert_str_to_latex_label
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.latex import extract_latex_section_from_response
 from data_to_paper.latex.latex_doc import LatexDocument
+from data_to_paper.latex.tables import get_table_caption
 
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts, get_code_name, \
     get_code_agent, HypertargetPrefix
 from data_to_paper.research_types.scientific_research.table_debugger import TablesDebuggerConverser
+from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_latex_with_note \
+    import TABLE_COMMENT_HEADER
 from data_to_paper.run_gpt_code.overrides.attr_replacers import PreventAssignmentToAttrs, PreventCalling, AttrReplacer
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.dataframes import TrackDataFrames
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import temporarily_change_float_format, \
     STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr, OnStrPValue
+from data_to_paper.run_gpt_code.overrides.pvalue import PValue, is_containing_p_value, OnStr
 
-from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.overrides.scipy.override_scipy import ScipyPValueOverride
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
-from data_to_paper.run_gpt_code.output_file_requirements import DataOutputFileRequirement, \
+from data_to_paper.code_and_output_files.output_file_requirements import DataOutputFileRequirement, \
     PickleContentOutputFileRequirement, TextContentOutputFileRequirement, NumericTextContentOutputFileRequirement, \
     OutputFileRequirements
 from data_to_paper.servers.model_engine import ModelEngine
@@ -38,7 +42,7 @@ from data_to_paper.utils.nice_list import NiceList, NiceDict
 from data_to_paper.utils.replacer import Replacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.research_types.scientific_research.utils_for_gpt_code.utils_modified_for_gpt_use.to_pickle import \
-    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
+    get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer, get_read_pickle_attr_replacer
 
 
 def _get_additional_contexts(allow_dataframes_to_change_existing_series: bool = False,
@@ -385,11 +389,10 @@ class BaseCreateTablesCodeProductsGPT(BaseScientificCodeProductsGPT):
 
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
-    def get_pretty_content(self, content: pd.DataFrame, filename: str = None,
-                           pvalue_on_str: Optional[OnStr] = None) -> str:
-        with OnStrPValue(pvalue_on_str), temporarily_change_float_format(STR_FLOAT_FORMAT):
-            content = content.to_string()
-        return super().get_pretty_content(content, filename, pvalue_on_str)
+
+    def _to_str(self, content: Any) -> str:
+        with temporarily_change_float_format(STR_FLOAT_FORMAT):
+            return content.to_string()
 
 
 class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
@@ -401,7 +404,28 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
 
 
 @dataclass
-class StatisticalTestingDebuggerConverser(DebuggerConverser):
+class DataAnalysisCodeAndOutput(CodeAndOutput):
+    def _get_code_header_for_file(self, filename: str) -> str:
+        # 'table_?.pkl' -> '# Table ?'
+        if filename.startswith('table_') and filename.endswith('.pkl'):
+            return f'# Table {filename[6:-4]}'
+        # 'additional_results.pkl' -> '# Additional Results'
+        if filename == 'additional_results.pkl':
+            return '# SAVE ADDITIONAL RESULTS'
+        return super()._get_code_header_for_file(filename)
+
+
+@dataclass
+class CreateLatexTablesCodeAndOutput(CodeAndOutput):
+    def _get_code_header_for_file(self, filename: str) -> str:
+        # 'table_?.tex' -> '# TABLE ?'
+        if filename.startswith('table_') and filename.endswith('.tex'):
+            return f'# TABLE {filename[6:-4]}'
+        return super()._get_code_header_for_file(filename)
+
+
+@dataclass
+class DataAnalysisDebuggerConverser(DebuggerConverser):
     class_and_from_formula: Tuple[str, str] = (
         ('GLS', 'gls'),
         ('WLS', 'wls'),
@@ -426,11 +450,11 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
         ('ConditionalPoisson', 'conditional_poisson'),
     )
 
-    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         """
         Check that a PValue instance appear in at least one of the created tables.
         """
-        issues = super()._get_issues_for_created_output_files(code_and_output)
+        issues = super()._get_issues_for_created_output_files(code_and_output, contexts)
         any_pvalues = False
         for names_to_contents in code_and_output.created_files.values():
             for content in names_to_contents.values():
@@ -444,6 +468,26 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
                 instructions='Please revise the code to perform statistical tests and report p-values in the tables.',
                 code_problem=CodeProblem.OutputFileContentLevelA,
             ))
+        if issues:
+            return issues
+        return self._get_issues_for_table_comments(code_and_output, contexts)
+
+    def _get_issues_for_table_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
+        context = contexts['ToPickleAttrReplacer']
+        prior_tables = getattr(context, 'prior_tables', {})
+        code = code_and_output.code
+        issues = []
+        for table_file_name in prior_tables.keys():
+            table_name = table_file_name.split('.')[0].replace('_', ' ').title()
+            if f'## {table_name}' not in code:
+                issues.append(RunIssue(
+                    category="Each saved table should have a header comment with the table name.\n",
+                    issue=f'Your code is missing a comment "## {table_name}".',
+                    instructions='Please make sure all saved tables have a header comment with the table name.\n'
+                                 'If you are creating multiple tables in the same section of the code, '
+                                 'you should precede this section with a separate comment for each of the tables.',
+                    code_problem=CodeProblem.OutputFileContentLevelA,
+                ))
         return issues
 
     def _get_issues_for_static_code_check(self, code: str) -> List[RunIssue]:
@@ -466,9 +510,10 @@ class StatisticalTestingDebuggerConverser(DebuggerConverser):
 
 
 @dataclass
-class CreateDataframesTableCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
+class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_analysis'
-    debugger_cls: Type[DebuggerConverser] = StatisticalTestingDebuggerConverser
+    debugger_cls: Type[DebuggerConverser] = DataAnalysisDebuggerConverser
+    code_and_output_cls: Type[CodeAndOutput] = DataAnalysisCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# LOAD DATA',
@@ -835,10 +880,43 @@ class DataframePreventAssignmentToAttrs(PreventAssignmentToAttrs):
         )
 
 
+@dataclass(frozen=True)
+class TexTableContentOutputFileRequirement(TextContentOutputFileRequirement):
+    filename: str = '*.tex'
+
+    def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
+                              content_view: ContentView = None) -> BaseReferenceableText:
+        result = super().get_referencable_text(content, filename, num_file, content_view)
+        if content_view == ContentViewPurpose.FINAL_INLINE:
+            text = result.text
+            first_line = text.split('\n')[0]
+            if first_line.startswith(TABLE_COMMENT_HEADER):
+                # we add a hyperlink to the table caption
+                # extract the filename between `:
+                pickle_filename = first_line.split('`')[1]
+                pickle_filename = convert_str_to_latex_label(pickle_filename, 'file')
+                # get the caption:
+                caption = get_table_caption(text)
+                new_caption = f'\\protect\\hyperlink{{{pickle_filename}}}{{{caption}}}'
+                text = text.replace(caption, new_caption)
+            result.text = text
+        return result
+
+
+tex_file_requirement = TexTableContentOutputFileRequirement('*.tex',
+                                                            minimal_count=1, max_tokens=None,
+                                                            hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value)
+tex_file_requirement.content_view_purpose_converter.view_purpose_to_params[
+    ContentViewPurpose.FINAL_APPENDIX] = \
+    ContentViewParams(hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
+                      pvalue_on_str=OnStr.SMALLER_THAN)
+
+
 @dataclass
 class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     code_step: str = 'data_to_latex'
     debugger_cls: Type[DebuggerConverser] = TablesDebuggerConverser
+    code_and_output_cls: Type[CodeAndOutput] = CreateLatexTablesCodeAndOutput
     headers_required_in_code: Tuple[str, ...] = (
         '# IMPORT',
         '# PREPARATION FOR ALL TABLES',
@@ -868,6 +946,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
          'CustomPreventAssignmentToAtt': DataframePreventAssignmentToAttrs(
             forbidden_set_attrs=['columns', 'index'],
         ),
+         'ReadPickleAttrReplacer': get_read_pickle_attr_replacer(),
          'PValueMessage': AttrReplacer(
              obj_import_str=PValue, attr='error_message_on_forbidden_func',
              wrapper="Calling `{func_name}` on a PValue object is forbidden.\n "
@@ -876,8 +955,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
     )
 
     output_file_requirements: OutputFileRequirements = OutputFileRequirements(
-        [TextContentOutputFileRequirement('*.tex', minimal_count=1, max_tokens=None,
-                                          hypertarget_prefixes=HypertargetPrefix.LATEX_TABLES.value)])
+        [tex_file_requirement])
 
     provided_code: str = dedent_triple_quote_str('''
         def to_latex_with_note(df, filename: str, caption: str, label: str, \t

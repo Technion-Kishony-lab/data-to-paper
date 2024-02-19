@@ -13,8 +13,8 @@ from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values, is_number_legit
 from data_to_paper.conversation import Message, GeneralMessageDesignation
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils.ref_numeric_values import find_hyperlinks, find_numeric_values, find_matching_reference, \
-    replace_hyperlinks_with_values, TARGET, LINK
+from data_to_paper.code_and_output_files.ref_numeric_values import find_hyperlinks, find_numeric_values, \
+    find_matching_reference, replace_hyperlinks_with_values, TARGET, LINK
 
 from .result_converser import ResultConverser, Rewind, BumpModel
 from .dual_converser import ReviewDialogDualConverserGPT

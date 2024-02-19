@@ -24,7 +24,7 @@ from .exceptions import FailedRunningCode, BaseRunContextException, CodeTimeoutE
 from .timeout_context import timeout_context
 from .user_script_name import MODULE_NAME, module_filename
 from .run_issues import RunIssue, RunIssues
-from .output_file_requirements import OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 from data_to_paper.utils.singleton import undefined
 
 module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
@@ -155,6 +155,10 @@ class RunCode:
             for context_name, context in self.additional_contexts.items():
                 assert context_name not in contexts, f"Context name {context_name} already exists."
                 contexts[context_name] = context
+
+        # name all contexts
+        for name, context in contexts.items():
+            context.name = name
         return contexts
 
     def run(self, code: Optional[str] = None, module_filepath: Optional[str] = None, save_as: Optional[str] = None,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 import pickle
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional, Any, List, Tuple, Iterable, Dict
@@ -12,17 +12,12 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.text_extractors import extract_to_nearest_newline
 from data_to_paper.utils.text_numeric_formatting import round_floats
-from data_to_paper.utils.ref_numeric_values import create_hypertargets_to_numeric_values
+from data_to_paper.code_and_output_files.referencable_text import NumericReferenceableText, BaseReferenceableText
 
-from .overrides.pvalue import OnStr, OnStrPValue
-from .run_issues import CodeProblem, RunIssue
+from data_to_paper.run_gpt_code.overrides.pvalue import OnStrPValue
+from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue
 
-
-EXTS_TO_LABELS = {
-    '.tex': 'latex',
-    '.txt': 'output',
-    '.csv': 'csv',
-}
+from .file_view_params import ContentView, ContentViewPurposeConverter
 
 
 @dataclass(frozen=True)
@@ -71,6 +66,8 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
     should_keep_file: bool = NotImplemented
     minimal_count: int = 1
     hypertarget_prefixes: Optional[Tuple[str]] = None
+    referenceable_text_cls: type = NumericReferenceableText
+    content_view_purpose_converter: ContentViewPurposeConverter = field(default_factory=ContentViewPurposeConverter)
 
     def get_content(self, file_path: str) -> str:
         """
@@ -85,13 +82,25 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         """
         return []
 
-    def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:
-        with OnStrPValue(pvalue_on_str):
-            content = str(content)
-        if filename is not None:
-            label = EXTS_TO_LABELS.get(Path(filename).suffix, 'output')
-            return f'"{filename}":\n```{label}\n{content}\n```\n'
-        return content
+    def _to_str(self, content: Any) -> str:
+        return str(content)
+
+    def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
+                           content_view: ContentView = None) -> str:
+        return self.get_referencable_text(content, filename, num_file, content_view
+                                          ).get_hypertarget_text_with_header(content_view)
+
+    def get_referencable_text(self, content: Any, filename: str = None, num_file: int = 0,
+                              content_view: ContentView = None) -> BaseReferenceableText:
+        content_view = self.content_view_purpose_converter.convert_content_view_to_params(content_view)
+        with OnStrPValue(content_view.pvalue_on_str):
+            content = self._to_str(content)
+        return self.referenceable_text_cls(
+            text=content,
+            filename=filename,
+            hypertarget_prefix=self.hypertarget_prefixes[num_file] if self.hypertarget_prefixes else None,
+            content_view_purpose_converter=self.content_view_purpose_converter,
+        )
 
 
 @dataclass(frozen=True)
@@ -150,8 +159,8 @@ class NumericTextContentOutputFileRequirement(BaseContentOutputFileRequirement):
     target_precision: int = NUM_DIGITS_FOR_FLOATS
     source_precision: int = 10
 
-    def get_pretty_content(self, content: Any, filename: str = None, pvalue_on_str: Optional[OnStr] = None) -> str:
-        content = super().get_pretty_content(content, filename, pvalue_on_str)
+    def _to_str(self, content: Any) -> str:
+        content = super()._to_str(content)
         return round_floats(content, self.target_precision, self.source_precision)
 
 
@@ -234,62 +243,59 @@ class OutputFileRequirementsWithContent(Dict[OutputFileRequirement, Dict[str, An
                 for filename in files_to_contents.keys()
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename)]
 
-    def _get_created_content_files_to_contents(self, is_pretty: bool = True, pvalue_on_str: Optional[OnStr] = None,
-                                               should_hypertarget: bool = False,
-                                               match_filename: str = '*', is_block: bool = False) -> Dict[str, Any]:
+    def get_created_content_files_to_referencable_text(self, content_view: ContentView,
+                                                       match_filename: str = '*') -> Dict[str, BaseReferenceableText]:
         """
         Return the names of the files created by the run, and their content, formatted for display if needed.
         """
-        # same code but with a normal for loop
         result = {}
         for requirement, files_to_contents in self.items():
             for num_file, (filename, content) in enumerate(files_to_contents.items()):
                 if isinstance(requirement, BaseContentOutputFileRequirement) and fnmatch(filename, match_filename):
-                    if is_pretty:
-                        content = requirement.get_pretty_content(
-                            content=content,
-                            filename=filename if is_block else None,
-                            pvalue_on_str=pvalue_on_str,
-                        )
-                    if should_hypertarget and requirement.hypertarget_prefixes:
-                        content, _ = create_hypertargets_to_numeric_values(
-                            content, prefix=requirement.hypertarget_prefixes[num_file])
+                    if content_view is not None:
+                        content = requirement.get_referencable_text(content=content,
+                                                                    filename=filename,
+                                                                    num_file=num_file,
+                                                                    content_view=content_view)
                     result[filename] = content
         return result
 
-    def get_created_content_files_to_pretty_contents(self,
-                                                     pvalue_on_str: Optional[OnStr] = None,
-                                                     should_hypertarget: bool = False,
-                                                     match_filename: str = '*',
-                                                     is_block: bool = False) -> Dict[str, str]:
+    def _get_created_content_files_to_contents(self, content_view: ContentView,
+                                               match_filename: str = '*') -> Dict[str, Any]:
+        result = self.get_created_content_files_to_referencable_text(content_view=content_view,
+                                                                     match_filename=match_filename)
+        if content_view is None:
+            return result
+        return {filename: content.get_hypertarget_text_with_header(content_view)
+                for filename, content in result.items()}
+
+    def get_created_content_files_to_pretty_contents(self, content_view: ContentView = None,
+                                                     match_filename: str = '*') -> Dict[str, str]:
         """
         Return the names of the files created by the run, and their content formatted for display.
         """
-        return self._get_created_content_files_to_contents(is_pretty=True, pvalue_on_str=pvalue_on_str,
-                                                           should_hypertarget=should_hypertarget,
-                                                           match_filename=match_filename, is_block=is_block)
+        return self._get_created_content_files_to_contents(content_view=content_view, match_filename=match_filename)
 
     def get_created_content_files_to_contents(self, match_filename: str = '*') -> Dict[str, Any]:
         """
         Return the names of the files created by the run, and their content.
         """
-        return self._get_created_content_files_to_contents(is_pretty=False, match_filename=match_filename)
+        return self._get_created_content_files_to_contents(content_view=None, match_filename=match_filename)
 
-    def get_created_content_files_description(self, match_filename: str = '*', pvalue_on_str: Optional[OnStr] = None):
-        files_to_contents = self.get_created_content_files_to_pretty_contents(pvalue_on_str=pvalue_on_str,
-                                                                              match_filename=match_filename,
-                                                                              is_block=True)
+    def get_created_content_files_description(self, content_view: ContentView = None,
+                                              match_filename: str = '*') -> str:
+        files_to_contents = self.get_created_content_files_to_pretty_contents(content_view=content_view,
+                                                                              match_filename=match_filename)
         return '\n\n'.join(files_to_contents.values())
 
-    def get_single_output(self, is_pretty: bool = True, pvalue_on_str: Optional[OnStr] = None) -> Optional[str]:
+    def get_single_output(self, content_view: ContentView = None) -> Optional[str]:
         """
         Return the output of the run, if it is a single content file.
         """
         single_content_filename = self.get_single_content_file()
         if single_content_filename is None:
             return None
-        return self._get_created_content_files_to_contents(
-            is_pretty=is_pretty, pvalue_on_str=pvalue_on_str)[single_content_filename]
+        return self._get_created_content_files_to_contents(content_view=content_view)[single_content_filename]
 
     def get_created_data_files(self, match_filename: str = '*') -> List[str]:
         """

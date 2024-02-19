@@ -1,8 +1,8 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass
-from functools import partial
-from typing import Tuple, List, Optional, Union
+from enum import Enum
+from typing import Tuple, List, Optional
 
 TARGET = r'\hypertarget'
 LINK = r'\hyperlink'
@@ -47,17 +47,33 @@ class ReferencedValue:
     A numeric value with a reference to it.
     """
     value: str
-    reference: Optional[str] = None  # if None for un-referenced numeric values
-    is_target: bool = False
+    label: Optional[str] = None  # if None for un-referenced numeric values
+    is_target: bool = True
 
-    def __str__(self):
-        if self.reference is None:
-            return self.value
-        if self.is_target:
-            command = TARGET
+    @property
+    def command(self) -> str:
+        return TARGET if self.is_target else LINK
+
+    def to_str(self, hypertarget_format: HypertargetFormat) -> str:
+        value = self.value
+        if hypertarget_format.position == HypertargetPosition.NONE or self.label is None:
+            return value
+        target = fr'{self.command}{{{self.label}}}'
+        if hypertarget_format.position == HypertargetPosition.WRAP:
+            target += fr'{{{value}}}'
+            value = ''
+        elif hypertarget_format.position == HypertargetPosition.ADJACENT:
+            target += fr'{{}}'
+        elif hypertarget_format.position == HypertargetPosition.HEADER:
+            target += fr'{{}}'
+            value = ''
         else:
-            command = LINK
-        return fr'{command}{{{self.reference}}}{{{self.value}}}'
+            raise ValueError(f'Invalid hypertarget position: {hypertarget_format.position}')
+        if hypertarget_format.raised:
+            target = fr'\raisebox{{2ex}}{{{target}}}'
+        if hypertarget_format.escaped:
+            target = fr'(*@{target}@*)'
+        return target + value
 
     def get_numeric_value_and_is_percent(self) -> Tuple[Optional[str], bool]:
         """
@@ -80,82 +96,24 @@ class ReferencedValue:
         return value / 100 if is_percent else value
 
 
-@dataclass
-class ReferencableText:
-    """
-    A text which can be converted to hypertargeted text/
-    """
-    text: str
-    hypertarget_prefix: Optional[str] = None  # if None, no hypertargets are created
+class HypertargetPosition(Enum):
+    NONE = 0  # do noit create hypertargets
+    WRAP = 1  # \hypertarget{target}{value}
+    ADJACENT = 2  # \hypertarget{target}{}value
+    HEADER = 3  # \hypertarget{target}{} ... value
 
-    def __str__(self):
-        return self.text
-
-    def get_text(self, should_hypertarget: bool = True) -> str:
-        if not should_hypertarget or self.hypertarget_prefix is None:
-            return self.text
-        return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[0]
-
-    def get_references(self) -> List[ReferencedValue]:
-        if self.hypertarget_prefix is None:
-            return []
-        return create_hypertargets_to_numeric_values(self.text, prefix=self.hypertarget_prefix)[1]
+    def __bool__(self):
+        return self != HypertargetPosition.NONE
 
 
-def hypertarget_if_referencable_text(text: Union[str, ReferencableText], should_hypertarget: bool = True) -> str:
-    """
-    Create hypertargets if the text is referencable, otherwise return the text.
-    """
-    if isinstance(text, ReferencableText):
-        return text.get_text(should_hypertarget)
-    return text
+@dataclass(frozen=True)
+class HypertargetFormat:
+    position: HypertargetPosition = HypertargetPosition.NONE
+    raised: bool = False  # \raisebox{2ex}{...}
+    escaped: bool = False  # (*@ ... @*)
 
-
-def _num_to_letters(num: int) -> str:
-    """
-    Convert a number to letters.
-    1 -> a, 2 -> b, 3 -> c, ...
-    200 -> gv
-    """
-    letters = ''
-    while num > 0:
-        num, remainder = divmod(num - 1, 26)
-        letters = chr(ord('a') + remainder) + letters
-    return letters
-
-
-def create_hypertargets_to_numeric_values(text: str, prefix: Optional[str] = None,
-                                          pattern: str = numeric_values_in_products_pattern
-                                          ) -> Tuple[str, List[ReferencedValue]]:
-    """
-    Find all numeric values in text and create references to them.
-    Replace the numeric values with the references.
-    Return the text with the references and the references.
-    """
-
-    if prefix is None:
-        return text, []
-
-    def replace_numeric_value_with_hypertarget(match, prefix_):
-        value = match.group(0)
-        in_line_letter = _num_to_letters(len(references_per_line) + 1)
-        reference = ReferencedValue(value=value, reference=f'{prefix_}{in_line_letter}', is_target=True)
-        references_per_line.append(reference)
-        return str(reference)
-
-    references = []
-    lines = text.split('\n')
-    num_line_with_ref = 0
-    for i, line in enumerate(lines):
-        references_per_line = []
-        line = re.sub(pattern,
-                      partial(replace_numeric_value_with_hypertarget, prefix_=f'{prefix}{num_line_with_ref}'), line)
-        if references_per_line:
-            num_line_with_ref += 1
-            lines[i] = line
-            references.extend(references_per_line)
-    text = '\n'.join(lines)
-    return text, references
+    def __bool__(self):
+        return self.position
 
 
 def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue]:
@@ -165,7 +123,7 @@ def find_hyperlinks(text: str, is_targets: bool = False) -> List[ReferencedValue
     pattern = get_hyperlink_pattern(is_targets)
     references = []
     for match in re.finditer(pattern, text):
-        references.append(ReferencedValue(value=match.group('value'), reference=match.group('reference'),
+        references.append(ReferencedValue(value=match.group('value'), label=match.group('reference'),
                                           is_target=False))
     return references
 
@@ -203,6 +161,6 @@ def find_matching_reference(query: ReferencedValue,
     Return None if no match was found.
     """
     for reference in references:
-        if query.reference == reference.reference:
+        if query.label == reference.label:
             return reference
     return None

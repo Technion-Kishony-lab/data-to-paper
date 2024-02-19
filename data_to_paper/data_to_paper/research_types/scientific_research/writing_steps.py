@@ -490,15 +490,15 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         """)
     numeric_values_instructions: str = dedent_triple_quote_str("""
         * Numeric values:
-        
+
         - Source: 
         You can extract numeric values from the above provided: "{latex_tables_linked}", \t
         "{additional_results_linked}", and "{data_file_descriptions_no_headers_linked}". 
-        
+
         - Format: 
         Any numeric value extracted from the above sources should be written with a proper \\hyperlink to its \t
         corresponding source \\hypertarget.
-        
+
         - Calculating dependent values using `\\num` command.
         You can use \\num{formula} to calculate dependent values from the provided numeric values (the formula \t
         will be automatically replaced with the actual numeric values in pdf compilation).
@@ -508,7 +508,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         calculating differences, transforming regression coefficients into odds ratios, etc. (see examples below).
 
         - Toy example for citing and calculating numeric values:
-        
+
         Suppose the provided source data includes:
         ```
         No-drug average response: \\hypertarget{Z1a}{65.4} 
@@ -517,11 +517,11 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         ```
 
         Then, here are some examples of proper ways to include these source values as well as derived values:
-        
+
         -- Citing the raw values:
         "The control group had an average response of \\hyperlink{Z1a}{65.4} and the treatment group had \t
         an average response of \\hyperlink{Z2a}{87.3}."
-        
+
         "The regression coefficient was \\hyperlink{Z3a}{1.234} with a standard deviation of \t
         \\hyperlink{Z3b}{0.123} (P-value: \\hyperlink{Z3c}{0.017})."
 
@@ -548,9 +548,9 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         """)
     other_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above, please write the Results section for a {journal_name} research paper.
-        
+
         {general_result_instructions}
-        
+
         * You can use the \\num command to calculate dependent values from the provided numeric values \t
         (they will be automatically replaced with the actual numeric values in compilation).
         """)

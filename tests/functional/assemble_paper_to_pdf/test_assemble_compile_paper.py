@@ -5,7 +5,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper.research_types.scientific_research.produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
-from data_to_paper.run_gpt_code.output_file_requirements import OutputFileRequirementsWithContent
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
 from data_to_paper.servers.crossref import CrossrefCitation
 
 introduction_citation = {CrossrefCitation({
@@ -76,7 +76,7 @@ def test_paper_assembler_compiler_gpt(tmpdir, products):
     latex_paper = paper_assembler_compiler.assemble_compile_paper()
 
     assert 'content of title' in latex_paper
-    assert r'\hypertarget{results0}{2+3 = 5}' in latex_paper
+    assert r'\hypertarget{results0}{}}2+3 = 5' in latex_paper
     assert r'2 + 3 is \hyperlink{results0}{5}' in latex_paper
     assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.tex'))
     assert os.path.exists(os.path.join(tmpdir, paper_assembler_compiler.output_file_stem + '.pdf'))

@@ -16,9 +16,9 @@ from data_to_paper.utils import line_count
 from .base_run_contexts import RunContext
 
 from .exceptions import FailedRunningCode, CodeTimeoutException
-from .code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from .run_issues import RunIssue
-from .output_file_requirements import OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 
 # process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
 FILE_BASED_TRANSFER = True
@@ -34,6 +34,7 @@ class BaseCodeRunner(ABC):
     additional_contexts: Optional[Dict[str, Any]] = None  # additional contexts to use when running code
     runtime_available_objects: dict = field(default_factory=dict)
     run_code_cls: Type[RunCode] = RunCode
+    code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     _lines_added_in_front_of_code: int = None
     timeout_sec: int = MAX_EXEC_TIME.val
 
@@ -82,7 +83,7 @@ class BaseCodeRunner(ABC):
         """
         Return the CodeAndOutput object for the given result and created files.
         """
-        return CodeAndOutput(
+        return self.code_and_output_cls(
             code=code,
             result=result,
             created_files=self.output_file_requirements.convert_to_output_file_requirements_with_content(

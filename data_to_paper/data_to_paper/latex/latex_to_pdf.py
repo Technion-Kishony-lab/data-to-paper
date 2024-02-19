@@ -8,7 +8,7 @@ from typing import Optional, Collection, Tuple, Dict
 
 from data_to_paper.servers.custom_types import Citation
 from data_to_paper.utils.file_utils import run_in_temp_directory
-from data_to_paper.utils.ref_numeric_values import replace_hyperlinks_with_values
+from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
 from data_to_paper.utils.text_extractors import extract_all_external_brackets
 
 from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandError, LatexNestedNumCommandError

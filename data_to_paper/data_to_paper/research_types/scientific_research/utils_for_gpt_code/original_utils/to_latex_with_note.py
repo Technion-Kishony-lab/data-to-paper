@@ -43,6 +43,7 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
                        is_wide: bool = True,
                        float_num_digits: int = 4,
                        pvalue_on_str: Optional[OnStr] = None,
+                       comment: str = None,
                        **kwargs):
     """
     Create a latex table with a note.
@@ -78,6 +79,9 @@ def to_latex_with_note(df: pd.DataFrame, filename: Optional[str], caption: str =
 
     if float_num_digits is not None:
         latex = round_floats(latex, float_num_digits, pad_with_spaces=False)
+
+    if comment:
+        latex = comment + '\n' + latex
 
     if filename is not None:
         with open(filename, 'w') as f:

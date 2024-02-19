@@ -13,9 +13,10 @@ from data_to_paper.utils.replacer import format_value
 from data_to_paper.utils.print_to_file import print_and_log
 
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
-from data_to_paper.run_gpt_code.code_and_output import CodeAndOutput
+from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem, RunIssue, RunIssues
-from data_to_paper.run_gpt_code.output_file_requirements import BaseContentOutputFileRequirement, OutputFileRequirements
+from data_to_paper.code_and_output_files.output_file_requirements import BaseContentOutputFileRequirement, \
+    OutputFileRequirements
 from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
@@ -98,7 +99,6 @@ class DebuggerConverser(BackgroundProductsConverser):
             single code block, including the unchanged parts, so that I can just copy-paste and run it.
             {required_headers_prompt}    
         """)
-    runner_cls: Type[BaseCodeRunner] = CodeRunner
 
     max_debug_iterations: int = 5
     debug_iteration = 0
@@ -109,6 +109,7 @@ class DebuggerConverser(BackgroundProductsConverser):
     previous_code_problem: CodeProblem = CodeProblem.NoCode
     gpt_script_filename: str = 'debugger_gpt'
     code_runner_cls: Type[BaseCodeRunner] = CodeRunner
+    code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
 
     """
     PROPERTIES
@@ -371,7 +372,7 @@ class DebuggerConverser(BackgroundProductsConverser):
                                             filename: str, content: str) -> List[RunIssue]:
         return requirement.get_issues_for_output_file_content(filename, content)
 
-    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput) -> List[RunIssue]:
+    def _get_issues_for_created_output_files(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
         issues = []
         files_to_contents = code_and_output.created_files.get_created_content_files_to_contents()
         for requirement in self.output_file_requirements:
@@ -408,6 +409,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             runtime_available_objects=self._get_runtime_available_objects(),
             additional_contexts=self.additional_contexts,
             timeout_sec=self.timeout_sec,
+            code_and_output_cls=self.code_and_output_cls,
         )
     # to save the script file:
     # script_file_path=self.output_directory / self.script_filename if self.output_directory else None
@@ -586,7 +588,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         # We now check for issues in the output files as well as issues collected during the run:
         output_issues = []
         output_issues.extend(issues)
-        output_issues.extend(self._get_issues_for_created_output_files(code_and_output))
+        output_issues.extend(self._get_issues_for_created_output_files(code_and_output, contexts))
 
         if output_issues:
             # if the code ran, but output was incorrect, we delete any created files:
