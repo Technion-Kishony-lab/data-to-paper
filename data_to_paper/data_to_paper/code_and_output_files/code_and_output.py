@@ -32,15 +32,17 @@ class CodeAndOutput:
     dataframe_operations: Optional[DataframeOperations] = None
     description_of_created_files: DataFileDescriptions = None
 
-    def _get_code_header_for_file(self, filename: str) -> str:
+    def get_code_header_for_file(self, filename: str) -> Optional[str]:
         """
         Return a string which can be found in the line where we should go to when we want to see the code
         that created the file.
         """
         return filename
 
-    def _get_lineno_for_file(self, code: str, filename: str) -> Optional[int]:
-        header = self._get_code_header_for_file(filename)
+    def get_lineno_for_file(self, code: str, filename: str) -> Optional[int]:
+        header = self.get_code_header_for_file(filename)
+        if header is None:
+            return None
         lines = code.split('\n')
         for i, line in enumerate(lines):
             if header in line:
@@ -63,7 +65,7 @@ class CodeAndOutput:
     def _get_code_with_hypertargets(self) -> str:
         code = self.code
         for filename in self.created_files.get_created_content_files():
-            lineno = self._get_lineno_for_file(code, filename)
+            lineno = self.get_lineno_for_file(code, filename)
             if lineno is not None:
                 code = self._add_hypertarget_to_code(code, self._get_label_for_file(filename), lineno)
         return code

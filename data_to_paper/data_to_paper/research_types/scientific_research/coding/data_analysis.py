@@ -62,14 +62,14 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
 
 @dataclass
 class DataAnalysisCodeAndOutput(CodeAndOutput):
-    def _get_code_header_for_file(self, filename: str) -> str:
+    def get_code_header_for_file(self, filename: str) -> Optional[str]:
         # 'table_?.pkl' -> '# Table ?'
         if filename.startswith('table_') and filename.endswith('.pkl'):
             return f'# Table {filename[6:-4]}'
         # 'additional_results.pkl' -> '# Additional Results'
         if filename == 'additional_results.pkl':
             return '# SAVE ADDITIONAL RESULTS'
-        return super()._get_code_header_for_file(filename)
+        return None
 
 
 @dataclass
