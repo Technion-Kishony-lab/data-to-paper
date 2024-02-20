@@ -11,10 +11,8 @@ from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureS
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
-from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
-    GetMostSimilarCitations, ReflectOnAnalysisGPT
-    ResultsInterpretationReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
-    GetMostSimilarCitations
+from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, ResultsInterpretationReviewGPT, \
+    HypothesesTestingPlanReviewGPT, ReflectOnAnalysisGPT, IsGoalOK, ReGoalReviewGPT, GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
     MethodsSectionWriterReviewGPT, IntroductionSectionWriterReviewGPT, ReferringTablesSectionWriterReviewGPT, \
@@ -248,7 +246,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             self.send_product_to_client('most_updated_paper')
 
         if self.should_reflect_on_analysis:
-            ReflectOnAnalysisGPT.from_(self).get_reflection()
+            ReflectOnAnalysisGPT.from_(self).save_reflection()
 
         # Compile paper
         paper_producer.assemble_compile_paper()
