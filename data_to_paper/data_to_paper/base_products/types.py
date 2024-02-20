@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Union
 
+import pandas as pd
+
 from data_to_paper.code_and_output_files.file_view_params import ContentView
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output
 from data_to_paper.utils.file_utils import run_in_directory
@@ -25,13 +27,26 @@ class DataFileDescription:
         """
         if self.is_binary is not None:
             return self.is_binary
-        text_exts = ['.txt', '.md', '.csv']
+        text_exts = ['.txt', '.md', '.csv', '.xls', '.xlsx']
         return Path(self.file_path).suffix not in text_exts
+
+    def is_excel(self):
+        return Path(self.file_path).suffix in ['.xlsx', '.xls']
 
     def get_file_header(self, num_lines: int = 4):
         """
         Return the first `num_lines` lines of the file (if they exist).
         """
+        if self.is_excel():
+            # go over all sheets and return all of them:
+            df = pd.read_excel(self.file_path, sheet_name=None)
+            s = f'This is an Excel file with {len(df)} sheets:\n\n'
+            for sheet_name in df.keys():
+                s += f'### Sheet: "{sheet_name}"\n'
+                s += f'```output\n{df[sheet_name].head(num_lines).to_string(index=False)}\n```\n'
+            s += '\n'
+            return s
+
         with open(self.file_path) as f:
             head = []
             for _ in range(num_lines):
@@ -41,7 +56,9 @@ class DataFileDescription:
                     break
                 except UnicodeDecodeError:
                     head.append('UnicodeDecodeError\n')
-            return ''.join(head)
+            return f'Here are the first few lines of the file:\n' \
+                   f'```output\n{"".join(head)}\n```\n'
+
 
     def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None):
         s = f'"{self.file_path}"\n'
@@ -50,8 +67,7 @@ class DataFileDescription:
             description = hypertarget_if_referencable_text(description, content_view)
             s += f'{description}\n\n'
         if num_lines > 0 and not self.get_is_binary():
-            s += f'Here are the first few lines of the file:\n' \
-                 f'```output\n{self.get_file_header(num_lines)}\n```\n'
+            s += self.get_file_header(num_lines)
         return s
 
 
