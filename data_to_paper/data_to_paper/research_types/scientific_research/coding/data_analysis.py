@@ -63,9 +63,9 @@ class DictPickleContentOutputFileRequirement(PickleContentOutputFileRequirement,
 @dataclass
 class DataAnalysisCodeAndOutput(CodeAndOutput):
     def get_code_header_for_file(self, filename: str) -> Optional[str]:
-        # 'table_?.pkl' -> '# Table ?'
+        # 'table_*.pkl' -> '# Table *'
         if filename.startswith('table_') and filename.endswith('.pkl'):
-            return f'# Table {filename[6:-4]}'
+            return f'## Table {filename[6:-4]}'
         # 'additional_results.pkl' -> '# Additional Results'
         if filename == 'additional_results.pkl':
             return '# SAVE ADDITIONAL RESULTS'
@@ -121,16 +121,13 @@ class DataAnalysisDebuggerConverser(DebuggerConverser):
         return self._get_issues_for_table_comments(code_and_output, contexts)
 
     def _get_issues_for_table_comments(self, code_and_output: CodeAndOutput, contexts) -> List[RunIssue]:
-        context = contexts['ToPickleAttrReplacer']
-        prior_tables = getattr(context, 'prior_tables', {})
-        code = code_and_output.code
         issues = []
-        for table_file_name in prior_tables.keys():
-            table_name = table_file_name.split('.')[0].replace('_', ' ').title()
-            if f'## {table_name}' not in code:
+        for table_file_name in code_and_output.created_files.get_created_content_files(match_filename='table_*.pkl'):
+            table_header = code_and_output.get_code_header_for_file(table_file_name)
+            if table_header not in code_and_output.code:
                 issues.append(RunIssue(
                     category="Each saved table should have a header comment with the table name.\n",
-                    issue=f'Your code is missing a comment "## {table_name}".',
+                    issue=f'Your code is missing a comment "{table_header}".',
                     instructions='Please make sure all saved tables have a header comment with the table name.\n'
                                  'If you are creating multiple tables in the same section of the code, '
                                  'you should precede this section with a separate comment for each of the tables.',
