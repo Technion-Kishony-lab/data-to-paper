@@ -12,6 +12,7 @@ from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
 from .reviewing_steps import GoalReviewGPT, PlanReviewGPT, \
+    GetMostSimilarCitations, ReflectOnAnalysisGPT
     ResultsInterpretationReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
@@ -49,6 +50,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_do_literature_search: bool = True
     should_add_citations: bool = False
     should_interpret_results: bool = False
+    should_reflect_on_analysis: bool = True
 
     excluded_citation_titles: List[str] = None,  # Title of papers that we don't allow to be cited
 
@@ -244,6 +246,9 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                                conversation_name=f'add_citations_to_{section_name}') \
                         .rewrite_section_with_citations()
             self.send_product_to_client('most_updated_paper')
+
+        if self.should_reflect_on_analysis:
+            ReflectOnAnalysisGPT.from_(self).get_reflection()
 
         # Compile paper
         paper_producer.assemble_compile_paper()
