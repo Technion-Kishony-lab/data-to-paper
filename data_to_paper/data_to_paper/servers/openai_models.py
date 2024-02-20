@@ -123,6 +123,7 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
         "TablesReviewBackgroundProductsConverser": ModelEngine.GPT4,
         "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
+        "ReflectOnAnalysisGPT": ModelEngine.GPT4,
     },
     "open": {
         "Converser": ModelEngine.LLAMA_2_70b,
@@ -134,6 +135,7 @@ TYPE_OF_MODELS_TO_CLASSES_TO_MODEL_ENGINES = {
         "TablesReviewBackgroundProductsConverser": ModelEngine.LLAMA_2_70b,
         "IntroductionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
         "DiscussionSectionWriterReviewGPT": ModelEngine.LLAMA_2_70b,
+        "ReflectOnAnalysisGPT": ModelEngine.LLAMA_2_70b,
     },
 }
 
