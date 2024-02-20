@@ -6,6 +6,8 @@
 
 3. Enter the repo root folder `cd data-to-paper`
 
-4. Build the docker container by running `docker build --pull --rm -f "Dockerfile" -t datatopaper "."`
+4. Make sure the docker service is running on the machine by running `sudo service docker start`
+
+5. Build the docker container by running `docker build --pull --rm -f "Dockerfile" -t datatopaper "."`
 
 You now have the container with the repo available for run/dev
