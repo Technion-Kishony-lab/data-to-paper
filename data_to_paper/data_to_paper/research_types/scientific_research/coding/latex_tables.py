@@ -27,11 +27,11 @@ from data_to_paper.utils import dedent_triple_quote_str
 
 @dataclass
 class CreateLatexTablesCodeAndOutput(CodeAndOutput):
-    def _get_code_header_for_file(self, filename: str) -> str:
-        # 'table_?.tex' -> '# TABLE ?'
+    def get_code_header_for_file(self, filename: str) -> Optional[str]:
+        # 'table_*.tex' -> '# TABLE *'
         if filename.startswith('table_') and filename.endswith('.tex'):
             return f'# TABLE {filename[6:-4]}'
-        return super()._get_code_header_for_file(filename)
+        return None
 
 
 @dataclass
