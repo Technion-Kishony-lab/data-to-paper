@@ -54,7 +54,9 @@ class ReferencedValue:
     def command(self) -> str:
         return TARGET if self.is_target else LINK
 
-    def to_str(self, hypertarget_format: HypertargetFormat) -> str:
+    def to_str(self, hypertarget_format: Optional[HypertargetFormat] = None) -> str:
+        if hypertarget_format is None:
+            hypertarget_format = HypertargetFormat(position=HypertargetPosition.WRAP)
         value = self.value
         if hypertarget_format.position == HypertargetPosition.NONE or self.label is None:
             return value
@@ -74,6 +76,9 @@ class ReferencedValue:
         if hypertarget_format.escaped:
             target = fr'(*@{target}@*)'
         return target + value
+
+    def __str__(self) -> str:
+        return self.to_str()
 
     def get_numeric_value_and_is_percent(self) -> Tuple[Optional[str], bool]:
         """

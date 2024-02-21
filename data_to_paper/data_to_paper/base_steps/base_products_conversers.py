@@ -438,7 +438,7 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
             s += f'Some numeric values appear without a hyperlink:\n' \
                  f'{numeric_values_without_hyperlinks}\n\n'
         if hyperlinked_values_not_numeric:
-            s += f'Some hyperlinks have non-numeric values:\n' \
+            s += f'Some hyperlinks have values that are not purely numeric:\n' \
                  f'{nice_list(hyperlinked_values_not_numeric)}\n\n'
         if hyperlinked_values_with_no_matching_target:
             s += f'Some hyperlinks have labels that do not exist as hypertarget in our `provided data`:\n' \
