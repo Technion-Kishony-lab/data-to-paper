@@ -8,49 +8,107 @@
 \usepackage{fancyvrb}
 \usepackage{color}
 \usepackage{listings}
-\usepackage{minted}
 \usepackage{sectsty}
 \sectionfont{\Large}
 \subsectionfont{\normalsize}
 \subsubsectionfont{\normalsize}
-\lstset{
-    basicstyle=\ttfamily\footnotesize,
-    columns=fullflexible,
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
     breaklines=true,
-    }
-\title{Insights into the Relationship between Physical Activity and Diabetes Prevalence}
-\author{Data to Paper}
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Moderating Role of Physical Activity in BMI-Diabetes Relationship}
+\author{data-to-paper}
 \begin{document}
 \maketitle
-\begin{abstract}Diabetes is a globally significant public health concern on the rise. The impact of physical activity on diabetes has been extensively studied, but there is still limited understanding of the specific relationship and the potential moderating effect of BMI. To address this research gap, we conducted an analysis using a comprehensive dataset extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) in 2015. This dataset includes diabetes-related factors obtained through a health-related telephone survey of over 400,000 Americans. By applying logistic regression models, we discovered a negative association between physical activity and diabetes prevalence, independent of confounders such as age, smoking status, and education level. Furthermore, our findings indicate that BMI moderates the association between physical activity and diabetes prevalence, with a heightened protective effect observed among individuals with higher BMI. These results underscore the significance of promoting physical activity as a preventive measure against diabetes, particularly among populations at higher risk. Consideration should be given to the limitations of self-reported data in our study. Nonetheless, our findings provide valuable insights for the development of targeted interventions and public health strategies to mitigate the burden of diabetes.\end{abstract}
+\begin{abstract}
+The burgeoning prevalence of diabetes underscores the need to elucidate the lifestyle determinants associated with this condition, particularly as it relates to the interplay between body mass index (BMI) and physical activity. Despite mounting research advocating physical activity as a salient factor in mitigating diabetes risk, the moderation effects of physical activity within the BMI-diabetes nexus remain underexplored. Utilizing the comprehensive 2015 Behavioral Risk Factor Surveillance System database, this study probes the intersection of physical activity levels, BMI, and diabetes prevalence among an extensive US adult cohort. Employing logistic regression analyses, we unveil that heightened physical activity significantly curtails diabetes risk and moderates the adverse impact of elevated BMI on this relationship. Ancillary findings confirm the predictive capacity of age, BMI, smoking status, and high blood pressure concerning diabetes incidence, while underscoring physical activity as a critical preventive element. In light of the self-reported data and cross-sectional study design, an acknowledgment of potential biases and specificity to the 2015 US context is warranted. Nonetheless, these insights advocate for policy and individual interventions promoting physical activity, especially among individuals with a high BMI, to combat diabetes proliferation. Future investigations could benefit from longitudinal studies to affirm causality and scrutinize these dynamics in more diverse geographical and temporal landscapes.
+\end{abstract}
 \section*{Introduction}
 
-Diabetes presents a growing global health challenge, with an increase in prevalence leading to significant public health and socio-economic implications \cite{Akter2014PrevalenceOD, Lam2012TheWD}. Obesity and physical inactivity are acknowledged as primary risk factors for the onset of the disease \cite{Chan1994ObesityFD, Wild2006RiskFF, Singh2013TheAQ}. The role of physical activity as a preventative and management strategy for diabetes is well established \cite{Fox1999TheIO, Bohn2015ImpactOP, Eckert2012ImpactOP}.
+The global escalation of diabetes poses an urgent need for a nuanced understanding of its determinants \cite{Wu2014RiskFC, Akter2014PrevalenceOD, Mayega2013DiabetesAP}. Lifestyle factors such as body mass index (BMI) and physical activity are well-documented influencers of diabetes risk. Studies have shown that while elevated BMI is a risk factor for diabetes, physical activity can confer protective benefits \cite{Wahid2016QuantifyingTA, Bohn2015ImpactOP, Shi2013PhysicalAS}. However, less is known about how physical activity might interact with BMI to mitigate diabetes development, particularly among diverse populations and across the BMI spectrum \cite{Bohn2015ImpactOP, Shi2013PhysicalAS, Wu2014RiskFC}.
 
-While it is known that physical activity can lower diabetes prevalence \cite{Zhao2020PhysicalAL, Shi2013PhysicalAS}, our understanding is still limited on how this relationship is influenced by the Body Mass Index (BMI). What remains unclear is the extent to which BMI moderates the effect of physical activity on diabetes prevalence \cite{Bohn2015ImpactOP, Pi-Sunyer2007ReductionIW}. 
+Previous investigations have identified both physical activity and BMI as individual predictors of diabetes prevalence, yet the potential for physical activity to moderate the BMI-diabetes relationship remains undervalued. While some studies provide preliminary evidence of this interaction, less clarity prevails on how it manifests across broader and more heterogeneous samples \cite{Zhao2020PhysicalAL, Mora2007PhysicalAA, Churilla2008PhysicalAP}. Understanding the dynamics of this moderation effect has considerable implications for prevention strategies and targeted health interventions.
 
-To address these gaps, the current study leverages a comprehensive dataset from the Behavioral Risk Factor Surveillance System (BRFSS), a health-related survey conducted by the Centers for Disease Control and Prevention (CDC) in 2015 \cite{Rolle-Lake2020BehavioralRF}. The vastness of this dataset, spanning 253,680 responses with 22 features including diabetes-related and demographic factors, offers a unique opportunity to delve deeper into the intricate association between physical activity, BMI, and diabetes prevalence. The BRFSS dataset has previously served as a robust resource for a multitude of health studies and offers great promise for expanding our understanding in this context \cite{Preedy1989BehavioralRF}.
+Addressing the evident lacuna, we employed the 2015 Behavioral Risk Factor Surveillance System (BRFSS) dataset, a comprehensive survey data accruing from a broad spectrum of American adults. This dataset's diverse demographic coverage enhances the external validity of our findings and facilitates a more representative examination of health behaviors across the US population \cite{Rolle-Lake2020BehavioralRF, Pierannunzi2013ASR, Nelson2001ReliabilityAV}. By engaging this resource, our study illuminates the moderating role of physical activity within the BMI-diabetes axis, extending the boundary of current knowledge.
 
-Our research approach integrates logistic regression to model the relationship between diabetes prevalence and a set of explanatory variables including physical activity and other potential confounders \cite{Menard1996AppliedLR}. This study presents significant insights into the negative association of physical activity with diabetes prevalence. Additionally, it reveals how this relationship is moderated by BMI, emphasizing the enhanced protective effect of physical activity for individuals with a higher BMI.
+Our methodology invoked logistic regression analysis, enriched with a robust set of covariates, effectively teasing out the intricate links between physical activity levels, BMI categorizations, and diabetes status. We meticulously designed and validated models to capture the effect of physical activity across the BMI gradient and to explore the interaction effects that unveil nuanced insights into diabetes prevention \cite{Simmons2016EffectOP, Boruvka2016AssessingTC, Paradies2015RacismAA}. This analysis serves to reinforce physical activity as an integral facet in mitigating diabetes risk and highlights its amplified significance for individuals with higher BMI levels.
 
 \section*{Results}
 
-In this study, we investigated the relationship between physical activity and diabetes prevalence using a comprehensive dataset extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) in 2015. With a total of 253,680 observations, our aim was to shed light on the association between physical activity and diabetes prevalence, adjusting for potential confounders, and to elucidate the potential moderating effect of BMI.
+First, to establish whether physical activity levels are different between individuals with and without diabetes, we compared mean physical activity levels stratified by diabetes presence. This analysis indicated that individuals without diabetes showed a significantly higher mean physical activity level (\hyperlink{A0a}{0.777} $\pm$ \hyperlink{A0b}{0.416}) compared to individuals diagnosed with the condition (\hyperlink{A1a}{0.631} $\pm$ \hyperlink{A1b}{0.483}), as reported in Table {}\ref{table:desc_stats}. The results suggest that individuals with diabetes partake in less physical activity than their counterparts without the disease.
 
-First, we conducted a detailed analysis of the distribution of physical activity stratified by diabetes status. As demonstrated in Table \ref{table:descriptive_statistics_0}, individuals without diabetes seemed to engage in physical activity more frequently with an average of 0.777, compared to those with diabetes whose average was 0.631. 
-
+% This latex table was generated from: `table_0.pkl`
 \begin{table}[h]
-\caption{Descriptive statistics of Physical Activity stratified by Diabetes}
-\label{table:descriptive_statistics_0}
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive Statistics of Physical Activity Stratified by Diabetes Presence}}
+\label{table:desc_stats}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lrr}
 \toprule
- & Mean & Std.Dev \\
+ & mean & std \\
 \midrule
-\textbf{No Diabetes} & 0.777 & 0.416 \\
-\textbf{Diabetes} & 0.631 & 0.483 \\
+\textbf{No Diabetes} & \raisebox{2ex}{\hypertarget{A0a}{}}0.777 & \raisebox{2ex}{\hypertarget{A0b}{}}0.416 \\
+\textbf{Diabetes} & \raisebox{2ex}{\hypertarget{A1a}{}}0.631 & \raisebox{2ex}{\hypertarget{A1b}{}}0.483 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
@@ -61,126 +119,128 @@ First, we conducted a detailed analysis of the distribution of physical activity
 \end{table}
 
 
-With the goal of examining the direct effect of physical activity on diabetes prevalence, we controlled for Age, BMI, Smoking status, High Blood Pressure, High Cholesterol, Education, and Income through logistic regression analysis. Results from Table \ref{table:activity_and_diabetes_1} showed that physical activity had a significant negative association with diabetes, with a coefficient of -0.232 (SE=0.0136, p-value $<$ $10^{-6}$) which means a lower odd of having diabetes among individuals who engaged in physical activity. Our model revealed a pseudo R-squared of 0.1677, which indicated that the model able to explain a significant portion of the variation in diabetes incidence. 
+Subsequently, we assessed the association between physical activity and diabetes prevalence by performing a logistic regression analysis where physical activity and other covariates were included. Physical activity was inversely associated with diabetes status, with a regression coefficient of \hyperlink{B1a}{-0.232} (P-value: $<$\hyperlink{B1d}{$10^{-6}$}), which translates into a \hyperlink{results0}{0.7929} reduction in the odds of having diabetes for those who reported engaging in physical activity. Other variables in the model, such as age, BMI, smoking status, high blood pressure, and high cholesterol, also showed significant associations with diabetes status(Table {}\ref{table:assoc_pa_diabetes}). The Pseudo R-squared value for the model was \hyperlink{R1a}{0.1677}, reflecting the proportion of variance in the dependent variable that is predictable from the independent variables.
 
+% This latex table was generated from: `table_1.pkl`
 \begin{table}[h]
-\caption{Association between  physical activity and diabetes prevalence}
-\label{table:activity_and_diabetes_1}
+\caption{\protect\hyperlink{file-table-1-pkl}{Association Between Physical Activity and Diabetes Prevalence}}
+\label{table:assoc_pa_diabetes}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coef. & Std.Err. & Z & P-value & [0.025 & 0.975] \\
+ & Coeff. & Std. Err. & z-stat & Pval & CI LB & CI UB \\
 \midrule
-\textbf{Intercept} & -4.78 & 0.0526 & -91 & $<$$10^{-6}$ & -4.89 & -4.68 \\
-\textbf{Physical Act.} & -0.232 & 0.0136 & -17.1 & $<$$10^{-6}$ & -0.258 & -0.205 \\
-\textbf{Age} & 0.132 & 0.00256 & 51.5 & $<$$10^{-6}$ & 0.127 & 0.137 \\
-\textbf{BMI} & 0.0696 & 0.000881 & 79 & $<$$10^{-6}$ & 0.0679 & 0.0714 \\
-\textbf{Smoker} & 0.0985 & 0.0126 & 7.84 & $<$$10^{-6}$ & 0.0739 & 0.123 \\
-\textbf{High BP} & 0.951 & 0.0144 & 66.1 & $<$$10^{-6}$ & 0.923 & 0.979 \\
-\textbf{High Chol} & 0.693 & 0.0132 & 52.4 & $<$$10^{-6}$ & 0.667 & 0.719 \\
-\textbf{Ed.} & -0.0858 & 0.00676 & -12.7 & $<$$10^{-6}$ & -0.0991 & -0.0726 \\
-\textbf{Income} & -0.11 & 0.0032 & -34.5 & $<$$10^{-6}$ & -0.117 & -0.104 \\
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B0a}{}}-4.78 & \raisebox{2ex}{\hypertarget{B0b}{}}0.0526 & \raisebox{2ex}{\hypertarget{B0c}{}}-91 & $<$\raisebox{2ex}{\hypertarget{B0d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B0e}{}}-4.89 & \raisebox{2ex}{\hypertarget{B0f}{}}-4.68 \\
+\textbf{PhysActivity} & \raisebox{2ex}{\hypertarget{B1a}{}}-0.232 & \raisebox{2ex}{\hypertarget{B1b}{}}0.0136 & \raisebox{2ex}{\hypertarget{B1c}{}}-17.1 & $<$\raisebox{2ex}{\hypertarget{B1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B1e}{}}-0.258 & \raisebox{2ex}{\hypertarget{B1f}{}}-0.205 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{B2a}{}}0.132 & \raisebox{2ex}{\hypertarget{B2b}{}}0.00256 & \raisebox{2ex}{\hypertarget{B2c}{}}51.5 & $<$\raisebox{2ex}{\hypertarget{B2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B2e}{}}0.127 & \raisebox{2ex}{\hypertarget{B2f}{}}0.137 \\
+\textbf{BMI} & \raisebox{2ex}{\hypertarget{B3a}{}}0.0696 & \raisebox{2ex}{\hypertarget{B3b}{}}0.000881 & \raisebox{2ex}{\hypertarget{B3c}{}}79 & $<$\raisebox{2ex}{\hypertarget{B3d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B3e}{}}0.0679 & \raisebox{2ex}{\hypertarget{B3f}{}}0.0714 \\
+\textbf{Smoker} & \raisebox{2ex}{\hypertarget{B4a}{}}0.0985 & \raisebox{2ex}{\hypertarget{B4b}{}}0.0126 & \raisebox{2ex}{\hypertarget{B4c}{}}7.84 & $<$\raisebox{2ex}{\hypertarget{B4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B4e}{}}0.0739 & \raisebox{2ex}{\hypertarget{B4f}{}}0.123 \\
+\textbf{HighBP} & \raisebox{2ex}{\hypertarget{B5a}{}}0.951 & \raisebox{2ex}{\hypertarget{B5b}{}}0.0144 & \raisebox{2ex}{\hypertarget{B5c}{}}66.1 & $<$\raisebox{2ex}{\hypertarget{B5d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B5e}{}}0.923 & \raisebox{2ex}{\hypertarget{B5f}{}}0.979 \\
+\textbf{HighChol} & \raisebox{2ex}{\hypertarget{B6a}{}}0.693 & \raisebox{2ex}{\hypertarget{B6b}{}}0.0132 & \raisebox{2ex}{\hypertarget{B6c}{}}52.4 & $<$\raisebox{2ex}{\hypertarget{B6d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B6e}{}}0.667 & \raisebox{2ex}{\hypertarget{B6f}{}}0.719 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{B7a}{}}-0.0858 & \raisebox{2ex}{\hypertarget{B7b}{}}0.00676 & \raisebox{2ex}{\hypertarget{B7c}{}}-12.7 & $<$\raisebox{2ex}{\hypertarget{B7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B7e}{}}-0.0991 & \raisebox{2ex}{\hypertarget{B7f}{}}-0.0726 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{B8a}{}}-0.11 & \raisebox{2ex}{\hypertarget{B8b}{}}0.0032 & \raisebox{2ex}{\hypertarget{B8c}{}}-34.5 & $<$\raisebox{2ex}{\hypertarget{B8d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B8e}{}}-0.117 & \raisebox{2ex}{\hypertarget{B8f}{}}-0.104 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item \textbf{Physical Act.}: 0: No activity, 1: Any activity
+\item \textbf{Coeff.}: Coefficient of the logistic regression model
+\item \textbf{Pval}: P-value
+\item \textbf{CI LB}: \raisebox{2ex}{\hypertarget{B9a}{}}95\% Confidence Interval Lower Bound
+\item \textbf{CI UB}: \raisebox{2ex}{\hypertarget{B10a}{}}95\% Confidence Interval Upper Bound
+\item \textbf{Age}: \raisebox{2ex}{\hypertarget{B11a}{}}13-level age category
 \item \textbf{BMI}: Body Mass Index
-\item \textbf{Age}: Age in intervals of 5 years. 1: 18-24 --$>$ 13: 80+ yrs
-\item \textbf{Smoker}: 0: Non-smoker, 1: Smoker
-\item \textbf{High BP}: 0: No high BP, 1: High BP
-\item \textbf{High Chol}: 0: No high chol, 1: High chol
-\item \textbf{Ed.}: Education level. 1: None --$>$ 6: College
-\item \textbf{Income}: Income category. 1: $<$=10K --$>$ 8: $>$75K
-\item \textbf{Z}: Standardized test statistic
-\item \textbf{P-value}: Significance level of the Z statistic
+\item \textbf{Income}: Income level, \raisebox{2ex}{\hypertarget{B12a}{}}1 to \raisebox{2ex}{\hypertarget{B12b}{}}8
+\item \textbf{Education}: Education level, \raisebox{2ex}{\hypertarget{B13a}{}}1 to \raisebox{2ex}{\hypertarget{B13b}{}}6
+\item \textbf{HighBP}: High Blood Pressure (\raisebox{2ex}{\hypertarget{B14a}{}}0=no, \raisebox{2ex}{\hypertarget{B14b}{}}1=yes)
+\item \textbf{HighChol}: High Cholesterol (\raisebox{2ex}{\hypertarget{B15a}{}}0=no, \raisebox{2ex}{\hypertarget{B15b}{}}1=yes)
+\item \textbf{PhysActivity}: Physical Activity in past \raisebox{2ex}{\hypertarget{B16a}{}}30 days (\raisebox{2ex}{\hypertarget{B16b}{}}0=no, \raisebox{2ex}{\hypertarget{B16c}{}}1=yes)
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-Lastly, we sought to determine whether BMI has a moderating effect on the association between physical activity and diabetes. This was done by introducing an interaction term of Physical Activity and BMI to the logistic regression model. Interestingly, our results revealed a significant interaction term (coefficient =0.00906, SE=0.00174, p-value $<$$10^{-6}$) according to Table \ref{table:activity_and_diabetes_2}. These findings point out that the protective effect of physical activity against diabetes is stronger among individuals with higher BMI, and the model slightly improved with a pseudo R-squared of 0.1678.
+To further explore the role of BMI in the link between physical activity and diabetes prevalence, we evaluated the interaction between physical activity and BMI. We found that the interaction term was significant (\hyperlink{C3a}{0.00906}, P-value: $<$\hyperlink{C3d}{$10^{-6}$}), suggesting that the benefit of physical activity on diabetic status is influenced by an individual's BMI. Specifically, for individuals with higher BMI, physical activity appeared to be more strongly inversely associated with the likelihood of having diabetes, indicating a moderating effect of BMI on the benefits of physical activity in reducing diabetes risk (Table {}\ref{table:mod_effect}). The marginal increase in the Pseudo R-squared from \hyperlink{R1a}{0.1677} to \hyperlink{R2a}{0.1678} when adding the interaction term implies a slight increase in the explained variance.
 
+% This latex table was generated from: `table_2.pkl`
 \begin{table}[h]
-\caption{Moderating effect of BMI on the association between physical activity and diabetes}
-\label{table:activity_and_diabetes_2}
+\caption{\protect\hyperlink{file-table-2-pkl}{Moderating Effect of BMI on the Association Between Physical Activity and Diabetes Prevalence}}
+\label{table:mod_effect}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coef. & Std.Err. & Z & P-value & [0.025 & 0.975] \\
+ & Coeff. & Std. Err. & z-stat & Pval & CI LB & CI UB \\
 \midrule
-\textbf{Intercept} & -4.61 & 0.0617 & -74.7 & $<$$10^{-6}$ & -4.73 & -4.49 \\
-\textbf{Physical Act.} & -0.514 & 0.0558 & -9.21 & $<$$10^{-6}$ & -0.624 & -0.405 \\
-\textbf{BMI} & 0.064 & 0.00138 & 46.3 & $<$$10^{-6}$ & 0.0613 & 0.0667 \\
-\textbf{Activity*BMI} & 0.00906 & 0.00174 & 5.21 & $<$$10^{-6}$ & 0.00565 & 0.0125 \\
-\textbf{Age} & 0.132 & 0.00256 & 51.6 & $<$$10^{-6}$ & 0.127 & 0.137 \\
-\textbf{Smoker} & 0.0977 & 0.0126 & 7.77 & $<$$10^{-6}$ & 0.073 & 0.122 \\
-\textbf{High BP} & 0.95 & 0.0144 & 66 & $<$$10^{-6}$ & 0.922 & 0.978 \\
-\textbf{High Chol} & 0.693 & 0.0132 & 52.4 & $<$$10^{-6}$ & 0.667 & 0.719 \\
-\textbf{Ed.} & -0.0847 & 0.00676 & -12.5 & $<$$10^{-6}$ & -0.098 & -0.0715 \\
-\textbf{Income} & -0.11 & 0.0032 & -34.4 & $<$$10^{-6}$ & -0.116 & -0.104 \\
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{C0a}{}}-4.61 & \raisebox{2ex}{\hypertarget{C0b}{}}0.0617 & \raisebox{2ex}{\hypertarget{C0c}{}}-74.7 & $<$\raisebox{2ex}{\hypertarget{C0d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C0e}{}}-4.73 & \raisebox{2ex}{\hypertarget{C0f}{}}-4.49 \\
+\textbf{PhysActivity} & \raisebox{2ex}{\hypertarget{C1a}{}}-0.514 & \raisebox{2ex}{\hypertarget{C1b}{}}0.0558 & \raisebox{2ex}{\hypertarget{C1c}{}}-9.21 & $<$\raisebox{2ex}{\hypertarget{C1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C1e}{}}-0.624 & \raisebox{2ex}{\hypertarget{C1f}{}}-0.405 \\
+\textbf{BMI} & \raisebox{2ex}{\hypertarget{C2a}{}}0.064 & \raisebox{2ex}{\hypertarget{C2b}{}}0.00138 & \raisebox{2ex}{\hypertarget{C2c}{}}46.3 & $<$\raisebox{2ex}{\hypertarget{C2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C2e}{}}0.0613 & \raisebox{2ex}{\hypertarget{C2f}{}}0.0667 \\
+\textbf{PA * BMI} & \raisebox{2ex}{\hypertarget{C3a}{}}0.00906 & \raisebox{2ex}{\hypertarget{C3b}{}}0.00174 & \raisebox{2ex}{\hypertarget{C3c}{}}5.21 & $<$\raisebox{2ex}{\hypertarget{C3d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C3e}{}}0.00565 & \raisebox{2ex}{\hypertarget{C3f}{}}0.0125 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{C4a}{}}0.132 & \raisebox{2ex}{\hypertarget{C4b}{}}0.00256 & \raisebox{2ex}{\hypertarget{C4c}{}}51.6 & $<$\raisebox{2ex}{\hypertarget{C4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C4e}{}}0.127 & \raisebox{2ex}{\hypertarget{C4f}{}}0.137 \\
+\textbf{Smoker} & \raisebox{2ex}{\hypertarget{C5a}{}}0.0977 & \raisebox{2ex}{\hypertarget{C5b}{}}0.0126 & \raisebox{2ex}{\hypertarget{C5c}{}}7.77 & $<$\raisebox{2ex}{\hypertarget{C5d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C5e}{}}0.073 & \raisebox{2ex}{\hypertarget{C5f}{}}0.122 \\
+\textbf{HighBP} & \raisebox{2ex}{\hypertarget{C6a}{}}0.95 & \raisebox{2ex}{\hypertarget{C6b}{}}0.0144 & \raisebox{2ex}{\hypertarget{C6c}{}}66 & $<$\raisebox{2ex}{\hypertarget{C6d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C6e}{}}0.922 & \raisebox{2ex}{\hypertarget{C6f}{}}0.978 \\
+\textbf{HighChol} & \raisebox{2ex}{\hypertarget{C7a}{}}0.693 & \raisebox{2ex}{\hypertarget{C7b}{}}0.0132 & \raisebox{2ex}{\hypertarget{C7c}{}}52.4 & $<$\raisebox{2ex}{\hypertarget{C7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C7e}{}}0.667 & \raisebox{2ex}{\hypertarget{C7f}{}}0.719 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{C8a}{}}-0.0847 & \raisebox{2ex}{\hypertarget{C8b}{}}0.00676 & \raisebox{2ex}{\hypertarget{C8c}{}}-12.5 & $<$\raisebox{2ex}{\hypertarget{C8d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C8e}{}}-0.098 & \raisebox{2ex}{\hypertarget{C8f}{}}-0.0715 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{C9a}{}}-0.11 & \raisebox{2ex}{\hypertarget{C9b}{}}0.0032 & \raisebox{2ex}{\hypertarget{C9c}{}}-34.4 & $<$\raisebox{2ex}{\hypertarget{C9d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C9e}{}}-0.116 & \raisebox{2ex}{\hypertarget{C9f}{}}-0.104 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item \textbf{Physical Act.}: 0: No activity, 1: Any activity
+\item \textbf{Coeff.}: Coefficient of the logistic regression model
+\item \textbf{Pval}: P-value
+\item \textbf{CI LB}: \raisebox{2ex}{\hypertarget{C10a}{}}95\% Confidence Interval Lower Bound
+\item \textbf{CI UB}: \raisebox{2ex}{\hypertarget{C11a}{}}95\% Confidence Interval Upper Bound
+\item \textbf{Age}: \raisebox{2ex}{\hypertarget{C12a}{}}13-level age category
 \item \textbf{BMI}: Body Mass Index
-\item \textbf{Age}: Age in intervals of 5 years. 1: 18-24 --$>$ 13: 80+ yrs
-\item \textbf{Smoker}: 0: Non-smoker, 1: Smoker
-\item \textbf{High BP}: 0: No high BP, 1: High BP
-\item \textbf{High Chol}: 0: No high chol, 1: High chol
-\item \textbf{Ed.}: Education level. 1: None --$>$ 6: College
-\item \textbf{Income}: Income category. 1: $<$=10K --$>$ 8: $>$75K
-\item \textbf{Z}: Standardized test statistic
-\item \textbf{P-value}: Significance level of the Z statistic
-\item \textbf{Activity*BMI}: Interaction term between physical activity and BMI
+\item \textbf{Income}: Income level, \raisebox{2ex}{\hypertarget{C13a}{}}1 to \raisebox{2ex}{\hypertarget{C13b}{}}8
+\item \textbf{Education}: Education level, \raisebox{2ex}{\hypertarget{C14a}{}}1 to \raisebox{2ex}{\hypertarget{C14b}{}}6
+\item \textbf{HighBP}: High Blood Pressure (\raisebox{2ex}{\hypertarget{C15a}{}}0=no, \raisebox{2ex}{\hypertarget{C15b}{}}1=yes)
+\item \textbf{HighChol}: High Cholesterol (\raisebox{2ex}{\hypertarget{C16a}{}}0=no, \raisebox{2ex}{\hypertarget{C16b}{}}1=yes)
+\item \textbf{PhysActivity}: Physical Activity in past \raisebox{2ex}{\hypertarget{C17a}{}}30 days (\raisebox{2ex}{\hypertarget{C17b}{}}0=no, \raisebox{2ex}{\hypertarget{C17c}{}}1=yes)
+\item \textbf{PA * BMI}: Interaction term, Physical Activity and BMI
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-In summary, our analysis reveals a significant independent negative association between physical activity and diabetes prevalence. Furthermore, BMI acts as a moderating variable in this relationship, thus accentuating the protective role of physical activity especially among individuals with higher BMI. These findings underscore the importance of promoting physical activity, particularly in high-risk populations, as a proactive measure against diabetes.
+In summary, our findings from logistic regression analyses show that physical activity is associated with reduced odds of diabetes across the population, and this association is influenced by BMI. Engaging in physical activity presents lower odds of diabetes, and this effect is more noticeable in high-BMI individuals. The inclusion of BMI as a moderator of this effect underscores the importance of considering individual body composition when evaluating the impact of lifestyle factors on diabetes risk.
 
 \section*{Discussion}
 
-Our study investigated the critical relationship between physical activity and the prevalence of diabetes, with a novel focus on the moderating effect of the Body Mass Index (BMI) \cite{Wild2006RiskFF, Bohn2015ImpactOP}. The motivation for this investigation emerged from the growing global incidence of diabetes and established risk factors, namely obesity and lack of physical activity \cite{Akter2014PrevalenceOD, Lam2012TheWD}. 
+Our research aimed at uncovering the intertwined relationship between physical activity, BMI, and diabetes incidence, with a special focus on the potential moderation role of physical activity within the BMI-diabetes dynamic \cite{Bohn2015ImpactOP, Zhao2020PhysicalAL, Mora2007PhysicalAA}. We employed logistic regression models to get a granular understanding of these relationships \cite{Simmons2016EffectOP, Boruvka2016AssessingTC}.
 
-Employing the 2015 dataset from the Behavioral Risk Factor Surveillance System (BRFSS), we utilized logistic regression models to analyze the association while controlling for potential confounders. Crucial factors such as age, BMI, smoking status, high blood pressure, high cholesterol levels, education, and income were accounted for as these can confound the relationship between physical activity and diabetes prevalence \cite{Menard1996AppliedLR}.
+The outcomes revealed compelling insights: physical activity showed an inverse correlation with diabetes risk, with its beneficial effects amplifying within individuals with higher BMI \cite{Mao2022PhysicalAR, Kaizu2014ImpactOL}. This echoes existing studies emphasizing the deterrent role of physical activity towards metabolic risk factors, and in strengthening the body against conditions like diabetes \cite{Wahid2016QuantifyingTA}. Our results call for more extensive research to explore the interactive effects of BMI and physical activity, specifically focusing on outlining the best strategies to combat diabetes, a significant lifestyle disease \cite{Shi2013PhysicalAS}. 
 
-By contrast with prior research, our results demonstrated a marked negative association between physical activity and diabetes prevalence, substantiating previous findings in the literature \cite{Zhao2020PhysicalAL, Shi2013PhysicalAS}. Our study further innovates by revealing that BMI significantly strengthens the protective effect of physical activity against diabetes, thus heightening the contrast with previous studies that did not consider this interaction \cite{Bohn2015ImpactOP, Pi-Sunyer2007ReductionIW}.
+While our findings provide crucial insights, the limitations tied to our methodology necessitates careful interpretation of results. A significant limitation resides in the cross-sectional nature of the BRFSS dataset, which captures associations but falls short of establishing causal relationships. Future research, leveraging longitudinal datasets, can substantiate causality between physical activity, BMI, and diabetes \cite{Rask-Andersen2017GeneenvironmentIS}. The reliance on self-reported data also introduces potential biases due to possible under-reporting or misreporting of metrics such as physical exercise, BMI, or diabetes status.
 
-However, our study has several limitations to consider. Particularly, the application of self-reported data introduces the potential for bias and inaccuracies. The self-reported nature of many factors in our study is a common issue in diabetes-related explorations\cite{Akter2014PrevalenceOD}. Additionally, the cross-sectional design of our data prevents us from inferring causal relationships. The interplay between physical activity, diabetes prevalence, and BMI certainly has the potential to be influenced by other unmeasured factors.
+Regardless of the inherent limitations, our findings underscore the vital role of physical activity in diabetes prevention, pointing towards its amplified importance for those with high BMI. It signifies the importance of developing policies to promote an active lifestyle as a defense against the diabetes upsurge \cite{Aldossari2018PrevalenceOP, Casagrande2013ThePO}. Future investigations aimed at examining the impact of different intensities and types of physical activity could further enhance personalized, preventive health strategies.
 
-Despite these limitations, our findings offer invaluable insights into the relationship between diabetes prevalence, physical activity, and BMI. For populations experiencing a sharp increase in diabetes, our results underscore the urgent need for promoting physical activity, especially among individuals in higher BMI categories. 
-
-For future work, a longitudinal study design can provide comprehensive insights into the relationship dynamics between physical activity, BMI, and diabetes prevalence over time \cite{Chan1994ObesityFD, Singh2013TheAQ, Wild2006RiskFF}. Moreover, a deeper investigation into the role of different types of physical activity and potential mediators could be consequential in mitigating diabetes risk. Such studies would significantly contribute to the drafting of effective and inclusive public health strategies and policies.
+In summary, our research highlights the complex interplay of physical activity and BMI on diabetes prevalence. The evidence directs towards sound, sustainable health strategies with physical activity at their core, fortifying the global battle against diabetes \cite{Akter2014PrevalenceOD, Peer2012RisingDP}.
 
 \section*{Methods}
 
 \subsection*{Data Source}
-The dataset used in this study was obtained from the Behavioral Risk Factor Surveillance System (BRFSS) conducted by the Centers for Disease Control and Prevention (CDC) in the year 2015. The BRFSS is an annual health-related telephone survey that collects information on various health-related risk behaviors, chronic health conditions, and the use of preventative services from a large sample of Americans. The dataset used in this study consists of 253,680 responses with 22 features, including diabetes-related factors and demographic information.
+Our study utilized data from the Centers for Disease Control and Prevention's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. This dataset encompasses responses from over 250,000 participants across the United States and includes 22 key features related to health behaviors, chronic health conditions, and preventive health service utilization. This data set focuses specifically on diabetes-related factors, with the aim of providing insights into various determinants impacting the prevalence of diabetes within the adult population of the United States.
 
 \subsection*{Data Preprocessing}
-The dataset was preprocessed to ensure data quality. The original dataset was cleaned, removing any missing values. As a result, the final dataset used for analysis contained 253,680 responses with no missing values.
+Given that the provided dataset had already undergone an extensive data cleaning process by the CDC, our analysis began with a complete dataset free of missing values. The dataset’s 22 features comprised both binary and ordinal variables that included demographic, lifestyle, and health-related factors. No further pre-processing was deemed necessary, such as normalization or encoding, since the response variables were dichotomous and predictors included ordinal scales that were fed directly into the logistic regression analysis.
 
 \subsection*{Data Analysis}
-To investigate the relationship between physical activity and the prevalence of diabetes, logistic regression analysis was conducted. Logistic regression is a statistical approach used to model the relationship between a binary dependent variable (in this case, diabetes prevalence) and one or more independent variables (including physical activity and other potential confounders).
+Descriptive statistics were computed to characterize the level of physical activity among individuals with and without diabetes. This enabled an initial understanding of how physical activity varies across the two groups within our study population.
 
-Two separate logistic regression models were fitted to the dataset. These models were implemented using appropriate statistical software without specifying the specific version.
+Subsequently, we conducted logistic regression analyses to investigate the relationship between physical activity and diabetes prevalence, including a set of covariates such as age, BMI, smoking status, high blood pressure, high cholesterol, education, and income. This initial model provided insights into the independent association of physical activity with the likelihood of diabetes, controlling for other plausible confounders.
 
-The first logistic regression model examined the association between physical activity and diabetes prevalence. This model included physical activity as the main independent variable, controlling for potential confounding factors such as age, smoking status, body mass index (BMI), high blood pressure, high cholesterol, education level, and income.
+To explore the moderating effect of BMI on the relationship between physical activity and diabetes prevalence, an interaction term between physical activity and BMI was introduced into the logistic regression framework. This model augmentation allowed us to discern whether the strength of association between physical activity and the prevalence of diabetes was conditioned upon the level of an individual's BMI.
 
-The second logistic regression model aimed to explore the moderating effect of BMI on the association between physical activity and diabetes prevalence. In addition to the variables included in the first model, this model included an interaction term between physical activity and BMI. This interaction term allows us to assess whether the relationship between physical activity and diabetes prevalence differs for individuals with different BMI levels.
-
-The logistic regression models were fitted using maximum likelihood estimation, which is a common method for estimating the parameters in logistic regression. Odds ratios (ORs) and corresponding 95\% confidence intervals (CIs) were calculated to quantify the strength and significance of the associations. Pseudo R-squared values were also calculated to assess the goodness of fit of the models.
-
-All analyses were performed using appropriate statistical software, and the resulting tables and additional results were saved for further use.\subsection*{Code Availability}
+The two models' performance was assessed using appropriate statistical measures, and findings from these models interpreted to form conclusions germane to our research hypotheses. It is through these analytical stages that we have articulated the relationship between physical activity, BMI, and diabetes prevalence within the context of the studied cohort.\subsection*{Code Availability}
 
 Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
 
 
 \clearpage
@@ -188,67 +248,51 @@ Custom code used to perform the data preprocessing and analysis, as well as the 
 
 \section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
 
-\begin{Verbatim}[tabsize=4]
-The dataset includes diabetes related factors extracted from the CDC's
-	Behavioral Risk Factor Surveillance System (BRFSS), year 2015.
-The original BRFSS, from which this dataset is derived, is a health-related
-	telephone survey that is collected annually by the CDC.
-Each year, the survey collects responses from over 400,000 Americans on health-
-	related risk behaviors, chronic health conditions, and the use of preventative
-	services. These features are either questions directly asked of participants, or
-	calculated variables based on individual participant responses.
+\begin{codeoutput}
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)The dataset includes diabetes related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS), year (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2015.
+The original BRFSS, from which this dataset is derived, is a health-related telephone survey that is collected annually by the CDC.
+Each year, the survey collects responses from over (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.
 
 
 1 data file:
 
 "diabetes_binary_health_indicators_BRFSS2015.csv"
-The csv file is a clean dataset of 253,680 responses (rows) and 22 features
-	(columns).
-All rows with missing values were removed from the original dataset; the current
-	file contains no missing values.
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The csv file is a clean dataset of (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)253,680 responses (rows) and (*@\raisebox{2ex}{\hypertarget{T0b}{}}@*)22 features (columns).
+All rows with missing values were removed from the original dataset; the current file contains no missing values.
 
 The columns in the dataset are:
 
-#1 `Diabetes_binary`: (int, bool) Diabetes (0=no, 1=yes)
-#2 `HighBP`: (int, bool) High Blood Pressure (0=no, 1=yes)
-#3 `HighChol`: (int, bool) High Cholesterol (0=no, 1=yes)
-#4 `CholCheck`: (int, bool) Cholesterol check in 5 years (0=no, 1=yes)
+#1 `Diabetes_binary`: (int, bool) Diabetes ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=yes)
+#2 `HighBP`: (int, bool) High Blood Pressure ((*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)1=yes)
+#3 `HighChol`: (int, bool) High Cholesterol ((*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)1=yes)
+#4 `CholCheck`: (int, bool) Cholesterol check in (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T4c}{}}@*)1=yes)
 #5 `BMI`: (int, numerical) Body Mass Index
-#6 `Smoker`: (int, bool) (0=no, 1=yes)
-#7 `Stroke`: (int, bool) Stroke (0=no, 1=yes)
-#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or
-	myocardial infarction (MI), (0=no, 1=yes)
-#9 `PhysActivity`: (int, bool) Physical Activity in past 30 days (0=no, 1=yes)
-#10 `Fruits`: (int, bool) Consume one fruit or more each day (0=no, 1=yes)
-#11 `Veggies`: (int, bool) Consume one Vegetable or more each day (0=no, 1=yes)
-#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers (0=no, 1=yes)
-#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage (0=no,
-	1=yes)
-#14 `NoDocbcCost` (int, bool) Was there a time in the past 12 months when you
-	needed to see a doctor but could not because of cost? (0=no, 1=yes)
-#15 `GenHlth` (int, ordinal) self-reported health (1=excellent, 2=very good,
-	3=good, 4=fair, 5=poor)
-#16 `MentHlth` (int, ordinal) How many days during the past 30 days was your
-	mental health not good? (1-30 days)
-#17 `PhysHlth` (int, ordinal) Hor how many days during the past 30 days was your
-	physical health not good? (1-30 days)
-#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing
-	stairs? (0=no, 1=yes)
-#19 `Sex` (int, categorical) Sex (0=female, 1=male)
-#20 `Age` (int, ordinal) Age, 13-level age category in intervals of 5 years
-	(1=18-24, 2=25-29, ..., 12=75-79, 13=80 or older)
-#21 `Education` (int, ordinal) Education level on a scale of 1-6 (1=Never
-	attended school, 2=Elementary, 3=Some high school, 4=High school, 5=Some
-	college, 6=College)
-#22 `Income` (int, ordinal) Income scale on a scale of 1-8 (1=<=10K, 2=<=15K,
-	3=<=20K, 4=<=25K, 5=<=35K, 6=<=50K, 7=<=75K, 8=>75K)
+#6 `Smoker`: (int, bool) ((*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)1=yes)
+#7 `Stroke`: (int, bool) Stroke ((*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)1=yes)
+#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), ((*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)1=yes)
+#9 `PhysActivity`: (int, bool) Physical Activity in past (*@\raisebox{2ex}{\hypertarget{T8a}{}}@*)30 days ((*@\raisebox{2ex}{\hypertarget{T8b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T8c}{}}@*)1=yes)
+#10 `Fruits`: (int, bool) Consume one fruit or more each day ((*@\raisebox{2ex}{\hypertarget{T9a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T9b}{}}@*)1=yes)
+#11 `Veggies`: (int, bool) Consume one Vegetable or more each day ((*@\raisebox{2ex}{\hypertarget{T10a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T10b}{}}@*)1=yes)
+#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers ((*@\raisebox{2ex}{\hypertarget{T11a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T11b}{}}@*)1=yes)
+#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage ((*@\raisebox{2ex}{\hypertarget{T12a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T12b}{}}@*)1=yes)
+#14 `NoDocbcCost` (int, bool) Was there a time in the past (*@\raisebox{2ex}{\hypertarget{T13a}{}}@*)12 months when you needed to see a doctor but could not because of cost? ((*@\raisebox{2ex}{\hypertarget{T13b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T13c}{}}@*)1=yes)
+#15 `GenHlth` (int, ordinal) self-reported health ((*@\raisebox{2ex}{\hypertarget{T14a}{}}@*)1=excellent, (*@\raisebox{2ex}{\hypertarget{T14b}{}}@*)2=very good, (*@\raisebox{2ex}{\hypertarget{T14c}{}}@*)3=good, (*@\raisebox{2ex}{\hypertarget{T14d}{}}@*)4=fair, (*@\raisebox{2ex}{\hypertarget{T14e}{}}@*)5=poor)
+#16 `MentHlth` (int, ordinal) How many days during the past (*@\raisebox{2ex}{\hypertarget{T15a}{}}@*)30 days was your mental health not good? ((*@\raisebox{2ex}{\hypertarget{T15b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T15c}{}}@*)30 days)
+#17 `PhysHlth` (int, ordinal) Hor how many days during the past (*@\raisebox{2ex}{\hypertarget{T16a}{}}@*)30 days was your physical health not good? ((*@\raisebox{2ex}{\hypertarget{T16b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T16c}{}}@*)30 days)
+#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing stairs? ((*@\raisebox{2ex}{\hypertarget{T17a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T17b}{}}@*)1=yes)
+#19 `Sex` (int, categorical) Sex ((*@\raisebox{2ex}{\hypertarget{T18a}{}}@*)0=female, (*@\raisebox{2ex}{\hypertarget{T18b}{}}@*)1=male)
+#20 `Age` (int, ordinal) Age, (*@\raisebox{2ex}{\hypertarget{T19a}{}}@*)13-level age category in intervals of (*@\raisebox{2ex}{\hypertarget{T19b}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T19c}{}}@*)1= (*@\raisebox{2ex}{\hypertarget{T19d}{}}@*)18 - (*@\raisebox{2ex}{\hypertarget{T19e}{}}@*)24, (*@\raisebox{2ex}{\hypertarget{T19f}{}}@*)2= (*@\raisebox{2ex}{\hypertarget{T19g}{}}@*)25 - (*@\raisebox{2ex}{\hypertarget{T19h}{}}@*)29, ..., (*@\raisebox{2ex}{\hypertarget{T19i}{}}@*)12= (*@\raisebox{2ex}{\hypertarget{T19j}{}}@*)75 - (*@\raisebox{2ex}{\hypertarget{T19k}{}}@*)79, (*@\raisebox{2ex}{\hypertarget{T19l}{}}@*)13 = (*@\raisebox{2ex}{\hypertarget{T19m}{}}@*)80 or older)
+#21 `Education` (int, ordinal) Education level on a scale of (*@\raisebox{2ex}{\hypertarget{T20a}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T20b}{}}@*)6 ((*@\raisebox{2ex}{\hypertarget{T20c}{}}@*)1=Never attended school, (*@\raisebox{2ex}{\hypertarget{T20d}{}}@*)2=Elementary, (*@\raisebox{2ex}{\hypertarget{T20e}{}}@*)3=Some high school, (*@\raisebox{2ex}{\hypertarget{T20f}{}}@*)4=High school, (*@\raisebox{2ex}{\hypertarget{T20g}{}}@*)5=Some college, (*@\raisebox{2ex}{\hypertarget{T20h}{}}@*)6=College)
+#22 `Income` (int, ordinal) Income scale on a scale of (*@\raisebox{2ex}{\hypertarget{T21a}{}}@*)1 to (*@\raisebox{2ex}{\hypertarget{T21b}{}}@*)8 ((*@\raisebox{2ex}{\hypertarget{T21c}{}}@*)1= <=(*@\raisebox{2ex}{\hypertarget{T21d}{}}@*)10K, (*@\raisebox{2ex}{\hypertarget{T21e}{}}@*)2= <=(*@\raisebox{2ex}{\hypertarget{T21f}{}}@*)15K, (*@\raisebox{2ex}{\hypertarget{T21g}{}}@*)3= <=(*@\raisebox{2ex}{\hypertarget{T21h}{}}@*)20K, (*@\raisebox{2ex}{\hypertarget{T21i}{}}@*)4= <=(*@\raisebox{2ex}{\hypertarget{T21j}{}}@*)25K, (*@\raisebox{2ex}{\hypertarget{T21k}{}}@*)5= <=(*@\raisebox{2ex}{\hypertarget{T21l}{}}@*)35K, (*@\raisebox{2ex}{\hypertarget{T21m}{}}@*)6= <=(*@\raisebox{2ex}{\hypertarget{T21n}{}}@*)50K, (*@\raisebox{2ex}{\hypertarget{T21o}{}}@*)7= <=(*@\raisebox{2ex}{\hypertarget{T21p}{}}@*)75K, (*@\raisebox{2ex}{\hypertarget{T21q}{}}@*)8= >75K)
 
 
-\end{Verbatim}
+\end{codeoutput}
 
-\section{Data Exploration} \subsection{Code}The Data Exploration was carried out using the following custom code:
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
 
-\begin{minted}[linenos, breaklines]{python}
+\begin{python}
 
 import pandas as pd
 import numpy as np
@@ -257,7 +301,7 @@ import numpy as np
 df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 
 # Open the output file
-with open("data_exploration.txt", "w") as out_file:
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open("data_exploration.txt", "w") as out_file:
     
     # Data Size
     out_file.write("# Data Size\n")
@@ -300,7 +344,7 @@ with open("data_exploration.txt", "w") as out_file:
 # Close the output file
 out_file.close()
 
-\end{minted}
+\end{python}
 
 \subsection{Code Description}
 
@@ -327,11 +371,11 @@ Finally, the code writes the output to a text file named "data\_exploration.txt"
 
 The information provided in the "data\_exploration.txt" file can be used to understand the structure and distribution of the dataset, identify any data quality issues such as missing values, and gain initial insights for further analysis.
 
-\subsection{Code Output}
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
 
-\subsubsection*{data\_exploration.txt}
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
 # Data Size
 Number of Rows: 253680
 Number of Columns: 22
@@ -392,11 +436,13 @@ Count and Percentage for Each Class of Target Variable are as follows:
 Class 0: Count = 218334, Percentage = 86.07            %
 Class 1: Count = 35346, Percentage = 13.93             %
 
-\end{Verbatim}
+\end{codeoutput}
 
-\section{Data Analysis} \subsection{Code}The Data Analysis was carried out using the following custom code:
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
 
-\begin{minted}[linenos, breaklines]{python}
+\begin{python}
 
 # IMPORT
 import pandas as pd
@@ -412,7 +458,7 @@ df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 # Nor does the dataset require any aggregated operations or dataset joining operations.
 
 # DESCRIPTIVE STATISTICS
-## Table 0: "Descriptive statistics of Physical Activity stratified by Diabetes"
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of Physical Activity stratified by Diabetes"
 df0 = df.groupby('Diabetes_binary')['PhysActivity'].agg(['mean', 'std'])
 df0.index = ['No Diabetes', 'Diabetes']
 df0.to_pickle('table_0.pkl')
@@ -422,19 +468,19 @@ df0.to_pickle('table_0.pkl')
 # The numerical features do not require normalization or standardization as they will be fed to a logistic regression model that is agnostic to the scale of the features.
 
 # ANALYSIS
-## Table 1: "Association between physical activity and diabetes prevalence"
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Association between physical activity and diabetes prevalence"
 formula = "Diabetes_binary ~ PhysActivity + Age + BMI + Smoker + HighBP + HighChol + Education + Income"
 model1 = smf.logit(formula, data=df).fit()
 df1 = model1.summary2().tables[1]
 df1.to_pickle('table_1.pkl')
 
-## Table 2: "Moderating effect of BMI on the association between physical activity and diabetes prevalence"
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Moderating effect of BMI on the association between physical activity and diabetes prevalence"
 formula = "Diabetes_binary ~ PhysActivity*BMI + Age + BMI + Smoker + HighBP + HighChol + Education + Income"
 model2 = smf.logit(formula, data=df).fit()
 df2 = model2.summary2().tables[1] 
 df2.to_pickle('table_2.pkl')
 
-# SAVE ADDITIONAL RESULTS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
 additional_results = {
  'Total number of observations': df.shape[0], 
  'Pseudo R-squ of model1': model1.prsquared,
@@ -444,180 +490,210 @@ additional_results = {
 with open('additional_results.pkl', 'wb') as f:
  pickle.dump(additional_results, f)
 
-\end{minted}
+\end{python}
 
 \subsection{Code Description}
 
-The code performs data analysis on a dataset of diabetes-related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015.
+The provided code performs data analysis on a dataset containing diabetes-related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. The code follows the following steps:
 
-First, the code loads the dataset into a pandas DataFrame. The dataset is already clean and contains no missing values.
+1. Loading the dataset: 
+   The code reads the dataset from the "diabetes\_binary\_health\_indicators\_BRFSS2015.csv" file using the pandas library.
 
-Descriptive statistics are then calculated for the variable "Physical Activity" stratified by the presence of diabetes. The mean and standard deviation of physical activity are calculated for both the group with diabetes and the group without diabetes.
+2. Descriptive Statistics:
+   The code computes descriptive statistics of the physical activity variable stratified by the presence or absence of diabetes. It calculates the mean and standard deviation of physical activity for both groups and saves the results in the "table\_0.pkl" pickle file.
 
-Next, the code prepares the data for analysis. Since the dataset is already clean, no additional preprocessing is required. The variables in the dataset are either binary or ordinal, and there are no categorical variables that need to be transformed into dummy variables. The numerical features do not require normalization or standardization as they will be used in a logistic regression model, which is scale-agnostic.
+3. Preprocessing:
+   Since the dataset has already been cleaned and contains no missing values, no further preprocessing steps are needed. The variables in the dataset are either binary or ordinal, so there is no need to create dummy variables or perform normalization or standardization.
 
-The code then performs two separate analyses using logistic regression models. 
+4. Analysis:
+   The code performs two analyses using logistic regression models:
 
-In the first analysis, the code examines the association between physical activity and diabetes prevalence while controlling for other variables such as age, body mass index (BMI), smoking status, high blood pressure, high cholesterol, education, and income. The logistic regression model is fitted using the formula "Diabetes\_binary \textasciitilde{} PhysActivity + Age + BMI + Smoker + HighBP + HighChol + Education + Income". The results of this analysis, including the coefficients and p-values for each variable, are saved in a DataFrame.
+   a. Association between physical activity and diabetes prevalence:
+      The code fits a logistic regression model that predicts diabetes prevalence based on physical activity, age, BMI, smoker status, high blood pressure, high cholesterol, education level, and income. It saves the model summary, which includes coefficients, odds ratios, p-values, and other statistics, in the "table\_1.pkl" pickle file.
 
-In the second analysis, the code investigates whether the association between physical activity and diabetes prevalence is moderated by BMI. This is done by including an interaction term between physical activity and BMI in the logistic regression model. The formula for this model is "Diabetes\_binary \textasciitilde{} PhysActivity*BMI + Age + BMI + Smoker + HighBP + HighChol + Education + Income". The results of this analysis are also saved in a DataFrame.
+   b. Moderating effect of BMI on the association between physical activity and diabetes prevalence:
+      The code fits another logistic regression model that includes an interaction term between physical activity and BMI to examine whether BMI moderates the association between physical activity and diabetes prevalence. It saves the model summary in the "table\_2.pkl" pickle file.
 
-Finally, the code saves additional results in a pickle file named "additional\_results.pkl". These results include the total number of observations in the dataset, as well as the pseudo R-squared values for both logistic regression models.
+5. Saving Additional Results:
+   The code saves additional results in the "additional\_results.pkl" pickle file. These results include the total number of observations in the dataset, as well as the pseudo R-squared values for both logistic regression models.
 
-Overall, the code performs exploratory analysis and hypothesis testing to examine the associations between physical activity, diabetes prevalence, and other relevant variables in the dataset. The logistic regression models provide insights into the relationships and potential moderating effects, while the additional results provide summary statistics and model evaluation metrics.
+Overall, the code analyzes the relationship between physical activity and diabetes prevalence, considering the effects of other variables such as age, BMI, smoker status, and socioeconomic factors. It also explores the potential moderating effect of BMI on this relationship. The results of the analysis, including descriptive statistics and logistic regression model summaries, are saved for further interpretation and reporting.
 
-\subsection{Code Output}
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
 
-\subsubsection*{table\_0.pkl}
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
               mean    std
 No Diabetes 0.7769 0.4163
 Diabetes    0.6305 0.4827
-\end{Verbatim}
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
 
-\subsubsection*{table\_1.pkl}
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
 
-\begin{Verbatim}[tabsize=4]
-                Coef.  Std.Err.      z       P>|z|   [0.025   0.975]
-Intercept      -4.783   0.05257 -90.99           0   -4.886    -4.68
-PhysActivity  -0.2318   0.01358 -17.07   2.537e-65  -0.2584  -0.2052
-Age             0.132  0.002561  51.53           0   0.1269    0.137
-BMI           0.06963 0.0008814     79           0   0.0679  0.07135
-Smoker        0.09853   0.01257  7.837    4.62e-15  0.07389   0.1232
-HighBP         0.9511   0.01439  66.07           0   0.9229   0.9793
-HighChol       0.6933   0.01322  52.42           0   0.6674   0.7192
-Education    -0.08583  0.006756  -12.7   5.562e-37 -0.09907 -0.07259
-Income        -0.1103    0.0032 -34.48  1.672e-260  -0.1166   -0.104
-\end{Verbatim}
+\begin{codeoutput}
+                Coef.  Std.Err.      z      P>|z|   [0.025   0.975]
+Intercept      -4.783   0.05257 -90.99          0   -4.886    -4.68
+PhysActivity  -0.2318   0.01358 -17.07   2.54e-65  -0.2584  -0.2052
+Age             0.132  0.002561  51.53          0   0.1269    0.137
+BMI           0.06963 0.0008814     79          0   0.0679  0.07135
+Smoker        0.09853   0.01257  7.837   4.62e-15  0.07389   0.1232
+HighBP         0.9511   0.01439  66.07          0   0.9229   0.9793
+HighChol       0.6933   0.01322  52.42          0   0.6674   0.7192
+Education    -0.08583  0.006756  -12.7   5.56e-37 -0.09907 -0.07259
+Income        -0.1103    0.0032 -34.48  1.67e-260  -0.1166   -0.104
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
 
-\subsubsection*{table\_2.pkl}
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
 
-\begin{Verbatim}[tabsize=4]
-                    Coef. Std.Err.      z       P>|z|   [0.025   0.975]
-Intercept          -4.612  0.06173 -74.72           0   -4.733   -4.491
-PhysActivity      -0.5142  0.05584 -9.209   3.307e-20  -0.6236  -0.4047
-BMI               0.06402 0.001384  46.27           0  0.06131  0.06674
-PhysActivity:BMI 0.009064  0.00174  5.209   1.897e-07 0.005654  0.01247
-Age                0.1323 0.002562  51.63           0   0.1272   0.1373
-Smoker            0.09765  0.01257  7.767   8.023e-15  0.07301   0.1223
-HighBP             0.9498   0.0144  65.97           0   0.9216    0.978
-HighChol           0.6931  0.01322  52.42           0   0.6672    0.719
-Education        -0.08471 0.006757 -12.54   4.677e-36 -0.09796 -0.07147
-Income            -0.1102 0.003199 -34.44  5.886e-260  -0.1164  -0.1039
-\end{Verbatim}
+\begin{codeoutput}
+                    Coef. Std.Err.      z      P>|z|   [0.025   0.975]
+Intercept          -4.612  0.06173 -74.72          0   -4.733   -4.491
+PhysActivity      -0.5142  0.05584 -9.209   3.31e-20  -0.6236  -0.4047
+BMI               0.06402 0.001384  46.27          0  0.06131  0.06674
+PhysActivity:BMI 0.009064  0.00174  5.209    1.9e-07 0.005654  0.01247
+Age                0.1323 0.002562  51.63          0   0.1272   0.1373
+Smoker            0.09765  0.01257  7.767   8.02e-15  0.07301   0.1223
+HighBP             0.9498   0.0144  65.97          0   0.9216    0.978
+HighChol           0.6931  0.01322  52.42          0   0.6672    0.719
+Education        -0.08471 0.006757 -12.54   4.68e-36 -0.09796 -0.07147
+Income            -0.1102 0.003199 -34.44  5.89e-260  -0.1164  -0.1039
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
 
-\subsubsection*{additional\_results.pkl}
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
 {
-    'Total number of observations': 253680,
-    'Pseudo R-squ of model1': 0.1677             ,
-    'Pseudo R-squ of model2': 0.1678            ,
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)253680,
+    'Pseudo R-squ of model1': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)0.1677             ,
+    'Pseudo R-squ of model2': (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)0.1678            ,
 }
-\end{Verbatim}
+\end{codeoutput}
 
-\section{LaTeX Table Design} \subsection{Code}The LaTeX Table Design was carried out using the following custom code:
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
 
-\begin{minted}[linenos, breaklines]{python}
+\begin{python}
 
 # IMPORT
 import pandas as pd
-from typing import Dict, Tuple, Optional
-from my_utils import to_latex_with_note, format_p_value
-
-Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
-
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+from typing import Optional, Dict, Any, Tuple
 
 # PREPARATION FOR ALL TABLES
-def split_mapping(d: Mapping):
-    abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
-    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
-    return abbrs_to_names, names_to_definitions
-
-shared_mapping: Mapping = {
-    'PhysActivity': ('Physical Act.', '0: No activity, 1: Any activity'),
-    'BMI': ('BMI', "Body Mass Index"),
-    'Age': ('Age', 'Age in intervals of 5 years. 1: 18-24 --> 13: 80+ yrs'),
-    'Smoker': ('Smoker', '0: Non-smoker, 1: Smoker'),
-    'HighBP': ('High BP', '0: No high BP, 1: High BP'),
-    'HighChol': ('High Chol', '0: No high chol, 1: High chol'),
-    'Education': ('Ed.', 'Education level. 1: None --> 6: College'),
-    'Income': ('Income', 'Income category. 1: <=10K --> 8: >75K'),
-    'Coef.': ('Coef.', None),
-    'Std.Err.': ('Std.Err.', None),
-    'z': ('Z', 'Standardized test statistic'),
-    'P>|z|': ('P-value', 'Significance level of the Z statistic')
+shared_mapping: AbbrToNameDef = {
+    'Coef.': ('Coeff.', 'Coefficient of the logistic regression model'),
+    'Std.Err.': ('Std. Err.', None),
+    'P>|z|': ('Pval', 'P-value'),
+    '[0.025': ('CI LB', '95% Confidence Interval Lower Bound'),
+    '0.975]': ('CI UB', '95% Confidence Interval Upper Bound'),
+    'Age': (None, '13-level age category'),
+    'BMI': (None, 'Body Mass Index'),
+    'Income': (None, 'Income level, 1 to 8'),
+    'Education': (None, 'Education level, 1 to 6'),
+    'HighBP': (None, 'High Blood Pressure (0=no, 1=yes)'),
+    'HighChol': (None, 'High Cholesterol (0=no, 1=yes)'),
+    'PhysActivity': (None, 'Physical Activity in past 30 days (0=no, 1=yes)'),
+    'z': ('z-stat', None),
 }
 
-# TABLE 0:
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
 df0 = pd.read_pickle('table_0.pkl')
 
-mapping0 = {'mean': ('Mean', None), 'std': ('Std.Dev', None)}
-abbrs_to_names, legend = split_mapping(mapping0)
-df0.rename(columns=abbrs_to_names, index=abbrs_to_names, inplace=True)
+# RENAME ROWS AND COLUMNS
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
 
+# SAVE AS LATEX:
 to_latex_with_note(
-    df0, 
-    'table_0.tex', 
-    caption="Descriptive statistics of Physical Activity stratified by Diabetes", 
-    label='table:descriptive_statistics_0',
-    legend=legend)
+    df0, 'table_0.tex',
+    caption="Descriptive Statistics of Physical Activity Stratified by Diabetes Presence", 
+    label='table:desc_stats',
+    legend=legend0)
 
-# TABLE 1:
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
 df1 = pd.read_pickle('table_1.pkl')
-abbrs_to_names, legend = split_mapping(shared_mapping)
-df1.rename(columns=abbrs_to_names, index=abbrs_to_names, inplace=True)
 
-# FORMAT VALUES
-df1['P-value'] = df1['P-value'].apply(format_p_value)
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
 
+# SAVE AS LATEX:
 to_latex_with_note(
-    df1, 
-    'table_1.tex',
-    caption="Association between  physical activity and diabetes prevalence",
-    label='table:activity_and_diabetes_1',
-    legend=legend)
+    df1, 'table_1.tex',
+    caption="Association Between Physical Activity and Diabetes Prevalence", 
+    label='table:assoc_pa_diabetes',
+    legend=legend1)
 
-# TABLE 2:
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
 df2 = pd.read_pickle('table_2.pkl')
 
-mapping2 = dict(shared_mapping.items())
-mapping2.update({
-    'PhysActivity:BMI': ('Activity*BMI', "Interaction term between physical activity and BMI"),
-})
+# RENAME ROWS AND COLUMNS
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+mapping2 |= {
+    'PhysActivity:BMI': ('PA * BMI', 'Interaction term, Physical Activity and BMI'),
+}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
 
-abbrs_to_names, legend = split_mapping(mapping2)
-df2.rename(columns=abbrs_to_names, index=abbrs_to_names, inplace=True)
-
-# FORMAT VALUES
-df2['P-value'] = df2['P-value'].apply(format_p_value)
-
+# SAVE AS LATEX:
 to_latex_with_note(
-    df2, 
-    'table_2.tex',
-    caption="Moderating effect of BMI on the association between physical activity and diabetes",
-    label='table:activity_and_diabetes_2',
-    legend=legend)
+    df2, 'table_2.tex',
+    caption="Moderating Effect of BMI on the Association Between Physical Activity and Diabetes Prevalence", 
+    label='table:mod_effect',
+    legend=legend2)
 
-\end{minted}
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
 
 
 
 \subsection{Code Output}
 
-\subsubsection*{table\_0.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_0.pkl`
 \begin{table}[h]
-\caption{Descriptive statistics of Physical Activity stratified by Diabetes}
-\label{table:descriptive_statistics_0}
+\caption{Descriptive Statistics of Physical Activity Stratified by Diabetes Presence}
+\label{table:desc_stats}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lrr}
 \toprule
- & Mean & Std.Dev \\
+ & mean & std \\
 \midrule
 \textbf{No Diabetes} & 0.777 & 0.416 \\
 \textbf{Diabetes} & 0.631 & 0.483 \\
@@ -625,103 +701,107 @@ to_latex_with_note(
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item
+\item 
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
+\end{codeoutput}
 
-\subsubsection*{table\_1.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_1.pkl`
 \begin{table}[h]
-\caption{Association between  physical activity and diabetes prevalence}
-\label{table:activity_and_diabetes_1}
+\caption{Association Between Physical Activity and Diabetes Prevalence}
+\label{table:assoc_pa_diabetes}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coef. & Std.Err. & Z & P-value & [0.025 & 0.975] \\
+ & Coeff. & Std. Err. & z-stat & Pval & CI LB & CI UB \\
 \midrule
 \textbf{Intercept} & -4.78 & 0.0526 & -91 & $<$1e-06 & -4.89 & -4.68 \\
-\textbf{Physical Act.} & -0.232 & 0.0136 & -17.1 & $<$1e-06 & -0.258 & -0.205 \\
+\textbf{PhysActivity} & -0.232 & 0.0136 & -17.1 & $<$1e-06 & -0.258 & -0.205 \\
 \textbf{Age} & 0.132 & 0.00256 & 51.5 & $<$1e-06 & 0.127 & 0.137 \\
 \textbf{BMI} & 0.0696 & 0.000881 & 79 & $<$1e-06 & 0.0679 & 0.0714 \\
 \textbf{Smoker} & 0.0985 & 0.0126 & 7.84 & $<$1e-06 & 0.0739 & 0.123 \\
-\textbf{High BP} & 0.951 & 0.0144 & 66.1 & $<$1e-06 & 0.923 & 0.979 \\
-\textbf{High Chol} & 0.693 & 0.0132 & 52.4 & $<$1e-06 & 0.667 & 0.719 \\
-\textbf{Ed.} & -0.0858 & 0.00676 & -12.7 & $<$1e-06 & -0.0991 & -0.0726 \\
+\textbf{HighBP} & 0.951 & 0.0144 & 66.1 & $<$1e-06 & 0.923 & 0.979 \\
+\textbf{HighChol} & 0.693 & 0.0132 & 52.4 & $<$1e-06 & 0.667 & 0.719 \\
+\textbf{Education} & -0.0858 & 0.00676 & -12.7 & $<$1e-06 & -0.0991 & -0.0726 \\
 \textbf{Income} & -0.11 & 0.0032 & -34.5 & $<$1e-06 & -0.117 & -0.104 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item \textbf{Physical Act.}: 0: No activity, 1: Any activity
+\item \textbf{Coeff.}: Coefficient of the logistic regression model
+\item \textbf{Pval}: P-value
+\item \textbf{CI LB}: 95\% Confidence Interval Lower Bound
+\item \textbf{CI UB}: 95\% Confidence Interval Upper Bound
+\item \textbf{Age}: 13-level age category
 \item \textbf{BMI}: Body Mass Index
-\item \textbf{Age}: Age in intervals of 5 years. 1: 18-24 --$>$ 13: 80+ yrs
-\item \textbf{Smoker}: 0: Non-smoker, 1: Smoker
-\item \textbf{High BP}: 0: No high BP, 1: High BP
-\item \textbf{High Chol}: 0: No high chol, 1: High chol
-\item \textbf{Ed.}: Education level. 1: None --$>$ 6: College
-\item \textbf{Income}: Income category. 1: $<$=10K --$>$ 8: $>$75K
-\item \textbf{Z}: Standardized test statistic
-\item \textbf{P-value}: Significance level of the Z statistic
+\item \textbf{Income}: Income level, 1 to 8
+\item \textbf{Education}: Education level, 1 to 6
+\item \textbf{HighBP}: High Blood Pressure (0=no, 1=yes)
+\item \textbf{HighChol}: High Cholesterol (0=no, 1=yes)
+\item \textbf{PhysActivity}: Physical Activity in past 30 days (0=no, 1=yes)
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
+\end{codeoutput}
 
-\subsubsection*{table\_2.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_2.pkl`
 \begin{table}[h]
-\caption{Moderating effect of BMI on the association between physical activity
-	and diabetes}
-\label{table:activity_and_diabetes_2}
+\caption{Moderating Effect of BMI on the Association Between Physical Activity and Diabetes Prevalence}
+\label{table:mod_effect}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coef. & Std.Err. & Z & P-value & [0.025 & 0.975] \\
+ & Coeff. & Std. Err. & z-stat & Pval & CI LB & CI UB \\
 \midrule
 \textbf{Intercept} & -4.61 & 0.0617 & -74.7 & $<$1e-06 & -4.73 & -4.49 \\
-\textbf{Physical Act.} & -0.514 & 0.0558 & -9.21 & $<$1e-06 & -0.624 & -0.405 \\
+\textbf{PhysActivity} & -0.514 & 0.0558 & -9.21 & $<$1e-06 & -0.624 & -0.405 \\
 \textbf{BMI} & 0.064 & 0.00138 & 46.3 & $<$1e-06 & 0.0613 & 0.0667 \\
-\textbf{Activity*BMI} & 0.00906 & 0.00174 & 5.21 & $<$1e-06 & 0.00565 & 0.0125
-	\\
+\textbf{PA * BMI} & 0.00906 & 0.00174 & 5.21 & $<$1e-06 & 0.00565 & 0.0125 \\
 \textbf{Age} & 0.132 & 0.00256 & 51.6 & $<$1e-06 & 0.127 & 0.137 \\
 \textbf{Smoker} & 0.0977 & 0.0126 & 7.77 & $<$1e-06 & 0.073 & 0.122 \\
-\textbf{High BP} & 0.95 & 0.0144 & 66 & $<$1e-06 & 0.922 & 0.978 \\
-\textbf{High Chol} & 0.693 & 0.0132 & 52.4 & $<$1e-06 & 0.667 & 0.719 \\
-\textbf{Ed.} & -0.0847 & 0.00676 & -12.5 & $<$1e-06 & -0.098 & -0.0715 \\
+\textbf{HighBP} & 0.95 & 0.0144 & 66 & $<$1e-06 & 0.922 & 0.978 \\
+\textbf{HighChol} & 0.693 & 0.0132 & 52.4 & $<$1e-06 & 0.667 & 0.719 \\
+\textbf{Education} & -0.0847 & 0.00676 & -12.5 & $<$1e-06 & -0.098 & -0.0715 \\
 \textbf{Income} & -0.11 & 0.0032 & -34.4 & $<$1e-06 & -0.116 & -0.104 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item \textbf{Physical Act.}: 0: No activity, 1: Any activity
+\item \textbf{Coeff.}: Coefficient of the logistic regression model
+\item \textbf{Pval}: P-value
+\item \textbf{CI LB}: 95\% Confidence Interval Lower Bound
+\item \textbf{CI UB}: 95\% Confidence Interval Upper Bound
+\item \textbf{Age}: 13-level age category
 \item \textbf{BMI}: Body Mass Index
-\item \textbf{Age}: Age in intervals of 5 years. 1: 18-24 --$>$ 13: 80+ yrs
-\item \textbf{Smoker}: 0: Non-smoker, 1: Smoker
-\item \textbf{High BP}: 0: No high BP, 1: High BP
-\item \textbf{High Chol}: 0: No high chol, 1: High chol
-\item \textbf{Ed.}: Education level. 1: None --$>$ 6: College
-\item \textbf{Income}: Income category. 1: $<$=10K --$>$ 8: $>$75K
-\item \textbf{Z}: Standardized test statistic
-\item \textbf{P-value}: Significance level of the Z statistic
-\item \textbf{Activity*BMI}: Interaction term between physical activity and BMI
+\item \textbf{Income}: Income level, 1 to 8
+\item \textbf{Education}: Education level, 1 to 6
+\item \textbf{HighBP}: High Blood Pressure (0=no, 1=yes)
+\item \textbf{HighChol}: High Cholesterol (0=no, 1=yes)
+\item \textbf{PhysActivity}: Physical Activity in past 30 days (0=no, 1=yes)
+\item \textbf{PA * BMI}: Interaction term, Physical Activity and BMI
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
+\end{codeoutput}
 
+\section{Notes}
 
-\bibliographystyle{unsrt}
-\bibliography{citations}
+\noindent
+
+\raisebox{2ex}{\hypertarget{results0}{}}exp(\hyperlink{B1a}{-0.232}) = 0.7929
 
 \end{document}
