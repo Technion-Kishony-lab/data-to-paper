@@ -328,43 +328,6 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
     code_review_prompts: Iterable[Tuple[str, bool, str]] = (
         (None, False, dedent_triple_quote_str("""
-        The code runs ok, but I am worried that it may contain some fundamental mathematical or statistical \t
-        flaws. To check for such flaws, I will need you to carefully follow these two steps:
-
-        (1) Deeply check your Python code for any fundamental coding/mathematical/statistical flaws \t
-        and return a bullet-point response addressing these points (as applicable):
-        
-        * WRONG FORMULA:
-        - List all key mathematical formulas used in the code and indicate for each one if it is correct, \t
-        or if it should be revised. 
-
-        * TRIVIALLY-TRUE STATISTICAL TESTS:
-        Are there any statistical tests that are mathematically trivial? Like:
-        - testing whether the mean of all values above 0 is above 0.
-        - comparing distributions that have different underlying scales (or different ranges), \t
-        and which were not properly normalized.
-        - testing whether the mean of X + Y is larger than the mean of X, when Y is positive.
-        - etc, any other tests that you suspect are trivial.
-        
-        * OTHER:
-        Any other mathematical or statistical issues that you can identify.
-
-        (2) Based on your assessment above, return a Python Dict[str, str] mapping the issues you have noted 
-        above (dict keys) to specific suggested corrections/improvements in the code (dict values).
-
-        For example:
-        ```python
-        {
-            "The formula for the regression model is incorrect": \t
-            "revise the code to use the following formula: ...",
-            "The statistical test for association of ... and ... is trivial": \t
-            "revise the code to perform the following more meaningful test: ...",
-        }
-        ```
-
-        {code_review_formatting_instructions}
-        """)),
-        (None, False, dedent_triple_quote_str("""
         Please follow these two steps:
 
         (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
@@ -389,7 +352,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         - Are we missing any preprocessing steps that are needed?
 
         * ANALYSIS:
-        As applicable, check for any data analysis issues, including:
+        As applicable, check for any data analysis issues, including: 
         - Analysis that should be performed on the preprocessed data is mistakenly performed on the original data.
         - Analysis that should be performed on the original data is mistakenly performed on the preprocessed data.
         - Incorrect choice of statistical test.
