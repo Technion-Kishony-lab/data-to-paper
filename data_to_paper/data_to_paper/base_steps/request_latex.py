@@ -17,6 +17,7 @@ from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quot
     IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.citataion_utils import find_citation_ids
 from data_to_paper.utils.types import ListBasedSet
+from data_to_paper.utils.replacer import format_value
 from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.clean_latex import process_latex_text_and_math, check_usage_of_un_allowed_commands
 from data_to_paper.latex.latex_section_tags import get_list_of_tag_pairs_for_section_or_fragment, \
@@ -153,7 +154,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         Return the section names capitalized.
         """
         return NiceList((section_name.title() for section_name in self.section_names),
-                        separator=', ', last_separator=' and ')
+                        separator=', ', last_separator=' and ', wrap_with="`")
 
     def _get_fresh_looking_response(self, response: str, extracted_results: Optional[List[str]]) -> str:
         """
@@ -265,12 +266,27 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         """
         Check that there are no additional sections in the response.
         """
-        num_sections = response.count('\\section')
-        if num_sections > len([section_name for section_name in self.section_names
-                               if section_name not in SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS]):
+        required_sections = [section_name.title() for section_name in self.section_names
+                             if section_name not in SECTIONS_OR_FRAGMENTS_TO_TAG_PAIR_OPTIONS]
+        provided_sections = re.findall(pattern=r'\\section\*?\{([^}]*)\}', string=response)
+        provided_but_not_required_sections = set(provided_sections) - set(required_sections)
+        request_triple_quote_block = self.request_triple_quote_block or ''
+        if provided_but_not_required_sections:
             self._raise_self_response_error(
-                f'You must only write the {self.pretty_section_names} section.'
-            )
+                f'You must only write the {self.pretty_section_names} section(s). '
+                f'But, you wrote also these section(s): '
+                f'{NiceList(provided_but_not_required_sections, wrap_with="`")}.\n\n' +
+                format_value(self, request_triple_quote_block))
+
+        # check for duplicates in provided_sections:
+        sections_appearing_more_than_once = [section for section in provided_sections
+                                             if provided_sections.count(section) > 1]
+        if sections_appearing_more_than_once:
+            self._raise_self_response_error(
+                f'You must only write the {self.pretty_section_names} section(s). '
+                f'But, you wrote the following section(s) more than once: '
+                f'{NiceList(sections_appearing_more_than_once, wrap_with="`")}.\n\n' +
+                format_value(self, request_triple_quote_block))
 
     def _check_response_and_get_extracted_result(self, response: str) -> List[str]:
         """

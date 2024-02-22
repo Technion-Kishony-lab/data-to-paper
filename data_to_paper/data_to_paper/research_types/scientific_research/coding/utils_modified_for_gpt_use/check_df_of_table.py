@@ -245,14 +245,17 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
     Check if the table has too many columns or rows
     """
     issues = RunIssues()
+    trimming_note = "Note that simply trimming the data is not always a good solution. " \
+                    "You might instead want to think of a different representation/organization of the table."
+
     if df.shape[1] > MAX_COLUMNS:
         issues.append(RunIssue(
             category='Too large table',
             code_problem=CodeProblem.OutputFileContentLevelB,
             item=filename,
             issue=f'The table has {len(df.columns)} columns, which is way too many for a scientific table.',
-            instructions=f"Please revise the code so that created tables have just 2-5 columns "
-                         f"and definitely not more than {MAX_COLUMNS}.",
+            instructions=f"Please revise the code so that created tables "
+                         f"have just 2-5 columns and definitely not more than {MAX_COLUMNS}.\n" + trimming_note
         ))
 
     if df.shape[0] > MAX_ROWS:
@@ -262,9 +265,7 @@ def check_df_size(df: pd.DataFrame, filename: str) -> RunIssues:
             item=filename,
             issue=f'The table has {df.shape[0]} rows, which is way too many for a scientific table.',
             instructions=f"Please revise the code so that created tables "
-                         f"have a maximum of {MAX_ROWS} rows.\n"
-                         f"Note that simply trimming the data is not always a good solution. "
-                         f"You might instead want to think of a different representation of the data.",
+                         f"have a maximum of {MAX_ROWS} rows.\n" + trimming_note
         ))
     return issues
 

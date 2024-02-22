@@ -40,7 +40,7 @@ class DataFileDescription:
         if self.is_excel():
             # go over all sheets and return all of them:
             df = pd.read_excel(self.file_path, sheet_name=None)
-            s = f'This is an Excel file with {len(df)} sheets:\n\n'
+            s = f'This is an Excel file with {len(df)} sheets. Here is the first few rows for each sheet:\n\n'
             for sheet_name in df.keys():
                 s += f'### Sheet: "{sheet_name}"\n'
                 s += f'```output\n{df[sheet_name].head(num_lines).to_string(index=False)}\n```\n'
