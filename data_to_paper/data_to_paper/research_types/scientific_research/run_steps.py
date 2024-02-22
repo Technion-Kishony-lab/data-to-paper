@@ -140,7 +140,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             ).run_dialog_and_get_valid_result()
         # TODO: need to decide what and how to send to the client, we need to somehow split between
         #  stages and produces
-        self.send_product_to_client('research_goal')
+        self.send_product_to_client('research_goal', save_to_file=True)
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
@@ -151,8 +151,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
 
-        # TODO: currently sending hypothesis testing plan to the client, need to decide what we really want to send
-        self.send_product_to_client('hypothesis_testing_plan')
+        self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:
