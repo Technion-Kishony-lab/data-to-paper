@@ -8,184 +8,233 @@
 \usepackage{fancyvrb}
 \usepackage{color}
 \usepackage{listings}
-\usepackage{minted}
 \usepackage{sectsty}
 \sectionfont{\Large}
 \subsectionfont{\normalsize}
 \subsubsectionfont{\normalsize}
-\lstset{
-    basicstyle=\ttfamily\footnotesize,
-    columns=fullflexible,
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
     breaklines=true,
-    }
-\title{Insights into the Association between Physical Activity and Chronic Health Conditions in Individuals with Diabetes}
-\author{Data to Paper}
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Exercise as a Modulator of Chronic Disease Risk in Diabetes}
+\author{data-to-paper}
 \begin{document}
 \maketitle
-\begin{abstract}Diabetes is a prevalent chronic health condition with significant public health implications. However, the relationship between physical activity and associated chronic health conditions in individuals with diabetes remains poorly understood. This study aims to address this research gap by analyzing a comprehensive dataset derived from the Behavioral Risk Factor Surveillance System (BRFSS). Using logistic regression models, we examined the association between physical activity and three major chronic health conditions in individuals with diabetes: high blood pressure, high cholesterol, and coronary heart disease. Our findings reveal significant negative associations between physical activity and these chronic health conditions, even after adjusting for key factors such as age, sex, BMI, and smoking status. These results highlight the potential benefits of increasing physical activity levels for managing diabetes-related health concerns. Nonetheless, it is important to note that the accuracy of the statistical models employed was relatively low, likely due to the use of self-reported data. The findings of this study contribute to our understanding of the role of physical activity in the context of diabetes and provide valuable insights for healthcare professionals and policymakers in developing interventions to promote physical activity and improve health outcomes in individuals with diabetes.\end{abstract}
+\begin{abstract}
+Diabetes stands as a significant contributor to the global disease burden, often co-existing with other chronic conditions that compound morbidity and mortality. This study sought to address the research gap concerning the extent to which physical activity can mitigate the risks of chronic diseases such as high blood pressure, high cholesterol, and heart disease specifically within the diabetic population. Using a comprehensive 2015 CDC's Behavioral Risk Factor Surveillance System dataset encompassing over a quarter-million individuals, we employed statistical models to assess health outcomes in relation to exercise regimens. Results consistently highlighted a beneficial link between regular physical activity and reduced occurrence of aforementioned comorbid conditions among diabetic adults. Notably, physical activity appeared as a significant factor; however, its moderate explanatory power on disease risks underlines the multifactorial nature of chronic disease emergence and progression. While the study’s cross-sectional framework limits a definitive causal inference, our findings significantly underscore the relevance of integrating physical activity into diabetes management strategies, alongside other metabolic and lifestyle interventions. These insights reinforce the intersection of public health and clinical practice in managing chronic disease risk through lifestyle modifications.
+\end{abstract}
 \section*{Introduction}
 
-Diabetes, a major chronic health condition, is impacting a rapidly growing number of individuals worldwide \cite{Moreira2014PrevalenceOM}. This global burden is further aggravated by common comorbidities such as high blood pressure, high cholesterol, and coronary heart disease in diabetic individuals \cite{Hill2015PhysicalAA, Franssen2020CanCW, Rubin2014ImpactOI, Hamine2015ImpactOM}. Accumulating research suggests the merits of physical activity in promoting better health outcomes \cite{Rosenfeld2017SexdependentDI}. For individuals with diabetes, evidence corroborates the potential of physical activity in the management of concurrent chronic conditions \cite{Santhanakrishnan2014FactorsAC, Polonsky2017TheIO, Thom2013ImpactOP}, however, a nuanced understanding of how physical activity interacts with specific chronic health conditions among individuals with diabetes is lacking.
+The escalation of type-2 diabetes prevalence worldwide presents a formidable challenge to global health, individual quality of life, healthcare systems, and economic productivity \cite{Nyberg2020AssociationOH}. Diabetes often coexists with other chronic conditions such as high blood pressure and heart diseases, augmenting its associated morbidity and mortality rates \cite{Colberg2016PhysicalAA}. Moreover, it has far-reaching impacts like financial pressures on healthcare systems and productivity losses due to increased morbidity and premature mortality. As such, diabetes prevention and management strategies are imperative. In this regard, one overarching lifestyle modification strategy, physical activity, offers immense potential for managing diabetes and its associated health risks \cite{Solanki2015EXERCISEAT, Colberg2010ExerciseAT, Kruk2007PhysicalAI}.
 
-Considering the existing literature, physical activity has been shown to offer protective effects against adverse health outcomes \cite{Hamer2012LowDosePA, Gebreab2015GeographicVI}, a decrease in the risk of mortality in individuals with clustered metabolic risk factors \cite{Stein2015AssociationBP, Devaraj2020CardiovascularHI, Bowles2002TheAB}, and a potential to constructively affect cardiovascular diseases \cite{Fretts2014LifesS7, Fang2012StatusOC}. Importantly, studies like \cite{Franssen2020CanCW} and \cite{Rubin2014ImpactOI} especially underscore the positive influence of physical activity in the context of chronic diseases, including diabetes. Nevertheless, detailed research into associations between physical activity and major chronic health conditions, particularly high blood pressure, high cholesterol, and coronary heart disease, among individuals with diabetes, is still limited.
+Though the importance of physical activity in managing diabetes is a well-researched area, a critical lacuna exists in understanding the extent to which it influences the risks associated with chronic diseases specifically among people diagnosed with type-2 diabetes. Several studies have already established the beneficial role of physical activity in blood glucose control and reducing the risk of type-2 diabetes onset \cite{Solanki2015EXERCISEAT, Colberg2010ExerciseAT}. Simultaneously, it is suggested to suppress concentrations of risk factors like 17 alpha-estradiol in women, providing primary prevention of chronic diseases \cite{Kruk2007PhysicalAI}. However, how this protection extends to affect the likelihood of co-existing conditions such as high blood pressure, high cholesterol, and heart diseases among those already living with diabetes remains less explored \cite{Hamer2012LowDosePA, Mora2007PhysicalAA}.
 
-In an effort to contribute towards filling this research gap, the present study uses the 2015 Behavioral Risk Factor Surveillance System dataset \cite{Heslin2021SexualOD}. This dataset, which has been extensively used in related studies \cite{Lu2012MultivariateLR, Dessie2021MortalityrelatedRF, Cawley2018ThirdYO, Rolle-Lake2020BehavioralRF, Maddaloni2015LatentAD, Iachan2016NationalWO}, presents an ideal platform to further examine the relationship between physical activity and the stated chronic conditions in the context of diabetes.
+Addressing this research gap is of paramount importance. Filling this gap affords valuable insights into managing diabetes and associated health risks more comprehensively. This, in turn, could assist in tailoring personalized interventions, forecasting disease outcomes more accurately, and directing future research efforts more effectively, ultimately benefiting those living with diabetes.
 
-Adopting logistic regression models \cite{Walraven2009AMO, Lu2012MultivariateLR, Partridge2012InadequatePC, Johnson2002DecreasedMA, Anderson2009RisksOM, Plotnikoff2006FactorsAW}, our analysis investigates the explicit associations between physical activity and each of the three chronic health conditions. The analysis accommodates potential confounding factors including age, sex, body mass index, and smoking status. Our findings underscore the potential favorability of physical activity for improved health outcomes in diabetes management, which are highlighted in ensuing sections.
+To this end, this study utilizes the comprehensive dataset from the 2015 CDC's Behavioral Risk Factor Surveillance System (BRFSS) as a robust platform for investigating this clinical question \cite{Heslin2021SexualOD}. We chose a cross-sectional study design as it allows the study of the concurrent impact of physical activity on chronic disease risks among diabetic individuals. We further relied on logistic regression models to scrutinize health outcomes concerning physical activity regimens among diabetic adults \cite{Walraven2009AMO}. We controlled for potential confounders like age, sex, body mass index, and smoking status, to ensure a precise estimation of the effect of physical activity \cite{Akalu2020KnowledgeAA}. This approach allowed us to discern whether regular physical activity can reduce the occurrence of high blood pressure, high cholesterol, and heart disease among adults diagnosed with diabetes, thereby contributing valuable insights to the body of knowledge in this field.
 
 \section*{Results}
 
-To understand the relationship between physical activity and chronic health conditions in individuals with diabetes, we conducted logistic regression analyses, adjusting for key factors such as age, sex, BMI, and smoking status. 
+First, to understand the overall prevalence of physical activity and certain chronic conditions among individuals with and without diabetes, we conducted a comparative analysis. Descriptive statistics, illustrated in Table \ref{table:descriptive_statistics}, reveal that the mean frequency of physical activity is lower among respondents with diabetes (\hyperlink{A2a}{0.631}) compared to those without diabetes (\hyperlink{A1a}{0.777}). High blood pressure and high cholesterol were more commonly reported among individuals with diabetes (\hyperlink{A2b}{0.753} and \hyperlink{A2c}{0.67}, respectively) than among non-diabetic individuals (\hyperlink{A1b}{0.377} and \hyperlink{A1c}{0.384}). Moreover, the mean reported incidence of heart disease among persons with diabetes (\hyperlink{A2d}{0.223}) exceeds that reported by individuals without the condition (\hyperlink{A1d}{0.0734}).
 
-First, we compared the prevalence of chronic health conditions between individuals with and without diabetes. As shown in Table {}\ref{table:diabetes_comparison}, individuals with diabetes had a higher prevalence of high blood pressure (37.7\% vs 75.3\%), high cholesterol (38.4\% vs 67\%), and coronary heart disease or heart attack (7.34\% vs 22.3\%) compared to those without diabetes.
-
+% This latex table was generated from: `table_0.pkl`
 \begin{table}[h]
-\caption{Descriptive Statistics of Physical Activity and Chronic Health Conditions for both Diabetes and Non-Diabetes Individuals}
-\label{table:diabetes_comparison}
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Diabetes status}}
+\label{table:descriptive_statistics}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lrrrr}
 \toprule
- & Phys. Act. & High BP & High Chol. & Heart Dis./Att. \\
-Diabetes\_binary &  &  &  &  \\
+ & Phys. Act. & High BP & High Chol. & Heart Disease \\
+Diabetes Status (\raisebox{2ex}{\hypertarget{A0a}{}}0=No, \raisebox{2ex}{\hypertarget{A0b}{}}1=Yes) &  &  &  &  \\
 \midrule
-\textbf{No Diabetes} & 0.777 & 0.377 & 0.384 & 0.0734 \\
-\textbf{Diabetes} & 0.631 & 0.753 & 0.67 & 0.223 \\
+\textbf{No} & \raisebox{2ex}{\hypertarget{A1a}{}}0.777 & \raisebox{2ex}{\hypertarget{A1b}{}}0.377 & \raisebox{2ex}{\hypertarget{A1c}{}}0.384 & \raisebox{2ex}{\hypertarget{A1d}{}}0.0734 \\
+\textbf{Yes} & \raisebox{2ex}{\hypertarget{A2a}{}}0.631 & \raisebox{2ex}{\hypertarget{A2b}{}}0.753 & \raisebox{2ex}{\hypertarget{A2c}{}}0.67 & \raisebox{2ex}{\hypertarget{A2d}{}}0.223 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent the proportions of individuals
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{High BP}: High Blood Pressure (0=no, 1=yes)
-\item \textbf{High Chol.}: High Cholesterol (0=no, 1=yes)
-\item \textbf{Heart Dis./Att.}: Coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)
+\item Values represent frequency distributions
+\item \textbf{Phys. Act.}: \raisebox{2ex}{\hypertarget{A3a}{}}0: Inactive, \raisebox{2ex}{\hypertarget{A3b}{}}1: Active
+\item \textbf{High BP}: \raisebox{2ex}{\hypertarget{A4a}{}}0: No, \raisebox{2ex}{\hypertarget{A4b}{}}1: Yes
+\item \textbf{High Chol.}: \raisebox{2ex}{\hypertarget{A5a}{}}0: No, \raisebox{2ex}{\hypertarget{A5b}{}}1: Yes
+\item \textbf{Heart Disease}: \raisebox{2ex}{\hypertarget{A6a}{}}0: No, \raisebox{2ex}{\hypertarget{A6b}{}}1: Yes
+\item \textbf{No}: Individuals without Diabetes
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-Next, focusing on individuals with diabetes, we examined the association between physical activity and high blood pressure. Our logistic regression analysis (Table {}\ref{table:physical_activity_high_blood_pressure}) revealed a negative association between physical activity and high blood pressure (coefficient = -0.172, SE = 0.0272, p-value $<$ $10^{-6}$). After adjusting for age, sex, BMI, and smoking status, individuals with diabetes who engaged in physical activity had a lower likelihood of having high blood pressure.
+Then, to test the specific association between physical activity and high blood pressure in individuals diagnosed with diabetes, we performed a logistic regression analysis. As detailed in Table \ref{table:association_highBP}, engaging in physical activity was significantly associated with lower odds of reporting high blood pressure among the diabetic cohort. Physical activity was associated with a coefficient of \hyperlink{B1a}{-0.172} (P-value: $<$\hyperlink{B1d}{$10^{-6}$}), suggesting lower likelihoods of high blood pressure for individuals who are active after accounting for age, sex, BMI, and smoking status. The 95\% confidence interval for this association ranges from \hyperlink{B1e}{-0.225} to \hyperlink{B1f}{-0.119}. However, the pseudo R-squared value of \hyperlink{R1a}{0.04641} indicates that physical activity explains only a small proportion of the variation in high blood pressure among those with diabetes, indicating limited explanatory power.
 
+% This latex table was generated from: `table_1.pkl`
 \begin{table}[h]
-\caption{Association between Physical Activity and High BP in Individuals with Diabetes}
-\label{table:physical_activity_high_blood_pressure}
+\caption{\protect\hyperlink{file-table-1-pkl}{Association between physical activity and high blood pressure among diabetics}}
+\label{table:association_highBP}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coeff. & Std Err. & z-score & P-value & CI Lower & CI Upper \\
+ & Coef. & Std.Err. & Z-score & P$>$\textbar{}z\textbar{} & [\raisebox{2ex}{\hypertarget{B0a}{}}0.025 & \raisebox{2ex}{\hypertarget{B0b}{}}0.975] \\
 \midrule
-\textbf{Phys. Act.} & -0.172 & 0.0272 & -6.32 & $<$$10^{-6}$ & -0.225 & -0.119 \\
+\textbf{Phys. Act.} & \raisebox{2ex}{\hypertarget{B1a}{}}-0.172 & \raisebox{2ex}{\hypertarget{B1b}{}}0.0272 & \raisebox{2ex}{\hypertarget{B1c}{}}-6.32 & $<$\raisebox{2ex}{\hypertarget{B1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B1e}{}}-0.225 & \raisebox{2ex}{\hypertarget{B1f}{}}-0.119 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent logistic regression coefficients. P-values are two-sided.
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{P-value}: P-value of the logistic regression model
-\item \textbf{z-score}: Z-score for the coefficient in the logistic regression model
-\item \textbf{Coeff.}: Estimated model coefficient
-\item \textbf{Std Err.}: Standard error for the estimated coefficient
-\item \textbf{CI Lower}: 95\% Confidence Interval Lower Bound
-\item \textbf{CI Upper}: 95\% Confidence Interval Upper Bound
+\item Values represent logistic regression coefficients
+\item \textbf{Phys. Act.}: \raisebox{2ex}{\hypertarget{B2a}{}}0: Inactive, \raisebox{2ex}{\hypertarget{B2b}{}}1: Active
+\item \textbf{Z-score}: Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-Further, we investigated the association between physical activity and high cholesterol in individuals with diabetes. The logistic regression analysis (Table {}\ref{table:physical_activity_high_cholesterol}) showed a negative association between physical activity and high cholesterol (coefficient = -0.117, SE = 0.0241, p-value = $1.1\ 10^{-6}$), even after adjusting for age, sex, BMI, and smoking status. The odds ratio of 0.8896 (95\% CI: [0.8477, 0.9335]) indicated that individuals with diabetes who engaged in physical activity had a lower likelihood of having high cholesterol.
+Similarly, we explored the role of physical activity in influencing high cholesterol levels among individuals with diabetes. The findings, presented in Table \ref{table:association_highChol}, portray a negative association between physical activity and high cholesterol, with the coefficient estimated at \hyperlink{C1a}{-0.117} (P-value: \hyperlink{C1d}{$1.1\ 10^{-6}$}). Nevertheless, the exceedingly low pseudo R-squared value of \hyperlink{R2a}{0.006661} emphasizes that the model accounts for a very small fraction of the variance in high cholesterol levels and underscores the caution needed when interpreting these results. The observed 95\% confidence interval for this relationship extends from \hyperlink{C1e}{-0.165} to \hyperlink{C1f}{-0.0702}.
 
+% This latex table was generated from: `table_2.pkl`
 \begin{table}[h]
-\caption{Association between Physical Activity and High Chol. in Individuals with Diabetes}
-\label{table:physical_activity_high_cholesterol}
+\caption{\protect\hyperlink{file-table-2-pkl}{Association between physical activity and high cholesterol among diabetics}}
+\label{table:association_highChol}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coeff. & Std Err. & z-score & P-value & CI Lower & CI Upper \\
+ & Coef. & Std.Err. & Z-score & P$>$\textbar{}z\textbar{} & [\raisebox{2ex}{\hypertarget{C0a}{}}0.025 & \raisebox{2ex}{\hypertarget{C0b}{}}0.975] \\
 \midrule
-\textbf{Phys. Act.} & -0.117 & 0.0241 & -4.87 & $1.1\ 10^{-6}$ & -0.165 & -0.0702 \\
+\textbf{Phys. Act.} & \raisebox{2ex}{\hypertarget{C1a}{}}-0.117 & \raisebox{2ex}{\hypertarget{C1b}{}}0.0241 & \raisebox{2ex}{\hypertarget{C1c}{}}-4.87 & \raisebox{2ex}{\hypertarget{C1d}{}}$1.1\ 10^{-6}$ & \raisebox{2ex}{\hypertarget{C1e}{}}-0.165 & \raisebox{2ex}{\hypertarget{C1f}{}}-0.0702 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent logistic regression coefficients. P-values are two-sided.
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{P-value}: P-value of the logistic regression model
-\item \textbf{z-score}: Z-score for the coefficient in the logistic regression model
-\item \textbf{Coeff.}: Estimated model coefficient
-\item \textbf{Std Err.}: Standard error for the estimated coefficient
-\item \textbf{CI Lower}: 95\% Confidence Interval Lower Bound
-\item \textbf{CI Upper}: 95\% Confidence Interval Upper Bound
+\item Values represent logistic regression coefficients
+\item \textbf{Phys. Act.}: \raisebox{2ex}{\hypertarget{C2a}{}}0: Inactive, \raisebox{2ex}{\hypertarget{C2b}{}}1: Active
+\item \textbf{Z-score}: Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-Finally, we explored the association between physical activity and coronary heart disease in individuals with diabetes using logistic regression analysis (Table {}\ref{table:physical_activity_heart_disease}). After adjusting for age, sex, BMI, and smoking status, we found a significant negative association between physical activity and coronary heart disease (coefficient = -0.308, SE = 0.0272, p-value $<$ $10^{-6}$). This indicates that individuals with diabetes who engaged in physical activity had a lower likelihood of having coronary heart disease.
+Finally, to further evaluate the effect of physical activity on the occurrence of heart disease among those with diabetes, a logistic regression model was applied (Table \ref{table:association_coronary}). Being physically active was significantly connected with a decreased probability of developing heart disease, with a coefficient of \hyperlink{D1a}{-0.308} (P-value: $<$\hyperlink{D1d}{$10^{-6}$}). The range of the 95\% confidence interval for this association was \hyperlink{D1e}{-0.361} to \hyperlink{D1f}{-0.255}. The model's pseudo R-squared value of \hyperlink{R3a}{0.05035} points to its limited capacity in explaining the variance observed in coronary heart disease amongst diabetic patients, similar to that observed in the high blood pressure model.
 
+% This latex table was generated from: `table_3.pkl`
 \begin{table}[h]
-\caption{Association between Physical Activity and Heart Dis./Att. in Individuals with Diabetes}
-\label{table:physical_activity_heart_disease}
+\caption{\protect\hyperlink{file-table-3-pkl}{Association between physical activity and heart disease among diabetics}}
+\label{table:association_coronary}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coeff. & Std Err. & z-score & P-value & CI Lower & CI Upper \\
+ & Coef. & Std.Err. & Z-score & P$>$\textbar{}z\textbar{} & [\raisebox{2ex}{\hypertarget{D0a}{}}0.025 & \raisebox{2ex}{\hypertarget{D0b}{}}0.975] \\
 \midrule
-\textbf{Phys. Act.} & -0.308 & 0.0272 & -11.3 & $<$$10^{-6}$ & -0.361 & -0.255 \\
+\textbf{Phys. Act.} & \raisebox{2ex}{\hypertarget{D1a}{}}-0.308 & \raisebox{2ex}{\hypertarget{D1b}{}}0.0272 & \raisebox{2ex}{\hypertarget{D1c}{}}-11.3 & $<$\raisebox{2ex}{\hypertarget{D1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D1e}{}}-0.361 & \raisebox{2ex}{\hypertarget{D1f}{}}-0.255 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent logistic regression coefficients. P-values are two-sided.
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{P-value}: P-value of the logistic regression model
-\item \textbf{z-score}: Z-score for the coefficient in the logistic regression model
-\item \textbf{Coeff.}: Estimated model coefficient
-\item \textbf{Std Err.}: Standard error for the estimated coefficient
-\item \textbf{CI Lower}: 95\% Confidence Interval Lower Bound
-\item \textbf{CI Upper}: 95\% Confidence Interval Upper Bound
+\item Values represent logistic regression coefficients
+\item \textbf{Phys. Act.}: \raisebox{2ex}{\hypertarget{D2a}{}}0: Inactive, \raisebox{2ex}{\hypertarget{D2b}{}}1: Active
+\item \textbf{Z-score}: Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 
-In summary, our logistic regression analyses demonstrated that physical activity is negatively associated with high blood pressure, high cholesterol, and coronary heart disease in individuals with diabetes, even after adjusting for age, sex, BMI, and smoking status. These findings suggest that increasing physical activity levels may have benefits for managing diabetes-related health concerns.
+In summary, these results demonstrate statistically significant negative associations between physical activity and the likelihood of chronic conditions such as high blood pressure, high cholesterol, and heart disease in diabetic adults, suggesting a potential protective role for physical activity. Despite the compelling nature of this evidence, the limited pseudo R-squared values and the cross-sectional design of the study necessitate a cautious interpretation, with the findings indicative of associations rather than causal relationships. Future prospective studies are required to elucidate the causality and underlying mechanisms of these observed associations.
 
 \section*{Discussion}
 
-At the backdrop of the escalating global diabetes epidemic \cite{Moreira2014PrevalenceOM}, this study aimed to explore the role of physical activity, a cost-effective and accessible intervention, in managing diabetes-related health problems, specifically high blood pressure, high cholesterol, and coronary heart disease. These conditions, amongst the most prevalent comorbidities in individuals with diabetes, are of immediate public health concern \cite{Hill2015PhysicalAA, Franssen2020CanCW}. 
+The growing prevalence of type-2 diabetes and its intertwining with other chronic diseases underscore the urgency for effective prevention and management strategies \cite{Nyberg2020AssociationOH}. Among such strategies, physical activity has been suggested to hold significant potential for managing diabetes and associated health risks. However, this potential has been understudied specifically amongst the diabetic population \cite{Solanki2015EXERCISEAT, Colberg2010ExerciseAT, Kruk2007PhysicalAI}.
 
-Employing logistic regression models and adjusting for key factors such as age, sex, BMI and smoking status, the study established a significant negative association between physical activity and the three chronic health conditions in question, amongst individuals with diabetes \cite{Heslin2021SexualOD}. This finding underscores previous research asserting the protective role of physical activity against adverse health conditions linked to diabetes \cite{Stein2015AssociationBP, Devaraj2020CardiovascularHI, Hamer2012LowDosePA}, broadening our understanding of the association between physical activity and major chronic health conditions in the context of diabetes.
+In seeking to bridge this gap, this study utilized a robust dataset from the 2015 BRFSS survey and applied logistic regression models for assessing health outcomes of diabetic patients in relation to physical activity. We found that engaging in physical activity was significantly associated with decreased occurrence of high blood pressure, high cholesterol, and heart disease among adults with diabetes. However, the partial correlation statistics of our models suggest that the explanatory power of physical activity on these disease risks might be limited despite its significance. This is likely due to the multifactorial nature of chronic diseases, where a myriad of biological and environmental factors come into play \cite{Barquera2016CardiovascularDI}.
 
-However, it is crucial to acknowledge the limitations of our study, which primarily stem from the reliance on self-reported data. The self-reported nature of this data might introduce measurement errors and biases, impacting the accuracy of the statistical models employed in our study. Further, the cross-sectional nature of the present study restricts it to drawing out associations rather than establishing causal relationships. 
+Comparison of our findings with previous literature underscores their importance. Physical activity is broadly linked to multiple disease outcomes - a protective role that our study affirms in the context of diabetic adults \cite{Hamer2012LowDosePA, Mora2007PhysicalAA}. However, in contrast with some studies that have demonstrated a strong association between physical activity and disease outcomes, our results reveal a more moderate association \cite{Franssen2020CanCW}. This discrepancy could be attributed to differences in the population studied and the varied intensity and duration of physical activity involved.
 
-Notwithstanding these limitations, the results contribute substantially to our understanding of diabetes management. In the realm of diabetes, where management often depends on costly interventions \cite{Santhanakrishnan2014FactorsAC}, these findings reiterate the significance of low-cost interventions like physical activity. Furthermore, bolstered by similar assertions from previous research, these findings hold potential to inform targeted interventions advocating physical activity for improving the health status of individuals with diabetes.
+Our results should be viewed in light of certain limitations. The primary restraint is the cross-sectional design, precluding any causal interpretations. Though we adjusted for potential confounders identified in the scientific literature, the possibility of residual confounding cannot be eliminated. Relying on self-reported measures also introduces potential bias that might have affected the results. Moreover, considering the binary or ordinal nature of the variables in the dataset, finer details regarding the intensity and duration of the physical activity could not be ascertained, which might have implications on interpreting the strength of the observed associations \cite{Kruk2007PhysicalAI}.
 
-Future directions of research could encompass a wider range of chronic health conditions associated with diabetes. Additionally, exploring other potential confounding factors such as income, geographical location, etc. could deepen our understanding related to the role of physical activity in diabetes management. By extending research to broader contexts and various population groups, we can impart significant advancements in our understanding of the role of physical activity in diabetes and associated health conditions.
+Our study opens avenues for future research to probe deeper into the cause-effect relationship between physical activity and chronic disease outcomes in diabetes. Longitudinal studies could offer the temporal framework required to better interpret the dynamicity of this relationship. Including more nuanced measures of physical activity and other potential confounders could enhance the rigor and explanatory power of future models.
+
+In conclusion, our study underscores the protective role of physical activity in context to chronic disease risks among diabetic adults. Despite the limited explanatory capacity of physical activity, our findings hold substantial relevance for public health and clinical practice, affirming the inherent value of integrating physical activity into holistic diabetes management strategies. Further, they encourage comprehensive exploration of other influential factors contributing to this interplay, duly recognizing the intricacies of chronic disease progression.
 
 \section*{Methods}
 
 \subsection*{Data Source}
-The data for this study were obtained from the Behavioral Risk Factor Surveillance System (BRFSS), which is an annual health-related telephone survey conducted by the Centers for Disease Control and Prevention (CDC). The dataset used in this study consisted of responses collected in the year 2015. The BRFSS survey collects information on health-related risk behaviors, chronic health conditions, and the use of preventative services from over 400,000 Americans each year. The dataset used in this study included 253,680 responses, with 22 features related to diabetes-related factors and chronic health conditions.
+The study utilized a dataset compiled from the 2015 Behavioral Risk Factor Surveillance System (BRFSS), conducted by the Centers for Disease Control and Prevention (CDC). This nationally representative survey collects information annually on health-related risk behaviors, chronic health conditions, and use of preventive services. Included in the dataset for this analysis were 253,680 individuals complete cases, with 22 features capturing demographic information, health behaviors, and health outcomes.
 
 \subsection*{Data Preprocessing}
-The original dataset was provided in a CSV file format. Prior to analysis, the dataset was loaded into Python using the Pandas library. The data cleaning process involved the removal of any rows with missing values, resulting in a clean dataset of 253,680 responses with no missing values.
+The dataset utilized in this study required no further preprocessing efforts as all entries with missing data had been previously removed. Each feature in the dataset directly corresponds to survey responses or calculated variables derived from these responses. As our analyses focused on the associations of physical activity with specific chronic health conditions within individuals who have diabetes, we worked directly with the clean, structured dataset in binary and ordinal format as provided, without any necessity for additional preprocessing or data transformation.
 
 \subsection*{Data Analysis}
-In order to investigate the association between physical activity and chronic health conditions among individuals with diabetes, logistic regression models were utilized. Specifically, three logistic regression models were fitted to examine the relationship between physical activity and three chronic health conditions: high blood pressure, high cholesterol, and coronary heart disease. The models were built using the Statsmodels package in Python. Each model included physical activity as the main predictor variable, while controlling for potential confounding factors such as age, sex, BMI, and smoking status.
-
-For each logistic regression model, the association between physical activity and the specific chronic health condition was assessed by examining the coefficients and p-values of the predictor variable. Additional statistical measures, such as the proportion of explained variance (pseudo R-squared), were also calculated to evaluate the accuracy of the models. The analysis results were saved in separate pickle files for further analysis and reporting.
-
-It is important to note that the accuracy of the statistical models employed in this study was relatively low. This may be attributed to the use of self-reported data, which can introduce measurement errors and biases. However, despite these limitations, the findings from this analysis contribute to our understanding of the association between physical activity and chronic health conditions in individuals with diabetes.\subsection*{Code Availability}
+For the investigation of the influence of physical activity on chronic disease outcomes within the diabetic subsection of the dataset, we executed a series of statistical analyses. Specifically, we stratified the data based on diabetes status to examine descriptive statistics relevant to physical activity and chronic health conditions such as high blood pressure, high cholesterol, and coronary heart disease. Following the initial stratification, we implemented logistic regression models to assess the association between physical activity and each chronic condition, adjusting for potential confounding factors such as age, sex, body mass index, and smoking status. The selection of these covariates was informed by established risk factors for chronic diseases within the scientific literature. Through these logistic regression models, we derived odds ratios as measures of association, and we examined the models' pseudo R-squared values as indications of the goodness of fit to evaluate the explanatory power of the variables included. The practical significance and precision of our findings were inferred from the estimated associations and corresponding confidence intervals. All results were presented as computed from the models without additional manipulations.\subsection*{Code Availability}
 
 Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
 
 
 \clearpage
@@ -193,67 +242,51 @@ Custom code used to perform the data preprocessing and analysis, as well as the 
 
 \section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
 
-\begin{Verbatim}[tabsize=4]
-The dataset includes diabetes related factors extracted from the CDC's
-	Behavioral Risk Factor Surveillance System (BRFSS), year 2015.
-The original BRFSS, from which this dataset is derived, is a health-related
-	telephone survey that is collected annually by the CDC.
-Each year, the survey collects responses from over 400,000 Americans on health-
-	related risk behaviors, chronic health conditions, and the use of preventative
-	services. These features are either questions directly asked of participants, or
-	calculated variables based on individual participant responses.
+\begin{codeoutput}
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)The dataset includes diabetes related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS), year (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2015.
+The original BRFSS, from which this dataset is derived, is a health-related telephone survey that is collected annually by the CDC.
+Each year, the survey collects responses from over (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.
 
 
 1 data file:
 
 "diabetes_binary_health_indicators_BRFSS2015.csv"
-The csv file is a clean dataset of 253,680 responses (rows) and 22 features
-	(columns).
-All rows with missing values were removed from the original dataset; the current
-	file contains no missing values.
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The csv file is a clean dataset of (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)253,680 responses (rows) and (*@\raisebox{2ex}{\hypertarget{T0b}{}}@*)22 features (columns).
+All rows with missing values were removed from the original dataset; the current file contains no missing values.
 
 The columns in the dataset are:
 
-#1 `Diabetes_binary`: (int, bool) Diabetes (0=no, 1=yes)
-#2 `HighBP`: (int, bool) High Blood Pressure (0=no, 1=yes)
-#3 `HighChol`: (int, bool) High Cholesterol (0=no, 1=yes)
-#4 `CholCheck`: (int, bool) Cholesterol check in 5 years (0=no, 1=yes)
+#1 `Diabetes_binary`: (int, bool) Diabetes ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=yes)
+#2 `HighBP`: (int, bool) High Blood Pressure ((*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)1=yes)
+#3 `HighChol`: (int, bool) High Cholesterol ((*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)1=yes)
+#4 `CholCheck`: (int, bool) Cholesterol check in (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T4c}{}}@*)1=yes)
 #5 `BMI`: (int, numerical) Body Mass Index
-#6 `Smoker`: (int, bool) (0=no, 1=yes)
-#7 `Stroke`: (int, bool) Stroke (0=no, 1=yes)
-#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or
-	myocardial infarction (MI), (0=no, 1=yes)
-#9 `PhysActivity`: (int, bool) Physical Activity in past 30 days (0=no, 1=yes)
-#10 `Fruits`: (int, bool) Consume one fruit or more each day (0=no, 1=yes)
-#11 `Veggies`: (int, bool) Consume one Vegetable or more each day (0=no, 1=yes)
-#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers (0=no, 1=yes)
-#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage (0=no,
-	1=yes)
-#14 `NoDocbcCost` (int, bool) Was there a time in the past 12 months when you
-	needed to see a doctor but could not because of cost? (0=no, 1=yes)
-#15 `GenHlth` (int, ordinal) self-reported health (1=excellent, 2=very good,
-	3=good, 4=fair, 5=poor)
-#16 `MentHlth` (int, ordinal) How many days during the past 30 days was your
-	mental health not good? (1-30 days)
-#17 `PhysHlth` (int, ordinal) Hor how many days during the past 30 days was your
-	physical health not good? (1-30 days)
-#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing
-	stairs? (0=no, 1=yes)
-#19 `Sex` (int, categorical) Sex (0=female, 1=male)
-#20 `Age` (int, ordinal) Age, 13-level age category in intervals of 5 years
-	(1=18-24, 2=25-29, ..., 12=75-79, 13=80 or older)
-#21 `Education` (int, ordinal) Education level on a scale of 1-6 (1=Never
-	attended school, 2=Elementary, 3=Some high school, 4=High school, 5=Some
-	college, 6=College)
-#22 `Income` (int, ordinal) Income scale on a scale of 1-8 (1=<=10K, 2=<=15K,
-	3=<=20K, 4=<=25K, 5=<=35K, 6=<=50K, 7=<=75K, 8=>75K)
+#6 `Smoker`: (int, bool) ((*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)1=yes)
+#7 `Stroke`: (int, bool) Stroke ((*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)1=yes)
+#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), ((*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)1=yes)
+#9 `PhysActivity`: (int, bool) Physical Activity in past (*@\raisebox{2ex}{\hypertarget{T8a}{}}@*)30 days ((*@\raisebox{2ex}{\hypertarget{T8b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T8c}{}}@*)1=yes)
+#10 `Fruits`: (int, bool) Consume one fruit or more each day ((*@\raisebox{2ex}{\hypertarget{T9a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T9b}{}}@*)1=yes)
+#11 `Veggies`: (int, bool) Consume one Vegetable or more each day ((*@\raisebox{2ex}{\hypertarget{T10a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T10b}{}}@*)1=yes)
+#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers ((*@\raisebox{2ex}{\hypertarget{T11a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T11b}{}}@*)1=yes)
+#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage ((*@\raisebox{2ex}{\hypertarget{T12a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T12b}{}}@*)1=yes)
+#14 `NoDocbcCost` (int, bool) Was there a time in the past (*@\raisebox{2ex}{\hypertarget{T13a}{}}@*)12 months when you needed to see a doctor but could not because of cost? ((*@\raisebox{2ex}{\hypertarget{T13b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T13c}{}}@*)1=yes)
+#15 `GenHlth` (int, ordinal) self-reported health ((*@\raisebox{2ex}{\hypertarget{T14a}{}}@*)1=excellent, (*@\raisebox{2ex}{\hypertarget{T14b}{}}@*)2=very good, (*@\raisebox{2ex}{\hypertarget{T14c}{}}@*)3=good, (*@\raisebox{2ex}{\hypertarget{T14d}{}}@*)4=fair, (*@\raisebox{2ex}{\hypertarget{T14e}{}}@*)5=poor)
+#16 `MentHlth` (int, ordinal) How many days during the past (*@\raisebox{2ex}{\hypertarget{T15a}{}}@*)30 days was your mental health not good? ((*@\raisebox{2ex}{\hypertarget{T15b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T15c}{}}@*)30 days)
+#17 `PhysHlth` (int, ordinal) Hor how many days during the past (*@\raisebox{2ex}{\hypertarget{T16a}{}}@*)30 days was your physical health not good? ((*@\raisebox{2ex}{\hypertarget{T16b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T16c}{}}@*)30 days)
+#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing stairs? ((*@\raisebox{2ex}{\hypertarget{T17a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T17b}{}}@*)1=yes)
+#19 `Sex` (int, categorical) Sex ((*@\raisebox{2ex}{\hypertarget{T18a}{}}@*)0=female, (*@\raisebox{2ex}{\hypertarget{T18b}{}}@*)1=male)
+#20 `Age` (int, ordinal) Age, (*@\raisebox{2ex}{\hypertarget{T19a}{}}@*)13-level age category in intervals of (*@\raisebox{2ex}{\hypertarget{T19b}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T19c}{}}@*)1= (*@\raisebox{2ex}{\hypertarget{T19d}{}}@*)18 - (*@\raisebox{2ex}{\hypertarget{T19e}{}}@*)24, (*@\raisebox{2ex}{\hypertarget{T19f}{}}@*)2= (*@\raisebox{2ex}{\hypertarget{T19g}{}}@*)25 - (*@\raisebox{2ex}{\hypertarget{T19h}{}}@*)29, ..., (*@\raisebox{2ex}{\hypertarget{T19i}{}}@*)12= (*@\raisebox{2ex}{\hypertarget{T19j}{}}@*)75 - (*@\raisebox{2ex}{\hypertarget{T19k}{}}@*)79, (*@\raisebox{2ex}{\hypertarget{T19l}{}}@*)13 = (*@\raisebox{2ex}{\hypertarget{T19m}{}}@*)80 or older)
+#21 `Education` (int, ordinal) Education level on a scale of (*@\raisebox{2ex}{\hypertarget{T20a}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T20b}{}}@*)6 ((*@\raisebox{2ex}{\hypertarget{T20c}{}}@*)1=Never attended school, (*@\raisebox{2ex}{\hypertarget{T20d}{}}@*)2=Elementary, (*@\raisebox{2ex}{\hypertarget{T20e}{}}@*)3=Some high school, (*@\raisebox{2ex}{\hypertarget{T20f}{}}@*)4=High school, (*@\raisebox{2ex}{\hypertarget{T20g}{}}@*)5=Some college, (*@\raisebox{2ex}{\hypertarget{T20h}{}}@*)6=College)
+#22 `Income` (int, ordinal) Income scale on a scale of (*@\raisebox{2ex}{\hypertarget{T21a}{}}@*)1 to (*@\raisebox{2ex}{\hypertarget{T21b}{}}@*)8 ((*@\raisebox{2ex}{\hypertarget{T21c}{}}@*)1= <=(*@\raisebox{2ex}{\hypertarget{T21d}{}}@*)10K, (*@\raisebox{2ex}{\hypertarget{T21e}{}}@*)2= <=(*@\raisebox{2ex}{\hypertarget{T21f}{}}@*)15K, (*@\raisebox{2ex}{\hypertarget{T21g}{}}@*)3= <=(*@\raisebox{2ex}{\hypertarget{T21h}{}}@*)20K, (*@\raisebox{2ex}{\hypertarget{T21i}{}}@*)4= <=(*@\raisebox{2ex}{\hypertarget{T21j}{}}@*)25K, (*@\raisebox{2ex}{\hypertarget{T21k}{}}@*)5= <=(*@\raisebox{2ex}{\hypertarget{T21l}{}}@*)35K, (*@\raisebox{2ex}{\hypertarget{T21m}{}}@*)6= <=(*@\raisebox{2ex}{\hypertarget{T21n}{}}@*)50K, (*@\raisebox{2ex}{\hypertarget{T21o}{}}@*)7= <=(*@\raisebox{2ex}{\hypertarget{T21p}{}}@*)75K, (*@\raisebox{2ex}{\hypertarget{T21q}{}}@*)8= >75K)
 
 
-\end{Verbatim}
+\end{codeoutput}
 
-\section{Data Exploration} \subsection{Code}The Data Exploration was carried out using the following custom code:
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
 
-\begin{minted}[linenos, breaklines]{python}
+\begin{python}
 
 import pandas as pd
 import numpy as np
@@ -262,7 +295,7 @@ import numpy as np
 df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 
 # Create an output file
-with open('data_exploration.txt', 'w') as f:
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open('data_exploration.txt', 'w') as f:
     
     # Data Size
     f.write("# Data Size\n")
@@ -289,7 +322,7 @@ with open('data_exploration.txt', 'w') as f:
 
 f.close()
 
-\end{minted}
+\end{python}
 
 \subsection{Code Description}
 
@@ -318,43 +351,24 @@ The output file "data\_exploration.txt" will contain the following information:
 
 This comprehensive data exploration provides an overview of the dataset's structure, summary statistics, categorical variable distributions, and missing data, which enables researchers to better understand the dataset and make informed decisions in subsequent data analysis processes.
 
-\subsection{Code Output}
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
 
-\subsubsection*{data\_exploration.txt}
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
 # Data Size
 Rows: 253680, Columns: 22
 
 # Summary Statistics
-       Diabetes_binary  HighBP  HighChol  CholCheck    BMI  Smoker  Stroke
-	HeartDiseaseorAttack  PhysActivity  Fruits  Veggies  HvyAlcoholConsump
-	AnyHealthcare  NoDocbcCost  GenHlth  MentHlth  PhysHlth  DiffWalk    Sex    Age
-	Education  Income
-count           253680  253680    253680     253680 253680  253680  253680
-	253680        253680  253680   253680             253680         253680
-	253680   253680    253680    253680    253680 253680 253680     253680  253680
-mean            0.1393   0.429    0.4241     0.9627  28.38  0.4432 0.04057
-	0.09419        0.7565  0.6343   0.8114             0.0562         0.9511
-	0.08418    2.511     3.185     4.242    0.1682 0.4403  8.032       5.05   6.054
-std             0.3463  0.4949    0.4942     0.1896  6.609  0.4968  0.1973
-	0.2921        0.4292  0.4816   0.3912             0.2303         0.2158
-	0.2777    1.068     7.413     8.718    0.3741 0.4964  3.054     0.9858   2.071
-min                  0       0         0          0     12       0       0
-	0             0       0        0                  0              0            0
-	1         0         0         0      0      1          1       1
-25%                  0       0         0          1     24       0       0
-	0             1       0        1                  0              1            0
-	2         0         0         0      0      6          4       5
-50%                  0       0         0          1     27       0       0
-	0             1       1        1                  0              1            0
-	2         0         0         0      0      8          5       7
-75%                  0       1         1          1     31       1       0
-	0             1       1        1                  0              1            0
-	3         2         3         0      1     10          6       8
-max                  1       1         1          1     98       1       1
-	1             1       1        1                  1              1            1
-	5        30        30         1      1     13          6       8
+       Diabetes_binary  HighBP  HighChol  CholCheck    BMI  Smoker  Stroke  HeartDiseaseorAttack  PhysActivity  Fruits  Veggies  HvyAlcoholConsump  AnyHealthcare  NoDocbcCost  GenHlth  MentHlth  PhysHlth  DiffWalk    Sex    Age  Education  Income
+count           253680  253680    253680     253680 253680  253680  253680                253680        253680  253680   253680             253680         253680       253680   253680    253680    253680    253680 253680 253680     253680  253680
+mean            0.1393   0.429    0.4241     0.9627  28.38  0.4432 0.04057               0.09419        0.7565  0.6343   0.8114             0.0562         0.9511      0.08418    2.511     3.185     4.242    0.1682 0.4403  8.032       5.05   6.054
+std             0.3463  0.4949    0.4942     0.1896  6.609  0.4968  0.1973                0.2921        0.4292  0.4816   0.3912             0.2303         0.2158       0.2777    1.068     7.413     8.718    0.3741 0.4964  3.054     0.9858   2.071
+min                  0       0         0          0     12       0       0                     0             0       0        0                  0              0            0        1         0         0         0      0      1          1       1
+25%                  0       0         0          1     24       0       0                     0             1       0        1                  0              1            0        2         0         0         0      0      6          4       5
+50%                  0       0         0          1     27       0       0                     0             1       1        1                  0              1            0        2         0         0         0      0      8          5       7
+75%                  0       1         1          1     31       1       0                     0             1       1        1                  0              1            0        3         2         3         0      1     10          6       8
+max                  1       1         1          1     98       1       1                     1             1       1        1                  1              1            1        5        30        30         1      1     13          6       8
 
 # Categorical Variables
 `Diabetes_binary`
@@ -654,11 +668,13 @@ Sex                     0
 Age                     0
 Education               0
 Income                  0
-\end{Verbatim}
+\end{codeoutput}
 
-\section{Data Analysis} \subsection{Code}The Data Analysis was carried out using the following custom code:
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
 
-\begin{minted}[linenos, breaklines]{python}
+\begin{python}
 
 # IMPORT
 import pandas as pd
@@ -672,39 +688,39 @@ df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 # No dataset preparations are needed.
 
 # DESCRIPTIVE STATISTICS
-# Creating Table 0: Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Whether Having Diabetes
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Whether Having Diabetes"
 desc_stats = df.groupby('Diabetes_binary').agg({"PhysActivity": "mean", 
                                                 "HighBP": "mean",
                                                 "HighChol": "mean",
                                                 "HeartDiseaseorAttack": "mean"}).reset_index()
-desc_stats['Diabetes_binary'] = desc_stats['Diabetes_binary'].replace([0,1],['No Diabetes', 'Diabetes'])
 desc_stats.set_index('Diabetes_binary', inplace=True)
+desc_stats.index.names = ['Diabetes Status (0=No, 1=Yes)']
+desc_stats.index = desc_stats.index.map({0: 'No', 1: 'Yes'})  # Change the row index to categorical labels
 desc_stats.to_pickle('table_0.pkl')
 
 # PREPROCESSING 
-# No preprocessing is needed, because the data is already in a structured format with binary variables and continuous variables are not being used in the analysis.
+# No preprocessing is needed, because the data is already in a structured format with binary variables and continuous variables are not being used in the analysis
 
 # ANALYSIS
-
-## Table 1: "Association between physical activity and high blood pressure in individuals with diabetes"
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Association between physical activity and high blood pressure in individuals with diabetes"
 model_highBP = logit("HighBP ~ PhysActivity + Age + Sex + BMI + Smoker", data=df[df["Diabetes_binary"]==1]).fit()
 summary_df = model_highBP.summary2().tables[1]
 df1 = summary_df.loc[['PhysActivity'], :]
 df1.to_pickle('table_1.pkl')
 
-## Table 2: "Association between physical activity and high cholesterol in individuals with diabetes"
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Association between physical activity and high cholesterol in individuals with diabetes"
 model_highChol = logit("HighChol ~ PhysActivity + Age + Sex + BMI + Smoker", data=df[df["Diabetes_binary"]==1]).fit()
 summary_df = model_highChol.summary2().tables[1]
 df2 = summary_df.loc[['PhysActivity'], :]
 df2.to_pickle('table_2.pkl')
 
-## Table 3: "Association between physical activity and coronary heart disease in individuals with diabetes"
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-3-pkl}{}}@*)## Table 3: "Association between physical activity and coronary heart disease in individuals with diabetes"
 model_heartDisease = logit("HeartDiseaseorAttack ~ PhysActivity + Age + Sex + BMI + Smoker", data=df[df["Diabetes_binary"]==1]).fit()
 summary_df = model_heartDisease.summary2().tables[1]
 df3 = summary_df.loc[['PhysActivity'], :]
 df3.to_pickle('table_3.pkl')
 
-# SAVE ADDITIONAL RESULTS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
 additional_results = {
  'Total number of observations': len(df),
  'Accuracy of high blood pressure model': model_highBP.prsquared,
@@ -715,315 +731,298 @@ additional_results = {
 with open('additional_results.pkl', 'wb') as f:
  pickle.dump(additional_results, f)
 
-\end{minted}
+\end{python}
 
 \subsection{Code Description}
 
-The provided code performs an analysis on a dataset containing diabetes-related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. The analysis focuses on examining the association between physical activity and several chronic health conditions (high blood pressure, high cholesterol, coronary heart disease) in individuals with diabetes.
+The code aims to analyze the relationship between physical activity and chronic health conditions in individuals with diabetes using the 2015 Behavioral Risk Factor Surveillance System (BRFSS) dataset.
 
-First, the code loads the dataset into a pandas DataFrame. The dataset is already preprocessed and contains no missing values.
+After loading the dataset, the code calculates descriptive statistics of physical activity and chronic health conditions, stratified by whether individuals have diabetes or not. This information is saved in "table\_0.pkl".
 
-Next, descriptive statistics are computed for the variables "PhysActivity" (physical activity), "HighBP" (high blood pressure), "HighChol" (high cholesterol), and "HeartDiseaseorAttack" (coronary heart disease) stratified by whether an individual has diabetes or not. The descriptive statistics are saved as Table 0 in a pickle file.
+Next, three logistic regression models are fitted to assess the association between physical activity and three chronic health conditions (high blood pressure, high cholesterol, and coronary heart disease) in individuals with diabetes. Each model includes physical activity as the main predictor variable, along with other covariates such as age, sex, BMI, and smoking status. The results of these models are saved in three separate tables: "table\_1.pkl", "table\_2.pkl", and "table\_3.pkl".
 
-The analysis is then performed using logistic regression models. Three separate models are fitted to examine the association between physical activity and each of the three chronic health conditions (high blood pressure, high cholesterol, coronary heart disease), considering only individuals with diabetes.
+Additionally, the code calculates and saves some additional results. It calculates the total number of observations in the dataset and the percentage of variance explained (accuracy) by each model. These additional results are stored in a dictionary and saved in the "additional\_results.pkl" file.
 
-For each model, the code computes the logistic regression model using the "logit" function from the statsmodels library. The independent variables include "PhysActivity" (physical activity), "Age", "Sex", "BMI", and "Smoker". The dependent variable is "HighBP" for the high blood pressure model, "HighChol" for the high cholesterol model, and "HeartDiseaseorAttack" for the coronary heart disease model.
+The code provides researchers with valuable information on the associations between physical activity and chronic health conditions in individuals with diabetes, contributing to the understanding of the importance of physical activity in managing and preventing these conditions.
 
-The code saves the results of each model, specifically the coefficient estimates, standard errors, p-values, and confidence intervals, for the "PhysActivity" variable as Table 1, Table 2, and Table 3, respectively, in separate pickle files.
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
 
-Additionally, the code computes and saves additional results in the "additional\_results.pkl" file. These results include the total number of observations in the dataset and the accuracy (pseudo R-squared) of each of the three logistic regression models.
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
 
-In summary, the provided code performs an analysis to investigate the association between physical activity and three chronic health conditions (high blood pressure, high cholesterol, coronary heart disease) in individuals with diabetes. Logistic regression models are used to estimate these associations, and the results are saved in separate tables and additional results files.
+\begin{codeoutput}
+                               PhysActivity  HighBP  HighChol  HeartDiseaseorAttack
+Diabetes Status (0=No, 1=Yes)                                                      
+No                                   0.7769  0.3766    0.3843               0.07335
+Yes                                  0.6305  0.7527    0.6701                0.2229
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
 
-\subsection{Code Output}
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
 
-\subsubsection*{table\_0.pkl}
+\begin{codeoutput}
+               Coef. Std.Err.      z     P>|z| [0.025  0.975]
+PhysActivity -0.1718  0.02717 -6.322  2.59e-10 -0.225 -0.1185
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
 
-\begin{Verbatim}[tabsize=4]
-                 PhysActivity  HighBP  HighChol  HeartDiseaseorAttack
-Diabetes_binary
-No Diabetes            0.7769  0.3766    0.3843               0.07335
-Diabetes               0.6305  0.7527    0.6701                0.2229
-\end{Verbatim}
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
 
-\subsubsection*{table\_1.pkl}
+\begin{codeoutput}
+               Coef. Std.Err.      z    P>|z|  [0.025   0.975]
+PhysActivity -0.1175  0.02411 -4.873  1.1e-06 -0.1647 -0.07022
+\end{codeoutput}\hypertarget{file-table-3-pkl}{}
 
-\begin{Verbatim}[tabsize=4]
-               Coef. Std.Err.      z      P>|z| [0.025  0.975]
-PhysActivity -0.1718  0.02717 -6.322  2.587e-10 -0.225 -0.1185
-\end{Verbatim}
+\subsubsection*{\hyperlink{code-Data Analysis-table-3-pkl}{table\_3.pkl}}
 
-\subsubsection*{table\_2.pkl}
+\begin{codeoutput}
+               Coef. Std.Err.      z     P>|z|  [0.025  0.975]
+PhysActivity -0.3082  0.02718 -11.34  8.55e-30 -0.3615 -0.2549
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
 
-\begin{Verbatim}[tabsize=4]
-               Coef. Std.Err.      z      P>|z|  [0.025   0.975]
-PhysActivity -0.1175  0.02411 -4.873  1.102e-06 -0.1647 -0.07022
-\end{Verbatim}
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
 
-\subsubsection*{table\_3.pkl}
-
-\begin{Verbatim}[tabsize=4]
-               Coef. Std.Err.      z      P>|z|  [0.025  0.975]
-PhysActivity -0.3082  0.02718 -11.34  8.548e-30 -0.3615 -0.2549
-\end{Verbatim}
-
-\subsubsection*{additional\_results.pkl}
-
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
 {
-    'Total number of observations': 253680,
-    'Accuracy of high blood pressure model': 0.04641            ,
-    'Accuracy of high cholesterol model': 0.006661            ,
-    'Accuracy of coronary heart disease model': 0.05035            ,
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)253680,
+    'Accuracy of high blood pressure model': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)0.04641            ,
+    'Accuracy of high cholesterol model': (*@\raisebox{2ex}{\hypertarget{R2a}{}}@*)0.006661            ,
+    'Accuracy of coronary heart disease model': (*@\raisebox{2ex}{\hypertarget{R3a}{}}@*)0.05035            ,
 }
-\end{Verbatim}
+\end{codeoutput}
 
-\section{LaTeX Table Design} \subsection{Code}The LaTeX Table Design was carried out using the following custom code:
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
 
-\begin{minted}[linenos, breaklines]{python}
+\begin{python}
 
 
 # IMPORT
 import pandas as pd
-from typing import Dict, Tuple, Optional
-from my_utils import to_latex_with_note, format_p_value
-
-Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+from typing import Dict, Any, Tuple, Optional
 
 # PREPARATION FOR ALL TABLES
-def split_mapping(d: Mapping):
-    abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
-    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
-    return abbrs_to_names, names_to_definitions
-
-shared_mapping: Mapping = {
- 'PhysActivity': ('Phys. Act.', 'Physical Activity in past 30 days (0=no, 1=yes)'),
- 'HighBP': ('High BP', 'High Blood Pressure (0=no, 1=yes)'),
- 'HighChol': ('High Chol.', 'High Cholesterol (0=no, 1=yes)'),
- 'HeartDiseaseorAttack': ('Heart Dis./Att.', 'Coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)'),
- 'P>|z|':('P-value', 'P-value of the logistic regression model'),
- 'z': ('z-score', 'Z-score for the coefficient in the logistic regression model'),
- 'Coef.': ('Coeff.', 'Estimated model coefficient'),
- 'Std.Err.': ('Std Err.', 'Standard error for the estimated coefficient'),
- '[0.025': ('CI Lower', '95% Confidence Interval Lower Bound'),
- '0.975]': ('CI Upper', '95% Confidence Interval Upper Bound')
+shared_mapping: AbbrToNameDef = {
+    'PhysActivity': ('Phys. Act.', '0: Inactive, 1: Active'),
+    'HighBP': ('High BP', '0: No, 1: Yes'),
+    'HighChol': ('High Chol.', '0: No, 1: Yes'),
+    'HeartDiseaseorAttack': ('Heart Disease', '0: No, 1: Yes'),
+    'No': ('No', 'Individuals without Diabetes'),
+    'z': ('Z-score', 'Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.')
 }
 
-# TABLE 0:
-df = pd.read_pickle('table_0.pkl')
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
 
-# RENAME ROWS AND COLUMNS
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+# RENAME ROWS AND COLUMNS 
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
 
-# Save as latex:
-to_latex_with_note(df, 'table_0.tex',
-                   caption="Descriptive Statistics of Physical Activity and Chronic Health Conditions for both Diabetes and Non-Diabetes Individuals", 
-                   label='table:diabetes_comparison',
-                   note="Values represent the proportions of individuals",
-                   legend=legend)
+# SAVE AS LATEX:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Diabetes status", 
+    label='table:descriptive_statistics',
+    note="Values represent frequency distributions",
+    legend=legend0)
 
-# TABLE 1:
-df = pd.read_pickle('table_1.pkl')
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
 
-# FORMAT VALUES 
-df['P>|z|'] = df['P>|z|'].apply(format_p_value)
+# RENAME ROWS AND COLUMNS 
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
 
-# RENAME COLUMN AND ROW NAMES
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+# SAVE AS LATEX:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Association between physical activity and high blood pressure among diabetics", 
+    label='table:association_highBP',
+    note="Values represent logistic regression coefficients",
+    legend=legend1)
 
-# Save as Latex
-to_latex_with_note(df, 'table_1.tex',
-                   caption="Association between Physical Activity and High BP in Individuals with Diabetes", 
-                   label='table:physical_activity_high_blood_pressure',
-                   note="Values represent logistic regression coefficients. P-values are two-sided.",
-                   legend=legend)
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
 
+# RENAME ROWS AND COLUMNS 
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
 
-# TABLE 2:
-df = pd.read_pickle('table_2.pkl')
+# SAVE AS LATEX:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Association between physical activity and high cholesterol among diabetics", 
+    label='table:association_highChol',
+    note="Values represent logistic regression coefficients",
+    legend=legend2)
 
-# FORMAT VALUES 
-df['P>|z|'] = df['P>|z|'].apply(format_p_value)
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-3-tex}{}}@*)# TABLE 3:
+df3 = pd.read_pickle('table_3.pkl')
 
-# RENAME COLUMN AND ROW NAMES
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+# RENAME ROWS AND COLUMNS 
+mapping3 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df3, k)) 
+abbrs_to_names3, legend3 = split_mapping(mapping3)
+df3 = df3.rename(columns=abbrs_to_names3, index=abbrs_to_names3)
 
-# Save as Latex
-to_latex_with_note(df, 'table_2.tex',
-                   caption="Association between Physical Activity and High Chol. in Individuals with Diabetes",
-                   label='table:physical_activity_high_cholesterol',
-                   note="Values represent logistic regression coefficients. P-values are two-sided.",
-                   legend=legend)
-
-
-# TABLE 3:
-df = pd.read_pickle('table_3.pkl')
-
-# FORMAT VALUES 
-df['P>|z|'] = df['P>|z|'].apply(format_p_value)
-
-# RENAME COLUMN AND ROW NAMES
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+# SAVE AS LATEX:
+to_latex_with_note(
+    df3, 'table_3.tex',
+    caption="Association between physical activity and heart disease among diabetics", 
+    label='table:association_coronary',
+    note="Values represent logistic regression coefficients",
+    legend=legend3)
 
 
-# Save as Latex
-to_latex_with_note(df, 'table_3.tex',
-                   caption="Association between Physical Activity and Heart Dis./Att. in Individuals with Diabetes",
-                   label='table:physical_activity_heart_disease',
-                   note="Values represent logistic regression coefficients. P-values are two-sided.",
-                   legend=legend)
+\end{python}
 
-\end{minted}
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
 
 
 
 \subsection{Code Output}
 
-\subsubsection*{table\_0.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_0.pkl`
 \begin{table}[h]
-\caption{Descriptive Statistics of Physical Activity and Chronic Health
-	Conditions for both Diabetes and Non-Diabetes Individuals}
-\label{table:diabetes_comparison}
+\caption{Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Diabetes status}
+\label{table:descriptive_statistics}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lrrrr}
 \toprule
- & Phys. Act. & High BP & High Chol. & Heart Dis./Att. \\
-Diabetes\_binary &  &  &  &  \\
+ & Phys. Act. & High BP & High Chol. & Heart Disease \\
+Diabetes Status (0=No, 1=Yes) &  &  &  &  \\
 \midrule
-\textbf{No Diabetes} & 0.777 & 0.377 & 0.384 & 0.0734 \\
-\textbf{Diabetes} & 0.631 & 0.753 & 0.67 & 0.223 \\
+\textbf{No} & 0.777 & 0.377 & 0.384 & 0.0734 \\
+\textbf{Yes} & 0.631 & 0.753 & 0.67 & 0.223 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent the proportions of individuals
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{High BP}: High Blood Pressure (0=no, 1=yes)
-\item \textbf{High Chol.}: High Cholesterol (0=no, 1=yes)
-\item \textbf{Heart Dis./Att.}: Coronary heart disease (CHD) or myocardial
-	infarction (MI), (0=no, 1=yes)
+\item Values represent frequency distributions
+\item \textbf{Phys. Act.}: 0: Inactive, 1: Active
+\item \textbf{High BP}: 0: No, 1: Yes
+\item \textbf{High Chol.}: 0: No, 1: Yes
+\item \textbf{Heart Disease}: 0: No, 1: Yes
+\item \textbf{No}: Individuals without Diabetes
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
+\end{codeoutput}
 
-\subsubsection*{table\_1.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_1.pkl`
 \begin{table}[h]
-\caption{Association between Physical Activity and High BP in Individuals with
-	Diabetes}
-\label{table:physical_activity_high_blood_pressure}
+\caption{Association between physical activity and high blood pressure among diabetics}
+\label{table:association_highBP}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coeff. & Std Err. & z-score & P-value & CI Lower & CI Upper \\
+ & Coef. & Std.Err. & Z-score & P$>$\textbar{}z\textbar{} & [0.025 & 0.975] \\
 \midrule
 \textbf{Phys. Act.} & -0.172 & 0.0272 & -6.32 & $<$1e-06 & -0.225 & -0.119 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent logistic regression coefficients. P-values are two-sided.
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{P-value}: P-value of the logistic regression model
-\item \textbf{z-score}: Z-score for the coefficient in the logistic regression
-	model
-\item \textbf{Coeff.}: Estimated model coefficient
-\item \textbf{Std Err.}: Standard error for the estimated coefficient
-\item \textbf{CI Lower}: 95\% Confidence Interval Lower Bound
-\item \textbf{CI Upper}: 95\% Confidence Interval Upper Bound
+\item Values represent logistic regression coefficients
+\item \textbf{Phys. Act.}: 0: Inactive, 1: Active
+\item \textbf{Z-score}: Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
+\end{codeoutput}
 
-\subsubsection*{table\_2.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_2.pkl`
 \begin{table}[h]
-\caption{Association between Physical Activity and High Chol. in Individuals
-	with Diabetes}
-\label{table:physical_activity_high_cholesterol}
+\caption{Association between physical activity and high cholesterol among diabetics}
+\label{table:association_highChol}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coeff. & Std Err. & z-score & P-value & CI Lower & CI Upper \\
+ & Coef. & Std.Err. & Z-score & P$>$\textbar{}z\textbar{} & [0.025 & 0.975] \\
 \midrule
 \textbf{Phys. Act.} & -0.117 & 0.0241 & -4.87 & 1.1e-06 & -0.165 & -0.0702 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent logistic regression coefficients. P-values are two-sided.
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{P-value}: P-value of the logistic regression model
-\item \textbf{z-score}: Z-score for the coefficient in the logistic regression
-	model
-\item \textbf{Coeff.}: Estimated model coefficient
-\item \textbf{Std Err.}: Standard error for the estimated coefficient
-\item \textbf{CI Lower}: 95\% Confidence Interval Lower Bound
-\item \textbf{CI Upper}: 95\% Confidence Interval Upper Bound
+\item Values represent logistic regression coefficients
+\item \textbf{Phys. Act.}: 0: Inactive, 1: Active
+\item \textbf{Z-score}: Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
+\end{codeoutput}
 
-\subsubsection*{table\_3.tex}
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-3-tex}{table\_3.tex}}
 
-\begin{Verbatim}[tabsize=4]
+\begin{codeoutput}
+% This latex table was generated from: `table_3.pkl`
 \begin{table}[h]
-\caption{Association between Physical Activity and Heart Dis./Att. in
-	Individuals with Diabetes}
-\label{table:physical_activity_heart_disease}
+\caption{Association between physical activity and heart disease among diabetics}
+\label{table:association_coronary}
 \begin{threeparttable}
 \renewcommand{\TPTminimum}{\linewidth}
 \makebox[\linewidth]{%
 \begin{tabular}{lllllll}
 \toprule
- & Coeff. & Std Err. & z-score & P-value & CI Lower & CI Upper \\
+ & Coef. & Std.Err. & Z-score & P$>$\textbar{}z\textbar{} & [0.025 & 0.975] \\
 \midrule
 \textbf{Phys. Act.} & -0.308 & 0.0272 & -11.3 & $<$1e-06 & -0.361 & -0.255 \\
 \bottomrule
 \end{tabular}}
 \begin{tablenotes}
 \footnotesize
-\item Values represent logistic regression coefficients. P-values are two-sided.
-\item \textbf{Phys. Act.}: Physical Activity in past 30 days (0=no, 1=yes)
-\item \textbf{P-value}: P-value of the logistic regression model
-\item \textbf{z-score}: Z-score for the coefficient in the logistic regression
-	model
-\item \textbf{Coeff.}: Estimated model coefficient
-\item \textbf{Std Err.}: Standard error for the estimated coefficient
-\item \textbf{CI Lower}: 95\% Confidence Interval Lower Bound
-\item \textbf{CI Upper}: 95\% Confidence Interval Upper Bound
+\item Values represent logistic regression coefficients
+\item \textbf{Phys. Act.}: 0: Inactive, 1: Active
+\item \textbf{Z-score}: Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-\end{Verbatim}
-
-
-\bibliographystyle{unsrt}
-\bibliography{citations}
+\end{codeoutput}
 
 \end{document}

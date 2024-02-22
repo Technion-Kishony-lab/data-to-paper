@@ -2,98 +2,80 @@
 
 # IMPORT
 import pandas as pd
-from typing import Dict, Tuple, Optional
-from my_utils import to_latex_with_note, format_p_value
-
-Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+from typing import Dict, Any, Tuple, Optional
 
 # PREPARATION FOR ALL TABLES
-def split_mapping(d: Mapping):
-    abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
-    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
-    return abbrs_to_names, names_to_definitions
-
-shared_mapping: Mapping = {
- 'PhysActivity': ('Phys. Act.', 'Physical Activity in past 30 days (0=no, 1=yes)'),
- 'HighBP': ('High BP', 'High Blood Pressure (0=no, 1=yes)'),
- 'HighChol': ('High Chol.', 'High Cholesterol (0=no, 1=yes)'),
- 'HeartDiseaseorAttack': ('Heart Dis./Att.', 'Coronary heart disease (CHD) or myocardial infarction (MI), (0=no, 1=yes)'),
- 'P>|z|':('P-value', 'P-value of the logistic regression model'),
- 'z': ('z-score', 'Z-score for the coefficient in the logistic regression model'),
- 'Coef.': ('Coeff.', 'Estimated model coefficient'),
- 'Std.Err.': ('Std Err.', 'Standard error for the estimated coefficient'),
- '[0.025': ('CI Lower', '95% Confidence Interval Lower Bound'),
- '0.975]': ('CI Upper', '95% Confidence Interval Upper Bound')
+shared_mapping: AbbrToNameDef = {
+    'PhysActivity': ('Phys. Act.', '0: Inactive, 1: Active'),
+    'HighBP': ('High BP', '0: No, 1: Yes'),
+    'HighChol': ('High Chol.', '0: No, 1: Yes'),
+    'HeartDiseaseorAttack': ('Heart Disease', '0: No, 1: Yes'),
+    'No': ('No', 'Individuals without Diabetes'),
+    'z': ('Z-score', 'Standard Score or Z-score is a metric that describes a values relationship to the mean of a group of values.')
 }
 
 # TABLE 0:
-df = pd.read_pickle('table_0.pkl')
+df0 = pd.read_pickle('table_0.pkl')
 
-# RENAME ROWS AND COLUMNS
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+# RENAME ROWS AND COLUMNS 
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
 
-# Save as latex:
-to_latex_with_note(df, 'table_0.tex',
-                   caption="Descriptive Statistics of Physical Activity and Chronic Health Conditions for both Diabetes and Non-Diabetes Individuals", 
-                   label='table:diabetes_comparison',
-                   note="Values represent the proportions of individuals",
-                   legend=legend)
+# SAVE AS LATEX:
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Diabetes status", 
+    label='table:descriptive_statistics',
+    note="Values represent frequency distributions",
+    legend=legend0)
 
 # TABLE 1:
-df = pd.read_pickle('table_1.pkl')
+df1 = pd.read_pickle('table_1.pkl')
 
-# FORMAT VALUES 
-df['P>|z|'] = df['P>|z|'].apply(format_p_value)
+# RENAME ROWS AND COLUMNS 
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
 
-# RENAME COLUMN AND ROW NAMES
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
-
-# Save as Latex
-to_latex_with_note(df, 'table_1.tex',
-                   caption="Association between Physical Activity and High BP in Individuals with Diabetes", 
-                   label='table:physical_activity_high_blood_pressure',
-                   note="Values represent logistic regression coefficients. P-values are two-sided.",
-                   legend=legend)
-
+# SAVE AS LATEX:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Association between physical activity and high blood pressure among diabetics", 
+    label='table:association_highBP',
+    note="Values represent logistic regression coefficients",
+    legend=legend1)
 
 # TABLE 2:
-df = pd.read_pickle('table_2.pkl')
+df2 = pd.read_pickle('table_2.pkl')
 
-# FORMAT VALUES 
-df['P>|z|'] = df['P>|z|'].apply(format_p_value)
+# RENAME ROWS AND COLUMNS 
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k)) 
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
 
-# RENAME COLUMN AND ROW NAMES
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
-
-# Save as Latex
-to_latex_with_note(df, 'table_2.tex',
-                   caption="Association between Physical Activity and High Chol. in Individuals with Diabetes",
-                   label='table:physical_activity_high_cholesterol',
-                   note="Values represent logistic regression coefficients. P-values are two-sided.",
-                   legend=legend)
-
+# SAVE AS LATEX:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Association between physical activity and high cholesterol among diabetics", 
+    label='table:association_highChol',
+    note="Values represent logistic regression coefficients",
+    legend=legend2)
 
 # TABLE 3:
-df = pd.read_pickle('table_3.pkl')
+df3 = pd.read_pickle('table_3.pkl')
 
-# FORMAT VALUES 
-df['P>|z|'] = df['P>|z|'].apply(format_p_value)
+# RENAME ROWS AND COLUMNS 
+mapping3 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df3, k)) 
+abbrs_to_names3, legend3 = split_mapping(mapping3)
+df3 = df3.rename(columns=abbrs_to_names3, index=abbrs_to_names3)
 
-# RENAME COLUMN AND ROW NAMES
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+# SAVE AS LATEX:
+to_latex_with_note(
+    df3, 'table_3.tex',
+    caption="Association between physical activity and heart disease among diabetics", 
+    label='table:association_coronary',
+    note="Values represent logistic regression coefficients",
+    legend=legend3)
 
-
-# Save as Latex
-to_latex_with_note(df, 'table_3.tex',
-                   caption="Association between Physical Activity and Heart Dis./Att. in Individuals with Diabetes",
-                   label='table:physical_activity_heart_disease',
-                   note="Values represent logistic regression coefficients. P-values are two-sided.",
-                   legend=legend)

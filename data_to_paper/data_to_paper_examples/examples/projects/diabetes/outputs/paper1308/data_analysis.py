@@ -11,20 +11,20 @@ df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 # No dataset preparations are needed.
 
 # DESCRIPTIVE STATISTICS
-# Creating Table 0: Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Whether Having Diabetes
+## Table 0: "Descriptive statistics of Physical Activity and Chronic Health Conditions stratified by Whether Having Diabetes"
 desc_stats = df.groupby('Diabetes_binary').agg({"PhysActivity": "mean", 
                                                 "HighBP": "mean",
                                                 "HighChol": "mean",
                                                 "HeartDiseaseorAttack": "mean"}).reset_index()
-desc_stats['Diabetes_binary'] = desc_stats['Diabetes_binary'].replace([0,1],['No Diabetes', 'Diabetes'])
 desc_stats.set_index('Diabetes_binary', inplace=True)
+desc_stats.index.names = ['Diabetes Status (0=No, 1=Yes)']
+desc_stats.index = desc_stats.index.map({0: 'No', 1: 'Yes'})  # Change the row index to categorical labels
 desc_stats.to_pickle('table_0.pkl')
 
 # PREPROCESSING 
-# No preprocessing is needed, because the data is already in a structured format with binary variables and continuous variables are not being used in the analysis.
+# No preprocessing is needed, because the data is already in a structured format with binary variables and continuous variables are not being used in the analysis
 
 # ANALYSIS
-
 ## Table 1: "Association between physical activity and high blood pressure in individuals with diabetes"
 model_highBP = logit("HighBP ~ PhysActivity + Age + Sex + BMI + Smoker", data=df[df["Diabetes_binary"]==1]).fit()
 summary_df = model_highBP.summary2().tables[1]
