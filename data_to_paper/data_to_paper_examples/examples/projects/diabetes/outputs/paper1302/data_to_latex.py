@@ -1,71 +1,70 @@
 
 # IMPORT
 import pandas as pd
-from typing import Dict, Tuple, Optional
-from my_utils import to_latex_with_note, format_p_value
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+from typing import Dict, Tuple, Optional, Any
 
-Mapping = Dict[str, Tuple[Optional[str], Optional[str]]]
-
-def split_mapping(d: Mapping):
-    abbrs_to_names = {abbr: name for abbr, (name, definition) in d.items() if name is not None}
-    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in d.items() if definition is not None}
-    return abbrs_to_names, names_to_definitions
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
 
 # PREPARATION FOR ALL TABLES
-shared_mapping: Mapping = {
-    'PhysActivity': ('P. Act.', 'Physical Activity in past 30 days (0=no, 1=yes)'),
-    'BMI': ('BMI', 'Body Mass Index'),
-    'Age': ('Age Cat.', '13-level age category in intervals of 5 years (1=18-24, 2=25-29, ..., 12=75-79, 13=80 or older)'),
-    'Sex': ('Sex', 'Sex (0=female, 1=male)'),
-    'Diabetes_Status': ('Diab. Status', 'Diabetes (0=no, 1=yes)'),
+# Define a shared mapping for labels that are common to all tables
+shared_mapping: AbbrToNameDef = {
+    'BMI': ('Body Mass Index', 'Measure of body fat based on height and weight that applies to adult men and women'),
+    'Sex_1': ('Gender', 'Categorical variable, 1=Male, 0=Female')
 }
 
 # TABLE 0:
-df = pd.read_pickle('table_0.pkl')
+df0 = pd.read_pickle('table_0.pkl')
 
-# Renaming Abbreviated Columns and Rows
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-mapping |= {
-  'mean': ('Mean', None),
-  'std': ('Std Dev', None),
+# RENAME ROWS AND COLUMNS
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+mapping0 |= {
+    'Mean Diabetes': ('Mean Diabetes', None),
+    'Std Diabetes': ('Std. Diabetes', None),
+    'Mean PhysActivity': ('Mean Phys. Activity', None),
+    'Std PhysActivity': ('Std. Phys. Activity', None),
+    'Mean BMI': ('Mean BMI', None),
+    'Std BMI': ('Std. BMI', None),
 }
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
 
-# Save as latex:
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# Transpose the table to make it narrower
+df0 = df0.T
+
+# SAVE AS LATEX:
 to_latex_with_note(
- df, 
- 'table_0.tex',
- caption="Mean and Std Dev of P. Act., BMI, Age Cat., and Sex stratified by Diab. Status", 
- label='table:table_0',
- note="Mean values are likely to be altered due to approximations",
- legend=legend)
+    df0, 'table_0.tex',
+    caption="Descriptive Statistics of Main Binary Variables and Body Mass Index Stratified by Gender", 
+    label='table:DescriptiveStatistics',
+    note="Descriptive statistics include mean and standard deviation of diabetes measure, physical activity, and body mass index.",
+    legend=legend0)
+
 
 # TABLE 1:
-df = pd.read_pickle('table_1.pkl')
+df1 = pd.read_pickle('table_1.pkl')
 
-# Formatting P-Values
-df['P>|t|'] = df['P>|t|'].apply(format_p_value)
-
-# Renaming Abbreviated Columns and Rows
-mapping = {k: v for k, v in shared_mapping.items() if k in df.columns or k in df.index}
-mapping |= {
-  'const': ('Intercept', None),
-  'Coef.': ('Coeff.', 'Coefficient Estimate'),
-  'Std.Err.': ('Std Err', None),
-  't': ('t-stat', None),
-  'P>|t|': ('P-val', None),
-  '[0.025': ('CI Lower', None),
-  '0.975]': ('CI Upper', None),
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k)) 
+mapping1 |= {
+    'coef': ('Coefficient', None),
+    'p-value': ('P-value', None),
+    'conf_int_low': ('CI (Lower)', None),
+    'conf_int_high': ('CI (Higher)', None),
+    'PhysActivity': ('Phys. Activity', 'Physical activity in the past 30 days'),
+    'Intercept': ('Intercept', None),
+    'Sex_1[T.True]': ('Gender Male', 'Categorical variable, Male'),
 }
-abbrs_to_names, legend = split_mapping(mapping)
-df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
 
-# Save as latex:
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX:
 to_latex_with_note(
- df,
- 'table_1.tex',
- caption="Multiple Linear Regression Model predicting glycemic control among individuals with diabetes, adjusting for age, sex, and BMI.", 
- label='table:table_1',
- note="P-val denotes P-value for given coefficients. CI Lower & CI Upper are boundaries of 95% Confidence Interval.", 
- legend=legend)
+    df1, 'table_1.tex',
+    caption='Multiple Linear Regression for Testing Association between Physical Activity Level and Diabetes, Adjusted by Age, Gender, and Body Mass Index', 
+    label='table:LinearRegression',
+    note='Table includes the results of a multiple linear regression model on the relationship between diabetes and physical activity, adjusted by gender, age, and body mass index.',
+    legend=legend1)
+

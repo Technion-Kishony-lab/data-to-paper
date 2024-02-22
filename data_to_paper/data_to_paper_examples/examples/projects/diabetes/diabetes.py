@@ -18,7 +18,7 @@ RUN_PARAMETERS = dict(
 
 if __name__ == '__main__':
     get_paper(**RUN_PARAMETERS,
-              output_folder='paper1301',
+              output_folder='paper1302',
               project_specific_goal_guidelines=project_specific_goal_guidelines,
               should_mock_servers=True,
               load_from_repo=True,

@@ -3,46 +3,48 @@
 import pandas as pd
 import numpy as np
 import pickle
-import statsmodels.api as sm
+import statsmodels.formula.api as smf
 
 # LOAD DATA
-df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+df = pd.read_csv('diabetes_binary_health_indicators_BRFSS2015.csv')
 
 # DATASET PREPARATIONS
 # No dataset preparations are needed.
 
 # DESCRIPTIVE STATISTICS
-## Table 0: "Mean and STD of physical activity, BMI, age and sex stratified by diabetes incidence"
-df["Diabetes_Status"] = df["Diabetes_binary"].map({0: 'No Diabetes', 1: 'Diabetes'})
+## Table 0: "Descriptive statistics of main binary variables and BMI stratified by sex"
+df_sex = df.groupby('Sex').agg(
+{'Diabetes_binary': ['mean','std'],
+'PhysActivity': ['mean','std'],
+'BMI': ['mean', 'std']}).reset_index()
 
-grouped = df.groupby(by="Diabetes_Status")
-df0 = grouped[["PhysActivity", "BMI", "Age", "Sex"]].agg([np.mean, np.std])
-
-df0.to_pickle('table_0.pkl')
+df_sex.columns = ['Sex', 'Mean Diabetes', 'Std Diabetes', 'Mean PhysActivity', 'Std PhysActivity', 'Mean BMI', 'Std BMI']
+df_sex.Sex = df_sex.Sex.replace({0: 'Female', 1: 'Male'})
+df_sex.set_index('Sex', inplace=True)  # setting Sex as the index, for better row labels
+df_sex.to_pickle('table_0.pkl')
 
 # PREPROCESSING 
-# No preprocessing is needed, because of the simplicity of the model and the operations required.
+# Creating dummy variables for categorical variables.
+df = pd.get_dummies(df, columns=['Sex', 'Age', 'Education', 'Income'])
 
 # ANALYSIS
-## Table 1: "Multiple Linear Regression Model predicting glycemic control among individuals with diabetes, adjusting for age, sex, and BMI."
-diabetes_df = df[df["Diabetes_binary"]==1]
-
-X = diabetes_df[["PhysActivity", "BMI", "Age", "Sex"]] # independent variables
-X = sm.add_constant(X) # adding a constant
-Y = diabetes_df["GenHlth"] # dependent variable
-
-model = sm.OLS(Y, X).fit()
-df1 = pd.DataFrame(model.summary2().tables[1]) # Extracting the model estimates table
-df1.reset_index(inplace=True)
-df1['index'] = df1['index'].astype(str) # Ensure index is not purely numeric
-df1.set_index('index', inplace=True)
+## Table 1: "Results of Multiple Linear Regression testing association between physical activity level and diabetes, adjusting by age, sex, and BMI"
+formula = 'Diabetes_binary ~ PhysActivity + BMI + Sex_1'
+model = smf.ols(formula, data=df)
+res = model.fit()
+df1 = pd.DataFrame({
+'coef': res.params, 
+'p-value': res.pvalues, 
+'conf_int_low': res.conf_int().iloc[:, 0],
+'conf_int_high': res.conf_int().iloc[:, 1]
+})
 df1.to_pickle('table_1.pkl')
 
 # SAVE ADDITIONAL RESULTS
 additional_results = {
- 'Total number of observations': df.shape[0], 
- 'R-squared of regression model': model.rsquared
+'Total number of observations': df.shape[0],
+'R-squared of the model': res.rsquared,
 }
-
 with open('additional_results.pkl', 'wb') as f:
     pickle.dump(additional_results, f)
+
