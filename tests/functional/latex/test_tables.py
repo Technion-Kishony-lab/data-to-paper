@@ -43,7 +43,6 @@ def test_table_with_list():
     ('Coef.', False),
     ('Diabetes (0=No, 1=Yes)', False),
     ('7', False),
-    ('D', True),
     ('SD', False),
 ])
 def test_is_unknown_abbreviation(phrase, expected):

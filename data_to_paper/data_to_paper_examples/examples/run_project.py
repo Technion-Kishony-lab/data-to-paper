@@ -1,4 +1,5 @@
 import shutil
+import uuid
 import zipfile
 
 from pathlib import Path
@@ -100,7 +101,7 @@ def get_paper(project: str, data_filenames: List[str], research_goal: Optional[s
               should_remove_temp_folder: bool = True,
               save_on_repo: bool = True):
     input_path = get_input_path(project, load_from_repo)
-    temp_folder_to_run_in = input_path / 'temp_folder'
+    temp_folder_to_run_in = input_path / f'temp_folder_{uuid.uuid4()}'
     copy_datafiles_to_data_folder(data_filenames, input_path, temp_folder_to_run_in)
 
     output_directory = get_output_path(project, output_folder, save_on_repo)

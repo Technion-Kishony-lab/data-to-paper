@@ -60,9 +60,9 @@ class ModelEngine(IndexOrderedEnum):
 ModelEngine.DEFAULT = ModelEngine.GPT35_TURBO
 
 ModelEngine.MODELS_TO_MORE_CONTEXT = {
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT35_TURBO_16: None,
     ModelEngine.GPT35_TURBO: ModelEngine.GPT35_TURBO_16,
-    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT4: ModelEngine.GPT35_TURBO_16,
     ModelEngine.GPT4_TURBO: None,
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,
@@ -71,9 +71,9 @@ ModelEngine.MODELS_TO_MORE_CONTEXT = {
 
 
 ModelEngine.MODELS_TO_MORE_STRENGTH = {
-    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT35_TURBO: ModelEngine.GPT4_TURBO,
-    ModelEngine.GPT4: ModelEngine.GPT4_TURBO,
+    ModelEngine.GPT35_TURBO_16: ModelEngine.GPT4,
+    ModelEngine.GPT35_TURBO: ModelEngine.GPT4,
+    ModelEngine.GPT4: None,
     ModelEngine.GPT4_TURBO: None,
     ModelEngine.LLAMA_2_7b: None,
     ModelEngine.LLAMA_2_70b: None,

@@ -1,0 +1,4 @@
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The machine-learning model will have a significantly better predictive power than the formula-based model
+Statistical Test: Paired t-test comparing the mean squared residuals of the two models on the same test set

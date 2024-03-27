@@ -9,7 +9,7 @@ if TYPE_OF_MODELS == 'closed':
         "BaseCreateTablesCodeProductsGPT": ModelEngine.GPT4,
         "GetMostSimilarCitations": ModelEngine.GPT4,
         "IsGoalOK": ModelEngine.GPT4,
-        'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4_TURBO,
+        'SectionWriterReviewBackgroundProductsConverser': ModelEngine.GPT4,
         "IntroductionSectionWriterReviewGPT": ModelEngine.GPT4,
         "DiscussionSectionWriterReviewGPT": ModelEngine.GPT4,
     }
