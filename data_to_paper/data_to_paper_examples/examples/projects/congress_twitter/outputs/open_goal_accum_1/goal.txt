@@ -1,0 +1,20 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To explore the potential correlations and dependencies between political party affiliation and the structure of the Twitter interaction network amongst the members of the 117th US Congress.
+
+Hypothesis: 
+The pattern of Twitter interactions between members of the U.S. Congress significantly differs based on political party affiliation. Specifically, members are likely to engage more with members of the same political party, but there will also be considerable inter-party interactions, demonstrating that Twitter discourse in the Congress transcends partisan lines to a certain extent.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The pattern of Twitter interactions between members of the U.S. Congress significantly differs based on political party affiliation. Specifically, members are likely to engage more with members of the same political party, but there will also be considerable inter-party interactions, demonstrating that Twitter discourse in the Congress transcends partisan lines to a certain extent.
+Statistical Test: Two-Sample Proportion Test (Chi-squared test)
+
+Hypothesis: The number of Twitter interactions between members of the U.S. Congress is influenced by the represented state.
+Statistical Test: Analysis of Variance (ANOVA)
+
+Hypothesis: The Twitter interaction network among members of the U.S. Congress exhibits community structure based on political party affiliation.
+Statistical Test: Community Detection Algorithm (e.g., Louvain algorithm)

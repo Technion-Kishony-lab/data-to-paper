@@ -1,0 +1,14 @@
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with social interactions (edges) among Congress members (nodes). Each member (node) is further characterized by three attributes: Represented State, Political Party, and Chamber, allowing analysis of the adjacency matrix structure, graph metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the Senate, were harvested for a 4-month period, February 9 to June 9, 2022 (using the Twitter API). Members with fewer than 100 tweets were excluded from the network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer node ID (0, 1, 2, ...) which corresponds to a row in `congress_members.csv`, providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged with member j on Twitter at least once during the 4-month data-collection period. An engagement is defined as a tweet by member i that mentions member j's handle, or as retweets, quote tweets, or replies of i to a tweet by member j.
+
+
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or their two-letter abbreviations. The code may of course do statistical analysis of *properties* related to States, but should not single out specific states.

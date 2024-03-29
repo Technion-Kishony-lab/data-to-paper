@@ -31,6 +31,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(GoalReviewGPT))
     CHATGPT_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',

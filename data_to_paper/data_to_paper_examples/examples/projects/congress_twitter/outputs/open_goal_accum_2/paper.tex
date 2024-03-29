@@ -1,0 +1,665 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Insights into Social Dynamics among US Congress Members through Twitter Interactions}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Understanding social interactions among politicians is crucial for comprehending political landscapes. However, the analysis of Twitter interactions within the US Congress, particularly in relation to party affiliations and represented states, remains understudied. We address this research gap by presenting a comprehensive analysis of Twitter interactions among members of the 117th US Congress from both the House and the Senate. By employing a directed graph representation, we investigate the structure of the adjacency matrix, graph metrics, and the likelihood of interactions across party affiliations and represented states. Our findings reveal significant distinctions in Twitter interactions among different political parties, highlighting the influence of party affiliation on online interactions. Furthermore, we unveil the influential role of represented states in Twitter interactions, emphasizing the significance of geographical context in political discourse. We demonstrate that party affiliation fundamentally shapes the social network of Congress members and explore the impact of represented states. By contributing to a deeper understanding of the dynamics of online political communication within the US Congress, our research sheds light on the interplay between social media, party affiliations, and represented states. Limitations include the exclusion of members with fewer than 100 tweets, which may introduce certain biases. Overall, our results have important implications for understanding the multidimensional impacts of political and geographical factors on online interactions among politicians.
+\end{abstract}
+\section*{Introduction}
+
+The digitalization of political discourse on social media platforms, particularly Twitter, has immeasurably reshaped traditional methods of political communication \cite{Muragod2018TheSM}. With its unique format and real-time interactions, Twitter has evolved into an essential tool for U.S. Congress members to engage with constituents, peers, and a global audience \cite{Eady2019HowMP}. This platform allows an examination of party affiliations and geographical contexts represented by the states. These aspects potentially affect communication dynamics among the members of Congress, an area yet to be thoroughly examined.
+
+Prior research has shed light on various implications of Twitter in political contexts, such as the scrutiny of political polarization manifested in Twitter networks \cite{Yarchi2020PoliticalPO}, and the exploration of the role of social media in elevating political engagements \cite{Kahne2018ThePS, Stier2018ElectionCO}. Still, the landscape remains less charted concerning the interdependencies between expressed party affiliations, state representation, and their joint influence on Twitter interactions among U.S. Congress members.
+
+Building on this pre-existing knowledge gap, we leverage a comprehensive dataset featuring Twitter interactions from members of the 117th U.S. Congress \cite{Hemphill2013FramingIS, Hua2020TowardsMA}. Our investigation delves into the intricacies of the adjacency matrix structure, graph metrics, punctuated with estimates of interactions stratified across political affiliations and state boundaries. This study strives to provide a comprehensive analysis of the U.S. Congress's digital political discourse \cite{Sun2018ATPDG, Hu2020OpenGB}.
+
+In our methodological approach, we employed a directed graph representation to treat each congress member as a node and each Twitter interaction as an edge. This approach enables the study of patterns in the Twitter communications of Congress members at a macro level, thereby furnishing a network perspective \cite{Yan2014AsymptoticsID, Olejarczyk2017GraphbasedAO}. We further validated our findings using chi-square tests to statistically infer dependencies between categories reflecting the geographical and party affiliations among Congress members \cite{Dong2021EDITSMA}.
+
+Preliminary results reveal nuanced insights into the role of political affiliations and state representation. Specifically, we observed that both these factors significantly influence the Twitter interaction dynamics among the Congress members. Such findings extend our understanding of the multidimensional interaction patterns in online political discourse within the U.S. Congress.
+
+\section*{Results}
+
+We present the findings of our analysis of Twitter interactions among members of the 117th U.S. Congress, which includes a total of 475 Congress members. The analysis aimed to uncover the influence of party affiliation and geographical context on these interactions. 
+
+We first investigated the party-wise interactions on Twitter. Our goal was to determine the likelihood of interactions between members of different political parties. To reach our findings, we employed a chi-square test, which tests whether two categorical variables are independent. In our case, the two variables were the party affiliations of the interacting congress members. The chi-square statistic was found to be $6.59\ 10^{3}$, with a p-value of less than $10^{-6}$, indicating a highly significant association between the party affiliations of interacting Congress members (Table \ref{table:party_wise_interaction}). This suggests that party affiliation plays a crucial role in shaping the interactions among the Congress members on Twitter. 
+
+\begin{table}[h]
+\caption{Chi-square test of party-wise retweet interaction.}
+\label{table:party_wise_interaction}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrlr}
+\toprule
+ & Chi-Square Statistic & p-value & Degrees of Freedom \\
+\midrule
+\textbf{Party Interaction Analysis} & $6.59\ 10^{3}$ & $<$$10^{-6}$ & 4 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{p-value}: Probability of observing a value as extreme as or more extreme than the observed value under the null hypothesis
+\item \textbf{Degrees of Freedom}: Number of independent pieces of information that go into the calculation of a statistic
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Subsequently, we turned our attention to the state-wise engagements among Congress members on the same platform. The objective was to explore whether geographical representation affects the interaction patterns on Twitter. Applying the chi-square test again, we found a significant association between the represented states of the interacting Congress members ($\chi^2$ = $9.47\ 10^{3}$, p $<$ $10^{-6}$, df = 2809) (Table \ref{table:state_wise_interaction}). These results imply that geographical context significantly impacts the Twitter interactions among Congress members. 
+
+\begin{table}[h]
+\caption{Chi-square test of state-wise retweet interaction.}
+\label{table:state_wise_interaction}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrlr}
+\toprule
+ & Chi-Square Statistic & p-value & Degrees of Freedom \\
+\midrule
+\textbf{State Interaction Analysis} & $9.47\ 10^{3}$ & $<$$10^{-6}$ & 2809 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{p-value}: Probability of observing a value as extreme as or more extreme than the observed value under the null hypothesis
+\item \textbf{Degrees of Freedom}: Number of independent pieces of information that go into the calculation of a statistic
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+In addition to our primary results, we present some related statistics to encapsulate the scale of our dataset. Our graph of Twitter interactions included 475 nodes, each representing a unique Congress member. The graph was directed, with a total of 13,289 edges, symbolising at least one interaction between the respective Congress members over the period of data collection. 
+
+Summarising, our analysis indicates that both party affiliations and represented states considerably influence the Twitter interactions among members of the 117th U.S. Congress. These results lay the groundwork for further investigations into the multidimensional impacts of the political and geographic, shaping online political communication within the U.S. Congress.
+
+\section*{Discussion}
+
+Our study embarked on the exploration of Twitter interactions among the 117th U.S. Congress constituency, highlighting the roles of party affiliations and geographical representations permeating their digital interactions \cite{Sun2018ATPDG, Hu2020OpenGB}. Building upon the foundations of prior work emphasizing Twitter's potency in framing political discourses \cite{Muragod2018TheSM, Stier2018ElectionCO}, we steered the narrative towards the granular delivery of understanding the interplay between party affiliations and geographical contexts in shaping Twitter exchanges among congress members \cite{An2019PoliticalDI}.
+
+We utilized a directed graph representation to encapsulate Congress members' communications network, a method burgeoning an insightful perspective at a macroscopic level \cite{Yan2014AsymptoticsID}. The chi-square tests on party-wise and state-wise interactions indicated a significant association among congress members of the same party and groups representing the same state. This phenomenon mirrors the well-documented concept of echo-chambers, wherein communication patterns often remain intragroup \cite{Barber2016LessIM}.
+
+Our results align with earlier studies that reported political polarization on Twitter \cite{Jiang2020PoliticalPD, Bail2019AssessingTR}. However, where our study breaks new ground is its identification of both political and geographical context as potent forces driving such polarization. We recognized that political affiliations and geographical locations significantly alternate networking structures and patterns of interactions among members of the Congress, reinforcing the echo-chamber effect \cite{Barber2016LessIM, Etta2021NewsCA}.
+
+Nevertheless, the study isn't devoid of constraints. The omission of Congress members with less than 100 tweets, the arbitrary threshold set for data collection, potentially neglects meaningful interactions below our frequency threshold. Such a criterion might have resulted in an underestimated skew towards Congress members with more aggressive tweeting habits. Furthermore, our study, being observational, merely correlates party affiliations and geographical representation with Twitter interactions, bypassing any causal relationships. However, it also opens avenues to causational hypotheses for future studies, such as how specific socio-political events might be influencing these patterns.
+
+In conclusion, this exploration enlightens a nuanced and granular comprehension of the political discourse within the 117th U.S. Congress, implicating both the party affiliations and state representation of the constituent members as considerable influences. These findings underline the intricate web of political communication patterns interwoven throughout Twitter. Future excursions should consider broader timescales, external events, and even longitudinal studies to investigate how patterns over time might be charting the course of political discourses. \cite{Ekstrm2018SocialMP, Farkas2020ImagesPA, Mir2023ExploringTP}.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset used in this study consists of Twitter interactions among members of the 117th US Congress. The data was collected over a 4-month period from February 9 to June 9, 2022 using the Twitter API. The dataset includes information on Congress members' Twitter handles, represented state, political party, and chamber. The Twitter handles were obtained from the official data source provided by the House Press Gallery. The dataset was structured as a directed graph, where each node represents a Congress member, and each edge represents a Twitter interaction between two members.
+
+\subsection*{Data Preprocessing}
+The data preprocessing steps were performed using Python programming language. First, the dataset was loaded into a pandas DataFrame. Members with fewer than 100 tweets were excluded from the network. The data was then processed to create a pairwise dataset of state and party information for each Twitter interaction between Congress members.
+
+\subsection*{Data Analysis}
+To analyze the role of regional representation in shaping the retweet network within the 117th US Congress, several analysis steps were performed using Python libraries. The analysis focused on two aspects: party-wise retweet interaction and state-wise retweet interaction.
+
+For the party-wise retweet interaction analysis, a cross-tabulation was conducted to examine the frequency of retweet interactions between different political parties. A chi-square test was then used to determine the statistical significance of the party-wise retweet interactions.
+
+In the state-wise retweet interaction analysis, a cross-tabulation was performed to investigate the frequency of retweet interactions between different states represented by Congress members. A chi-square test was employed to evaluate the significance of the state-wise retweet interactions.
+
+Throughout the analysis, the pandas library was used for data manipulation and the scipy library for the chi-square tests.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with
+	social interactions (edges) among Congress members (nodes). Each member (node)
+	is further characterized by three attributes: Represented State, Political
+	Party, and Chamber, allowing analysis of the adjacency matrix structure, graph
+	metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the
+	Senate, were harvested for a 4-month period, February 9 to June 9, 2022 (using
+	the Twitter API). Members with fewer than 100 tweets were excluded from the
+	network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer
+	node ID (0, 1, 2, ...) which corresponds to a row in `congress_members.csv`,
+	providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged
+	with member j on Twitter at least once during the 4-month data-collection
+	period. An engagement is defined as a tweet by member i that mentions member j's
+	handle, or as retweets, quote tweets, or replies of i to a tweet by member j.
+
+
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress
+	members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or
+	their two-letter abbreviations. The code may of course do statistical analysis
+	of *properties* related to States, but should not single out specific states.
+
+
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles,
+	Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-
+	twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR",
+	"VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+
+
+Here are the first few lines of the file:
+```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US
+	Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID
+	i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+	create_using=nx.DiGraph()). An i->j edge indicates that Congress member i had at
+	least one tweet engaging with Congress member j during the 4-month collection
+	period.
+
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import networkx as nx
+
+# Load congress members data from csv file 
+df_congress_members = pd.read_csv('congress_members.csv')
+
+# Load congress edges data
+G = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph())
+
+# Open output file
+with open("data_exploration.txt", "w") as file:
+
+    # Data size
+    file.write("# Data Size\n")
+    file.write(f"Number of Congress members: {df_congress_members.shape[0]}\n")
+    file.write(f"Number of attributes per member: {df_congress_members.shape[1]}\n")
+    file.write(f"Number of nodes in the graph: {G.number_of_nodes()}\n")
+    file.write(f"Number of edges in the graph: {G.number_of_edges()}\n\n")
+    
+    # Summary statistics
+    file.write("# Summary Statistics\n")
+    # As there are no continuous variables in this dataset, we will skip this section
+    file.write("N/A for this dataset\n\n")
+
+    # Categorical variables
+    file.write("# Categorical Variables\n")
+    categorical_cols = ['State','Party','Chamber']
+    for col in categorical_cols:
+        # Count of members per categorical variable
+        file.write(f"Count of members per {col}: \n{df_congress_members[col].value_counts()}\n")
+        # Most common category for each categorical variable
+        top_5 = df_congress_members[col].value_counts().idxmax()
+        file.write(f"Most common {col}: {top_5}\n\n")
+
+    # Missing values
+    file.write("# Missing Values\n")
+    file.write(f"Missing values in each column:\n{df_congress_members.isna().sum()}\n")
+    
+file.close()
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs a data exploration analysis on a dataset that represents Twitter interactions among members of the 117th US Congress. The analysis is conducted in order to gain insights into the structure and characteristics of the network formed by these interactions.
+
+First, the code loads the congress members' data from a CSV file, which contains information such as Twitter handles, represented states, party affiliations, and chambers of the members. It also loads the congress edges data, which represents the directed interactions between members on Twitter.
+
+The data exploration analysis is then conducted, and the results are written into an output file called "data\_exploration.txt".
+
+The code performs the following analysis steps:
+
+1. Data Size: The code reports the number of congress members, attributes per member, nodes in the graph, and edges in the graph. These metrics provide an overview of the size of the dataset and the network.
+
+2. Summary Statistics: Since there are no continuous variables in this dataset, this section is skipped in the code.
+
+3. Categorical Variables: The code explores the categorical variables (State, Party, and Chamber) by providing the count of members per category and identifying the most common category for each variable. This analysis helps understand the distribution and representation of members across different categories.
+
+4. Missing Values: The code identifies and reports any missing values in the congress members' data. This step is important for assessing data quality and determining if any imputation or handling of missing values is required in subsequent analyses.
+
+The information generated from the analysis steps is written into the "data\_exploration.txt" file. The file includes the data size metrics, count of members per categorical variable, the most common category for each categorical variable, and any missing values in the dataset.
+
+The results obtained from this data exploration analysis can provide initial insights into the network structure and characteristics of the Twitter interactions among members of the 117th US Congress. These insights can guide further analyses and investigations regarding the dynamics of political interactions on Twitter and their implications.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of Congress members: 475
+Number of attributes per member: 4
+Number of nodes in the graph: 475
+Number of edges in the graph: 13289
+
+# Summary Statistics
+N/A for this dataset
+
+# Categorical Variables
+Count of members per State:
+State
+CA    49
+TX    32
+NY    27
+FL    26
+IL    17
+PA    16
+GA    15
+OH    15
+NC    13
+VA    13
+MI    13
+NJ    12
+AZ    11
+WA    11
+SC    10
+MN     9
+WI     9
+MO     9
+MD     9
+TN     9
+MA     9
+AL     8
+IN     8
+LA     8
+CO     8
+OK     7
+CT     7
+IA     6
+WV     6
+KY     6
+UT     6
+AR     5
+NM     5
+MS     5
+OR     5
+NV     5
+KS     4
+NH     4
+ID     4
+VT     3
+ME     3
+WY     3
+NE     3
+MT     3
+RI     3
+ND     3
+DE     3
+HI     2
+AK     2
+SD     2
+PR     1
+DC     1
+VI     1
+MP     1
+Name: count, dtype: int64
+Most common State: CA
+
+Count of members per Party:
+Party
+D    250
+R    223
+I      2
+Name: count, dtype: int64
+Most common Party: D
+
+Count of members per Chamber:
+Chamber
+House     383
+Senate     92
+Name: count, dtype: int64
+Most common Chamber: House
+
+# Missing Values
+Missing values in each column:
+Handle     0
+State      0
+Party      0
+Chamber    0
+dtype: int64
+
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import networkx as nx
+from scipy.stats import chi2_contingency
+import pickle
+
+# LOAD DATA
+congress_df = pd.read_csv("congress_members.csv")
+edgelist = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph())
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING 
+# No preprocessing is needed, because data is already in the required format.
+
+# ANALYSIS
+# Create a pairwise data of `State` and `Party` between nodes in each edge
+edges_data = []
+for edge in edgelist.edges:
+    source_data = congress_df.iloc[int(edge[0])]
+    target_data = congress_df.iloc[int(edge[1])]
+    edge_data = [source_data.State, target_data.State, source_data.Party, target_data.Party]
+    edges_data.append(edge_data)
+
+edges_df = pd.DataFrame(edges_data, columns=['SourceState', 'TargetState', 'SourceParty', 'TargetParty'])
+
+## Table 1: "Chi-square test of party-wise retweet interaction"
+# Party-wise retweet interaction
+party_wise_interaction = pd.crosstab(edges_df.SourceParty, edges_df.TargetParty)
+party_wise_stat, party_wise_p, party_wise_dof, party_wise_expctd = chi2_contingency(party_wise_interaction)
+
+df1 = pd.DataFrame([{'Statistic': party_wise_stat, 'p-value': party_wise_p, 'DoF': party_wise_dof}],
+                   columns=['Statistic', 'p-value', 'DoF'], 
+                   index=['Party Interaction Analysis'])
+df1.to_pickle('table_1.pkl')
+
+
+## Table 2: "Chi-square test of state-wise retweet interaction"
+# State-wise Twitter interaction
+state_wise_interaction = pd.crosstab(edges_df.SourceState, edges_df.TargetState)
+state_wise_stat, state_wise_p, state_wise_dof, state_wise_expctd = chi2_contingency(state_wise_interaction)
+
+df2 = pd.DataFrame([{'Statistic': state_wise_stat, 'p-value': state_wise_p, 'DoF': state_wise_dof}],
+                   columns=['Statistic', 'p-value', 'DoF'], 
+                   index=['State Interaction Analysis'])
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of Congress members': len(congress_df), 
+ 'Total number of edges in the graph': len(edgelist.edges),
+ 'Total number of nodes in the graph': len(edgelist.nodes),
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code performs an analysis of the interaction network among members of the 117th US Congress on Twitter. The steps involved in the analysis are as follows:
+
+1. Load the data:
+   - The code reads the data from two files: "congress\_members.csv" and "congress\_edges.dat".
+   - The first file contains information about Congress members, including their Twitter handles, Represented State, Party, and Chamber.
+   - The second file provides the interaction network between the Congress members on Twitter.
+
+2. Prepare the dataset:
+   - No dataset preparations are required as the data is already in the required format.
+
+3. Perform Descriptive Statistics:
+   - No descriptive statistics table is generated in this analysis.
+
+4. Preprocessing:
+   - No preprocessing is needed because the data is already in the required format.
+
+5. Perform Analysis:
+   - Pairwise data of "State" and "Party" between nodes in each edge are created.
+   - This is done by extracting the relevant information from the Congress member data based on the edge connections.
+
+6. Table 1: "Chi-square test of party-wise retweet interaction":
+   - A contingency table is created to analyze the party-wise retweet interactions.
+   - The contingency table counts the number of retweet interactions between parties.
+   - A chi-square test of independence is performed on the contingency table to determine if there is a significant association between party affiliation of the source and target nodes.
+
+7. Table 2: "Chi-square test of state-wise retweet interaction":
+   - A contingency table is created to analyze the state-wise retweet interactions.
+   - The contingency table counts the number of retweet interactions between states.
+   - A chi-square test of independence is performed on the contingency table to determine if there is a significant association between the represented state of the source and target nodes.
+
+8. Saving Additional Results:
+   - The code saves additional results in the "additional\_results.pkl" file.
+   - The additional results include the total number of Congress members, the total number of edges in the graph, and the total number of nodes in the graph.
+
+The code provides insights into the retweet interactions among members of the Congress based on their party affiliation and represented state. The chi-square tests help assess the significance of these associations. The additional results capture important statistics regarding the size and structure of the interaction network.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                              Statistic p-value  DoF
+Party Interaction Analysis  6590              0    4
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                              Statistic p-value   DoF
+State Interaction Analysis  9465              0  2809
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of Congress members': 475,
+    'Total number of edges in the graph': 13289,
+    'Total number of nodes in the graph': 475,
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from typing import Any, Dict, Optional, Tuple
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'Statistic': ('Chi-Square Statistic', None),
+    'p-value': (None, 'Probability of observing a value as extreme as or more extreme than the observed value under the null hypothesis'),
+    'DoF': ('Degrees of Freedom', 'Number of independent pieces of information that go into the calculation of a statistic'),
+}
+
+# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# FORMAT VALUES
+df1['p-value'] = df1['p-value'].apply(format_p_value)
+
+# RENAME ROWS AND COLUMNS
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df1, k)}
+abbrs_to_names, names_to_definitions = split_mapping(mapping)
+df1 = df1.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+ df1, 'table_1.tex',
+ caption="Chi-square test of party-wise retweet interaction.", 
+ label='table:party_wise_interaction',
+ note=None,
+ legend=names_to_definitions)
+
+# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# FORMAT VALUES
+df2['p-value'] = df2['p-value'].apply(format_p_value)
+
+# RENAME ROWS AND COLUMNS
+mapping = {k: v for k, v in shared_mapping.items() if is_str_in_df(df2, k)} 
+abbrs_to_names, names_to_definitions = split_mapping(mapping)
+df2 = df2.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as Latex:
+to_latex_with_note(
+ df2, 'table_2.tex',
+ caption="Chi-square test of state-wise retweet interaction.", 
+ label='table:state_wise_interaction',
+ note=None,
+ legend=names_to_definitions)
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Chi-square test of party-wise retweet interaction.}
+\label{table:party_wise_interaction}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrlr}
+\toprule
+ & Chi-Square Statistic & p-value & Degrees of Freedom \\
+\midrule
+\textbf{Party Interaction Analysis} & 6.59e+03 & $<$1e-06 & 4 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{p-value}: Probability of observing a value as extreme as or more
+	extreme than the observed value under the null hypothesis
+\item \textbf{Degrees of Freedom}: Number of independent pieces of information
+	that go into the calculation of a statistic
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Chi-square test of state-wise retweet interaction.}
+\label{table:state_wise_interaction}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrlr}
+\toprule
+ & Chi-Square Statistic & p-value & Degrees of Freedom \\
+\midrule
+\textbf{State Interaction Analysis} & 9.47e+03 & $<$1e-06 & 2809 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{p-value}: Probability of observing a value as extreme as or more
+	extreme than the observed value under the null hypothesis
+\item \textbf{Degrees of Freedom}: Number of independent pieces of information
+	that go into the calculation of a statistic
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\end{document}

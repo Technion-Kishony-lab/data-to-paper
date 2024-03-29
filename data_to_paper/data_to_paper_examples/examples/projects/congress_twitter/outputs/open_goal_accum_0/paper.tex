@@ -1,0 +1,591 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
+    breaklines=true,
+    }
+\title{Discovering Communication Patterns in the US Congress through Twitter Interactions}
+\author{Data to Paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Understanding the communication dynamics among members of the US Congress is essential for analyzing the legislative process. However, the study of these dynamics is limited. In this research, we analyze a comprehensive dataset of Twitter interactions among members of the 117th US Congress, encompassing the House of Representatives and the Senate. By employing network analysis techniques, we reveal the distribution of Twitter interactions, showcasing both collaborative interactions within each chamber and varying levels of cross-chamber communication. Moreover, a chi-square test of independence uncovers a significant association between the House of Representatives and the Senate regarding Twitter interactions. Our findings underscore the influential role of digital communication platforms in shaping interactions within the US Congress, offering insights into the evolving communication landscape and its impact on policy-making and public discourse. It is important to acknowledge the limitations of our analysis, such as the focus on a specific timeframe and the exclusion of non-Twitter interactions. Future research should explore broader implications and consider additional factors that influence congressional communication, promoting a comprehensive understanding of communication dynamics within the US Congress.
+\end{abstract}
+\section*{Introduction}
+
+Communication dynamics play a crucial role in policy-making and decision-making processes, particularly within governing bodies such as the US Congress \cite{Theocharis2020TheDO}. The increasing adoption of social media platforms for political dialogue introduces a novel landscape ripe for study. Twitter, a platform renowned for instant, condense communication, has become an essential tool for legislative conversation and as a channel for political discourse \cite{Tsur2015AFO}.
+
+While recent studies have begun to dissect communication dynamics on Twitter, much of the current research is limited to broader analyses such as political polarization, information spreading, and broader interpersonal dynamics \cite{Yarchi2020PoliticalPO, Wuchty2011HumanCD, Horvt2021BirdsOA}. Few tap into the unique context of institutions such as the US Congress and their communication intricacies on such platforms. Therefore, a notable gap exists in comprehensively understanding the interaction patterns among members of the US Congress on Twitter \cite{Lai2019TracingCP, Kenney2020COVID19AT}.
+
+This study aims to address this gap by conducting an in-depth analysis of a dataset containing Twitter interactions between members of the 117th US Congress \cite{Hua2020TowardsMA}. Our specific focus on the dynamics within the US Congress allows us to map these interactions inside an essential political body with unique institutional characteristics \cite{Barber2019WhoLW, Farhadloo2018AssociationsOT}. Also, it captures the influence of the diverse political dynamics intrinsic to a bicameral system like Congress on social media interactions.
+
+We apply advanced network analysis techniques to explore these interactions, focusing on the distribution of Twitter engagements within and across the two chambers of Congress. The study further employs a chi-square test of independence to quantitatively evaluate any potential association between chamber membership and intensity or form of Twitter interactions \cite{Litwin2011SocialNT, Hagan1999SyringeEA}. This research, therefore, offers new insights into the complex tapestry of digital communication within the US Congress. It highlights the significant influence such platforms carry in shaping interactions within political institutions, aiding the understanding of the evolving communication landscape within Congress \cite{Barber2016LessIM, Omodei2015CharacterizingII}. Such insights are crucial for comprehending the evolving nature of legislative dialogue and potential influences on policy-making and public discourse.
+
+\section*{Results}
+
+Understanding the patterns and dynamics of communication among members of the US Congress is crucial for studying the legislative process and decision-making. In this study, we analyzed a comprehensive dataset of Twitter interactions among members of the 117th US Congress, including both the House of Representatives and the Senate. Our analysis aimed to uncover the distribution of interactions among Congress members from different chambers and explore the hierarchical dynamics in their communication patterns.
+
+We first examined the distribution of Twitter interactions between members of the House of Representatives and the Senate. The results, as shown in Table \ref{table:distribution_of_interactions}, indicate that members of the House had 10,115 interactions with other House members and 472 interactions with members of the Senate. Similarly, members of the Senate had 1,139 interactions with House members and 1,563 interactions with other Senate members. These findings highlight the collaborative nature of interactions within each chamber, as well as the cross-chamber communication between the House and the Senate.
+
+\begin{table}[h]
+\caption{Distribution of interactions among House of Representatives and Senate Members}
+\label{table:distribution_of_interactions}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+Chamber\_Target & House of Representatives & Senate \\
+Chamber\_Source &  &  \\
+\midrule
+\textbf{House of Representatives} & 10115 & 472 \\
+\textbf{Senate} & 1139 & 1563 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{House of Representatives}: Members of US Congress representing House
+\item \textbf{Senate}: Members of US Congress representing Senate
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+To further understand the communication dynamics, we conducted a chi-square test of independence to examine the association between the House of Representatives and the Senate in terms of Twitter interactions. The analysis, presented in Table \ref{table:chi_square_result}, revealed a statistically significant association (\(\chi^2 = 4.73 \times 10^3\), \(p < 1 \times 10^{-6}\)) between the chambers. This suggests that the distribution of Twitter interactions is not independent and indicates underlying factors that drive the communication patterns, such as differences in legislative responsibilities and party affiliations.
+
+\begin{table}[h]
+\caption{Chi-square Test of Independence Result}
+\label{table:chi_square_result}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & Chi-square statistic & P-value \\
+\midrule
+\textbf{Chi-square Test} & $4.73\ 10^{3}$ & $<$$10^{-6}$ \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Chi-square statistic}: Chi-square test statistic value indicating level of independence between variables
+\item \textbf{P-value}: Statistical significance value of the Chi-square test statistic
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+The hierarchical dynamics observed in the communication patterns of the US Congress can be attributed to various factors. Members of the House of Representatives may primarily connect and interact with fellow representatives from their own chamber due to similar legislative priorities and a shared understanding of the House-specific context. Similarly, members of the Senate may engage more frequently with other senators, reflecting their distinctive role in the legislative process and decision-making. This hierarchical communication pattern may contribute to the cohesion of each chamber and the broader functioning of the US Congress as a bicameral institution.
+
+In summary, our analysis of Twitter interactions among members of the US Congress reveals distinct communication patterns, with collaborative interactions within each chamber and varying levels of cross-chamber communication. The statistically significant association between the House of Representatives and the Senate in terms of Twitter interactions underscores the influence of chamber membership on communication dynamics. These findings emphasize the significant role of digital communication platforms in shaping interactions and relationships within the US Congress, providing insights into the evolving communication landscape and its potential influence on policy-making and public discourse.
+
+\section*{Discussion}
+
+In the contemporary age of digitization, platforms like Twitter have assumed a pivotal role in shaping political dialogue. Particularly within governing bodies like the US Congress, Twitter holds a significant influence on the communication dynamics \cite{Theocharis2020TheDO, Tsur2015AFO}. This study embarked on an exploratory journey to understand these dynamics among the members of the 117th US Congress, by analyzing a rich dataset of Twitter interactions over a four-month span. We employed network analysis techniques and statistical tests to decipher the patterns of communication within and between legislative chambers.
+
+Our observations revealed significant interaction clustering within the chambers, indicating a high degree of collaboration among the members of the House and the Senate within their respective chambers. A strikingly different revelation was the limited cross-chamber discourse, a pattern further substantiated by our chi-square test, showing a significant association between member interactions and their chamber affiliations \cite{Yarchi2020PoliticalPO}. This provides an interesting contrast to the works of Leydesdorff et al., and reiterates the criticality of underlying codes and contexts on communication dynamics \cite{Leydesdorff2017UvADAREA}.
+
+However, our study also presents some limitations that need to be acknowledged. The analysis is based solely on Twitter interactions, omitting other important facets of communication among Congress members such as offline exchange, correspondence via other digital platforms, and personal relationships. This could potentially lead to an incomplete portrayal of the communication landscape. The study's timeframe, specifically focussed on a span of four months, could be too narrow to capture the more nuanced, fluid aspects of congressional communication over time.
+
+In the concluding note, our study delivers an innovative perspective on visualizing and understanding the congressional communication dynamics through Twitter interactions. It underlines the intricate interplay of chamber affiliations in shaping digital discourse among Congress members, shedding light on the mechanisms within a bicameral institution like the US Congress \cite{Lai2019TracingCP, Kenney2020COVID19AT}. As a potential suggestion for future exploration in this field, the incorporation of longer timeframes, other modes of communication, content analysis, and machine learning algorithms like Natural Language Processing (NLP) or Graph Neural Networks (GNN) \cite{Hllmann2019TheCO} could hold the potential to provide a more comprehensive understanding of the communication dynamics at play.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The data for this study was obtained from two primary sources. The first source is a dataset that maps the Twitter interactions among members of the 117th US Congress, which was collected over a four-month period using the Twitter API. The dataset includes information on the Twitter handles, represented states, political party affiliations, and chambers of each Congress member. The second source is a directed graph representing the interaction network among Congress members during the data collection period.
+
+\subsection*{Data Preprocessing}
+The data preprocessing steps were performed using Python programming language. The first step involved loading the dataset of Congress members, which provided information about their Twitter handles, represented states, political party affiliations, and chambers. The second step involved loading the interaction network data, which was stored as a list of directed edges in a specific file format.
+
+Next, the edges of the interaction network were converted into a pandas DataFrame, with columns representing the source and target nodes of each edge. To facilitate analysis, integer node IDs were assigned to each Congress member, corresponding to their row index in the Congress members dataset. The node IDs were then used to merge the DataFrame of edges with the Congress members dataset, allowing the identification of the chambers (House or Senate) for each node in the interaction network.
+
+\subsection*{Data Analysis}
+The data analysis was performed using various Python libraries, including pandas, networkx, scipy, and pickle. To provide descriptive statistics of the interaction network, a cross-tabulation table was generated to showcase the distribution of interactions between members of the House and Senate. A chi-square test of independence was then conducted to examine the association between the chambers regarding Twitter interactions.
+
+The analysis code also saved additional results, such as the total number of observations and the results of the chi-square test. These results were stored in pickle files for future reference and further analysis.
+
+In summary, our analysis involved loading the dataset of Congress members, preprocessing the interaction network data, and conducting statistical analysis to examine the communication patterns within the US Congress. The use of network analysis techniques allowed us to explore the distribution of Twitter interactions and uncover the relationship between chambers, providing insights into the communication dynamics among members of the 117th US Congress.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{Verbatim}[tabsize=4]
+* Rationale:
+The dataset maps US Congress's Twitter interactions into a directed graph with
+	social interactions (edges) among Congress members (nodes). Each member (node)
+	is further characterized by three attributes: Represented State, Political
+	Party, and Chamber, allowing analysis of the adjacency matrix structure, graph
+	metrics and likelihood of interactions across these attributes.
+
+* Data Collection and Network Construction:
+Twitter data of members of the 117th US Congress, from both the House and the
+	Senate, were harvested for a 4-month period, February 9 to June 9, 2022 (using
+	the Twitter API). Members with fewer than 100 tweets were excluded from the
+	network.
+
+- `Nodes`. Nodes represent Congress members. Each node is designated an integer
+	node ID (0, 1, 2, ...) which corresponds to a row in `congress_members.csv`,
+	providing the member's Represented State, Political Party, and Chamber.
+
+- `Edges`. A directed edge from node i to node j indicates that member i engaged
+	with member j on Twitter at least once during the 4-month data-collection
+	period. An engagement is defined as a tweet by member i that mentions member j's
+	handle, or as retweets, quote tweets, or replies of i to a tweet by member j.
+
+
+* Data analysis guidelines:
+- Your analysis code should NOT create tables that include names of Congress
+	members, or their Twitter handles.
+- Your analysis code should NOT create tables that include names of States, or
+	their two-letter abbreviations. The code may of course do statistical analysis
+	of *properties* related to States, but should not single out specific states.
+
+
+2 data files:
+File #1: "congress_members.csv"
+A csv file of members of the 117th Congress, including their Twitter handles,
+	Represented State, Party, and Chamber.
+Data source: `https://pressgallery.house.gov/member-data/members-official-
+	twitter-handles`.
+Rows are ordered according to the node ID, starting at 0.
+
+Fields:
+
+`Handle`: Twitter handle (without `@`)
+`State`: Categorical; Two-letter state abbreviation; including also: "DC", "PR",
+	"VI", "AS", "GU", "MP".
+`Party`: Categorical; Party affiliation ("D", "R", or "I")
+`Chamber`: Categorical; The member's chamber ("House", "Senate")
+
+
+Here are the first few lines of the file:
+```output
+Handle,State,Party,Chamber
+SenatorBaldwin,WI,D,Senate
+SenJohnBarrasso,WY,R,Senate
+SenatorBennet,CO,D,Senate
+
+```
+
+File #2: "congress_edges.dat"
+This file provides the interaction network between members of the 115th US
+	Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID
+	i to node ID j, compatible with nx.read_edgelist('congress_edges.dat',
+	create_using=nx.DiGraph()). An i->j edge indicates that Congress member i had at
+	least one tweet engaging with Congress member j during the 4-month collection
+	period.
+
+
+
+
+\end{Verbatim}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+import pandas as pd
+import networkx as nx
+
+# Load datasets
+members = pd.read_csv("congress_members.csv")
+edges = nx.read_edgelist("congress_edges.dat", create_using=nx.DiGraph())
+
+summary_state = members.State.describe()
+summary_party = members.Party.describe()
+summary_chamber = members.Chamber.describe()
+summary_missing = members.isnull().sum()
+
+# Prepare report
+data_size = f"Number of rows: {members.shape[0]}\nNumber of columns: {members.shape[1]}"
+summary_statistics = f"State:\n{summary_state}\nParty:\n{summary_party}\nChamber:\n{summary_chamber}"
+categorical_variables = f"Categorical columns: State, Party, Chamber\nMost common State: {summary_state.top}\nMost common Party: {summary_party.top}\nMost common Chamber: {summary_chamber.top}"
+missing_values = f"Missing values:\n{summary_missing}"
+
+report = f"# Data Size\n{data_size}\n\n# Summary Statistics\n{summary_statistics}\n\n# Categorical Variables\n{categorical_variables}\n\n# Missing Values\n{missing_values}"
+
+with open("data_exploration.txt", 'w') as f:
+       f.write(report)
+
+# Network data
+num_nodes = len(edges.nodes)
+num_edges = len(edges.edges)
+network_data = f"\n\n# Network Data\nNumber of nodes: {num_nodes}\nNumber of edges: {num_edges}"
+with open("data_exploration.txt", 'a') as f:
+    f.write(network_data)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The code performs data exploration on the dataset of US Congress Twitter interactions. The main steps of the analysis are as follows:
+
+1. Loading the Datasets: 
+   The code loads two datasets - "congress\_members.csv" and "congress\_edges.dat". The first dataset contains information about the members of the US Congress, including their Twitter handles, represented state, party affiliation, and chamber. The second dataset represents the interaction network between members on Twitter.
+
+2. Summary Statistics: 
+   The code calculates summary statistics for the categorical variables in the "congress\_members.csv" dataset. It provides information such as the count, unique values, and the most common value for each variable - State, Party, and Chamber. These statistics help understand the distribution and representation of members across different categories.
+
+3. Missing Values:
+   The code checks for missing values in the "congress\_members.csv" dataset and calculates the count of missing values for each variable. This information helps identify if any data is missing and may require further data cleaning or imputation steps.
+
+4. Report Generation:
+   The code generates a report summarizing the data size, summary statistics, categorical variables, and missing values. The report is written into a file named "data\_exploration.txt". The report provides insights into the overall dataset and its characteristics, helping researchers understand the data before further analysis.
+
+5. Network Data:
+   The code calculates the number of nodes (members) and edges (interactions) in the interaction network represented by the "congress\_edges.dat" dataset. This information gives an overview of the network's size and complexity.
+
+The "data\_exploration.txt" file contains the generated report, which includes:
+- Data Size: Number of rows and columns in the "congress\_members.csv" dataset.
+- Summary Statistics: Summary statistics for categorical variables - State, Party, and Chamber.
+- Categorical Variables: Most common values for State, Party, and Chamber.
+- Missing Values: Count of missing values for each variable.
+- Network Data: Number of nodes and edges in the interaction network dataset.
+
+The "data\_exploration.txt" file serves as a reference for researchers to understand the dataset's characteristics, summary statistics, and network data before performing further analysis.
+
+\subsection{Code Output}
+
+\subsubsection*{data\_exploration.txt}
+
+\begin{Verbatim}[tabsize=4]
+# Data Size
+Number of rows: 475
+Number of columns: 4
+
+# Summary Statistics
+State:
+count     475
+unique     54
+top        CA
+freq       49
+Name: State, dtype: object
+Party:
+count     475
+unique      3
+top         D
+freq      250
+Name: Party, dtype: object
+Chamber:
+count       475
+unique        2
+top       House
+freq        383
+Name: Chamber, dtype: object
+
+# Categorical Variables
+Categorical columns: State, Party, Chamber
+Most common State: CA
+Most common Party: D
+Most common Chamber: House
+
+# Missing Values
+Missing values:
+Handle     0
+State      0
+Party      0
+Chamber    0
+dtype: int64
+
+# Network Data
+Number of nodes: 475
+Number of edges: 13289
+\end{Verbatim}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+import networkx as nx
+import pickle
+from scipy.stats import chi2_contingency
+
+# LOAD DATA
+df_members = pd.read_csv('congress_members.csv')
+G = nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph(), nodetype=int)
+
+# DATASET PREPARATIONS
+# Convert the edges to pandas DataFrame denoting source and target nodes
+df_edges = pd.DataFrame(list(G.edges()), columns=['Source_Node', 'Target_Node'])
+
+# Create new series with int type for merging operation
+df_edges['Source_Node_int'] = df_edges['Source_Node'].astype(int)
+df_edges['Target_Node_int'] = df_edges['Target_Node'].astype(int)
+
+# Merge df_edges with df_members to get additional details for Source_Node and Target_Node chambers
+df_edges = df_edges.merge(df_members[['Chamber']], left_on='Source_Node_int', right_index=True)
+df_edges.rename(columns={'Chamber': 'Chamber_Source'}, inplace=True)
+df_edges = df_edges.merge(df_members[['Chamber']], left_on='Target_Node_int', right_index=True)
+df_edges.rename(columns={'Chamber': 'Chamber_Target'}, inplace=True)
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed
+
+# PREPROCESSING
+# No preprocessing is needed, as the data are already suitable for our analysis
+
+# ANALYSIS
+## Table 1: "Distribution of interactions among House and Senate Members"
+# Create a dataframe for Table 1
+df1 = pd.crosstab(df_edges['Chamber_Source'], df_edges['Chamber_Target'])
+df1.to_pickle('table_1.pkl')
+
+# Calculate chi-square test of independence
+chi2, p, dof, expected = chi2_contingency(df1)
+
+## Table 2: "Chi-Square Test of Independence Result"
+# Create a dataframe for Table 2
+indexData = ['Chi-square Test']
+df2_data = [{'Chi-square statistic': chi2, 'p-value': p}]
+df2 = pd.DataFrame(df2_data, index=indexData)
+df2.to_pickle('table_2.pkl')
+
+# SAVE ADDITIONAL RESULTS
+additional_results = {
+ 'Total number of observations': len(df_edges),
+ 'Chi-square Test Results': {'Chi-square statistic': chi2, 'p-value': p}
+}
+with open('additional_results.pkl', 'wb') as f:
+ pickle.dump(additional_results, f)
+
+\end{minted}
+
+\subsection{Code Description}
+
+The provided code conducts an analysis on a dataset representing Twitter interactions among members of the 117th US Congress. The analysis is performed in several steps:
+
+1. Load the dataset: The code reads the 'congress\_members.csv' file, which contains information about the Congress members, and creates a directed graph object 'G' from the 'congress\_edges.dat' file, which represents the Twitter interactions between the members.
+
+2. Dataset Preparations: The code converts the graph edges into a pandas DataFrame, allowing for easier manipulation and analysis. It also merges the DataFrame with the 'df\_members' DataFrame to get additional details about the chambers of the source and target nodes.
+
+3. Descriptive Statistics: No descriptive statistics table is created in this analysis, so this step is skipped.
+
+4. Preprocessing: No preprocessing is performed on the data since it is already in a suitable format for analysis.
+
+5. Analysis:
+    a. Table 1: "Distribution of interactions among House and Senate Members": The code creates a contingency table using the 'crosstab' function to show the distribution of interactions between members of the House and the Senate. The resulting table is saved as 'table\_1.pkl'.
+
+    b. Chi-Square Test of Independence: The code performs a chi-square test of independence on the contingency table created in the previous step using the 'chi2\_contingency' function. It calculates the chi-square statistic, p-value, degrees of freedom, and expected frequencies. These results are saved as 'table\_2.pkl'.
+
+6. Saving Additional Results: The code saves the total number of observations and the results of the chi-square test of independence as a dictionary in the 'additional\_results.pkl' file. This file can be used to further analyze and interpret the results.
+
+Overall, the code performs an analysis on the Twitter interactions among members of the 117th US Congress, examining the distribution of interactions between the House and the Senate and conducting a chi-square test to determine if the interactions are independent of the chamber. The results of the analysis are saved as pickle files for further investigation.
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.pkl}
+
+\begin{Verbatim}[tabsize=4]
+Chamber_Target  House  Senate
+Chamber_Source
+House           10115     472
+Senate           1139    1563
+\end{Verbatim}
+
+\subsubsection*{table\_2.pkl}
+
+\begin{Verbatim}[tabsize=4]
+                 Chi-square statistic p-value
+Chi-square Test           4727              0
+\end{Verbatim}
+
+\subsubsection*{additional\_results.pkl}
+
+\begin{Verbatim}[tabsize=4]
+{
+    'Total number of observations': 13289,
+    'Chi-square Test Results': {'Chi-square statistic': 4727             ,
+	'p-value': 0},
+}
+\end{Verbatim}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{minted}[linenos, breaklines]{python}
+
+# IMPORT
+import pandas as pd
+from typing import Dict, Tuple, Any, Optional
+from my_utils import to_latex_with_note, format_p_value, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+# No shared mapping is required in this case as the tables labels are unique.
+
+# TABLE 1:
+df = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS 
+# Define labels to scientifically-suitable names
+mapping: AbbrToNameDef = {
+ 'House': ('House of Representatives', 'Members of US Congress representing House'),
+ 'Senate': ('Senate', 'Members of US Congress representing Senate'),   
+}
+
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+ df, 'table_1.tex',
+ caption="Distribution of interactions among House of Representatives and Senate Members", 
+ label='table:distribution_of_interactions',
+ legend=legend)
+
+
+# TABLE 2:
+df = pd.read_pickle('table_2.pkl')
+
+# FORMAT VALUES 
+# Applying `format_p_value` to p-value column
+df['p-value'] = df['p-value'].apply(format_p_value)
+
+# RENAME ROWS AND COLUMNS 
+# Define labels to scientifically-suitable names
+mapping: AbbrToNameDef = {
+ 'Chi-square statistic': ('Chi-square statistic', 'Chi-square test statistic value indicating level of independence between variables'),
+ 'p-value': ('P-value', 'Statistical significance value of the Chi-square test statistic')
+}
+
+abbrs_to_names, legend = split_mapping(mapping)
+df = df.rename(columns=abbrs_to_names, index=abbrs_to_names)
+
+# Save as latex:
+to_latex_with_note(
+ df, 'table_2.tex',
+ caption="Chi-square Test of Independence Result", 
+ label='table:chi_square_result',
+ legend=legend)
+
+
+\end{minted}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{minted}[linenos, breaklines]{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+ """
+ Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+ Parameters:
+ - df, filename, caption, label: as in `df.to_latex`.
+ - note (optional): Additional note below the table.
+ - legend (optional): Dictionary mapping abbreviations to full names.
+ - **kwargs: Additional arguments for `df.to_latex`.
+
+ Returns:
+ - None: Outputs LaTeX file.
+ """
+
+def format_p_value(x):
+ returns "{:.3g}".format(x) if x >= 1e-06 else "<1e-06"
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+ return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+ abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+ names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+ return abbrs_to_names, names_to_definitions
+
+\end{minted}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{table\_1.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Distribution of interactions among House of Representatives and Senate
+	Members}
+\label{table:distribution_of_interactions}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+Chamber\_Target & House of Representatives & Senate \\
+Chamber\_Source &  &  \\
+\midrule
+\textbf{House of Representatives} & 10115 & 472 \\
+\textbf{Senate} & 1139 & 1563 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{House of Representatives}: Members of US Congress representing
+	House
+\item \textbf{Senate}: Members of US Congress representing Senate
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+\subsubsection*{table\_2.tex}
+
+\begin{Verbatim}[tabsize=4]
+\begin{table}[h]
+\caption{Chi-square Test of Independence Result}
+\label{table:chi_square_result}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrl}
+\toprule
+ & Chi-square statistic & P-value \\
+\midrule
+\textbf{Chi-square Test} & 4.73e+03 & $<$1e-06 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Chi-square statistic}: Chi-square test statistic value indicating
+	level of independence between variables
+\item \textbf{P-value}: Statistical significance value of the Chi-square test
+	statistic
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{Verbatim}
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+\end{document}

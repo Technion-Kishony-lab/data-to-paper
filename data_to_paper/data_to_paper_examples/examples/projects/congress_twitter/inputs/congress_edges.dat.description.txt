@@ -1,0 +1,4 @@
+This file provides the interaction network between members of the 115th US Congress on Twitter.
+Download and adapted from: `https://snap.stanford.edu/data/congress-twitter`
+
+Each line contains two integers (i, j), indicating a directed edge from node ID i to node ID j, compatible with nx.read_edgelist('congress_edges.dat', create_using=nx.DiGraph()). An i->j edge indicates that Congress member i had at least one tweet engaging with Congress member j during the 4-month collection period.

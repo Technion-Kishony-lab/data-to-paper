@@ -1,0 +1,20 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To investigate the influence of a Congress member's local representation (State) on their engagement level within the twitter interaction network of the 117th US Congress.
+
+Hypothesis: 
+Members hailing from states with a higher number of representatives (indicating larger population size and hence potentially more diverse viewpoints) engage in a greater number of Twitter interactions, as they may be trying to cater to a wider audience compared to Congress members from smaller states.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Members from states with a higher number of representatives engage in a greater number of Twitter interactions
+Statistical Test: ANOVA or Kruskal-Wallis test to compare the mean/median number of interactions across different states, adjusting for confounding variables such as Party and Chamber.
+
+Hypothesis: Congress members from larger states with more representatives have a higher level of engagement diversity (measured by the number of unique interactions) compared to smaller states
+Statistical Test: ANOVA or Kruskal-Wallis test to compare the mean/median number of unique interactions across different states, adjusting for confounding variables such as Party and Chamber.
+
+Hypothesis: The relationship between state population size and engagement level on Twitter follows a linear or non-linear pattern
+Statistical Test: Pearson's correlation or Spearman's correlation to examine the association between State population size and the number of Twitter interactions, adjusting for confounding variables such as Party and Chamber.

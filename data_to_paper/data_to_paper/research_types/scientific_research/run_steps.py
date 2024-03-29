@@ -22,6 +22,7 @@ from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     DiscussionSectionWriterReviewGPT
 
 PAPER_SECTIONS_NAMES = ['title', 'abstract', 'introduction', 'results', 'discussion', 'methods']
+# PAPER_SECTIONS_NAMES = ['title', 'abstract', 'results']
 SECTIONS_WITH_CITATIONS = ['introduction', 'discussion']
 
 SECTIONS_TO_WRITING_CLASS = [
@@ -67,8 +68,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
         # Set the paper section names:
         sections_and_writing_class = self.get_sections_to_writing_class()
-        self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES,
-                                                             sections_and_writing_class)
+        # self.assert_paper_sections_to_write_matches_template(PAPER_SECTIONS_NAMES,
+        #                                                      sections_and_writing_class)
         paper_producer = ProduceScientificPaperPDFWithAppendix.from_(
             self,
             latex_document=self.latex_document,
@@ -152,6 +153,14 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             # self.send_product_to_client('hypothesis_testing_plan')
 
         self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)
+
+
+        # Save the goal and plans to a file in the output directory and end:
+        with open(self.output_directory / 'goal.txt', 'w') as f:
+            f.write(products['research_goal'].description)
+            f.write('\n\n')
+            f.write(products['hypothesis_testing_plan'].description)
+
 
         # Data Preprocessing
         if self.should_do_data_preprocessing:

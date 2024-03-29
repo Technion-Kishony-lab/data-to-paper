@@ -6,7 +6,7 @@ from data_to_paper.utils.mutable import Mutable, Flag
 
 BASE_FOLDER_NAME = 'data-to-paper'
 
-SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn')
+SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn', 'networkx')
 
 OPENAI_API_BASE = "https://api.openai.com/v1"
 DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"
@@ -39,7 +39,7 @@ OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL = dict[Optional[ModelEn
          DEEPINFRA_API_BASE),
 })
 
-S2_API_KEY = "hqcN3JMNgl2Ue889JZ1Zd3ogYCjtdpta8V0OXv3c"
+S2_API_KEY = "805K9CNW1O2P4CexBB6z94L5Lh8J7ioR8LFmQHVY"
 
 DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 
@@ -47,7 +47,7 @@ DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 TEXT_WIDTH = 150
 
 # max time for code timeout when running code from chatgpt (seconds)
-MAX_EXEC_TIME = Mutable(200)
+MAX_EXEC_TIME = Mutable(1500)
 
 # Decide whether to present code debugging iterations as code diff or full.
 # Defining: compaction_code_diff = num_lines(new_code) - num_lines(code_diff)

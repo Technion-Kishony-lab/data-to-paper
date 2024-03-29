@@ -29,6 +29,7 @@ CHARS = {
     '|': r'\textbar{}',
     '\u200b': r'',  # zero width space
     '\u202f': r' ',  # narrow no-break space
+    '’': r"'", # non ascii single quote
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())

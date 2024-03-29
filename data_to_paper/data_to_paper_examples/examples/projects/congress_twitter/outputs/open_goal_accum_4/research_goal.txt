@@ -1,0 +1,8 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To investigate the influence of a Congress member's local representation (State) on their engagement level within the twitter interaction network of the 117th US Congress.
+
+Hypothesis: 
+Members hailing from states with a higher number of representatives (indicating larger population size and hence potentially more diverse viewpoints) engage in a greater number of Twitter interactions, as they may be trying to cater to a wider audience compared to Congress members from smaller states.
