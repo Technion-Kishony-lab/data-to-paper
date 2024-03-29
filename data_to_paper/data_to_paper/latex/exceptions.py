@@ -104,6 +104,17 @@ class LatexNestedNumCommandError(BaseLatexProblemInCompilation):
     def __str__(self):
         return f'Nested \\num commands are not supported. In:\n{self.expression}'
 
+@dataclass
+class PlainNumberLatexNumCommandError(BaseLatexProblemInCompilation):
+    """
+    Raised when the latex \num command contains a plain number.
+    """
+    expression: str
+
+    def __str__(self):
+        return (f'The latex \\num command does not contain formula, it contains just a plain '
+                f'number:\n{self.expression}\n')
+
 
 @dataclass
 class UnwantedCommandsUsedInLatex(data_to_paperException, ValueError):

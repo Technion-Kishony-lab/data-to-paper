@@ -11,7 +11,8 @@ from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
 from data_to_paper.utils.text_extractors import extract_all_external_brackets
 
-from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandError, LatexNestedNumCommandError
+from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandError, LatexNestedNumCommandError, \
+    PlainNumberLatexNumCommandError
 
 BIB_FILENAME: str = 'citations.bib'
 WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
@@ -31,6 +32,12 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
         if r'\num{' in match:
             raise LatexNestedNumCommandError(expression=full_match)
         match_without_hyperlinks = replace_hyperlinks_with_values(match)
+        try:
+            float(match_without_hyperlinks)
+        except ValueError:
+            pass
+        else:
+            raise PlainNumberLatexNumCommandError(expression=match_without_hyperlinks)
         try:
             result = eval(match_without_hyperlinks,
                           {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
