@@ -36,14 +36,18 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
         notes = self._get_all_notes()
         if not notes:
             return ''
-        text = ListReferenceableText(text='\n\n'.join(['@'] * len(notes)),
+        text = ListReferenceableText(text='\n'.join([r'\item{@}'] * len(notes)),
                                      hypertarget_prefix='',
                                      pattern='@',
                                      reference_list=[ReferencedValue(label=key, value=value, is_target=True)
                                                      for key, value in notes.items()]
                                      )
-        return f"\\section{{Notes}}\n\n\\noindent\n\n" + \
-            text.get_hypertarget_text_with_header(content_view=ContentViewPurpose.FINAL_INLINE)
+
+        # no_indent = "\\setlength{\\itemindent}{0em}\n\\setlength{\\leftmargini}{0em}\n"
+        no_indent = ""
+        return f"\\section{{Calculation Notes}}\n{no_indent}\\begin{{itemize}}\n" \
+            + text.get_hypertarget_text_with_header(content_view=ContentViewPurpose.FINAL_INLINE) \
+            + "\n\\end{itemize}"
 
     def _get_appendix(self):
         s = ''
