@@ -37,7 +37,7 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
         except ValueError:
             pass
         else:
-            raise PlainNumberLatexNumCommandError(expression=match_without_hyperlinks)
+            raise PlainNumberLatexNumCommandError(expression=command + match + '}')
         try:
             result = eval(match_without_hyperlinks,
                           {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
