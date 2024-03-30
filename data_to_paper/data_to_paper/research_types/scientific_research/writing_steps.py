@@ -500,8 +500,8 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         corresponding source \\hypertarget.
 
         - Calculating dependent values using `\\num` command.
-        You can use \\num{formula} to calculate dependent values from the provided numeric values (the formula \t
-        will be automatically replaced with the actual numeric values in pdf compilation).
+        You can use \\num{<formula>, "explanation"} to calculate dependent values from the provided numeric values \t
+        (the <formula> will be automatically replaced with the actual numeric values during pdf compilation).
         The \\num formula should be used whenever you would like mentioning a numeric value that is not explicitly \t
         provided in the above sources, but could rather be derived from them. 
         For example, use the \\num syntax for: changing units, \t
@@ -519,20 +519,21 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         Then, here are some examples of proper ways to include these source values as well as derived values:
 
         -- Citing the raw values:
-        "The control group had an average response of \\hyperlink{Z1a}{65.4} and the treatment group had \t
-        an average response of \\hyperlink{Z2a}{87.3}."
+        'The control group had an average response of \\hyperlink{Z1a}{65.4} and the treatment group had \t
+        an average response of \\hyperlink{Z2a}{87.3}.'
 
-        "The regression coefficient was \\hyperlink{Z3a}{1.234} with a standard deviation of \t
-        \\hyperlink{Z3b}{0.123} (P-value: \\hyperlink{Z3c}{0.017})."
+        'The regression coefficient was \\hyperlink{Z3a}{1.234} with a standard deviation of \t
+        \\hyperlink{Z3b}{0.123} (P-value: \\hyperlink{Z3c}{0.017}).'
 
         -- Citing dependent values using the \\num command:
-        "The difference in average response was \\num{\\hyperlink{Z2a}{87.3} - \\hyperlink{Z1a}{65.4}}."
+        'The difference in average response was \\num{\\hyperlink{Z2a}{87.3} - \\hyperlink{Z1a}{65.4}, \t
+        "Response difference"}.'
 
-        "The regression coefficient was \\hyperlink{Z3a}{1.234} \t
+        'The regression coefficient was \\hyperlink{Z3a}{1.234} \t
         (STD: \\hyperlink{Z3b}{0.123}) corresponding to an odds ratio of \t 
-        \\num{exp(\\hyperlink{Z3a}{1.234})} (CI: \t 
-        \\num{exp(\\hyperlink{Z3a}{1.234} - 1.96 * \\hyperlink{Z3b}{0.123})}, \t
-        \\num{exp(\\hyperlink{Z3a}{1.234} + 1.96 * \\hyperlink{Z3b}{0.123})})."
+        \\num{exp(\\hyperlink{Z3a}{1.234}), "Translating regression coefficient to odds ratio"} (CI: \t 
+        \\num{exp(\\hyperlink{Z3a}{1.234} - 1.96 * \\hyperlink{Z3b}{0.123}), "low CI, assuming normality"}, \t
+        \\num{exp(\\hyperlink{Z3a}{1.234} + 1.96 * \\hyperlink{Z3b}{0.123}), "high CI, assuming normality"}).'
 
         * Accuracy: 
         Make sure that you are only mentioning details that are explicitly found within the Tables and \t

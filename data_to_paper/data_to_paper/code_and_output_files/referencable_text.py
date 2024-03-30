@@ -38,7 +38,7 @@ def convert_str_to_latex_label(text: str, prefix: str = 'label') -> str:
 @dataclass
 class BaseReferenceableText:
     """
-    A text which can be converted to hypertargeted text/
+    A text which can be converted to hypertargeted text
     """
     hypertarget_prefix: Optional[str] = None  # if None, no hypertargets are created
     filename: Optional[str] = None
@@ -81,7 +81,7 @@ class BaseReferenceableText:
 @dataclass
 class FromTextReferenceableText(BaseReferenceableText):
     """
-    A text which can be converted to hypertargeted text/
+    A text which can be converted to hypertargeted text
     """
     text: str = ''
     pattern: str = r''
@@ -128,7 +128,7 @@ class FromTextReferenceableText(BaseReferenceableText):
 @dataclass
 class NumericReferenceableText(FromTextReferenceableText):
     """
-    A text which can be converted to hypertargeted text/
+    A text whose numeric values can be converted to hypertargets.
     """
     pattern: str = numeric_values_in_products_pattern
 
@@ -149,6 +149,9 @@ class NumericReferenceableText(FromTextReferenceableText):
 
 @dataclass
 class ListReferenceableText(FromTextReferenceableText):
+    """
+    A text whose list items can be converted to hypertargets.
+    """
     reference_list: List[ReferencedValue] = field(default_factory=list)
 
     def _get_reference(self, match, reference_num, line_no, line_no_with_ref, in_line_number):

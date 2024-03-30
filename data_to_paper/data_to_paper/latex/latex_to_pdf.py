@@ -11,16 +11,26 @@ from data_to_paper.utils.file_utils import run_in_temp_directory
 from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
 from data_to_paper.utils.text_extractors import extract_all_external_brackets
 
-from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandError, LatexNestedNumCommandError, \
-    PlainNumberLatexNumCommandError
+from .exceptions import LatexCompilationError, TooWideTableOrText, LatexNumCommandFormulaEvalError, \
+    LatexNestedNumCommandError, LatexNumCommandNoExplanation, PlainNumberLatexNumCommandError
 
 BIB_FILENAME: str = 'citations.bib'
 WATERMARK_PATH: str = os.path.join(os.path.dirname(__file__), 'watermark.pdf')
 
 
-def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str, str]]:
+def is_string_plain_number(string: str) -> bool:
+    try:
+        float(string)
+    except ValueError:
+        return False
+    return True
+
+
+def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bool = True
+                               ) -> Tuple[str, Dict[str, str]]:
     r"""
-    Evaluates all expressions of the form \num{...} in the given latex string and replaces them with the result.
+    Evaluates all expressions of the form \num{formula} or \num{formula, "explanation"} in the given latex string
+    and replaces them with the result of the formula.
     if ref_prefix, then add \hyperlink{ref_prefix?}{result}, where ? is the index of the expression.
     Return the new latex string and a mapping from the index to "expression = result".
     """
@@ -28,22 +38,31 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
     matches = extract_all_external_brackets(latex_str, '{', '}', open_phrase=command)
     labels_to_expressions = {}
     for index, full_match in enumerate(matches):
-        match = full_match[len(command):-1]
+        match = full_match[len(command):-1]  # remove the command and the closing bracket
+        match = match.strip()
         if r'\num{' in match:
             raise LatexNestedNumCommandError(expression=full_match)
-        match_without_hyperlinks = replace_hyperlinks_with_values(match)
-        try:
-            float(match_without_hyperlinks)
-        except ValueError:
-            pass
+        # separate <formula>, "explanation" into formula and explanation:
+        if match.endswith('"'):
+            open_quote_index = match[:-1].rfind('"')
+            comma_index = match[:open_quote_index].rfind(',')
+            explanation = match[open_quote_index + 1:-1]
+            formula = match[:comma_index]
+        elif enforce_explanation:
+            raise LatexNumCommandNoExplanation(expression=full_match)
         else:
-            raise PlainNumberLatexNumCommandError(expression=command + match + '}')
+            explanation = ''
+            formula = match
+
+        formula_without_hyperlinks = replace_hyperlinks_with_values(formula)
+        if is_string_plain_number(formula_without_hyperlinks):
+            raise PlainNumberLatexNumCommandError(expression=full_match)
         try:
-            result = eval(match_without_hyperlinks,
+            result = eval(formula_without_hyperlinks,
                           {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
                            'e': np.e, 'sqrt': np.sqrt, 'log2': np.log2, 'log10': np.log10})
         except Exception as e:
-            raise LatexNumCommandError(expression=match, exception=e)
+            raise LatexNumCommandFormulaEvalError(expression=match, exception=e)
         if isinstance(result, float):
             result = '{:.4g}'.format(result)
         else:
@@ -54,7 +73,7 @@ def evaluate_latex_num_command(latex_str, ref_prefix='') -> Tuple[str, Dict[str,
         else:
             replace_with = result
         latex_str = latex_str.replace(f'\\num{{{match}}}', replace_with)
-        labels_to_expressions[label] = f'{match} = {result}'
+        labels_to_expressions[label] = f'{formula} = {result}\n\n{explanation}'
     return latex_str, labels_to_expressions
 
 

@@ -82,7 +82,7 @@ class LatexCompilationError(LatexProblemInCompilation):
 
 
 @dataclass
-class LatexNumCommandError(BaseLatexProblemInCompilation):
+class LatexNumCommandFormulaEvalError(BaseLatexProblemInCompilation):
     """
     Raised when there is an error evaluating the latex \num command.
     """
@@ -92,6 +92,18 @@ class LatexNumCommandError(BaseLatexProblemInCompilation):
     def __str__(self):
         return f'Failed to evaluate the latex \\num command for the expression:\n{self.expression}\n' \
                f'Got the following exception:\n{self.exception}'
+
+
+@dataclass
+class LatexNumCommandNoExplanation(BaseLatexProblemInCompilation):
+    """
+    Raised when latex \num command missing an explanation.
+    """
+    expression: str
+
+    def __str__(self):
+        return (f'The latex \\num command must have two arguments: a formula and an explanation. '
+                f'Expected format: \\num{{<formula>, "explanation"}}, but got:\n{self.expression}')
 
 
 @dataclass
