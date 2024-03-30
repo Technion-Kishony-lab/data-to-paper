@@ -5,7 +5,7 @@ import requests
 import re
 
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from data_to_paper.env import S2_API_KEY
 from data_to_paper.exceptions import data_to_paperException
@@ -174,43 +174,50 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
                 return []
 
     @staticmethod
+    def _get_embedding(paper: Dict[str, str]) -> Tuple[np.ndarray, str]:
+        """
+        Get the embedding of the paper and a message if there was an error.
+        """
+        msg = ''
+        embedding = None
+        if 'embedding' not in paper:
+            msg = 'No embedding attr'
+        elif paper['embedding'] is None:
+            msg = 'None embedding attr'
+        elif 'model' not in paper['embedding']:
+            msg = 'No model attr'
+        elif paper['embedding']['model'] not in ['specter@v0.1.1', 'specter_v1']:
+            msg = 'Wrong model attr'
+        else:
+            try:
+                assert len(paper['embedding']['vector']) == 768
+            except (AssertionError, KeyError, IndexError, TypeError):
+                msg = 'Wrong vector attr'
+            else:
+                embedding = np.array(paper['embedding']['vector'])
+        return embedding, msg
+
+    @staticmethod
     def _post_process_response(response, args, kwargs):
         """
         Post process the response from the server.
         """
         query = args[0] if len(args) > 0 else kwargs.get('query', None)
         citations = NiceList(separator='\n', prefix='[\n', suffix='\n]')
+        embedding_error_counts = {}
         for rank, paper in enumerate(response):
-
-            msg = ''
-            embedding = None
-            if 'embedding' not in paper:
-                msg = 'No embedding attr'
-            elif paper['embedding'] is None:
-                msg = 'None embedding attr'
-            elif 'model' not in paper['embedding']:
-                msg = 'No model attr'
-            elif paper['embedding']['model'] not in ['specter@v0.1.1', 'specter_v1']:
-                msg = 'Wrong model attr'
-            else:
-                try:
-                    assert len(paper['embedding']['vector']) == 768
-                except (AssertionError, KeyError, IndexError, TypeError):
-                    msg = 'Wrong vector attr'
-                else:
-                    embedding = np.array(paper['embedding']['vector'])
+            embedding, msg = SemanticScholarPaperServerCaller._get_embedding(paper)
             paper = paper.copy()
             paper['embedding'] = embedding
-
             citation = SemanticCitation(paper, search_rank=rank, query=query)
-
-            if msg:
-                print_and_log_red(f"ERROR: {msg}. ({citation.year}) {citation.journal}, {citation.title}")
-
             if len(citation.bibtex_id) <= 4:
                 print_and_log_red(f"ERROR: bibtex_id is too short. skipping. Title: {citation.title}")
                 continue
+            if msg:
+                embedding_error_counts[msg] = embedding_error_counts.get(msg, 0) + 1
             citations.append(citation)
+        if embedding_error_counts:
+            print_and_log_red(f"Total citations: {len(citations)}; {embedding_error_counts}")
         return citations
 
 
