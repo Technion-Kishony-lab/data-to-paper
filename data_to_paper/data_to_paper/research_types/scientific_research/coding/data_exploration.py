@@ -61,7 +61,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         # <etc for any other summary you deem relevant.>
         ```
 
-        If any of the above sections is not applicable, then write "Not Applicable" under that section.
+        If any of the above sections is not applicable, then write "# Not Applicable" under that section.
 
         If needed, you can use the following packages which are already installed:
         {supported_packages}
@@ -96,7 +96,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
         {
             "The result of the average of variable ... is missing": \t
             "Add the missing calculation of ... to the code.",
-            "The average of the variable <xxx> is `Nan`": \t
+            "The average of the variable ... is `Nan`": \t
             "Remove missing values in the calculation."
         }
         ```
