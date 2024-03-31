@@ -26,7 +26,8 @@ def is_string_plain_number(string: str) -> bool:
     return True
 
 
-def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bool = True
+def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bool = True,
+                               just_strip_explanation: bool = False,
                                ) -> Tuple[str, Dict[str, str]]:
     r"""
     Evaluates all expressions of the form \num{formula} or \num{formula, "explanation"} in the given latex string
@@ -36,7 +37,7 @@ def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bo
     """
     command = r'\num{'
     matches = extract_all_external_brackets(latex_str, '{', '}', open_phrase=command)
-    labels_to_expressions = {}
+    labels_to_notes = {}
     for index, full_match in enumerate(matches):
         match = full_match[len(command):-1]  # remove the command and the closing bracket
         match = match.strip()
@@ -48,15 +49,19 @@ def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bo
             comma_index = match[:open_quote_index].rfind(',')
             explanation = match[open_quote_index + 1:-1]
             formula = match[:comma_index]
-        elif enforce_explanation:
-            raise LatexNumCommandNoExplanation(expression=full_match)
         else:
-            explanation = ''
+            explanation = None
             formula = match
 
         formula_without_hyperlinks = replace_hyperlinks_with_values(formula)
         if is_string_plain_number(formula_without_hyperlinks):
             raise PlainNumberLatexNumCommandError(expression=full_match)
+        if enforce_explanation and explanation is None:
+            raise LatexNumCommandNoExplanation(expression=full_match)
+        if just_strip_explanation:
+            replace_with = command + formula_without_hyperlinks + '}'
+            latex_str = latex_str.replace(command + match + '}', replace_with)
+            continue
         try:
             result = eval(formula_without_hyperlinks,
                           {'exp': np.exp, 'log': np.log, 'sin': np.sin, 'cos': np.cos, 'tan': np.tan, 'pi': np.pi,
@@ -72,9 +77,12 @@ def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bo
             replace_with = f'\\hyperlink{{{label}}}{{{result}}}'
         else:
             replace_with = result
-        latex_str = latex_str.replace(f'\\num{{{match}}}', replace_with)
-        labels_to_expressions[label] = f'{formula} = {result}\n\n{explanation}'
-    return latex_str, labels_to_expressions
+        latex_str = latex_str.replace(command + match + '}', replace_with)
+        note = f'{formula} = {result}'
+        if explanation:
+            note += f'\n\n{explanation}'
+        labels_to_notes[label] = note
+    return latex_str, labels_to_notes
 
 
 def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = None):

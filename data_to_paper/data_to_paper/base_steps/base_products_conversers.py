@@ -11,6 +11,7 @@ from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer
 from data_to_paper.utils.types import ListBasedSet
 from data_to_paper.utils.check_numeric_values import find_non_matching_numeric_values, is_number_legit
+from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.conversation import Message, GeneralMessageDesignation
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.code_and_output_files.ref_numeric_values import find_hyperlinks, find_numeric_values, \
@@ -357,7 +358,7 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
 
         {}
 
-        Numeric values must be included with \\hyperlink matching the \\hypertarget in the provided data above.
+        Numeric values must be included with \\hyperlink matching the \\hypertarget in the provided sources above.
         See the examples I provided in my previous message. 
 
         Remember, you can also include such hyperlinked numeric values within the <formula> of \t
@@ -394,9 +395,14 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         super()._add_other_acknowledgement(product_field, is_last=is_last)
 
     def _alter_self_response(self, response: str, expected_result: Optional[str] = None) -> str:
+        """
+        We modify the self response so that the reviewer does not need to deal with hyperlinks or
+        wit the "explanation" in \num{}.
+        """
         response = super()._alter_self_response(response, expected_result)
         if not self.should_apply_numeric_referencing_to_other:
             response = replace_hyperlinks_with_values(response, is_targets=False)
+            response = evaluate_latex_num_command(response, just_strip_explanation=True)[0]
         return response
 
     def _check_extracted_numbers(self, text: str,
