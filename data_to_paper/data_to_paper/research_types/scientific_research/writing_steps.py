@@ -491,49 +491,58 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
     numeric_values_instructions: str = dedent_triple_quote_str("""
         * Numeric values:
 
-        - Source: 
-        You can extract numeric values from the above provided: "{latex_tables_linked}", \t
-        "{additional_results_linked}", and "{data_file_descriptions_no_headers_linked}". 
+        - Sources: 
+        You can extract numeric values from the above provided sources: "{latex_tables_linked}", \t
+        "{additional_results_linked}", and "{data_file_descriptions_no_headers_linked}".
+        All numeric values in these sources have a \\hypertarget with a unique label. 
 
-        - Format: 
+        - Cited numeric values should be formatted as \\hyperlink{<label>}{<value>}:
         Any numeric value extracted from the above sources should be written with a proper \\hyperlink to its \t
         corresponding source \\hypertarget.
 
-        - Calculating dependent values using `\\num` command.
-        You can use \\num{<formula>, "explanation"} to calculate dependent values from the provided numeric values \t
-        (the <formula> will be automatically replaced with the actual numeric values during pdf compilation).
-        The \\num formula should be used whenever you would like mentioning a numeric value that is not explicitly \t
-        provided in the above sources, but could rather be derived from them. 
-        For example, use the \\num syntax for: changing units, \t
-        calculating differences, transforming regression coefficients into odds ratios, etc. (see examples below).
+        - Dependent values should be calculated using the \\num command.
+        In scientific writing, we often need to report values which are not explicitly provided in the sources, \t
+        but can rather be derived from them. For example: changing units, \t
+        calculating differences, transforming regression coefficients into odds ratios, etc (see examples below).
+
+        To derive such dependent values, please use the \\num{<formula>, "explanation"} command. 
+        The <formula> contains a calculation, which will be automatically replaced with its result upon pdf compilation. 
+        The "explanation" is a short textual explanation of the calculation \t
+        (it will not be displayed directly in the text, but will be useful for review and traceability).  
 
         - Toy example for citing and calculating numeric values:
 
-        Suppose the provided source data includes:
+        Suppose our provided source data includes:
         ```
-        No-drug average response: \\hypertarget{Z1a}{65.4} 
-        With-drug average response: \\hypertarget{Z2a}{87.3}
-        Regression coef: \\hypertarget{Z3a}{1.234}; STD: \\hypertarget{Z3b}{0.123}; Pvalue: \\hypertarget{Z3c}{0.017}
+        No-treatment response: \\hypertarget{Z1a}{0.65} 
+        With-treatment response: \\hypertarget{Z2a}{0.87}
+        
+        Treatment regression: 
+        coef = \\hypertarget{Z3a}{0.17}, STD = \\hypertarget{Z3b}{0.072}, pvalue = \\hypertarget{Z3c}{0.007}
         ```
 
-        Then, here are some examples of proper ways to include these source values as well as derived values:
+        Then, here are some examples of proper ways to report these provided source values:
+        ```
+        The no-treatment control group had a response of \\hyperlink{Z1a}{0.65} while the with-treatment \t
+        group had a response of \\hyperlink{Z2a}{0.87}.
 
-        -- Citing the raw values:
-        'The control group had an average response of \\hyperlink{Z1a}{65.4} and the treatment group had \t
-        an average response of \\hyperlink{Z2a}{87.3}.'
+        The regression coefficient for the treatment was \\hyperlink{Z3a}{0.17} with a standard deviation of \t
+        \\hyperlink{Z3b}{0.072} (P-value: \\hyperlink{Z3c}{0.007}).
+        ```
+        
+        And are some examples of proper ways to calculate dependent values, using the \\num command:
+        ```
+        The difference in response was \\num{\\hyperlink{Z2a}{0.87} - \\hyperlink{Z1a}{0.65}, \t
+        "Difference between responses with and without treatment"}.
 
-        'The regression coefficient was \\hyperlink{Z3a}{1.234} with a standard deviation of \t
-        \\hyperlink{Z3b}{0.123} (P-value: \\hyperlink{Z3c}{0.017}).'
-
-        -- Citing dependent values using the \\num command:
-        'The difference in average response was \\num{\\hyperlink{Z2a}{87.3} - \\hyperlink{Z1a}{65.4}, \t
-        "Response difference"}.'
-
-        'The regression coefficient was \\hyperlink{Z3a}{1.234} \t
-        (STD: \\hyperlink{Z3b}{0.123}) corresponding to an odds ratio of \t 
-        \\num{exp(\\hyperlink{Z3a}{1.234}), "Translating regression coefficient to odds ratio"} (CI: \t 
-        \\num{exp(\\hyperlink{Z3a}{1.234} - 1.96 * \\hyperlink{Z3b}{0.123}), "low CI, assuming normality"}, \t
-        \\num{exp(\\hyperlink{Z3a}{1.234} + 1.96 * \\hyperlink{Z3b}{0.123}), "high CI, assuming normality"}).'
+        The treatment odds ratio was \t
+        \\num{exp(\\hyperlink{Z3a}{0.17}), \t
+        "Translating the treatment regression coefficient to odds ratio"} (CI: \t 
+        \\num{exp(\\hyperlink{Z3a}{0.17} - 1.96 * \\hyperlink{Z3b}{0.072}), \t
+        "low CI for treatment odds ratio, assuming normality"}, \t
+        \\num{exp(\\hyperlink{Z3a}{0.17} + 1.96 * \\hyperlink{Z3b}{0.072}), \t
+        "high CI for treatment odds ratio, assuming normality"}).
+        ```
 
         * Accuracy: 
         Make sure that you are only mentioning details that are explicitly found within the Tables and \t
@@ -545,7 +554,9 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         then indicate `[unknown]` instead of the numeric value. 
 
         For example:
-        "The no-drug average response was \\hypertarget{Z1a}{65.4} (STD: [unknown])."
+        ```
+        The no-treatment response was \\hyperlink{Z1a}{0.65} (STD: [unknown]).
+        ```
         """)
     other_initiation_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above, please write the Results section for a {journal_name} research paper.
@@ -563,6 +574,13 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         Do not suggest changes to the {goal_noun} that may require data not available in the the \t
         Tables and Numerical Values.
         """)
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
+        Please correct your response according to any points in my feedback that you find relevant and applicable.
+        Send back a complete rewrite of the {pretty_section_names}.
+        Make sure to send the full corrected {pretty_section_names}, not just the parts that were revised.
+        Remember to include the numeric values in the format \\hyperlink{<label>}{<value>} and use the \\num command \t
+        for dependent values.
+    """)
 
     def _get_table_labels(self, section_name: str) -> List[str]:
         return [get_table_label(table) for table in self.products.get_latex_tables()[section_name]]
