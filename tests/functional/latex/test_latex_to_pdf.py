@@ -6,6 +6,7 @@ from _pytest.fixtures import fixture
 from data_to_paper.latex import save_latex_and_compile_to_pdf
 from data_to_paper.latex.clean_latex import process_latex_text_and_math
 from data_to_paper.latex.exceptions import LatexCompilationError
+from data_to_paper.latex.latex_doc import LatexDocument
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.servers.crossref import CrossrefCitation
 
@@ -167,8 +168,12 @@ def test_latex_to_pdf_exception(tmpdir, wrong_latex_content):
 
 
 @pytest.mark.parametrize('latex, expected', [
-    (r'I have \num{1+2} apples.', ('I have 3 apples.', {'0': '1+2 = 3'})),
-    (r'must be rounded \num{7.95 - 3.64}.', ('must be rounded 4.31.', {'0': '7.95 - 3.64 = 4.31'})),
+    (r'I have \num{1+2, "trivial"} apples.', ('I have 3 apples.', {'0': '1+2 = 3\n\ntrivial'})),
+    (r'I have \num{1e3+2, "trivial"} apples.', ('I have 1002 apples.', {'0': '1e3+2 = 1002\n\ntrivial'})),
+    (r'must be rounded \num{7.95 - 3.64, "diff"}.', ('must be rounded 4.31.', {'0': '7.95 - 3.64 = 4.31\n\ndiff'})),
 ])
 def test_evaluate_latex_expression(latex, expected):
-    assert evaluate_latex_num_command(latex) == expected
+    latex, num_dict = evaluate_latex_num_command(latex)
+    assert latex == expected[0]
+    assert num_dict == expected[1]
+    LatexDocument().get_document(latex, file_stem='test')

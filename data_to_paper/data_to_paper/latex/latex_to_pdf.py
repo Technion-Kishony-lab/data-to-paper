@@ -83,7 +83,6 @@ def add_watermark_to_pdf(pdf_path: str, watermark_path: str, output_path: str = 
 def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_directory: Optional[str] = None,
                                   references: Collection[Citation] = None, format_cite: bool = True,
                                   raise_on_too_wide: bool = True) -> str:
-    latex_content = evaluate_latex_num_command(latex_content)[0]
     references = references or set()
     should_compile_with_bib = len(references) > 0
     latex_file_name = file_stem + '.tex'
