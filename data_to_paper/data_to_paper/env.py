@@ -6,7 +6,7 @@ from data_to_paper.utils.mutable import Mutable, Flag
 
 BASE_FOLDER_NAME = 'data-to-paper'
 
-SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn')
+SUPPORTED_PACKAGES = ('numpy', 'pandas', 'scipy', 'sklearn', 'xgboost', 'imblearn', 'networkx')
 
 OPENAI_API_BASE = "https://api.openai.com/v1"
 DEEPINFRA_API_BASE = "https://api.deepinfra.com/v1/openai"

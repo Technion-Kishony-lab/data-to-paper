@@ -1,0 +1,18 @@
+Here is our Research Goal
+
+
+Research Goal: 
+The aim of the research is to delve into the regional clustering and the influence of the chamber in the United States Congress' Twitter network. The research will explore possible divergence in interaction patterns that could suggest political alliances, regional collaborations or common interests among the Congress members.
+
+Hypothesis: 
+1. Members of Congress representing the same state are more likely to interact with each other on Twitter than with members from other states, suggesting regional alliances or shared legislative interests within the same state.
+2. There is a significantly higher frequency of Twitter interactions within members of the same legislative chamber (House or Senate), indicating a greater level of collaboration and communication within their shared legislative context.
+
+
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Members of Congress representing the same state are more likely to interact with each other on Twitter than with members from other states
+Statistical Test: Logistic regression with interaction as binary dependent variable (interact/not interact) and dummy variables for state representation as independent variables. Adjust for confounding variables (Party, Chamber) using dummy variables or stratification.
+
+Hypothesis: There is a significantly higher frequency of Twitter interactions within members of the same legislative chamber (House or Senate)
+Statistical Test: Poisson regression with count of Twitter interactions as the dependent variable and dummy variable for the chamber (House/Senate) as the independent variable. Adjust for confounding variables (State, Party) using dummy variables or stratification.
