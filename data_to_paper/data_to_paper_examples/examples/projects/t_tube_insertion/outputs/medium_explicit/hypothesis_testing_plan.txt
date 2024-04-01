@@ -1,0 +1,4 @@
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: The machine-learning model will have a significantly better predictive power than the formula-based model
+Statistical Test: Paired t-test with cross-validation, comparing mean squared errors of the machine-learning model and the formula-based model, while adjusting for any confounding variables (sex, age_c, ht, wt)

@@ -1,0 +1,25 @@
+Here is our Research Goal
+
+
+## Research Goal:
+
+To construct and test 1 machine-learning model and 1 formula-based model for the optimal tracheal tube depth (defined here as `OTTD`, not an official term). 
+
+### ML MODEL:
+Using the provided features (age, sex, height, weight), your analysis code should create and evaluate the following 1 machine learning model for predicting the OTTD:
+
+- Random Forest (RF)
+
+Important: It is necessary to hyper-parameter tune the model.
+
+### FORMULA-BASED MODEL:
+Your analysis code should compute the following 1 formula-based model for the OTTD:
+
+- Height Formula-based Model:
+OTTD = height [cm] / 10 + 5 cm 
+
+
+## Hypothesis:
+
+- The machine-learning model will have a significantly better predictive power than the formula-based model (as measured by their squared residuals (prediction - target)**2 on the same test set). 
+
