@@ -4,9 +4,12 @@ from typing import Optional, Dict, Tuple, Set, List, Union, NamedTuple
 
 from data_to_paper.base_steps import LiteratureSearch
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose
-from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text
+from data_to_paper.code_and_output_files.ref_numeric_values import replace_hyperlinks_with_values
+from data_to_paper.code_and_output_files.referencable_text import hypertarget_if_referencable_text, \
+    NumericReferenceableText
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.latex import extract_latex_section_from_response
+from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
 
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
@@ -170,51 +173,70 @@ class ScientificProducts(Products):
             [DataFileDescription(file_path=created_file) for created_file in created_files],
             data_folder=self.data_file_descriptions.data_folder)
 
-    @property
-    def paper_sections_and_citations(self) -> Dict[str, Tuple[str, Set[Citation]]]:
+    def get_paper_sections_and_citations(self, remove_hyperlinks: bool = False,
+                                         format_num_command: Optional[bool] = False,
+                                         ) -> Dict[str, Tuple[str, Set[Citation]]]:
+        """
+        Like paper_sections_and_optional_citations, but adding empty citations to sections without citations.
+        remove_hyperlinks: whether to remove the hyperlinks in the latex sections.
+        format_num_command: whether to format the \num{} commands in the latex sections:
+            - True, replace the \num{} commands with their values.
+            - None, keep the \num{} commands, but remove the explanation.
+            - False, keep the \num{} commands.
+            format_num_command is only effective with remove_hyperlinks=True.
+        """
         section_names_to_sections_and_citations = {}
         for section_name, section_and_optional_citations in self.paper_sections_and_optional_citations.items():
             if isinstance(section_and_optional_citations, str):
-                section_names_to_sections_and_citations[section_name] = (section_and_optional_citations, set())
+                section = section_and_optional_citations
+                citations = set()
             else:
-                section_names_to_sections_and_citations[section_name] = section_and_optional_citations
+                section, citations = section_and_optional_citations
+            if remove_hyperlinks:
+                section = replace_hyperlinks_with_values(section)
+                if format_num_command is not False:
+                    section = evaluate_latex_num_command(section, just_strip_explanation=format_num_command is None)[0]
+
+            section_names_to_sections_and_citations[section_name] = (section, citations)
         return section_names_to_sections_and_citations
 
-    @property
-    def paper_sections_without_citations(self) -> Dict[str, str]:
+    def get_paper_sections_without_citations(self, remove_hyperlinks: bool = False,
+                                             format_num_command: Optional[bool] = False
+                                             ) -> Dict[str, str]:
         return {section_name: section
-                for section_name, (section, citation) in self.paper_sections_and_citations.items()}
+                for section_name, (section, citation) in self.get_paper_sections_and_citations(
+                    remove_hyperlinks=remove_hyperlinks, format_num_command=format_num_command).items()}
 
     def get_all_cited_citations(self) -> NiceList[Citation]:
         """
         Return the citations of the paper.
         """
         citations = ListBasedSet()
-        for section_content, section_citations in self.paper_sections_and_citations.values():
+        for section_content, section_citations in self.get_paper_sections_and_citations().values():
             citations.update(section_citations)
         return NiceList(citations, separator='\n\n')
 
     def get_tabled_paper_sections(self, content_view: ContentView) -> Dict[str, str]:
         """
-        Return the actual tabled paper sections.
+        Return the paper sections with tables inserted at the right places.
         """
         latex_tables = self.get_latex_tables(content_view)
         return {section_name: section if section_name not in latex_tables
                 else add_tables_to_paper_section(section, latex_tables[section_name])
-                for section_name, section in self.paper_sections_without_citations.items()}
+                for section_name, section in self.get_paper_sections_without_citations().items()}
 
     def get_title(self) -> str:
         """
         Return the title of the paper.
         """
-        latex = self.paper_sections_without_citations['title']
+        latex = self.get_paper_sections_without_citations()['title']
         return extract_latex_section_from_response(latex, 'title', keep_tags=False)
 
     def get_abstract(self) -> str:
         """
         Return the abstract of the paper.
         """
-        latex = self.paper_sections_without_citations['abstract']
+        latex = self.get_paper_sections_without_citations()['abstract']
         return extract_latex_section_from_response(latex, 'abstract', keep_tags=False)
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
@@ -429,8 +451,8 @@ class ScientificProducts(Products):
                 'Title and Abstract',
                 "Here are the title and abstract of the paper:\n\n{}\n\n{}",
                 ScientificStages.WRITING_TITLE_AND_ABSTRACT,
-                lambda: (self.paper_sections_without_citations['title'],
-                         self.paper_sections_without_citations['abstract']),
+                lambda: (self.get_paper_sections_without_citations()['title'],
+                         self.get_paper_sections_without_citations()['abstract']),
             ),
 
             'most_updated_paper': NameDescriptionStageGenerator(
@@ -445,10 +467,10 @@ class ScientificProducts(Products):
                 'Here is the {section_name} section of the paper:\n\n{content}',
                 lambda section_name: SECTION_NAMES_TO_WRITING_STAGES[section_name],
                 lambda section_name: {'section_name': section_name.title(),
-                                      'content': self.paper_sections_without_citations[section_name],
+                                      'content': self.get_paper_sections_without_citations(
+                                          remove_hyperlinks=True, format_num_command=None)[section_name],
                                       },
             ),
-
 
             'latex_tables': NameDescriptionStageGenerator(
                 'Tables of the Paper',
