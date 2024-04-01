@@ -35,7 +35,7 @@ def unite_citation_lists(citations_lists: Iterable[Iterable[Citation]], total: i
     return list(bibtex_ids_to_citations.values())
 
 
-CITATION_REPR_FIELDS_FOR_CHATGPT = \
+CITATION_REPR_FIELDS_FOR_LLM = \
     ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
 CITATION_REPR_FIELDS_FOR_PRINT = \
     ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence', 'embedding_similarity')
@@ -132,16 +132,16 @@ class LiteratureSearch:
                                         minimal_influence: int = 0,
                                         style: str = None) -> str:
         """
-        style: 'chatgpt', 'print', 'html'
+        style: 'llm', 'print', 'html'
         """
-        style = style or 'chatgpt'
+        style = style or 'llm'
         citations = self.get_citations(scope=scope, query=query, total=total,
                                        distribution_factor=distribution_factor,
                                        sort_by_similarity=sort_by_similarity,
                                        minimal_influence=minimal_influence,
                                        )
         return '\n'.join(citation.pretty_repr(
-            fields=CITATION_REPR_FIELDS_FOR_CHATGPT if style == 'chatgpt' else CITATION_REPR_FIELDS_FOR_PRINT,
+            fields=CITATION_REPR_FIELDS_FOR_LLM if style == 'llm' else CITATION_REPR_FIELDS_FOR_PRINT,
             is_html=style == 'html',
             embedding_target=self.embedding_target,
         ) for citation in citations)

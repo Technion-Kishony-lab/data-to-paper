@@ -21,7 +21,7 @@ from ..code_and_output_files.file_view_params import ContentViewPurpose
 
 @dataclass
 class RequestIssuesToSolutions(PythonDictReviewBackgroundProductsConverser):
-    CHATGPT_PARAMETERS = {'temperature': 0.0}
+    LLM_PARAMETERS = {'temperature': 0.0}
     value_type: type = Dict[str, str]
     response_to_self_error: str = dedent_triple_quote_str("""
         Your response should include a Python dictionary Dict[str, str], mapping the issues you found (keys), \t
@@ -197,7 +197,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 continue
 
             if self.present_code_as_fresh:
-                # debugging succeeded. we now forge the conversation as if ChatGPT immediately sent the correct code:
+                # debugging succeeded. we now forge the conversation as if the LLM immediately sent the correct code:
                 self._rewind_conversation_to_first_response()
                 self.apply_append_surrogate_message(
                     content=Replacer(
@@ -214,8 +214,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     def _are_further_code_revisions_needed(self, code_and_output: CodeAndOutput, debugger: DebuggerConverser) -> bool:
         """
-        Return True/False indicating if ChatGPT wants to revise the code.
-        If true, set the conversation to the state where the user ask ChatGPT to revise the code.
+        Return True/False indicating if the LLM wants to revise the code.
+        If true, set the conversation to the state where the user ask the LLM to revise the code.
         """
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
         prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)

@@ -21,7 +21,7 @@ NoneType = type(None)
 @dataclass(frozen=True)
 class ConversationAction(Action):
     """
-    Base class for actions performed on a chatgpt conversation.
+    Base class for actions performed on a conversation.
     """
 
     conversations: Conversations = None
@@ -234,30 +234,30 @@ class AppendMessage(ChangeMessagesConversationAction):
 
 
 @dataclass(frozen=True)
-class BaseChatgptResponse(ChangeMessagesConversationAction):
+class BaseLLMResponse(ChangeMessagesConversationAction):
     """
-    Base class for an action involving getting a response from chatgpt.
+    Base class for an action involving getting a response from LLM.
     """
 
     hidden_messages: GeneralMessageDesignation = None
-    "list of message to remove from the conversation when sending to ChatGPT"
+    "list of message to remove from the conversation when sending to the LLM"
 
     def _pretty_attrs(self) -> str:
         return f'HIDING MESSAGES: {self.hidden_messages}' if self.hidden_messages else ''
 
 
 @dataclass(frozen=True)
-class AppendChatgptResponse(AppendMessage, BaseChatgptResponse):
+class AppendLLMResponse(AppendMessage, BaseLLMResponse):
     """
-    Add a response from chatgpt.
+    Add a response from the LLM.
     """
     pass
 
 
 @dataclass(frozen=True)
-class FailedChatgptResponse(BaseChatgptResponse):
+class FailedLLMResponse(BaseLLMResponse):
     """
-    Failed getting a response from chatgpt. Nothing is appended to the conversation.
+    Failed getting a response from the LLM. Nothing is appended to the conversation.
     """
 
     exception: Exception = None
@@ -334,7 +334,7 @@ class DeleteMessages(ChangeMessagesConversationAction):
 @dataclass(frozen=True)
 class ReplaceLastResponse(AppendMessage):
     """
-    Replace the last chatgpt response with a new message.
+    Replace the last LLM response with a new message.
     """
     message: Message = None
 

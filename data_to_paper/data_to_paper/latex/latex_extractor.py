@@ -12,7 +12,7 @@ REMOVE_FROM_END = [r'\end{document}']
 def extract_latex_section_from_response(response: str, section_or_fragment: str, keep_tags: bool = True,
                                         remove_from_end: List[str] = None):
     """
-    Extract specified latex part from chatgpt response.
+    Extract specified latex part from the LLM response.
     Report errors if the latex part is not found or is empty.
     """
     if remove_from_end is None:

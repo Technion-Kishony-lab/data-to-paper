@@ -10,7 +10,7 @@ from typing import NamedTuple, Optional, List
 from data_to_paper.env import TEXT_WIDTH, MINIMAL_COMPACTION_TO_SHOW_CODE_DIFF, HIDE_INCOMPLETE_CODE
 from data_to_paper.base_cast import Agent
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text, FailedExtractingBlock
-from data_to_paper.servers.chatgpt import count_number_of_tokens_in_message
+from data_to_paper.servers.llm_call import count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import OpenaiCallParameters, ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks, line_count
 from data_to_paper.utils.highlighted_text import colored_text
@@ -71,11 +71,11 @@ class Message:
 
     context: List[Message] = None
 
-    def to_chatgpt_dict(self):
+    def to_llm_dict(self):
         return {'role': Role.ASSISTANT.value if self.role.is_assistant_or_surrogate()
                 else self.role.value, 'content': self.content}
 
-    def get_chatgpt_model(self):
+    def get_llm_model(self):
         if self.openai_call_parameters is None:
             return None
         return self.openai_call_parameters.model_engine
@@ -144,13 +144,13 @@ class Message:
         return content, is_incomplete_code
 
     def get_number_of_tokens(self, model_engine: ModelEngine = None) -> int:
-        model_engine = model_engine or self.get_chatgpt_model()
+        model_engine = model_engine or self.get_llm_model()
         return count_number_of_tokens_in_message([self], model_engine)
 
     def get_number_of_tokens_in_context(self) -> int:
         if self.context is None:
             return 0
-        return count_number_of_tokens_in_message(self.context, self.get_chatgpt_model())
+        return count_number_of_tokens_in_message(self.context, self.get_llm_model())
 
     def _get_triple_quote_formatted_content(self, with_header: bool = True) -> (str, bool):
         content, is_incomplete_code = self.get_content_after_hiding_incomplete_code()
@@ -164,14 +164,14 @@ class Message:
             index = len(self.context) if self.context else None
 
         if with_header and self.role != Role.COMMENTER and index is not None:
-            chatgpt_parameters = f'{self.openai_call_parameters}' if self.openai_call_parameters else ''
+            llm_parameters = f'{self.openai_call_parameters}' if self.openai_call_parameters else ''
             header = ''
             if self.context:
                 header += f'CONTEXT TOTAL ({self.get_number_of_tokens_in_context()} tokens):\n'
                 for i, message in enumerate(self.context):
-                    header += f'#{i:>2} {message.get_short_description(model=self.get_chatgpt_model())}\n'
+                    header += f'#{i:>2} {message.get_short_description(model=self.get_llm_model())}\n'
             header += f'\n#{index:>2} {self.get_short_description()}\n' + ' ' * 79 + \
-                      f'{chatgpt_parameters}'
+                      f'{llm_parameters}'
             header = wrap_text_with_triple_quotes(header, 'header')
             content = header + '\n\n' + content
 
@@ -241,7 +241,7 @@ class CodeMessage(Message):
             last_section = formatted_sections.get_last_block()
             partial_code = last_section.section
             last_section.section = \
-                f"\n# NOT SHOWING INCOMPLETE CODE SENT BY CHATGPT ({line_count(partial_code)} LINES)\n"
+                f"\n# NOT SHOWING INCOMPLETE CODE SENT BY LLM ({line_count(partial_code)} LINES)\n"
             last_section.is_complete = True
             content = formatted_sections.to_text()
         return content, is_incomplete_code
@@ -257,8 +257,8 @@ class CodeMessage(Message):
                 # if the code diff is substantially shorter than the code, we replace the code with the diff:
                 content = content.replace(
                     self.extracted_code,
-                    "\n# FULL CODE SENT BY CHATGPT IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
-                    else "\n# CHATGPT SENT THE SAME CODE AS BEFORE\n")
+                    "\n# FULL CODE SENT BY LLM IS SHOWN AS A DIFF WITH PREVIOUS CODE\n" + diff if diff
+                    else "\n# LLM SENT THE SAME CODE AS BEFORE\n")
         return format_text_with_code_blocks(content, text_color, width, is_html=is_html)
 
 

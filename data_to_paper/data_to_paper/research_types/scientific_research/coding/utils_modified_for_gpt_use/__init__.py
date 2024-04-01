@@ -1,5 +1,5 @@
 """
-Contains functions that can be imported and used by ChatGPT code.
+Contains functions that can be imported and used by LLM-writen code.
 The functions in this package are overriden functions that search for issues before running the raw functions.
 """
 

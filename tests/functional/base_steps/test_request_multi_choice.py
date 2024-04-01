@@ -4,7 +4,7 @@ import pytest
 
 from data_to_paper import Role
 from data_to_paper.base_steps import MultiChoiceBackgroundProductsConverser
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses
 

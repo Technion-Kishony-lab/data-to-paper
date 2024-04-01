@@ -3,7 +3,7 @@ from typing import Optional, Set, Iterable, Union, List
 
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.chatgpt import try_get_chatgpt_response
+from data_to_paper.servers.llm_call import try_get_llm_response
 from data_to_paper.servers.model_engine import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters, ModelEngine
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
@@ -12,14 +12,14 @@ from .conversation import Conversation
 from .message import Message, Role, create_message, CodeMessage
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
-    AppendChatgptResponse, FailedChatgptResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
+    AppendLLMResponse, FailedLLMResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
     CreateConversation, AddParticipantsToConversation, SetTypingAgent
 
 
 @dataclass
 class ConversationManager:
     """
-    Manages a conversation with ChatGPT.
+    Manages an LLM conversation.
     Maintains a complete record of actions performed on the conversation.
 
     Allows processing Actions that act on the conversation.
@@ -159,7 +159,7 @@ class ConversationManager:
         """
         Append a commenter-message to a specified conversation.
 
-        Commenter messages are messages that are not sent to chatgpt,
+        Commenter messages are messages that are not sent to the LLM,
         rather they are just used as comments to the chat.
         """
         self.create_and_append_message(Role.COMMENTER, content, tag, comment, **kwargs)
@@ -169,7 +169,7 @@ class ConversationManager:
                                  previous_code: Optional[str] = None,
                                  is_background: bool = False, **kwargs):
         """
-        Append a message with a pre-determined assistant content to a conversation (as if it came from chatgpt).
+        Append a message with a pre-determined assistant content to a conversation (as if it came from the LLM).
         """
         self.create_and_append_message(Role.SURROGATE, content, tag, comment,
                                        ignore=ignore, previous_code=previous_code, is_background=is_background,
@@ -200,12 +200,12 @@ class ConversationManager:
         # starting at message 1 (we don't remove message 0, which is the system message).
         model = openai_call_parameters.model_engine or ModelEngine.DEFAULT
         while True:
-            message = self._try_get_and_append_chatgpt_response(tag=tag, comment=comment, is_code=is_code,
-                                                                previous_code=previous_code,
-                                                                hidden_messages=actual_hidden_messages,
-                                                                expected_tokens_in_response=expected_tokens_in_response,
-                                                                openai_call_parameters=openai_call_parameters,
-                                                                **kwargs)
+            message = self._try_get_and_append_llm_response(tag=tag, comment=comment, is_code=is_code,
+                                                            previous_code=previous_code,
+                                                            hidden_messages=actual_hidden_messages,
+                                                            openai_call_parameters=openai_call_parameters,
+                                                            expected_tokens_in_response=expected_tokens_in_response,
+                                                            **kwargs)
             if isinstance(message, Message):
                 return message
 
@@ -230,7 +230,7 @@ class ConversationManager:
 
     def regenerate_previous_response(self, comment: Optional[str] = None) -> Message:
         last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
-        assert isinstance(last_action, AppendChatgptResponse)
+        assert isinstance(last_action, AppendLLMResponse)
         last_message = self.conversation[-1]
         assert last_message.role is Role.ASSISTANT
         openai_call_parameters = last_message.openai_call_parameters
@@ -244,13 +244,13 @@ class ConversationManager:
             hidden_messages=last_action.hidden_messages,
             **openai_call_parameters)
 
-    def _try_get_and_append_chatgpt_response(self, tag: Optional[str], comment: Optional[str] = None,
-                                             is_code: bool = False, previous_code: Optional[str] = None,
-                                             hidden_messages: GeneralMessageDesignation = None,
-                                             openai_call_parameters: Optional[OpenaiCallParameters] = None,
-                                             expected_tokens_in_response: int = None,
-                                             **kwargs
-                                             ) -> Union[Message, Exception]:
+    def _try_get_and_append_llm_response(self, tag: Optional[str], comment: Optional[str] = None,
+                                         is_code: bool = False, previous_code: Optional[str] = None,
+                                         hidden_messages: GeneralMessageDesignation = None,
+                                         openai_call_parameters: Optional[OpenaiCallParameters] = None,
+                                         expected_tokens_in_response: int = None,
+                                         **kwargs
+                                         ) -> Union[Message, Exception]:
         """
         Try to get and append a response from openai to a specified conversation.
 
@@ -261,12 +261,11 @@ class ConversationManager:
         """
         openai_call_parameters = openai_call_parameters or OpenaiCallParameters()
         messages = self.conversation.get_chosen_messages(hidden_messages)
-        content = try_get_chatgpt_response(messages,
-                                           expected_tokens_in_response=expected_tokens_in_response,
-                                           **openai_call_parameters.to_dict())
+        content = try_get_llm_response(messages, expected_tokens_in_response=expected_tokens_in_response,
+                                       **openai_call_parameters.to_dict())
         if isinstance(content, Exception):
             self._create_and_apply_action(
-                FailedChatgptResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
+                FailedLLMResponse, comment=comment, hidden_messages=hidden_messages, exception=content)
             return content
 
         if is_code:
@@ -277,7 +276,7 @@ class ConversationManager:
             openai_call_parameters=None if openai_call_parameters.is_all_none() else openai_call_parameters,
             previous_code=previous_code, is_code=is_code)
         self._create_and_apply_action(
-            AppendChatgptResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
+            AppendLLMResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
         return message
 
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):

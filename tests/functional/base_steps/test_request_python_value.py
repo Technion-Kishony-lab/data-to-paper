@@ -7,7 +7,7 @@ import sys
 from data_to_paper.base_steps import PythonValueReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 from data_to_paper.base_steps.result_converser import Rewind
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.types import ListBasedSet
 

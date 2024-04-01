@@ -14,7 +14,7 @@ from data_to_paper.utils.operator_value import OperatorValue
 P_VALUE_MIN = 1e-6  # values smaller than this will be formatted as "<1e-6"
 EPSILON = 1e-12  # 0 is formatted as "1e-12"
 
-# We show to chatgpt 0 pvalues as some small epsilon sot that it will not attempt to fix them.
+# We show to the LLM 0 pvalues as some small epsilon sot that it will not attempt to fix them.
 # These values will be formatted as "<1e-6" in the latex tables.
 
 

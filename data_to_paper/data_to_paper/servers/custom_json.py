@@ -30,7 +30,7 @@ def _de_serialize_item(item):
             else:
                 exception = getattr(openai.error, exception_type)(*args)
         elif exception_type == 'UserAbort':
-            from data_to_paper.servers.chatgpt import UserAbort
+            from data_to_paper.servers.llm_call import UserAbort
             exception = UserAbort(*args)
         else:
             exception = Exception(*args)

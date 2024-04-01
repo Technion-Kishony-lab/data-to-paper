@@ -19,7 +19,7 @@ WEB_CONVERSATION_NAME_PREFIX = '[web]'
 
 class Conversation(List[Message]):
     """
-    Maintain a list of messages as exchanged between user and chatgpt.
+    Maintain a list of messages as exchanged between USER and ASSISTANT.
 
     Takes care of:
 

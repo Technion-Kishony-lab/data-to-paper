@@ -31,7 +31,7 @@ class ScientificProductsQuotedReviewGPT(BaseProductsQuotedReviewGPT):
 
 @dataclass
 class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
-    CHATGPT_PARAMETERS = {'temperature': 1.0}
+    LLM_PARAMETERS = {'temperature': 1.0}
     max_reviewing_rounds: int = 1
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration')

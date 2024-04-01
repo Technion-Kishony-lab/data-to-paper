@@ -22,7 +22,7 @@ from .base_steps_runner import BaseStepsRunner
 from .request_products_from_user import DirectorProductGPT
 
 
-# --- REQUESTS PRODUCTS FROM CHATGPT ---
+# --- REQUESTS PRODUCTS FROM LLM ---
 
 # Requesting un-structured text:
 from .base_products_conversers import BackgroundProductsConverser

@@ -7,7 +7,7 @@ from data_to_paper.base_steps.debugger import DebuggerConverser
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     OutputFileRequirements
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 
 from .utils import TestAgent
 

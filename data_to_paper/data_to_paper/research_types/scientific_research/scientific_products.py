@@ -96,7 +96,7 @@ STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS: Dict[Tuple[str, str], LiteratureSea
 }
 
 
-DEFAULT_LITERATURE_SEARCH_STYLE = Mutable('chatgpt')
+DEFAULT_LITERATURE_SEARCH_STYLE = Mutable('llm')
 
 
 @dataclass

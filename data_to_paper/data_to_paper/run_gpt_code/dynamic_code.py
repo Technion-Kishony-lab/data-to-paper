@@ -10,7 +10,7 @@ import importlib
 
 from typing import Optional, Type, Tuple, Any, Union, Iterable, Dict
 
-from data_to_paper import chatgpt_created_scripts
+from data_to_paper import llm_created_scripts
 
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.types import ListBasedSet
@@ -27,7 +27,7 @@ from .run_issues import RunIssue, RunIssues
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 from data_to_paper.utils.singleton import undefined
 
-module_dir = os.path.dirname(chatgpt_created_scripts.__file__)
+module_dir = os.path.dirname(llm_created_scripts.__file__)
 module_default_filepath = os.path.join(module_dir, module_filename)
 
 
@@ -42,7 +42,7 @@ def generate_empty_code_module_object() -> ModuleType:
     Generate module object with the given code and return it.
     """
     save_code_to_module_file()
-    return importlib.import_module(chatgpt_created_scripts.__name__ + '.' + MODULE_NAME)
+    return importlib.import_module(llm_created_scripts.__name__ + '.' + MODULE_NAME)
 
 
 def is_serializable(x):

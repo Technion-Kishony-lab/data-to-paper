@@ -10,10 +10,10 @@ from .result_converser import Rewind
 @dataclass
 class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
     """
-    A base class for asking ChatGPT to choose between multiple options.
+    A base class for asking LLM to choose between multiple options.
     """
 
-    CHATGPT_PARAMETERS = {'temperature': 0.0, 'max_tokens': 30}
+    LLM_PARAMETERS = {'temperature': 0.0, 'max_tokens': 30}
 
     user_initiation_prompt: str = dedent_triple_quote_str("""
         Please choose one of the following options:

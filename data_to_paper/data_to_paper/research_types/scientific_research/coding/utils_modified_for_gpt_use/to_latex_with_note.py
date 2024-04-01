@@ -29,7 +29,7 @@ def _to_latex_with_note(df: pd.DataFrame, filename: str, caption: str = None, la
                         columns: List[str] = None,
                         **kwargs):
     """
-    Replacement of to_latex_with_note tp be used by ChatGPT code.
+    Replacement of to_latex_with_note to be used by LLM-writen code.
     Same as to_latex_with_note, but also checks for issues.
     """
     if not isinstance(df, pd.DataFrame):

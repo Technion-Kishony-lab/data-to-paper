@@ -110,7 +110,7 @@ class CheckLatexCompilation:
 @dataclass
 class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgroundProductsConverser):
     """
-    A base class for agents requesting chatgpt to write one or more latex sections.
+    A base class for agents requesting the LLM to write one or more latex sections.
     Option for removing citations from the section.
     Option for reviewing the sections (set max_review_turns > 0).
     """
@@ -205,7 +205,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
     def _remove_citations_from_section(self, section) -> str:
         """
-        Remove the citations that ChatGPT inserted by mistake.
+        Remove the citations that the LLM inserted by mistake.
         """
         if not self.should_remove_citations_from_section:
             return section

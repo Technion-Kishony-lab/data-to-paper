@@ -5,7 +5,7 @@ from data_to_paper.conversation.actions_and_conversations import Action
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation.conversation_actions import CreateConversation, AppendMessage, SetTypingAgent
 from data_to_paper.conversation.stage import AdvanceStage, SetActiveConversation, SetProduct, SendFinalProduct
-from data_to_paper.env import SHOW_CHATGPT_CONTEXT
+from data_to_paper.env import SHOW_LLM_CONTEXT
 
 
 @dataclass
@@ -28,7 +28,7 @@ def serialize_action(action: Action) -> Optional[SerializedAction]:
     if isinstance(action, AppendMessage):
         message = action.get_message_for_web()
         agent = message.agent
-        content = message.pretty_content(text_color='', width=90, is_html=True, with_header=SHOW_CHATGPT_CONTEXT.val)
+        content = message.pretty_content(text_color='', width=90, is_html=True, with_header=SHOW_LLM_CONTEXT.val)
         return SerializedAction('AppendMessage', {
             'conversationName': remove_conversation_name_prefix(action.web_conversation_name),
             'message': content,

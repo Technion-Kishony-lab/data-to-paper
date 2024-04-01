@@ -26,7 +26,7 @@ FILE_BASED_TRANSFER = True
 
 @dataclass
 class BaseCodeRunner(ABC):
-    response: str = None  # response from ChatGPT (with code)
+    response: str = None  # response from the LLM (contains code)
     script_file_path: Optional[Path] = None  # where to save the script after running. If None, don't save.
     run_folder: Optional[Path] = None
     output_file_requirements: OutputFileRequirements = OutputFileRequirements()
@@ -171,9 +171,9 @@ class BaseCodeRunner(ABC):
 @dataclass
 class CodeRunner(BaseCodeRunner):
     """
-    CodeRunner facilitates extracting and running Python code from chatGPT response::
+    CodeRunner facilitates extracting and running Python code from LLM response::
     1. Extract code from GPT response.
-    2. Run code, raise a relevant exception with text to send to chatGPT.
+    2. Run code, raise a relevant exception with text to send to the LLM.
     3. Read the output file created by the run if successful.
     """
 

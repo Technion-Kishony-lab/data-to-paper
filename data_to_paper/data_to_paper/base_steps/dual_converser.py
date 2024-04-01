@@ -25,7 +25,7 @@ class CycleStatus(Enum):
 @dataclass
 class DualConverserGPT(Converser):
     """
-    A base class for agents running two chatgpts.
+    A base class for agents running two LLM agents.
     """
     COPY_ATTRIBUTES = Converser.COPY_ATTRIBUTES | {'other_conversation_name', 'other_web_conversation_name'}
 
@@ -132,7 +132,7 @@ class DualConverserGPT(Converser):
 @dataclass
 class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     """
-    A base class for agents running a dialog between two chatgpts (self and other), where the roles of the two
+    A base class for agents running a dialog between two LLM agents (self and other), where the roles of the two
     agents are reversed. The ASSISTANT response from one conversation is used as the USER response in the other
     conversation, and vice versa.
 
@@ -147,16 +147,16 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     #                           here                  ^
     #                            |                    |
     #                            v               self_response
-    #      end if             SELF.chatgpt  -------------------->  OTHER.user
+    #      end if             SELF.assistant ------------------->  OTHER.user
     # termination_phrase   <---  |                                     |
-    # in other_response       SELF.user     <--------------------  OTHER.chatgpt
+    # in other_response       SELF.user      <-------------------  OTHER.assistant
     #                           ^                other_response
     #                           |                round_num += 1
     #                         or, can
     #                         start here
 
     termination_phrase: str = 'Job completed'
-    "A phrase used by the 'other' chatgpt to terminate the conversation."
+    "A phrase used by the 'other' assistant to terminate the conversation."
 
     respond_to_ambiguous_reviewer_termination: str = None
 
@@ -312,8 +312,8 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
 @dataclass
 class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     """
-    A base class for agents running a dialog between two chatgpts, where one is a "reviwee" who needs to perform a task
-    towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
+    A base class for agents running a dialog between two LLM agents, where one is a "reviwee" who needs to perform
+    a task towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
 
     The interaction proceeds in repeated cycles of the reviwee performing the task and the reviewer providing feedback.
     """
@@ -383,8 +383,8 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
 @dataclass
 class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     """
-    A base class for agents running a dialog between two chatgpts, where one is a "reviwee" who needs to perform a task
-    towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
+    A base class for agents running a dialog between two LLM agents, where one is a "reviwee" who needs to perform
+    a task towards a certain "goal", and the other is a "reviewer" who provides constructive feedback.
     The performer is expected to return the goal as a triple-quoted string, so that it can be extracted.
     """
 

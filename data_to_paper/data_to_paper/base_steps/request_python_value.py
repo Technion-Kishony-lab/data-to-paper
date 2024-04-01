@@ -24,7 +24,7 @@ TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
 @dataclass
 class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConverser):
     """
-    A base class for agents requesting chatgpt to write a python value (like a list of str, or dict).
+    A base class for agents requesting the LLM to write a python value (like a list of str, or dict).
     Option for reviewing the sections (set max_reviewing_rounds > 0).
     """
     value_type: type = None
@@ -34,7 +34,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def __post_init__(self):
         super().__post_init__()
         if self.json_mode:
-            self.chatgpt_parameters['response_format'] = {"type": "json_object"}
+            self.llm_parameters['response_format'] = {"type": "json_object"}
 
     @property
     def parent_type(self) -> type:
@@ -58,7 +58,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
 
     def _check_response_and_get_extracted_result(self, response: str) -> str:
         """
-        Extracts the string of the python value from chatgpt response.
+        Extracts the string of the python value from LLM response.
         If there is an error extracting the value, _raise_self_response_error is called.
         """
         if self.json_mode:
@@ -123,7 +123,7 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
 @dataclass
 class PythonDictReviewBackgroundProductsConverser(PythonValueReviewBackgroundProductsConverser):
     """
-    A base class for agents requesting chatgpt to write a python dict.
+    A base class for agents requesting the LLM to write a python dict.
     """
     value_type: type = Dict[Any, Any]
 
@@ -135,7 +135,7 @@ class PythonDictReviewBackgroundProductsConverser(PythonValueReviewBackgroundPro
 @dataclass
 class PythonDictWithDefinedKeysReviewBackgroundProductsConverser(PythonDictReviewBackgroundProductsConverser):
     """
-    A base class for agents requesting chatgpt to write a python dict, with specified keys.
+    A base class for agents requesting the LLM to write a python dict, with specified keys.
     """
     requested_keys: Collection[str] = None  # The keys that the dict should contain. `None` means any keys are allowed.
     value_type: type = Dict[str, Any]

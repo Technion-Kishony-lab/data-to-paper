@@ -19,17 +19,17 @@ from data_to_paper.base_cast import Agent
 @dataclass
 class Converser(Copier):
     """
-    A base class for agents interacting with chatgpt.
+    A base class for agents interacting with LLMs.
     """
     COPY_ATTRIBUTES = {'actions_and_conversations', 'conversation_name', 'web_conversation_name', 'assistant_agent',
                        'user_agent'}
-    CHATGPT_PARAMETERS = {}  # default parameters to pass to chatgpt. e.g. {'temperature': 0.0, 'max_tokens': 30}
+    LLM_PARAMETERS = {}  # default parameters to pass to the LLM. e.g. {'temperature': 0.0, 'max_tokens': 30}
     actions_and_conversations: ActionsAndConversations = None
 
     model_engine: ModelEngine = field(default_factory=lambda: ModelEngine.DEFAULT)
     # The openai model engine to use (a call to apply_get_and_append_assistant_message can override this value).
 
-    chatgpt_parameters: dict[str, Any] = None
+    llm_parameters: dict[str, Any] = None
 
     system_prompt: str = 'You are a helpful scientist.'
 
@@ -57,8 +57,8 @@ class Converser(Copier):
             if conversation_exists:
                 self.conversation_name = self.actions_and_conversations.conversations.get_new_conversation_name(
                     self.conversation_name)
-        if self.chatgpt_parameters is None:
-            self.chatgpt_parameters = self.CHATGPT_PARAMETERS
+        if self.llm_parameters is None:
+            self.llm_parameters = self.LLM_PARAMETERS
 
         if self.web_conversation_name is True:
             # we determine an automatic conversation name based on the agent that the main agent is talking to:
@@ -128,7 +128,7 @@ class Converser(Copier):
             model_engine=model_engine or self.model_engine,
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages,
-            **{**self.chatgpt_parameters, **kwargs})
+            **{**self.llm_parameters, **kwargs})
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                   comment: Optional[StrOrReplacer] = None,

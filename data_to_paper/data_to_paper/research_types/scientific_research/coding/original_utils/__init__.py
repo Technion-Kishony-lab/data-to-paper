@@ -1,5 +1,5 @@
 """
-Contains raw util functions, without special checks, that can be imported and used by ChatGPT code.
+Contains raw util functions, without special checks, that can be imported and used by LLM-writen code.
 """
 
 from .df_formatting_utils import is_str_in_df, split_mapping, AbbrToNameDef

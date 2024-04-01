@@ -1,8 +1,8 @@
 from _pytest.fixtures import fixture
 
 from data_to_paper import Message, Role
-from data_to_paper.conversation.conversation_actions import AppendMessage, AppendChatgptResponse, \
-    FailedChatgptResponse, CopyMessagesBetweenConversations, CreateConversation, \
+from data_to_paper.conversation.conversation_actions import AppendMessage, AppendLLMResponse, \
+    FailedLLMResponse, CopyMessagesBetweenConversations, CreateConversation, \
     NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastResponse
 
 from data_to_paper.conversation.conversation_manager import ConversationManager
@@ -39,8 +39,8 @@ def test_append_message(actions_and_conversations, conversation, user_message):
     assert conversation[-1] is user_message
 
 
-def test_add_chatgpt_response(conversations, conversation, assistant_message):
-    action = AppendChatgptResponse(
+def test_add_llm_response(conversations, conversation, assistant_message):
+    action = AppendLLMResponse(
         conversations=conversations,
         conversation_name=conversation.conversation_name,
         message=assistant_message, comment='this is a test',
@@ -50,10 +50,10 @@ def test_add_chatgpt_response(conversations, conversation, assistant_message):
     assert conversation[-1] is assistant_message
 
 
-def test_failed_chatgpt_response(conversations, conversation, assistant_message):
+def test_failed_llm_response(conversations, conversation, assistant_message):
     original_length = len(conversation)
-    action = FailedChatgptResponse(conversations=conversations, conversation_name=conversation.conversation_name,
-                                   comment='this is a test', hidden_messages=-1)
+    action = FailedLLMResponse(conversations=conversations, conversation_name=conversation.conversation_name,
+                               comment='this is a test', hidden_messages=-1)
     print('\n' + action.pretty_repr())
     action.apply()
     assert len(conversation) == original_length

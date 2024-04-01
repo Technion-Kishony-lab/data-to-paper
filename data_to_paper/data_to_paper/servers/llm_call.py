@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
-MAX_NUM_OPENAI_ATTEMPTS = 5
+MAX_NUM_LLM_ATTEMPTS = 5
 DEFAULT_EXPECTED_TOKENS_IN_RESPONSE = 500
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
@@ -72,7 +72,7 @@ class OpenaiSeverCaller(ListServerCaller):
                     break
                 elif answer == 'n':
                     raise UserAbort()
-        print_and_log_red('Calling OPENAI for real.', should_log=False)
+        print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
     @staticmethod
     def _check_after_spending_money(content: str, messages: List[Message], model_engine: ModelEngine):
@@ -114,12 +114,12 @@ class OpenaiSeverCaller(ListServerCaller):
         openai.api_key = api_key
         openai.api_base = api_base_url
         openai.organization = organization
-        for attempt in range(MAX_NUM_OPENAI_ATTEMPTS):
+        for attempt in range(MAX_NUM_LLM_ATTEMPTS):
             try:
                 with timeout_context(TIME_LIMIT_FOR_OPENAI_CALL):
                     response = openai.ChatCompletion.create(
                         model=model_engine.value,
-                        messages=[message.to_chatgpt_dict() for message in messages],
+                        messages=[message.to_llm_dict() for message in messages],
                         **kwargs,
                     )
                 break
@@ -131,10 +131,10 @@ class OpenaiSeverCaller(ListServerCaller):
                                   f'Going to sleep for {sleep_time} seconds before trying again.',
                                   should_log=False)
                 time.sleep(sleep_time)
-                print_and_log_red(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_OPENAI_ATTEMPTS}) ...',
+                print_and_log_red(f'Retrying to call openai (attempt {attempt + 1}/{MAX_NUM_LLM_ATTEMPTS}) ...',
                                   should_log=False)
         else:
-            raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_OPENAI_ATTEMPTS} attempts.')
+            raise Exception(f'Failed to get response from OPENAI after {MAX_NUM_LLM_ATTEMPTS} attempts.')
 
         content = response['choices'][0]['message']['content']
         OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
@@ -161,10 +161,10 @@ def count_number_of_tokens_in_message(messages: Union[List[Message], str], model
     return num_tokens
 
 
-def try_get_chatgpt_response(messages: List[Message],
-                             model_engine: ModelEngine = None,
-                             expected_tokens_in_response: int = None,
-                             **kwargs) -> Union[str, Exception]:
+def try_get_llm_response(messages: List[Message],
+                         model_engine: ModelEngine = None,
+                         expected_tokens_in_response: int = None,
+                         **kwargs) -> Union[str, Exception]:
     """
     Try to get a response from openai to a specified conversation.
 

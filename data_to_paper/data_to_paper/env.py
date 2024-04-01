@@ -46,7 +46,7 @@ DEFAULT_MODEL_ENGINE = ModelEngine.GPT35_TURBO
 # Text width for conversation output:
 TEXT_WIDTH = 150
 
-# max time for code timeout when running code from chatgpt (seconds)
+# max time for code timeout when running LLM-writen code (seconds)
 MAX_EXEC_TIME = Mutable(200)
 
 # Decide whether to present code debugging iterations as code diff or full.
@@ -77,7 +77,7 @@ os.environ['CLIENT_SERVER_MODE'] = 'False'
 TRACK_P_VALUES = Flag(True)
 
 # Debugging switches:
-SHOW_CHATGPT_CONTEXT = Flag(True)
+SHOW_LLM_CONTEXT = Flag(True)
 SAVE_INTERMEDIATE_LATEX = Flag(False)
 PRINT_CITATIONS = Flag(True)
 PRINT_COMMENTS = Flag(False)

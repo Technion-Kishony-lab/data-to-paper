@@ -8,7 +8,7 @@ from typing import Union
 
 from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
 from data_to_paper.utils.print_to_file import print_and_log
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
 from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLER
 from data_to_paper.conversation.conversation_actions import CreateConversation

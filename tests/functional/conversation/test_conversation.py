@@ -4,7 +4,7 @@ import openai
 import pytest
 
 from data_to_paper import Conversation, Message, Role
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER, try_get_chatgpt_response, \
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER, try_get_llm_response, \
     count_number_of_tokens_in_message
 from data_to_paper.servers.model_engine import ModelEngine
 
@@ -27,19 +27,19 @@ def test_count_number_of_tokens_in_message(text, expected):
 
 def test_failed_gpt_response(conversation, openai_exception):
     with OPENAI_SERVER_CALLER.mock(['I am okay.', openai_exception]):
-        assert try_get_chatgpt_response(conversation) == 'I am okay.'
-        assert isinstance(try_get_chatgpt_response(conversation), openai.error.InvalidRequestError)
+        assert try_get_llm_response(conversation) == 'I am okay.'
+        assert isinstance(try_get_llm_response(conversation), openai.error.InvalidRequestError)
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_gpt_response(conversation):
-    response = try_get_chatgpt_response(conversation)
+    response = try_get_llm_response(conversation)
     assert isinstance(response, str) and len(response)
 
 
 @OPENAI_SERVER_CALLER.record_or_replay()
 def test_conversation_gpt_response_without_appending(conversation):
-    response = try_get_chatgpt_response(conversation)
+    response = try_get_llm_response(conversation)
     assert len(response)
     assert len(conversation) == 4
 

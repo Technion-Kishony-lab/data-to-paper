@@ -59,7 +59,6 @@ class DataFileDescription:
             return f'Here are the first few lines of the file:\n' \
                    f'```output\n{"".join(head)}\n```\n'
 
-
     def pretty_repr(self, num_lines: int = 4, content_view: ContentView = None):
         s = f'"{self.file_path}"\n'
         description = self.description

@@ -38,7 +38,7 @@ def test_message_save_to_text_no_tag(message_without_tag):
 
 
 def test_message_convert_to_chatgpt(message_with_tag):
-    assert message_with_tag.to_chatgpt_dict() == {'role': 'user', 'content': 'Hi there!'}
+    assert message_with_tag.to_llm_dict() == {'role': 'user', 'content': 'Hi there!'}
 
 
 def test_message_repr_with_code_and_non_code_blocks():

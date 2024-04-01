@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from data_to_paper.servers.chatgpt import OPENAI_SERVER_CALLER
+from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.model_engine import ModelEngine
 
 from .utils import TestProductsReviewGPT, check_wrong_and_right_responses

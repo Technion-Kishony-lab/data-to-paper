@@ -58,12 +58,12 @@ def _get_description_of_run_error(error: Exception):
 @dataclass
 class DebuggerConverser(BackgroundProductsConverser):
     """
-    Interact with ChatGPT to debug a code that needs to create an output file.
+    Interact with the LLM to debug a code that needs to create an output file.
 
     Starting with a conversation which ends with a code-request from the user, DebuggerConverser interacts
-    with ChatGPT to enhance the code until it runs properly and creates a desired output file.
+    with the LLM to enhance the code until it runs properly and creates a desired output file.
 
-    Interactions with chatgpt include adequate reporting of:
+    Interactions with LLM include adequate reporting of:
     * missing packages
     * trying to load wrong files
     * syntax errors
@@ -240,7 +240,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_issue_for_missing_or_multiple_code_blocks(self, e: FailedExtractingBlock) -> RunIssue:
         """
-        We notify missing or incomplete code to chatgpt.
+        We notify missing or incomplete code to the LLM.
         If the conversation already has this notification, we regenerate gpt response instead.
         """
         return RunIssue(
@@ -532,8 +532,8 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
         """
-        Get a code from chatgpt, run it and return code and result.
-        If the code fails, notify chatgpt and return None.
+        Get a code from the LLM, run it and return code and result.
+        If the code fails, notify the LLM and return None.
         """
         response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
         code_runner = self._get_code_runner(response)

@@ -1,5 +1,5 @@
 from data_to_paper import Role
-from data_to_paper.conversation.conversation_actions import AppendMessage, Message, AppendChatgptResponse
+from data_to_paper.conversation.conversation_actions import AppendMessage, Message, AppendLLMResponse
 from data_to_paper.conversation.conversation_manager import ConversationManager
 from data_to_paper.conversation.replay import replay_actions
 
@@ -9,7 +9,7 @@ def test_save_load_actions(tmpdir, actions, conversations):
         conversations=conversations,
         conversation_name='default',
         message=Message(role=Role.USER, content='what is 2 + 3 ?')))
-    actions.append(AppendChatgptResponse(
+    actions.append(AppendLLMResponse(
         conversations=conversations,
         conversation_name='default',
         message=Message(role=Role.ASSISTANT, content='the answer is 5')))
