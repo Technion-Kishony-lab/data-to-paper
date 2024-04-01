@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from data_to_paper.interactive.types import HumanInteractions
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils.mutable import Mutable, Flag
 
@@ -67,6 +68,12 @@ DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 
 # Products to send to client for the user to download:
 PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
+
+# Interactive mode:
+HUMAN_INTERACTIONS = HumanInteractions(
+    edit_other_response=True,
+    edit_self_response=False,
+)
 
 NUM_DIGITS_FOR_FLOATS = 4
 

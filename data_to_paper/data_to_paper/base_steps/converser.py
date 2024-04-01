@@ -6,7 +6,7 @@ from typing import Optional, Any
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH, HUMAN_INTERACTIONS
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.servers.model_engine import ModelEngine
@@ -46,6 +46,8 @@ class Converser(Copier):
     # None - do not post to web conversation, True - use default name, str - use given name
 
     driver: str = ''
+
+    edit_response: bool = HUMAN_INTERACTIONS.edit_self_response
 
     def __post_init__(self):
         conversation_exists = self.conversation_name in self.actions_and_conversations.conversations
