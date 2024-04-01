@@ -65,13 +65,21 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        if False and model_engine > ModelEngine.DEFAULT:
-            while True:
-                answer = input(f'CONFIRM USING {model_engine} (y/n): ').lower()
-                if answer == 'y':
-                    break
-                elif answer == 'n':
-                    raise UserAbort()
+        while True:
+            user_choice = input(dedent_triple_quote_str("""
+            Please carefully check that you are willing to proceed with this LLM API call.
+            We suggest reading the current ongoing conversation and especially the last USER message \t
+            to understand the instructions we are sending to the LLM.
+            If you are willing to proceed, please type Y, otherwise type N.
+            Note: if you choose N, the program will immediately abort.
+            """))
+
+            if user_choice.lower() == 'n':
+                raise UserAbort(reason="User chose to abort the program.")
+            elif user_choice.lower() == 'y':
+                break
+            else:
+                print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
         print_and_log_red('Calling the LLM-API for real.', should_log=False)
 
     @staticmethod
@@ -90,22 +98,6 @@ class OpenaiSeverCaller(ListServerCaller):
         Connect with openai to get response to conversation.
         """
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
-            while True:
-                user_choice = input(dedent_triple_quote_str("""
-                Please carefully check that you are willing to proceed with this LLM API call.
-                We suggest reading the current ongoing conversation and especially the last USER message \t
-                to understand the instructions we are sending to the LLM.
-                If you are willing to proceed, please type Y, otherwise type N.
-                Note: if you choose N, the program will immediately abort.
-                """))
-
-                if user_choice.lower() == 'n':
-                    raise UserAbort(reason="User chose to abort the program.")
-                elif user_choice.lower() == 'y':
-                    break
-                else:
-                    print_and_log_red('Invalid input. Please choose Y/N.', should_log=False)
-
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
         organization, api_key, api_base_url = OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL[model_engine] \

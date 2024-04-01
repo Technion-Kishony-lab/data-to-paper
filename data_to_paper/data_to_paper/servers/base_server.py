@@ -190,6 +190,10 @@ class ServerCaller(ABC):
 
 
 class ListServerCaller(ServerCaller, ABC):
+    """
+    A base class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as a sequence of responses and can be replayed in the same order (regardless of the arguments).
+    """
     def __init__(self):
         super().__init__()
         self.index_in_old_records = 0
@@ -232,6 +236,10 @@ class ListServerCaller(ServerCaller, ABC):
 
 
 class DictServerCaller(ServerCaller, ABC):
+    """
+    A base class for calling a remote server, while allowing recording and replaying server responses.
+    Records are saved as a dictionary of responses and can be replayed by the arguments and keyword arguments.
+    """
 
     @property
     def empty_records(self) -> dict:
