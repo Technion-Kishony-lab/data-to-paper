@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Collection
 
-from data_to_paper.servers.crossref import CrossrefCitation
+from data_to_paper.servers.custom_types import Citation
 from data_to_paper.latex.latex_doc import LatexDocument
 
 from .base_products_to_file import BaseFileProducer
@@ -23,7 +23,7 @@ class BaseLatexToPDF(BaseFileProducer):
         """
         return {}
 
-    def _get_references(self) -> Collection[CrossrefCitation]:
+    def _get_references(self) -> Collection[Citation]:
         """
         Return all the references cited.
         """

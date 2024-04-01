@@ -5,9 +5,9 @@ from data_to_paper.base_steps import BaseLatexToPDF
 from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
-from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.code_and_output_files.ref_numeric_values import ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import ListReferenceableText
+from data_to_paper.servers.custom_types import Citation
 
 
 @dataclass
@@ -22,8 +22,8 @@ class ProduceScientificPaperPDFWithAppendix(BaseLatexToPDF):
         return {section_name: self._get_formatted_section_and_notes(section_name)[0]
                 for section_name in self.paper_section_names}
 
-    def _get_references(self) -> List[CrossrefCitation]:
-        return self.products.citations
+    def _get_references(self) -> List[Citation]:
+        return self.products.get_all_cited_citations()
 
     def _get_all_notes(self):
         notes = {}

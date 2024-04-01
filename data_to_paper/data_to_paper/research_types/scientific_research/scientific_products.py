@@ -17,7 +17,6 @@ from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
-from data_to_paper.servers.crossref import CrossrefCitation
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -186,8 +185,7 @@ class ScientificProducts(Products):
         return {section_name: section
                 for section_name, (section, citation) in self.paper_sections_and_citations.items()}
 
-    @property
-    def citations(self) -> NiceList[CrossrefCitation]:
+    def get_all_cited_citations(self) -> NiceList[Citation]:
         """
         Return the citations of the paper.
         """
