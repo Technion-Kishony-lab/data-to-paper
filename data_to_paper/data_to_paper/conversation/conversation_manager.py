@@ -228,22 +228,6 @@ class ConversationManager:
             index, _ = indices_and_messages.pop(1)
             actual_hidden_messages.append(index)
 
-    def regenerate_previous_response(self, comment: Optional[str] = None) -> Message:
-        last_action = self.actions.get_actions_for_conversation(self.conversation_name)[-1]
-        assert isinstance(last_action, AppendLLMResponse)
-        last_message = self.conversation[-1]
-        assert last_message.role is Role.ASSISTANT
-        openai_call_parameters = last_message.openai_call_parameters
-        openai_call_parameters = openai_call_parameters.to_dict() if openai_call_parameters else {}
-        self.delete_messages(-1)  # delete last message.
-        return self.get_and_append_assistant_message(
-            comment=comment,
-            tag=last_message.tag,
-            is_code=isinstance(last_message, CodeMessage),
-            previous_code=last_message.previous_code if isinstance(last_message, CodeMessage) else None,
-            hidden_messages=last_action.hidden_messages,
-            **openai_call_parameters)
-
     def _try_get_and_append_llm_response(self, tag: Optional[str], comment: Optional[str] = None,
                                          is_code: bool = False, previous_code: Optional[str] = None,
                                          hidden_messages: GeneralMessageDesignation = None,

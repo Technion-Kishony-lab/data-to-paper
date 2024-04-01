@@ -53,20 +53,6 @@ def test_conversation_manager_adding_messages_with_kwargs(manager):
     assert manager.conversation.get_last_response() in ['a', 'b', 'c']
 
 
-def test_conversation_manager_regenerate_response(manager, actions):
-    with OPENAI_SERVER_CALLER.mock([
-        'The answer is ...',
-        'The answer is 4',
-    ]):
-        manager.append_user_message('How much is 2 + 2', tag='math question', comment='this is a math question')
-        manager.get_and_append_assistant_message(tag='math answer')
-        manager.regenerate_previous_response()
-
-    assert len(manager.conversation) == 3
-    assert len(actions) == 6
-    assert manager.conversation[-1].content == 'The answer is 4'
-
-
 def test_conversation_manager_bump_model_then_retry__with_fewer_messages(manager, actions, openai_exception):
     with OPENAI_SERVER_CALLER.mock([
         openai_exception,
