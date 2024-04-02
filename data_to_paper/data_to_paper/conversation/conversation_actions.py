@@ -342,5 +342,5 @@ class ReplaceLastResponse(AppendMessage):
         return ''
 
     def apply(self):
-        self.conversation.delete_last_response()
+        self.conversation.pop()
         super().apply()
