@@ -3,7 +3,7 @@ from _pytest.fixtures import fixture
 from data_to_paper import Message, Role
 from data_to_paper.conversation.conversation_actions import AppendMessage, AppendLLMResponse, \
     FailedLLMResponse, CreateConversation, \
-    NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastResponse
+    NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastMessage
 
 from data_to_paper.conversation.conversation_manager import ConversationManager
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
@@ -92,9 +92,9 @@ def test_delete_messages(conversations, conversation, assistant_message):
 def test_replace_last_response(conversations, conversation, assistant_message):
     conversation.append(Message(Role.ASSISTANT, 'bad response. to be replaced'))
     expected = conversation[:-1] + [assistant_message]
-    action = ReplaceLastResponse(conversations=conversations,
-                                 conversation_name=conversation.conversation_name,
-                                 message=assistant_message, comment='this is a test')
+    action = ReplaceLastMessage(conversations=conversations,
+                                conversation_name=conversation.conversation_name,
+                                message=assistant_message, comment='this is a test')
     print('\n' + action.pretty_repr())
     action.apply()
     assert conversation == expected

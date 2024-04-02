@@ -9,10 +9,10 @@ from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quot
 
 from .actions_and_conversations import ActionsAndConversations, Conversations, Actions
 from .conversation import Conversation
-from .message import Message, Role, create_message, CodeMessage
+from .message import Message, Role, create_message, CodeMessage, create_message_from_other_message
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
-    AppendLLMResponse, FailedLLMResponse, ReplaceLastResponse, \
+    AppendLLMResponse, FailedLLMResponse, ReplaceLastMessage, \
     CreateConversation, AddParticipantsToConversation, SetTypingAgent
 
 
@@ -279,12 +279,12 @@ class ConversationManager:
         """
         self._create_and_apply_action(DeleteMessages, comment=comment, message_designation=message_designation)
 
-    def replace_last_response(self, content: str, comment: Optional[str] = None, tag: Optional[str] = None):
+    def replace_last_message(self, content: str, agent: Optional[Agent] = None, comment: Optional[str] = None):
         """
-        Replace the last response with the specified content.
+        Replace the last message with the specified content.
         """
         self._create_and_apply_action(
-            ReplaceLastResponse,
+            ReplaceLastMessage,
             comment=comment,
-            message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent))
-        return content
+            message=create_message_from_other_message(
+                other_message=self.conversation[-1], content=content, agent=agent))

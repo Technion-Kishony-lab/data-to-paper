@@ -1,6 +1,6 @@
 from _pytest.fixtures import fixture
 
-from data_to_paper.conversation.conversation_actions import ReplaceLastResponse
+from data_to_paper.conversation.conversation_actions import ReplaceLastMessage
 from data_to_paper.conversation.conversation_manager import ConversationManager
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.conversation.message_designation import RangeMessageDesignation
@@ -104,9 +104,9 @@ def test_conversation_manager_delete_messages(manager):
 def test_conversation_manager_replace_last_response(manager, actions):
     manager.append_surrogate_message('preliminary message. to be replaced')
     original_len = len(manager.conversation)
-    manager.replace_last_response('new response')
+    manager.replace_last_message('new response')
     assert manager.conversation.get_last_response() == 'new response'
-    assert isinstance(actions[-1], ReplaceLastResponse)
+    assert isinstance(actions[-1], ReplaceLastMessage)
     assert len(manager.conversation) == original_len
 
 

@@ -332,9 +332,9 @@ class DeleteMessages(ChangeMessagesConversationAction):
 
 
 @dataclass(frozen=True)
-class ReplaceLastResponse(AppendMessage):
+class ReplaceLastMessage(AppendMessage):
     """
-    Replace the last LLM response with a new message.
+    Replace the last message with a new message.
     """
     message: Message = None
 
@@ -342,5 +342,6 @@ class ReplaceLastResponse(AppendMessage):
         return ''
 
     def apply(self):
+        assert self.conversation[-1].role == self.message.role
         self.conversation.pop()
         super().apply()
