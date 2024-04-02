@@ -3,7 +3,7 @@ from typing import Optional, Set, Iterable, Union, List
 
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.base_cast import Agent
-from data_to_paper.servers.llm_call import try_get_llm_response
+from data_to_paper.servers.llm_call import try_get_llm_response, get_human_response
 from data_to_paper.servers.model_engine import OPENAI_CALL_PARAMETERS_NAMES, OpenaiCallParameters, ModelEngine
 from data_to_paper.run_gpt_code.code_utils import add_label_to_first_triple_quotes_if_missing
 
@@ -118,7 +118,7 @@ class ConversationManager:
             message=message, comment=comment, **kwargs)
 
     def create_and_append_message(self, role: Role, content: str, tag: Optional[str], comment: Optional[str] = None,
-                                  ignore: bool = False, previous_code: Optional[str] = None,
+                                  ignore: bool = False, previous_code: Optional[str] = None, is_code: bool = False,
                                   context: Optional[List[Message]] = None,
                                   is_background: bool = False, reverse_roles_for_web: bool = False, **kwargs):
         """
@@ -132,7 +132,8 @@ class ConversationManager:
             agent = None
         self._create_and_apply_set_typing_action(agent=agent, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
         message = create_message(role=role, content=content, tag=tag, agent=agent, ignore=ignore,
-                                 context=context, previous_code=previous_code, is_background=is_background)
+                                 context=context, previous_code=previous_code, is_code=is_code,
+                                 is_background=is_background)
         self.append_message(message, comment, reverse_roles_for_web=reverse_roles_for_web, **kwargs)
 
     def append_system_message(self, content: str, tag: Optional[str] = None, comment: Optional[str] = None,
@@ -265,6 +266,17 @@ class ConversationManager:
             AppendLLMResponse, comment=comment, hidden_messages=hidden_messages, message=message, **kwargs)
         return message
 
+    def optionally_edit_and_replace_last_message(self, default_content: Optional[str] = None) -> Optional[Message]:
+        """
+        Allow the user to edit the last message and replace it with the edited message.
+        Return the edited message, or None if the user chose not to edit the message.
+        """
+        previous_content = self.conversation[-1].content
+        new_content = get_human_response(initial_content=previous_content, default_content=default_content)
+        if new_content is None:
+            return None
+        return self.replace_last_message(new_content, agent=self.human_agent)
+
     def reset_back_to_tag(self, tag: str, comment: Optional[str] = None):
         """
         Reset the conversation to the last message with the specified tag.
@@ -279,12 +291,12 @@ class ConversationManager:
         """
         self._create_and_apply_action(DeleteMessages, comment=comment, message_designation=message_designation)
 
-    def replace_last_message(self, content: str, agent: Optional[Agent] = None, comment: Optional[str] = None):
+    def replace_last_message(self, content: str, agent: Optional[Agent] = None, comment: Optional[str] = None
+                             ) -> Message:
         """
         Replace the last message with the specified content.
         """
-        self._create_and_apply_action(
-            ReplaceLastMessage,
-            comment=comment,
-            message=create_message_from_other_message(
-                other_message=self.conversation[-1], content=content, agent=agent))
+        message = create_message_from_other_message(
+            other_message=self.conversation[-1], content=content, agent=agent)
+        self._create_and_apply_action(ReplaceLastMessage, comment=comment, message=message)
+        return message
