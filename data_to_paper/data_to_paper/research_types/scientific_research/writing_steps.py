@@ -103,7 +103,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         3. Write the article in a way that is fully consistent with the scientific results we have.
         """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), \t
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
@@ -288,7 +288,7 @@ class SecondTitleAbstractSectionWriterReviewGPT(FirstTitleAbstractSectionWriterR
                                              'literature_search:writing:dataset',
                                              'literature_search:writing:results',
                                              'title_and_abstract')
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Bases on the material provided above ({actual_background_product_names}), please help me improve the \t
         title and abstract for a {journal_name} research paper. 
 
@@ -558,7 +558,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         The no-treatment response was \\hyperlink{Z1a}{0.65} (STD: [unknown]).
         ```
         """)
-    other_initiation_prompt: str = dedent_triple_quote_str("""
+    other_mission_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above, please write the Results section for a {journal_name} research paper.
 
         {general_result_instructions}

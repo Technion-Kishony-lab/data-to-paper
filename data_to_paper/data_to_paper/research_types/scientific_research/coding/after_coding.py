@@ -54,7 +54,7 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         BaseScientificPostCodeProductsHandler.__post_init__(self)
         LatexReviewBackgroundProductsConverser.__post_init__(self)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Please return a triple-backtick Latex Block explaining what the code above does. 
         Do not provide a line-by-line explanation, rather provide a \t
         high-level explanation of the code in a language suitable for a Methods section of a research \t
@@ -99,7 +99,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
         BaseScientificPostCodeProductsHandler.__post_init__(self)
         BackgroundProductsConverser.__post_init__(self)
 
-    user_initiation_prompt: str = None
+    mission_prompt: str = None
     background_product_fields: Tuple[str, ...] = ('all_file_descriptions', 'research_goal')
     requesting_explanation_for_a_new_dataframe: str = dedent_triple_quote_str("""
         The code creates a new file named "{dataframe_file_name}", with the following columns: 
@@ -145,7 +145,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
                     rewind_after_end_of_review=Rewind.DELETE_ALL,
                     rewind_after_getting_a_valid_response=Rewind.ACCUMULATE,
                     goal_noun='the content of the dataframe',
-                    user_initiation_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
+                    mission_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
                                                             'columns': list(columns)}),
                 ).run_dialog_and_get_valid_result()
@@ -164,7 +164,7 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
                     rewind_after_getting_a_valid_response=Rewind.ACCUMULATE,
                     requested_keys=columns,
                     goal_noun='dictionary that explains the columns of the dataframe',
-                    user_initiation_prompt=Replacer(self,
+                    mission_prompt=Replacer(self,
                                                     self.requesting_explanation_for_a_modified_dataframe,
                                                     kwargs={'dataframe_file_name': saved_df_filename,
                                                             'columns': list(columns)}),

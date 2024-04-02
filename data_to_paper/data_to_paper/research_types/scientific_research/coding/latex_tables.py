@@ -152,7 +152,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
             return abbrs_to_names, names_to_definitions
         ''')
 
-    user_initiation_prompt: str = dedent_triple_quote_str('''
+    mission_prompt: str = dedent_triple_quote_str('''
         Please write a Python code to convert and re-style the "table_?.pkl" dataframes created \t
         by our "{codes:data_analysis}" into latex tables suitable for our scientific paper.
 

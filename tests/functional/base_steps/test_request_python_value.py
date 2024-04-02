@@ -46,7 +46,7 @@ def test_request_python_value_json_mode():
             value_type=Dict[str, Any],
             json_mode=True,
             model_engine=ModelEngine.GPT4_TURBO,
-            user_initiation_prompt='Please return a list of all prime numbers from 1 to 20. '
+            mission_prompt='Please return a list of all prime numbers from 1 to 20. '
                                    'Return your response as JSON value.',
         )
         result = converser.run_dialog_and_get_valid_result()

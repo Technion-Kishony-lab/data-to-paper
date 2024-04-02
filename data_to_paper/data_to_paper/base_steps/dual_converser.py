@@ -393,7 +393,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
     quote_request: str = '\n\nPlease return your answer enclosed within triple-backticks ' \
                          '(but send text, not code).'
     flanked_header: str = '\n\nMake sure you are flanking the entire response and not just the headers.'
-    user_initiation_prompt: str = ReviewDialogDualConverserGPT.user_initiation_prompt + '\n{quote_request}'
+    mission_prompt: str = ReviewDialogDualConverserGPT.mission_prompt + '\n{quote_request}'
 
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""\n\n
         Please correct your response according to any points you find relevant and applicable in my feedback.

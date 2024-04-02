@@ -17,7 +17,7 @@ class DirectorProductGPT(BackgroundProductsConverser):
 
     no_product_message: str = 'No, I do not have a {product_name} for you.'
     acknowledge_no_product_message: str = 'Ok, thank you for letting me know.'
-    user_initiation_prompt: str = None
+    mission_prompt: str = None
 
     # inputs:
     product_field: str = None

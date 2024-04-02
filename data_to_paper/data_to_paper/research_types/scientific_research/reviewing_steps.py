@@ -63,7 +63,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         {project_specific_goal_guidelines}\t
         * Do not suggest methodology. Just the goal and an hypothesis. 
         """)
-    user_initiation_prompt: str = dedent_triple_quote_str("""\n
+    mission_prompt: str = dedent_triple_quote_str("""\n
         Please suggest a research goal and an hypothesis that can be studied using only the provided dataset. 
         The goal and hypothesis should be interesting and novel.
         {goal_guidelines}
@@ -118,7 +118,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers', 'research_goal',
                                                   'literature_search:goal:dataset', 'literature_search:goal:questions')
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         From the literature search above, list up to 5 key papers whose results are most \t
         similar/overlapping with our research goal and hypothesis.
 
@@ -168,7 +168,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Given the related papers listed above, please follow these 3 steps:
 
         (1) Provide a bullet-point list of potential similarities between our goal and hypothesis, \t
@@ -201,7 +201,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration',
                                                   'research_goal', 'literature_search:goal:goal and hypothesis')
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \t
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \t
         do not completely overlap existing literature.
@@ -224,7 +224,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
     is_new_conversation: bool = None  # this will create "hyp_testing_plan_0", etc.
     goal_noun: str = 'hypothesis testing plan'
     goal_verb: str = 'write'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         We would like to test the specified hypotheses using the provided dataset.
 
         Please follow these two steps:

@@ -28,7 +28,7 @@ class DataExplorationCodeProductsGPT(BaseScientificCodeProductsGPT):
 
     supported_packages: Tuple[str, ...] = ('pandas', 'numpy', 'scipy')
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         As part of a data-exploration phase, please write a complete short Python code for getting a \t
         first sense of the data. 
 

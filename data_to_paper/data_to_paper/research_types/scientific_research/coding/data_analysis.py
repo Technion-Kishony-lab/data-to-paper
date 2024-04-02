@@ -197,7 +197,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
          }
     )
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Write a complete Python code to analyze the data and create dataframes as basis for scientific Tables \t
         for our paper.
 

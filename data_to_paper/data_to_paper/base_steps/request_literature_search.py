@@ -45,7 +45,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
     value_type: type = Dict[str, List[str]]
     goal_noun: str = 'literature search queries'
     goal_verb: str = 'write'
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Please write literature-search queries that we can use to search for papers related to our study.
 
         You would need to compose search queries to identify prior papers covering these {num_scopes} areas:

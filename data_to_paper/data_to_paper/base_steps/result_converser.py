@@ -116,7 +116,7 @@ class ResultConverser(Converser):
 
     system_prompt: str = "You are a {performer} who needs to {goal_verb} {goal_noun}."
 
-    user_initiation_prompt: str = "Please {goal_verb} {goal_noun}."
+    mission_prompt: str = "Please {goal_verb} {goal_noun}."
 
     max_valid_response_iterations: int = 6
 
@@ -152,8 +152,8 @@ class ResultConverser(Converser):
         """
         Add background messages to the two conversations to set them ready for the cycle.
         """
-        if self.user_initiation_prompt:
-            self.apply_append_user_message(self.user_initiation_prompt)
+        if self.mission_prompt:
+            self.apply_append_user_message(self.mission_prompt)
 
     @property
     def _has_valid_result(self) -> bool:

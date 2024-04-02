@@ -58,7 +58,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
     goal_noun: str = '{code_name} code'
     goal_verb: str = 'write'
-    user_initiation_prompt: str = 'Please write a code to analyze the data.'
+    mission_prompt: str = 'Please write a code to analyze the data.'
 
     output_file_requirements: OutputFileRequirements = \
         OutputFileRequirements((TextContentOutputFileRequirement('results.txt'), ))
@@ -247,7 +247,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     self,
                     model_engine=self.model_engine,
                     background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
-                    user_initiation_prompt=formatted_code_review_prompt,
+                    mission_prompt=formatted_code_review_prompt,
                 ).run_and_get_valid_result()
 
                 if issues_to_solutions:

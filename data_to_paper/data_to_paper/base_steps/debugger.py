@@ -81,7 +81,7 @@ class DebuggerConverser(BackgroundProductsConverser):
 
     additional_contexts: Optional[Dict[str, Any]] = None
 
-    user_initiation_prompt: str = None
+    mission_prompt: str = None
     assistant_agent: Agent = None
     user_agent: Agent = None
 

@@ -15,7 +15,7 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
 
     LLM_PARAMETERS = {'temperature': 0.0, 'max_tokens': 30}
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Please choose one of the following options:
         1. Looks good. Choice 1.
         2. Something is wrong. Choice 2.

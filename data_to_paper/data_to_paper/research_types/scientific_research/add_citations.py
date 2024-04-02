@@ -36,7 +36,7 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
     fake_reviewer_agree_to_help: str = None
     fake_performer_message_to_add_after_max_rounds: str = None
     max_valid_response_iterations: int = 2
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Choose the most appropriate citations to add for the sentence: 
 
         "{sentence}"
@@ -134,7 +134,7 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         You are a scientific citation expert. 
     """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Extract from the above section of a scientific paper all the factual sentences to which we need to \t
         add citations.
 

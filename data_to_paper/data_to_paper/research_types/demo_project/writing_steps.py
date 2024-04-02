@@ -40,7 +40,7 @@ class WriteTitleAndAbstract(LatexReviewBackgroundProductsConverser):
         You will write a fake funny scientific article for the journal {journal_name}.
         """)
 
-    user_initiation_prompt: str = dedent_triple_quote_str("""
+    mission_prompt: str = dedent_triple_quote_str("""
         Based on the material provided above ({actual_background_product_names}), \t
         please {goal_verb} only the {goal_noun} for a {journal_name} article.
         Do not write any other parts!
