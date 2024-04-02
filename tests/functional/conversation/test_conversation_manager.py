@@ -110,25 +110,6 @@ def test_conversation_manager_replace_last_response(manager, actions):
     assert len(manager.conversation) == original_len
 
 
-def test_conversation_manager_copy_messages_from_another_conversations(actions_and_conversations):
-    manager1 = ConversationManager(actions_and_conversations=actions_and_conversations,
-                                   conversation_name='conversation1')
-    manager1.create_conversation()
-    manager1.append_user_message('m1')
-    manager1.append_user_message('m2', tag='tag2')
-    manager1.append_user_message('m3')
-    manager1.append_user_message('m4')
-
-    manager2 = ConversationManager(actions_and_conversations=actions_and_conversations,
-                                   conversation_name='conversation2')
-    manager2.create_conversation()
-    manager2.copy_messages_from_another_conversations(
-        message_designation=RangeMessageDesignation.from_('tag2', -1),
-        source_conversation=manager1.conversation,
-    )
-    assert [m.content for m in manager2.conversation] == ['m2', 'm3', 'm4']
-
-
 def test_conversation_manager_adds_python_header(manager):
     with OPENAI_SERVER_CALLER.mock([
         'the code is:\n'

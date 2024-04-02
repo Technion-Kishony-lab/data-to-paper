@@ -344,32 +344,3 @@ class ReplaceLastResponse(AppendMessage):
     def apply(self):
         self.conversation.delete_last_response()
         super().apply()
-
-
-@dataclass(frozen=True)
-class CopyMessagesBetweenConversations(ChangeMessagesConversationAction):
-    """
-    Copy messages from a source conversation to current conversation.
-    """
-    source_conversation_name: str = None
-    message_designation: GeneralMessageDesignation = None
-
-    @property
-    def source_conversation(self) -> Conversation:
-        return self.conversations.get_conversation(self.source_conversation_name)
-
-    def _get_indices_to_copy(self) -> List[int]:
-        """
-        Return the indices of the messages to copy.
-        """
-        return convert_general_message_designation_to_int_list(self.message_designation, self.source_conversation)
-
-    def _pretty_attrs(self) -> str:
-        return f'{self.message_designation} from "{self.source_conversation_name}", ' \
-               f'[{len(self._get_indices_to_copy())} MESSAGES]'
-
-    def apply(self):
-        for index in self._get_indices_to_copy():
-            self.conversation.append(self.source_conversation[index])
-
-    # TODO:  implement apply_to_web

@@ -2,7 +2,7 @@ from _pytest.fixtures import fixture
 
 from data_to_paper import Message, Role
 from data_to_paper.conversation.conversation_actions import AppendMessage, AppendLLMResponse, \
-    FailedLLMResponse, CopyMessagesBetweenConversations, CreateConversation, \
+    FailedLLMResponse, CreateConversation, \
     NullConversationAction, ResetToTag, DeleteMessages, ReplaceLastResponse
 
 from data_to_paper.conversation.conversation_manager import ConversationManager
@@ -98,26 +98,3 @@ def test_replace_last_response(conversations, conversation, assistant_message):
     print('\n' + action.pretty_repr())
     action.apply()
     assert conversation == expected
-
-
-def test_copy_messages_between_conversations(conversations, actions_and_conversations):
-    manager = ConversationManager(conversation_name='conversation_1',
-                                  actions_and_conversations=actions_and_conversations)
-    manager.create_conversation()
-    manager.append_system_message('You are a helpful assistant.')
-    manager.append_user_message('Write a short code.', 'write_code')
-    conversation1 = manager.conversation
-
-    manager.conversation_name = 'conversation_2'
-    manager.create_conversation()
-    conversation2 = manager.conversation
-
-    assert conversation1 != conversation2, "sanity"
-    action = CopyMessagesBetweenConversations(
-        conversations=conversations,
-        conversation_name='conversation_2',
-        source_conversation_name='conversation_1',
-        message_designation=RangeMessageDesignation.from_(0, -1))
-    print('\n' + action.pretty_repr())
-    action.apply()
-    assert conversation1 == conversation2

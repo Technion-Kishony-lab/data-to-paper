@@ -12,7 +12,7 @@ from .conversation import Conversation
 from .message import Message, Role, create_message, CodeMessage
 from .message_designation import GeneralMessageDesignation, convert_general_message_designation_to_list
 from .conversation_actions import ConversationAction, AppendMessage, DeleteMessages, ResetToTag, \
-    AppendLLMResponse, FailedLLMResponse, ReplaceLastResponse, CopyMessagesBetweenConversations, \
+    AppendLLMResponse, FailedLLMResponse, ReplaceLastResponse, \
     CreateConversation, AddParticipantsToConversation, SetTypingAgent
 
 
@@ -288,15 +288,3 @@ class ConversationManager:
             comment=comment,
             message=Message(role=Role.SURROGATE, content=content, tag=tag, agent=self.assistant_agent))
         return content
-
-    def copy_messages_from_another_conversations(self, source_conversation: Conversation,
-                                                 message_designation: GeneralMessageDesignation,
-                                                 comment: Optional[str] = None):
-        """
-        Copy messages from one conversation to another.
-        """
-        self._create_and_apply_action(
-            CopyMessagesBetweenConversations,
-            comment=comment,
-            source_conversation_name=source_conversation.conversation_name,
-            message_designation=message_designation)
