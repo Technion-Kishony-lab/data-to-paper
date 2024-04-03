@@ -97,12 +97,17 @@ class OpenaiSeverCaller(ListServerCaller):
         # time.sleep(6)
 
     @staticmethod
-    def _get_human_response(messages: List[Message], model_engine: ModelEngine, initial_content: str
+    def _get_human_response(messages: List[Message], model_engine: ModelEngine,
+                            initial_content: str,
+                            default_content: Optional[str] = None
                             ) -> Tuple[ModelEngine, str]:
         """
         Allow the user to edit a message and return the edited message.
         """
         optional_suggestions = {}
+        optional_suggestions['suggested'] = initial_content
+        if default_content is not None:
+            optional_suggestions['default'] = default_content
         content = the_app.edit_text(title='Edit the message:', initial_text=initial_content,
                                     optional_suggestions=optional_suggestions)
         if content == initial_content:
@@ -115,8 +120,9 @@ class OpenaiSeverCaller(ListServerCaller):
         Connect with openai to get response to conversation.
         """
         if model_engine == ModelEngine.HUMAN:
-            return OpenaiSeverCaller._get_human_response(messages, model_engine, kwargs['initial_content'])
-
+            return OpenaiSeverCaller._get_human_response(messages, model_engine,
+                                                         initial_content=kwargs['initial_content'],
+                                                         default_content=kwargs.get('default_content'))
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
@@ -223,9 +229,12 @@ def try_get_llm_response(messages: List[Message],
             raise
 
 
-def get_human_response(initial_content: str) -> Optional[str]:
+def get_human_response(initial_content: str, default_content: Optional[str] = None) -> Optional[str]:
     """
     Allow the user to edit a message and return the edited message.
     Return None if the user did not change the message.
     """
-    return OPENAI_SERVER_CALLER.get_server_response([], model_engine=ModelEngine.HUMAN, initial_content=initial_content)
+    _, content = OPENAI_SERVER_CALLER.get_server_response([], model_engine=ModelEngine.HUMAN,
+                                                          initial_content=initial_content,
+                                                          default_content=default_content)
+    return content
