@@ -15,7 +15,7 @@ from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BA
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.interactive.edit_text import edit_text_gui
+from data_to_paper.interactive import the_app
 
 from .base_server import ListServerCaller
 from .model_engine import ModelEngine
@@ -33,6 +33,7 @@ OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
 
 NO_CHANGE_MESSAGE = '---'
+
 
 @dataclass
 class TooManyTokensInMessageError(Exception):
@@ -101,7 +102,9 @@ class OpenaiSeverCaller(ListServerCaller):
         """
         Allow the user to edit a message and return the edited message.
         """
-        content = edit_text_gui(initial_text=initial_content, title='Edit the message', width=80, height=20)
+        optional_suggestions = {}
+        content = the_app.edit_text(title='Edit the message:', initial_text=initial_content,
+                                    optional_suggestions=optional_suggestions)
         if content == initial_content:
             content = None
         return model_engine, content
