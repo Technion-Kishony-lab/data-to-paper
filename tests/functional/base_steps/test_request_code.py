@@ -1,11 +1,12 @@
 import pickle
 from dataclasses import dataclass, field
-from typing import Type, Any, Dict, Optional, Tuple, Iterable
+from typing import Type, Any, Dict, Optional, Collection
 
 from _pytest.fixtures import fixture
 
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription
 from data_to_paper.base_steps import BaseCodeProductsGPT
+from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.research_types.scientific_research.coding.after_coding import RequestCodeExplanation, \
     ExplainCreatedDataframe, RequestCodeProducts
 from data_to_paper.research_types.scientific_research.coding.base_code_conversers import BaseScientificCodeProductsGPT
@@ -26,7 +27,7 @@ class TestDataframeChangingCodeProductsGPT(TestProductsReviewGPT, BaseCodeProduc
     additional_contexts: Optional[Dict[str, Any]] = field(
         default_factory=lambda: {'TrackDataFrames': TrackDataFrames(allow_dataframes_to_change_existing_series=False)})
     enforce_saving_altered_dataframes: bool = True
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = ()
+    code_review_prompts: Collection[CodeReviewPrompt] = ()
     code_name: str = 'Testing'
     temp_dir: str = None
 
@@ -165,7 +166,7 @@ def test_dataframe_tracker_is_pickleable(code_running_converser):
 def test_request_code_with_revisions(code_running_converser):
     file = 'output.txt'
     code_running_converser.code_review_prompts = (
-        ('*', True, 'Output:\n{file_contents_str}\nplease list all issue.'),
+        CodeReviewPrompt('*', True, 'Output:\n{file_contents_str}\nplease list all issue.'),
     )
     code_running_converser.output_file_requirements = OutputFileRequirements(
         [TextContentOutputFileRequirement(file)])
@@ -190,8 +191,8 @@ def test_request_code_with_revisions(code_running_converser):
 def test_request_code_with_file_review_revisions(code_running_converser):
     file = 'table_?.txt'
     code_running_converser.code_review_prompts = (
-        (None, True, 'Review the code.'),
-        ('table_?.txt', True, 'Review {filename}\n{file_contents_str}'),
+        CodeReviewPrompt(None, True, 'Review the code.'),
+        CodeReviewPrompt('table_?.txt', True, 'Review {filename}\n{file_contents_str}'),
     )
     code_running_converser.output_file_requirements = OutputFileRequirements(
         [TextContentOutputFileRequirement(file)])

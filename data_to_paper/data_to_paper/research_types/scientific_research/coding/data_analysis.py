@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Tuple, List, Optional, Dict, Any, Iterable, Type
+from typing import Tuple, List, Optional, Dict, Any, Iterable, Type, Collection
 
 from pandas import DataFrame
 
 from data_to_paper.base_steps import DebuggerConverser
+from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
     NumericTextContentOutputFileRequirement, OutputFileRequirements, PickleContentOutputFileRequirement
@@ -327,8 +328,8 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         then return an empty dict: `{}`. 
         """)
 
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
-        (None, False, dedent_triple_quote_str("""
+    code_review_prompts: Collection[CodeReviewPrompt] = (
+        CodeReviewPrompt(None, False, dedent_triple_quote_str("""
         The code runs ok, but I am worried that it may contain some fundamental mathematical or statistical \t
         flaws. To check for such flaws, I will need you to carefully follow these two steps:
 
@@ -365,7 +366,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_formatting_instructions}
         """)),
-        (None, False, dedent_triple_quote_str("""
+        CodeReviewPrompt(None, False, dedent_triple_quote_str("""
         Please follow these two steps:
 
         (1) Check your Python code and return a bullet-point response addressing these points (as applicable):
@@ -419,7 +420,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_formatting_instructions}
         """)),
-        ('table_*.pkl', True, dedent_triple_quote_str("""
+        CodeReviewPrompt('table_*.pkl', True, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the table '{filename}' that the code created for our scientific paper:
@@ -460,7 +461,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         {code_review_formatting_instructions}
         """)),
-        ('*', False, dedent_triple_quote_str("""
+        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
         I ran your code.
 
         Here is the content of the file(s) that the code created for our scientific paper:

@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
-from typing import Iterable, Any, Type, Tuple, Optional, Dict
+from typing import Iterable, Any, Type, Tuple, Optional, Dict, Collection
 
 from data_to_paper.base_steps import DebuggerConverser
+from data_to_paper.base_steps.request_code import CodeReviewPrompt
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.file_view_params import ContentView, ContentViewPurpose, ContentViewParams
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
@@ -241,7 +242,7 @@ class CreateLatexTablesCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
         Do not send any presumed output examples.
         ''')
 
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = ()
+    code_review_prompts: Collection[CodeReviewPrompt] = ()
 
     @property
     def first_table_number(self):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Type, Any, Iterable
+from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
 
 from data_to_paper.env import SUPPORTED_PACKAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
@@ -17,6 +17,19 @@ from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
 from ..code_and_output_files.file_view_params import ContentViewPurpose
+
+
+class CodeReviewPrompt(NamedTuple):
+    wildcard_filename: Optional[str]
+    # if None, the code review is done on the code itself without looking at the content of the created files
+    # if not None, the code review is done on the content of the file(s) that match the wildcard_filename
+
+    individually: bool
+    # if True, the code review is done separately for each file that matches the wildcard_filename
+
+    prompt: str
+    # use {filename} to include the name of the created file
+    # use {file_contents_str} to include the content of the created file(s)
 
 
 @dataclass
@@ -86,13 +99,9 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         ```
         """)
 
-    # (wildcard_filename, individually, prompt)
     # set to () to skip option for revision
-    # use {filename} to include the name of the created file
-    # use {file_contents_str} to include the content of the created file(s)
-    code_review_prompts: Iterable[Tuple[str, bool, str]] = (
-        ('*', False,
-         dedent_triple_quote_str("""
+    code_review_prompts: Collection[CodeReviewPrompt] = (
+        CodeReviewPrompt('*', False, dedent_triple_quote_str("""
             I ran your code. 
 
             Here is the content of the output file(s) that the code created:
