@@ -75,6 +75,8 @@ HUMAN_INTERACTIONS = HumanInteractions(
     edit_self_response=False,
 )
 
+HUMAN_NAME = 'Human'
+
 NUM_DIGITS_FOR_FLOATS = 4
 
 os.environ['CLIENT_SERVER_MODE'] = 'False'

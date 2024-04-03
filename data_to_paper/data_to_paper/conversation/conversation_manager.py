@@ -44,6 +44,8 @@ class ConversationManager:
     user_agent: Agent = None
     "The agent who is playing the user in the conversation."
 
+    human_agent: Agent = None
+
     @property
     def conversations(self) -> Conversations:
         return self.actions_and_conversations.conversations
