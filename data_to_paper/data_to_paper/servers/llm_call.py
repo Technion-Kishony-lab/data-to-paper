@@ -7,7 +7,7 @@ from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 
 import openai
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 
 import tiktoken
 
@@ -15,11 +15,13 @@ from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BA
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
+from data_to_paper.interactive.edit_text import edit_text_gui
 
 from .base_server import ListServerCaller
 from .model_engine import ModelEngine
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
 
@@ -30,6 +32,7 @@ DEFAULT_EXPECTED_TOKENS_IN_RESPONSE = 500
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
 
+NO_CHANGE_MESSAGE = '---'
 
 @dataclass
 class TooManyTokensInMessageError(Exception):
@@ -93,10 +96,24 @@ class OpenaiSeverCaller(ListServerCaller):
         # time.sleep(6)
 
     @staticmethod
-    def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> str:
+    def _get_human_response(messages: List[Message], model_engine: ModelEngine, initial_content: str
+                            ) -> Tuple[ModelEngine, str]:
+        """
+        Allow the user to edit a message and return the edited message.
+        """
+        content = edit_text_gui(initial_text=initial_content, title='Edit the message', width=80, height=20)
+        if content == initial_content:
+            content = None
+        return model_engine, content
+
+    @staticmethod
+    def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> Tuple[ModelEngine, str]:
         """
         Connect with openai to get response to conversation.
         """
+        if model_engine == ModelEngine.HUMAN:
+            return OpenaiSeverCaller._get_human_response(messages, model_engine, kwargs['initial_content'])
+
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
@@ -130,7 +147,20 @@ class OpenaiSeverCaller(ListServerCaller):
 
         content = response['choices'][0]['message']['content']
         OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
-        return content
+        return model_engine, content
+
+    @staticmethod
+    def _save_records(records, filepath):
+        records = [f'{model}: {NO_CHANGE_MESSAGE if content is None else content}' for model, content in records]
+        ListServerCaller._save_records(records, filepath)
+
+    @staticmethod
+    def _load_records(filepath):
+        records = ListServerCaller._load_records(filepath)
+        records = [record.split(': ', 1) for record in records]
+        records = [(ModelEngine(model), None if content == NO_CHANGE_MESSAGE else content)
+                   for model, content in records]
+        return records
 
 
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
@@ -179,7 +209,8 @@ def try_get_llm_response(messages: List[Message],
                       should_log=False)
 
     try:
-        return OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        _, content = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        return content
     except openai.error.InvalidRequestError as e:
         # TODO: add here any other exception that can be addressed by changing the number of tokens
         #     or bump up the model engine
@@ -187,3 +218,11 @@ def try_get_llm_response(messages: List[Message],
             return e
         else:
             raise
+
+
+def get_human_response(initial_content: str) -> Optional[str]:
+    """
+    Allow the user to edit a message and return the edited message.
+    Return None if the user did not change the message.
+    """
+    return OPENAI_SERVER_CALLER.get_server_response([], model_engine=ModelEngine.HUMAN, initial_content=initial_content)
