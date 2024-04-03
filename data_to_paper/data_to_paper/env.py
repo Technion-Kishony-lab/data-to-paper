@@ -73,6 +73,7 @@ PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
 HUMAN_INTERACTIONS = HumanInteractions(
     edit_other_response=True,
     edit_self_response=False,
+    edit_code_review=True,
 )
 
 HUMAN_NAME = 'Human'

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
 
-from data_to_paper.env import SUPPORTED_PACKAGES
+from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_INTERACTIONS
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
@@ -10,13 +10,17 @@ from data_to_paper.code_and_output_files.output_file_requirements import TextCon
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.utils.replacer import Replacer
+from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
+from data_to_paper.servers.llm_call import get_human_response
 
 from .debugger import DebuggerConverser
 from .base_products_conversers import BackgroundProductsConverser
 from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
-from ..code_and_output_files.file_view_params import ContentViewPurpose
+
+
+EDIT_CODE_REVIEW = HUMAN_INTERACTIONS.edit_code_review
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -30,6 +34,11 @@ class CodeReviewPrompt(NamedTuple):
     prompt: str
     # use {filename} to include the name of the created file
     # use {file_contents_str} to include the content of the created file(s)
+
+    human_edit: Optional[bool] = None
+    # if True, the human can edit the response
+    # if False, the response is AI only
+    # if None, the human can edit the response only if this is the final review
 
 
 @dataclass
@@ -227,8 +236,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         If true, set the conversation to the state where the user ask the LLM to revise the code.
         """
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
-        prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response)
-        for wildcard_filename, individually, code_review_prompt in self.code_review_prompts:
+        prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response
+                                                       ).format_text()
+        for index, (wildcard_filename, individually, code_review_prompt, human_edit) \
+                in enumerate(self.code_review_prompts):
             if wildcard_filename is None:
                 content_files_to_contents = {None: None}
             else:
@@ -259,18 +270,26 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     mission_prompt=formatted_code_review_prompt,
                 ).run_and_get_valid_result()
 
+                termination_phrase = 'Looks good - no changes needed.'
                 if issues_to_solutions:
-                    self.apply_append_user_message(dedent_triple_quote_str("""
+                    ai_response = dedent_triple_quote_str("""
                         The code has some issues that need to be fixed:
 
                         {issues_to_solutions}
 
                         - And please fix any other issues that you may find.
-
-                        {prompt_to_append_at_end_of_response}
                         """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
-                                                                    for issue, solution in issues_to_solutions.items()),
-                                    prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response))
+                                                                    for issue, solution in issues_to_solutions.items()))
+                else:
+                    ai_response = termination_phrase
+                if EDIT_CODE_REVIEW and \
+                        (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
+                    human_response = get_human_response(initial_content=ai_response, default_content=termination_phrase)
+                else:
+                    human_response = None
+                response = ai_response if human_response is None else human_response
+                if response != termination_phrase:
+                    self.apply_append_user_message(response + '\n' + prompt_to_append_at_end_of_response)
                     return True
 
         return False
