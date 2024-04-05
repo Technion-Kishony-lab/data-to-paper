@@ -1,7 +1,7 @@
 import os
 import pickle
 import platform
-import gipc
+import threading
 import tempfile
 import uuid
 from abc import abstractmethod, ABC
@@ -133,10 +133,10 @@ class BaseCodeRunner(CacheRunToFile, ABC):
             queue_or_filepath = f"subprocess_output_{uuid.uuid4()}_{os.getpid()}.pkl"
             queue_or_filepath = os.path.join(tempfile.gettempdir(), queue_or_filepath)
         else:
-            reader, queue_or_filepath = gipc.pipe()
+            queue_or_filepath = threading.Queue()
         try:
-            process = gipc.start_process(
-                self._run_code_and_put_result_in_queue,
+            process = threading.Thread(
+                target=self._run_code_and_put_result_in_queue,
                 args=(queue_or_filepath, code, modified_code),
             )
         except (AttributeError, TypeError):
@@ -144,11 +144,11 @@ class BaseCodeRunner(CacheRunToFile, ABC):
                 if not is_serializable(v):
                     print(f'Attribute {k} is not serializable.')
             raise
+        process.start()
         process.join(self.timeout_sec)
         if process.is_alive():
             with os.popen(f'{"sudo -n " if platform.system() == "Darwin" else ""}py-spy dump --pid {process.pid}') as f:
                 py_spy_stack = f.read()
-            process.terminate()
             process.join()
             result = (
                 None,
