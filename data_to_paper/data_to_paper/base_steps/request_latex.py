@@ -308,7 +308,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
 
         # store the result if there are no exceptions, forgiving TooWideTableOrText:
         if exception is None or isinstance(exception, TooWideTableOrText):
-            self.valid_result = extracted_result
+            self._update_valid_result(extracted_result)
 
         # raise the compilation errors
         if exception is not None:

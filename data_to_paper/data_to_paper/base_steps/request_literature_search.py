@@ -99,7 +99,8 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
     def _check_response_value(self, response_value: dict) -> NiceDict:
         super()._check_response_value(response_value)
-        self.valid_result = response_value  # The queries are 'valid' even if they have too many words
+        # The queries are 'valid' even if they have too many words:
+        self._update_valid_result(response_value)
         too_long_queries = []
         for queries in response_value.values():
             for query in queries:

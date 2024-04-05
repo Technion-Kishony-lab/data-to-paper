@@ -410,7 +410,7 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     def _check_extracted_result_and_get_valid_result(self, extracted_result: str):
         self._check_flanked_response_is_not_just_header(extracted_result)
-        self.valid_result = extracted_result
+        self._update_valid_result(extracted_result)
 
     def _check_response_and_get_extracted_result(self, response: str) -> str:
         try:

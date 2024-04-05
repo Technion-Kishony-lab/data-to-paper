@@ -162,6 +162,13 @@ class ResultConverser(Converser):
         """
         return not isinstance(self.valid_result, NoResponse)
 
+    def _update_valid_result(self, valid_result: Any):
+        """
+        Update the valid result. Should be called when we have a result that
+        passes all rule-based reviews.
+        """
+        self.valid_result = valid_result
+
     def _raise_self_response_error(self,
                                    error_message: StrOrReplacer,
                                    missing_end: bool = False,
@@ -216,7 +223,7 @@ class ResultConverser(Converser):
         Check the extracted_result and extract the needed information into valid_result.
         If there are errors that require self to revise the response, call _raise_self_response_error.
         """
-        self.valid_result = extracted_result
+        self._update_valid_result(extracted_result)
 
     def _alter_self_response(self, response: str, extracted_results: Optional[ExtractedResult]) -> str:
         """

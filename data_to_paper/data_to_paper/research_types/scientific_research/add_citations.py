@@ -73,7 +73,8 @@ class RewriteSentenceWithCitations(PythonValueReviewBackgroundProductsConverser)
         return [citation.bibtex_id for citation in self.citations]
 
     def _check_response_value(self, response_value: Any) -> Any:
-        self.valid_result = None  # we declare the result as "valid" even if we can't find any citations.
+        # we declare the result as "valid" even if we can't find any citations:
+        self._update_valid_result(None)
         ids_not_in_options = self._add_citations_in_options_and_return_citations_not_in_options(response_value)
         if len(ids_not_in_options) > 0:
             self._raise_self_response_error(
@@ -223,7 +224,8 @@ class AddCitationReviewGPT(PythonValueReviewBackgroundProductsConverser):
         Collect the sentences that are in the section.
         raise an error if there are sentences that are not in the section.
         """
-        self.valid_result = None  # we declare the result as "valid" even if we can't find any sentences.
+        # we declare the result as "valid" even if we can't find any sentences:
+        self._update_valid_result(None)
         sentences_not_in_section = self._add_sentences_in_section_and_return_sentences_not_in_section(response_value)
         if sentences_not_in_section:
             if len(sentences_not_in_section) == len(response_value):
