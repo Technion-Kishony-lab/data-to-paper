@@ -137,12 +137,12 @@ class OpenaiSeverCaller(ListServerCaller):
         openai.organization = organization
         for attempt in range(MAX_NUM_LLM_ATTEMPTS):
             try:
-                with timeout_context(TIME_LIMIT_FOR_OPENAI_CALL):
-                    response = openai.ChatCompletion.create(
-                        model=model_engine.value,
-                        messages=[message.to_llm_dict() for message in messages],
-                        **kwargs,
-                    )
+                # TODO: Need to implement timeout. Our current timeout_context() is not working on a Worker of Qt.
+                response = openai.ChatCompletion.create(
+                    model=model_engine.value,
+                    messages=[message.to_llm_dict() for message in messages],
+                    **kwargs,
+                )
                 break
             except openai.error.InvalidRequestError:
                 raise
