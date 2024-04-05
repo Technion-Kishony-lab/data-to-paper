@@ -103,11 +103,11 @@ class Converser(Copier):
             self.apply_append_system_message(self.system_prompt)
 
     def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
-                should_format: bool = True, **kwargs):
+                **kwargs):
         """
         Print a comment, either directly, or as an action appending a COMMENTER message to the conversation (default).
         """
-        comment = format_value(self, comment, should_format)
+        comment = format_value(self, comment)
         if as_action:
             self.conversation_manager.append_commenter_message(
                 content=comment,
@@ -136,9 +136,9 @@ class Converser(Copier):
                                   comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
-                                  should_format: bool = True, **kwargs):
+                                  **kwargs):
         return self.conversation_manager.append_user_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
@@ -147,9 +147,9 @@ class Converser(Copier):
     def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                     comment: Optional[StrOrReplacer] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
-                                    should_format: bool = True, **kwargs):
+                                    **kwargs):
         return self.conversation_manager.append_system_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             ignore=ignore,
@@ -159,9 +159,9 @@ class Converser(Copier):
                                        tag: Optional[StrOrReplacer] = None, comment: Optional[StrOrReplacer] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
-                                       should_format: bool = True, **kwargs):
+                                       **kwargs):
         return self.conversation_manager.append_surrogate_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,

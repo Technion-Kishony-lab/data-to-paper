@@ -95,9 +95,9 @@ class DualConverserGPT(Converser):
                                            comment: Optional[StrOrReplacer] = None,
                                            ignore: bool = False,
                                            previous_code: Optional[str] = None, is_background: bool = False,
-                                           should_format: bool = True, **kwargs) -> Message:
+                                           **kwargs) -> Message:
         return self.other_conversation_manager.append_user_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             previous_code=previous_code,
@@ -105,9 +105,9 @@ class DualConverserGPT(Converser):
 
     def apply_to_other_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                              comment: Optional[StrOrReplacer] = None,
-                                             should_format: bool = True, **kwargs) -> Message:
+                                             **kwargs) -> Message:
         return self.other_conversation_manager.append_system_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             **kwargs)
@@ -118,9 +118,9 @@ class DualConverserGPT(Converser):
                                                 ignore: bool = False,
                                                 previous_code: Optional[str] = None,
                                                 is_background: bool = False,
-                                                should_format: bool = True, **kwargs) -> Message:
+                                                **kwargs) -> Message:
         return self.other_conversation_manager.append_surrogate_message(
-            content=format_value(self, content, should_format),
+            content=format_value(self, content),
             tag=tag,
             comment=comment,
             previous_code=previous_code,
