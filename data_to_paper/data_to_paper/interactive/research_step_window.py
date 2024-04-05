@@ -1,20 +1,54 @@
-import sys
-from enum import Enum
-from typing import Optional, List, Collection
+from functools import partial
+from typing import Optional, List, Collection, Dict, Callable
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, \
-    QSplitter, QTextEdit, QPushButton, QLabel
-from PySide6.QtCore import Qt, QEventLoop
+from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
+    QHBoxLayout, QSplitter, QTextEdit
+from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
+
 from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.python import PythonLexer
 
+from data_to_paper.interactive.base_app import BaseApp
+from data_to_paper.interactive.types import PanelNames
 
-class PanelNames(Enum):
-    SYSTEM_PROMPT = "System Prompt"
-    MISSION_PROMPT = "Mission Prompt"
-    PRODUCT = "Product"
-    FEEDBACK = "Feedback"
+
+class Worker(QThread):
+    # Signal now carries a string payload for initial text
+    request_input_signal = Signal(PanelNames, str, str, dict)
+    show_text_signal = Signal(PanelNames, str)
+
+    def __init__(self, mutex, condition, func_to_run=None):
+        super().__init__()
+        self.mutex = mutex
+        self.condition = condition
+        self.func_to_run = func_to_run
+        self._text_input = None
+        self._panel_name_input = None
+
+    def run(self):
+        if self.func_to_run is not None:
+            self.func_to_run()
+
+    def edit_text_in_panel(self, panel_name: PanelNames, initial_text: str = '',
+                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+        self.mutex.lock()
+        self.request_input_signal.emit(panel_name, initial_text, title, optional_suggestions)
+        self.condition.wait(self.mutex)
+        input_text = self._text_input
+        self.mutex.unlock()
+        return input_text
+
+    def show_text_in_panel(self, panel_name: PanelNames, text: str):
+        self.show_text_signal.emit(panel_name, text)
+
+    @Slot(PanelNames, str)
+    def set_text_input(self, panel_name, text):
+        self.mutex.lock()
+        self._text_input = text
+        self._panel_name_input = panel_name
+        self.condition.wakeAll()
+        self.mutex.unlock()
 
 
 class Panel(QWidget):
@@ -27,9 +61,13 @@ class Panel(QWidget):
         self.setLayout(self.layout)
 
         self.heading = heading
-        if heading:
-            self.heading_label = QLabel(heading)
-            self.layout.addWidget(self.heading_label)
+        self.heading_label = QLabel()
+        self.layout.addWidget(self.heading_label)
+        self.heading_label.setText(self.heading)
+
+    def reset_heading(self):
+        if self.heading is not None:
+            self.heading_label.setText(self.heading)
 
     def set_text(self, text):
         pass
@@ -76,25 +114,34 @@ class EditableTextPanel(Panel):
     def on_suggestion_button_click(self):
         button = self.sender()
         suggestion_index = self.suggestion_buttons.index(button)
-        self.text_edit.setPlainText(self.suggestion_texts[suggestion_index])
+        if suggestion_index < len(self.suggestion_texts):
+            self.text_edit.setPlainText(self.suggestion_texts[suggestion_index])
 
     def set_text(self, text):
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlainText(text)
         self._set_buttons_visibility(False)
 
-    def edit_text(self, text, suggestion_texts: Optional[List[str]] = None):
+    def edit_text(self, text: Optional[str] = '', title: Optional[str] = None,
+                  suggestion_texts: Optional[List[str]] = None):
         self.text_edit.setReadOnly(False)
         self.text_edit.setPlainText(text)
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
             self.suggestion_texts = suggestion_texts
+        if title is not None:
+            if self.heading is not None:
+                heading = self.heading + ' - ' + title
+            else:
+                heading = title
+            self.heading_label.setText(heading)
         self.loop = QEventLoop()
         self.loop.exec()
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
         self._set_buttons_visibility(False)
+        self.reset_heading()
         if self.loop is not None:
             self.loop.exit()
 
@@ -116,8 +163,10 @@ class HtmlPanel(Panel):
         return self.text_browser.toPlainText()
 
 
-class ResearchStepWindow(QMainWindow):
-    def __init__(self):
+class ResearchStepApp(QMainWindow, BaseApp):
+    send_text_signal = Signal(str, PanelNames)
+
+    def __init__(self, mutex, condition):
         super().__init__()
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", ("Default", )),
@@ -140,15 +189,60 @@ class ResearchStepWindow(QMainWindow):
 
         self.setCentralWidget(main_splitter)
 
+        # Worker thread setup
+        self.worker = Worker(mutex, condition)
+        # Slot now accepts a string argument for the initial text
+        self.worker.request_input_signal.connect(self.edit_text_in_panel)
+        self.worker.show_text_signal.connect(self.show_text_in_panel)
+
+        # Define the request_text and show_text methods
+        self.request_text = self.worker.edit_text_in_panel
+        self.show_text = self.worker.show_text_in_panel
+
+        # Connect UI elements
+        for panel_name in PanelNames:
+            if panel_name == PanelNames.PRODUCT:
+                continue
+            self.panels[panel_name].submit_button.clicked.connect(partial(self.submit_text, panel_name=panel_name))
+
+        # Connect the MainWindow signal to the worker's slot
+        self.send_text_signal.connect(self.worker.set_text_input)
+
+    @classmethod
+    def get_instance(cls):
+        if cls.instance is None:
+            mutex = QMutex()
+            condition = QWaitCondition()
+            cls.instance = cls(mutex, condition)
+        return cls.instance
+
+    def start_worker(self, func_to_run: Callable = None):
+        # Start the worker thread
+        self.worker.func_to_run = func_to_run
+        self.worker.start()
+
+    def initialize(self):
+        self.show()
+
     def set_window_title(self, title):
         self.setWindowTitle(title)
 
-    def edit_text_in_panel(self, panel_name: PanelNames, initial_text: str = '', approve_text: Optional[str] = None):
+    @Slot(PanelNames, str, str, dict)
+    def edit_text_in_panel(self, panel_name: PanelNames, initial_text: str = '',
+                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         panel = self.panels[panel_name]
-        panel.edit_text(initial_text, suggestion_texts=[initial_text, approve_text])
-        return panel.get_text()
+        if optional_suggestions is None:
+            optional_suggestions = {}
+        panel.edit_text(initial_text, title, list(optional_suggestions.values()))
 
-    def set_text_in_panel(self, panel_name, text):
+    @Slot(PanelNames)
+    def submit_text(self, panel_name: PanelNames):
+        panel = self.panels[panel_name]
+        text = panel.get_text()
+        self.send_text_signal.emit(panel_name, text)
+
+    @Slot(PanelNames, str)
+    def show_text_in_panel(self, panel_name: PanelNames, text: str):
         panel = self.panels[panel_name]
         panel.set_text(text)
 
@@ -162,26 +256,3 @@ def get_highlighted_code(sample_code: str, style: str = "monokai") -> str:
     additional_css = ".highlight, .highlight pre { background: #272822; }  /* Use the monokai background color */"
     highlighted_code = highlight(sample_code, PythonLexer(), formatter)
     return f"<style>{css}{additional_css}</style>{highlighted_code}"
-
-
-# Boilerplate code to start the application
-app = QApplication(sys.argv)
-window = ResearchStepWindow()
-window.set_window_title("Data Exploration")
-window.show()
-
-# Sample Python code to highlight
-sample_code = '''
-def greet(name):
-return f"Hello, {name}!"
-'''
-
-# Example usage
-code_with_custom_css = get_highlighted_code(sample_code)
-window.set_text_in_panel(PanelNames.PRODUCT, code_with_custom_css)
-edited_text = window.edit_text_in_panel(PanelNames.FEEDBACK, 'Edit this text...',
-                                        'Approved text')
-print(edited_text)
-window.set_text_in_panel(PanelNames.FEEDBACK, edited_text)
-
-sys.exit(app.exec())

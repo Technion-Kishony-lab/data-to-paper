@@ -15,7 +15,7 @@ from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BA
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.interactive import the_app
+from data_to_paper.interactive import the_app, PanelNames
 
 from .base_server import ListServerCaller
 from .model_engine import ModelEngine
@@ -98,8 +98,10 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _get_human_response(messages: List[Message], model_engine: ModelEngine,
+                            panel: PanelNames,
                             initial_content: str,
-                            default_content: Optional[str] = None
+                            title: str,
+                            default_content: Optional[str],
                             ) -> Tuple[ModelEngine, str]:
         """
         Allow the user to edit a message and return the edited message.
@@ -108,8 +110,7 @@ class OpenaiSeverCaller(ListServerCaller):
         optional_suggestions['suggested'] = initial_content
         if default_content is not None:
             optional_suggestions['default'] = default_content
-        content = the_app.edit_text(title='Edit the message:', initial_text=initial_content,
-                                    optional_suggestions=optional_suggestions)
+        content = the_app.request_text(panel, initial_content, title=title, optional_suggestions=optional_suggestions)
         if content == initial_content:
             content = None
         return model_engine, content
@@ -121,7 +122,9 @@ class OpenaiSeverCaller(ListServerCaller):
         """
         if model_engine == ModelEngine.HUMAN:
             return OpenaiSeverCaller._get_human_response(messages, model_engine,
+                                                         panel=kwargs.get('panel', PanelNames.FEEDBACK),
                                                          initial_content=kwargs['initial_content'],
+                                                         title=kwargs.get('title', 'Edit the message'),
                                                          default_content=kwargs.get('default_content'))
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
@@ -235,6 +238,8 @@ def get_human_response(initial_content: str, default_content: Optional[str] = No
     Return None if the user did not change the message.
     """
     _, content = OPENAI_SERVER_CALLER.get_server_response([], model_engine=ModelEngine.HUMAN,
+                                                          panel=PanelNames.FEEDBACK,
                                                           initial_content=initial_content,
+                                                          title='Edit the message',
                                                           default_content=default_content)
     return content
