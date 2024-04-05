@@ -21,6 +21,7 @@ from data_to_paper.run_gpt_code.code_runner import CodeRunner, BaseCodeRunner
 from data_to_paper.run_gpt_code.code_utils import FailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.run_gpt_code.exceptions import FailedRunningCode, UnAllowedFilesCreated, \
     CodeUsesForbiddenFunctions, CodeWriteForbiddenFile, CodeReadForbiddenFile, CodeImportForbiddenModule
+from data_to_paper.interactive import PanelNames
 
 from data_to_paper.base_cast import Agent
 
@@ -465,6 +466,8 @@ class DebuggerConverser(BackgroundProductsConverser):
         - Leave the response as is ("leave")
         - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
+        if code_and_output:
+            self._send_prompt_to_app(PanelNames.PRODUCT, code_and_output.get_code_as_html(), provided_as_html=True)
         if issues is None:
             return code_and_output
         # Get Problem

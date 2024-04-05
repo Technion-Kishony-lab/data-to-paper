@@ -1,8 +1,10 @@
+import sys
 from functools import partial
 from typing import Optional, List, Collection, Dict, Callable
 
+from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit
+    QHBoxLayout, QSplitter, QTextEdit, QApplication
 from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
 
 from pygments import highlight
@@ -109,6 +111,7 @@ class EditableTextPanel(Panel):
         self.suggestion_texts = [''] * len(suggestion_button_names)
 
         self.text_edit = QTextEdit()
+        self.text_edit.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
         self.text_edit.setFontPointSize(18)
 
         self.text_edit.setReadOnly(True)
@@ -271,14 +274,3 @@ class ResearchStepApp(QMainWindow, BaseApp):
     def show_text_in_panel(self, panel_name: PanelNames, text: str, is_html: bool = False):
         panel = self.panels[panel_name]
         panel.set_text(text, is_html)
-
-
-def get_highlighted_code(sample_code: str, style: str = "monokai") -> str:
-    """
-    Highlight the provided Python code with the specified style and return the HTML code.
-    """
-    formatter = HtmlFormatter(style=style)
-    css = formatter.get_style_defs('.highlight')
-    additional_css = ".highlight, .highlight pre { background: #272822; }  /* Use the monokai background color */"
-    highlighted_code = highlight(sample_code, PythonLexer(), formatter)
-    return f"<style>{css}{additional_css}</style>{highlighted_code}"

@@ -13,6 +13,7 @@ from pygments import highlight, token
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
 
+SERVER_APP = False
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -30,7 +31,11 @@ style = get_style_by_name("monokai")
 terminal_formatter = Terminal256Formatter(style=style)
 html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
 html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
-html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
+
+if SERVER_APP:
+    html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
+else:
+    html_code_formatter = HtmlFormatter(style=style)
 
 
 class CSVLexer(RegexLexer):
@@ -66,6 +71,9 @@ def python_to_highlighted_text(code_str: str, color: str = '') -> str:
 
 
 def text_to_html(text: str, textblock: bool = False) -> str:
+    if not textblock and not SERVER_APP:
+        return text.replace('\n', '<br>')
+
     # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>
     text = '|' + text + '|'
     if textblock:
@@ -133,7 +141,7 @@ NEEDS_NO_WRAPPING = {'python', 'output', 'html'}
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '',
-                                 width: int = 80, is_html: bool = False) -> str:
+                                 width: Optional[int] = 80, is_html: bool = False) -> str:
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:

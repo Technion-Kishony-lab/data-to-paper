@@ -13,6 +13,8 @@ from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_s
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
+from data_to_paper.utils import format_text_with_code_blocks
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 if TYPE_CHECKING:
     from data_to_paper.run_gpt_code.overrides.dataframes.dataframe_operations import DataframeOperations
@@ -60,7 +62,7 @@ class CodeAndOutput:
         return '\n'.join(lines)
 
     def _get_label_for_file(self, filename: str) -> str:
-        return convert_str_to_latex_label(self.name + '-' + filename, 'code')
+        return convert_str_to_latex_label((self.name or '') + '-' + filename, 'code')
 
     def _get_code_with_hypertargets(self) -> str:
         code = self.code
@@ -108,8 +110,11 @@ class CodeAndOutput:
         if self.code_explanation:
             s += "Code Description:\n"
             s += self.code_explanation + '\n\n'
-        outputs = self.created_files.get_created_content_files_to_pretty_contents(
-            content_view=ContentViewPurpose.FINAL_APPENDIX)
+        if self.created_files:
+            outputs = self.created_files.get_created_content_files_to_pretty_contents(
+                content_view=ContentViewPurpose.FINAL_APPENDIX)
+        else:
+            outputs = None
 
         if outputs:
             s += "Code Output:\n"
@@ -117,3 +122,6 @@ class CodeAndOutput:
                 s += f'\n\n{filename}\n'
                 s += '\n' + output
         return s
+
+    def get_code_as_html(self):
+        return format_text_with_code_blocks(wrap_text_with_triple_quotes(self.code, 'python'), is_html=True)

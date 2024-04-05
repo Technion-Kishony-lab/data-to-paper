@@ -8,5 +8,5 @@ from .base_app import BaseApp
 from .research_step_window import ResearchStepApp as App
 
 q_application = QApplication(sys.argv)
-the_app = App.get_instance()
+the_app: BaseApp = App.get_instance()
 the_app.initialize()

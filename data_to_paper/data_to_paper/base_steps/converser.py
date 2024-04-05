@@ -9,7 +9,9 @@ from data_to_paper.conversation.actions_and_conversations import ActionsAndConve
 from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH, HUMAN_INTERACTIONS
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
+from data_to_paper.interactive import the_app, PanelNames, BaseApp
 from data_to_paper.servers.model_engine import ModelEngine
+from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log_magenta
@@ -47,7 +49,7 @@ class Converser(Copier):
 
     driver: str = ''
 
-    edit_response: bool = HUMAN_INTERACTIONS.edit_self_response
+    app: BaseApp = the_app
 
     def __post_init__(self):
         conversation_exists = self.conversation_name in self.actions_and_conversations.conversations
@@ -101,6 +103,15 @@ class Converser(Copier):
                 print_and_log_magenta('=' * TEXT_WIDTH)
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
+            self._send_prompt_to_app(PanelNames.SYSTEM_PROMPT, self.system_prompt)
+
+    def _send_prompt_to_app(self, panel_name: PanelNames, prompt: str, provided_as_html: bool = False):
+        if self.app is None:
+            return
+        s = format_value(self, prompt or '')
+        if not provided_as_html:
+            s = format_text_with_code_blocks(s, is_html=True, width=None)
+        self.app.show_text(panel_name, s, is_html=True)
 
     def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
                 **kwargs):
@@ -136,7 +147,12 @@ class Converser(Copier):
                                   comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
+                                  send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
                                   **kwargs):
+        if send_to_app is None:
+            send_to_app = not is_background and not ignore
+        if send_to_app:
+            self._send_prompt_to_app(app_panel, content)
         return self.conversation_manager.append_user_message(
             content=format_value(self, content),
             tag=tag,
@@ -147,7 +163,12 @@ class Converser(Copier):
     def apply_append_system_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                     comment: Optional[StrOrReplacer] = None,
                                     ignore: bool = False, reverse_roles_for_web: bool = False,
+                                    send_to_app: Optional[bool] = None,
                                     **kwargs):
+        if send_to_app is None:
+            send_to_app = not ignore
+        if send_to_app:
+            self._send_prompt_to_app(PanelNames.SYSTEM_PROMPT, content)
         return self.conversation_manager.append_system_message(
             content=format_value(self, content),
             tag=tag,

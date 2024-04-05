@@ -8,6 +8,8 @@ from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.exceptions import data_to_paperException
+from data_to_paper.interactive import the_app, BaseApp, PanelNames
+from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red
 from data_to_paper.utils.replacer import Replacer, StrOrReplacer, format_value
@@ -143,6 +145,17 @@ class ResultConverser(Converser):
     # Output:
     valid_result: Any = field(default_factory=NoResponse)
 
+    app: Optional[BaseApp] = the_app
+
+    def get_valid_result_as_text(self, is_html: bool = False) -> str:
+        if not self._has_valid_result:
+            s = ""
+        else:
+            s = str(self.valid_result)
+        if is_html:
+            return format_text_with_code_blocks(s, is_html=True)
+        return s
+
     def initialize_conversation_if_needed(self, print_header: bool = True):
         super().initialize_conversation_if_needed(print_header=print_header)
         self._pre_populate_background()
@@ -153,7 +166,7 @@ class ResultConverser(Converser):
         Add background messages to the two conversations to set them ready for the cycle.
         """
         if self.mission_prompt:
-            self.apply_append_user_message(self.mission_prompt)
+            self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT)
 
     @property
     def _has_valid_result(self) -> bool:
@@ -168,6 +181,8 @@ class ResultConverser(Converser):
         passes all rule-based reviews.
         """
         self.valid_result = valid_result
+        self._send_prompt_to_app(PanelNames.PRODUCT, self.get_valid_result_as_text(is_html=True),
+                                 provided_as_html=True)
 
     def _raise_self_response_error(self,
                                    error_message: StrOrReplacer,

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
 
 from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_INTERACTIONS
+from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
@@ -83,7 +84,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
     mission_prompt: str = 'Please write a code to analyze the data.'
 
     output_file_requirements: OutputFileRequirements = \
-        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'), ))
+        OutputFileRequirements((TextContentOutputFileRequirement('results.txt'),))
     # The name of the file that gpt code is instructed to save the results to.
 
     code_name: str = ''  # e.g. "data analysis"
@@ -122,7 +123,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
             {code_review_formatting_instructions}
             """)
-         ),
+                         ),
     )
 
     file_review_prompts: Iterable[Tuple[str, str]] = ()  # (wildcard_filename, prompt)
@@ -268,6 +269,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     model_engine=self.model_engine,
                     background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
                     mission_prompt=formatted_code_review_prompt,
+                    app=None,
                 ).run_and_get_valid_result()
 
                 termination_phrase = 'Looks good - no changes needed.'
@@ -284,7 +286,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ai_response = termination_phrase
                 if EDIT_CODE_REVIEW and \
                         (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
-                    human_response = get_human_response(initial_content=ai_response, default_content=termination_phrase)
+                    human_response = self.app.request_text(
+                        PanelNames.FEEDBACK, '', title='Enter code review',
+                        optional_suggestions={'AI': ai_response, 'Default': termination_phrase},
+                    )
                 else:
                     human_response = None
                 response = ai_response if human_response is None else human_response

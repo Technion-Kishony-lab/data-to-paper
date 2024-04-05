@@ -1,8 +1,8 @@
 from typing import Dict, Optional
 
-from data_to_paper.interactive.types import PanelNames
 from data_to_paper.utils.print_to_file import print_and_log
 
+from .types import PanelNames
 
 class BaseApp:
     """
