@@ -31,7 +31,7 @@ class BaseApp:
                      title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         pass
 
-    def show_text(self, panel_name: PanelNames, text: str):
+    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
         pass
 
 
@@ -72,5 +72,5 @@ class ConsoleApp(BaseApp):
                 return initial_text
             return list(optional_suggestions.values())[suggestion_index - 1]
 
-    def show_text(self, panel_name: PanelNames, text: str):
+    def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
         print_and_log(text)

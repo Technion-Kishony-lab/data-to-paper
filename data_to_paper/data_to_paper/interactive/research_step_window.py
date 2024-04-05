@@ -12,11 +12,30 @@ from pygments.lexers.python import PythonLexer
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.types import PanelNames
 
+#orange color: #FFA500
+#slightly darker orange: #FF8C00
+
+CSS = '''
+.text_highlight, .text_highlight span {
+    color: #FFA500;
+}
+.textblock_highlight {
+    font-family: Consolas, 'Courier New', monospace; font-weight: bold;
+    color: #FF8C00;
+}
+'''
+
+formatter = HtmlFormatter(style="monokai")
+css = formatter.get_style_defs('.highlight')
+additional_css = ".highlight, .highlight pre { background: #272822; }  /* Use the monokai background color */"
+
+# combine the CSS with the additional CSS:
+CSS += css + additional_css
 
 class Worker(QThread):
     # Signal now carries a string payload for initial text
     request_input_signal = Signal(PanelNames, str, str, dict)
-    show_text_signal = Signal(PanelNames, str)
+    show_text_signal = Signal(PanelNames, str, bool)
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -31,7 +50,7 @@ class Worker(QThread):
             self.func_to_run()
 
     def edit_text_in_panel(self, panel_name: PanelNames, initial_text: str = '',
-                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+                           title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         self.mutex.lock()
         self.request_input_signal.emit(panel_name, initial_text, title, optional_suggestions)
         self.condition.wait(self.mutex)
@@ -39,8 +58,8 @@ class Worker(QThread):
         self.mutex.unlock()
         return input_text
 
-    def show_text_in_panel(self, panel_name: PanelNames, text: str):
-        self.show_text_signal.emit(panel_name, text)
+    def show_text_in_panel(self, panel_name: PanelNames, text: str, is_html: bool = False):
+        self.show_text_signal.emit(panel_name, text, is_html)
 
     @Slot(PanelNames, str)
     def set_text_input(self, panel_name, text):
@@ -62,6 +81,9 @@ class Panel(QWidget):
 
         self.heading = heading
         self.heading_label = QLabel()
+        # nice light blue color (customized)
+        self.heading_label.setStyleSheet("color: #0077cc; font-size: 16px; font-weight: bold;")
+
         self.layout.addWidget(self.heading_label)
         self.heading_label.setText(self.heading)
 
@@ -87,6 +109,8 @@ class EditableTextPanel(Panel):
         self.suggestion_texts = [''] * len(suggestion_button_names)
 
         self.text_edit = QTextEdit()
+        self.text_edit.setFontPointSize(18)
+
         self.text_edit.setReadOnly(True)
         self.layout.addWidget(self.text_edit)
 
@@ -117,15 +141,27 @@ class EditableTextPanel(Panel):
         if suggestion_index < len(self.suggestion_texts):
             self.text_edit.setPlainText(self.suggestion_texts[suggestion_index])
 
-    def set_text(self, text):
-        self.text_edit.setReadOnly(True)
+    def _set_plain_text(self, text: str):
         self.text_edit.setPlainText(text)
+        self.text_edit.setStyleSheet("color: orange;")
+
+    def _set_html_text(self, text: str):
+        # add the CSS to the HTML
+        self.text_edit.setHtml(f'<style>{CSS}</style>{text}')
+        self.text_edit.setStyleSheet("color: white;")
+
+    def set_text(self, text: str, is_html: bool = False):
+        self.text_edit.setReadOnly(True)
+        if is_html:
+            self._set_html_text(text)
+        else:
+            self._set_plain_text(text)
         self._set_buttons_visibility(False)
 
     def edit_text(self, text: Optional[str] = '', title: Optional[str] = None,
                   suggestion_texts: Optional[List[str]] = None):
         self.text_edit.setReadOnly(False)
-        self.text_edit.setPlainText(text)
+        self._set_plain_text(text)
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
             self.suggestion_texts = suggestion_texts
@@ -149,20 +185,6 @@ class EditableTextPanel(Panel):
         return self.text_edit.toPlainText()
 
 
-class HtmlPanel(Panel):
-    def __init__(self, heading: Optional[str] = None):
-        super().__init__(heading)
-        self.text_browser = QTextEdit()
-        self.text_browser.setReadOnly(True)
-        self.layout.addWidget(self.text_browser)
-
-    def set_text(self, text):
-        self.text_browser.setHtml(text)
-
-    def get_text(self):
-        return self.text_browser.toPlainText()
-
-
 class ResearchStepApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
 
@@ -171,7 +193,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", ("Default", )),
             PanelNames.MISSION_PROMPT: EditableTextPanel("Mission Prompt", ("Default", )),
-            PanelNames.PRODUCT: HtmlPanel("Product"),
+            PanelNames.PRODUCT: EditableTextPanel("Product"),
             PanelNames.FEEDBACK: EditableTextPanel("Feedback", ("AI Review", "No comments")),
         }
 
@@ -187,7 +209,11 @@ class ResearchStepApp(QMainWindow, BaseApp):
         main_splitter.addWidget(left_splitter)
         main_splitter.addWidget(right_splitter)
 
+        left_splitter.setSizes([100, 400])
+
         self.setCentralWidget(main_splitter)
+
+        self.resize(1000, 600)
 
         # Worker thread setup
         self.worker = Worker(mutex, condition)
@@ -242,9 +268,9 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.send_text_signal.emit(panel_name, text)
 
     @Slot(PanelNames, str)
-    def show_text_in_panel(self, panel_name: PanelNames, text: str):
+    def show_text_in_panel(self, panel_name: PanelNames, text: str, is_html: bool = False):
         panel = self.panels[panel_name]
-        panel.set_text(text)
+        panel.set_text(text, is_html)
 
 
 def get_highlighted_code(sample_code: str, style: str = "monokai") -> str:
