@@ -156,6 +156,9 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         return NiceList((section_name.title() for section_name in self.section_names),
                         separator=', ', last_separator=' and ', wrap_with="`")
 
+    def get_valid_result_as_text_blocks(self) -> str:
+        return wrap_text_with_triple_quotes('\n\n'.join(self.valid_result), 'latex')
+
     def _get_fresh_looking_response(self, response: str, extracted_results: Optional[List[str]]) -> str:
         """
         Return a response that looks fresh.

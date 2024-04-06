@@ -12,6 +12,7 @@ from pygments import highlight, token
 
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
+from data_to_paper.latex.latex_to_html import convert_latex_to_html
 
 SERVER_APP = False
 
@@ -135,6 +136,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'system': (colored_text, partial(get_pre_html_format, color='#20191D', font_style='italic', font_size=16,
                                      font_family="'Courier', sans-serif")),
     'header': (light_text, partial(get_pre_html_format, color='#FF0000', font_size=12)),
+    'latex': (colored_text, convert_latex_to_html),
 }
 
 NEEDS_NO_WRAPPING = {'python', 'output', 'html'}

@@ -145,16 +145,11 @@ class ResultConverser(Converser):
     # Output:
     valid_result: Any = field(default_factory=NoResponse)
 
-    app: Optional[BaseApp] = the_app
+    def get_valid_result_as_html(self) -> str:
+        return format_text_with_code_blocks(self.get_valid_result_as_text_blocks(), is_html=True)
 
-    def get_valid_result_as_text(self, is_html: bool = False) -> str:
-        if not self._has_valid_result:
-            s = ""
-        else:
-            s = str(self.valid_result)
-        if is_html:
-            return format_text_with_code_blocks(s, is_html=True)
-        return s
+    def get_valid_result_as_text_blocks(self) -> str:
+        return str(self.valid_result)
 
     def initialize_conversation_if_needed(self, print_header: bool = True):
         super().initialize_conversation_if_needed(print_header=print_header)
@@ -181,8 +176,11 @@ class ResultConverser(Converser):
         passes all rule-based reviews.
         """
         self.valid_result = valid_result
-        self._send_prompt_to_app(PanelNames.PRODUCT, self.get_valid_result_as_text(is_html=True),
-                                 provided_as_html=True)
+        if self._has_valid_result:
+            html = self.get_valid_result_as_html()
+        else:
+            html = "No result yet."
+        self._send_prompt_to_app(PanelNames.PRODUCT, html, provided_as_html=True)
 
     def _raise_self_response_error(self,
                                    error_message: StrOrReplacer,

@@ -12,6 +12,7 @@ from data_to_paper.utils.nice_list import NiceDict
 from data_to_paper.utils.tag_pairs import TagPairs
 from data_to_paper.utils.check_type import validate_value_type, WrongTypeException
 from data_to_paper.utils.text_extractors import extract_text_between_most_flanking_tags
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 
 TYPES_TO_TAG_PAIRS: Dict[type, TagPairs] = {
     dict: TagPairs('{', '}'),
@@ -39,6 +40,9 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     @property
     def parent_type(self) -> type:
         return get_origin(self.value_type)
+
+    def get_valid_result_as_text_blocks(self) -> str:
+        return wrap_text_with_triple_quotes(self.valid_result, 'python')
 
     def _get_fresh_looking_response(self, response: str, extracted_results: Optional[str]) -> str:
         """
