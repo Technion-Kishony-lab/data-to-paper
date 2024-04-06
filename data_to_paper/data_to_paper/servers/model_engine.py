@@ -14,8 +14,6 @@ class ModelEngine(IndexOrderedEnum):
     _ignore_ = ['DEFAULT']
 
     DEFAULT = None
-    HUMAN = "human"
-
     GPT35_TURBO = "gpt-3.5-turbo-0613"  # latest version that supports better system prompt adherence
     GPT35_TURBO_16 = "gpt-3.5-turbo-16k-0613"
     GPT4 = "gpt-4"

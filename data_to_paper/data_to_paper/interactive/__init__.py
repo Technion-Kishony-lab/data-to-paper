@@ -2,6 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from .types import PanelNames
+from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
 from .base_app import BaseApp
 
 #from .base_app import ConsoleApp as App

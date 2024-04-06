@@ -246,13 +246,6 @@ class SemanticScholarEmbeddingServerCaller(DictServerCaller):
 
         return np.array(paper_embedding)
 
-    @staticmethod
-    def _post_process_response(response, args, kwargs):
-        """
-        Post process the response from the server.
-        """
-        return response
-
 
 SEMANTIC_SCHOLAR_SERVER_CALLER = SemanticScholarPaperServerCaller()
 SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER = SemanticScholarEmbeddingServerCaller()

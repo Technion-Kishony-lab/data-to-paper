@@ -3,6 +3,8 @@ from typing import Dict, Optional
 from data_to_paper.utils.print_to_file import print_and_log
 
 from .types import PanelNames
+from .human_actions import ButtonClickedHumanAction, TextSentHumanAction, HumanAction
+
 
 class BaseApp:
     """
@@ -27,9 +29,23 @@ class BaseApp:
             cls.instance = cls()
         return cls.instance
 
-    def request_text(self, panel_name: PanelNames, initial_text: str = '',
-                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+    def _request_text(self, panel_name: PanelNames, initial_text: str = '',
+                      title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         pass
+
+    def request_text(self, panel_name: PanelNames, initial_text: str = '',
+                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> HumanAction:
+        """
+        Requests text from the user.
+        User can choose to edit the text, or select one of the optional suggestions.
+        """
+        text = self._request_text(panel_name, initial_text, title, optional_suggestions)
+        if text == initial_text:
+            return ButtonClickedHumanAction('Initial')
+        for suggestion_name, suggestion_content in optional_suggestions.items():
+            if text == suggestion_content:
+                return ButtonClickedHumanAction(suggestion_name)
+        return TextSentHumanAction(text)
 
     def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
         pass

@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH, HUMAN_INTERACTIONS
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
-from data_to_paper.interactive import the_app, PanelNames, BaseApp
+from data_to_paper.interactive import the_app, PanelNames, BaseApp, HumanAction, ButtonClickedHumanAction, \
+    TextSentHumanAction
+from data_to_paper.servers.llm_call import get_human_response
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.copier import Copier
@@ -49,7 +51,7 @@ class Converser(Copier):
 
     driver: str = ''
 
-    app: BaseApp = the_app
+    app: Optional[BaseApp] = the_app
 
     def __post_init__(self):
         conversation_exists = self.conversation_name in self.actions_and_conversations.conversations
@@ -112,6 +114,28 @@ class Converser(Copier):
         if not provided_as_html:
             s = format_text_with_code_blocks(s, is_html=True, width=None)
         self.app.show_text(panel_name, s, is_html=True)
+
+    def _receive_text_from_app(self, panel_name: PanelNames, initial_text: str = '',
+                                 title: Optional[str] = None,
+                                 optional_suggestions: Dict[str, str] = None) -> str:
+        action = self._receive_action_from_app(panel_name, initial_text, title, optional_suggestions)
+        if isinstance(action, TextSentHumanAction):
+            return action.value
+        button = action.value
+        if button == 'Initial':
+            return initial_text
+        return optional_suggestions[button]
+
+    def _receive_action_from_app(self, panel_name: PanelNames, initial_text: str = '',
+                                 title: Optional[str] = None,
+                                 optional_suggestions: Dict[str, str] = None) -> HumanAction:
+        if self.app is None:
+            return ButtonClickedHumanAction('Initial')
+        return get_human_response(self.app,
+                                  panel_name=panel_name,
+                                  initial_text=initial_text,
+                                  title=title,
+                                  optional_suggestions=optional_suggestions)
 
     def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
                 **kwargs):

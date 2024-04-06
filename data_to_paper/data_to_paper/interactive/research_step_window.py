@@ -1,21 +1,19 @@
-import sys
 from functools import partial
 from typing import Optional, List, Collection, Dict, Callable
 
 from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit, QApplication
+    QHBoxLayout, QSplitter, QTextEdit
 from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
 
-from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.python import PythonLexer
 
 from data_to_paper.interactive.base_app import BaseApp
 from data_to_paper.interactive.types import PanelNames
 
-#orange color: #FFA500
-#slightly darker orange: #FF8C00
+# orange color: #FFA500
+# slightly darker orange: #FF8C00
 
 CSS = '''
 .text_highlight, .text_highlight span {
@@ -225,7 +223,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.worker.show_text_signal.connect(self.show_text_in_panel)
 
         # Define the request_text and show_text methods
-        self.request_text = self.worker.edit_text_in_panel
+        self._request_text = self.worker.edit_text_in_panel
         self.show_text = self.worker.show_text_in_panel
 
         # Connect UI elements

@@ -7,7 +7,7 @@ from data_to_paper.utils.text_formatting import dedent_triple_quote_str
 
 import openai
 
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Callable
 
 import tiktoken
 
@@ -15,12 +15,15 @@ from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BA
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.interactive import the_app, PanelNames
+from data_to_paper.interactive import the_app, PanelNames, HumanAction, BaseApp
+from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 
 from .base_server import ListServerCaller
 from .model_engine import ModelEngine
 
 from typing import TYPE_CHECKING
+
+from .serialize_exceptions import serialize_exception, is_exception, de_serialize_exception
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
@@ -31,8 +34,6 @@ MAX_NUM_LLM_ATTEMPTS = 5
 DEFAULT_EXPECTED_TOKENS_IN_RESPONSE = 500
 OPENAI_MAX_CONTENT_LENGTH_MESSAGE_CONTAINS = 'maximum context length'
 # a sub-string that indicates that an openai exception was raised due to the message content being too long
-
-NO_CHANGE_MESSAGE = '---'
 
 
 @dataclass
@@ -52,6 +53,14 @@ class TooManyTokensInMessageError(Exception):
 
 class UserAbort(TerminateException):
     pass
+
+
+@dataclass
+class LLMResponse(SerializableValue):
+    """
+    Class to store LLM response.
+    value: str - the response from the LLM.
+    """
 
 
 def _get_actual_model_engine(model_engine: Optional[ModelEngine]) -> ModelEngine:
@@ -96,36 +105,20 @@ class OpenaiSeverCaller(ListServerCaller):
                           should_log=False)
         # time.sleep(6)
 
-    @staticmethod
-    def _get_human_response(messages: List[Message], model_engine: ModelEngine,
-                            panel: PanelNames,
-                            initial_content: str,
-                            title: str,
-                            default_content: Optional[str],
-                            ) -> Tuple[ModelEngine, str]:
+    def get_server_response(self, *args, **kwargs) -> Union[LLMResponse, HumanAction, Exception]:
         """
-        Allow the user to edit a message and return the edited message.
+        returns the response from the server after post-processing. allows recording and replaying.
         """
-        optional_suggestions = {}
-        optional_suggestions['suggested'] = initial_content
-        if default_content is not None:
-            optional_suggestions['default'] = default_content
-        content = the_app.request_text(panel, initial_content, title=title, optional_suggestions=optional_suggestions)
-        if content == initial_content:
-            content = None
-        return model_engine, content
+        return super().get_server_response(*args, **kwargs)
 
     @staticmethod
-    def _get_server_response(messages: List[Message], model_engine: ModelEngine, **kwargs) -> Tuple[ModelEngine, str]:
+    def _get_server_response(messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
+                             ) -> Union[LLMResponse, HumanAction, Exception]:
         """
         Connect with openai to get response to conversation.
         """
-        if model_engine == ModelEngine.HUMAN:
-            return OpenaiSeverCaller._get_human_response(messages, model_engine,
-                                                         panel=kwargs.get('panel', PanelNames.FEEDBACK),
-                                                         initial_content=kwargs['initial_content'],
-                                                         title=kwargs.get('title', 'Edit the message'),
-                                                         default_content=kwargs.get('default_content'))
+        if not isinstance(model_engine, ModelEngine):
+            return model_engine(messages, **kwargs)
         if os.environ['CLIENT_SERVER_MODE'] == 'False':
             OpenaiSeverCaller._check_before_spending_money(messages, model_engine)
 
@@ -159,20 +152,19 @@ class OpenaiSeverCaller(ListServerCaller):
 
         content = response['choices'][0]['message']['content']
         OpenaiSeverCaller._check_after_spending_money(content, messages, model_engine)
-        return model_engine, content
+        return LLMResponse(content)
 
     @staticmethod
-    def _save_records(records, filepath):
-        records = [f'{model}: {NO_CHANGE_MESSAGE if content is None else content}' for model, content in records]
-        ListServerCaller._save_records(records, filepath)
+    def _serialize_record(record: Union[SerializableValue, Exception]):
+        if isinstance(record, Exception):
+            return serialize_exception(record)
+        return record.serialize()
 
     @staticmethod
-    def _load_records(filepath):
-        records = ListServerCaller._load_records(filepath)
-        records = [record.split(': ', 1) for record in records]
-        records = [(ModelEngine(model), None if content == NO_CHANGE_MESSAGE else content)
-                   for model, content in records]
-        return records
+    def _deserialize_record(serialized_record):
+        if is_exception(serialized_record):
+            return de_serialize_exception(serialized_record)
+        return deserialize_serializable_value(serialized_record)
 
 
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
@@ -221,8 +213,8 @@ def try_get_llm_response(messages: List[Message],
                       should_log=False)
 
     try:
-        _, content = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
-        return content
+        action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        return action.value
     except openai.error.InvalidRequestError as e:
         # TODO: add here any other exception that can be addressed by changing the number of tokens
         #     or bump up the model engine
@@ -232,14 +224,10 @@ def try_get_llm_response(messages: List[Message],
             raise
 
 
-def get_human_response(initial_content: str, default_content: Optional[str] = None) -> Optional[str]:
+def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
     """
     Allow the user to edit a message and return the edited message.
     Return None if the user did not change the message.
     """
-    _, content = OPENAI_SERVER_CALLER.get_server_response([], model_engine=ModelEngine.HUMAN,
-                                                          panel=PanelNames.FEEDBACK,
-                                                          initial_content=initial_content,
-                                                          title='Edit the message',
-                                                          default_content=default_content)
-    return content
+    return OPENAI_SERVER_CALLER.get_server_response(
+        [], model_engine=lambda messages, **k: app.request_text(**k), **kwargs)

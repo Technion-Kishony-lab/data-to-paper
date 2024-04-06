@@ -286,7 +286,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ai_response = termination_phrase
                 if EDIT_CODE_REVIEW and \
                         (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
-                    human_response = self.app.request_text(
+                    human_response = self._receive_text_from_app(
                         PanelNames.FEEDBACK, '', title='Enter code review',
                         optional_suggestions={'AI': ai_response, 'Default': termination_phrase},
                     )
