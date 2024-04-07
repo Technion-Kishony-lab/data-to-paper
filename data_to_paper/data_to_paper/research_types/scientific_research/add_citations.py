@@ -1,3 +1,6 @@
+# Citation module for adding citations to a section of a paper.
+# We are currently not using this citation module.
+
 from dataclasses import dataclass, field
 from typing import Dict, Set, Tuple, List, Any, Optional
 

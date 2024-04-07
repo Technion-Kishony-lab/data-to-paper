@@ -47,7 +47,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
     should_do_data_preprocessing: bool = False
     should_prepare_hypothesis_testing_plan: bool = True
     should_do_literature_search: bool = True
-    should_add_citations: bool = False
 
     excluded_citation_titles: List[str] = None,  # Title of papers that we don't allow to be cited
 
@@ -213,16 +212,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self.send_product_to_client('title_and_abstract')
             else:
                 self.send_product_to_client(f'paper_sections:{section_names[0]}')
-
-        # Add citations to relevant paper sections
-        if self.should_add_citations:
-            self.advance_stage_and_set_active_conversation(ScientificStages.CITATIONS, ScientificAgent.CitationExpert)
-            for section_name in SECTIONS_WITH_CITATIONS:
-                products.paper_sections_and_optional_citations[section_name] = \
-                    AddCitationReviewGPT.from_(self, section_name=section_name,
-                                               conversation_name=f'add_citations_to_{section_name}') \
-                        .rewrite_section_with_citations()
-            self.send_product_to_client('most_updated_paper')
 
         # Compile paper
         paper_producer.assemble_compile_paper()

@@ -17,7 +17,6 @@ class ScientificStages(Stages):
     WRITING_METHODS = Stage("writing_methods")
     WRITING_INTRODUCTION = Stage("writing_introduction")
     WRITING_DISCUSSION = Stage("writing_discussion")
-    CITATIONS = Stage("citations")
     TABLES = Stage("tables")
 
 
