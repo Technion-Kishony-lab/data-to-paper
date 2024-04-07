@@ -13,8 +13,7 @@ from pygments import highlight, token
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
 from data_to_paper.latex.latex_to_html import convert_latex_to_html
-
-SERVER_APP = False
+from ..env import IS_PYSIDE_APP
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -33,10 +32,10 @@ terminal_formatter = Terminal256Formatter(style=style)
 html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
 html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
 
-if SERVER_APP:
-    html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
-else:
+if IS_PYSIDE_APP:
     html_code_formatter = HtmlFormatter(style=style)
+else:
+    html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
 
 
 class CSVLexer(RegexLexer):
@@ -72,7 +71,7 @@ def python_to_highlighted_text(code_str: str, color: str = '') -> str:
 
 
 def text_to_html(text: str, textblock: bool = False) -> str:
-    if not textblock and not SERVER_APP:
+    if not textblock and IS_PYSIDE_APP:
         return text.replace('\n', '<br>')
 
     # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>

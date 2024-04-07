@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Type, Any, Iterable, NamedTuple, Collection
 
-from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_INTERACTIONS
+from data_to_paper.env import SUPPORTED_PACKAGES, HUMAN_EDIT_CODE_REVIEW
 from data_to_paper.interactive import PanelNames
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.run_gpt_code.run_issues import CodeProblem
@@ -20,8 +20,6 @@ from .exceptions import FailedCreatingProductException
 from .request_python_value import PythonDictReviewBackgroundProductsConverser
 from .result_converser import Rewind
 
-
-EDIT_CODE_REVIEW = HUMAN_INTERACTIONS.edit_code_review
 
 
 class CodeReviewPrompt(NamedTuple):
@@ -284,7 +282,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                                                                     for issue, solution in issues_to_solutions.items()))
                 else:
                     ai_response = termination_phrase
-                if EDIT_CODE_REVIEW and \
+                if HUMAN_EDIT_CODE_REVIEW and \
                         (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
                     human_response = self._receive_text_from_app(
                         PanelNames.FEEDBACK, '', title='Enter code review',

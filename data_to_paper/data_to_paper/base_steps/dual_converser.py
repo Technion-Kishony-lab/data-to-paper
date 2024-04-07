@@ -7,7 +7,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
-from data_to_paper.env import TEXT_WIDTH, HUMAN_INTERACTIONS
+from data_to_paper.env import TEXT_WIDTH
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 
@@ -34,8 +34,6 @@ class DualConverserGPT(Converser):
     other_conversation_name: str = None
 
     other_web_conversation_name: Optional[str] = None
-
-    edit_other_response: bool = HUMAN_INTERACTIONS.edit_other_response
 
     suppress_printing_other_conversation: bool = False
 

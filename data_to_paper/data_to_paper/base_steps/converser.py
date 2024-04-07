@@ -6,7 +6,7 @@ from typing import Optional, Any, Dict
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH, HUMAN_INTERACTIONS
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
 from data_to_paper.interactive import the_app, PanelNames, BaseApp, HumanAction, ButtonClickedHumanAction, \
