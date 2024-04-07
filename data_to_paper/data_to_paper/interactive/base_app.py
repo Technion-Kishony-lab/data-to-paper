@@ -39,6 +39,7 @@ class BaseApp:
         Requests text from the user.
         User can choose to edit the text, or select one of the optional suggestions.
         """
+        optional_suggestions = optional_suggestions or {}
         text = self._request_text(panel_name, initial_text, title, optional_suggestions)
         if text == initial_text:
             return ButtonClickedHumanAction('Initial')

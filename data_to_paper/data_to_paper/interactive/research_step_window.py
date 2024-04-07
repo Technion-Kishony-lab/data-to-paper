@@ -3,7 +3,7 @@ from typing import Optional, List, Collection, Dict, Callable
 
 from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QPushButton, QWidget, \
-    QHBoxLayout, QSplitter, QTextEdit
+    QHBoxLayout, QSplitter, QTextEdit, QTabWidget
 from PySide6.QtCore import Qt, QEventLoop, QMutex, QWaitCondition, QThread, Signal, Slot
 
 from pygments.formatters.html import HtmlFormatter
@@ -71,7 +71,7 @@ class Worker(QThread):
 
 
 class Panel(QWidget):
-    def __init__(self, heading: Optional[str] = None):
+    def __init__(self, header: Optional[str] = None):
         """
         A panel that displays text and allows editing.
         """
@@ -79,17 +79,15 @@ class Panel(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        self.heading = heading
-        self.heading_label = QLabel()
+        self.header = header
+        self.header_label = QLabel(header)
         # nice light blue color (customized)
-        self.heading_label.setStyleSheet("color: #0077cc; font-size: 16px; font-weight: bold;")
+        self.header_label.setStyleSheet("color: #0077cc; font-size: 16px; font-weight: bold;")
+        self.layout.addWidget(self.header_label)
 
-        self.layout.addWidget(self.heading_label)
-        self.heading_label.setText(self.heading)
-
-    def reset_heading(self):
-        if self.heading is not None:
-            self.heading_label.setText(self.heading)
+    def reset_instructions(self):
+        if self.instructions is not None:
+            self.instructions_label.setText(self.instructions)
 
     def set_text(self, text):
         pass
@@ -99,9 +97,9 @@ class Panel(QWidget):
 
 
 class EditableTextPanel(Panel):
-    def __init__(self, heading: Optional[str] = None,
+    def __init__(self, header: str,
                  suggestion_button_names: Optional[Collection[str]] = None):
-        super().__init__(heading)
+        super().__init__(header)
         if suggestion_button_names is None:
             suggestion_button_names = []
         self.suggestion_button_names = suggestion_button_names
@@ -115,6 +113,13 @@ class EditableTextPanel(Panel):
         self.text_edit.setReadOnly(True)
         self.layout.addWidget(self.text_edit)
 
+        # Instructions:
+        self.instructions = None
+        self.instructions_label = QLabel()
+        self.reset_instructions()
+        self.layout.addWidget(self.instructions_label)
+
+        # Buttons:
         self.buttons_tray = QHBoxLayout()
         self.layout.addLayout(self.buttons_tray)
 
@@ -133,8 +138,13 @@ class EditableTextPanel(Panel):
     
     def _set_buttons_visibility(self, visible: bool):
         self.submit_button.setVisible(visible)
+        self.instructions_label.setVisible(visible)
         for button in self.suggestion_buttons:
             button.setVisible(visible)
+
+    def reset_instructions(self):
+        if self.instructions is not None:
+            self.instructions_label.setText(self.instructions)
 
     def on_suggestion_button_click(self):
         button = self.sender()
@@ -166,24 +176,27 @@ class EditableTextPanel(Panel):
         self._set_buttons_visibility(True)
         if suggestion_texts is not None:
             self.suggestion_texts = suggestion_texts
-        if title is not None:
-            if self.heading is not None:
-                heading = self.heading + ' - ' + title
-            else:
-                heading = title
-            self.heading_label.setText(heading)
+        title = title or ''
+        self.instructions_label.setText(title)
         self.loop = QEventLoop()
         self.loop.exec()
 
     def on_submit(self):
         self.text_edit.setReadOnly(True)
         self._set_buttons_visibility(False)
-        self.reset_heading()
+        self.reset_instructions()
         if self.loop is not None:
             self.loop.exit()
 
     def get_text(self):
         return self.text_edit.toPlainText()
+
+
+def create_tabs(names_to_panels: Dict[str, Panel]):
+    tabs = QTabWidget()
+    for panel_name, panel in names_to_panels.items():
+        tabs.addTab(panel, panel_name)
+    return tabs
 
 
 class ResearchStepApp(QMainWindow, BaseApp):
@@ -194,25 +207,31 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.panels = {
             PanelNames.SYSTEM_PROMPT: EditableTextPanel("System Prompt", ("Default", )),
             PanelNames.MISSION_PROMPT: EditableTextPanel("Mission Prompt", ("Default", )),
+            PanelNames.RESPONSE: EditableTextPanel("Response"),
             PanelNames.PRODUCT: EditableTextPanel("Product"),
             PanelNames.FEEDBACK: EditableTextPanel("Feedback", ("AI Review", "No comments")),
         }
+        central_widget = QWidget()
+        self.layout = QVBoxLayout(central_widget)
+        self.layout.addWidget(QLabel("Current step:"))
 
         main_splitter = QSplitter(Qt.Horizontal)
         left_splitter = QSplitter(Qt.Vertical)
+        left_splitter.setHandleWidth(5)
         right_splitter = QSplitter(Qt.Vertical)
 
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
-        right_splitter.addWidget(self.panels[PanelNames.PRODUCT])
+        right_splitter.addWidget(create_tabs({'Response': self.panels[PanelNames.RESPONSE],
+                                              'Product': self.panels[PanelNames.PRODUCT]}))
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
 
         main_splitter.addWidget(left_splitter)
         main_splitter.addWidget(right_splitter)
 
         left_splitter.setSizes([100, 400])
-
-        self.setCentralWidget(main_splitter)
+        self.layout.addWidget(main_splitter)
+        self.setCentralWidget(central_widget)
 
         self.resize(1000, 600)
 
