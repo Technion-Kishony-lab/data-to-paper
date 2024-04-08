@@ -467,7 +467,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
         if code_and_output:
-            self._send_prompt_to_app(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
+            self._app_send_prompt(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
         if issues is None:
             return code_and_output
         # Get Problem

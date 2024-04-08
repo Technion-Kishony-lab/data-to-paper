@@ -68,6 +68,9 @@ class BaseApp:
     def set_status(self, status: str):
         pass
 
+    def request_continue(self):
+        pass
+
 
 class ConsoleApp(BaseApp):
     """

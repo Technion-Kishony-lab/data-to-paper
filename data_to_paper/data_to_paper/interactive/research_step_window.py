@@ -66,6 +66,7 @@ class Worker(QThread):
     advance_stage_signal = Signal(str)
     send_product_of_stage_signal = Signal(str, str)
     set_status_signal = Signal(str)
+    request_continue_signal = Signal()
 
     def __init__(self, mutex, condition, func_to_run=None):
         super().__init__()
@@ -91,6 +92,12 @@ class Worker(QThread):
         self.mutex.unlock()
         return input_text
 
+    def worker_request_continue(self):
+        self.mutex.lock()
+        self.request_continue_signal.emit()
+        self.condition.wait(self.mutex)
+        self.mutex.unlock()
+
     def worker_show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
         self.show_text_signal.emit(panel_name, text, is_html)
 
@@ -98,16 +105,23 @@ class Worker(QThread):
         self.set_focus_on_panel_signal.emit(panel_name)
 
     def worker_advance_stage(self, stage):
+        print(f"Emitted advance stage signal: {stage}")
         self.advance_stage_signal.emit(stage)
 
     def worker_send_product_of_stage(self, stage, product_text):
         self.send_product_of_stage_signal.emit(stage, product_text)
 
     @Slot(PanelNames, str)
-    def set_text_input(self, panel_name, text):
+    def receive_text_signal(self, panel_name, text):
         self.mutex.lock()
         self._text_input = text
         self._panel_name_input = panel_name
+        self.condition.wakeAll()
+        self.mutex.unlock()
+
+    @Slot()
+    def receive_continue_signal(self):
+        self.mutex.lock()
         self.condition.wakeAll()
         self.mutex.unlock()
 
@@ -316,9 +330,6 @@ class HtmlPopup(QDialog):
         label.setReadOnly(True)
         label.setHtml(f'<style>{CSS}</style>{html_content}')
 
-        print(f'TITLE: {title}\nHTML_CONTENT: {html_content}')
-        print(f'HTML_STYLE: {CSS}')
-
         # label.setText(html_content)
         # label.setTextFormat(Qt.RichText)  # Set the text format to RichText to enable HTML
         layout.addWidget(label)
@@ -341,6 +352,7 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
 
 class ResearchStepApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
+    send_continue_signal = Signal()
 
     def __init__(self, mutex, condition):
         super().__init__()
@@ -357,27 +369,41 @@ class ResearchStepApp(QMainWindow, BaseApp):
         central_widget = QWidget()
         self.layout = QHBoxLayout(central_widget)
 
+        # Left side is a VBox with "Continue" button above and the steps panel below
+        left_side = QVBoxLayout()
+        self.layout.addLayout(left_side)
+
+        # Continue button
+        continue_button = QPushButton("Continue")
+        # continue_button.setStyleSheet("font-size: 16px; background-color: #505050; color: white; border-radius: 5px;")
+        continue_button.setEnabled(False)
+
+        continue_button.clicked.connect(self.upon_continue)
+        left_side.addWidget(continue_button)
+        self.continue_button = continue_button
+
+        # Steps panel
         self.step_panel = StepsPanel([(stage, label, partial(self.show_product_for_stage, stage))
                                       for stage, label in SCIENTIFIC_STAGES_TO_NICE_NAMES.items()])
-        self.layout.addWidget(self.step_panel)
+        left_side.addWidget(self.step_panel)
 
+        # Right side is a splitter with the text panels
         main_splitter = QSplitter(Qt.Horizontal)
         left_splitter = QSplitter(Qt.Vertical)
         left_splitter.setHandleWidth(5)
         right_splitter = QSplitter(Qt.Vertical)
+        main_splitter.addWidget(left_splitter)
+        main_splitter.addWidget(right_splitter)
+        left_splitter.setSizes([100, 400])
 
+        # Add the panels to the splitters (the top-right panel is a tab widget)
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
                                  'Product': self.panels[PanelNames.PRODUCT]})
-
         left_splitter.addWidget(self.panels[PanelNames.SYSTEM_PROMPT])
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
         right_splitter.addWidget(self.tabs)
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
 
-        main_splitter.addWidget(left_splitter)
-        main_splitter.addWidget(right_splitter)
-
-        left_splitter.setSizes([100, 400])
         self.layout.addWidget(main_splitter)
         self.setCentralWidget(central_widget)
 
@@ -393,6 +419,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.worker.advance_stage_signal.connect(self.upon_advance_stage)
         self.worker.send_product_of_stage_signal.connect(self.upon_send_product_of_stage)
         self.worker.set_status_signal.connect(self.upon_set_status)
+        self.worker.request_continue_signal.connect(self.upon_request_continue)
 
         # Define the request_text and show_text methods
         self.request_text = self.worker.worker_request_text
@@ -401,6 +428,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.advance_stage = self.worker.worker_advance_stage
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
         self.set_status = self.upon_set_status
+        self.request_continue = self.worker.worker_request_continue
 
         # Connect UI elements
         for panel_name in PanelNames:
@@ -409,7 +437,8 @@ class ResearchStepApp(QMainWindow, BaseApp):
             self.panels[panel_name].submit_button.clicked.connect(partial(self.submit_text, panel_name=panel_name))
 
         # Connect the MainWindow signal to the worker's slot
-        self.send_text_signal.connect(self.worker.set_text_input)
+        self.send_text_signal.connect(self.worker.receive_text_signal)
+        self.send_continue_signal.connect(self.worker.receive_continue_signal)
 
     @classmethod
     def get_instance(cls):
@@ -434,6 +463,15 @@ class ResearchStepApp(QMainWindow, BaseApp):
         # it does not get updated. so we need to call update() to update the header_right:
         self.panels[PanelNames.RESPONSE].update()
         self.panels[PanelNames.PRODUCT].update()
+
+    @Slot()
+    def upon_request_continue(self):
+        self.continue_button.setEnabled(True)
+
+    @Slot()
+    def upon_continue(self):
+        self.continue_button.setEnabled(False)
+        self.send_continue_signal.emit()
 
     def _get_product_name(self, stage):
         return SCIENTIFIC_STAGES_TO_NICE_NAMES[stage]

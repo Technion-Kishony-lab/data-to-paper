@@ -184,6 +184,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
             self.revision_round += 1
         code_and_output.name = self.code_name
         code_and_output.provided_code = self.provided_code
+        self._app_request_continue()
         return code_and_output
 
     def _run_debugger(self, previous_code: Optional[str] = None
@@ -284,10 +285,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ai_response = termination_phrase
                 if HUMAN_EDIT_CODE_REVIEW and \
                         (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
-                    human_response = self._receive_text_from_app(
-                        PanelNames.FEEDBACK, '', title='Enter code review',
-                        optional_suggestions={'AI': ai_response, 'Default': termination_phrase},
-                    )
+                    human_response = self._app_receive_text(PanelNames.FEEDBACK, '',
+                                                            title='Review the code and output. Tell me what you want to correct.',
+                                                            optional_suggestions={'AI': ai_response,
+                                                                                  'Default': termination_phrase})
                 else:
                     human_response = None
                 response = ai_response if human_response is None else human_response

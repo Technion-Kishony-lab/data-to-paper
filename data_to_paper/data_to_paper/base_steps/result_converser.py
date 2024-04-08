@@ -181,7 +181,7 @@ class ResultConverser(Converser):
             html = self.get_valid_result_as_html()
         else:
             html = "No result yet."
-        self._send_prompt_to_app(PanelNames.PRODUCT, html, provided_as_html=True)
+        self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
 
     def _raise_self_response_error(self,
                                    error_message: StrOrReplacer,
@@ -371,6 +371,7 @@ class ResultConverser(Converser):
     def run_and_get_valid_result(self):
         self.initialize_conversation_if_needed()
         self._iterate_until_valid_response()
+        self._app_request_continue()
         return self.get_valid_result()
 
     def get_valid_result(self):

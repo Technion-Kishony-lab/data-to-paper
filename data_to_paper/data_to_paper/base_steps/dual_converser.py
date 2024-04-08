@@ -374,6 +374,7 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     def run_dialog_and_get_valid_result_and_termination_reason(self) -> Tuple[Any, CycleStatus]:
         termination_reason = self.initialize_and_run_dialog()
         result = self.get_valid_result()
+        self._app_request_continue()
         return result, termination_reason
 
     def run_dialog_and_get_valid_result(self):

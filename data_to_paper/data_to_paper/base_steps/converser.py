@@ -2,18 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from typing import Optional, Any, Dict
+from typing import Optional, Any
 
 from data_to_paper import Message
 from data_to_paper.conversation.actions_and_conversations import ActionsAndConversations
 from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, TEXT_WIDTH
 from data_to_paper.conversation.conversation import WEB_CONVERSATION_NAME_PREFIX
 from data_to_paper.conversation import ConversationManager, GeneralMessageDesignation
-from data_to_paper.interactive import the_app, PanelNames, BaseApp, HumanAction, ButtonClickedHumanAction, \
-    TextSentHumanAction
-from data_to_paper.servers.llm_call import get_human_response
+from data_to_paper.interactive import PanelNames
+from data_to_paper.interactive.app_interactor import AppInteractor
 from data_to_paper.servers.model_engine import ModelEngine
-from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.copier import Copier
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log_magenta
@@ -21,7 +19,7 @@ from data_to_paper.base_cast import Agent
 
 
 @dataclass
-class Converser(Copier):
+class Converser(Copier, AppInteractor):
     """
     A base class for agents interacting with LLMs.
     """
@@ -50,8 +48,6 @@ class Converser(Copier):
     # None - do not post to web conversation, True - use default name, str - use given name
 
     driver: str = ''
-
-    app: Optional[BaseApp] = the_app
 
     def __post_init__(self):
         conversation_exists = self.conversation_name in self.actions_and_conversations.conversations
@@ -99,55 +95,13 @@ class Converser(Copier):
 
     def initialize_conversation_if_needed(self, print_header: bool = True):
         if self.conversation_manager.initialize_conversation_if_needed():
-            self._clear_app_panel()
+            self._app_clear_panels()
             if print_header:
                 print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
                 print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
                 print_and_log_magenta('=' * TEXT_WIDTH)
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
-
-    def _clear_app_panel(self):
-        if self.app is None:
-            return
-        for panel_name in PanelNames:
-            self.app.show_text(panel_name, '')
-
-    def _send_prompt_to_app(self, panel_name: PanelNames, prompt: str, provided_as_html: bool = False,
-                            from_md: bool = False):
-        if self.app is None:
-            return
-        s = format_value(self, prompt or '')
-        if not provided_as_html:
-            s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
-        self.app.show_text(panel_name, s, is_html=True)
-
-    def _set_focus_on_panel(self, panel_name: PanelNames):
-        if self.app is None:
-            return
-        self.app.set_focus_on_panel(panel_name)
-
-    def _receive_text_from_app(self, panel_name: PanelNames, initial_text: str = '',
-                                 title: Optional[str] = None,
-                                 optional_suggestions: Dict[str, str] = None) -> str:
-        action = self._receive_action_from_app(panel_name, initial_text, title, optional_suggestions)
-        if isinstance(action, TextSentHumanAction):
-            return action.value
-        button = action.value
-        if button == 'Initial':
-            return initial_text
-        return optional_suggestions[button]
-
-    def _receive_action_from_app(self, panel_name: PanelNames, initial_text: str = '',
-                                 title: Optional[str] = None,
-                                 optional_suggestions: Dict[str, str] = None) -> HumanAction:
-        if self.app is None:
-            return ButtonClickedHumanAction('Initial')
-        return get_human_response(self.app,
-                                  panel_name=panel_name,
-                                  initial_text=initial_text,
-                                  title=title,
-                                  optional_suggestions=optional_suggestions)
 
     def comment(self, comment: StrOrReplacer, tag: Optional[StrOrReplacer] = None, as_action: bool = True,
                 **kwargs):
@@ -180,7 +134,7 @@ class Converser(Copier):
             hidden_messages=hidden_messages,
             **{**self.llm_parameters, **kwargs})
         if send_to_app:
-            self._send_prompt_to_app(PanelNames.RESPONSE, message.content)
+            self._app_send_prompt(PanelNames.RESPONSE, message.content)
         return message
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
@@ -195,8 +149,8 @@ class Converser(Copier):
             send_to_app = not is_background and not ignore
         if send_to_app:
             if allow_editing:
-                content = self._receive_text_from_app(app_panel, content)
-            self._send_prompt_to_app(app_panel, content)
+                content = self._app_receive_text(app_panel, content)
+            self._app_send_prompt(app_panel, content)
         return self.conversation_manager.append_user_message(
             content=content,
             tag=tag,
@@ -212,7 +166,7 @@ class Converser(Copier):
         if send_to_app is None:
             send_to_app = not ignore
         if send_to_app:
-            self._send_prompt_to_app(PanelNames.SYSTEM_PROMPT, content)
+            self._app_send_prompt(PanelNames.SYSTEM_PROMPT, content)
         return self.conversation_manager.append_system_message(
             content=format_value(self, content),
             tag=tag,
@@ -229,7 +183,7 @@ class Converser(Copier):
         if send_to_app is None:
             send_to_app = not is_background and not ignore
         if send_to_app:
-            self._send_prompt_to_app(PanelNames.RESPONSE, content)
+            self._app_send_prompt(PanelNames.RESPONSE, content)
         return self.conversation_manager.append_surrogate_message(
             content=format_value(self, content),
             tag=tag,
