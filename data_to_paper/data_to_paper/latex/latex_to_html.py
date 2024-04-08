@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import sys
 from contextlib import contextmanager
 
@@ -38,6 +39,7 @@ def suppress_stdout_stderr():
         finally:
             sys.stdout, sys.stderr = old_stdout, old_stderr
 
+
 def convert_latex_to_html(latex: str) -> str:
     """
     Convert LaTeX to HTML using plasTeX
@@ -54,4 +56,9 @@ def convert_latex_to_html(latex: str) -> str:
             renderer.render(document)
             # read the index.html file
             with open('index.html') as f:
-                return f.read()
+                html = f.read()
+
+    # Remove numeric "1", "2" in headers: h1, h2, h3, h4
+    html = re.sub(pattern=r'(<h[1-6][^>]*>)[0-9]+\.?\s*', repl=r'\1', string=html)
+
+    return html

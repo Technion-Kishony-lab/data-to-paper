@@ -1,3 +1,4 @@
+import re
 from typing import Optional, Dict, Tuple, Callable
 from functools import partial
 
@@ -70,8 +71,20 @@ def python_to_highlighted_text(code_str: str, color: str = '') -> str:
         return code_str
 
 
-def text_to_html(text: str, textblock: bool = False) -> str:
+def md_to_html(md):
+    # Convert headers
+    md = re.sub(pattern=r'(?m)^#### (.*)', repl=r'<h4>\1</h4>', string=md)
+    md = re.sub(pattern=r'(?m)^### (.*)', repl=r'<h3>\1</h3>', string=md)
+    md = re.sub(pattern=r'(?m)^## (.*)', repl=r'<h2>\1</h2>', string=md)
+    md = re.sub(pattern=r'(?m)^# (.*)', repl=r'<h1>\1</h1>', string=md)
+    md = md.replace('\n\n', '<br>')
+    return md
+
+
+def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
     if not textblock and IS_PYSIDE_APP:
+        if from_md:
+            return md_to_html(text)
         return text.replace('\n', '<br>')
 
     # using some hacky stuff to get around pygments not highlighting text blocks, while kipping newlines as <br>
@@ -117,6 +130,10 @@ def get_pre_html_format(text,
     return s + text + '</pre>'
 
 
+def identity(text: str) -> str:
+    return text
+
+
 REGULAR_FORMATTER = (colored_text, text_to_html)
 BLOCK_FORMATTER = (light_text, partial(text_to_html, textblock=True))
 
@@ -127,7 +144,7 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'text': REGULAR_FORMATTER,
     'python': (python_to_highlighted_text, python_to_highlighted_html),
     'output': (light_text, output_to_highlighted_html),
-    'html': (colored_text, get_pre_html_format),
+    'html': (colored_text, identity),
     'highlight': (colored_text, partial(get_pre_html_format, color='#334499', font_size=20, font_weight='bold',
                                         font_family="'Courier', sans-serif")),
     'comment': (colored_text, partial(get_pre_html_format, color='#424141', font_style='italic', font_size=16,
@@ -141,8 +158,11 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
 NEEDS_NO_WRAPPING = {'python', 'output', 'html'}
 
 
-def format_text_with_code_blocks(text: str, text_color: str = '',
+def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optional[bool] = None,
                                  width: Optional[int] = 80, is_html: bool = False) -> str:
+    if from_md is None:
+        # check if md base on the first line: (this is a bit of a hacky way)
+        from_md = text.startswith('#')
     s = ''
     formatted_sections = FormattedSections.from_text(text)
     for formatted_section in formatted_sections:
@@ -153,7 +173,10 @@ def format_text_with_code_blocks(text: str, text_color: str = '',
         if label not in NEEDS_NO_WRAPPING:
             section = wrap_string(section, width=width)
         if is_html:
-            s += formatter(section)
+            if formatter == text_to_html:
+                s += formatter(section, from_md=from_md)
+            else:
+                s += formatter(section)
         else:
             s += formatter(section, text_color)
     return s

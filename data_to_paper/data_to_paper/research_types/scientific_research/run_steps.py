@@ -128,6 +128,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             # Check if the goal is OK
             products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
                 {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
+            #            self.send_product_to_client('literature_search:goal:goal and hypothesis'
             if IsGoalOK.from_(self).is_goal_ok():
                 break
 
@@ -137,9 +138,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
             ).run_dialog_and_get_valid_result()
-        # TODO: need to decide what and how to send to the client, we need to somehow split between
-        #  stages and produces
-        self.send_product_to_client('research_goal', save_to_file=True)
+        self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
+        self.send_product_to_client('goal_and_novelty_assessment')
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)
@@ -174,8 +174,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                   explain_created_files_class=None,
                                   ).get_code_and_output_and_descriptions()
         self.send_product_to_client('codes_and_outputs_with_explanations:data_analysis')
-        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION,
-                                                       ScientificAgent.InterpretationReviewer)
+        self.advance_stage_and_set_active_conversation(ScientificStages.TABLES,
+                                                       ScientificAgent.Debugger)
         RequestCodeProducts.from_(self,
                                   code_step='data_to_latex',
                                   latex_document=self.latex_document,
@@ -186,12 +186,14 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('codes_and_outputs_with_explanations:data_to_latex')
 
         # literature review and scope
-        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
-                                                       ScientificAgent.Writer)
+        self.advance_stage_and_set_active_conversation(ScientificStages.INTERPRETATION, ScientificAgent.Writer)
         products.paper_sections_and_optional_citations['title'], \
             products.paper_sections_and_optional_citations['abstract'] = \
             FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
                                                            ).write_sections_with_citations()
+        self.send_product_to_client('title_and_abstract_first')
+        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
+                                                       ScientificAgent.CitationExpert)
         products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(
             self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
         self.send_product_to_client('scope_and_literature_search')

@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 
 from data_to_paper.utils.print_to_file import print_and_log
+from data_to_paper.conversation.stage import Stage
 
 from .types import PanelNames
 from .human_actions import ButtonClickedHumanAction, TextSentHumanAction, HumanAction
@@ -29,18 +30,19 @@ class BaseApp:
             cls.instance = cls()
         return cls.instance
 
-    def _request_text(self, panel_name: PanelNames, initial_text: str = '',
+    def request_text(self, panel_name: PanelNames, initial_text: str = '',
                       title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         pass
 
-    def request_text(self, panel_name: PanelNames, initial_text: str = '',
-                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> HumanAction:
+    def request_action(self, panel_name: PanelNames, initial_text: str = '',
+                       title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> HumanAction:
         """
         Requests text from the user.
         User can choose to edit the text, or select one of the optional suggestions.
         """
         optional_suggestions = optional_suggestions or {}
-        text = self._request_text(panel_name, initial_text, title, optional_suggestions)
+        optional_suggestions = {"Initial": initial_text, **optional_suggestions}
+        text = self.request_text(panel_name, initial_text, title, optional_suggestions)
         if text == initial_text:
             return ButtonClickedHumanAction('Initial')
         for suggestion_name, suggestion_content in optional_suggestions.items():
@@ -49,6 +51,21 @@ class BaseApp:
         return TextSentHumanAction(text)
 
     def show_text(self, panel_name: PanelNames, text: str, is_html: bool = False):
+        pass
+
+    def set_focus_on_panel(self, panel_name: PanelNames):
+        pass
+
+    def advance_stage(self, stage: Stage):
+        pass
+
+    def send_product_of_stage(self, stage: Stage, product_text: str):
+        pass
+
+    def initialize(self):
+        pass
+
+    def set_status(self, status: str):
         pass
 
 
@@ -68,11 +85,8 @@ class ConsoleApp(BaseApp):
             lines.append(line)
         return '\n'.join(lines)
 
-    def initialize(self):
-        pass
-
-    def request_text(self, panel_name: PanelNames, initial_text: str = '',
-                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+    def request_action(self, panel_name: PanelNames, initial_text: str = '',
+                       title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
         print_and_log(title)
         print_and_log("Suggestions:")
         print_and_log(f"{0}. {'Initial content'}")

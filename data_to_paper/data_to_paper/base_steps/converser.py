@@ -99,21 +99,33 @@ class Converser(Copier):
 
     def initialize_conversation_if_needed(self, print_header: bool = True):
         if self.conversation_manager.initialize_conversation_if_needed():
+            self._clear_app_panel()
             if print_header:
                 print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
                 print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
                 print_and_log_magenta('=' * TEXT_WIDTH)
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
-            self._send_prompt_to_app(PanelNames.SYSTEM_PROMPT, self.system_prompt)
 
-    def _send_prompt_to_app(self, panel_name: PanelNames, prompt: str, provided_as_html: bool = False):
+    def _clear_app_panel(self):
+        if self.app is None:
+            return
+        for panel_name in PanelNames:
+            self.app.show_text(panel_name, '')
+
+    def _send_prompt_to_app(self, panel_name: PanelNames, prompt: str, provided_as_html: bool = False,
+                            from_md: bool = False):
         if self.app is None:
             return
         s = format_value(self, prompt or '')
         if not provided_as_html:
-            s = format_text_with_code_blocks(s, is_html=True, width=None)
+            s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
         self.app.show_text(panel_name, s, is_html=True)
+
+    def _set_focus_on_panel(self, panel_name: PanelNames):
+        if self.app is None:
+            return
+        self.app.set_focus_on_panel(panel_name)
 
     def _receive_text_from_app(self, panel_name: PanelNames, initial_text: str = '',
                                  title: Optional[str] = None,
@@ -157,8 +169,9 @@ class Converser(Copier):
                                                model_engine: Optional[ModelEngine] = None,
                                                hidden_messages: GeneralMessageDesignation = None,
                                                expected_tokens_in_response: int = None,
+                                               send_to_app: bool = True,
                                                **kwargs) -> Message:
-        return self.conversation_manager.get_and_append_assistant_message(
+        message = self.conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
             is_code=is_code, previous_code=previous_code,
@@ -166,19 +179,26 @@ class Converser(Copier):
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages,
             **{**self.llm_parameters, **kwargs})
+        if send_to_app:
+            self._send_prompt_to_app(PanelNames.RESPONSE, message.content)
+        return message
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                   comment: Optional[StrOrReplacer] = None,
                                   ignore: bool = False, reverse_roles_for_web: bool = False,
                                   previous_code: Optional[str] = None, is_background: bool = False,
                                   send_to_app: Optional[bool] = None, app_panel: PanelNames = PanelNames.FEEDBACK,
+                                  allow_editing: bool = False,
                                   **kwargs):
+        content = format_value(self, content)
         if send_to_app is None:
             send_to_app = not is_background and not ignore
         if send_to_app:
+            if allow_editing:
+                content = self._receive_text_from_app(app_panel, content)
             self._send_prompt_to_app(app_panel, content)
         return self.conversation_manager.append_user_message(
-            content=format_value(self, content),
+            content=content,
             tag=tag,
             comment=comment,
             ignore=ignore, reverse_roles_for_web=reverse_roles_for_web,
@@ -204,7 +224,12 @@ class Converser(Copier):
                                        tag: Optional[StrOrReplacer] = None, comment: Optional[StrOrReplacer] = None,
                                        ignore: bool = False, reverse_roles_for_web: bool = False,
                                        previous_code: Optional[str] = None, is_background: bool = False,
+                                       send_to_app: Optional[bool] = False,
                                        **kwargs):
+        if send_to_app is None:
+            send_to_app = not is_background and not ignore
+        if send_to_app:
+            self._send_prompt_to_app(PanelNames.RESPONSE, content)
         return self.conversation_manager.append_surrogate_message(
             content=format_value(self, content),
             tag=tag,

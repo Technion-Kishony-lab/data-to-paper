@@ -58,7 +58,7 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
 
         * Make sure that your suggested hypothesis can be studied using only the provided dataset, \t
         without requiring any additional data. In particular, pay attention to using only data available \t
-        based on the provided headers of our data files (see "{data_file_descriptions}", above).
+        based on the provided headers of our data files (see "{data_file_descriptions_no_headers}", above).
 
         {project_specific_goal_guidelines}\t
         * Do not suggest methodology. Just the goal and an hypothesis. 
@@ -230,7 +230,7 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
         Please follow these two steps:
 
         (1) Return a bullet-point review of relevant statistical issues.
-        Read the "{data_file_descriptions}" and the "{codes_and_outputs:data_exploration}" provided above, \t
+        Read the "{data_file_descriptions_no_headers}" and the "{codes_and_outputs:data_exploration}" provided above, \t
         and then for each of the following generic \t
         statistical issues determine if they are relevant for our case and whether they should be accounted for: 
         * multiple comparisons.

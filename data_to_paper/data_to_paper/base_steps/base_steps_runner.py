@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT, IS_PYSIDE_APP
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
@@ -22,6 +22,7 @@ from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 
 from .base_products_conversers import ProductsHandler
+from ..utils import format_text_with_code_blocks
 
 
 @dataclass
@@ -83,10 +84,14 @@ class BaseStepsRunner(ProductsHandler):
         """
         if stage is not None:
             self.advance_stage(stage=stage)
+            if IS_PYSIDE_APP:
+                from data_to_paper.interactive import the_app
+                the_app.advance_stage(stage)
         if agent is not None:
             self.set_active_conversation(agent=agent)
 
-    def send_product_to_client(self, product_field: str, save_to_file: bool = False):
+    def send_product_to_client(self, product_field: str, save_to_file: bool = False,
+                               should_send: bool = True, is_html: bool = False):
         """
         Get the base GPT script file.
         """
@@ -94,11 +99,21 @@ class BaseStepsRunner(ProductsHandler):
             filename = product_field + '.txt'
             with open(self.output_directory / filename, 'w') as file:
                 file.write(self.products.get_description(product_field))
+        if not should_send:
+            return
         self.actions_and_conversations.actions.apply_action(
             SetProduct(
                 stage=self.products.get_stage(product_field),
                 products=self.products,
                 product_field=product_field))
+        if IS_PYSIDE_APP:
+            from data_to_paper.interactive import the_app
+            product = self.products.get_description(product_field)
+            product = format_text_with_code_blocks(product, is_html=True, width=None)
+            the_app.send_product_of_stage(
+                stage=self.products.get_stage(product_field),
+                product_text=product,
+                )
 
     @property
     def absolute_data_folder(self):

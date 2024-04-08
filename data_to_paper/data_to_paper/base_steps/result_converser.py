@@ -161,7 +161,8 @@ class ResultConverser(Converser):
         Add background messages to the two conversations to set them ready for the cycle.
         """
         if self.mission_prompt:
-            self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT)
+            self.apply_append_user_message(self.mission_prompt, app_panel=PanelNames.MISSION_PROMPT,
+                                           allow_editing=True)
 
     @property
     def _has_valid_result(self) -> bool:

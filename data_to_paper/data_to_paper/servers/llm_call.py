@@ -15,7 +15,6 @@ from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BA
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
-from data_to_paper.interactive import the_app, PanelNames, HumanAction, BaseApp
 from data_to_paper.utils.serialize import SerializableValue, deserialize_serializable_value
 
 from .base_server import ListServerCaller
@@ -27,7 +26,7 @@ from .serialize_exceptions import serialize_exception, is_exception, de_serializ
 
 if TYPE_CHECKING:
     from data_to_paper.conversation.message import Message
-
+    from data_to_paper.interactive import HumanAction, BaseApp
 
 TIME_LIMIT_FOR_OPENAI_CALL = 300  # seconds
 MAX_NUM_LLM_ATTEMPTS = 5
@@ -78,7 +77,7 @@ class OpenaiSeverCaller(ListServerCaller):
 
     @staticmethod
     def _check_before_spending_money(messages: List[Message], model_engine: ModelEngine):
-        while True:
+        while False:
             user_choice = input(dedent_triple_quote_str("""
             Please carefully check that you are willing to proceed with this LLM API call.
             We suggest reading the current ongoing conversation and especially the last USER message \t
@@ -158,7 +157,9 @@ class OpenaiSeverCaller(ListServerCaller):
     def _serialize_record(record: Union[SerializableValue, Exception]):
         if isinstance(record, Exception):
             return serialize_exception(record)
-        return record.serialize()
+        if isinstance(record, SerializableValue):
+            return record.serialize()
+        raise ValueError(f'Cannot serialize record of type {type(record)}:\n{record}')
 
     @staticmethod
     def _deserialize_record(serialized_record):
@@ -212,6 +213,8 @@ def try_get_llm_response(messages: List[Message],
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
 
+    from data_to_paper.interactive import the_app
+    the_app.set_status(f'Waiting for LLM...')
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         return action.value
@@ -222,6 +225,8 @@ def try_get_llm_response(messages: List[Message],
             return e
         else:
             raise
+    finally:
+        the_app.set_status('')
 
 
 def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
@@ -230,4 +235,4 @@ def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
     Return None if the user did not change the message.
     """
     return OPENAI_SERVER_CALLER.get_server_response(
-        [], model_engine=lambda messages, **k: app.request_text(**k), **kwargs)
+        [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)

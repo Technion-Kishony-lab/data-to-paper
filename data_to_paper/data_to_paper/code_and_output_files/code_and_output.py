@@ -100,28 +100,31 @@ class CodeAndOutput:
         return s
 
     def to_text(self):
-        s = f"{self.name} Code and Output\n"
+        if self.name is None:
+            s = f"# Code and Output\n"
+        else:
+            s = f"# {self.name} Code and Output\n"
         if self.code:
-            s += "Code:\n"
-            s += self.code + '\n\n'
+            s += "## Code:\n"
+            s += wrap_text_with_triple_quotes(self.code, 'python') + '\n'
         if self.provided_code:
-            s += "Provided Code:\n"
-            s += self.provided_code + '\n\n'
+            s += "## Provided Code:\n"
+            s += wrap_text_with_triple_quotes(self.provided_code, 'python') + '\n'
         if self.code_explanation:
-            s += "Code Description:\n"
-            s += self.code_explanation + '\n\n'
+            s += "## Code Description:\n"
+            s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
         if self.created_files:
             outputs = self.created_files.get_created_content_files_to_pretty_contents(
-                content_view=ContentViewPurpose.FINAL_APPENDIX)
+                content_view=ContentViewPurpose.PRODUCT)
         else:
             outputs = None
 
         if outputs:
-            s += "Code Output:\n"
+            s += "## Code Output:\n"
             for filename, output in outputs.items():
-                s += f'\n\n{filename}\n'
-                s += '\n' + output
+                s += f'### {filename}\n'
+                s += wrap_text_with_triple_quotes(output, 'output') + '\n'
         return s
 
-    def get_code_as_html(self):
-        return format_text_with_code_blocks(wrap_text_with_triple_quotes(self.code, 'python'), is_html=True)
+    def as_html(self):
+        return format_text_with_code_blocks(self.to_text(), from_md=True, is_html=True)

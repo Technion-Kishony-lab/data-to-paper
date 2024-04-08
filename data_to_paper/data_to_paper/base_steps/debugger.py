@@ -444,7 +444,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         )
 
     def _respond_to_issues(self, issues: Union[None, RunIssue, List[RunIssue], RunIssues],
-                           code_and_output: Optional[CodeAndOutput]) -> Optional[CodeAndOutput]:
+                           code_and_output: Optional[CodeAndOutput] = None) -> Optional[CodeAndOutput]:
         """
         We post a response to the assistant code, based on the issues.
         We also need to delete (some) of the previous exchange.
@@ -467,7 +467,7 @@ class DebuggerConverser(BackgroundProductsConverser):
         - Regenerate ("regen0", "regen1", "regen2": the original response, the second response, the third response)
         """
         if code_and_output:
-            self._send_prompt_to_app(PanelNames.PRODUCT, code_and_output.get_code_as_html(), provided_as_html=True)
+            self._send_prompt_to_app(PanelNames.PRODUCT, code_and_output.as_html(), provided_as_html=True)
         if issues is None:
             return code_and_output
         # Get Problem

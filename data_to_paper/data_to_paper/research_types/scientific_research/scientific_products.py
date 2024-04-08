@@ -19,6 +19,7 @@ from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
     NameDescriptionStageGenerator
+from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
 
@@ -26,7 +27,7 @@ CODE_STEPS_TO_STAGES_NAMES_AGENTS: Dict[str, Tuple[Stage, str, ScientificAgent]]
     'data_exploration': (ScientificStages.EXPLORATION, 'Data Exploration', ScientificAgent.DataExplorer),
     # 'data_preprocessing': (ScientificStages.PREPROCESSING, 'Data Preprocessing', ScientificAgent.DataPreprocessor),
     'data_analysis': (ScientificStages.CODE, 'Data Analysis', ScientificAgent.Debugger),
-    'data_to_latex': (ScientificStages.INTERPRETATION, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
+    'data_to_latex': (ScientificStages.TABLES, 'LaTeX Table Design', ScientificAgent.InterpretationReviewer),
 }
 
 
@@ -136,7 +137,8 @@ class ScientificProducts(Products):
         """
         Return the hypothesis testing plan in a pretty way.
         """
-        return '\n'.join(f'Hypothesis: {hypothesis}\nStatistical Test: {test}\n'
+        return '\n'.join(f'### Hypothesis:\n{hypothesis}\n'
+                         f'### Statistical Test:\n{test}\n'
                          for hypothesis, test in self.hypothesis_testing_plan.items())
 
     def get_all_latex_tables(self, content_view: ContentView) -> List[str]:
@@ -238,6 +240,40 @@ class ScientificProducts(Products):
         latex = self.get_paper_sections_without_citations()['abstract']
         return extract_latex_section_from_response(latex, 'abstract', keep_tags=False)
 
+    def get_novelty_assessment(self) -> str:
+        s = '# Goal and Hypothesis (including Novelty Assessment)\n'
+        s += '## Research Goal and Hypothesis\n'
+        s += self.research_goal
+        s += '## Novelty Assessment\n'
+        s += 'To assess the novelty of our Research Goal and Hypothesis, ' \
+             'we did the following literature searches:\n\n'
+
+        s += wrap_text_with_triple_quotes(
+            self.literature_search['goal'].pretty_repr_for_scope_and_query(
+                scope='dataset',
+                style='html',
+                **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'dataset')].to_dict()
+            ), 'html')
+        s += '\n\n'
+        s += wrap_text_with_triple_quotes(
+            self.literature_search['goal'].pretty_repr_for_scope_and_query(
+                scope='questions',
+                style='html',
+                **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'questions')].to_dict()
+            ), 'html')
+        s += '\n\n'
+        s += '## Most Relevant Papers\n\n'
+        s += 'From these searches, we found listed the following most relevant papers:'
+        s += '\n\n'
+        s += wrap_text_with_triple_quotes(self.literature_search['goal'].pretty_repr_for_scope_and_query(
+                scope='goal and hypothesis',
+                style='html',
+                **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'goal and hypothesis')].to_dict()
+            ), 'html')
+        s += '\n\n'
+        s += 'Based on these searches, we concluded that our Research Goal and Hypothesis are novel enough.'
+        return s
+
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
             **super()._get_generators(),
@@ -294,7 +330,7 @@ class ScientificProducts(Products):
 
             'hypothesis_testing_plan': NameDescriptionStageGenerator(
                 'Hypothesis Testing Plan',
-                'Here is our Hypothesis Testing Plan:\n\n{}',
+                '## Hypothesis Testing Plan:\n{}',
                 ScientificStages.PLAN,
                 lambda: str(self.pretty_hypothesis_testing_plan),
             ),
@@ -312,6 +348,13 @@ class ScientificProducts(Products):
                     'description': self['literature_search:{}:{}:{}'.format(
                         stage, scope, DEFAULT_LITERATURE_SEARCH_STYLE.val)].description,
                 }
+            ),
+
+            'goal_and_novelty_assessment': NameDescriptionStageGenerator(
+                'Novelty assessment for the Research Goal and Hypothesis',
+                '{}',
+                ScientificStages.GOAL,
+                lambda: self.get_novelty_assessment(),
             ),
 
             'literature_search:{}:{}:{}': NameDescriptionStageGenerator(
@@ -446,9 +489,17 @@ class ScientificProducts(Products):
             # WRITING
             # =======
 
+            'title_and_abstract_first': NameDescriptionStageGenerator(
+                'Title and Abstract',
+                "# Initial draft of the title and abstract\n```latex\n{}\n\n{}```",
+                ScientificStages.INTERPRETATION,
+                lambda: (self.get_paper_sections_without_citations()['title'],
+                         self.get_paper_sections_without_citations()['abstract']),
+            ),
+
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
-                "Here are the title and abstract of the paper:\n\n{}\n\n{}",
+                "# Title and abstract of the paper\n```latex\n{}\n\n{}```",
                 ScientificStages.WRITING_TITLE_AND_ABSTRACT,
                 lambda: (self.get_paper_sections_without_citations()['title'],
                          self.get_paper_sections_without_citations()['abstract']),
