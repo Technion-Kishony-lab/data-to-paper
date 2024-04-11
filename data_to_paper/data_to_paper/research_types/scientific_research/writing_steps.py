@@ -516,7 +516,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         ```
         No-treatment response: \\hypertarget{Z1a}{0.65} 
         With-treatment response: \\hypertarget{Z2a}{0.87}
-        
+
         Treatment regression: 
         coef = \\hypertarget{Z3a}{0.17}, STD = \\hypertarget{Z3b}{0.072}, pvalue = \\hypertarget{Z3c}{0.007}
         ```
@@ -529,7 +529,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         The regression coefficient for the treatment was \\hyperlink{Z3a}{0.17} with a standard deviation of \t
         \\hyperlink{Z3b}{0.072} (P-value: \\hyperlink{Z3c}{0.007}).
         ```
-        
+
         And are some examples of proper ways to calculate dependent values, using the \\num command:
         ```
         The difference in response was \\num{\\hyperlink{Z2a}{0.87} - \\hyperlink{Z1a}{0.65}, \t

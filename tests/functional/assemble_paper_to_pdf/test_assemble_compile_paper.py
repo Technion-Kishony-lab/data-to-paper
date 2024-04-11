@@ -58,7 +58,7 @@ def products(code_and_output):
                                                                 introduction_citation),
                                                'methods': ('\\section{Methods}{content of method}', set()),
                                                'results': ('\\section{Results}{content of results\n\n'
-                                                           '2 + 3 is \\num{2+3}', set()),
+                                                           '2 + 3 is \\num{2+3, "triviality"}', set()),
                                                'discussion': ('\\section{Discussion}{content of discussion}', set()),
                                                'conclusion': ('\\section{Conclusion}{content of conclusion}', set()), },
         codes_and_outputs={'data_to_latex': code_and_output},
