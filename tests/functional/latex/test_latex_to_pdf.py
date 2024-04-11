@@ -35,7 +35,6 @@ Hello & World!
 def latex_content_with_citations():
     return r'''
 \documentclass{article}
-\usepackage{cite}
 \usepackage{hyperref}
 \begin{document}
 Hello World! \cite{cite1} \cite{cite2}
