@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 from copy import copy
 from dataclasses import dataclass
 from typing import Any
@@ -6,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from data_to_paper.exceptions import data_to_paperException
-from ..utils import format_float
+from ..utils import format_float, temporarily_change_float_format, to_string_with_iterables
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
@@ -43,19 +42,6 @@ class DataFrameLocKeyError(BaseKeyError):
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
 TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
 STR_FLOAT_FORMAT = format_float
-
-
-@contextmanager
-def temporarily_change_float_format(new_format):
-    """
-    Context manager that temporarily changes the float format to the given format.
-    """
-    original_float_format = pd.get_option('display.float_format')
-    try:
-        pd.set_option(f'display.float_format', new_format)
-        yield
-    finally:
-        pd.set_option(f'display.float_format', original_float_format)
 
 
 def __init__(self, *args, created_by: str = None, file_path: str = None,
@@ -121,8 +107,11 @@ def to_string(self, *args, original_method=None, on_change=None, **kwargs):
     """
     We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
     """
-    with temporarily_change_float_format(STR_FLOAT_FORMAT):
-        return original_method(self, *args, **kwargs)
+    if 'float_format' in kwargs:
+        float_format = kwargs.pop('float_format')
+    else:
+        float_format = STR_FLOAT_FORMAT
+    return to_string_with_iterables(self, original_method=original_method, float_format=float_format, **kwargs)
 
 
 def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
