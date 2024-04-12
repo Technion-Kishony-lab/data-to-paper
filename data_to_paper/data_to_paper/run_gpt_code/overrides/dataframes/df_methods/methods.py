@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from data_to_paper.exceptions import data_to_paperException
-from ..utils import format_float, temporarily_change_float_format
+from ..utils import format_float, temporarily_change_float_format, to_string_with_iterables
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
@@ -107,8 +107,11 @@ def to_string(self, *args, original_method=None, on_change=None, **kwargs):
     """
     We print with short floats, avoid printing with [...] skipping columns, and checking which orientation to use.
     """
-    with temporarily_change_float_format(STR_FLOAT_FORMAT):
-        return original_method(self, *args, **kwargs)
+    if 'float_format' in kwargs:
+        float_format = kwargs.pop('float_format')
+    else:
+        float_format = STR_FLOAT_FORMAT
+    return to_string_with_iterables(self, original_method=original_method, float_format=float_format, **kwargs)
 
 
 def to_csv(self, *args, original_method=None, on_change=None, **kwargs):
