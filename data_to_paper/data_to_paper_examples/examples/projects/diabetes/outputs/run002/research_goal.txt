@@ -1,0 +1,8 @@
+Here is our Research Goal
+
+
+Research Goal: 
+To examine the relationship between different levels of physical activity, fruit and vegetable consumption, and the likelihood of diabetes among adults, while considering the potential moderating effect of BMI.
+
+Hypothesis: 
+Among adults with high BMI, those who engage in regular physical activity and consume a diet rich in fruits and vegetables will have a lower likelihood of diabetes compared to those with low levels of physical activity and poor dietary habits.
