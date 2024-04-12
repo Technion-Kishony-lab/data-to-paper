@@ -1,0 +1,7 @@
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Among adults with high BMI, those who engage in regular physical activity and consume a diet rich in fruits and vegetables will have a lower likelihood of diabetes compared to those with low levels of physical activity and poor dietary habits.
+Statistical Test: Logistic regression analysis with Diabetes_binary as the dependent variable and PhysActivity, Fruits, Veggies, and BMI as independent variables. Adjust for confounding variables such as age, sex, and education by including them in the model as covariates.
+
+Hypothesis: The effect of physical activity on the likelihood of diabetes differs based on BMI status.
+Statistical Test: Introduce an interaction term between PhysActivity and BMI in the logistic regression model mentioned in Hypothesis 1. This will allow us to assess whether the relationship between physical activity and diabetes differs across different levels of BMI.
