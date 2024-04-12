@@ -41,7 +41,7 @@ def evaluate_latex_num_command(latex_str, ref_prefix='', enforce_explanation: bo
     for index, full_match in enumerate(matches):
         match = full_match[len(command):-1]  # remove the command and the closing bracket
         match = match.strip()
-        if r'\num{' in match:
+        if command in match:
             raise LatexNestedNumCommandError(expression=full_match)
         # separate <formula>, "explanation" into formula and explanation:
         if match.endswith('"'):
