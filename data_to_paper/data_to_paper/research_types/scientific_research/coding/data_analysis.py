@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Tuple, List, Optional, Dict, Any, Iterable, Type
 
+from pandas import DataFrame
+
 from data_to_paper.base_steps import DebuggerConverser
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.code_and_output_files.output_file_requirements import TextContentOutputFileRequirement, \
@@ -12,7 +14,7 @@ from data_to_paper.research_types.scientific_research.coding.utils_modified_for_
     get_dataframe_to_pickle_attr_replacer, get_pickle_dump_attr_replacer
 from data_to_paper.research_types.scientific_research.scientific_products import HypertargetPrefix
 from data_to_paper.run_gpt_code.overrides.dataframes.df_methods import STR_FLOAT_FORMAT
-from data_to_paper.run_gpt_code.overrides.dataframes.df_methods.methods import temporarily_change_float_format
+from data_to_paper.run_gpt_code.overrides.dataframes.utils import temporarily_change_float_format
 from data_to_paper.run_gpt_code.overrides.pvalue import is_containing_p_value
 from data_to_paper.run_gpt_code.run_issues import RunIssue, CodeProblem
 from data_to_paper.utils import dedent_triple_quote_str
@@ -47,7 +49,7 @@ class EnforceContentOutputFileRequirement(TextContentOutputFileRequirement, Nume
 
 class DataFramePickleContentOutputFileRequirement(PickleContentOutputFileRequirement):
 
-    def _to_str(self, content: Any) -> str:
+    def _to_str(self, content: DataFrame) -> str:
         with temporarily_change_float_format(STR_FLOAT_FORMAT):
             return content.to_string()
 

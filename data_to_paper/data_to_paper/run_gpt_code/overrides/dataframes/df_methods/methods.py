@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 from copy import copy
 from dataclasses import dataclass
 from typing import Any
@@ -6,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from data_to_paper.exceptions import data_to_paperException
-from ..utils import format_float
+from ..utils import format_float, temporarily_change_float_format
 from ..dataframe_operations import SaveDataframeOperation, CreationDataframeOperation, \
     ChangeSeriesDataframeOperation, AddSeriesDataframeOperation, RemoveSeriesDataframeOperation
 
@@ -43,19 +42,6 @@ class DataFrameLocKeyError(BaseKeyError):
 ORIGINAL_FLOAT_FORMAT = pd.get_option('display.float_format')
 TO_CSV_FLOAT_FORMAT = ORIGINAL_FLOAT_FORMAT
 STR_FLOAT_FORMAT = format_float
-
-
-@contextmanager
-def temporarily_change_float_format(new_format):
-    """
-    Context manager that temporarily changes the float format to the given format.
-    """
-    original_float_format = pd.get_option('display.float_format')
-    try:
-        pd.set_option(f'display.float_format', new_format)
-        yield
-    finally:
-        pd.set_option(f'display.float_format', original_float_format)
 
 
 def __init__(self, *args, created_by: str = None, file_path: str = None,
