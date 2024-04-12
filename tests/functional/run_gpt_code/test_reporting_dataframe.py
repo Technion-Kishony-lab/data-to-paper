@@ -154,6 +154,14 @@ def test_df_float_precision_to_string():
         assert df.to_string().endswith('1.235')
 
 
+def test_temporarily_change_float_format():
+    with TrackDataFrames():
+        df = pd.DataFrame({
+            'single': [1.23456789, ],
+            'two_values': ((1.23456789, 2.3456789), )})
+        assert df.to_string().endswith('(1.235, 2.346)')
+
+
 @pytest.mark.skip
 def test_df_float_precision_of_mean_of_series():
     with TrackDataFrames():
