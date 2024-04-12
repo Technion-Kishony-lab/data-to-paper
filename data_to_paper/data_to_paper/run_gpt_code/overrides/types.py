@@ -49,8 +49,8 @@ class NoIterTuple:
             raise exception
 
     def _get_instructions(self):
-        return ('Your code should instead keep the results object and access its attributes when needed.\n'
-                f'attributes of `{self.created_by}` results object are: '
+        return ('Your code should instead keep the results object and access its attributes by name when needed.\n'
+                f'Attributes of `{self.created_by}` results object are: '
                 f'{NiceList(self._tuple._fields, wrap_with="`")}')
 
     def __getitem__(self, item):

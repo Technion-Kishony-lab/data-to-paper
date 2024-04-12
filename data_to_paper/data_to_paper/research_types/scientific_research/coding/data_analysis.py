@@ -333,7 +333,7 @@ class DataAnalysisCodeProductsGPT(BaseCreateTablesCodeProductsGPT):
 
         (1) Deeply check your Python code for any fundamental coding/mathematical/statistical flaws \t
         and return a bullet-point response addressing these points (as applicable):
-        
+
         * WRONG CALCULATIONS:
         - List all key mathematical calculations used in the code and indicate for each one if it is correct, \t
         or if it should be revised. 
