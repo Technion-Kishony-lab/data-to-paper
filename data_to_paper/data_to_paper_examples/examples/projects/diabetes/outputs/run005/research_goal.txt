@@ -1,0 +1,10 @@
+Here is our Research Goal
+
+
+Research Goal: 
+
+To explore the relationship between fruit and vegetable consumption and the risk of developing diabetes, and whether this relationship is influenced by income level.
+
+Hypothesis: 
+
+Individuals with higher levels of fruit and vegetable consumption will have a lower risk of developing diabetes, and this association will be stronger among individuals with lower income levels compared to those with higher income levels.

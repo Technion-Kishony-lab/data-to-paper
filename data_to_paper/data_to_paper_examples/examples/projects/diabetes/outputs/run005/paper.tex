@@ -1,0 +1,651 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Dietary Quality and Socioeconomic Status as Modifiers of Diabetes Risk in a Large American Cohort}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Diabetes mellitus poses a significant public health challenge, with modifiable lifestyle factors being central to addressing the escalating prevalence. The research gap lies in comprehensively understanding how combined socioeconomic factors and dietary habits influence diabetes risk. Leveraging the expansive 2015 Behavioral Risk Factor Surveillance System dataset, this study quantitatively discerns the interplay between diet quality—represented by fruit and vegetable intake—and income level on diabetes susceptibility, factoring in demographic and educational influences. A logistic regression analysis foregrounds an inverse relationship between fruit and vegetable consumption and diabetes risk, while also revealing income level as a significant moderator, suggesting that individuals with higher income benefit more substantially from healthy dietary patterns in reducing diabetes risk. The analysis additionally confirms the risks associated with advancing age and male gender, and suggests an inverse relationship between diabetes risk and higher education levels. Notwithstanding the limitations inherent in self-reported data, the findings emphasize the necessity for policy initiatives that reduce health disparities and support diet-related interventions within varied income brackets to mitigate diabetes risk.
+\end{abstract}
+\section*{Introduction}
+
+The global burden of diabetes mellitus is escalating, presenting a significant public health challenge due to its chronic nature, associated complications, and considerable economic impact \cite{Akter2014PrevalenceOD}. Studies have established modifiable lifestyle factors, particularly dietary habits, as key elements in mitigating the rising tide of diabetes \cite{Bazzano2008IntakeOF, Carter2010FruitAV}. However, the broader socio-demographic context, like age, gender, income, and education, which potentially influence these lifestyle factors and their effects on diabetes risk, are relatively underexplored \cite{Seiglie2020DiabetesPA, Chan1994ObesityFD}.
+
+Literature has reported that demographic and socio-economic factors are pertinently associated with the risk of diabetes, underscoring the importance of societal context in health outcomes \cite{Duan2022EffectsOE}. However, the nuanced interrelations between these factors, specifically socio-economic factors and dietary habits, and their combinatorial influence on diabetes risk remain under-investigated. In particular, the question of how the protective effects of quality diet, defined in this study as high intake of fruits and vegetables, are moderated or shaped by an individual's socio-economic context is less clear.
+
+The present paper addresses this research gap by leveraging the 2015 Behavioral Risk Factor Surveillance System (BRFSS) dataset \cite{Rolle-Lake2020BehavioralRF}. This large-scale, comprehensive dataset provides a representative cross-sectional snapshot of health indicators, demographic factors, and socio-economic attributes across diverse American demographics, enabling a detailed exploration of the interplay between dietary habits, income, and diabetes risk \cite{Pierannunzi2013ASR}.
+
+The study deploys logistic regression analyses, constituting demographic influences such as age, gender, and education, and socio-economic factors such as income levels. The analytical models are formulated to assess diet quality and income level as primary predictors of diabetes risk, with an interaction term to explore any potential moderating effect of income on the diet-diabetes risk relationship \cite{Wu2016GeneticVA}. Notably, our findings illuminate the socio-economic contextual importance in understanding dietary influences on diabetes risk, confirm the age and gender associations with diabetes, and elucidate the associative patterns between education levels and diabetes risk \cite{Bruni2016GlobalEO}.
+
+\section*{Results}
+
+First, to examine the association between diet quality and diabetes risk, we performed a regression analysis considering fruit and vegetable consumption while adjusting for demographic variables. The results presented in Table {}\ref{table:table_1} indicate that higher fruit (\hyperlink{A2a}{-0.185}, P$<$\hyperlink{A2d}{$10^{-6}$}) and vegetable (\hyperlink{A3a}{-0.126}, P$<$\hyperlink{A3d}{$10^{-6}$}) consumption is inversely associated with diabetes risk. This suggests that an increase in the consumption of these foods is linked to a reduced risk of diabetes. Age was also significantly associated with an increased diabetes risk (\hyperlink{A4a}{0.172}, P$<$\hyperlink{A4d}{$10^{-6}$}), indicating that risk escalates with advancing age. Being male (Sex) showed a positive association with diabetes risk (\hyperlink{A5a}{0.32}, P$<$\hyperlink{A5d}{$10^{-6}$}), and higher levels of education and income were linked to reduced diabetes risk, with coefficients of \hyperlink{A6a}{-0.131} and \hyperlink{A7a}{-0.162} respectively (P$<$\hyperlink{A6d}{$10^{-6}$}; P$<$\hyperlink{A7d}{$10^{-6}$}).
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Association between diet and the risk of diabetes, adjusted for different confounders.}}
+\label{table:table_1}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coef. & Std.Err & z & P$>$\textbar{}z\textbar{} & [\raisebox{2ex}{\hypertarget{A0a}{}}0.025 & \raisebox{2ex}{\hypertarget{A0b}{}}0.975 \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{A1a}{}}-1.67 & \raisebox{2ex}{\hypertarget{A1b}{}}0.0364 & \raisebox{2ex}{\hypertarget{A1c}{}}-45.9 & $<$\raisebox{2ex}{\hypertarget{A1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A1e}{}}-1.74 & \raisebox{2ex}{\hypertarget{A1f}{}}-1.6 \\
+\textbf{Fruit} & \raisebox{2ex}{\hypertarget{A2a}{}}-0.185 & \raisebox{2ex}{\hypertarget{A2b}{}}0.0126 & \raisebox{2ex}{\hypertarget{A2c}{}}-14.6 & $<$\raisebox{2ex}{\hypertarget{A2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A2e}{}}-0.209 & \raisebox{2ex}{\hypertarget{A2f}{}}-0.16 \\
+\textbf{Veggies} & \raisebox{2ex}{\hypertarget{A3a}{}}-0.126 & \raisebox{2ex}{\hypertarget{A3b}{}}0.0148 & \raisebox{2ex}{\hypertarget{A3c}{}}-8.57 & $<$\raisebox{2ex}{\hypertarget{A3d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A3e}{}}-0.155 & \raisebox{2ex}{\hypertarget{A3f}{}}-0.0975 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{A4a}{}}0.172 & \raisebox{2ex}{\hypertarget{A4b}{}}0.00218 & \raisebox{2ex}{\hypertarget{A4c}{}}79.2 & $<$\raisebox{2ex}{\hypertarget{A4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A4e}{}}0.168 & \raisebox{2ex}{\hypertarget{A4f}{}}0.177 \\
+\textbf{Sex} & \raisebox{2ex}{\hypertarget{A5a}{}}0.32 & \raisebox{2ex}{\hypertarget{A5b}{}}0.0121 & \raisebox{2ex}{\hypertarget{A5c}{}}26.4 & $<$\raisebox{2ex}{\hypertarget{A5d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A5e}{}}0.296 & \raisebox{2ex}{\hypertarget{A5f}{}}0.344 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{A6a}{}}-0.131 & \raisebox{2ex}{\hypertarget{A6b}{}}0.00636 & \raisebox{2ex}{\hypertarget{A6c}{}}-20.6 & $<$\raisebox{2ex}{\hypertarget{A6d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A6e}{}}-0.144 & \raisebox{2ex}{\hypertarget{A6f}{}}-0.119 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{A7a}{}}-0.162 & \raisebox{2ex}{\hypertarget{A7b}{}}0.00306 & \raisebox{2ex}{\hypertarget{A7c}{}}-52.9 & $<$\raisebox{2ex}{\hypertarget{A7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{A7e}{}}-0.168 & \raisebox{2ex}{\hypertarget{A7f}{}}-0.156 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Income}: Income level on a scale of \raisebox{2ex}{\hypertarget{A8a}{}}1 to \raisebox{2ex}{\hypertarget{A8b}{}}8 (\raisebox{2ex}{\hypertarget{A8c}{}}1= $<$=\raisebox{2ex}{\hypertarget{A8d}{}}10K, \raisebox{2ex}{\hypertarget{A8e}{}}2= $<$=\raisebox{2ex}{\hypertarget{A8f}{}}15K, \raisebox{2ex}{\hypertarget{A8g}{}}3= $<$=\raisebox{2ex}{\hypertarget{A8h}{}}20K, \raisebox{2ex}{\hypertarget{A8i}{}}4= $<$=\raisebox{2ex}{\hypertarget{A8j}{}}25K, \raisebox{2ex}{\hypertarget{A8k}{}}5= $<$=\raisebox{2ex}{\hypertarget{A8l}{}}35K, \raisebox{2ex}{\hypertarget{A8m}{}}6= $<$=\raisebox{2ex}{\hypertarget{A8n}{}}50K, \raisebox{2ex}{\hypertarget{A8o}{}}7= $<$=\raisebox{2ex}{\hypertarget{A8p}{}}75K, \raisebox{2ex}{\hypertarget{A8q}{}}8= $>$\raisebox{2ex}{\hypertarget{A8r}{}}75K)
+\item \textbf{z}: z-value or z-score is the coefficient divided by its standard error.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Subsequently, to ascertain the role of income as a moderator in the diet and diabetes risk relationship, we added interaction terms to our regression model between diet quality and income. The moderating effects seen in Table {}\ref{table:table_2} were significant for both F-Income (\hyperlink{B5a}{-0.0251}, P=\hyperlink{B5d}{$8.19\ 10^{-6}$}) and V-Income (\hyperlink{B6a}{-0.0166}, P=\hyperlink{B6d}{0.0112}). These results indicate that the protective associations of fruit and vegetable consumption on diabetes risk are influenced by income level, suggesting that higher income levels may strengthen these protective effects. Consistency in the significance of Age (\hyperlink{B7a}{0.172}, P$<$\hyperlink{B7d}{$10^{-6}$}), Sex (\hyperlink{B8a}{0.319}, P$<$\hyperlink{B8d}{$10^{-6}$}), and Education (\hyperlink{B9a}{-0.13}, P$<$\hyperlink{B9d}{$10^{-6}$}) was also observed when considering these income interactions.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Moderating effect of income on the relationship between diet and the risk of diabetes.}}
+\label{table:table_2}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coef. & Std.Err & z & P$>$\textbar{}z\textbar{} & [\raisebox{2ex}{\hypertarget{B0a}{}}0.025 & \raisebox{2ex}{\hypertarget{B0b}{}}0.975 \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B1a}{}}-1.8 & \raisebox{2ex}{\hypertarget{B1b}{}}0.0443 & \raisebox{2ex}{\hypertarget{B1c}{}}-40.7 & $<$\raisebox{2ex}{\hypertarget{B1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B1e}{}}-1.89 & \raisebox{2ex}{\hypertarget{B1f}{}}-1.72 \\
+\textbf{Fruit} & \raisebox{2ex}{\hypertarget{B2a}{}}-0.0497 & \raisebox{2ex}{\hypertarget{B2b}{}}0.0328 & \raisebox{2ex}{\hypertarget{B2c}{}}-1.52 & \raisebox{2ex}{\hypertarget{B2d}{}}0.13 & \raisebox{2ex}{\hypertarget{B2e}{}}-0.114 & \raisebox{2ex}{\hypertarget{B2f}{}}0.0146 \\
+\textbf{Veggies} & \raisebox{2ex}{\hypertarget{B3a}{}}-0.0459 & \raisebox{2ex}{\hypertarget{B3b}{}}0.0361 & \raisebox{2ex}{\hypertarget{B3c}{}}-1.27 & \raisebox{2ex}{\hypertarget{B3d}{}}0.204 & \raisebox{2ex}{\hypertarget{B3e}{}}-0.117 & \raisebox{2ex}{\hypertarget{B3f}{}}0.0249 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{B4a}{}}-0.135 & \raisebox{2ex}{\hypertarget{B4b}{}}0.00598 & \raisebox{2ex}{\hypertarget{B4c}{}}-22.5 & $<$\raisebox{2ex}{\hypertarget{B4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B4e}{}}-0.146 & \raisebox{2ex}{\hypertarget{B4f}{}}-0.123 \\
+\textbf{F-Income} & \raisebox{2ex}{\hypertarget{B5a}{}}-0.0251 & \raisebox{2ex}{\hypertarget{B5b}{}}0.00563 & \raisebox{2ex}{\hypertarget{B5c}{}}-4.46 & \raisebox{2ex}{\hypertarget{B5d}{}}$8.19\ 10^{-6}$ & \raisebox{2ex}{\hypertarget{B5e}{}}-0.0361 & \raisebox{2ex}{\hypertarget{B5f}{}}-0.0141 \\
+\textbf{V-Income} & \raisebox{2ex}{\hypertarget{B6a}{}}-0.0166 & \raisebox{2ex}{\hypertarget{B6b}{}}0.00654 & \raisebox{2ex}{\hypertarget{B6c}{}}-2.54 & \raisebox{2ex}{\hypertarget{B6d}{}}0.0112 & \raisebox{2ex}{\hypertarget{B6e}{}}-0.0294 & \raisebox{2ex}{\hypertarget{B6f}{}}-0.00377 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{B7a}{}}0.172 & \raisebox{2ex}{\hypertarget{B7b}{}}0.00218 & \raisebox{2ex}{\hypertarget{B7c}{}}79.1 & $<$\raisebox{2ex}{\hypertarget{B7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B7e}{}}0.168 & \raisebox{2ex}{\hypertarget{B7f}{}}0.176 \\
+\textbf{Sex} & \raisebox{2ex}{\hypertarget{B8a}{}}0.319 & \raisebox{2ex}{\hypertarget{B8b}{}}0.0121 & \raisebox{2ex}{\hypertarget{B8c}{}}26.3 & $<$\raisebox{2ex}{\hypertarget{B8d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B8e}{}}0.295 & \raisebox{2ex}{\hypertarget{B8f}{}}0.343 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{B9a}{}}-0.13 & \raisebox{2ex}{\hypertarget{B9b}{}}0.00636 & \raisebox{2ex}{\hypertarget{B9c}{}}-20.5 & $<$\raisebox{2ex}{\hypertarget{B9d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B9e}{}}-0.143 & \raisebox{2ex}{\hypertarget{B9f}{}}-0.118 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Income}: Income level on a scale of \raisebox{2ex}{\hypertarget{B10a}{}}1 to \raisebox{2ex}{\hypertarget{B10b}{}}8 (\raisebox{2ex}{\hypertarget{B10c}{}}1= $<$=\raisebox{2ex}{\hypertarget{B10d}{}}10K, \raisebox{2ex}{\hypertarget{B10e}{}}2= $<$=\raisebox{2ex}{\hypertarget{B10f}{}}15K, \raisebox{2ex}{\hypertarget{B10g}{}}3= $<$=\raisebox{2ex}{\hypertarget{B10h}{}}20K, \raisebox{2ex}{\hypertarget{B10i}{}}4= $<$=\raisebox{2ex}{\hypertarget{B10j}{}}25K, \raisebox{2ex}{\hypertarget{B10k}{}}5= $<$=\raisebox{2ex}{\hypertarget{B10l}{}}35K, \raisebox{2ex}{\hypertarget{B10m}{}}6= $<$=\raisebox{2ex}{\hypertarget{B10n}{}}50K, \raisebox{2ex}{\hypertarget{B10o}{}}7= $<$=\raisebox{2ex}{\hypertarget{B10p}{}}75K, \raisebox{2ex}{\hypertarget{B10q}{}}8= $>$\raisebox{2ex}{\hypertarget{B10r}{}}75K)
+\item \textbf{F-Income}: Interaction between Fruit consumption and Income
+\item \textbf{V-Income}: Interaction between Vegetable consumption and Income
+\item \textbf{z}: z-value or z-score is the coefficient divided by its standard error.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Finally, the prevalence of diabetes within the study population was determined. The total participant count being \hyperlink{R0a}{253,680}, with the diabetes prevalence amounting to \hyperlink{R1a}{13.93}\%, resulted in an estimated number of individuals affected by diabetes calculated as [calculated number of patients]. These figures highlight the significance of income in the context of diabetes risk across a large demographic.
+
+Taken together, these results elucidate an association between a quality diet rich in fruits and vegetables and a decreased risk of developing diabetes, further moderated by income levels. The findings also suggest that the incidence of diabetes increases with age and is higher in males, while more education seems associated with reduced risk. These insights from a national survey help clarify the multifaceted relationship between socioeconomic factors, dietary habits, and diabetes risk.
+
+\section*{Discussion}
+
+Our study contributes valuable insights to the critical public health challenge of diabetes by investigating the interrelationships among dietary habits, notably the intake of fruits and vegetables, socioeconomic status, and diabetes risk \cite{Akter2014PrevalenceOD, Bazzano2008IntakeOF, Carter2010FruitAV}. Tapping into the expansive Behavioral Risk Factor Surveillance System (BRFSS) dataset from 2015 allowed us to delve into these associations across a vast and diverse cross-section of American society \cite{Rolle-Lake2020BehavioralRF, Pierannunzi2013ASR}, addressing a clear gap in the existing research landscape concerning the interplay between diet, socioeconomic factors, and diabetes risk.
+
+In line with previous research, our results underscored the protective effects of increased consumption of fruits and vegetables against diabetes \cite{Bazzano2008IntakeOF, Carter2010FruitAV}. Exploring further, we brought to light the moderating impact of income on these dietary benefits, strengthening the protective shielding against diabetes with higher income levels. This novel finding pertaining to the interactive effects of diet and income highlights the multiplicities of influence inherent in socioeconomic factors and their profound impact on health outcomes. 
+
+Comparative evaluation with extant literature confirmed consistency in certain demographic associations with diabetes risk. Our study aligned with others demonstrating increases in this risk with advancing age and male gender \cite{Seiglie2020DiabetesPA, Chan1994ObesityFD}. Furthermore, the diabetes prevalence within our study population was 13.93\%, reinforcing the significance of the disorder as a major nationwide health concern.
+
+Our study, like many epidemiological studies based on self-reported data, is not without limitations. While the BRFSS adopts rigorous methodologies to ensure sound data collection, the potential for recall bias or misreporting cannot be completely eliminated. Additionally, the cross-sectional nature of our investigation precludes causal inferences. While our choice of fruits and vegetables intake as a proxy for diet quality provided important insights, it undoubtedly simplifies the complexities of human diet patterns and the myriad of nutritional influences on diabetes risk.
+
+Despite these limitations, the findings have substantial implications for policymakers and public health practitioners. The interactive effects of diet and income underscored in our analysis highlight the need for interventions to be tailored to socioeconomic realities. Informed by our findings, strategies could aim at reducing health disparities by intensifying diet-related support within different income groups, thereby augmenting the protective effects of a healthy diet against diabetes. 
+
+In conclusion, our study, with its quantitative examination of the combined effects of diet and socioeconomic factors on diabetes risk, adds a noteworthy layer of understanding to the expanding tapestry of diabetes research. We affirm that a quality diet rich in fruits and vegetables acts protectively against diabetes and that this protection is further bolstered by higher income levels. We contended with prevalent health determinants such as advancing age, male gender, and lower education, spotlighting their critical relevance in the diabetic context. Given the pressing nature of the diabetes epidemic, it is incumbent upon both the scientific community and health policymakers to take these insights forward, prompting further research and policy initiatives tailored to this multifaceted threat. Future research directions might explore the dietary impacts of foods beyond fruits and vegetables on diabetes and employ longitudinal datasets enabling a more comprehensive deciphering of cause-effect relationships.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The investigation utilized a comprehensive dataset derived from the Centers for Disease Control and Prevention's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. This yearly survey gathers information on health-related risk behaviors, chronic health conditions, and the use of preventative services from a broad cross-section of over 400,000 American citizens. The dataset available for this study included responses from 253,680 participants encompassing various health indicators, demographic information, and socioeconomic factors. Notably, the dataset was pre-cleaned, ensuring the absence of missing values.
+
+\subsection*{Data Preprocessing}
+In the current study, no additional preprocessing was required as the dataset used was already devoid of missing values and presented in a format appropriate for analysis. Consequently, the data as received was ready for direct application to logistic regression models to explore the associations of interest.
+
+\subsection*{Data Analysis}
+Our analysis centered around two statistical models to investigate the relationship between dietary habits, income level, and the risk of diabetes. Initially, we applied a logistic regression model incorporating dietary intake of fruits and vegetables as primary independent variables while controlling for confounders such as age, gender, education, and income. The model aimed to quantify the association of fruit and vegetable consumption with the occurrence of diabetes. Further, to explore income level as a potential moderating factor, we constructed a second logistic regression model that included an interaction term representing the cross-effect between dietary habits and income. This model adjusted for the same confounders as the first to ensure a reliable interpretation of the interaction effects. Both models thus provided estimates of odds ratios that elucidated the relationships between the chosen variables and diabetes risk. Lastly, alongside our primary analytical outputs, we computed additional descriptive metrics that contextualized the sample size and the proportion of diabetes occurrences within the population under study.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)The dataset includes diabetes related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS), year (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2015.
+The original BRFSS, from which this dataset is derived, is a health-related telephone survey that is collected annually by the CDC.
+Each year, the survey collects responses from over (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.
+
+
+1 data file:
+
+"diabetes_binary_health_indicators_BRFSS2015.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The csv file is a clean dataset of (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)253,680 responses (rows) and (*@\raisebox{2ex}{\hypertarget{T0b}{}}@*)22 features (columns).
+All rows with missing values were removed from the original dataset; the current file contains no missing values.
+
+The columns in the dataset are:
+
+#1 `Diabetes_binary`: (int, bool) Diabetes ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=yes)
+#2 `HighBP`: (int, bool) High Blood Pressure ((*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)1=yes)
+#3 `HighChol`: (int, bool) High Cholesterol ((*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)1=yes)
+#4 `CholCheck`: (int, bool) Cholesterol check in (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T4c}{}}@*)1=yes)
+#5 `BMI`: (int, numerical) Body Mass Index
+#6 `Smoker`: (int, bool) ((*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)1=yes)
+#7 `Stroke`: (int, bool) Stroke ((*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)1=yes)
+#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), ((*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)1=yes)
+#9 `PhysActivity`: (int, bool) Physical Activity in past (*@\raisebox{2ex}{\hypertarget{T8a}{}}@*)30 days ((*@\raisebox{2ex}{\hypertarget{T8b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T8c}{}}@*)1=yes)
+#10 `Fruits`: (int, bool) Consume one fruit or more each day ((*@\raisebox{2ex}{\hypertarget{T9a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T9b}{}}@*)1=yes)
+#11 `Veggies`: (int, bool) Consume one Vegetable or more each day ((*@\raisebox{2ex}{\hypertarget{T10a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T10b}{}}@*)1=yes)
+#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers ((*@\raisebox{2ex}{\hypertarget{T11a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T11b}{}}@*)1=yes)
+#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage ((*@\raisebox{2ex}{\hypertarget{T12a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T12b}{}}@*)1=yes)
+#14 `NoDocbcCost` (int, bool) Was there a time in the past (*@\raisebox{2ex}{\hypertarget{T13a}{}}@*)12 months when you needed to see a doctor but could not because of cost? ((*@\raisebox{2ex}{\hypertarget{T13b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T13c}{}}@*)1=yes)
+#15 `GenHlth` (int, ordinal) self-reported health ((*@\raisebox{2ex}{\hypertarget{T14a}{}}@*)1=excellent, (*@\raisebox{2ex}{\hypertarget{T14b}{}}@*)2=very good, (*@\raisebox{2ex}{\hypertarget{T14c}{}}@*)3=good, (*@\raisebox{2ex}{\hypertarget{T14d}{}}@*)4=fair, (*@\raisebox{2ex}{\hypertarget{T14e}{}}@*)5=poor)
+#16 `MentHlth` (int, ordinal) How many days during the past (*@\raisebox{2ex}{\hypertarget{T15a}{}}@*)30 days was your mental health not good? ((*@\raisebox{2ex}{\hypertarget{T15b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T15c}{}}@*)30 days)
+#17 `PhysHlth` (int, ordinal) Hor how many days during the past (*@\raisebox{2ex}{\hypertarget{T16a}{}}@*)30 days was your physical health not good? ((*@\raisebox{2ex}{\hypertarget{T16b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T16c}{}}@*)30 days)
+#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing stairs? ((*@\raisebox{2ex}{\hypertarget{T17a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T17b}{}}@*)1=yes)
+#19 `Sex` (int, categorical) Sex ((*@\raisebox{2ex}{\hypertarget{T18a}{}}@*)0=female, (*@\raisebox{2ex}{\hypertarget{T18b}{}}@*)1=male)
+#20 `Age` (int, ordinal) Age, (*@\raisebox{2ex}{\hypertarget{T19a}{}}@*)13-level age category in intervals of (*@\raisebox{2ex}{\hypertarget{T19b}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T19c}{}}@*)1= (*@\raisebox{2ex}{\hypertarget{T19d}{}}@*)18 - (*@\raisebox{2ex}{\hypertarget{T19e}{}}@*)24, (*@\raisebox{2ex}{\hypertarget{T19f}{}}@*)2= (*@\raisebox{2ex}{\hypertarget{T19g}{}}@*)25 - (*@\raisebox{2ex}{\hypertarget{T19h}{}}@*)29, ..., (*@\raisebox{2ex}{\hypertarget{T19i}{}}@*)12= (*@\raisebox{2ex}{\hypertarget{T19j}{}}@*)75 - (*@\raisebox{2ex}{\hypertarget{T19k}{}}@*)79, (*@\raisebox{2ex}{\hypertarget{T19l}{}}@*)13 = (*@\raisebox{2ex}{\hypertarget{T19m}{}}@*)80 or older)
+#21 `Education` (int, ordinal) Education level on a scale of (*@\raisebox{2ex}{\hypertarget{T20a}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T20b}{}}@*)6 ((*@\raisebox{2ex}{\hypertarget{T20c}{}}@*)1=Never attended school, (*@\raisebox{2ex}{\hypertarget{T20d}{}}@*)2=Elementary, (*@\raisebox{2ex}{\hypertarget{T20e}{}}@*)3=Some high school, (*@\raisebox{2ex}{\hypertarget{T20f}{}}@*)4=High school, (*@\raisebox{2ex}{\hypertarget{T20g}{}}@*)5=Some college, (*@\raisebox{2ex}{\hypertarget{T20h}{}}@*)6=College)
+#22 `Income` (int, ordinal) Income scale on a scale of (*@\raisebox{2ex}{\hypertarget{T21a}{}}@*)1 to (*@\raisebox{2ex}{\hypertarget{T21b}{}}@*)8 ((*@\raisebox{2ex}{\hypertarget{T21c}{}}@*)1= <=(*@\raisebox{2ex}{\hypertarget{T21d}{}}@*)10K, (*@\raisebox{2ex}{\hypertarget{T21e}{}}@*)2= <=(*@\raisebox{2ex}{\hypertarget{T21f}{}}@*)15K, (*@\raisebox{2ex}{\hypertarget{T21g}{}}@*)3= <=(*@\raisebox{2ex}{\hypertarget{T21h}{}}@*)20K, (*@\raisebox{2ex}{\hypertarget{T21i}{}}@*)4= <=(*@\raisebox{2ex}{\hypertarget{T21j}{}}@*)25K, (*@\raisebox{2ex}{\hypertarget{T21k}{}}@*)5= <=(*@\raisebox{2ex}{\hypertarget{T21l}{}}@*)35K, (*@\raisebox{2ex}{\hypertarget{T21m}{}}@*)6= <=(*@\raisebox{2ex}{\hypertarget{T21n}{}}@*)50K, (*@\raisebox{2ex}{\hypertarget{T21o}{}}@*)7= <=(*@\raisebox{2ex}{\hypertarget{T21p}{}}@*)75K, (*@\raisebox{2ex}{\hypertarget{T21q}{}}@*)8= >75K)
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+# Import needed packages
+import pandas as pd
+import numpy as np
+
+# Load the dataset
+df = pd.read_csv('diabetes_binary_health_indicators_BRFSS2015.csv')
+
+# Creating a text file
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open('data_exploration.txt', 'w') as f:
+    # Data Size
+    f.write("# Data Size\n")
+    f.write("Number of rows: "+str(df.shape[0])+"\n")
+    f.write("Number of columns: "+str(df.shape[1])+"\n\n")
+    
+    # Summary Statistics
+    f.write("# Summary Statistics\n")
+    f.write(str(df.describe())+"\n\n")
+    
+    # Categorical Variables
+    categorical_vars = ['Diabetes_binary', 'HighBP', 'HighChol', 'CholCheck', 'Smoker', 'Stroke', 
+                        'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump',
+                        'AnyHealthcare', 'NoDocbcCost', 'DiffWalk', 'Sex']
+    f.write("# Categorical Variables\n")
+    for var in categorical_vars:
+        f.write("Most common value in "+var+": "+str(df[var].mode().values[0])+"\n")
+    f.write("\n")
+
+    # Missing Values
+    f.write("# Missing Values\n")
+    f.write("There are no missing values in the dataset as per the dataset description.")
+    f.write("However, we still check:\n")
+    df_missing = df.isnull().sum()
+    # Check if there are any missing values at all
+    if df_missing.sum() == 0:
+        f.write("Confirmed, No missing values\n")
+    else:
+        f.write(str(df_missing[df_missing > 0]))
+    f.write("\n\n")
+    
+    # Other summaries (if you find relevant given the dataset and your task)
+
+# Close the file
+f.close()
+
+\end{python}
+
+\subsection{Code Description}
+
+The code performs data exploration on the given dataset of diabetes-related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. 
+
+The code begins by loading the dataset using the pandas library. 
+
+Next, a text file named "data\_exploration.txt" is created to store the results of the data exploration.
+
+The code then proceeds to perform various analysis steps on the dataset and writes the results into the text file.
+
+1. Data Size:
+   The code calculates the number of rows and columns in the dataset using the shape attribute of the DataFrame and writes these values into the text file.
+
+2. Summary Statistics:
+   The code calculates the summary statistics of the numerical variables in the dataset using the describe() function of pandas DataFrame. 
+   These statistics include count, mean, standard deviation, minimum, 25th percentile, median, 75th percentile, and maximum.
+   The summary statistics are written into the text file.
+
+3. Categorical Variables:
+   The code identifies the categorical variables in the dataset and calculates the most common value for each categorical variable using the mode() function of pandas DataFrame.
+   The most common values for each categorical variable are written into the text file.
+
+4. Missing Values:
+   The code checks if there are any missing values in the dataset using the isnull() function of pandas DataFrame.
+   If there are no missing values as confirmed by the dataset description, the code writes a confirmation message into the text file.
+   If there are any missing values, the code calculates the number of missing values for each variable and writes them into the text file.
+
+5. Other Summaries:
+   The code provides flexibility to include other relevant summaries if required based on the dataset and the task at hand.
+   However, in the provided code, there are no additional summaries included.
+
+Finally, the text file is closed.
+
+The "data\_exploration.txt" file contains the results of the data exploration, including the data size, summary statistics, most common values for categorical variables, and information about missing values (if present).
+These results can be used for further analysis and understanding of the dataset.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+# Data Size
+Number of rows: 253680
+Number of columns: 22
+
+# Summary Statistics
+       Diabetes_binary  HighBP  HighChol  CholCheck    BMI  Smoker  Stroke  HeartDiseaseorAttack  PhysActivity  Fruits  Veggies  HvyAlcoholConsump  AnyHealthcare  NoDocbcCost  GenHlth  MentHlth  PhysHlth  DiffWalk    Sex    Age  Education  Income
+count           253680  253680    253680     253680 253680  253680  253680                253680        253680  253680   253680             253680         253680       253680   253680    253680    253680    253680 253680 253680     253680  253680
+mean            0.1393   0.429    0.4241     0.9627  28.38  0.4432 0.04057               0.09419        0.7565  0.6343   0.8114             0.0562         0.9511      0.08418    2.511     3.185     4.242    0.1682 0.4403  8.032       5.05   6.054
+std             0.3463  0.4949    0.4942     0.1896  6.609  0.4968  0.1973                0.2921        0.4292  0.4816   0.3912             0.2303         0.2158       0.2777    1.068     7.413     8.718    0.3741 0.4964  3.054     0.9858   2.071
+min                  0       0         0          0     12       0       0                     0             0       0        0                  0              0            0        1         0         0         0      0      1          1       1
+25%                  0       0         0          1     24       0       0                     0             1       0        1                  0              1            0        2         0         0         0      0      6          4       5
+50%                  0       0         0          1     27       0       0                     0             1       1        1                  0              1            0        2         0         0         0      0      8          5       7
+75%                  0       1         1          1     31       1       0                     0             1       1        1                  0              1            0        3         2         3         0      1     10          6       8
+max                  1       1         1          1     98       1       1                     1             1       1        1                  1              1            1        5        30        30         1      1     13          6       8
+
+# Categorical Variables
+Most common value in Diabetes_binary: 0
+Most common value in HighBP: 0
+Most common value in HighChol: 0
+Most common value in CholCheck: 1
+Most common value in Smoker: 0
+Most common value in Stroke: 0
+Most common value in HeartDiseaseorAttack: 0
+Most common value in PhysActivity: 1
+Most common value in Fruits: 1
+Most common value in Veggies: 1
+Most common value in HvyAlcoholConsump: 0
+Most common value in AnyHealthcare: 1
+Most common value in NoDocbcCost: 0
+Most common value in DiffWalk: 0
+Most common value in Sex: 0
+
+# Missing Values
+There are no missing values in the dataset as per the dataset description.However, we still check:
+Confirmed, No missing values
+
+
+
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import statsmodels.formula.api as smf
+import pickle
+
+# LOAD DATA
+df = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed, data is already clean.
+
+# DESCRIPTIVE STATISTICS
+# No descriptive statistics table is needed.
+
+# PREPROCESSING 
+# No preprocessing is needed because all data has been preprocessed in the dataset preparation step.
+
+# ANALYSIS
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Association between fruit and vegetable consumption and risk of diabetes"
+# Run logistic regression model adjusting for confounding variables
+model = smf.logit('Diabetes_binary ~ Fruits + Veggies + Age + Sex + Education + Income', data=df)
+result = model.fit()
+df1 = pd.DataFrame(result.summary2().tables[1])
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Income level as a moderator in the relationship between fruit and vegetable consumption and risk of diabetes"
+# Run logistic regression model adjusting for confounders and including interaction between dietary habits and income
+model = smf.logit('Diabetes_binary ~ Fruits + Veggies + Income + Fruits:Income + Veggies:Income + Age + Sex + Education', data=df)
+result = model.fit()
+df2 = pd.DataFrame(result.summary2().tables[1])
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': df.shape[0],
+    'Percentage of diabetes patients': df.Diabetes_binary.mean() * 100,
+}
+
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The code performs a data analysis on a dataset containing diabetes-related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. The dataset consists of 253,680 responses and 22 features.
+
+The code begins by importing necessary libraries and loading the dataset into a pandas DataFrame called "df".
+
+Next, the code prepares the dataset for analysis. Since the dataset is already clean, no additional dataset preparations are needed.
+
+The code then proceeds to analyze the data using two logistic regression models.
+
+In the first analysis, a logistic regression model is run to investigate the association between fruit and vegetable consumption and the risk of diabetes. The model adjusts for confounding variables such as age, sex, education, and income. The results of the model are saved as a DataFrame called "df1" and written to a pickle file named "table\_1.pkl".
+
+In the second analysis, a logistic regression model is run to examine the moderating effect of income on the relationship between fruit and vegetable consumption and the risk of diabetes. The model includes interactions between dietary habits (fruits and vegetables) and income, as well as adjusts for confounders such as age, sex, and education. The results of the model are saved as a DataFrame called "df2" and written to a pickle file named "table\_2.pkl".
+
+Additionally, the code saves some additional results in a pickle file named "additional\_results.pkl". These results include the total number of observations in the dataset and the percentage of diabetes patients.
+
+Overall, the code performs data analysis by running logistic regression models to explore the association between fruit and vegetable consumption and the risk of diabetes, as well as the moderating effect of income on this relationship. The code provides regression results for these analyses and saves them as pickle files. It also saves additional results related to the dataset.
+
+\subsection{Code Output}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+            Coef. Std.Err.      z      P>|z|  [0.025   0.975]
+Intercept  -1.671  0.03639 -45.91          0  -1.742   -1.599
+Fruits    -0.1846  0.01264 -14.61   2.56e-48 -0.2094  -0.1599
+Veggies   -0.1265  0.01476 -8.569   1.05e-17 -0.1554 -0.09753
+Age        0.1724 0.002177  79.21          0  0.1681   0.1767
+Sex        0.3199  0.01214  26.36  4.15e-153  0.2961   0.3436
+Education -0.1311 0.006359 -20.62   1.75e-94 -0.1436  -0.1187
+Income    -0.1617 0.003057 -52.88          0 -0.1677  -0.1557
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+                  Coef. Std.Err.      z      P>|z|   [0.025    0.975]
+Intercept        -1.805  0.04433 -40.71          0   -1.892    -1.718
+Fruits         -0.04971  0.03279 -1.516       0.13   -0.114   0.01457
+Veggies        -0.04591  0.03613 -1.271      0.204  -0.1167    0.0249
+Income          -0.1347 0.005982 -22.52   2.4e-112  -0.1465    -0.123
+Fruits:Income   -0.0251 0.005629  -4.46   8.19e-06 -0.03614  -0.01407
+Veggies:Income -0.01659 0.006541 -2.536     0.0112 -0.02941 -0.003771
+Age              0.1721 0.002176   79.1          0   0.1679    0.1764
+Sex               0.319  0.01214  26.27  4.42e-152   0.2952    0.3428
+Education       -0.1304 0.006356 -20.53   1.28e-93  -0.1429    -0.118
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)253680,
+    'Percentage of diabetes patients': (*@\raisebox{2ex}{\hypertarget{R1a}{}}@*)13.93             ,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+from typing import Dict, Any, Optional, Tuple
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# Type Aliases
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'Fruits': ('Fruit', None),
+    'Veggies': ('Veggies', None),
+    'Income': ('Income', 'Income level on a scale of 1 to 8 (1= <=10K, 2= <=15K, 3= <=20K, 4= <=25K, 5= <=35K, 6= <=50K, 7= <=75K, 8= >75K)'),
+    'Fruits:Income': ('F-Income', 'Interaction between Fruit consumption and Income'),
+    'Veggies:Income': ('V-Income', 'Interaction between Vegetable consumption and Income'),
+    'z': ('z', 'z-value or z-score is the coefficient divided by its standard error.'),
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# extracting relevant labels from shared_mapping
+mapping1 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df1, k)}
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1, inplace=True)
+
+# Rename longer column names
+df1.rename(columns={'Std.Err.': 'Std.Err', 'P>|z|': 'P>|z|',
+                    '[0.025': '[0.025', '0.975]': '0.975'
+                    }, inplace=True)
+
+to_latex_with_note(
+    df1,
+    'table_1.tex',
+    caption="Association between diet and the risk of diabetes, adjusted for different confounders.",
+    label='table:table_1',
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+mapping2 = {k: v for k, v in shared_mapping.items() if is_str_in_df(df2, k)}
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2, inplace=True)
+
+# Rename longer column names
+df2.rename(columns={'Std.Err.': 'Std.Err', 'P>|z|': 'P>|z|',
+                    '[0.025': '[0.025', '0.975]': '0.975'
+                    }, inplace=True)
+
+to_latex_with_note(
+    df2,
+    'table_2.tex',
+    caption="Moderating effect of income on the relationship between diet and the risk of diabetes.",
+    label='table:table_2',
+    legend=legend2)
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{Association between diet and the risk of diabetes, adjusted for different confounders.}
+\label{table:table_1}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coef. & Std.Err & z & P$>$\textbar{}z\textbar{} & [0.025 & 0.975 \\
+\midrule
+\textbf{Intercept} & -1.67 & 0.0364 & -45.9 & $<$1e-06 & -1.74 & -1.6 \\
+\textbf{Fruit} & -0.185 & 0.0126 & -14.6 & $<$1e-06 & -0.209 & -0.16 \\
+\textbf{Veggies} & -0.126 & 0.0148 & -8.57 & $<$1e-06 & -0.155 & -0.0975 \\
+\textbf{Age} & 0.172 & 0.00218 & 79.2 & $<$1e-06 & 0.168 & 0.177 \\
+\textbf{Sex} & 0.32 & 0.0121 & 26.4 & $<$1e-06 & 0.296 & 0.344 \\
+\textbf{Education} & -0.131 & 0.00636 & -20.6 & $<$1e-06 & -0.144 & -0.119 \\
+\textbf{Income} & -0.162 & 0.00306 & -52.9 & $<$1e-06 & -0.168 & -0.156 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Income}: Income level on a scale of 1 to 8 (1= $<$=10K, 2= $<$=15K, 3= $<$=20K, 4= $<$=25K, 5= $<$=35K, 6= $<$=50K, 7= $<$=75K, 8= $>$75K)
+\item \textbf{z}: z-value or z-score is the coefficient divided by its standard error.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{Moderating effect of income on the relationship between diet and the risk of diabetes.}
+\label{table:table_2}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lllllll}
+\toprule
+ & Coef. & Std.Err & z & P$>$\textbar{}z\textbar{} & [0.025 & 0.975 \\
+\midrule
+\textbf{Intercept} & -1.8 & 0.0443 & -40.7 & $<$1e-06 & -1.89 & -1.72 \\
+\textbf{Fruit} & -0.0497 & 0.0328 & -1.52 & 0.13 & -0.114 & 0.0146 \\
+\textbf{Veggies} & -0.0459 & 0.0361 & -1.27 & 0.204 & -0.117 & 0.0249 \\
+\textbf{Income} & -0.135 & 0.00598 & -22.5 & $<$1e-06 & -0.146 & -0.123 \\
+\textbf{F-Income} & -0.0251 & 0.00563 & -4.46 & 8.19e-06 & -0.0361 & -0.0141 \\
+\textbf{V-Income} & -0.0166 & 0.00654 & -2.54 & 0.0112 & -0.0294 & -0.00377 \\
+\textbf{Age} & 0.172 & 0.00218 & 79.1 & $<$1e-06 & 0.168 & 0.176 \\
+\textbf{Sex} & 0.319 & 0.0121 & 26.3 & $<$1e-06 & 0.295 & 0.343 \\
+\textbf{Education} & -0.13 & 0.00636 & -20.5 & $<$1e-06 & -0.143 & -0.118 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Income}: Income level on a scale of 1 to 8 (1= $<$=10K, 2= $<$=15K, 3= $<$=20K, 4= $<$=25K, 5= $<$=35K, 6= $<$=50K, 7= $<$=75K, 8= $>$75K)
+\item \textbf{F-Income}: Interaction between Fruit consumption and Income
+\item \textbf{V-Income}: Interaction between Vegetable consumption and Income
+\item \textbf{z}: z-value or z-score is the coefficient divided by its standard error.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{codeoutput}
+
+\end{document}

@@ -1,0 +1,7 @@
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Higher fruit and vegetable consumption is associated with a lower risk of developing diabetes
+Statistical Test: Logistic regression with fruit and vegetable consumption as the independent variable and diabetes (binary) as the dependent variable while adjusting for confounding variables such as age, sex, education, and income.
+
+Hypothesis: The association between fruit and vegetable consumption and diabetes risk is moderated by income level
+Statistical Test: Logistic regression with fruit and vegetable consumption and income level as independent variables and diabetes (binary) as the dependent variable while adjusting for confounding variables such as age and sex. Interaction term (fruit and vegetable consumption x income level) can be included to test the moderation effect.
