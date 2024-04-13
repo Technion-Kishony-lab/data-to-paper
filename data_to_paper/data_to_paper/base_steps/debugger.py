@@ -560,7 +560,7 @@ class DebuggerConverser(BackgroundProductsConverser):
             return None
 
         # Code passes static checks. We can now run the code.
-        code_and_output, issues, contexts, exception = code_runner.run_code_in_separate_process()
+        code_and_output, issues, contexts, exception = code_runner.run()
         if exception is not None:
             if isinstance(exception, RunIssue):
                 run_time_issue = exception

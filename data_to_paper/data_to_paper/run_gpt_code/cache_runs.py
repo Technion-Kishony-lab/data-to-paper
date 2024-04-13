@@ -89,12 +89,13 @@ class CacheRunToFile:
             + tuple(args) + tuple(kwargs.items())
 
         if key in cache:
-            print_and_log("Using cached code-running output.")
+            print_and_log(f"{self.__class__.__name__}: Using cached output.")
             results, filenames = cache[key]
             with run_in_directory(self._get_run_directory()):
                 _write_files(filenames)
             return results
 
+        print_and_log(f"{self.__class__.__name__}: Running and caching output.")
         # Call the function and cache the result along with any created files
         with run_in_directory(self._get_run_directory()):
             with TrackCreatedFiles() as track_created_files:

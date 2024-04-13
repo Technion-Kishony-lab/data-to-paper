@@ -10,22 +10,26 @@ from pathlib import Path
 from typing import Optional, Iterable, Tuple, List, Dict, Any, Type
 
 from data_to_paper.env import MAX_EXEC_TIME
+from data_to_paper.utils.mutable import Mutable
 from data_to_paper.run_gpt_code.dynamic_code import RunCode, is_serializable
 from data_to_paper.run_gpt_code.code_utils import extract_code_from_text
 from data_to_paper.utils import line_count
-from .base_run_contexts import RunContext
 
-from .exceptions import FailedRunningCode, CodeTimeoutException
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
-from .run_issues import RunIssue
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
+
+from .base_run_contexts import RunContext
+from .cache_runs import CacheRunToFile
+from .run_issues import RunIssue
+from .exceptions import FailedRunningCode, CodeTimeoutException
 
 # process.queue fails on Mac OS X with large objects. Use file-based transfer instead.
 FILE_BASED_TRANSFER = True
+RUN_CACHE_FILEPATH = Mutable(None)
 
 
 @dataclass
-class BaseCodeRunner(ABC):
+class BaseCodeRunner(CacheRunToFile, ABC):
     response: str = None  # response from the LLM (contains code)
     script_file_path: Optional[Path] = None  # where to save the script after running. If None, don't save.
     run_folder: Optional[Path] = None
@@ -37,6 +41,7 @@ class BaseCodeRunner(ABC):
     code_and_output_cls: Type[CodeAndOutput] = CodeAndOutput
     _lines_added_in_front_of_code: int = None
     timeout_sec: int = MAX_EXEC_TIME.val
+    cache_filepath: Path = field(default_factory=lambda: RUN_CACHE_FILEPATH.val)
 
     @property
     def lines_added_in_front_of_code(self) -> int:
@@ -106,6 +111,15 @@ class BaseCodeRunner(ABC):
             self.get_run_code().run(code=modified_code, save_as=self.script_file_path)
 
         return self._get_code_and_output(code, result, created_files, contexts), issues, contexts, exception
+
+    def _get_run_directory(self):
+        return self.run_folder
+
+    def _get_instance_key(self) -> tuple:
+        return (self.get_modified_code_for_run(self.get_raw_code()), )
+
+    def _run(self):
+        return self.run_code_in_separate_process()
 
     def run_code_in_separate_process(self) \
             -> Tuple[Optional[CodeAndOutput], List[RunIssue], Dict[str, RunContext], Optional[FailedRunningCode]]:
