@@ -54,7 +54,7 @@ class CacheRunToFile:
     Also caches the files created during the run.
     Files pre-existing in the run directory are considered part of the run input.
     """
-    cache_filepath: Union[str, Path] = None
+    cache_filepath: Union[str, Path] = None  # Path to the cache file, or None to disable caching
 
     def _get_instance_key(self) -> tuple:
         return tuple(asdict(self).values())
@@ -84,6 +84,9 @@ class CacheRunToFile:
         """
         Cache the results of a call to _run().
         """
+        if self.cache_filepath is None:
+            return self._run(*args, **kwargs)
+
         cache = self._load_cache()
         key = self._get_instance_key() + self._get_run_directory_key() \
             + tuple(args) + tuple(kwargs.items())
