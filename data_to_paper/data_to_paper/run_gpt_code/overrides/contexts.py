@@ -4,6 +4,7 @@ from typing import Iterable
 from data_to_paper.utils.nice_list import NiceList
 
 from .pvalue import TrackPValueCreationFuncs
+from .random import SetRandomSeeds
 from .scipy.override_scipy import ScipyPValueOverride
 from .sklearn.override_sklearn import SklearnFitOverride, SklearnSearchLimitCheck, SklearnRandomStateOverride, \
     SklearnNNSizeOverride
@@ -28,9 +29,13 @@ class OverrideStatisticsPackages(MultiRunContext):
         StatsmodelsAnovaPValueOverride(),
         StatsmodelsMulticompPValueOverride(),
         SklearnSearchLimitCheck(),
-        SklearnRandomStateOverride(),
+        SklearnRandomStateOverride(),  # see comment below
         SklearnNNSizeOverride(),
+        SetRandomSeeds(random_seed=0),
     ])
+    # TODO: SklearnRandomStateOverride is kept for backwards compatability.
+    #  It is likely not needed if we use SetRandomSeeds
+    #  May undesirably lead to non-random results when iterating within the same run!
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.issue_if_statistics_test_not_called:

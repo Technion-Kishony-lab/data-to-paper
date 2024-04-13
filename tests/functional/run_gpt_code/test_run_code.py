@@ -1,5 +1,6 @@
 import os
 import time
+from types import ModuleType
 
 import pytest
 
@@ -10,9 +11,15 @@ from data_to_paper.run_gpt_code.exceptions import CodeUsesForbiddenFunctions, \
 from data_to_paper.run_gpt_code.overrides.contexts import OverrideStatisticsPackages
 from data_to_paper.run_gpt_code.overrides.sklearn.override_sklearn import SklearnRandomStateOverride, \
     SklearnNNSizeOverride
+from data_to_paper.run_gpt_code.overrides.random import SetRandomSeeds
 from data_to_paper.run_gpt_code.run_issues import RunIssue
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirements
 from data_to_paper.utils import dedent_triple_quote_str
+
+
+class CallFuncRunCode(RunCode):
+    def _run_function_in_module(self, module: ModuleType):
+        return module.func()
 
 
 def test_run_code_on_legit_code():
@@ -230,6 +237,31 @@ for model in models.keys():
         error = RunCode().run(code)[4]
         if error is not None:
             raise error
+
+
+def test_global_random_seed():
+    # code that uses random and numpy.random
+    code = dedent_triple_quote_str("""
+        import random
+        import numpy as np
+        def func():
+            a = random.random()
+            assert a != random.random()
+            b = np.random.random()
+            assert b != np.random.random()
+            return a, b        
+        """)
+    for seed in [0, 1, None]:
+        with SetRandomSeeds(random_seed=seed):
+            a1, b1 = CallFuncRunCode().run(code)[0]
+        with SetRandomSeeds(random_seed=seed):
+            a2, b2 = CallFuncRunCode().run(code)[0]
+        if seed is None:
+            assert a1 != a2
+            assert b1 != b2
+        else:
+            assert a1 == a2
+            assert b1 == b2
 
 
 @pytest.mark.parametrize("MLPclass, hidden_layer_sizes, expected_err, contains", (
