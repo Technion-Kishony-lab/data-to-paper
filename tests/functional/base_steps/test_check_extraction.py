@@ -34,9 +34,9 @@ class TestCheckReferencedNumericReviewBackgroundProductsConverser(
     rewind_after_end_of_review: Rewind = Rewind.ACCUMULATE
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.ACCUMULATE
 
-    def _check_response_and_get_extracted_result(self, response: str):
+    def _check_response_and_get_extracted_text(self, response: str):
         response = self._check_extracted_numbers(response)
-        return super()._check_response_and_get_extracted_result(response)
+        return super()._check_response_and_get_extracted_text(response)
 
 
 @fixture()
@@ -69,9 +69,9 @@ class TestCheckExtractionReviewBackgroundProductsConverser(TestProductsReviewGPT
     def _get_text_from_which_response_should_be_extracted(self) -> str:
         return '0.123, 0.236, 4.56e-04, 9876321, 4321'
 
-    def _check_response_and_get_extracted_result(self, response: str):
+    def _check_response_and_get_extracted_text(self, response: str):
         response = self._check_extracted_numbers(response)
-        return super()._check_response_and_get_extracted_result(response)
+        return super()._check_response_and_get_extracted_text(response)
 
 
 correct_response = 'Correct extractions: 0.12, 0.23, 0.24, 24%, 0.00046, 9,876,000, 4{,}300'

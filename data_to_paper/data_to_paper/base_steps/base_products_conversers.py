@@ -17,7 +17,7 @@ from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.code_and_output_files.ref_numeric_values import find_hyperlinks, find_numeric_values, \
     find_matching_reference, replace_hyperlinks_with_values, TARGET, LINK
 
-from .result_converser import ResultConverser, Rewind, BumpModel
+from .result_converser import ResultConverser, Rewind, BumpModel, ExtractedText
 from .dual_converser import ReviewDialogDualConverserGPT
 
 
@@ -394,12 +394,12 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         product_field = self._replace_product_field_from_self_to_other(product_field)
         super()._add_other_acknowledgement(product_field, is_last=is_last)
 
-    def _alter_self_response(self, response: str, expected_result: Optional[str] = None) -> str:
+    def _alter_self_response(self, response: str, extracted_text: Optional[ExtractedText]) -> str:
         """
         We modify the self response so that the reviewer does not need to deal with hyperlinks or
         wit the "explanation" in \num{}.
         """
-        response = super()._alter_self_response(response, expected_result)
+        response = super()._alter_self_response(response, extracted_text)
         if not self.should_apply_numeric_referencing_to_other:
             response = replace_hyperlinks_with_values(response, is_targets=False)
             response = evaluate_latex_num_command(response, just_strip_explanation=True)[0]

@@ -100,7 +100,7 @@ class NoResponse:
     pass
 
 
-ExtractedResult = Union[str, Iterable[str]]
+ExtractedText = Union[str, Iterable[str]]
 
 
 @dataclass
@@ -224,7 +224,7 @@ class ResultConverser(Converser):
         raise SelfResponseError(format_value(self, error_message), rewind=rewind, bump_model=bump_model,
                                 add_iterations=add_iterations)
 
-    def _check_response_and_get_extracted_result(self, response: str) -> ExtractedResult:
+    def _check_response_and_get_extracted_text(self, response: str) -> ExtractedText:
         """
         Check the response from self and extract the part(s) that should be used to get the valid result and
         to compose a fresh looking response.
@@ -232,31 +232,31 @@ class ResultConverser(Converser):
         """
         return response
 
-    def _check_extracted_result_and_get_valid_result(self, extracted_result: ExtractedResult):
+    def _check_extracted_text_and_get_valid_result(self, extracted_text: ExtractedText):
         """
-        Check the extracted_result and extract the needed information into valid_result.
+        Check the extracted_text and extract the needed information into valid_result.
         If there are errors that require self to revise the response, call _raise_self_response_error.
         """
-        self._update_valid_result(extracted_result)
+        self._update_valid_result(extracted_text)
 
-    def _alter_self_response(self, response: str, extracted_results: Optional[ExtractedResult]) -> str:
+    def _alter_self_response(self, response: str, extracted_text: Optional[ExtractedText]) -> str:
         """
         Alter the response from self when posted to web.
         This method also used to alter the response to send to other in dual_conversation.
         """
-        return self._get_fresh_looking_response(response, extracted_results)
+        return self._get_fresh_looking_response(response, extracted_text)
 
-    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[ExtractedResult]) -> str:
+    def _get_fresh_looking_response(self, response: str, extracted_text: Optional[ExtractedText]) -> str:
         """
         Convert the response to a response that looks as if it was the first response.
-        This is called after _check_extracted_result_and_get_valid_result, so the method can in principle
+        This is called after _check_extracted_text_and_get_valid_result, so the method can in principle
         also use `valid_result`.
         """
-        if extracted_results is None:
+        if extracted_text is None:
             return response
-        if isinstance(extracted_results, str):
-            return extracted_results
-        return '\n\n'.join(extracted_results)
+        if isinstance(extracted_text, str):
+            return extracted_text
+        return '\n\n'.join(extracted_text)
 
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """
@@ -298,22 +298,22 @@ class ResultConverser(Converser):
 
             # check if the response is valid:
             response_error = None
-            extracted_results = None
+            extracted_text = None
             try:
                 with self._is_extracting.temporary_set(True):
-                    extracted_results = self._check_response_and_get_extracted_result(self_response)
+                    extracted_text = self._check_response_and_get_extracted_text(self_response)
             except SelfResponseError as e:
                 response_error = e
             if not response_error:
                 try:
-                    self._check_extracted_result_and_get_valid_result(extracted_results)
+                    self._check_extracted_text_and_get_valid_result(extracted_text)
                 except SelfResponseError as e:
                     response_error = e
 
             if not is_preexisting_self_response:
                 self.apply_append_surrogate_message(
                     content=(self_response if response_error or not alter_web_response
-                             else self._alter_self_response(self_response, extracted_results)),
+                             else self._alter_self_response(self_response, extracted_text)),
                     conversation_name=None, context=self_message.context)
 
             if response_error:
@@ -338,7 +338,7 @@ class ResultConverser(Converser):
             cycle_num = (len(self.conversation) - self._conversation_len_before_first_response + 1) // 2
             if rewind == Rewind.AS_FRESH or rewind == Rewind.AS_FRESH_CORRECTION and cycle_num > 1:
                 self.apply_delete_messages(SingleMessageDesignation(-1))
-                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response, extracted_results),
+                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response, extracted_text),
                                                     web_conversation_name=None)
             # add the error message:
             if response_error:
@@ -362,7 +362,7 @@ class ResultConverser(Converser):
                 self._rewind_conversation_to_first_response(offset=0, last=-3 if response_error else -2)
 
             if not response_error:
-                return self_response, extracted_results
+                return self_response, extracted_text
         else:
             if not self._has_valid_result:
                 raise FailedCreatingProductException()

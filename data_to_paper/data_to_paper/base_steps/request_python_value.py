@@ -44,23 +44,23 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def get_valid_result_as_text_blocks(self) -> str:
         return wrap_text_with_triple_quotes(self.valid_result, 'python')
 
-    def _get_fresh_looking_response(self, response: str, extracted_results: Optional[str]) -> str:
+    def _get_fresh_looking_response(self, response: str, extracted_text: Optional[str]) -> str:
         """
         Return a response that contains just the python value.
         """
         if self.json_mode:
             return response
-        if extracted_results is None:
+        if extracted_text is None:
             return response
-        return f"```python\n{extracted_results}\n```"
+        return f"```python\n{extracted_text}\n```"
 
-    def _check_extracted_result_and_get_valid_result(self, extracted_result: str):
-        response_value = self._evaluate_python_value_from_str(extracted_result)
+    def _check_extracted_text_and_get_valid_result(self, extracted_text: str):
+        response_value = self._evaluate_python_value_from_str(extracted_text)
         response_value = self._validate_value_type(response_value)
         response_value = self._check_response_value(response_value)
         self._update_valid_result(response_value)
 
-    def _check_response_and_get_extracted_result(self, response: str) -> str:
+    def _check_response_and_get_extracted_text(self, response: str) -> str:
         """
         Extracts the string of the python value from LLM response.
         If there is an error extracting the value, _raise_self_response_error is called.
