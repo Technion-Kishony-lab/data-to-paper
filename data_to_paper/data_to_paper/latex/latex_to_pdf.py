@@ -128,9 +128,10 @@ def save_latex_and_compile_to_pdf(latex_content: str, file_stem: str, output_dir
             pdflatex_output = subprocess.run(pdflatex_params,
                                              check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError as e:
-            raise LatexCompilationError(latex_content=latex_content, pdflatex_output=e.stdout.decode('utf-8'))
+            raise LatexCompilationError(latex_content=latex_content,
+                                        pdflatex_output=e.stdout.decode('utf-8', errors='replace'))
 
-        pdflatex_output = pdflatex_output.stdout.decode('utf-8')
+        pdflatex_output = pdflatex_output.stdout.decode('utf-8', errors='replace')
 
         if format_cite:
             try:

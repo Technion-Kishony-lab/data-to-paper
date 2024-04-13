@@ -27,6 +27,12 @@ CHARS = {
     '∑': r'$\sum$',
     '∏': r'$\prod$',
     '|': r'\textbar{}',
+    '∈': r'$\in$',
+    '∉': r'$\notin$',
+    '∀': r'$\forall$',
+    '∃': r'$\exists$',
+    '∅': r'$\emptyset$',
+    '\xe2': r'\^a',
     '\u200b': r'',  # zero width space
     '\u202f': r' ',  # narrow no-break space
 }
