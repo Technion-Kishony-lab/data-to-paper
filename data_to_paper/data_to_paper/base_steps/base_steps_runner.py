@@ -19,6 +19,7 @@ from data_to_paper.conversation.actions_and_conversations import ActionsAndConve
 from data_to_paper.base_cast import Agent
 from data_to_paper.exceptions import TerminateException
 from data_to_paper.base_products import DataFileDescriptions
+from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 
 from .base_products_conversers import ProductsHandler
 
@@ -32,6 +33,7 @@ class BaseStepsRunner(ProductsHandler):
     OPENAI_RESPONSES_FILENAME = 'openai_responses.txt'
     CROSSREF_RESPONSES_FILENAME = 'crossref_responses.bin'
     SEMANTIC_SCHOLAR_RESPONSES_FILENAME = 'semantic_scholar_responses.bin'
+    CODE_RUNNER_CACHE_FILENAME = 'code_runner_cache.pkl'
 
     actions_and_conversations: ActionsAndConversations = field(default_factory=ActionsAndConversations)
 
@@ -116,6 +118,17 @@ class BaseStepsRunner(ProductsHandler):
         """
         raise NotImplementedError
 
+    def _get_files_to_keep(self):
+        """
+        Get the files to keep after the run.
+        """
+        return [str(self.output_directory / recording_file)
+                for recording_file in [
+                    self.CODE_RUNNER_CACHE_FILENAME,
+                    self.OPENAI_RESPONSES_FILENAME,
+                    self.CROSSREF_RESPONSES_FILENAME,
+                    self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]
+
     def create_empty_output_folder(self):
         """
         Create empty output folder (delete all files if exists).
@@ -123,10 +136,7 @@ class BaseStepsRunner(ProductsHandler):
         if os.path.exists(self.output_directory):
             # delete all the files except the mock_openai file:
             for file in glob.glob(str(self.output_directory / '*')):
-                if file not in [str(self.output_directory / recording_file)
-                                for recording_file in [self.OPENAI_RESPONSES_FILENAME,
-                                                       self.CROSSREF_RESPONSES_FILENAME,
-                                                       self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME]]:
+                if file not in self._get_files_to_keep():
                     # the file can be a non-empty directory or a file. remove it anyway:
                     if os.path.isfile(file):
                         os.remove(file)
@@ -151,6 +161,7 @@ class BaseStepsRunner(ProductsHandler):
         """
         self.create_empty_output_folder()
 
+        @RUN_CACHE_FILEPATH.temporary_set(self.output_directory / self.CODE_RUNNER_CACHE_FILENAME)
         @SEMANTIC_SCHOLAR_SERVER_CALLER.record_or_replay(
             self.get_mock_responses_file(self.SEMANTIC_SCHOLAR_RESPONSES_FILENAME), should_mock=self.should_mock)
         @OPENAI_SERVER_CALLER.record_or_replay(
