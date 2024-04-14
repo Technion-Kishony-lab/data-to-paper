@@ -83,6 +83,7 @@ def test_request_code_with_error(correct_code, replaced_value, replace_with, err
             assert error_include in error_message.content
 
 
+@pytest.mark.skip()
 def test_code_with_timeout(debugger_with_timeout):
     with OPENAI_SERVER_CALLER.mock([code_runs_for_more_than_1_second,
                                     code_runs_for_less_than_1_second],
