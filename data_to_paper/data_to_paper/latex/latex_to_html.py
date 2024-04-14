@@ -28,16 +28,22 @@ def suppress_logging(level=logging.ERROR):
     finally:
         logging.getLogger().setLevel(previous_level)
 
+
 @contextmanager
 def suppress_stdout_stderr():
-    """A context manager that redirects stdout and stderr to devnull"""
+    """A context manager that redirects stdout, stderr and logging to devnull."""
     with open(os.devnull, 'w') as fnull:
         old_stdout, old_stderr = sys.stdout, sys.stderr
+        old_logging_level = logging.root.manager.disable
+
         sys.stdout, sys.stderr = fnull, fnull
+        logging.disable(logging.CRITICAL)  # Suppresses all logging calls with severity 'CRITICAL' and lower
+
         try:
             yield
         finally:
             sys.stdout, sys.stderr = old_stdout, old_stderr
+            logging.disable(old_logging_level)  # Restore the old logging level
 
 
 def convert_latex_to_html(latex: str) -> str:
