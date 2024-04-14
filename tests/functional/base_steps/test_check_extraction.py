@@ -55,7 +55,7 @@ def test_referenced_based_numeric_converser(numeric_converser):
         'OK: \\hyperlink{A3}{9876321}, \\hyperlink{A4}{4321}',
         'Correct extractions: \\hyperlink{A3}{9876321}, \\hyperlink{A4}{4321}',
     ], record_more_if_needed=False):
-        numeric_converser.run_dialog_and_get_valid_result()
+        numeric_converser.run_and_get_valid_result()
 
 
 @dataclass
@@ -82,7 +82,7 @@ def test_correct_extraction():
     with OPENAI_SERVER_CALLER.mock([
         correct_response,
     ], record_more_if_needed=False):
-        requester.run_dialog_and_get_valid_result()
+        requester.run_and_get_valid_result()
 
 
 def test_wrong_extraction():
@@ -91,6 +91,6 @@ def test_wrong_extraction():
         correct_response.replace('0.24', '0.25'),
         correct_response,
     ], record_more_if_needed=False):
-        requester.run_dialog_and_get_valid_result()
+        requester.run_and_get_valid_result()
     assert '0.25' in requester.conversation[-2].content
     assert '0.12' not in requester.conversation[-2].content

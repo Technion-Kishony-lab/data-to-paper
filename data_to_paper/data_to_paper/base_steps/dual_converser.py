@@ -275,7 +275,6 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             if cycle_status is not CycleStatus.NOT_APPROVED_BY_OTHER:
                 break
         valid_result = self._get_valid_result()
-        fresh_looking_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
         if self.rewind_after_end_of_review == Rewind.DELETE_ALL:
             self._rewind_conversation_to_first_response(-1, -1, start=conversation_len_before_first_round)
         elif self.rewind_after_end_of_review == Rewind.AS_FRESH:
@@ -371,22 +370,16 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
             print_and_log_magenta(self.other_conversation_name.center(TEXT_WIDTH))
         print_and_log_magenta('=' * TEXT_WIDTH)
 
-    def _initialize_dialog(self):
-        self.initialize_conversation_if_needed()
+    def initialize_conversation_if_needed(self):
+        super().initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
 
-    def initialize_and_run_dialog(self) -> CycleStatus:
-        self._initialize_dialog()
-        return self.run_dialog()
-
-    def run_dialog_and_get_valid_result_and_termination_reason(self) -> Tuple[Any, CycleStatus]:
-        termination_reason = self.initialize_and_run_dialog()
-        self._app_request_continue()
-        return self._get_valid_result(), termination_reason
-
-    def run_dialog_and_get_valid_result(self):
-        return self.run_dialog_and_get_valid_result_and_termination_reason()[0]
+    def _run_and_return_termination_reason(self):
+        if self.are_we_reviewing_at_all:
+            return super().run_dialog()
+        else:
+            return self.run_dialog()
 
 
 @dataclass

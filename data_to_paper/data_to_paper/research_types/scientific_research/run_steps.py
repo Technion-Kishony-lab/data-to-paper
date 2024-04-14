@@ -109,7 +109,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.research_goal = GoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
-            ).run_dialog_and_get_valid_result()
+            ).run_and_get_valid_result()
         # self.send_product_to_client('research_goal')
 
         goal_refinement_iteration = 0
@@ -137,7 +137,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             products.research_goal = ReGoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
-            ).run_dialog_and_get_valid_result()
+            ).run_and_get_valid_result()
         self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
         self.send_product_to_client('goal_and_novelty_assessment')
 
@@ -147,7 +147,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Hypotheses testing plan
         if self.should_prepare_hypothesis_testing_plan:
             products.hypothesis_testing_plan = \
-                HypothesesTestingPlanReviewGPT.from_(self).run_dialog_and_get_valid_result()
+                HypothesesTestingPlanReviewGPT.from_(self).run_and_get_valid_result()
             # self.send_product_to_client('hypothesis_testing_plan')
 
         self.send_product_to_client('hypothesis_testing_plan', save_to_file=True)

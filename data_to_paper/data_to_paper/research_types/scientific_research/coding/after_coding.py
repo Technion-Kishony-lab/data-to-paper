@@ -85,8 +85,8 @@ class RequestCodeExplanation(BaseScientificPostCodeProductsHandler, LatexReviewB
         return self.requesting_output_explanation \
             if self.code_and_output.created_files.get_single_content_file() else ''
 
-    def run_dialog_and_get_valid_result(self):
-        result = super().run_dialog_and_get_valid_result()
+    def run_and_get_valid_result(self):
+        result = super().run_and_get_valid_result()
         return extract_latex_section_from_response(result[0], 'Code Explanation', keep_tags=False)
 
 
@@ -146,9 +146,9 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
                     rewind_after_getting_a_valid_response=Rewind.ACCUMULATE,
                     goal_noun='the content of the dataframe',
                     mission_prompt=Replacer(self, self.requesting_explanation_for_a_new_dataframe,
-                                                    kwargs={'dataframe_file_name': saved_df_filename,
-                                                            'columns': list(columns)}),
-                ).run_dialog_and_get_valid_result()
+                                            kwargs={'dataframe_file_name': saved_df_filename,
+                                                    'columns': list(columns)}),
+                ).run_and_get_valid_result()
                 description = f'This csv file was created by the {self.code_name} code.\n' \
                               f'{response}\n'
                 data_file_description = DataFileDescription(file_path=saved_df_filename, description=description,
@@ -165,11 +165,11 @@ class ExplainCreatedDataframe(BaseScientificPostCodeProductsHandler, BackgroundP
                     requested_keys=columns,
                     goal_noun='dictionary that explains the columns of the dataframe',
                     mission_prompt=Replacer(self,
-                                                    self.requesting_explanation_for_a_modified_dataframe,
-                                                    kwargs={'dataframe_file_name': saved_df_filename,
-                                                            'columns': list(columns)}),
+                                            self.requesting_explanation_for_a_modified_dataframe,
+                                            kwargs={'dataframe_file_name': saved_df_filename,
+                                                    'columns': list(columns)}),
                     value_type=Dict[str, str],
-                ).run_dialog_and_get_valid_result()
+                ).run_and_get_valid_result()
 
                 new_columns_to_explanations = \
                     {column: explanation for column, explanation in columns_to_explanations.items()
@@ -235,7 +235,7 @@ class RequestCodeProducts(BaseScientificCodeProductsHandler, ProductsConverser):
             self,
             is_new_conversation=None,
             code_step=self.code_step,
-        ).run_dialog_and_get_valid_result()
+        ).run_and_get_valid_result()
 
     def get_code_and_output_and_descriptions(self) -> CodeAndOutput:
         code_and_output = self.get_code_and_output()

@@ -216,7 +216,7 @@ class SectionWriterReviewBackgroundProductsConverser(ShowCitationProducts,
         return section
 
     def write_sections_with_citations(self) -> List[Tuple[str, Set[Citation]]]:
-        sections: List[str] = self.run_dialog_and_get_valid_result()
+        sections: List[str] = self.run_and_get_valid_result()
         sections_and_citations = []
         for section in sections:
             sections_and_citations.append(
@@ -427,9 +427,9 @@ class MethodsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
                 f'Data Source, Data Preprocessing, Data Analysis. ')
         return super()._check_extracted_text_and_update_valid_result(extracted_text)
 
-    def run_dialog_and_get_valid_result(self) -> list:
+    def run_and_get_valid_result(self) -> list:
         # Add code availability statement:
-        response = [super().run_dialog_and_get_valid_result()[0] +
+        response = [super().run_and_get_valid_result()[0] +
                     '\\subsection{Code Availability}\n\n'
                     'Custom code used to perform the data preprocessing and analysis, '
                     'as well as the raw code outputs, are provided in Supplementary Methods.']

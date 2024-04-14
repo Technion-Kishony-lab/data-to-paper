@@ -120,7 +120,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                          for k, v in response_value.items()})
 
     def get_literature_search(self) -> LiteratureSearch:
-        scopes_to_list_of_queries = self.run_dialog_and_get_valid_result()
+        scopes_to_list_of_queries = self.run_and_get_valid_result()
         literature_search = LiteratureSearch()
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}

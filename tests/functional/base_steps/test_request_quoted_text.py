@@ -48,7 +48,7 @@ def test_request_quoted_text_bumps_model_to_more_context():
              'Now, with more context, I can finish this though: \n```\nthe secret recipe is to add chocolate\n```'],
             record_more_if_needed=False):
         requester = TestBaseProductsQuotedReviewGPT(model_engine=ModelEngine.GPT35_TURBO)
-        assert requester.run_dialog_and_get_valid_result() == '\nthe secret recipe is to add chocolate\n'
+        assert requester.run_and_get_valid_result() == '\nthe secret recipe is to add chocolate\n'
 
     # assert context as sent to the server:
     models_used = [h[1].get('model_engine', None) for h in OPENAI_SERVER_CALLER.args_kwargs_response_history]
@@ -61,7 +61,7 @@ def test_request_quoted_text_repost_correct_response_as_fresh():
     with OPENAI_SERVER_CALLER.mock([
             f'I am telling a long long story which is not really needed and only then send:\n```{enclosed_text}```\n'],
             record_more_if_needed=False):
-        assert requester.run_dialog_and_get_valid_result() == enclosed_text
+        assert requester.run_and_get_valid_result() == enclosed_text
     assert len(requester.conversation) == 3
 
     # Response is reposted as fresh:
@@ -75,7 +75,7 @@ def test_request_quoted_text_with_flanked_header():
             f'sorry for the mistake here is the correctly flanked text:\n'
             f'```The Header of the Paragraph\n{enclosed_text}\n```'],
             record_more_if_needed=False):
-        assert requester.run_dialog_and_get_valid_result() == f'The Header of the Paragraph\n{enclosed_text}\n'
+        assert requester.run_and_get_valid_result() == f'The Header of the Paragraph\n{enclosed_text}\n'
     assert len(requester.conversation) == 3
 
     # Response is reposted as fresh:

@@ -147,7 +147,7 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         return response_value
 
     def get_overlapping_citations(self) -> List[Citation]:
-        ids_to_titles = self.run_dialog_and_get_valid_result()
+        ids_to_titles = self.run_and_get_valid_result()
         available_citations = self._get_available_citations()
         return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
 
