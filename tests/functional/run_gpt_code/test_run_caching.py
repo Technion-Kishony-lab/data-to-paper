@@ -69,7 +69,7 @@ def test_cache_method_output_to_file_with_created_files(tmpdir):
     # check that the file was written:
     with open('output/result.txt') as f:
         assert f.read() == 'hello'
-    # delete the file and check that it is read from the cache
+    # delete the file and check that it is recreated from the cache
     os.remove('output/result.txt')
     assert instance.run() == 'hello'
     assert instance.called_count == 1

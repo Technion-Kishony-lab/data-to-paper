@@ -1,12 +1,12 @@
 import pickle
 import os
 import hashlib
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.run_gpt_code.run_contexts import TrackCreatedFiles
 from data_to_paper.utils.file_utils import run_in_directory
 from data_to_paper.utils.print_to_file import print_and_log
 
@@ -101,12 +101,29 @@ class CacheRunToFile:
         print_and_log(f"{self.__class__.__name__}: Running and caching output.")
         # Call the function and cache the result along with any created files
         with run_in_directory(self._get_run_directory()):
-            with TrackCreatedFiles() as track_created_files:
+            with get_created_files() as created_files:
                 results = self._run(*args, **kwargs)
-            file_contents = _read_files(track_created_files.created_files)
+            file_contents = _read_files(created_files)
 
         # Update cache
         cache[key] = (results, file_contents)
         self._dump_cache(cache)
 
         return results
+
+
+@contextmanager
+def get_created_files():
+    """
+    Context manager for returning all new files created in the current directory.
+    Files are returned as a sorted list of filenames.
+    Note: The files are not deleted after the context manager exits.
+    """
+    preexisting_files = set(os.listdir())
+    created_files = []
+    try:
+        yield created_files
+    finally:
+        for filename in sorted(os.listdir()):
+            if filename not in preexisting_files:
+                created_files.append(filename)
