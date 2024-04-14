@@ -1,0 +1,10 @@
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: Change in treatment policy led to a change in treatments
+Statistical Test: Chi-square test of independence between PrePost (treatment policy) and relevant treatment variables such as PPV, EndotrachealSuction, CardiopulmonaryResuscitation
+
+Hypothesis: The change in treatment policy improved neonatal outcome, measured by duration of stay
+Statistical Test: Two-sample t-test comparing the mean length of stay for the Pre (before policy change) group and Post (after policy change) group
+
+Hypothesis: The change in treatment policy improved neonatal outcome, measured by Apgar scores
+Statistical Test: Two-sample t-test comparing the mean APGAR1 and APGAR5 scores for the Pre group and Post group

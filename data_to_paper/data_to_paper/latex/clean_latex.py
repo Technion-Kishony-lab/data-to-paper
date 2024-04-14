@@ -35,6 +35,8 @@ CHARS = {
     '\xe2': r'\^a',
     '\u200b': r'',  # zero width space
     '\u202f': r' ',  # narrow no-break space
+    '–': r'--',
+    '’': r"'",
 }
 
 assert all(len(c) == 1 for c in CHARS.keys())
@@ -167,7 +169,7 @@ def process_latex_text_and_math(text, process_text=replace_special_latex_chars, 
 
 
 def wrap_as_latex_code_output(paragraph):
-    return "\\begin{codeoutput}\n" + paragraph + "\n\\end{codeoutput}"
+    return "\\begin{codeoutput}\n" + replace_special_latex_chars(paragraph) + "\n\\end{codeoutput}"
 
 
 def check_usage_of_un_allowed_commands(latex_content: str, unwanted_commands: Iterable[str]):
