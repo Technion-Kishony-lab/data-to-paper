@@ -93,13 +93,19 @@ class Converser(Copier, AppInteractor):
     def conversation(self):
         return self.conversation_manager.conversation
 
-    def initialize_conversation_if_needed(self, print_header: bool = True):
-        if self.conversation_manager.initialize_conversation_if_needed():
-            self._app_clear_panels()
-            if print_header:
-                print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
-                print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
-                print_and_log_magenta('=' * TEXT_WIDTH)
+    def _print_conversation_header(self):
+        print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
+        print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
+        print_and_log_magenta('=' * TEXT_WIDTH)
+
+    def _upon_conversation_initiation(self):
+        self._print_conversation_header()
+        self._app_clear_panels()
+
+    def initialize_conversation_if_needed(self):
+        if self.conversation is None:
+            self._upon_conversation_initiation()
+        self.conversation_manager.initialize_conversation_if_needed()
         if len(self.conversation) == 0 and self.system_prompt:
             self.apply_append_system_message(self.system_prompt)
 

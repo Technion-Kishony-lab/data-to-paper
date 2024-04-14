@@ -144,6 +144,7 @@ class ResultConverser(Converser):
 
     # Output:
     valid_result: Any = field(default_factory=NoResponse)
+    _valid_result_update_count: int = 0
 
     def get_valid_result_as_html(self) -> str:
         return format_text_with_code_blocks(self.get_valid_result_as_text_blocks(), is_html=True)
@@ -151,8 +152,8 @@ class ResultConverser(Converser):
     def get_valid_result_as_text_blocks(self) -> str:
         return str(self.valid_result)
 
-    def initialize_conversation_if_needed(self, print_header: bool = True):
-        super().initialize_conversation_if_needed(print_header=print_header)
+    def initialize_conversation_if_needed(self):
+        super().initialize_conversation_if_needed()
         self._pre_populate_background()
         self._conversation_len_before_first_response = len(self.conversation)
 
@@ -173,10 +174,13 @@ class ResultConverser(Converser):
 
     def _update_valid_result(self, valid_result: Any):
         """
-        Update the valid result. Should be called when we have a result that
-        passes all rule-based reviews.
+        Update the valid result.
+        Should be called when we have a result that is "usable".
+        Typically, the method is called
+        "usable" often, but not always, require passing all rule-based checks.
         """
         self.valid_result = valid_result
+        self._valid_result_update_count += 1
         if self._has_valid_result:
             html = self.get_valid_result_as_html()
         else:
@@ -232,31 +236,37 @@ class ResultConverser(Converser):
         """
         return response
 
-    def _check_extracted_text_and_get_valid_result(self, extracted_text: ExtractedText):
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: ExtractedText):
         """
         Check the extracted_text and extract the needed information into valid_result.
+        If we get a result that is "usable", we update it using valid_result, by calling _update_valid_result.
         If there are errors that require self to revise the response, call _raise_self_response_error.
+        Normally, we should either _update_valid_result or _raise_self_response_error, but we can do both if we have a
+        result that is "good enough" to be declared as "valid", but we are still trying to improve it with further
+        rule-based feedback.
         """
         self._update_valid_result(extracted_text)
 
-    def _alter_self_response(self, response: str, extracted_text: Optional[ExtractedText]) -> str:
+    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: ExtractedText) -> str:
         """
-        Alter the response from self when posted to web.
-        This method also used to alter the response to send to other in dual_conversation.
+        Convert the extracted text to a response that can be posted to the conversation.
         """
-        return self._get_fresh_looking_response(response, extracted_text)
-
-    def _get_fresh_looking_response(self, response: str, extracted_text: Optional[ExtractedText]) -> str:
-        """
-        Convert the response to a response that looks as if it was the first response.
-        This is called after _check_extracted_text_and_get_valid_result, so the method can in principle
-        also use `valid_result`.
-        """
-        if extracted_text is None:
-            return response
         if isinstance(extracted_text, str):
             return extracted_text
         return '\n\n'.join(extracted_text)
+
+    def _convert_valid_result_back_to_extracted_text(self, valid_result: Any) -> ExtractedText:
+        """
+        Convert the valid result to an extracted result.
+        """
+        return str(valid_result)
+
+    def _convert_valid_results_to_fresh_looking_response(self, valid_results: Any) -> str:
+        """
+        Convert the valid results to a response that can be posted to the conversation.
+        """
+        return self._convert_extracted_text_to_fresh_looking_response(
+            self._convert_valid_result_back_to_extracted_text(valid_results))
 
     def _rewind_conversation_to_first_response(self, offset: int = 0, last: int = -1, start: int = None):
         """
@@ -268,16 +278,20 @@ class ResultConverser(Converser):
         self.apply_delete_messages(
             RangeMessageDesignation.from_(start + offset, last))
 
-    def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Tuple[Optional[str], Optional[str]]:
+    def _iterate_until_valid_response(self, alter_web_response: bool = False) -> Tuple[bool, bool]:
         """
-        Iterate until we get a valid response from self.
-        If we started with a pre-existing self response which was valid, we return it.
-        Otherwise, we return the valid message that we got after iterating.
-        If we fail to get a valid response after max_valid_response_iterations, return None.
+        Iterate until we get a valid response from self (return is_converged=True),
+        or until we exceed max_valid_response_iterations (return is_converged=False).
+        Note that even if we did not get a fully valid response,
+        we may still have a "usable" result in self.valid_result (is_new_valid_result=True).
+        return (converged, is_new_valid_result)
         """
         self._conversation_len_before_first_response = len(self.conversation)
         self_message = None
+        self_response = None
         self._self_response_iteration_count = 0
+        initial_valid_result_update_count = self._valid_result_update_count
+        is_new_valid_result = False
         while self._self_response_iteration_count < self.max_valid_response_iterations:
             self._self_response_iteration_count += 1
             # to allow starting either before or after the first self response:
@@ -306,14 +320,14 @@ class ResultConverser(Converser):
                 response_error = e
             if not response_error:
                 try:
-                    self._check_extracted_text_and_get_valid_result(extracted_text)
+                    self._check_extracted_text_and_update_valid_result(extracted_text)
                 except SelfResponseError as e:
                     response_error = e
-
+            is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
             if not is_preexisting_self_response:
                 self.apply_append_surrogate_message(
-                    content=(self_response if response_error or not alter_web_response
-                             else self._alter_self_response(self_response, extracted_text)),
+                    content=(self_response if extracted_text is None or not alter_web_response
+                             else self._convert_extracted_text_to_fresh_looking_response(extracted_text)),
                     conversation_name=None, context=self_message.context)
 
             if response_error:
@@ -336,11 +350,13 @@ class ResultConverser(Converser):
 
             # replace the response with a fresh looking response if needed:
             cycle_num = (len(self.conversation) - self._conversation_len_before_first_response + 1) // 2
-            if rewind == Rewind.AS_FRESH or rewind == Rewind.AS_FRESH_CORRECTION and cycle_num > 1:
+            if (rewind == Rewind.AS_FRESH or rewind == Rewind.AS_FRESH_CORRECTION and cycle_num > 1) \
+                    and extracted_text:
                 self.apply_delete_messages(SingleMessageDesignation(-1))
-                self.apply_append_surrogate_message(self._get_fresh_looking_response(self_response, extracted_text),
-                                                    web_conversation_name=None)
-            # add the error message:
+                self.apply_append_surrogate_message(
+                    self._convert_extracted_text_to_fresh_looking_response(extracted_text),
+                    web_conversation_name=None)
+            # add the rule-based error message:
             if response_error:
                 self.apply_append_user_message(
                     Replacer(self, self.response_to_self_error, args=(response_error.error_message,)))
@@ -362,19 +378,18 @@ class ResultConverser(Converser):
                 self._rewind_conversation_to_first_response(offset=0, last=-3 if response_error else -2)
 
             if not response_error:
-                return self_response, extracted_text
+                return True, is_new_valid_result
         else:
-            if not self._has_valid_result:
-                raise FailedCreatingProductException()
-        return None, None
+            return False, is_new_valid_result
 
     def run_and_get_valid_result(self):
         self.initialize_conversation_if_needed()
         self._iterate_until_valid_response()
+        result = self._get_valid_result()  # raises FailedCreatingProductException if no valid result
         self._app_request_continue()
-        return self.get_valid_result()
+        return result
 
-    def get_valid_result(self):
+    def _get_valid_result(self):
         if not self._has_valid_result:
             raise FailedCreatingProductException()
         return self.valid_result

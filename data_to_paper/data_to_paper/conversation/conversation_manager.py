@@ -97,14 +97,12 @@ class ConversationManager:
     def add_participants(self, agents: Iterable[Agent]):
         self._create_and_apply_action(AddParticipantsToConversation, participants=set(agents))
 
-    def initialize_conversation_if_needed(self) -> bool:
+    def initialize_conversation_if_needed(self):
         if self.conversation is None:
             self.create_conversation()
-            return True
         else:
             if self.participants - self.conversation.participants:
                 self.add_participants(self.participants - self.conversation.participants)
-            return False
 
     def append_message(self, message: Message, comment: Optional[str] = None, reverse_roles_for_web: bool = False,
                        **kwargs):

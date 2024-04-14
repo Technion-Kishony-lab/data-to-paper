@@ -5,7 +5,7 @@ from data_to_paper.base_steps.base_products_conversers import ReviewBackgroundPr
 
 from typing import Any, Dict, Optional, get_origin, Collection, Iterable
 
-from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.base_steps.result_converser import Rewind, ExtractedText
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     NoBlocksFailedExtractingBlock, IncompleteBlockFailedExtractingBlock
 from data_to_paper.utils.nice_list import NiceDict
@@ -44,22 +44,6 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
     def get_valid_result_as_text_blocks(self) -> str:
         return wrap_text_with_triple_quotes(self.valid_result, 'python')
 
-    def _get_fresh_looking_response(self, response: str, extracted_text: Optional[str]) -> str:
-        """
-        Return a response that contains just the python value.
-        """
-        if self.json_mode:
-            return response
-        if extracted_text is None:
-            return response
-        return f"```python\n{extracted_text}\n```"
-
-    def _check_extracted_text_and_get_valid_result(self, extracted_text: str):
-        response_value = self._evaluate_python_value_from_str(extracted_text)
-        response_value = self._validate_value_type(response_value)
-        response_value = self._check_response_value(response_value)
-        self._update_valid_result(response_value)
-
     def _check_response_and_get_extracted_text(self, response: str) -> str:
         """
         Extracts the string of the python value from LLM response.
@@ -87,6 +71,20 @@ class PythonValueReviewBackgroundProductsConverser(ReviewBackgroundProductsConve
                 f'Your response should be formatted as a single Python {self.parent_type.__name__}, '
                 f'flanked by `{tags[0]}` and `{tags[1]}`.',
                 missing_end=tags[0] in response and tags[1] not in response)
+
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
+        response_value = self._evaluate_python_value_from_str(extracted_text)
+        response_value = self._validate_value_type(response_value)
+        response_value = self._check_response_value(response_value)
+        self._update_valid_result(response_value)
+
+    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: str) -> str:
+        """
+        Return a response that contains just the python value.
+        """
+        if self.json_mode:
+            return extracted_text
+        return wrap_text_with_triple_quotes(extracted_text, 'python')
 
     def _evaluate_python_value_from_str(self, response: str) -> Any:
         if self.json_mode:

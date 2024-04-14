@@ -159,16 +159,17 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
     def get_valid_result_as_text_blocks(self) -> str:
         return wrap_text_with_triple_quotes('\n\n'.join(self.valid_result), 'latex')
 
-    def _get_fresh_looking_response(self, response: str, extracted_text: Optional[List[str]]) -> str:
+    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: List[str]) -> str:
         """
         Return a response that looks fresh.
         """
-        if extracted_text is None:
-            return response
-        s = '\n\n'.join(extracted_text)
+        s = super()._convert_extracted_text_to_fresh_looking_response(extracted_text)
         if self.request_triple_quote_block:
             s = wrap_text_with_triple_quotes(s, 'latex')
         return s
+
+    def _convert_valid_result_back_to_extracted_text(self, valid_result: List[str]) -> List[str]:
+        return valid_result
 
     def _get_allowed_bibtex_citation_ids(self) -> List[str]:
         r"""
@@ -299,7 +300,7 @@ class LatexReviewBackgroundProductsConverser(CheckLatexCompilation, ReviewBackgr
         return [self._extract_latex_section_from_response(response, section_name)
                 for section_name in self.section_names]
 
-    def _check_extracted_text_and_get_valid_result(self, extracted_text: List[str]):
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: List[str]):
 
         # check and refine the sections
         for i in range(len(extracted_text)):

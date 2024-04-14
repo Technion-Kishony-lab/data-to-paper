@@ -38,6 +38,6 @@ class MultiChoiceBackgroundProductsConverser(BackgroundProductsConverser):
             return choices_in_response[0]
         self._raise_self_response_error(self.choice_instructions)
 
-    def _check_extracted_text_and_get_valid_result(self, extracted_text: str):
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         chosen_choice = self._get_chosen_choice_from_response(extracted_text)
         self._update_valid_result(chosen_choice)

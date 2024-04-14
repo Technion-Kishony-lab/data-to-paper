@@ -227,6 +227,12 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         self.apply_append_user_message(altered_other_response)
         return self.apply_get_and_append_assistant_message()
 
+    def _alter_self_response(self, response: str) -> str:
+        """
+        Alter the response from self before sending it to other.
+        """
+        return response
+
     def _alter_other_response(self, response: str) -> str:
         """
         Alter the response from other before sending it to self.
@@ -265,35 +271,37 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         """
         conversation_len_before_first_round = len(self.conversation)
         while True:
-            response, extracted_text, cycle_status = self.run_one_cycle()
+            cycle_status = self.run_one_cycle()
             if cycle_status is not CycleStatus.NOT_APPROVED_BY_OTHER:
                 break
-
+        valid_result = self._get_valid_result()
+        fresh_looking_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
         if self.rewind_after_end_of_review == Rewind.DELETE_ALL:
             self._rewind_conversation_to_first_response(-1, -1, start=conversation_len_before_first_round)
         elif self.rewind_after_end_of_review == Rewind.AS_FRESH:
             self._rewind_conversation_to_first_response(0, -1, start=conversation_len_before_first_round)
-            self.apply_append_surrogate_message(self._get_fresh_looking_response(response, extracted_text),
+            self.apply_append_surrogate_message(self._convert_valid_results_to_fresh_looking_response(valid_result),
                                                 web_conversation_name=None)
         return cycle_status
 
-    def run_one_cycle(self) -> Tuple[Optional[str], Optional[str], CycleStatus]:
+    def run_one_cycle(self) -> CycleStatus:
         """
         Run one cycle of the dialog. Makes updates to valid_result by calling
         _check_and_extract_value_from_self_response().
         """
         is_last_round = self.round_num >= self.max_reviewing_rounds
-        self_response, extracted_text = self._iterate_until_valid_response(alter_web_response=not is_last_round)
-        if self_response is None:
-            return self_response, extracted_text, CycleStatus.FAILED_CHECK_SELF_RESPONSE
+        is_converged, is_new_valid_result = self._iterate_until_valid_response(alter_web_response=not is_last_round)
+        if not is_new_valid_result:
+            return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
         if is_last_round:
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
-            return self_response, extracted_text, CycleStatus.MAX_ROUNDS_EXCEEDED
-
-        altered_self_response = self._alter_self_response(self_response, extracted_text)
+            return CycleStatus.MAX_ROUNDS_EXCEEDED
+        valid_result = self._get_valid_result()
+        fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
+        altered_self_response = self._alter_self_response(fresh_looking_self_response)
         other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
         other_response = other_message.content
         altered_other_response = self._alter_other_response(other_response)
@@ -303,10 +311,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
-            return self_response, extracted_text, CycleStatus.APPROVED_BY_OTHER
+            return CycleStatus.APPROVED_BY_OTHER
 
         self.get_response_from_self_in_response_to_response_from_other(altered_other_response)
-        return self_response, extracted_text, CycleStatus.NOT_APPROVED_BY_OTHER
+        return CycleStatus.NOT_APPROVED_BY_OTHER
 
 
 @dataclass
@@ -349,33 +357,33 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
     def _alter_other_response(self, response: str) -> str:
         return response + '\n' + self.sentence_to_add_at_the_end_of_reviewer_response
 
-    def _alter_self_response(self, response: str, extracted_text: Optional[ExtractedText]) -> str:
-        response = super()._alter_self_response(response, extracted_text)
+    def _alter_self_response(self, response: str) -> str:
+        response = super()._alter_self_response(response)
         if self.sentence_to_add_at_the_end_of_performer_response:
             return response + '\n' + self.sentence_to_add_at_the_end_of_performer_response
         else:
             return response
 
-    def initialize_dialog(self):
+    def _print_conversation_header(self):
         print_and_log_magenta('==== Starting conversation ' + '=' * (TEXT_WIDTH - 27))
         print_and_log_magenta(self.conversation_name.center(TEXT_WIDTH))
         if self.are_we_reviewing_at_all:
             print_and_log_magenta(self.other_conversation_name.center(TEXT_WIDTH))
         print_and_log_magenta('=' * TEXT_WIDTH)
 
-        self.initialize_conversation_if_needed(print_header=False)
+    def _initialize_dialog(self):
+        self.initialize_conversation_if_needed()
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
 
     def initialize_and_run_dialog(self) -> CycleStatus:
-        self.initialize_dialog()
+        self._initialize_dialog()
         return self.run_dialog()
 
     def run_dialog_and_get_valid_result_and_termination_reason(self) -> Tuple[Any, CycleStatus]:
         termination_reason = self.initialize_and_run_dialog()
-        result = self.get_valid_result()
         self._app_request_continue()
-        return result, termination_reason
+        return self._get_valid_result(), termination_reason
 
     def run_dialog_and_get_valid_result(self):
         return self.run_dialog_and_get_valid_result_and_termination_reason()[0]
@@ -402,12 +410,10 @@ class QuotedReviewDialogDualConverserGPT(ReviewDialogDualConverserGPT):
 
     rewind_after_getting_a_valid_response: Optional[Rewind] = Rewind.AS_FRESH
 
-    def _get_fresh_looking_response(self, response: str, extracted_text: Optional[str]) -> str:
-        if extracted_text is None:
-            return response
+    def _convert_extracted_text_to_fresh_looking_response(self, extracted_text: str) -> str:
         return 'Here is the {goal_noun}:\n\n```' + extracted_text + '```\n\n'
 
-    def _check_extracted_text_and_get_valid_result(self, extracted_text: str):
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
         self._check_flanked_response_is_not_just_header(extracted_text)
         self._update_valid_result(extracted_text)
 
