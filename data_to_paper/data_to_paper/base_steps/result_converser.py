@@ -8,7 +8,7 @@ from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
 from data_to_paper.exceptions import data_to_paperException
-from data_to_paper.interactive import the_app, BaseApp, PanelNames
+from data_to_paper.interactive import PanelNames
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.print_to_file import print_and_log_red

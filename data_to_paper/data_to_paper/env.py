@@ -68,11 +68,12 @@ DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 # Products to send to client for the user to download:
 PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
 
-IS_PYSIDE_APP = True
-
 # Human interactions:
+INTERACTIVE_MODE = Flag(False)
+RECORD_INTERACTIONS = Flag(False)
 HUMAN_EDIT_CODE_REVIEW = True
 HUMAN_NAME = 'Human'
+CHOSEN_APP = Mutable('console'),  # 'console', 'pyside', None
 
 NUM_DIGITS_FOR_FLOATS = 4
 

@@ -1,3 +1,8 @@
+import sys
+from functools import partial
+
+from data_to_paper.env import CHOSEN_APP
+from data_to_paper.interactive import the_app, q_application
 from data_to_paper_examples.examples.run_project import get_paper
 
 goal = "Using machine learning models and multivariate analysis find risk factors for diabetes. " \
@@ -17,9 +22,15 @@ RUN_PARAMETERS = dict(
 )
 
 if __name__ == '__main__':
-    get_paper(**RUN_PARAMETERS,
-              output_folder='llama_example',
-              project_specific_goal_guidelines=project_specific_goal_guidelines,
-              should_mock_servers=True,
-              load_from_repo=True,
-              save_on_repo=True)
+    if CHOSEN_APP != 'pyside':
+        get_paper(**RUN_PARAMETERS,
+                  output_folder='test_001',
+                  project_specific_goal_guidelines=project_specific_goal_guidelines,
+                  should_mock_servers=True,
+                  load_from_repo=True,
+                  save_on_repo=True)
+    else:
+        the_app.start_worker(partial(get_paper, **RUN_PARAMETERS, output_folder='test_001',
+                                     project_specific_goal_guidelines=project_specific_goal_guidelines,
+                                     should_mock_servers=True, load_from_repo=True, save_on_repo=True))
+        sys.exit(q_application.exec())

@@ -4,6 +4,7 @@ import os
 import time
 from dataclasses import dataclass
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
+from data_to_paper.interactive import the_app
 
 import openai
 
@@ -11,7 +12,7 @@ from typing import List, Union, Optional, Callable
 
 import tiktoken
 
-from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL
+from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
@@ -213,7 +214,6 @@ def try_get_llm_response(messages: List[Message],
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
 
-    from data_to_paper.interactive import the_app
     the_app.set_status(f'Waiting for LLM...')
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
@@ -234,5 +234,8 @@ def get_human_response(app: BaseApp, **kwargs) -> HumanAction:
     Allow the user to edit a message and return the edited message.
     Return None if the user did not change the message.
     """
-    return OPENAI_SERVER_CALLER.get_server_response(
-        [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
+    if RECORD_INTERACTIONS:
+        return OPENAI_SERVER_CALLER.get_server_response(
+            [], model_engine=lambda messages, **k: app.request_action(**k), **kwargs)
+    else:
+        return app.request_action(**kwargs)

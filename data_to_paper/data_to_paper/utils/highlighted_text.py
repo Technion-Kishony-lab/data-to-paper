@@ -14,7 +14,7 @@ from pygments import highlight, token
 from .formatted_sections import FormattedSections
 from .text_formatting import wrap_string
 from data_to_paper.latex.latex_to_html import convert_latex_to_html
-from ..env import IS_PYSIDE_APP
+from ..env import CHOSEN_APP
 
 COLORS_TO_LIGHT_COLORS = {
     colorama.Fore.BLACK: colorama.Fore.LIGHTBLACK_EX,
@@ -33,7 +33,7 @@ terminal_formatter = Terminal256Formatter(style=style)
 html_formatter = HtmlFormatter(style=style, cssclass='text_highlight')
 html_textblock_formatter = HtmlFormatter(style=style, cssclass='textblock_highlight')
 
-if IS_PYSIDE_APP:
+if CHOSEN_APP == 'pyside':
     html_code_formatter = HtmlFormatter(style=style)
 else:
     html_code_formatter = HtmlFormatter(style=style, cssclass="code_highlight", prestyles="margin-left: 1.5em;")
@@ -82,7 +82,7 @@ def md_to_html(md):
 
 
 def text_to_html(text: str, textblock: bool = False, from_md: bool = False) -> str:
-    if not textblock and IS_PYSIDE_APP:
+    if not textblock and CHOSEN_APP == 'pyside':
         if from_md:
             return md_to_html(text)
         return text.replace('\n', '<br>')
