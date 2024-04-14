@@ -269,7 +269,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     background_product_fields_to_hide=self.background_product_fields_to_hide_during_code_revision,
                     mission_prompt=formatted_code_review_prompt,
                     app=None,
-                ).run_and_get_valid_result()
+                ).run_and_get_valid_result(with_review=False)
 
                 termination_phrase = 'Looks good - no changes needed.'
                 if issues_to_solutions:

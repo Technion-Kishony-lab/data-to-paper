@@ -394,27 +394,27 @@ class ResultConverser(Converser):
         """
         self._app_request_continue()
 
-    def _run_and_return_termination_reason(self):
+    def _run_and_return_termination_reason(self, *args, **kwargs) -> Any:
         """
         Run the conversation.
         """
         return self._iterate_until_valid_response()
 
-    def run_and_get_valid_result_and_termination_reason(self) -> Tuple[Tuple[bool, bool], Any]:
+    def run_and_get_valid_result_and_termination_reason(self, *args, **kwargs) -> Tuple[Tuple[bool, bool], Any]:
         """
         Run the conversation until we get a valid result.
         Return whether the conversation is converged and whether we have a new valid result.
         """
         self.initialize_conversation_if_needed()
-        termination_reason = self._run_and_return_termination_reason()
+        termination_reason = self._run_and_return_termination_reason(*args, **kwargs)
         result = self._get_valid_result()  # raises FailedCreatingProductException if no valid result
         self._post_run()
         return result, termination_reason
 
-    def run_and_get_valid_result(self) -> Any:
+    def run_and_get_valid_result(self, *args, **kwargs) -> Any:
         """
         Run the conversation until we get a valid result.
         Return the valid result.
         """
-        return self.run_and_get_valid_result_and_termination_reason()[0]
+        return self.run_and_get_valid_result_and_termination_reason(*args, **kwargs)[0]
 

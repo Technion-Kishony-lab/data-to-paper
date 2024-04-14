@@ -191,7 +191,7 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
         """)
 
     def is_goal_ok(self):
-        return self.run_and_get_valid_result()['choice'] == 'OK'
+        return self.run_and_get_valid_result(with_review=False)['choice'] == 'OK'
 
 
 @dataclass

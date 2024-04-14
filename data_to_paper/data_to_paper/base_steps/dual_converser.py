@@ -375,11 +375,11 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         if self.are_we_reviewing_at_all:
             self.initialize_other_conversation_if_needed()
 
-    def _run_and_return_termination_reason(self):
-        if self.are_we_reviewing_at_all:
-            return super().run_dialog()
-        else:
+    def _run_and_return_termination_reason(self, with_review: bool = True) -> CycleStatus:
+        if with_review:
             return self.run_dialog()
+        else:
+            return super()._run_and_return_termination_reason()
 
 
 @dataclass

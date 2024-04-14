@@ -203,7 +203,7 @@ class ReviewBackgroundProductsConverser(BackgroundProductsConverser, ReviewDialo
     """
     COPY_ATTRIBUTES = BackgroundProductsConverser.COPY_ATTRIBUTES | ReviewDialogDualConverserGPT.COPY_ATTRIBUTES
     suppress_printing_other_conversation: bool = False
-    max_reviewing_rounds: int = 1
+    max_reviewing_rounds: int = 0
     termination_phrase: str = "The {goal_noun} does not require any changes"
     other_mission_prompt: Optional[str] = None  # None: use the mission_prompt
     sentence_to_add_at_the_end_of_performer_response: str = \
