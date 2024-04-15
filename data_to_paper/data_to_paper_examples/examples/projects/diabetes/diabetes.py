@@ -23,7 +23,7 @@ RUN_PARAMETERS = dict(
     load_from_repo=True,
     save_on_repo=True,
     project_specific_goal_guidelines=project_specific_goal_guidelines,
-    output_folder='run002'
+    output_folder='run011'
 )
 
 if __name__ == '__main__':
