@@ -69,10 +69,10 @@ DELAY_AUTOMATIC_RESPONSES = Mutable(0.1)  # seconds
 PRODUCTS_TO_SEND_TO_CLIENT = ['paper.pdf', 'paper.tex']
 
 # Human interactions:
-RECORD_INTERACTIONS = Flag(True)
-HUMAN_EDIT_CODE_REVIEW = True
+RECORD_INTERACTIONS = Flag(False)
+HUMAN_EDIT_CODE_REVIEW = False
 HUMAN_NAME = 'Human'
-CHOSEN_APP = Mutable('pyside')  # 'console', 'pyside', None
+CHOSEN_APP = Mutable(None)  # 'console', 'pyside', None
 
 NUM_DIGITS_FOR_FLOATS = 4
 

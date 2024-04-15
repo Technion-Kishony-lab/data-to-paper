@@ -11,7 +11,7 @@ from typing import List, Union, Optional, Callable
 
 import tiktoken
 
-from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS
+from data_to_paper.env import OPENAI_MODELS_TO_ORGANIZATIONS_API_KEYS_AND_API_BASE_URL, RECORD_INTERACTIONS, CHOSEN_APP
 from data_to_paper.utils.print_to_file import print_and_log_red, print_and_log
 from data_to_paper.run_gpt_code.timeout_context import timeout_context
 from data_to_paper.exceptions import TerminateException
@@ -219,8 +219,9 @@ def try_get_llm_response(messages: List[Message],
     if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
-    from data_to_paper.interactive import the_app
-    the_app.set_status(f'Waiting for LLM...')
+    if CHOSEN_APP:
+        from data_to_paper.interactive import the_app
+        the_app.set_status(f'Waiting for LLM...')
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         assert isinstance(action, LLMResponse)
@@ -233,7 +234,8 @@ def try_get_llm_response(messages: List[Message],
         else:
             raise
     finally:
-        the_app.set_status('')
+        if CHOSEN_APP:
+            the_app.set_status('')
 
 
 def get_human_response(app: BaseApp, **kwargs) -> HumanAction:

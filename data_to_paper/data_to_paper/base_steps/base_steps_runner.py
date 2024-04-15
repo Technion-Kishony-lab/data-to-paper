@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT, CHOSEN_APP
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
@@ -71,8 +71,9 @@ class BaseStepsRunner(ProductsHandler):
         """
         self.current_stage = stage
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
-        from data_to_paper.interactive import the_app
-        the_app.advance_stage(stage)
+        if CHOSEN_APP:
+            from data_to_paper.interactive import the_app
+            the_app.advance_stage(stage)
 
     def set_active_conversation(self, agent: Agent):
         """
@@ -105,13 +106,14 @@ class BaseStepsRunner(ProductsHandler):
                 stage=self.products.get_stage(product_field),
                 products=self.products,
                 product_field=product_field))
-        from data_to_paper.interactive import the_app
-        product = self.products.get_description(product_field)
-        product = format_text_with_code_blocks(product, is_html=True, width=None)
-        the_app.send_product_of_stage(
-            stage=self.products.get_stage(product_field),
-            product_text=product,
-            )
+        if CHOSEN_APP:
+            from data_to_paper.interactive import the_app
+            product = self.products.get_description(product_field)
+            product = format_text_with_code_blocks(product, is_html=True, width=None)
+            the_app.send_product_of_stage(
+                stage=self.products.get_stage(product_field),
+                product_text=product,
+                )
 
     @property
     def absolute_data_folder(self):

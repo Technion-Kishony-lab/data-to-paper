@@ -139,7 +139,7 @@ class Converser(Copier, AppInteractor):
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages,
             **{**self.llm_parameters, **kwargs})
-        if send_to_app:
+        if send_to_app and self.app:
             self._app_send_prompt(PanelNames.RESPONSE, message.pretty_content(with_header=False, is_html=True),
                                   provided_as_html=True)
         return message
@@ -154,7 +154,7 @@ class Converser(Copier, AppInteractor):
         content = format_value(self, content)
         if send_to_app is None:
             send_to_app = not is_background and not ignore
-        if send_to_app:
+        if send_to_app and self.app:
             if allow_editing:
                 content = self._app_receive_text(app_panel, content)
             self._app_send_prompt(app_panel, content)
@@ -172,7 +172,7 @@ class Converser(Copier, AppInteractor):
                                     **kwargs):
         if send_to_app is None:
             send_to_app = not ignore
-        if send_to_app:
+        if send_to_app and self.app:
             self._app_send_prompt(PanelNames.SYSTEM_PROMPT, content)
         return self.conversation_manager.append_system_message(
             content=format_value(self, content),
@@ -189,7 +189,7 @@ class Converser(Copier, AppInteractor):
                                        **kwargs):
         if send_to_app is None:
             send_to_app = not is_background and not ignore
-        if send_to_app:
+        if send_to_app and self.app:
             self._app_send_prompt(PanelNames.RESPONSE, content)
         return self.conversation_manager.append_surrogate_message(
             content=format_value(self, content),

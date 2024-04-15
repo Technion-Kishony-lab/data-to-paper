@@ -8,7 +8,7 @@ from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
 from data_to_paper.interactive import PanelNames
-from data_to_paper.env import TEXT_WIDTH
+from data_to_paper.env import TEXT_WIDTH, CHOSEN_APP
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
 
@@ -297,7 +297,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        if is_last_round and not self.human_review:
+        if is_last_round and not (self.human_review and CHOSEN_APP != None):
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return CycleStatus.MAX_ROUNDS_EXCEEDED
@@ -310,7 +310,7 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         else:
             other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
             other_response = other_message.content
-        if self.human_review:
+        if self.human_review and self.app:
             other_response = self._app_receive_text(PanelNames.FEEDBACK, '',
                                                     title='Review my response. Tell me what you want to correct.',
                                                     optional_suggestions={'AI': other_response,

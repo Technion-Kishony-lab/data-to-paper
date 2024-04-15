@@ -181,11 +181,12 @@ class ResultConverser(Converser):
         """
         self.valid_result = valid_result
         self._valid_result_update_count += 1
-        if self._has_valid_result:
-            html = self.get_valid_result_as_html()
-        else:
-            html = "No result yet."
-        self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
+        if self.app:
+            if self._has_valid_result:
+                html = self.get_valid_result_as_html()
+            else:
+                html = "No result yet."
+            self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
 
     def _raise_self_response_error(self,
                                    error_message: StrOrReplacer,

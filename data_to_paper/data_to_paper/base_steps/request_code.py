@@ -278,8 +278,10 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                     ai_issues += '\n\n- And please fix any other issues that you may find.'
                 else:
                     ai_issues = termination_phrase
-                if HUMAN_EDIT_CODE_REVIEW and \
+                if HUMAN_EDIT_CODE_REVIEW and self.app and \
                         (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
+                    # Allow human edit of the response if human_edit is True,
+                    # or if it is None and this is the final review
                     human_response = self._app_receive_text(
                         PanelNames.FEEDBACK, '',
                         title='Your feedback on code and output.',
