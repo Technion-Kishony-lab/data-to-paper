@@ -4,7 +4,6 @@ import os
 import time
 from dataclasses import dataclass
 from data_to_paper.utils.text_formatting import dedent_triple_quote_str
-from data_to_paper.interactive import the_app
 
 import openai
 
@@ -109,7 +108,10 @@ class OpenaiSeverCaller(ListServerCaller):
         """
         returns the response from the server after post-processing. allows recording and replaying.
         """
-        return super().get_server_response(*args, **kwargs)
+        action = super().get_server_response(*args, **kwargs)
+        if isinstance(action, str):
+            action = LLMResponse(action)  # Backward compatibility
+        return action
 
     @staticmethod
     def _get_server_response(messages: List[Message], model_engine: Union[ModelEngine, Callable], **kwargs
@@ -166,7 +168,11 @@ class OpenaiSeverCaller(ListServerCaller):
     def _deserialize_record(serialized_record):
         if is_exception(serialized_record):
             return de_serialize_exception(serialized_record)
-        return deserialize_serializable_value(serialized_record)
+        try:
+            return deserialize_serializable_value(serialized_record)
+        except ValueError:
+            # compatible with previous versions:
+            return LLMResponse(serialized_record)
 
 
 OPENAI_SERVER_CALLER = OpenaiSeverCaller()
@@ -213,10 +219,11 @@ def try_get_llm_response(messages: List[Message],
     if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
-
+    from data_to_paper.interactive import the_app
     the_app.set_status(f'Waiting for LLM...')
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
+        assert isinstance(action, LLMResponse)
         return action.value
     except openai.error.InvalidRequestError as e:
         # TODO: add here any other exception that can be addressed by changing the number of tokens

@@ -19,18 +19,16 @@ RUN_PARAMETERS = dict(
     data_filenames=["diabetes_binary_health_indicators_BRFSS2015.csv"],
     research_goal=None,
     should_do_data_exploration=True,
+    should_mock_servers=True,
+    load_from_repo=True,
+    save_on_repo=True,
+    project_specific_goal_guidelines=project_specific_goal_guidelines,
+    output_folder='run002'
 )
 
 if __name__ == '__main__':
     if CHOSEN_APP != 'pyside':
-        get_paper(**RUN_PARAMETERS,
-                  output_folder='test_001',
-                  project_specific_goal_guidelines=project_specific_goal_guidelines,
-                  should_mock_servers=True,
-                  load_from_repo=True,
-                  save_on_repo=True)
+        get_paper(**RUN_PARAMETERS)
     else:
-        the_app.start_worker(partial(get_paper, **RUN_PARAMETERS, output_folder='test_001',
-                                     project_specific_goal_guidelines=project_specific_goal_guidelines,
-                                     should_mock_servers=True, load_from_repo=True, save_on_repo=True))
+        the_app.start_worker(partial(get_paper, **RUN_PARAMETERS))
         sys.exit(q_application.exec())

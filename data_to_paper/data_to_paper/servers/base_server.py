@@ -1,12 +1,16 @@
 import functools
 import os
 import pickle
+import time
+
 from abc import ABC
 
 from pathlib import Path
 from typing import Union, Optional
 
 from .json_dump import dump_to_json, load_from_json
+
+from data_to_paper.env import CHOSEN_APP
 
 
 class NoMoreResponsesToMockError(Exception):
@@ -98,6 +102,8 @@ class ServerCaller(ABC):
         if not self.is_playing_or_recording:
             return self._get_server_response_without_raising(*args, **kwargs)
         response = self._get_response_from_records(args, kwargs)
+        if response is not None and CHOSEN_APP is not None:
+            time.sleep(3)  # to simulate the delay of the server
         if response is None:
             if not self.record_more_if_needed:
                 raise NoMoreResponsesToMockError()

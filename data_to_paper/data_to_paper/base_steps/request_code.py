@@ -292,7 +292,7 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
                 else:
                     human_response = None
                 response = ai_response if human_response is None else human_response
-                if response != termination_phrase:
+                if response and response != termination_phrase:
                     self.apply_append_user_message(response + '\n' + prompt_to_append_at_end_of_response)
                     return True
 

@@ -31,8 +31,8 @@ class BaseApp:
         return cls.instance
 
     def request_text(self, panel_name: PanelNames, initial_text: str = '',
-                      title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
-        pass
+                     title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
+        return initial_text
 
     def request_action(self, panel_name: PanelNames, initial_text: str = '',
                        title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> HumanAction:

@@ -155,11 +155,11 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'latex': (colored_text, convert_latex_to_html),
 }
 
-NEEDS_NO_WRAPPING = {'python', 'output', 'html'}
+NEEDS_NO_WRAPPING = {'python', 'output', 'html', 'header'}
 
 
 def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optional[bool] = None,
-                                 width: Optional[int] = 80, is_html: bool = False) -> str:
+                                 width: Optional[int] = 150, is_html: bool = False) -> str:
     if from_md is None:
         # check if md base on the first line: (this is a bit of a hacky way)
         from_md = text.startswith('#')
