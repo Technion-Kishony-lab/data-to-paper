@@ -236,8 +236,8 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
         If true, set the conversation to the state where the user ask the LLM to revise the code.
         """
         specific_attrs_for_code_and_output = self._get_specific_attrs_for_code_and_output(code_and_output)
-        prompt_to_append_at_end_of_response = Replacer(debugger, debugger.prompt_to_append_at_end_of_response
-                                                       ).format_text()
+        prompt_to_append_at_end_of_response = (
+            Replacer(debugger, debugger.prompt_to_append_at_end_of_response).format_text())
         for index, (wildcard_filename, individually, code_review_prompt, human_edit) \
                 in enumerate(self.code_review_prompts):
             if wildcard_filename is None:
@@ -273,27 +273,31 @@ class BaseCodeProductsGPT(BackgroundProductsConverser):
 
                 termination_phrase = 'Looks good - no changes needed.'
                 if issues_to_solutions:
-                    ai_response = dedent_triple_quote_str("""
+                    ai_issues = '\n\n'.join(f'- {issue}:\n{solution}'
+                                            for issue, solution in issues_to_solutions.items())
+                    ai_issues += '\n\n- And please fix any other issues that you may find.'
+                else:
+                    ai_issues = termination_phrase
+                if HUMAN_EDIT_CODE_REVIEW and \
+                        (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
+                    human_response = self._app_receive_text(
+                        PanelNames.FEEDBACK, '',
+                        title='Your feedback on code and output.',
+                        optional_suggestions={'AI': ai_issues,
+                                              'Default': termination_phrase})
+                else:
+                    human_response = None
+                issues = ai_issues if human_response is None else human_response
+                if issues and issues != termination_phrase:
+                    response = dedent_triple_quote_str("""
                         The code has some issues that need to be fixed:
 
                         {issues_to_solutions}
-
-                        - And please fix any other issues that you may find.
-                        """).format(issues_to_solutions='\n\n'.join(f'- {issue}:\n{solution}'
-                                                                    for issue, solution in issues_to_solutions.items()))
-                else:
-                    ai_response = termination_phrase
-                if HUMAN_EDIT_CODE_REVIEW and \
-                        (human_edit or (human_edit is None and index == len(self.code_review_prompts) - 1)):
-                    human_response = self._app_receive_text(PanelNames.FEEDBACK, '',
-                                                            title='Review the code and output. Tell me what you want to correct.',
-                                                            optional_suggestions={'AI': ai_response,
-                                                                                  'Default': termination_phrase})
-                else:
-                    human_response = None
-                response = ai_response if human_response is None else human_response
-                if response and response != termination_phrase:
-                    self.apply_append_user_message(response + '\n' + prompt_to_append_at_end_of_response)
+                        
+                        {prompt_to_append_at_end_of_response}
+                        """).format(issues_to_solutions=issues,
+                                    prompt_to_append_at_end_of_response=prompt_to_append_at_end_of_response)
+                    self.apply_append_user_message(response)
                     return True
 
         return False

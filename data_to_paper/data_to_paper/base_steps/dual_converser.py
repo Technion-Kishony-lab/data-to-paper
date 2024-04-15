@@ -7,6 +7,7 @@ from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.utils.replacer import StrOrReplacer, format_value
 from data_to_paper.utils.print_to_file import print_and_log_magenta
 from data_to_paper.utils.text_counting import is_bulleted_list
+from data_to_paper.interactive import PanelNames
 from data_to_paper.env import TEXT_WIDTH
 from data_to_paper.run_gpt_code.code_utils import extract_content_of_triple_quote_block, FailedExtractingBlock, \
     IncompleteBlockFailedExtractingBlock
@@ -187,6 +188,9 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
     # AS_FRESH: keep only the last response posted as fresh
     # ACCUMULATE (default, also None): keep all responses
 
+    human_review: bool = True
+    # whether to ask for human review after the LLM-dialog is completed
+
     def __post_init__(self):
         if self.max_reviewing_rounds == 0:
             # we are not reviewing, so this is essentially a single conversation
@@ -198,6 +202,10 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             self.other_conversation_manager.user_agent = self.assistant_agent
 
         self.round_num = 0
+
+    @property
+    def are_we_reviewing_at_all(self) -> bool:
+        return self.max_reviewing_rounds > 0
 
     def get_response_from_other_in_response_to_response_from_self(self, altered_self_response: str) -> Message:
         """
@@ -239,30 +247,25 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
         """
         return response
 
-    def _is_reviewer_response_terminating(self, reviewer_response: str, termination_phrase: str) -> Optional[bool]:
+    def get_termination_phrase(self) -> str:
+        return format_value(self, self.termination_phrase)
+
+    def _is_reviewer_response_terminating(self, reviewer_response: str) -> Optional[bool]:
         """
         Check if the response from the reviewer indicates that the reviewer is satisfied.
         True: the reviewer is satisfied and the dialog is completed.
         False: the reviewer is not satisfied and the dialog continues.
         None: the reviewer response is ambiguous.
         """
-        is_phrase = termination_phrase.lower() in reviewer_response.lower()
+        if reviewer_response.strip() == '':
+            # Empty response, like from a human reviewer, is terminating:
+            return True
+        is_phrase = self.get_termination_phrase().lower() in reviewer_response.lower()
         if not is_phrase:
             return False
         if not is_bulleted_list(reviewer_response):
             return True
         return None
-
-    def is_completed(self) -> bool:
-        """
-        The dialog is completed when the other agent terminates the conversation, by responding with the
-        termination phrase.
-        """
-        if len(self.other_conversation) <= 1:
-            return False
-        reviewer_response = self.other_conversation.get_last_response()
-        termination_phrase = format_value(self, self.termination_phrase)
-        return self._is_reviewer_response_terminating(reviewer_response, termination_phrase) is not False
 
     def run_dialog(self) -> CycleStatus:
         """
@@ -294,19 +297,32 @@ class DialogDualConverserGPT(DualConverserGPT, ResultConverser):
             return CycleStatus.FAILED_CHECK_SELF_RESPONSE
 
         # We have a valid response from self. Now we can proceed with the dialog:
-        if is_last_round:
+        if is_last_round and not self.human_review:
             if self.fake_performer_message_to_add_after_max_rounds is not None:
                 self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_max_rounds, ignore=True)
             return CycleStatus.MAX_ROUNDS_EXCEEDED
         valid_result = self._get_valid_result()
         fresh_looking_self_response = self._convert_valid_results_to_fresh_looking_response(valid_result)
         altered_self_response = self._alter_self_response(fresh_looking_self_response)
-        other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
-        other_response = other_message.content
+        if is_last_round:
+            other_message = None
+            other_response = self.get_termination_phrase()
+        else:
+            other_message = self.get_response_from_other_in_response_to_response_from_self(altered_self_response)
+            other_response = other_message.content
+        if self.human_review:
+            other_response = self._app_receive_text(PanelNames.FEEDBACK, '',
+                                                    title='Review my response. Tell me what you want to correct.',
+                                                    optional_suggestions={'AI': other_response,
+                                                                          'Default': self.get_termination_phrase()})
+            # replace other response with the human response in other conversation:
+            if self.are_we_reviewing_at_all:
+                self.apply_to_other_delete_messages(-1)
+                self.apply_to_other_append_surrogate_message(other_response)
         altered_other_response = self._alter_other_response(other_response)
-        if self.is_completed():
+        if self._is_reviewer_response_terminating(other_response):
             if self.append_termination_response_to_self:
-                self.apply_append_user_message(other_response, context=other_message.context)
+                self.apply_append_user_message(other_response, context=other_message.context if other_message else None)
                 if self.fake_performer_message_to_add_after_reviewer_approval:
                     self.apply_append_surrogate_message(self.fake_performer_message_to_add_after_reviewer_approval,
                                                         ignore=True)
@@ -348,10 +364,6 @@ class ReviewDialogDualConverserGPT(DialogDualConverserGPT):
         """)
 
     sentence_to_add_at_the_end_of_performer_response: str = None
-
-    @property
-    def are_we_reviewing_at_all(self) -> bool:
-        return self.max_reviewing_rounds > 0
 
     def _alter_other_response(self, response: str) -> str:
         return response + '\n' + self.sentence_to_add_at_the_end_of_reviewer_response

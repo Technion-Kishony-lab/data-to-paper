@@ -228,7 +228,7 @@ class EditableTextPanel(Panel):
 
         self.text_edit = QTextEdit()
         self.text_edit.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
-        self.text_edit.setFontPointSize(14)
+        # self.text_edit.setFontPointSize(14)
         self.text_edit.setStyleSheet("background-color: " + BACKGROUND_COLOR + ";")
 
         self.text_edit.setReadOnly(True)
