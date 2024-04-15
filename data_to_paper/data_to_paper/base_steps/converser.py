@@ -140,7 +140,8 @@ class Converser(Copier, AppInteractor):
             hidden_messages=hidden_messages,
             **{**self.llm_parameters, **kwargs})
         if send_to_app:
-            self._app_send_prompt(PanelNames.RESPONSE, message.content)
+            self._app_send_prompt(PanelNames.RESPONSE, message.pretty_content(with_header=False, is_html=True),
+                                  provided_as_html=True)
         return message
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,

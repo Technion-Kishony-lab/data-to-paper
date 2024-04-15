@@ -322,8 +322,8 @@ class ScientificProducts(Products):
             # ==============
 
             'research_goal': NameDescriptionStageGenerator(
-                'Research Goal',
-                'Here is our Research Goal\n\n{}',
+                'Research Goal and Hypothesis',
+                '## Research Goal and Hypothesis\n\n{}',
                 ScientificStages.GOAL,
                 lambda: self.research_goal,
             ),

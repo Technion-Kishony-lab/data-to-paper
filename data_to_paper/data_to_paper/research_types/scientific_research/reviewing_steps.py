@@ -73,10 +73,10 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         INSTRUCTIONS FOR FORMATTING YOUR RESPONSE:
         Please return the goal and hypothesis enclosed within triple-backticks, like this:
         ```
-        Research Goal: 
+        ### Research Goal: 
         <your research goal here>
 
-        Hypothesis: 
+        ### Hypothesis: 
         <your hypothesis here>
         ```
         """)
@@ -99,6 +99,14 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
         If you feel that the initial goal and hypothesis satisfy the above conditions, \t
         respond solely with "{termination_phrase}".
     """)
+
+    def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
+        if '### Research Goal:' not in extracted_text or '### Hypothesis:' not in extracted_text:
+            self._raise_self_response_error(self.quote_request)
+        self._update_valid_result(extracted_text)
+
+    def get_valid_result_as_text_blocks(self) -> str:
+        return f"```md\n## Research Goal and Hypothesis:\n{self.valid_result.strip()}\n```"
 
 
 @dataclass

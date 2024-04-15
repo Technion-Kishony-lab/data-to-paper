@@ -177,12 +177,14 @@ class Message:
 
         return content, is_incomplete_code
 
-    def pretty_content(self, text_color, width, is_html=False, with_header: bool = True) -> str:
+    def pretty_content(self, text_color: str = '', width: Optional[int] = None, is_html=False, with_header: bool = True
+                       ) -> str:
         """
         Returns a pretty repr of just the message content.
         """
         content, _ = self._get_triple_quote_formatted_content(with_header)
-        return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html)
+        return format_text_with_code_blocks(text=content, text_color=text_color, width=width, is_html=is_html,
+                                            from_md=None)
 
     def get_short_description(self, left: int = 85, right: int = -20, model: ModelEngine = None) -> str:
         return f'{self.role.name:>9} ({self.get_number_of_tokens(model):>4} tokens): ' \
@@ -246,7 +248,8 @@ class CodeMessage(Message):
             content = formatted_sections.to_text()
         return content, is_incomplete_code
 
-    def pretty_content(self, text_color, width, is_html=False, with_header: bool = True) -> str:
+    def pretty_content(self, text_color: str = '', width: Optional[int] = None, is_html=False, with_header: bool = True
+                       ) -> str:
         """
         We override this method to replace the code within the message with the diff.
         """
