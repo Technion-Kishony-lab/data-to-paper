@@ -10,6 +10,8 @@ from data_to_paper.code_and_output_files.ref_numeric_values import HypertargetFo
     ReferencedValue
 from data_to_paper.code_and_output_files.referencable_text import convert_str_to_latex_label
 from data_to_paper.latex.clean_latex import wrap_as_latex_code_output, replace_special_latex_chars
+from data_to_paper.research_types.scientific_research.coding.original_utils.to_latex_with_note import \
+    HTML_COMMENT_HEADER, get_html_from_latex_table
 from data_to_paper.run_gpt_code.base_run_contexts import RunContext
 
 from data_to_paper.code_and_output_files.output_file_requirements import OutputFileRequirementsWithContent
@@ -123,7 +125,11 @@ class CodeAndOutput:
             s += "## Code Output:\n"
             for filename, output in outputs.items():
                 s += f'### {filename}\n'
-                s += wrap_text_with_triple_quotes(output, 'output') + '\n'
+                html = get_html_from_latex_table(output)
+                if html:
+                    s += wrap_text_with_triple_quotes(html, 'html') + '\n'
+                else:
+                    s += wrap_text_with_triple_quotes(output, 'output') + '\n'
         return s
 
     def as_html(self):
