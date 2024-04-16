@@ -26,12 +26,20 @@ CSS = '''
 }
 h1 {
     color: #0066cc;
+    font-size: 18px;
 }
 h2 {
     color: #0099cc;
+    font-size: 16px;
 }
 h3 {
     color: #00cccc;
+    font-size: 14px;
+}
+li {
+    margin-left: 20px;
+    padding-left: 0;
+    color: #009999;
 }
 '''
 

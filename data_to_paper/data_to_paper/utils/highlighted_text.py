@@ -156,7 +156,8 @@ TAGS_TO_FORMATTERS: Dict[Optional[str], Tuple[Callable, Callable]] = {
     'latex': (colored_text, convert_latex_to_html),
 }
 
-NEEDS_NO_WRAPPING = {'python', 'output', 'html', 'header'}
+NEEDS_NO_WRAPPING_FOR_NO_HTML = {'python', 'output', 'html', 'header'}
+NEEDS_NO_WRAPPING_FOR_HTML = {'python', 'output', 'html', 'header', 'latex'}
 POSSIBLE_MARKDOWN_LABELS = {'md', 'text', '', True, False}
 
 
@@ -175,13 +176,15 @@ def format_text_with_code_blocks(text: str, text_color: str = '', from_md: Optio
             label == 'md' or label in POSSIBLE_MARKDOWN_LABELS and (from_md or from_md is None and is_text_md(section))
         if not is_html and label not in ['python', 'header', 'comment', 'system']:
             section = FormattedSections([formatted_section]).to_text()
-        if label not in NEEDS_NO_WRAPPING:
-            section = wrap_string(section, width=width)
         if is_html:
+            if label not in NEEDS_NO_WRAPPING_FOR_HTML:
+                section = wrap_string(section, width=width)
             if formatter == text_to_html:
                 s += formatter(section, from_md=is_section_md)
             else:
                 s += formatter(section)
         else:
+            if label not in NEEDS_NO_WRAPPING_FOR_NO_HTML:
+                section = wrap_string(section, width=width)
             s += formatter(section, text_color)
     return s
