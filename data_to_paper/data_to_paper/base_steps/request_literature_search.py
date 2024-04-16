@@ -154,3 +154,13 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "abstract": self.get_abstract()})
 
         return literature_search
+
+    def get_valid_result_as_text_blocks(self) -> str:
+        s = '```md\n## Literature Search Queries\n'
+        scopes_to_list_of_queries = self.valid_result
+        for scope, queries in scopes_to_list_of_queries.items():
+            s += f'### {scope.title()}\n'
+            for query in queries:
+                s += f'- "{query}"\n'
+        s += '\n```'
+        return s

@@ -127,7 +127,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
             # Check if the goal is OK
             products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
-                {'cherry picked': GetMostSimilarCitations.from_(self).get_overlapping_citations()}
+                {'cherry picked': GetMostSimilarCitations.from_(self).run_and_get_overlapping_citations()}
             #            self.send_product_to_client('literature_search:goal:goal and hypothesis'
             if IsGoalOK.from_(self).is_goal_ok():
                 break

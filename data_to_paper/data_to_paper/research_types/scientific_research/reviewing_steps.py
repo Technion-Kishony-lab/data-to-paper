@@ -154,11 +154,30 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
         return response_value
 
-    def get_overlapping_citations(self) -> List[Citation]:
-        ids_to_titles = self.run_and_get_valid_result()
+    def _get_overlapping_citations(self) -> List[Citation]:
+        ids_to_titles = self._get_valid_result()
         available_citations = self._get_available_citations()
         return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
 
+    def run_and_get_overlapping_citations(self) -> List[Citation]:
+        self.run_and_get_valid_result()
+        return self._get_overlapping_citations()
+
+    def get_valid_result_as_text_blocks(self) -> str:
+        s = f"```md\n## Most Similar Papers:\n"
+        for bibtex_id, title in self.valid_result.items():
+            s += f'*{bibtex_id}*\n"{title}"\n\n'
+        s += "```"
+        return s
+
+    def get_valid_result_as_html(self) -> str:
+        citations = self._get_overlapping_citations()
+        s = f"<h2>Most Similar Papers:</h2>\n"
+        s += '\n'.join(citation.pretty_repr(
+            fields=('bibtex_id', 'title', 'journal_and_year', 'tldr'),
+            is_html=True,
+        ) for citation in citations)
+        return s
 
 @dataclass
 class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
@@ -200,6 +219,22 @@ class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBac
 
     def is_goal_ok(self):
         return self.run_and_get_valid_result(with_review=False)['choice'] == 'OK'
+
+    def get_valid_result_as_text_blocks(self) -> str:
+        is_ok = self.valid_result['choice'] == 'OK'
+        if is_ok:
+            s = dedent_triple_quote_str("""
+                Considering the papers that we found, \t
+                my assessment is that our goal and hypothesis offer a significant novelty compared to 
+                existing literature. 
+            """)
+        else:
+            s = dedent_triple_quote_str("""
+                Considering the papers that we found, \t
+                my assessment is that our goal and hypothesis have too much overlap with existing literature. \t
+                I can suggest ways to revise our research goal to make it more novel.
+            """)
+        return f"```md\n## Goal and Hypothesis Assessment:\n{s}\n```"
 
 
 @dataclass
@@ -294,3 +329,11 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
             {re.sub(pattern=r'hypothesis \d+:|hypothesis:|hypothesis :',
                     repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
+
+    def get_valid_result_as_text_blocks(self) -> str:
+        s = f"```md\n## Hypothesis Testing Plan:\n"
+        for hypothesis, test in self.valid_result.items():
+            s += f"### Hypothesis:\n{hypothesis}\n"
+            s += f"### Test:\n{test}\n\n"
+        s += "```"
+        return s

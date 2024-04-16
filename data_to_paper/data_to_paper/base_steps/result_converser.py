@@ -417,5 +417,7 @@ class ResultConverser(Converser):
         Run the conversation until we get a valid result.
         Return the valid result.
         """
-        return self.run_and_get_valid_result_and_termination_reason(*args, **kwargs)[0]
+        if not self._has_valid_result:
+            self.run_and_get_valid_result_and_termination_reason(*args, **kwargs)
+        return self._get_valid_result()
 

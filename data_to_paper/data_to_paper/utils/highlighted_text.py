@@ -72,11 +72,21 @@ def python_to_highlighted_text(code_str: str, color: str = '') -> str:
 
 
 def md_to_html(md):
+    """
+    Convert markdown to html
+    """
     # Convert headers
     md = re.sub(pattern=r'(?m)^#### (.*)', repl=r'<h4>\1</h4>', string=md)
     md = re.sub(pattern=r'(?m)^### (.*)', repl=r'<h3>\1</h3>', string=md)
     md = re.sub(pattern=r'(?m)^## (.*)', repl=r'<h2>\1</h2>', string=md)
     md = re.sub(pattern=r'(?m)^# (.*)', repl=r'<h1>\1</h1>', string=md)
+
+    # Convert lists to bullets
+    md = re.sub(pattern=r'(?m)^- (.*)', repl=r'<li>- \1</li>', string=md)
+
+    # Convert bold and italic
+    md = re.sub(pattern=r'\*\*(.*)\*\*', repl=r'<b>\1</b>', string=md)
+    md = re.sub(pattern=r'\*(.*)\*', repl=r'<i>\1</i>', string=md)
     md = md.replace('\n\n', '<br>')
     return md
 
