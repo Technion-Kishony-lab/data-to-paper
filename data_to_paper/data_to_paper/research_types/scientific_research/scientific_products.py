@@ -12,6 +12,8 @@ from data_to_paper.latex.latex_to_pdf import evaluate_latex_num_command
 from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_caption
 
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
+from data_to_paper.research_types.scientific_research.product_types import HypothesisTestingPlanProduct, \
+    NoveltyAssessmentProduct, GoalAndHypothesisProduct
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
@@ -109,10 +111,10 @@ class ScientificProducts(Products):
     """
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
-    research_goal: Optional[str] = None
-    novelty_assessment: Dict[str, Union[str, List[str]]] = None
+    research_goal: GoalAndHypothesisProduct = None
+    novelty_assessment: NoveltyAssessmentProduct = None
     literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
-    hypothesis_testing_plan: Optional[Dict[str, str]] = None
+    hypothesis_testing_plan: HypothesisTestingPlanProduct = None
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
 
@@ -132,15 +134,6 @@ class ScientificProducts(Products):
             in self.codes_and_outputs[
                 'data_to_latex'].created_files.get_created_content_files_to_pretty_contents(content_view).items()
             if file.endswith('.tex')]}
-
-    @property
-    def pretty_hypothesis_testing_plan(self) -> str:
-        """
-        Return the hypothesis testing plan in a pretty way.
-        """
-        return '\n'.join(f'### Hypothesis:\n{hypothesis}\n'
-                         f'### Statistical Test:\n{test}\n'
-                         for hypothesis, test in self.hypothesis_testing_plan.items())
 
     def get_all_latex_tables(self, content_view: ContentView) -> List[str]:
         """
@@ -254,16 +247,7 @@ class ScientificProducts(Products):
                 **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'goal and hypothesis')].to_dict()
             ), 'html')
         s += '\n\n'
-        s += '## Novelty Assessment\n\n'
-        results = self.novelty_assessment
-        s += f"### Similarities:\n"
-        for similarity in results['similarities']:
-            s += f"- {similarity}\n"
-        s += f"### Differences:\n"
-        for difference in results['differences']:
-            s += f"- {difference}\n"
-        s += f"### Choice:\n{results['choice']}\n"
-        s += f"### Explanation:\n{results['explanation']}\n"
+        s += self.novelty_assessment.as_text(2)
         return s
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
@@ -317,14 +301,14 @@ class ScientificProducts(Products):
                 'Research Goal and Hypothesis',
                 '## Research Goal and Hypothesis\n\n{}',
                 ScientificStages.GOAL,
-                lambda: self.research_goal,
+                lambda: self.research_goal.as_text(2),
             ),
 
             'hypothesis_testing_plan': NameDescriptionStageGenerator(
                 'Hypothesis Testing Plan',
                 '## Hypothesis Testing Plan:\n{}',
                 ScientificStages.PLAN,
-                lambda: str(self.pretty_hypothesis_testing_plan),
+                lambda: str(self.hypothesis_testing_plan.as_text(2)),
             ),
 
             # LITERATURE SEARCH

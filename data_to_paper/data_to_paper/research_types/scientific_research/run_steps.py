@@ -129,7 +129,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             # Check if the goal is OK
             self.advance_stage_and_set_active_conversation(ScientificStages.ASSESS_NOVELTY, ScientificAgent.Writer)
             products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
-                {'cherry picked': GetMostSimilarCitations.from_(self).run_and_get_overlapping_citations()}
+                {'cherry picked': GetMostSimilarCitations.from_(self).run_and_get_valid_result()}
             products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
             if products.novelty_assessment['choice'] == 'OK':
                 break

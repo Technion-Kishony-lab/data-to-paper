@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional, Tuple, Union, Iterable
 
+from data_to_paper.base_products.product import Product
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
@@ -147,10 +148,16 @@ class ResultConverser(Converser):
     _valid_result_update_count: int = 0
 
     def get_valid_result_as_html(self) -> str:
+        valid_result = self._get_valid_result()
+        if isinstance(valid_result, Product):
+            return valid_result.as_html(2)
         return format_text_with_code_blocks(self.get_valid_result_as_text_blocks(), width=None, is_html=True)
 
     def get_valid_result_as_text_blocks(self) -> str:
-        return str(self.valid_result)
+        valid_result = self._get_valid_result()
+        if isinstance(valid_result, Product):
+            return valid_result.as_markdown(2)
+        return str(valid_result)
 
     def initialize_conversation_if_needed(self):
         super().initialize_conversation_if_needed()
@@ -260,6 +267,8 @@ class ResultConverser(Converser):
         """
         Convert the valid result to an extracted result.
         """
+        if isinstance(valid_result, Product):
+            return valid_result.to_extracted_test()
         return str(valid_result)
 
     def _convert_valid_results_to_fresh_looking_response(self, valid_results: Any) -> str:

@@ -4,7 +4,7 @@ from typing import Tuple, Dict, Any, Iterable, List, Collection
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
-from data_to_paper.base_steps.result_converser import Rewind
+from data_to_paper.base_steps.result_converser import Rewind, ExtractedText
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser, \
     PythonDictWithDefinedKeysReviewBackgroundProductsConverser
@@ -12,10 +12,11 @@ from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictRevi
 from data_to_paper.servers.custom_types import Citation
 
 from .cast import ScientificAgent
+from .product_types import GoalAndHypothesisProduct, MostSimilarPapersProduct, NoveltyAssessmentProduct, \
+    HypothesisTestingPlanProduct
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
 from .model_engines import get_model_engine_for_class
-from ...utils.nice_list import NiceList
 
 
 @dataclass
@@ -103,12 +104,9 @@ class GoalReviewGPT(ScientificProductsQuotedReviewGPT):
     """)
 
     def _check_extracted_text_and_update_valid_result(self, extracted_text: str):
-        if '### Research Goal:' not in extracted_text or '### Hypothesis:' not in extracted_text:
+        if '\n### Research Goal:' not in extracted_text or '\n### Hypothesis:' not in extracted_text:
             self._raise_self_response_error(self.quote_request)
-        self._update_valid_result(extracted_text)
-
-    def get_valid_result_as_text_blocks(self) -> str:
-        return f"```md\n## Research Goal and Hypothesis:\n{self.valid_result.strip()}\n```"
+        self._update_valid_result(GoalAndHypothesisProduct(value=extracted_text))
 
 
 @dataclass
@@ -156,30 +154,16 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         response_value = type(response_value)({key: bibtex_ids_to_citations[key].title for key in response_value})
         return response_value
 
-    def _get_overlapping_citations(self) -> List[Citation]:
-        ids_to_titles = self._get_valid_result()
+    def _get_overlapping_citations(self, ids_to_titles: Dict[str, str]) -> List[Citation]:
         available_citations = self._get_available_citations()
         return [citation for citation in available_citations if citation.bibtex_id in ids_to_titles]
 
-    def run_and_get_overlapping_citations(self) -> List[Citation]:
-        self.run_and_get_valid_result()
-        return self._get_overlapping_citations()
+    def _update_valid_result(self, valid_result: Dict[str, str]):
+        super()._update_valid_result(MostSimilarPapersProduct(value=self._get_overlapping_citations(valid_result)))
 
-    def get_valid_result_as_text_blocks(self) -> str:
-        s = f"```md\n## Most Similar Papers:\n"
-        for bibtex_id, title in self.valid_result.items():
-            s += f'*{bibtex_id}*\n"{title}"\n\n'
-        s += "```"
-        return s
-
-    def get_valid_result_as_html(self) -> str:
-        citations = self._get_overlapping_citations()
-        s = f"<h2>Most Similar Papers:</h2>\n"
-        s += '\n'.join(citation.pretty_repr(
-            fields=('bibtex_id', 'title', 'journal_and_year', 'tldr'),
-            is_html=True,
-        ) for citation in citations)
-        return s
+    def _convert_valid_result_back_to_extracted_text(self, valid_result: Any) -> ExtractedText:
+        return super()._convert_valid_result_back_to_extracted_text(
+            {citation.bibtex_id: citation.title for citation in valid_result})
 
 
 @dataclass
@@ -264,19 +248,8 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
                 "{'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}")
         return response_value
 
-    def get_valid_result_as_text_blocks(self) -> str:
-        results = self._get_valid_result()
-        s = f"```md\n## Goal and Hypothesis Assessment:\n"
-        s += f"### Similarities:\n"
-        for similarity in results['similarities']:
-            s += f"- {similarity}\n"
-        s += f"### Differences:\n"
-        for difference in results['differences']:
-            s += f"- {difference}\n"
-        s += f"### Choice:\n{results['choice']}\n"
-        s += f"### Explanation:\n{results['explanation']}\n"
-        s += "```"
-        return s
+    def _update_valid_result(self, valid_result: Dict[str, Any]):
+        super()._update_valid_result(NoveltyAssessmentProduct(value=valid_result))
 
 
 @dataclass
@@ -372,10 +345,5 @@ class HypothesesTestingPlanReviewGPT(PythonDictReviewBackgroundProductsConverser
                     repl='', string=k, flags=re.IGNORECASE).strip(): v
              for k, v in response_value.items()})
 
-    def get_valid_result_as_text_blocks(self) -> str:
-        s = f"```md\n## Hypothesis Testing Plan:\n"
-        for hypothesis, test in self.valid_result.items():
-            s += f"### Hypothesis:\n{hypothesis}\n"
-            s += f"### Test:\n{test}\n\n"
-        s += "```"
-        return s
+    def _update_valid_result(self, valid_result: Dict[str, str]):
+        super()._update_valid_result(HypothesisTestingPlanProduct(value=valid_result))
