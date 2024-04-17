@@ -1,0 +1,8 @@
+Here is our Research Goal
+
+
+Research Goal: 
+The goal of this research is to understand the interactions between lifestyle choices, physical conditions, and the occurrence of Diabetes. We aim to explore whether the relationship between Body Mass Index (BMI) and the occurrence of Diabetes is moderated by not just physical activity, but also other health behaviors such as smoking and consumption of fruits and vegetables.
+
+Hypothesis: 
+Physical activity, smoking, and consumption of fruits and vegetables all moderate the relationship between Body Mass Index (BMI) and the occurrence of Diabetes. The hypothesis is that the positive association between a higher BMI and Diabetes is weaker among those individuals who report engaging in healthier behaviors (like regular physical activity, non-smoking status, and daily consumption of fruits and vegetables) compared to those who engaged in less healthy behaviors.

@@ -563,7 +563,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
 
         {general_result_instructions}
 
-        * You can use the \\num command to calculate dependent values from the provided numeric values \t
+        * You should use the \\num command to calculate all the dependent values from the provided numeric values \t
         (they will be automatically replaced with the actual numeric values in compilation).
         """)
     section_review_specific_instructions: str = dedent_triple_quote_str("""

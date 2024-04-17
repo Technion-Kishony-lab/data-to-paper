@@ -1,0 +1,897 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{fancyvrb}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{sectsty}
+\sectionfont{\Large}
+\subsectionfont{\normalsize}
+\subsubsectionfont{\normalsize}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{12} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{12}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttfamily\footnotesize,
+morekeywords={self, import, as, from, if, for, while},              % Add keywords here
+keywordstyle=\color{deepblue},
+stringstyle=\color{deepred},
+commentstyle=\color{cyan},
+breaklines=true,
+escapeinside={(*@}{@*)},            % Define escape delimiters
+postbreak=\mbox{\textcolor{deepgreen}{$\hookrightarrow$}\space},
+showstringspaces=false
+}}
+
+
+% Python environment
+\lstnewenvironment{python}[1][]
+{
+\pythonstyle
+\lstset{#1}
+}
+{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+
+% Code output style for highlighting
+\newcommand\outputstyle{\lstset{
+    language=,
+    basicstyle=\ttfamily\footnotesize\color{gray},
+    breaklines=true,
+    showstringspaces=false,
+    escapeinside={(*@}{@*)},            % Define escape delimiters
+}}
+
+% Code output environment
+\lstnewenvironment{codeoutput}[1][]
+{
+    \outputstyle
+    \lstset{#1}
+}
+{}
+
+
+\title{Modulation of Diabetes Risk by Lifestyle Behaviors in the Presence of Elevated Body Mass Index}
+\author{data-to-paper}
+\begin{document}
+\maketitle
+\begin{abstract}
+Diabetes constitutes a growing public health concern, exacerbated by lifestyle behaviors in conjunction with increased body mass index (BMI). Addressing the critical need to understand how modifiable lifestyle factors can influence diabetes risk, our research investigates the complex interplay of physical activity, smoking, and dietary habits on the BMI-diabetes association. Leveraging a robust dataset from the CDC's Behavioral Risk Factor Surveillance System, this study encompasses 253,680 American adults. We employed statistical models to parse the moderation effects of lifestyle behaviors on the risk of diabetes as influenced by BMI. Our key findings articulate that regular physical activity mitigates the risk of diabetes even in the presence of high BMI, whereas smoking amplifies this risk. Dietary analyses further reveal that high vegetable consumption is associated with a reduced effect of BMI on diabetes, a benefit not observed with fruit intake. Importantly, the study maps the influence of socioeconomic parameters on these associations, underpinning their epidemiological relevance. Whilst the cross-sectional nature of our data restricts causal inference, and self-reported measures necessitate circumspect interpretation, the evidence affirms the potency of lifestyle modifications in diabetes intervention strategies. These insights bridge a gap in understanding and bear significant implications for public health policy and individual behavior change frameworks.
+\end{abstract}
+\section*{Introduction}
+
+The specter of diabetes looms large over public health, with its prevalence doubling over the past two decades and accounting for substantial morbidity and mortality worldwide \cite{Chiu2011DerivingEB, Singh2013TheAQ}. The disease's pervasive nature is exacerbated by modifiable lifestyle factors, including diet, physical activity, and smoking habits, especially in the context of the body mass index (BMI) \cite{Chan1994ObesityFD, Chen2018AssociationOB, Gray2015RelationBB}. While the deleterious impact of increased BMI on diabetes risk is well-documented, the "complex interplay" involving the mitigation or exacerbation of this risk by individual lifestyle choices remains inadequately explicated \cite{Pi-Sunyer2007ReductionIW, Wing2011BenefitsOM}.
+
+Prior research has predominantly focused on the independent effects of lifestyle behaviors on diabetes risk, leaving a knowledge gap regarding their collective modulation effects on the obesity-diabetes continuum, especially given the heterogeneous nature of diabetes manifestations across various populations \cite{Lv2017AdherenceTA, Schnurr2020ObesityUL, Bernab-Ortiz2015ContributionOM}. Studies highlighting the beneficial role of physical activity and dietary patterns have paved the way for lifestyle interventions, but the nuance of interaction effects between such behaviors and BMI, particularly concerning fruit and vegetable consumption, has been less explored and warrants further study \cite{Bohn2015ImpactOP, Han2020GeneticRA, Delgado-Velandia2022HealthyLM}. Similarly, while the adverse effects of smoking on diabetes risk are established, its specific interaction with BMI is still ill-defined, leaving questions about quantifying such a moderation effect \cite{Ng2019SmokingDD, Shi2013PhysicalAS}.
+
+This research endeavors to fill these gaps, utilizing the expansive and detailed data from the BRFSS, which provides insights into the health-related behaviors of American adults and their impact on chronic diseases, including diabetes \cite{Matthews2017HealthRelatedBB, Iachan2016NationalWO, Tung2017RacialAE}. By integrating these rich datasets, our study investigates how lifestyle behaviors modulate the effects of BMI on diabetes risk, providing empirical evidence of whether physical activity, dietary habits, and smoking serve to either mitigate or exacerbate this association.
+
+Methodologically, our analysis employs ordinary least squares (OLS) regression—a technique well-suited to examining the interdependent effects of multiple variables—thereby allowing us to capture the nuanced moderation played by lifestyle behaviors on the BMI-diabetes nexus \cite{Sambola2003RoleOR, Black2003DepressionPI, Rochlani2017MetabolicSP}. Our results yield statistically significant insights, elucidating how physical activity and vegetable consumption can weaken, while smoking can enhance, the diabetes-inducing potential of high BMI. These findings contribute to forming an interconnected picture that informs individual behavioral and public health policies aimed at diabetes prevention and control \cite{Reutrakul2013ChronotypeII, Stumvoll2000UseOT}.
+
+\section*{Results}
+
+First, to characterize the sample in terms of diabetes and associated lifestyle behaviors, we analyzed descriptive statistics for key variables. As shown in Table \ref{table:desc_stats}, the average Body Mass Index (BMI) was \hyperlink{A1a}{28.4} with a standard deviation of \hyperlink{A1b}{6.61}. The prevalence of diabetes was observed to be \hyperlink{A0a}{13.9\%}, with \hyperlink{A2a}{75.7\%} of the participants engaging in physical activity (`PhysActivity`) in the past 30 days. The proportion of individuals classified as smokers (`Smoker`) was \hyperlink{A3a}{44.3\%}. Daily fruit (`Fruits`) and vegetable (`Veggies`) consumption was reported at \hyperlink{A4a}{63.4\%} and \hyperlink{A5a}{81.1\%}, respectively. These descriptive findings draw from a dataset encompassing a total of \hyperlink{R0a}{253680} observations.
+
+% This latex table was generated from: `table_0.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-0-pkl}{Descriptive statistics of key variables}}
+\label{table:desc_stats}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrr}
+\toprule
+ & mean & std \\
+\midrule
+\textbf{Diabetes} & \raisebox{2ex}{\hypertarget{A0a}{}}0.139 & \raisebox{2ex}{\hypertarget{A0b}{}}0.346 \\
+\textbf{BMI} & \raisebox{2ex}{\hypertarget{A1a}{}}28.4 & \raisebox{2ex}{\hypertarget{A1b}{}}6.61 \\
+\textbf{Physical Activity} & \raisebox{2ex}{\hypertarget{A2a}{}}0.757 & \raisebox{2ex}{\hypertarget{A2b}{}}0.429 \\
+\textbf{Smoker} & \raisebox{2ex}{\hypertarget{A3a}{}}0.443 & \raisebox{2ex}{\hypertarget{A3b}{}}0.497 \\
+\textbf{Fruits} & \raisebox{2ex}{\hypertarget{A4a}{}}0.634 & \raisebox{2ex}{\hypertarget{A4b}{}}0.482 \\
+\textbf{Veggies} & \raisebox{2ex}{\hypertarget{A5a}{}}0.811 & \raisebox{2ex}{\hypertarget{A5b}{}}0.391 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item NOTE: The number of observations in all variables is \raisebox{2ex}{\hypertarget{A6a}{}}253680.0
+\item \textbf{Diabetes}: Diabetes occurrence. \raisebox{2ex}{\hypertarget{A7a}{}}1 if yes, \raisebox{2ex}{\hypertarget{A7b}{}}0 otherwise
+\item \textbf{Physical Activity}: Phys. Activity in past \raisebox{2ex}{\hypertarget{A8a}{}}30 days, \raisebox{2ex}{\hypertarget{A8b}{}}1: Yes, \raisebox{2ex}{\hypertarget{A8c}{}}0: No
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Then, to examine whether physical activity influences the association between BMI and diabetes, regression analysis was conducted incorporating an interaction term between BMI and physical activity (`PhysActivity`). The significant interaction term (\hyperlink{B4a}{-0.00221}; p $<$ \hyperlink{B4d}{$10^{-6}$}) from Table \ref{table:bmi_physactivity} suggests that physical activity moderates the relationship between BMI and diabetes risk. Specifically, the increase in the odds of having diabetes per unit increase in BMI is attenuated for physically active individuals by \hyperlink{results0}{-0.002208}, indicating a reduction in diabetes risk.
+
+% This latex table was generated from: `table_1.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-1-pkl}{Analysis of relationship between BMI and Diabetes moderated by Physical Activity}}
+\label{table:bmi_physactivity}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrlrr}
+\toprule
+ & Coef. & Std.Err. & t-val & p-val & [\raisebox{2ex}{\hypertarget{B0a}{}}0.025 & \raisebox{2ex}{\hypertarget{B0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{B1a}{}}-0.175 & \raisebox{2ex}{\hypertarget{B1b}{}}0.00678 & \raisebox{2ex}{\hypertarget{B1c}{}}-25.8 & $<$\raisebox{2ex}{\hypertarget{B1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B1e}{}}-0.188 & \raisebox{2ex}{\hypertarget{B1f}{}}-0.162 \\
+\textbf{BMI} & \raisebox{2ex}{\hypertarget{B2a}{}}0.012 & \raisebox{2ex}{\hypertarget{B2b}{}}0.000175 & \raisebox{2ex}{\hypertarget{B2c}{}}68.5 & $<$\raisebox{2ex}{\hypertarget{B2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B2e}{}}0.0116 & \raisebox{2ex}{\hypertarget{B2f}{}}0.0123 \\
+\textbf{Physical Activity} & \raisebox{2ex}{\hypertarget{B3a}{}}0.0266 & \raisebox{2ex}{\hypertarget{B3b}{}}0.00647 & \raisebox{2ex}{\hypertarget{B3c}{}}4.1 & \raisebox{2ex}{\hypertarget{B3d}{}}$4.06\ 10^{-5}$ & \raisebox{2ex}{\hypertarget{B3e}{}}0.0139 & \raisebox{2ex}{\hypertarget{B3f}{}}0.0392 \\
+\textbf{BMI * Phys. Act.} & \raisebox{2ex}{\hypertarget{B4a}{}}-0.00221 & \raisebox{2ex}{\hypertarget{B4b}{}}0.000213 & \raisebox{2ex}{\hypertarget{B4c}{}}-10.4 & $<$\raisebox{2ex}{\hypertarget{B4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B4e}{}}-0.00263 & \raisebox{2ex}{\hypertarget{B4f}{}}-0.00179 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{B5a}{}}0.0187 & \raisebox{2ex}{\hypertarget{B5b}{}}0.000216 & \raisebox{2ex}{\hypertarget{B5c}{}}86.5 & $<$\raisebox{2ex}{\hypertarget{B5d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B5e}{}}0.0183 & \raisebox{2ex}{\hypertarget{B5f}{}}0.0191 \\
+\textbf{Gender} & \raisebox{2ex}{\hypertarget{B6a}{}}0.0305 & \raisebox{2ex}{\hypertarget{B6b}{}}0.00133 & \raisebox{2ex}{\hypertarget{B6c}{}}23 & $<$\raisebox{2ex}{\hypertarget{B6d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B6e}{}}0.0279 & \raisebox{2ex}{\hypertarget{B6f}{}}0.0331 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{B7a}{}}-0.0112 & \raisebox{2ex}{\hypertarget{B7b}{}}0.000749 & \raisebox{2ex}{\hypertarget{B7c}{}}-14.9 & $<$\raisebox{2ex}{\hypertarget{B7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B7e}{}}-0.0127 & \raisebox{2ex}{\hypertarget{B7f}{}}-0.00971 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{B8a}{}}-0.0176 & \raisebox{2ex}{\hypertarget{B8b}{}}0.00036 & \raisebox{2ex}{\hypertarget{B8c}{}}-48.8 & $<$\raisebox{2ex}{\hypertarget{B8d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{B8e}{}}-0.0183 & \raisebox{2ex}{\hypertarget{B8f}{}}-0.0169 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Age}: \raisebox{2ex}{\hypertarget{B9a}{}}13-level age category in intervals of \raisebox{2ex}{\hypertarget{B9b}{}}5 years (e.g., \raisebox{2ex}{\hypertarget{B9c}{}}1 = \raisebox{2ex}{\hypertarget{B9d}{}}18-24, \raisebox{2ex}{\hypertarget{B9e}{}}2 = \raisebox{2ex}{\hypertarget{B9f}{}}25-29)
+\item \textbf{Gender}: \raisebox{2ex}{\hypertarget{B10a}{}}1 if male, \raisebox{2ex}{\hypertarget{B10b}{}}0 if female
+\item \textbf{Education}: Education Level. \raisebox{2ex}{\hypertarget{B11a}{}}1-6 with \raisebox{2ex}{\hypertarget{B11b}{}}1 being "Never attended school" and \raisebox{2ex}{\hypertarget{B11c}{}}6 being "College Graduate"
+\item \textbf{Income}: Income Scale. \raisebox{2ex}{\hypertarget{B12a}{}}1-8 with \raisebox{2ex}{\hypertarget{B12b}{}}1 being "$<$=\$\raisebox{2ex}{\hypertarget{B12c}{}}10K" and \raisebox{2ex}{\hypertarget{B12d}{}}8 being "$>$\$\raisebox{2ex}{\hypertarget{B12e}{}}75K"
+\item \textbf{t-val}: t-statistic of the regression estimate
+\item \textbf{p-val}: Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate
+\item \textbf{BMI * Phys. Act.}: Interaction between BMI and Physical Activity
+\item \textbf{Physical Activity}: Phys. Activity in past \raisebox{2ex}{\hypertarget{B13a}{}}30 days, \raisebox{2ex}{\hypertarget{B13b}{}}1: Yes, \raisebox{2ex}{\hypertarget{B13c}{}}0: No
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+To further assess lifestyle factors, we investigated the impact of smoking (`Smoker`) on the BMI-diabetes link. As reported in Table \ref{table:bmi_smoking}, the interaction of BMI and smoking status was significant (\hyperlink{C4a}{0.00273}; p $<$ \hyperlink{C4d}{$10^{-6}$}), indicating that smoking modifies the impact of BMI on diabetes prevalence. The risk of diabetes associated with each incremental increase in BMI was heightened for smokers, demonstrated by an increased risk multiplier of \hyperlink{results1}{1.003} compared to non-smokers, suggesting that smoking amplifies the diabetes risk associated with a higher BMI.
+
+% This latex table was generated from: `table_2.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-2-pkl}{Analysis of relationship between BMI and Diabetes moderated by Smoking Status}}
+\label{table:bmi_smoking}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrlrr}
+\toprule
+ & Coef. & Std.Err. & t-val & p-val & [\raisebox{2ex}{\hypertarget{C0a}{}}0.025 & \raisebox{2ex}{\hypertarget{C0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{C1a}{}}-0.129 & \raisebox{2ex}{\hypertarget{C1b}{}}0.00587 & \raisebox{2ex}{\hypertarget{C1c}{}}-22 & $<$\raisebox{2ex}{\hypertarget{C1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C1e}{}}-0.14 & \raisebox{2ex}{\hypertarget{C1f}{}}-0.117 \\
+\textbf{BMI} & \raisebox{2ex}{\hypertarget{C2a}{}}0.00962 & \raisebox{2ex}{\hypertarget{C2b}{}}0.000132 & \raisebox{2ex}{\hypertarget{C2c}{}}72.7 & $<$\raisebox{2ex}{\hypertarget{C2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C2e}{}}0.00936 & \raisebox{2ex}{\hypertarget{C2f}{}}0.00988 \\
+\textbf{Smoker} & \raisebox{2ex}{\hypertarget{C3a}{}}-0.0675 & \raisebox{2ex}{\hypertarget{C3b}{}}0.00583 & \raisebox{2ex}{\hypertarget{C3c}{}}-11.6 & $<$\raisebox{2ex}{\hypertarget{C3d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C3e}{}}-0.0789 & \raisebox{2ex}{\hypertarget{C3f}{}}-0.0561 \\
+\textbf{BMI * Smoker} & \raisebox{2ex}{\hypertarget{C4a}{}}0.00273 & \raisebox{2ex}{\hypertarget{C4b}{}}0.000199 & \raisebox{2ex}{\hypertarget{C4c}{}}13.7 & $<$\raisebox{2ex}{\hypertarget{C4d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C4e}{}}0.00234 & \raisebox{2ex}{\hypertarget{C4f}{}}0.00312 \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{C5a}{}}0.019 & \raisebox{2ex}{\hypertarget{C5b}{}}0.000217 & \raisebox{2ex}{\hypertarget{C5c}{}}87.4 & $<$\raisebox{2ex}{\hypertarget{C5d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C5e}{}}0.0186 & \raisebox{2ex}{\hypertarget{C5f}{}}0.0194 \\
+\textbf{Gender} & \raisebox{2ex}{\hypertarget{C6a}{}}0.0282 & \raisebox{2ex}{\hypertarget{C6b}{}}0.00134 & \raisebox{2ex}{\hypertarget{C6c}{}}21.1 & $<$\raisebox{2ex}{\hypertarget{C6d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C6e}{}}0.0256 & \raisebox{2ex}{\hypertarget{C6f}{}}0.0308 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{C7a}{}}-0.0125 & \raisebox{2ex}{\hypertarget{C7b}{}}0.000749 & \raisebox{2ex}{\hypertarget{C7c}{}}-16.7 & $<$\raisebox{2ex}{\hypertarget{C7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C7e}{}}-0.014 & \raisebox{2ex}{\hypertarget{C7f}{}}-0.0111 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{C8a}{}}-0.0184 & \raisebox{2ex}{\hypertarget{C8b}{}}0.000359 & \raisebox{2ex}{\hypertarget{C8c}{}}-51.2 & $<$\raisebox{2ex}{\hypertarget{C8d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{C8e}{}}-0.0191 & \raisebox{2ex}{\hypertarget{C8f}{}}-0.0177 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Age}: \raisebox{2ex}{\hypertarget{C9a}{}}13-level age category in intervals of \raisebox{2ex}{\hypertarget{C9b}{}}5 years (e.g., \raisebox{2ex}{\hypertarget{C9c}{}}1 = \raisebox{2ex}{\hypertarget{C9d}{}}18-24, \raisebox{2ex}{\hypertarget{C9e}{}}2 = \raisebox{2ex}{\hypertarget{C9f}{}}25-29)
+\item \textbf{Gender}: \raisebox{2ex}{\hypertarget{C10a}{}}1 if male, \raisebox{2ex}{\hypertarget{C10b}{}}0 if female
+\item \textbf{Education}: Education Level. \raisebox{2ex}{\hypertarget{C11a}{}}1-6 with \raisebox{2ex}{\hypertarget{C11b}{}}1 being "Never attended school" and \raisebox{2ex}{\hypertarget{C11c}{}}6 being "College Graduate"
+\item \textbf{Income}: Income Scale. \raisebox{2ex}{\hypertarget{C12a}{}}1-8 with \raisebox{2ex}{\hypertarget{C12b}{}}1 being "$<$=\$\raisebox{2ex}{\hypertarget{C12c}{}}10K" and \raisebox{2ex}{\hypertarget{C12d}{}}8 being "$>$\$\raisebox{2ex}{\hypertarget{C12e}{}}75K"
+\item \textbf{t-val}: t-statistic of the regression estimate
+\item \textbf{p-val}: Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate
+\item \textbf{Smoker}: \raisebox{2ex}{\hypertarget{C13a}{}}1 if smoker, \raisebox{2ex}{\hypertarget{C13b}{}}0 otherwise
+\item \textbf{BMI * Smoker}: Interaction between BMI and Smoking
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+Finally, the effect of diet was assessed by analyzing the interaction of BMI with daily fruit and vegetable consumption (`Fruits` and `Veggies`). The results from Table \ref{table:bmi_fruits_veggies} show a statistically significant interaction term for vegetables and BMI (\hyperlink{D6a}{-0.000577}; p = \hyperlink{D6d}{0.0223}), illustrating a reduction in the odds ratio of diabetes risk per unit increase in BMI for individuals who consume vegetables daily by \hyperlink{results2}{-0.0005768}. In contrast, fruit consumption did not have a statistically significant moderating effect on the BMI-diabetes relationship (\hyperlink{D4a}{0.000144}; p = \hyperlink{D4d}{0.492}).
+
+% This latex table was generated from: `table_3.pkl`
+\begin{table}[h]
+\caption{\protect\hyperlink{file-table-3-pkl}{Analysis of relationship between BMI and Diabetes moderated by Consumption of Fruits and Vegetables}}
+\label{table:bmi_fruits_veggies}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{%
+\begin{tabular}{lrrrlrr}
+\toprule
+ & Coef. & Std.Err. & t-val & p-val & [\raisebox{2ex}{\hypertarget{D0a}{}}0.025 & \raisebox{2ex}{\hypertarget{D0b}{}}0.975] \\
+\midrule
+\textbf{Intercept} & \raisebox{2ex}{\hypertarget{D1a}{}}-0.155 & \raisebox{2ex}{\hypertarget{D1b}{}}0.00797 & \raisebox{2ex}{\hypertarget{D1c}{}}-19.5 & $<$\raisebox{2ex}{\hypertarget{D1d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D1e}{}}-0.171 & \raisebox{2ex}{\hypertarget{D1f}{}}-0.14 \\
+\textbf{BMI} & \raisebox{2ex}{\hypertarget{D2a}{}}0.0111 & \raisebox{2ex}{\hypertarget{D2b}{}}0.000228 & \raisebox{2ex}{\hypertarget{D2c}{}}48.7 & $<$\raisebox{2ex}{\hypertarget{D2d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D2e}{}}0.0107 & \raisebox{2ex}{\hypertarget{D2f}{}}0.0116 \\
+\textbf{Fruits} & \raisebox{2ex}{\hypertarget{D3a}{}}-0.0143 & \raisebox{2ex}{\hypertarget{D3b}{}}0.00618 & \raisebox{2ex}{\hypertarget{D3c}{}}-2.32 & \raisebox{2ex}{\hypertarget{D3d}{}}0.0206 & \raisebox{2ex}{\hypertarget{D3e}{}}-0.0264 & \raisebox{2ex}{\hypertarget{D3f}{}}-0.00219 \\
+\textbf{BMI * Fruits} & \raisebox{2ex}{\hypertarget{D4a}{}}0.000144 & \raisebox{2ex}{\hypertarget{D4b}{}}0.00021 & \raisebox{2ex}{\hypertarget{D4c}{}}0.687 & \raisebox{2ex}{\hypertarget{D4d}{}}0.492 & \raisebox{2ex}{\hypertarget{D4e}{}}-0.000267 & \raisebox{2ex}{\hypertarget{D4f}{}}0.000555 \\
+\textbf{Veggies} & \raisebox{2ex}{\hypertarget{D5a}{}}0.004 & \raisebox{2ex}{\hypertarget{D5b}{}}0.00754 & \raisebox{2ex}{\hypertarget{D5c}{}}0.531 & \raisebox{2ex}{\hypertarget{D5d}{}}0.595 & \raisebox{2ex}{\hypertarget{D5e}{}}-0.0108 & \raisebox{2ex}{\hypertarget{D5f}{}}0.0188 \\
+\textbf{BMI * Veggies} & \raisebox{2ex}{\hypertarget{D6a}{}}-0.000577 & \raisebox{2ex}{\hypertarget{D6b}{}}0.000252 & \raisebox{2ex}{\hypertarget{D6c}{}}-2.28 & \raisebox{2ex}{\hypertarget{D6d}{}}0.0223 & \raisebox{2ex}{\hypertarget{D6e}{}}-0.00107 & \raisebox{2ex}{\hypertarget{D6f}{}}$-8.19\ 10^{-5}$ \\
+\textbf{Age} & \raisebox{2ex}{\hypertarget{D7a}{}}0.0192 & \raisebox{2ex}{\hypertarget{D7b}{}}0.000217 & \raisebox{2ex}{\hypertarget{D7c}{}}88.7 & $<$\raisebox{2ex}{\hypertarget{D7d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D7e}{}}0.0188 & \raisebox{2ex}{\hypertarget{D7f}{}}0.0196 \\
+\textbf{Gender} & \raisebox{2ex}{\hypertarget{D8a}{}}0.0276 & \raisebox{2ex}{\hypertarget{D8b}{}}0.00134 & \raisebox{2ex}{\hypertarget{D8c}{}}20.6 & $<$\raisebox{2ex}{\hypertarget{D8d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D8e}{}}0.025 & \raisebox{2ex}{\hypertarget{D8f}{}}0.0302 \\
+\textbf{Education} & \raisebox{2ex}{\hypertarget{D9a}{}}-0.0121 & \raisebox{2ex}{\hypertarget{D9b}{}}0.000749 & \raisebox{2ex}{\hypertarget{D9c}{}}-16.1 & $<$\raisebox{2ex}{\hypertarget{D9d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D9e}{}}-0.0136 & \raisebox{2ex}{\hypertarget{D9f}{}}-0.0106 \\
+\textbf{Income} & \raisebox{2ex}{\hypertarget{D10a}{}}-0.0181 & \raisebox{2ex}{\hypertarget{D10b}{}}0.00036 & \raisebox{2ex}{\hypertarget{D10c}{}}-50.2 & $<$\raisebox{2ex}{\hypertarget{D10d}{}}$10^{-6}$ & \raisebox{2ex}{\hypertarget{D10e}{}}-0.0188 & \raisebox{2ex}{\hypertarget{D10f}{}}-0.0174 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Age}: \raisebox{2ex}{\hypertarget{D11a}{}}13-level age category in intervals of \raisebox{2ex}{\hypertarget{D11b}{}}5 years (e.g., \raisebox{2ex}{\hypertarget{D11c}{}}1 = \raisebox{2ex}{\hypertarget{D11d}{}}18-24, \raisebox{2ex}{\hypertarget{D11e}{}}2 = \raisebox{2ex}{\hypertarget{D11f}{}}25-29)
+\item \textbf{Gender}: \raisebox{2ex}{\hypertarget{D12a}{}}1 if male, \raisebox{2ex}{\hypertarget{D12b}{}}0 if female
+\item \textbf{Education}: Education Level. \raisebox{2ex}{\hypertarget{D13a}{}}1-6 with \raisebox{2ex}{\hypertarget{D13b}{}}1 being "Never attended school" and \raisebox{2ex}{\hypertarget{D13c}{}}6 being "College Graduate"
+\item \textbf{Income}: Income Scale. \raisebox{2ex}{\hypertarget{D14a}{}}1-8 with \raisebox{2ex}{\hypertarget{D14b}{}}1 being "$<$=\$\raisebox{2ex}{\hypertarget{D14c}{}}10K" and \raisebox{2ex}{\hypertarget{D14d}{}}8 being "$>$\$\raisebox{2ex}{\hypertarget{D14e}{}}75K"
+\item \textbf{t-val}: t-statistic of the regression estimate
+\item \textbf{p-val}: Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate
+\item \textbf{Fruits}: One fruit/day, \raisebox{2ex}{\hypertarget{D15a}{}}1: Yes, \raisebox{2ex}{\hypertarget{D15b}{}}0: No
+\item \textbf{Veggies}: One veggie/day, \raisebox{2ex}{\hypertarget{D16a}{}}1: Yes, \raisebox{2ex}{\hypertarget{D16b}{}}0: No
+\item \textbf{BMI * Fruits}: Interaction between BMI and Fruit consumption
+\item \textbf{BMI * Veggies}: Interaction between BMI and Vegetable consumption
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+
+In summary, these results reveal that the interaction between physical activity and BMI is significantly associated with a reduced risk of diabetes, while smoking is associated with an increased risk. Furthermore, vegetable consumption is associated with a slight but statistically significant reduction in diabetes risk in the context of higher BMI levels, but no such moderating influence is observed for fruit consumption.
+
+\section*{Discussion}
+
+This study contributes to a more profound understanding of diabetes—a prominent global health issue—in the context of modifiable lifestyle behaviors and high body mass index (BMI) \cite{Chiu2011DerivingEB, Chen2018AssociationOB}. Our investigation relied on an extensive dataset provided by the Centers for Disease Control and Prevention's Behavioral Risk Factor Surveillance System (BRFSS), focusing on the effects of physical activity, smoking, and dietary habits on the frequently observed association between high BMI and diabetes \cite{Pearson2010AssociationBF, Chan1994ObesityFD}.
+
+Applying ordinary least squares regression models and incorporating interaction terms, we evaluated the moderation effect of different lifestyle behaviors on the diabetes risk associated with BMI \cite{Sambola2003RoleOR, Rochlani2017MetabolicSP, Stumvoll2000UseOT}. Our primary findings underscore that regular physical activity can mitigate the heightened risk of diabetes connected with increased BMI, aligning with research emphasizing the importance of physical activity in managing diabetes and extending it by highlighting its potential in diabetes prevention \cite{Bohn2015ImpactOP, Reis2011LifestyleFA}. Furthermore, smoking was discovered to exacerbate the BMI-diabetes relationship, reinforcing the need for anti-smoking efforts in diabetes prevention strategies \cite{Ng2019SmokingDD, Shi2013PhysicalAS}.
+
+Significantly, our data revealed that high vegetable consumption desensitizes the effect of BMI on diabetes risk, a finding that marries well with the extant literature advocating for diet-focused interventions against diabetes \cite{Delgado-Velandia2022HealthyLM, Li2017TimeTO}. However, we found no similar moderating influence for fruit consumption. This distinction prompts a reconsideration of the role of different types of dietary habits in managing diabetes and encourages further exploration into the reasons for the apparent discrepancy in the effects of vegetable and fruit consumption.
+
+Despite our findings' significance, we acknowledge some limitations. Firstly, our use of a cross-sectional study design impedes our ability to infer causal relationships. Furthermore, the self-reported nature of the variables, inherent to the BRFSS data set, presents a potential recall bias that might afflict some of the respondents, leading to potential inaccuracies in the reported data. Future research employing longitudinal study designs and objective measurements can help affirm these findings and better establish causal inferences.
+
+Our study fundamentally underscores that lifestyle modifications hold considerable promise for mitigating diabetes risk in the context of high BMI. While we recognize the differing effects of individual behaviors, it is essential to consider them collectively when designing intervention strategies for diabetes prevention \cite{Bernab-Ortiz2015ContributionOM}. Moreover, our results particularly urge reconsideration of current dietary guidelines, hinting that promoting vegetable consumption might offer more substantial benefits in diabetes management than fruit intake.
+
+Although our analysis spans a broad demographic base, our findings might bear specific importance for populations at higher risk of diabetes, including older adults, certain ethnic groups, and economically disadvantaged individuals. Future research can unravel these associations more intimately across various demographic groups to guide more targeted interventions.
+
+In conclusion, this research unravels the complex interplay of lifestyle behaviors and BMI in diabetes risk, and the findings bear crucial implications for both individual lifestyle adjustments and broader public health efforts. Our study elegantly illustrates how behavioral modifications are not only potent prevention strategies against diabetes but also critical for managing the increased diabetes risk associated with high BMI. Future research should strive to corroboratively substantiate these results, delve deeper into the mechanisms underlying these relationships, and proactively shape policy and practice aiming to curb the overwhelming burden of diabetes.
+
+\section*{Methods}
+
+\subsection*{Data Source}
+The dataset employed in this study originates from the Centers for Disease Control and Prevention's (CDC) Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015, a comprehensive telephone-based survey that collects annual data on health-related risk behaviors, chronic health conditions, and the utilization of preventative services from American adults. The dataset included 253,680 participants, with each individual being represented as a data point across 22 features. These encompassed demographic information, lifestyle choices, and health indicators pertinent to the examination of diabetes risk. Missing values had previously been expunged, yielding a dataset ready for robust statistical analyses without further need for imputation.
+
+\subsection*{Data Preprocessing}
+As part of the analysis, initial preparations to the dataset were not required since the dataset was already in a clean and usable format with no missing values. Consequently, our study proceeded directly with the application of statistical techniques to the extant dataset as provided.
+
+\subsection*{Data Analysis}
+In assessing the relationships embedded within our data, we pursued multiple regression analyses with the application of ordinary least squares (OLS) methodology. The primary focus of these analyses was to discern the moderation effect of various lifestyle behaviors on the relationship between Body Mass Index (BMI) and diabetes incidence. To this end, we constructed several regression models each evaluating BMI in conjunction with a distinct lifestyle variable—specifically, physical activity, smoking status, and fruit and vegetable consumption—and their interaction terms.
+
+The first model integrated the interaction between BMI and physical activity alongside control variables. Subsequent models similarly considered the interactions between BMI and smoking, and BMI and both dietary behaviors, respectively, each inclusive of the same control variables for age, sex, educational attainment, and income level, to ensure consistency and comparability across models.
+
+The results from each fitted model were detailed with comprehensive statistical outputs, including coefficients, standard errors, and significance levels. These outputs furnished us with the insights necessary to evaluate our original hypothesis and to elucidate the potential moderating roles of the examined lifestyle behaviors on diabetes risk in relation to BMI.\subsection*{Code Availability}
+
+Custom code used to perform the data preprocessing and analysis, as well as the raw code outputs, are provided in Supplementary Methods.
+
+
+\bibliographystyle{unsrt}
+\bibliography{citations}
+
+
+\clearpage
+\appendix
+
+\section{Data Description} \label{sec:data_description} Here is the data description, as provided by the user:
+
+\begin{codeoutput}
+(*@\raisebox{2ex}{\hypertarget{S}{}}@*)The dataset includes diabetes related factors extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS), year (*@\raisebox{2ex}{\hypertarget{S0a}{}}@*)2015.
+The original BRFSS, from which this dataset is derived, is a health-related telephone survey that is collected annually by the CDC.
+Each year, the survey collects responses from over (*@\raisebox{2ex}{\hypertarget{S1a}{}}@*)400,000 Americans on health-related risk behaviors, chronic health conditions, and the use of preventative services. These features are either questions directly asked of participants, or calculated variables based on individual participant responses.
+
+
+1 data file:
+
+"diabetes\_binary\_health\_indicators\_BRFSS2015.csv"
+(*@\raisebox{2ex}{\hypertarget{T}{}}@*)The csv file is a clean dataset of (*@\raisebox{2ex}{\hypertarget{T0a}{}}@*)253,680 responses (rows) and (*@\raisebox{2ex}{\hypertarget{T0b}{}}@*)22 features (columns).
+All rows with missing values were removed from the original dataset; the current file contains no missing values.
+
+The columns in the dataset are:
+
+\#1 `Diabetes\_binary`: (int, bool) Diabetes ((*@\raisebox{2ex}{\hypertarget{T1a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T1b}{}}@*)1=yes)
+\#2 `HighBP`: (int, bool) High Blood Pressure ((*@\raisebox{2ex}{\hypertarget{T2a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T2b}{}}@*)1=yes)
+\#3 `HighChol`: (int, bool) High Cholesterol ((*@\raisebox{2ex}{\hypertarget{T3a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T3b}{}}@*)1=yes)
+\#4 `CholCheck`: (int, bool) Cholesterol check in (*@\raisebox{2ex}{\hypertarget{T4a}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T4b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T4c}{}}@*)1=yes)
+\#5 `BMI`: (int, numerical) Body Mass Index
+\#6 `Smoker`: (int, bool) ((*@\raisebox{2ex}{\hypertarget{T5a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T5b}{}}@*)1=yes)
+\#7 `Stroke`: (int, bool) Stroke ((*@\raisebox{2ex}{\hypertarget{T6a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T6b}{}}@*)1=yes)
+\#8 `HeartDiseaseorAttack': (int, bool) coronary heart disease (CHD) or myocardial infarction (MI), ((*@\raisebox{2ex}{\hypertarget{T7a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T7b}{}}@*)1=yes)
+\#9 `PhysActivity`: (int, bool) Physical Activity in past (*@\raisebox{2ex}{\hypertarget{T8a}{}}@*)30 days ((*@\raisebox{2ex}{\hypertarget{T8b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T8c}{}}@*)1=yes)
+\#10 `Fruits`: (int, bool) Consume one fruit or more each day ((*@\raisebox{2ex}{\hypertarget{T9a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T9b}{}}@*)1=yes)
+\#11 `Veggies`: (int, bool) Consume one Vegetable or more each day ((*@\raisebox{2ex}{\hypertarget{T10a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T10b}{}}@*)1=yes)
+\#12 `HvyAlcoholConsump` (int, bool) Heavy drinkers ((*@\raisebox{2ex}{\hypertarget{T11a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T11b}{}}@*)1=yes)
+\#13 `AnyHealthcare` (int, bool) Have any kind of health care coverage ((*@\raisebox{2ex}{\hypertarget{T12a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T12b}{}}@*)1=yes)
+\#14 `NoDocbcCost` (int, bool) Was there a time in the past (*@\raisebox{2ex}{\hypertarget{T13a}{}}@*)12 months when you needed to see a doctor but could not because of cost? ((*@\raisebox{2ex}{\hypertarget{T13b}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T13c}{}}@*)1=yes)
+\#15 `GenHlth` (int, ordinal) self-reported health ((*@\raisebox{2ex}{\hypertarget{T14a}{}}@*)1=excellent, (*@\raisebox{2ex}{\hypertarget{T14b}{}}@*)2=very good, (*@\raisebox{2ex}{\hypertarget{T14c}{}}@*)3=good, (*@\raisebox{2ex}{\hypertarget{T14d}{}}@*)4=fair, (*@\raisebox{2ex}{\hypertarget{T14e}{}}@*)5=poor)
+\#16 `MentHlth` (int, ordinal) How many days during the past (*@\raisebox{2ex}{\hypertarget{T15a}{}}@*)30 days was your mental health not good? ((*@\raisebox{2ex}{\hypertarget{T15b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T15c}{}}@*)30 days)
+\#17 `PhysHlth` (int, ordinal) Hor how many days during the past (*@\raisebox{2ex}{\hypertarget{T16a}{}}@*)30 days was your physical health not good? ((*@\raisebox{2ex}{\hypertarget{T16b}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T16c}{}}@*)30 days)
+\#18 `DiffWalk` (int, bool) Do you have serious difficulty walking or climbing stairs? ((*@\raisebox{2ex}{\hypertarget{T17a}{}}@*)0=no, (*@\raisebox{2ex}{\hypertarget{T17b}{}}@*)1=yes)
+\#19 `Sex` (int, categorical) Sex ((*@\raisebox{2ex}{\hypertarget{T18a}{}}@*)0=female, (*@\raisebox{2ex}{\hypertarget{T18b}{}}@*)1=male)
+\#20 `Age` (int, ordinal) Age, (*@\raisebox{2ex}{\hypertarget{T19a}{}}@*)13-level age category in intervals of (*@\raisebox{2ex}{\hypertarget{T19b}{}}@*)5 years ((*@\raisebox{2ex}{\hypertarget{T19c}{}}@*)1= (*@\raisebox{2ex}{\hypertarget{T19d}{}}@*)18 - (*@\raisebox{2ex}{\hypertarget{T19e}{}}@*)24, (*@\raisebox{2ex}{\hypertarget{T19f}{}}@*)2= (*@\raisebox{2ex}{\hypertarget{T19g}{}}@*)25 - (*@\raisebox{2ex}{\hypertarget{T19h}{}}@*)29, ..., (*@\raisebox{2ex}{\hypertarget{T19i}{}}@*)12= (*@\raisebox{2ex}{\hypertarget{T19j}{}}@*)75 - (*@\raisebox{2ex}{\hypertarget{T19k}{}}@*)79, (*@\raisebox{2ex}{\hypertarget{T19l}{}}@*)13 = (*@\raisebox{2ex}{\hypertarget{T19m}{}}@*)80 or older)
+\#21 `Education` (int, ordinal) Education level on a scale of (*@\raisebox{2ex}{\hypertarget{T20a}{}}@*)1 - (*@\raisebox{2ex}{\hypertarget{T20b}{}}@*)6 ((*@\raisebox{2ex}{\hypertarget{T20c}{}}@*)1=Never attended school, (*@\raisebox{2ex}{\hypertarget{T20d}{}}@*)2=Elementary, (*@\raisebox{2ex}{\hypertarget{T20e}{}}@*)3=Some high school, (*@\raisebox{2ex}{\hypertarget{T20f}{}}@*)4=High school, (*@\raisebox{2ex}{\hypertarget{T20g}{}}@*)5=Some college, (*@\raisebox{2ex}{\hypertarget{T20h}{}}@*)6=College)
+\#22 `Income` (int, ordinal) Income scale on a scale of (*@\raisebox{2ex}{\hypertarget{T21a}{}}@*)1 to (*@\raisebox{2ex}{\hypertarget{T21b}{}}@*)8 ((*@\raisebox{2ex}{\hypertarget{T21c}{}}@*)1= $<$=(*@\raisebox{2ex}{\hypertarget{T21d}{}}@*)10K, (*@\raisebox{2ex}{\hypertarget{T21e}{}}@*)2= $<$=(*@\raisebox{2ex}{\hypertarget{T21f}{}}@*)15K, (*@\raisebox{2ex}{\hypertarget{T21g}{}}@*)3= $<$=(*@\raisebox{2ex}{\hypertarget{T21h}{}}@*)20K, (*@\raisebox{2ex}{\hypertarget{T21i}{}}@*)4= $<$=(*@\raisebox{2ex}{\hypertarget{T21j}{}}@*)25K, (*@\raisebox{2ex}{\hypertarget{T21k}{}}@*)5= $<$=(*@\raisebox{2ex}{\hypertarget{T21l}{}}@*)35K, (*@\raisebox{2ex}{\hypertarget{T21m}{}}@*)6= $<$=(*@\raisebox{2ex}{\hypertarget{T21n}{}}@*)50K, (*@\raisebox{2ex}{\hypertarget{T21o}{}}@*)7= $<$=(*@\raisebox{2ex}{\hypertarget{T21p}{}}@*)75K, (*@\raisebox{2ex}{\hypertarget{T21q}{}}@*)8= $>$75K)
+
+
+\end{codeoutput}
+
+\section{Data Exploration}
+\subsection{{Code}}
+The Data Exploration was carried out using the following custom code:
+
+\begin{python}
+
+import pandas as pd
+import numpy as np
+
+# Read in the CSV data
+data = pd.read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+
+# Open output file
+(*@\raisebox{2ex}{\hypertarget{code-Data Exploration-data-exploration-txt}{}}@*)with open("data_exploration.txt", "w") as file:
+
+    # Data Size
+    file.write("# Data Size\n")
+    file.write(f"Number of Rows: {data.shape[0]}\n")
+    file.write(f"Number of Columns: {data.shape[1]}\n\n")
+    
+    # Summary Statistics
+    file.write("# Summary Statistics\n")
+    summary_stats = data.describe(include=np.number).transpose()
+    summary_stats.to_csv(file, sep="\t")
+    file.write("\n")
+    
+    # Categorical Variables
+    categorical_columns = data.select_dtypes(include=['object']).columns
+    file.write("# Categorical Variables\n")
+    if len(categorical_columns) == 0:
+        file.write("Not Applicable\n\n")
+    else:
+        for col in categorical_columns:
+            file.write(f"For variable: {col}\n")
+            file.write(f"Mode: {data[col].mode()[0]}\n")
+        file.write("\n")
+
+    # Missing Values
+    file.write("# Missing Values\n")
+    total_missing = data.isnull().sum().sum()
+    if total_missing == 0:
+        file.write("No missing values\n\n")
+    else:
+        file.write(f"Total missing values: {total_missing}\n")
+        missing_values = data.isnull().sum()
+        missing_values.to_csv(file, sep="\t")
+        file.write("\n")
+
+\end{python}
+
+\subsection{Code Description}
+
+The provided code performs data exploration on a given dataset of diabetes-related factors. 
+
+First, the code reads in the dataset from a CSV file and stores it in a pandas DataFrame. 
+
+The code then proceeds to analyze the dataset in several steps:
+
+1. Data Size: The code calculates and writes the number of rows and columns in the dataset.
+
+2. Summary Statistics: The code calculates and writes summary statistics for numerical variables in the dataset. This includes measures such as count, mean, standard deviation, minimum, and maximum for each numerical feature.
+
+3. Categorical Variables: The code identifies and analyzes the categorical variables in the dataset. For each categorical variable, the code writes the mode, which represents the most frequent category in the variable.
+
+4. Missing Values: The code checks for missing values in the dataset. If there are no missing values, it writes "No missing values" in the output file. Otherwise, it calculates and writes the total number of missing values, as well as the count of missing values for each variable.
+
+The code writes the results of the data exploration analysis to the "data\_exploration.txt" file. This includes the data size, summary statistics, categorical variables with their modes, and information about missing values.
+
+Overall, this code provides an initial understanding of the dataset by exploring its size, summary statistics, categorical variables, and missing values. This information can be used to guide further analysis and decision-making in the research study.
+
+\subsection{Code Output}\hypertarget{file-data-exploration-txt}{}
+
+\subsubsection*{\hyperlink{code-Data Exploration-data-exploration-txt}{data\_exploration.txt}}
+
+\begin{codeoutput}
+\# Data Size
+Number of Rows: 253680
+Number of Columns: 22
+
+\# Summary Statistics
+	count	mean	std	min	25\%	50\%	75\%	max
+Diabetes\_binary	253680.0	0.1393             	0.3463             	0.0	0.0	0.0	0.0	1.0
+HighBP	253680.0	0.429             	0.4949            	0.0	0.0	0.0	1.0	1.0
+HighChol	253680.0	0.4241            	0.4942            	0.0	0.0	0.0	1.0	1.0
+CholCheck	253680.0	0.9627            	0.1896             	0.0	1.0	1.0	1.0	1.0
+BMI	253680.0	28.38             	6.609            	12.0	24.0	27.0	31.0	98.0
+Smoker	253680.0	0.4432             	0.4968            	0.0	0.0	0.0	1.0	1.0
+Stroke	253680.0	0.04057            	0.1973             	0.0	0.0	0.0	0.0	1.0
+HeartDiseaseorAttack	253680.0	0.09419            	0.2921             	0.0	0.0	0.0	0.0	1.0
+PhysActivity	253680.0	0.7565            	0.4292             	0.0	1.0	1.0	1.0	1.0
+Fruits	253680.0	0.6343            	0.4816           	0.0	0.0	1.0	1.0	1.0
+Veggies	253680.0	0.8114           	0.3912            	0.0	1.0	1.0	1.0	1.0
+HvyAlcoholConsump	253680.0	0.0562             	0.2303             	0.0	0.0	0.0	0.0	1.0
+AnyHealthcare	253680.0	0.9511            	0.2158             	0.0	1.0	1.0	1.0	1.0
+NoDocbcCost	253680.0	0.08418            	0.2777            	0.0	0.0	0.0	0.0	1.0
+GenHlth	253680.0	2.511             	1.068             	1.0	2.0	2.0	3.0	5.0
+MentHlth	253680.0	3.185             	7.413            	0.0	0.0	0.0	2.0	30.0
+PhysHlth	253680.0	4.242             	8.718           	0.0	0.0	0.0	3.0	30.0
+DiffWalk	253680.0	0.1682             	0.3741             	0.0	0.0	0.0	0.0	1.0
+Sex	253680.0	0.4403            	0.4964             	0.0	0.0	0.0	1.0	1.0
+Age	253680.0	8.032            	3.054            	1.0	6.0	8.0	10.0	13.0
+Education	253680.0	5.05             	0.9858            	1.0	4.0	5.0	6.0	6.0
+Income	253680.0	6.054            	2.071            	1.0	5.0	7.0	8.0	8.0
+
+\# Categorical Variables
+Not Applicable
+
+\# Missing Values
+No missing values
+
+
+\end{codeoutput}
+
+\section{Data Analysis}
+\subsection{{Code}}
+The Data Analysis was carried out using the following custom code:
+
+\begin{python}
+
+# IMPORT
+import pandas as pd
+import numpy as np
+import statsmodels.formula.api as sm
+import pickle
+
+# LOAD DATA
+data = pd.read_csv('diabetes_binary_health_indicators_BRFSS2015.csv')
+
+# DATASET PREPARATIONS
+# No dataset preparations are needed.
+
+# DESCRIPTIVE STATISTICS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-0-pkl}{}}@*)## Table 0: "Descriptive statistics of key variables"
+key_vars = ['Diabetes_binary', 'BMI', 'PhysActivity', 'Smoker', 'Fruits', 'Veggies']
+df0 = data[key_vars].describe().transpose()  # generates descriptive statistics
+df0 = df0[['count', 'mean', 'std']]  # keeps only count, mean, and std
+df0.to_pickle('table_0.pkl')
+
+# PREPROCESSING 
+# No preprocessing is needed, because the dataset is already properly formatted.
+
+# ANALYSIS
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-1-pkl}{}}@*)## Table 1: "Analysis of relationship between BMI and Diabetes moderated by Physical Activity"
+model = sm.ols(formula="Diabetes_binary ~ BMI*PhysActivity + Age + Sex + Education + Income", data=data)
+results = model.fit()
+df1 = pd.DataFrame(results.summary2().tables[1])  # outputs in DataFrame
+df1.to_pickle('table_1.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-2-pkl}{}}@*)## Table 2: "Analysis of relationship between BMI and Diabetes moderated by Smoking"
+model = sm.ols(formula="Diabetes_binary ~ BMI*Smoker + Age + Sex + Education + Income", data=data)
+results = model.fit()
+df2 = pd.DataFrame(results.summary2().tables[1])  # outputs in DataFrame
+df2.to_pickle('table_2.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-table-3-pkl}{}}@*)## Table 3: "Analysis of relationship between BMI and Diabetes moderated by Consumption of Fruits and Vegetables"
+model = sm.ols(formula="Diabetes_binary ~ BMI*Fruits + BMI*Veggies + Age + Sex + Education + Income", data=data)
+results = model.fit()
+df3 = pd.DataFrame(results.summary2().tables[1])  # Outputs in DataFrame
+df3.to_pickle('table_3.pkl')
+
+(*@\raisebox{2ex}{\hypertarget{code-Data Analysis-additional-results-pkl}{}}@*)# SAVE ADDITIONAL RESULTS
+additional_results = {
+    'Total number of observations': len(data),         
+}
+with open('additional_results.pkl', 'wb') as f:
+    pickle.dump(additional_results, f)
+
+\end{python}
+
+\subsection{Code Description}
+
+The code performs data analysis on the diabetes-related factors dataset extracted from the CDC's Behavioral Risk Factor Surveillance System (BRFSS) for the year 2015. The main goal of the analysis is to investigate the relationship between diabetes and various factors such as BMI, physical activity, smoking, and consumption of fruits and vegetables.
+
+The analysis proceeds in several steps:
+
+1. Dataset Loading: The code reads the dataset from the file "diabetes\_binary\_health\_indicators\_BRFSS2015.csv" and loads it into a pandas dataframe.
+
+2. Descriptive Statistics: The code computes descriptive statistics for key variables including 'Diabetes\_binary', 'BMI', 'PhysActivity', 'Smoker', 'Fruits', and 'Veggies'. The count, mean, and standard deviation of these variables are calculated and stored in a dataframe. The dataframe is saved as "table\_0.pkl".
+
+3. Preprocessing: Since the dataset is already clean and properly formatted, no preprocessing steps are required.
+
+4. Analysis: The code performs three separate analyses to explore the relationship between BMI and diabetes, with the moderation of different factors:
+
+   a. Analysis 1: The code fits a linear regression model with 'Diabetes\_binary' as the dependent variable and 'BMI', 'PhysActivity', 'Age', 'Sex', 'Education', and 'Income' as independent variables. The interaction term 'BMI*PhysActivity' is included to examine the moderation effect of physical activity. The results, including coefficients, p-values, and confidence intervals, are stored in a dataframe. The dataframe is saved as "table\_1.pkl".
+
+   b. Analysis 2: Similar to Analysis 1, the code fits another linear regression model with the moderation effect of smoking. The interaction term 'BMI*Smoker' is included in the model. The results are stored in a dataframe named "table\_2.pkl".
+
+   c. Analysis 3: The code fits a third linear regression model with the moderation effect of consuming fruits and vegetables. The interaction terms 'BMI*Fruits' and 'BMI*Veggies' are included in the model. The results are stored in a dataframe named "table\_3.pkl".
+
+5. Additional Results: The code saves additional results, including the total number of observations in the dataset, in a dictionary format. The dictionary is then serialized and saved as "additional\_results.pkl" using the pickle library.
+
+The saved outputs can be later used for further analysis, reporting, or visualization. The code provides valuable insights into the relationship between diabetes and various factors, contributing to the understanding and knowledge in the field of diabetes research.
+
+\subsection{Code Output}\hypertarget{file-table-0-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-0-pkl}{table\_0.pkl}}
+
+\begin{codeoutput}
+                 count   mean    std
+Diabetes\_binary 253680 0.1393 0.3463
+BMI             253680  28.38  6.609
+PhysActivity    253680 0.7565 0.4292
+Smoker          253680 0.4432 0.4968
+Fruits          253680 0.6343 0.4816
+Veggies         253680 0.8114 0.3912
+\end{codeoutput}\hypertarget{file-table-1-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-1-pkl}{table\_1.pkl}}
+
+\begin{codeoutput}
+                     Coef.  Std.Err.      t      P$>$\textbar{}t\textbar{}    [0.025    0.975]
+Intercept          -0.1752  0.006782 -25.83  6.23e-147   -0.1885   -0.1619
+BMI                0.01198  0.000175  68.46          0   0.01164   0.01233
+PhysActivity       0.02656   0.00647  4.104   4.06e-05   0.01387   0.03924
+BMI:PhysActivity -0.002213 0.0002133 -10.37   3.35e-25 -0.002631 -0.001795
+Age                0.01871 0.0002163  86.48          0   0.01828   0.01913
+Sex                0.03053  0.001329  22.98  1.08e-116   0.02793   0.03313
+Education         -0.01118 0.0007489 -14.93   2.16e-50  -0.01265 -0.009714
+Income            -0.01756 0.0003598  -48.8          0  -0.01826  -0.01685
+\end{codeoutput}\hypertarget{file-table-2-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-2-pkl}{table\_2.pkl}}
+
+\begin{codeoutput}
+              Coef.  Std.Err.      t      P$>$\textbar{}t\textbar{}   [0.025   0.975]
+Intercept   -0.1289  0.005873 -21.95  1.09e-106  -0.1404  -0.1174
+BMI        0.009623 0.0001323  72.74          0 0.009364 0.009882
+Smoker      -0.0675   0.00583 -11.58   5.39e-31 -0.07893 -0.05607
+BMI:Smoker 0.002734 0.0001993  13.72   8.36e-43 0.002343 0.003125
+Age         0.01899 0.0002172  87.41          0  0.01856  0.01941
+Sex          0.0282  0.001336   21.1   8.91e-99  0.02558  0.03082
+Education  -0.01252 0.0007488 -16.72   9.81e-63 -0.01399 -0.01105
+Income     -0.01836 0.0003588 -51.17          0 -0.01907 -0.01766
+\end{codeoutput}\hypertarget{file-table-3-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-table-3-pkl}{table\_3.pkl}}
+
+\begin{codeoutput}
+                 Coef.  Std.Err.      t     P$>$\textbar{}t\textbar{}     [0.025     0.975]
+Intercept      -0.1554   0.00797  -19.5  1.22e-84    -0.1711    -0.1398
+BMI             0.0111 0.0002281  48.67         0    0.01066    0.01155
+Fruits         -0.0143  0.006177 -2.315    0.0206   -0.02641  -0.002194
+BMI:Fruits   0.0001439 0.0002095  0.687     0.492 -0.0002667  0.0005546
+Veggies       0.004003  0.007539  0.531     0.595   -0.01077    0.01878
+BMI:Veggies -0.0005765 0.0002523 -2.285    0.0223  -0.001071 -8.191e-05
+Age            0.01922 0.0002167  88.71         0     0.0188    0.01965
+Sex             0.0276  0.001338  20.63  1.64e-94    0.02498    0.03022
+Education     -0.01209  0.000749 -16.14   1.4e-58   -0.01356   -0.01062
+Income        -0.01807 0.0003601 -50.17         0   -0.01877   -0.01736
+\end{codeoutput}\hypertarget{file-additional-results-pkl}{}
+
+\subsubsection*{\hyperlink{code-Data Analysis-additional-results-pkl}{additional\_results.pkl}}
+
+\begin{codeoutput}
+{
+    'Total number of observations': (*@\raisebox{2ex}{\hypertarget{R0a}{}}@*)253680,
+}
+\end{codeoutput}
+
+\section{LaTeX Table Design}
+\subsection{{Code}}
+The LaTeX Table Design was carried out using the following custom code:
+
+\begin{python}
+
+
+# IMPORT
+import pandas as pd
+from my_utils import to_latex_with_note, is_str_in_df, split_mapping, AbbrToNameDef
+
+# PREPARATION FOR ALL TABLES
+shared_mapping: AbbrToNameDef = {
+    'Diabetes_binary': ('Diabetes', 'Diabetes occurrence. 1 if yes, 0 otherwise'),
+    'BMI': ('BMI', None),
+    'Age': ('Age', '13-level age category in intervals of 5 years (e.g., 1 = 18-24, 2 = 25-29)'),
+    'Sex': ('Gender', '1 if male, 0 if female'),
+    'Education': ('Education', 'Education Level. 1-6 with 1 being "Never attended school" and 6 being "College Graduate"'),
+    'Income': ('Income', 'Income Scale. 1-8 with 1 being "<=$10K" and 8 being ">$75K"'),
+    't': ('t-val', 't-statistic of the regression estimate'),
+    'P>|t|': ('p-val', 'Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate')
+}
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-0-tex}{}}@*)# TABLE 0:
+df0 = pd.read_pickle('table_0.pkl')
+
+# DEDUPLICATE INFORMATION 
+count_unique = df0["count"].unique()
+assert len(count_unique) == 1
+df0 = df0.drop(columns=["count"])
+
+# RENAME ROWS AND COLUMNS 
+mapping0 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df0, k)) 
+mapping0['PhysActivity'] = ('Physical Activity', 'Phys. Activity in past 30 days, 1: Yes, 0: No')
+
+abbrs_to_names0, legend0 = split_mapping(mapping0)
+df0 = df0.rename(columns=abbrs_to_names0, index=abbrs_to_names0)
+
+# SAVE AS LATEX
+to_latex_with_note(
+    df0, 'table_0.tex',
+    caption="Descriptive statistics of key variables", 
+    label='table:desc_stats',
+    note=f"NOTE: The number of observations in all variables is {count_unique[0]}",
+    legend=legend0)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-1-tex}{}}@*)# TABLE 1:
+df1 = pd.read_pickle('table_1.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping1 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df1, k))
+mapping1['BMI:PhysActivity'] = ('BMI * Phys. Act.', 'Interaction between BMI and Physical Activity')
+mapping1['PhysActivity'] = ('Physical Activity', 'Phys. Activity in past 30 days, 1: Yes, 0: No')
+
+abbrs_to_names1, legend1 = split_mapping(mapping1)
+df1 = df1.rename(columns=abbrs_to_names1, index=abbrs_to_names1)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df1, 'table_1.tex',
+    caption="Analysis of relationship between BMI and Diabetes moderated by Physical Activity", 
+    label='table:bmi_physactivity',
+    legend=legend1)
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-2-tex}{}}@*)# TABLE 2:
+df2 = pd.read_pickle('table_2.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping2 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df2, k))
+mapping2['Smoker'] = ('Smoker', '1 if smoker, 0 otherwise')
+mapping2['BMI:Smoker'] = ('BMI * Smoker', 'Interaction between BMI and Smoking')
+
+abbrs_to_names2, legend2 = split_mapping(mapping2)
+df2 = df2.rename(columns=abbrs_to_names2, index=abbrs_to_names2)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df2, 'table_2.tex',
+    caption="Analysis of relationship between BMI and Diabetes moderated by Smoking Status", 
+    label='table:bmi_smoking',
+    legend=legend2)
+
+
+(*@\raisebox{2ex}{\hypertarget{code-LaTeX Table Design-table-3-tex}{}}@*)# TABLE 3:
+df3 = pd.read_pickle('table_3.pkl')
+
+# RENAME ROWS AND COLUMNS
+mapping3 = dict((k, v) for k, v in shared_mapping.items() if is_str_in_df(df3, k))
+mapping3['Fruits'] = ('Fruits', 'One fruit/day, 1: Yes, 0: No')
+mapping3['Veggies'] = ('Veggies', 'One veggie/day, 1: Yes, 0: No')
+mapping3['BMI:Fruits'] = ('BMI * Fruits', 'Interaction between BMI and Fruit consumption')
+mapping3['BMI:Veggies'] = ('BMI * Veggies', 'Interaction between BMI and Vegetable consumption')
+
+abbrs_to_names3, legend3 = split_mapping(mapping3)
+df3 = df3.rename(columns=abbrs_to_names3, index=abbrs_to_names3)
+
+# SAVE AS LATEX:
+to_latex_with_note(
+    df3, 'table_3.tex',
+    caption="Analysis of relationship between BMI and Diabetes moderated by Consumption of Fruits and Vegetables", 
+    label='table:bmi_fruits_veggies',
+    legend=legend3)
+    
+
+\end{python}
+
+\subsection{Provided Code}
+The code above is using the following provided functions:
+
+\begin{python}
+def to_latex_with_note(df, filename: str, caption: str, label: str, note: str = None, legend: Dict[str, str] = None, **kwargs):
+    """
+    Converts a DataFrame to a LaTeX table with optional note and legend added below the table.
+
+    Parameters:
+    - df, filename, caption, label: as in `df.to_latex`.
+    - note (optional): Additional note below the table.
+    - legend (optional): Dictionary mapping abbreviations to full names.
+    - **kwargs: Additional arguments for `df.to_latex`.
+    """
+
+def is_str_in_df(df: pd.DataFrame, s: str):
+    return any(s in level for level in getattr(df.index, 'levels', [df.index]) + getattr(df.columns, 'levels', [df.columns]))
+
+AbbrToNameDef = Dict[Any, Tuple[Optional[str], Optional[str]]]
+
+def split_mapping(abbrs_to_names_and_definitions: AbbrToNameDef):
+    abbrs_to_names = {abbr: name for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if name is not None}
+    names_to_definitions = {name or abbr: definition for abbr, (name, definition) in abbrs_to_names_and_definitions.items() if definition is not None}
+    return abbrs_to_names, names_to_definitions
+
+\end{python}
+
+
+
+\subsection{Code Output}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-0-tex}{table\_0.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_0.pkl`
+\begin{table}[h]
+\caption{Descriptive statistics of key variables}
+\label{table:desc\_stats}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrr}
+\toprule
+ \& mean \& std \\
+\midrule
+\textbf{Diabetes} \& 0.139 \& 0.346 \\
+\textbf{BMI} \& 28.4 \& 6.61 \\
+\textbf{Physical Activity} \& 0.757 \& 0.429 \\
+\textbf{Smoker} \& 0.443 \& 0.497 \\
+\textbf{Fruits} \& 0.634 \& 0.482 \\
+\textbf{Veggies} \& 0.811 \& 0.391 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item NOTE: The number of observations in all variables is 253680.0
+\item \textbf{Diabetes}: Diabetes occurrence. 1 if yes, 0 otherwise
+\item \textbf{Physical Activity}: Phys. Activity in past 30 days, 1: Yes, 0: No
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-1-tex}{table\_1.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_1.pkl`
+\begin{table}[h]
+\caption{Analysis of relationship between BMI and Diabetes moderated by Physical Activity}
+\label{table:bmi\_physactivity}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrlrr}
+\toprule
+ \& Coef. \& Std.Err. \& t-val \& p-val \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& -0.175 \& 0.00678 \& -25.8 \& \$$<$\$1e-06 \& -0.188 \& -0.162 \\
+\textbf{BMI} \& 0.012 \& 0.000175 \& 68.5 \& \$$<$\$1e-06 \& 0.0116 \& 0.0123 \\
+\textbf{Physical Activity} \& 0.0266 \& 0.00647 \& 4.1 \& 4.06e-05 \& 0.0139 \& 0.0392 \\
+\textbf{BMI * Phys. Act.} \& -0.00221 \& 0.000213 \& -10.4 \& \$$<$\$1e-06 \& -0.00263 \& -0.00179 \\
+\textbf{Age} \& 0.0187 \& 0.000216 \& 86.5 \& \$$<$\$1e-06 \& 0.0183 \& 0.0191 \\
+\textbf{Gender} \& 0.0305 \& 0.00133 \& 23 \& \$$<$\$1e-06 \& 0.0279 \& 0.0331 \\
+\textbf{Education} \& -0.0112 \& 0.000749 \& -14.9 \& \$$<$\$1e-06 \& -0.0127 \& -0.00971 \\
+\textbf{Income} \& -0.0176 \& 0.00036 \& -48.8 \& \$$<$\$1e-06 \& -0.0183 \& -0.0169 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Age}: 13-level age category in intervals of 5 years (e.g., 1 = 18-24, 2 = 25-29)
+\item \textbf{Gender}: 1 if male, 0 if female
+\item \textbf{Education}: Education Level. 1-6 with 1 being "Never attended school" and 6 being "College Graduate"
+\item \textbf{Income}: Income Scale. 1-8 with 1 being "\$$<$\$=\$10K" and 8 being "\$$>$\$\$75K"
+\item \textbf{t-val}: t-statistic of the regression estimate
+\item \textbf{p-val}: Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate
+\item \textbf{BMI * Phys. Act.}: Interaction between BMI and Physical Activity
+\item \textbf{Physical Activity}: Phys. Activity in past 30 days, 1: Yes, 0: No
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-2-tex}{table\_2.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_2.pkl`
+\begin{table}[h]
+\caption{Analysis of relationship between BMI and Diabetes moderated by Smoking Status}
+\label{table:bmi\_smoking}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrlrr}
+\toprule
+ \& Coef. \& Std.Err. \& t-val \& p-val \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& -0.129 \& 0.00587 \& -22 \& \$$<$\$1e-06 \& -0.14 \& -0.117 \\
+\textbf{BMI} \& 0.00962 \& 0.000132 \& 72.7 \& \$$<$\$1e-06 \& 0.00936 \& 0.00988 \\
+\textbf{Smoker} \& -0.0675 \& 0.00583 \& -11.6 \& \$$<$\$1e-06 \& -0.0789 \& -0.0561 \\
+\textbf{BMI * Smoker} \& 0.00273 \& 0.000199 \& 13.7 \& \$$<$\$1e-06 \& 0.00234 \& 0.00312 \\
+\textbf{Age} \& 0.019 \& 0.000217 \& 87.4 \& \$$<$\$1e-06 \& 0.0186 \& 0.0194 \\
+\textbf{Gender} \& 0.0282 \& 0.00134 \& 21.1 \& \$$<$\$1e-06 \& 0.0256 \& 0.0308 \\
+\textbf{Education} \& -0.0125 \& 0.000749 \& -16.7 \& \$$<$\$1e-06 \& -0.014 \& -0.0111 \\
+\textbf{Income} \& -0.0184 \& 0.000359 \& -51.2 \& \$$<$\$1e-06 \& -0.0191 \& -0.0177 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Age}: 13-level age category in intervals of 5 years (e.g., 1 = 18-24, 2 = 25-29)
+\item \textbf{Gender}: 1 if male, 0 if female
+\item \textbf{Education}: Education Level. 1-6 with 1 being "Never attended school" and 6 being "College Graduate"
+\item \textbf{Income}: Income Scale. 1-8 with 1 being "\$$<$\$=\$10K" and 8 being "\$$>$\$\$75K"
+\item \textbf{t-val}: t-statistic of the regression estimate
+\item \textbf{p-val}: Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate
+\item \textbf{Smoker}: 1 if smoker, 0 otherwise
+\item \textbf{BMI * Smoker}: Interaction between BMI and Smoking
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{codeoutput}
+
+\subsubsection*{\hyperlink{code-LaTeX Table Design-table-3-tex}{table\_3.tex}}
+
+\begin{codeoutput}
+\% This latex table was generated from: `table\_3.pkl`
+\begin{table}[h]
+\caption{Analysis of relationship between BMI and Diabetes moderated by Consumption of Fruits and Vegetables}
+\label{table:bmi\_fruits\_veggies}
+\begin{threeparttable}
+\renewcommand{\TPTminimum}{\linewidth}
+\makebox[\linewidth]{\%
+\begin{tabular}{lrrrlrr}
+\toprule
+ \& Coef. \& Std.Err. \& t-val \& p-val \& [0.025 \& 0.975] \\
+\midrule
+\textbf{Intercept} \& -0.155 \& 0.00797 \& -19.5 \& \$$<$\$1e-06 \& -0.171 \& -0.14 \\
+\textbf{BMI} \& 0.0111 \& 0.000228 \& 48.7 \& \$$<$\$1e-06 \& 0.0107 \& 0.0116 \\
+\textbf{Fruits} \& -0.0143 \& 0.00618 \& -2.32 \& 0.0206 \& -0.0264 \& -0.00219 \\
+\textbf{BMI * Fruits} \& 0.000144 \& 0.00021 \& 0.687 \& 0.492 \& -0.000267 \& 0.000555 \\
+\textbf{Veggies} \& 0.004 \& 0.00754 \& 0.531 \& 0.595 \& -0.0108 \& 0.0188 \\
+\textbf{BMI * Veggies} \& -0.000577 \& 0.000252 \& -2.28 \& 0.0223 \& -0.00107 \& -8.19e-05 \\
+\textbf{Age} \& 0.0192 \& 0.000217 \& 88.7 \& \$$<$\$1e-06 \& 0.0188 \& 0.0196 \\
+\textbf{Gender} \& 0.0276 \& 0.00134 \& 20.6 \& \$$<$\$1e-06 \& 0.025 \& 0.0302 \\
+\textbf{Education} \& -0.0121 \& 0.000749 \& -16.1 \& \$$<$\$1e-06 \& -0.0136 \& -0.0106 \\
+\textbf{Income} \& -0.0181 \& 0.00036 \& -50.2 \& \$$<$\$1e-06 \& -0.0188 \& -0.0174 \\
+\bottomrule
+\end{tabular}}
+\begin{tablenotes}
+\footnotesize
+\item \textbf{Age}: 13-level age category in intervals of 5 years (e.g., 1 = 18-24, 2 = 25-29)
+\item \textbf{Gender}: 1 if male, 0 if female
+\item \textbf{Education}: Education Level. 1-6 with 1 being "Never attended school" and 6 being "College Graduate"
+\item \textbf{Income}: Income Scale. 1-8 with 1 being "\$$<$\$=\$10K" and 8 being "\$$>$\$\$75K"
+\item \textbf{t-val}: t-statistic of the regression estimate
+\item \textbf{p-val}: Probability that the null hypothesis (of no relationship) produces results as extreme as the estimate
+\item \textbf{Fruits}: One fruit/day, 1: Yes, 0: No
+\item \textbf{Veggies}: One veggie/day, 1: Yes, 0: No
+\item \textbf{BMI * Fruits}: Interaction between BMI and Fruit consumption
+\item \textbf{BMI * Veggies}: Interaction between BMI and Vegetable consumption
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\end{codeoutput}
+
+\section{Calculation Notes}
+\begin{itemize}
+\item{\raisebox{2ex}{\hypertarget{results0}{}}exp(-\hyperlink{B4a}{0.00221}) - 1 = -0.002208
+
+Percent change in odds ratio due to the interaction between BMI and PhysActivity}
+\item{\raisebox{2ex}{\hypertarget{results1}{}}exp(\hyperlink{C4a}{0.00273}) = 1.003
+
+Change in odds ratio due to the interaction between BMI and Smoker}
+\item{\raisebox{2ex}{\hypertarget{results2}{}}exp(-\hyperlink{D6a}{0.000577}) - 1 = -0.0005768
+
+Percent change in odds ratio due to the interaction between BMI and Veggies}
+\end{itemize}
+
+\end{document}

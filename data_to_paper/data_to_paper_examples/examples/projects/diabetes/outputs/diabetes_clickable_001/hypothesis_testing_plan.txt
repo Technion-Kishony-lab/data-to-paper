@@ -1,0 +1,10 @@
+Here is our Hypothesis Testing Plan:
+
+Hypothesis: 1. The association between BMI and the occurrence of Diabetes is moderated by physical activity
+Statistical Test: Perform a multiple linear regression with BMI as the independent variable, Diabetes_binary as the dependent variable, and include the interaction term between BMI and PhysActivity. Adjust for potential confounding variables such as age, sex, education, and income.
+
+Hypothesis: 2. The association between BMI and the occurrence of Diabetes is moderated by smoking
+Statistical Test: Perform a multiple linear regression with BMI as the independent variable, Diabetes_binary as the dependent variable, and include the interaction term between BMI and Smoker. Adjust for potential confounding variables such as age, sex, education, and income.
+
+Hypothesis: 3. The association between BMI and the occurrence of Diabetes is moderated by consumption of fruits and vegetables
+Statistical Test: Perform a multiple linear regression with BMI as the independent variable, Diabetes_binary as the dependent variable, and include the interaction terms between BMI and each of the variables Fruits and Veggies. Adjust for potential confounding variables such as age, sex, education, and income.
