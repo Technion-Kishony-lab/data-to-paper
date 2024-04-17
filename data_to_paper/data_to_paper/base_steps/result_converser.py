@@ -8,6 +8,7 @@ from data_to_paper.base_products.product import Product
 from data_to_paper.base_steps.converser import Converser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
 from data_to_paper.conversation.message_designation import RangeMessageDesignation, SingleMessageDesignation
+from data_to_paper.conversation.stage import Stage
 from data_to_paper.exceptions import data_to_paperException
 from data_to_paper.interactive import PanelNames
 from data_to_paper.utils import format_text_with_code_blocks
@@ -144,7 +145,8 @@ class ResultConverser(Converser):
     _is_extracting: Flag = field(default_factory=Flag)
 
     # Output:
-    valid_result: Any = field(default_factory=NoResponse)
+    stage: Stage = None
+    valid_result: Union[Product, Any] = field(default_factory=NoResponse)
     _valid_result_update_count: int = 0
 
     def get_valid_result_as_html(self) -> str:
@@ -179,13 +181,16 @@ class ResultConverser(Converser):
         """
         return not isinstance(self.valid_result, NoResponse)
 
-    def _update_valid_result(self, valid_result: Any):
+    def _update_valid_result(self, valid_result: Union[Product, Any]):
         """
         Update the valid result.
         Should be called when we have a result that is "usable".
         Typically, the method is called
         "usable" often, but not always, require passing all rule-based checks.
         """
+        if isinstance(valid_result, Product):
+            if valid_result.stage is None:
+                valid_result.stage = self.stage
         self.valid_result = valid_result
         self._valid_result_update_count += 1
         if self.app:
@@ -393,7 +398,7 @@ class ResultConverser(Converser):
         else:
             return False, is_new_valid_result
 
-    def _get_valid_result(self):
+    def _get_valid_result(self) -> Union[Product, Any]:
         if not self._has_valid_result:
             raise FailedCreatingProductException()
         return self.valid_result

@@ -120,7 +120,9 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_GOAL,
                                                                ScientificAgent.CitationExpert)
                 products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
-                    self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
+                    self, excluded_citation_titles=self.excluded_citation_titles,
+                    stage=ScientificStages.LITERATURE_REVIEW_GOAL
+                ).get_literature_search()
                 self.send_product_to_client('literature_search_goal')
 
             if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:

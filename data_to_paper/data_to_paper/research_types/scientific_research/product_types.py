@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import List, Dict, Any
 
-from data_to_paper.base_products.product import Product, SingleValueProduct
+from data_to_paper.base_products.product import Product, ValueProduct
 from data_to_paper.servers.custom_types import Citation
 
 
 @dataclass
-class GoalAndHypothesisProduct(SingleValueProduct):
+class GoalAndHypothesisProduct(ValueProduct):
     name: str = "Goal and Hypothesis"
 
     def _get_content_as_text(self, level):
@@ -21,7 +21,7 @@ class GoalAndHypothesisProduct(SingleValueProduct):
 
 
 @dataclass
-class MostSimilarPapersProduct(SingleValueProduct):
+class MostSimilarPapersProduct(ValueProduct):
     name: str = "Most Similar Papers"
     value: List[Citation] = None
 
@@ -39,7 +39,7 @@ class MostSimilarPapersProduct(SingleValueProduct):
 
 
 @dataclass
-class NoveltyAssessmentProduct(SingleValueProduct):
+class NoveltyAssessmentProduct(ValueProduct):
     name: str = "Novelty Assessment"
     value: Dict[str, Any] = None
 
@@ -59,7 +59,7 @@ class NoveltyAssessmentProduct(SingleValueProduct):
 
 
 @dataclass
-class HypothesisTestingPlanProduct(SingleValueProduct):
+class HypothesisTestingPlanProduct(ValueProduct):
     name: str = 'Hypothesis Testing Plan'
 
     def _get_content_as_markdown(self, level: int, **kwargs):
