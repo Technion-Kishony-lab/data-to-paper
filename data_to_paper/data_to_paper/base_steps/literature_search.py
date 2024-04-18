@@ -3,9 +3,9 @@ from copy import copy
 import numpy as np
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict, List, Iterable
+from typing import Optional, Dict, List, Iterable, NamedTuple
 
-from data_to_paper.base_products.product import ValueProduct
+from data_to_paper.base_products.product import ValueProduct, Product
 from data_to_paper.utils.iterators import interleave
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.servers.custom_types import Citation
@@ -110,10 +110,22 @@ class SortedCitationCollectionProduct(CitationCollectionProduct):
         return s
 
 
+class LiteratureSearchParams(NamedTuple):
+    total: int
+    minimal_influence: int
+    distribution_factor: Optional[float]
+    sort_by_similarity: bool
+
+    def to_dict(self) -> dict:
+        return self._asdict()
+
+
 @dataclass
 class LiteratureSearch(ValueProduct):
-    scopes_to_queries_to_citations: Dict[str, Dict[str, CitationCollectionProduct]] = field(default_factory=dict)
+    # value is scopes_to_queries_to_citations
+    value: Dict[str, Dict[str, CitationCollectionProduct]] = field(default_factory=dict)
     embedding_target: Optional[np.ndarray] = None
+    scopes_to_search_params: Dict[str, LiteratureSearchParams] = field(default_factory=dict)
 
     def get_queries(self, scope: Optional[str] = None) -> List[str]:
         """
@@ -121,9 +133,9 @@ class LiteratureSearch(ValueProduct):
         if scope=None, return all queries.
         """
         if scope is None:
-            queries = sum([self.get_queries(scope) for scope in self.scopes_to_queries_to_citations], [])
+            queries = sum([self.get_queries(scope) for scope in self], [])
         else:
-            queries = list(self.scopes_to_queries_to_citations[scope].keys())
+            queries = list(self[scope].keys())
         return NiceList(queries, wrap_with='"', separator='\n', prefix='\n', suffix='\n')
 
     def get_citations(self, scope: Optional[str] = None, query: Optional[str] = None,
@@ -139,24 +151,24 @@ class LiteratureSearch(ValueProduct):
             assert query is None
             citations = unite_citation_lists((self.get_citations(
                     scope=scope,
-                    total=int(total / len(self.scopes_to_queries_to_citations) * distribution_factor) + 1
+                    total=int(total / len(self) * distribution_factor) + 1
                     if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribution_factor=distribution_factor,
                     sort_by_similarity=sort_by_similarity,
-            ) for scope in self.scopes_to_queries_to_citations))
+            ) for scope in self))
         elif query is None:
             citations = unite_citation_lists((self.get_citations(
                     scope=scope,
                     query=query,
-                    total=int(total / len(self.scopes_to_queries_to_citations[scope]) * distribution_factor) + 1
+                    total=int(total / len(self[scope]) * distribution_factor) + 1
                     if distribution_factor and total is not None else None,
                     minimal_influence=minimal_influence,
                     distribution_factor=distribution_factor,
                     sort_by_similarity=sort_by_similarity,
-                ) for query in self.scopes_to_queries_to_citations[scope]))
+                ) for query in self[scope]))
         else:
-            citations = self.scopes_to_queries_to_citations[scope][query]
+            citations = self[scope][query]
         citations = list(citations)
 
         if minimal_influence > 0:
@@ -185,13 +197,13 @@ class LiteratureSearch(ValueProduct):
                     style: str = None,
                     ) -> str:
         s = ''
-        for scope in self.scopes_to_queries_to_citations:
+        for scope in self:
             if with_scope_and_queries:
                 s += '\n\n'
                 s += f'Scope: {repr(scope)}\n'
                 s += f'Queries: {repr(self.get_queries(scope))}\n'
             s += self.pretty_repr_for_scope_and_query(scope=scope,
-                                                      total=total // len(self.scopes_to_queries_to_citations) + 1,
+                                                      total=total // len(self) + 1,
                                                       distribution_factor=distribution_factor,
                                                       sort_by_similarity=sort_by_similarity,
                                                       minimal_influence=minimal_influence,
@@ -217,3 +229,27 @@ class LiteratureSearch(ValueProduct):
             is_html=style == 'html',
             embedding_target=self.embedding_target,
         ) for citation in citations)
+
+    def get_header(self, scope: Optional[str] = None, **kwargs):
+        return f'{self.name} for "{scope}"' if scope is not None else self.name
+
+    def _get_content_as_text(self, level: int, scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
+        if scope is None:
+            s = ''
+            for scope in self:
+                s += self._get_content_as_text(level, scope=scope, style=style)
+        else:
+            s = self.pretty_repr_for_scope_and_query(style='print', scope=scope,
+                                                     **self.scopes_to_search_params[scope].to_dict())
+        return s
+
+    def _get_content_as_html(self, level: int, scope: Optional[str] = None, style: str = 'html', **kwargs) -> str:
+        if scope is None:
+            s = 'We searched for papers in the following scopes:\n'
+            for scope in self:
+                s += f'<h{level + 1}>{scope.title()}</h{level + 1}>'
+                s += self._get_content_as_html(level, scope=scope, style=style)
+        else:
+            s = self.pretty_repr_for_scope_and_query(style=style, scope=scope,
+                                                     **self.scopes_to_search_params[scope].to_dict())
+        return s

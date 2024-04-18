@@ -119,12 +119,11 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 # TODO: need a dedicated client Stage for literature search
                 self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_GOAL,
                                                                ScientificAgent.CitationExpert)
-                products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
+                GoalLiteratureSearchReviewGPT.from_(
                     self, excluded_citation_titles=self.excluded_citation_titles,
-                    literature_search=LiteratureSearch(name='Goal-related literature search',
-                                                       stage=ScientificStages.LITERATURE_REVIEW_GOAL),
+                    literature_search=products.literature_search['goal']
                 ).get_literature_search()
-                self.send_product_to_client('literature_search_goal')
+                self.send_product_to_client('literature_search:goal')
 
             if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
                 break
@@ -200,9 +199,11 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         self.send_product_to_client('title_and_abstract_first')
         self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_WRITING,
                                                        ScientificAgent.CitationExpert)
-        products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(
-            self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
-        self.send_product_to_client('scope_and_literature_search')
+        WritingLiteratureSearchReviewGPT.from_(
+            self,
+            literature_search=products.literature_search['writing'],
+            excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
+        self.send_product_to_client('literature_search:writing')
 
         # Paper sections
         for section_names, writing_class in sections_and_writing_class:

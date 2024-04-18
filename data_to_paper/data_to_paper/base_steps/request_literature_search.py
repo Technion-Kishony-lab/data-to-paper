@@ -154,7 +154,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
                 queries_to_citations[query] = citations
 
-            literature_search.scopes_to_queries_to_citations[scope] = queries_to_citations
+            literature_search[scope] = queries_to_citations
 
         # Calculate embedding vector
         if self.get_title() is not None and self.get_abstract() is not None:

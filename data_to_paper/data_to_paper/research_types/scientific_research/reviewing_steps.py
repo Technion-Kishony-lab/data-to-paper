@@ -181,7 +181,7 @@ class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysRev
     requested_keys: Collection[str] = ('similarities', 'differences', 'choice', 'explanation')
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'research_goal',
-                                                  'literature_search:goal:goal and hypothesis')
+                                                  'most_similar_papers')
     sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
         Please correct your {goal_noun} based on the feedback provided.
         Make sure to return your full assessment, as \t
@@ -258,7 +258,7 @@ class ReGoalReviewGPT(GoalReviewGPT):
     max_reviewing_rounds: int = 0
     background_product_fields: Tuple[str, ...] = ('data_file_descriptions_no_headers',
                                                   'codes_and_outputs:data_exploration',
-                                                  'research_goal', 'literature_search:goal:goal and hypothesis')
+                                                  'research_goal', 'most_similar_papers')
     mission_prompt: str = dedent_triple_quote_str("""
         Based on the result of the literature search above, \t
         please revise, or completely re-write, the research goal and hypothesis that we have so that they \t
