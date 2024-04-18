@@ -359,20 +359,30 @@ class CheckReferencedNumericReviewBackgroundProductsConverser(CheckExtractionRev
         {}
 
         Numeric values must be included with \\hyperlink matching the \\hypertarget in the provided sources above.
+        The hyperlinks must include only the numeric values.
+        For example: 
+        - Correct syntax: 'P $<$ \\hyperlink{Z3c}{1e-6}'
+        - Incorrect syntax: 'P \\hyperlink{Z3c}{$<$ 1e-6}'
+        
         See the examples I provided in my previous message. 
 
         Remember, you can also include such hyperlinked numeric values within the <formula> of \t
         \\num{<formula>, "explanation"}.
-        This allows you to derive new numeric values from the provided source data. \t 
+        This allows you to derive new numeric values from the provided source data.
+        Changing units, calculating differences, converting regression coefficients to odds ratios, etc. 
+        For example:
+        'The treatment odds ratio was \\num{exp(\\hyperlink{Z3a}{0.17}), "Translating the treatment regression coefficient to odds ratio"}'
 
-        In any case, either provided outside or within \\num{}, all numeric values must have \\hyperlink.
+        In summary: 
+        Either provided as a stand alone or within the <formula> of \\num{<formula>, "explanation"}, all numeric values must have \\hyperlink references \t
+        that match the \\hypertarget references in the provided sources above.
 
         IMPORTANT NOTE:
         If we need to include a numeric value that is not explicitly provided in the Tables and other results above, \t
         and cannot be derived from them, then indicate `[unknown]` instead of the numeric value. 
 
         For example:
-        "The p-value of the regression coefficient of the treatment was [unknown]."
+        'The p-value of the regression coefficient of the treatment was [unknown].'
         """)
 
     def _get_text_from_which_response_should_be_extracted(self) -> str:

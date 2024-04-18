@@ -516,7 +516,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         With-treatment response: \\hypertarget{Z2a}{0.87}
 
         Treatment regression: 
-        coef = \\hypertarget{Z3a}{0.17}, STD = \\hypertarget{Z3b}{0.072}, pvalue = \\hypertarget{Z3c}{0.007}
+        coef = \\hypertarget{Z3a}{0.17}, STD = \\hypertarget{Z3b}{0.072}, pvalue = <\\hypertarget{Z3c}{1e-6}
         ```
 
         Then, here are some examples of proper ways to report these provided source values:
@@ -525,7 +525,7 @@ class ResultsSectionWriterReviewGPT(SectionWriterReviewBackgroundProductsConvers
         group had a response of \\hyperlink{Z2a}{0.87}.
 
         The regression coefficient for the treatment was \\hyperlink{Z3a}{0.17} with a standard deviation of \t
-        \\hyperlink{Z3b}{0.072} (P-value: \\hyperlink{Z3c}{0.007}).
+        \\hyperlink{Z3b}{0.072} (P-value: < \\hyperlink{Z3c}{1e-6}).
         ```
 
         And are some examples of proper ways to calculate dependent values, using the \\num command:
