@@ -75,7 +75,7 @@ DEFAULT_VIEW_PURPOSE_TO_PARAMS: Dict[Optional[ContentViewPurpose], ContentViewPa
     ContentViewPurpose.APP_HTML: ContentViewParams(
         hypertarget_format=HypertargetFormat(position=HypertargetPosition.NONE),
         with_hyper_header=False,
-        is_block=False,
+        is_block=True,
         pvalue_on_str=OnStr.SMALLER_THAN,
         is_html=True),
 }

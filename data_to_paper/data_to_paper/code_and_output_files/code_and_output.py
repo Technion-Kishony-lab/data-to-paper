@@ -117,19 +117,14 @@ class CodeAndOutput:
             s += wrap_text_with_triple_quotes(self.code_explanation, 'latex') + '\n'
         if self.created_files:
             outputs = self.created_files.get_created_content_files_to_pretty_contents(
-                content_view=ContentViewPurpose.PRODUCT)
+                content_view=ContentViewPurpose.APP_HTML)
         else:
             outputs = None
 
         if outputs:
             s += "## Code Output:\n"
             for filename, output in outputs.items():
-                s += f'### {filename}\n'
-                html = get_html_from_latex_table(output)
-                if html:
-                    s += wrap_text_with_triple_quotes(html, 'html') + '\n'
-                else:
-                    s += wrap_text_with_triple_quotes(output, 'output') + '\n'
+                s += f'### {output}\n'
         return s
 
     def as_html(self):

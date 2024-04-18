@@ -83,7 +83,7 @@ class BaseContentOutputFileRequirement(OutputFileRequirement):
         return []
 
     def _to_str(self, content: Any) -> str:
-        return str(content)
+        return str(content).strip()
 
     def get_pretty_content(self, content: Any, filename: str = None, num_file: int = 0,
                            content_view: ContentView = None) -> str:

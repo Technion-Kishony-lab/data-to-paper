@@ -136,7 +136,7 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                                                                                rows=self.number_of_papers_per_query)
                 num_citations = len(citations)
                 html += f'<p>Query: "{query}". Found {num_citations} citations.</p>'
-                self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
+                self._app_send_prompt(PanelNames.FEEDBACK, html, provided_as_html=True)
                 self.comment(f'\nQuerying Semantic Scholar. '
                              f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
                              f'Query: "{query}".')

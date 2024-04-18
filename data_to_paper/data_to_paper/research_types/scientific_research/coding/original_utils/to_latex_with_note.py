@@ -135,3 +135,10 @@ def get_html_from_latex_table(latex: str) -> Optional[str]:
     # remove the leading comment character
     html = html.replace('\n% ', '\n')
     return html
+
+
+def get_latex_table_without_html_comment(latex: str) -> str:
+    """
+    Remove the html comment from a latex table.
+    """
+    return latex.split(HTML_COMMENT_HEADER)[0]
