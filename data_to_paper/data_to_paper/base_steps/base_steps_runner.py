@@ -91,7 +91,7 @@ class BaseStepsRunner(ProductsHandler):
             self.set_active_conversation(agent=agent)
 
     def send_product_to_client(self, product_field: str, save_to_file: bool = False,
-                               should_send: bool = True, is_html: bool = False):
+                               should_send: bool = True):
         """
         Get the base GPT script file.
         """
@@ -108,8 +108,7 @@ class BaseStepsRunner(ProductsHandler):
                 product_field=product_field))
         if CHOSEN_APP:
             from data_to_paper.interactive import the_app
-            product = self.products.get_description(product_field)
-            product = format_text_with_code_blocks(product, is_html=True, width=None)
+            product = self.products.get_description_as_html(product_field)
             the_app.send_product_of_stage(
                 stage=self.products.get_stage(product_field),
                 product_text=product,

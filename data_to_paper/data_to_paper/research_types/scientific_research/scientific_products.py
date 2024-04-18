@@ -13,14 +13,14 @@ from data_to_paper.latex.tables import add_tables_to_paper_section, get_table_ca
 
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.product_types import HypothesisTestingPlanProduct, \
-    NoveltyAssessmentProduct, GoalAndHypothesisProduct
+    NoveltyAssessmentProduct, GoalAndHypothesisProduct, MostSimilarPapersProduct, NoveltySummaryProduct
 from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages, \
     SECTION_NAMES_TO_WRITING_STAGES
 from data_to_paper.code_and_output_files.code_and_output import CodeAndOutput
 from data_to_paper.utils.mutable import Mutable
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.base_products import DataFileDescriptions, DataFileDescription, Products, \
-    NameDescriptionStageGenerator
+    NameDescriptionStageGenerator, ProductGenerator
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
 from data_to_paper.utils.types import ListBasedSet, MemoryDict
 from data_to_paper.servers.custom_types import Citation
@@ -114,6 +114,7 @@ class ScientificProducts(Products):
     research_goal: GoalAndHypothesisProduct = None
     novelty_assessment: NoveltyAssessmentProduct = None
     literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
+    most_similar_papers: MostSimilarPapersProduct = None
     hypothesis_testing_plan: HypothesisTestingPlanProduct = None
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
         field(default_factory=MemoryDict)
@@ -234,22 +235,6 @@ class ScientificProducts(Products):
         latex = self.get_paper_sections_without_citations()['abstract']
         return extract_latex_section_from_response(latex, 'abstract', keep_tags=False)
 
-    def get_novelty_assessment(self) -> str:
-        s = '# Assessment of Research Goal novelty\n'
-        s += '\n\n'
-        s += '## Choice of Most Relevant Papers to our Research Goal\n\n'
-        s += 'From the literature searches that we have done, ' \
-             'we listed the following most relevant papers:'
-        s += '\n\n'
-        s += wrap_text_with_triple_quotes(self.literature_search['goal'].pretty_repr_for_scope_and_query(
-                scope='goal and hypothesis',
-                style='html',
-                **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'goal and hypothesis')].to_dict()
-            ), 'html')
-        s += '\n\n'
-        s += self.novelty_assessment.as_text(2)
-        return s
-
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
         return {
             **super()._get_generators(),
@@ -297,11 +282,9 @@ class ScientificProducts(Products):
             # GOAL AND PLAN
             # ==============
 
-            'research_goal': NameDescriptionStageGenerator(
-                'Research Goal and Hypothesis',
-                '## Research Goal and Hypothesis\n\n{}',
-                ScientificStages.GOAL,
-                lambda: self.research_goal.as_text(2),
+            'research_goal': ProductGenerator(
+                lambda: self.research_goal,
+                {},
             ),
 
             'hypothesis_testing_plan': NameDescriptionStageGenerator(
@@ -326,11 +309,10 @@ class ScientificProducts(Products):
                 }
             ),
 
-            'goal_and_novelty_assessment': NameDescriptionStageGenerator(
-                'Novelty assessment for the Research Goal and Hypothesis',
-                '{}',
-                ScientificStages.GOAL,
-                lambda: self.get_novelty_assessment(),
+            'novelty_assessment': ProductGenerator(
+                lambda: NoveltySummaryProduct(novelty_assessment=self.novelty_assessment,
+                                              most_similar_papers=self.most_similar_papers),
+                {},
             ),
 
             'literature_search:{}:{}:{}': NameDescriptionStageGenerator(
@@ -348,17 +330,9 @@ class ScientificProducts(Products):
                 }
             ),
 
-            'literature_search_goal': NameDescriptionStageGenerator(
-                'Goal-related Literature Search',
-                'Here are citations from our Literature Search for papers related to the Goal of our study:\n\n'
-                'We searched for papers related to the Dataset and Questions of our study goal. \n\n'
-                '```html\n{dataset}\n```\n\n'
-                '```html\n{questions}\n```\n\n',
-                ScientificStages.LITERATURE_REVIEW_GOAL,
-                lambda: {
-                    'dataset': self['literature_search:goal:dataset:html'].description,
-                    'questions': self['literature_search:goal:questions:html'].description,
-                },
+            'literature_search_goal': ProductGenerator(
+                lambda: self.literature_search['goal'],
+                {},
             ),
 
             'scope_and_literature_search': NameDescriptionStageGenerator(

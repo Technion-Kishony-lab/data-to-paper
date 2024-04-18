@@ -1,28 +1,26 @@
 from dataclasses import dataclass
 from typing import List, Dict, Any
 
-from data_to_paper.base_products.product import Product, ValueProduct
+from data_to_paper.base_products.product import ValueProduct, Product
+from data_to_paper.conversation.stage import Stage
+from data_to_paper.research_types.scientific_research.scientific_stage import ScientificStages
 from data_to_paper.servers.custom_types import Citation
 
 
 @dataclass
 class GoalAndHypothesisProduct(ValueProduct):
     name: str = "Goal and Hypothesis"
+    stage: ScientificStages = ScientificStages.GOAL
+    value: str = None
 
-    def _get_content_as_text(self, level):
-        return self.value.replace('###', '#' * level)
-
-    def to_extracted_test(self):
-        return self.value
-
-    @classmethod
-    def from_extracted_test(cls, text):
-        return cls(text)
+    def _get_content_as_text(self, level: int, **kwargs):
+        return self.value.replace('###', '#' * (level + 1))
 
 
 @dataclass
 class MostSimilarPapersProduct(ValueProduct):
     name: str = "Most Similar Papers"
+    stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
     value: List[Citation] = None
 
     def _get_citations(self, is_html=False):
@@ -41,6 +39,7 @@ class MostSimilarPapersProduct(ValueProduct):
 @dataclass
 class NoveltyAssessmentProduct(ValueProduct):
     name: str = "Novelty Assessment"
+    stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
     value: Dict[str, Any] = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
@@ -61,10 +60,27 @@ class NoveltyAssessmentProduct(ValueProduct):
 @dataclass
 class HypothesisTestingPlanProduct(ValueProduct):
     name: str = 'Hypothesis Testing Plan'
+    stage: ScientificStages = ScientificStages.PLAN
+    value: Dict[str, str] = None
 
     def _get_content_as_markdown(self, level: int, **kwargs):
         s = ''
         for hypothesis, test in self.value.items():
             s += f'{"#" * (level + 1)} Hypothesis:\n{hypothesis}\n'
             s += f'{"#" * (level + 1)} Test:\n{test}\n\n'
+        return s
+
+
+@dataclass
+class NoveltySummaryProduct(Product):
+    name: str = 'Assessment of Research Goal Novelty'
+    stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
+    most_similar_papers: MostSimilarPapersProduct = None
+    novelty_assessment: NoveltyAssessmentProduct = None
+
+    def _get_content_as_html(self, level: int, **kwargs):
+        s = ''
+        s += self.most_similar_papers.as_html(level + 1)
+        s += '<br>'
+        s += self.novelty_assessment.as_html(level + 1)
         return s

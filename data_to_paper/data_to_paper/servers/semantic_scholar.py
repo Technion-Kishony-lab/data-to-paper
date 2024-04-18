@@ -122,7 +122,7 @@ class SemanticScholarPaperServerCaller(DictServerCaller):
     """
     Search for citations with abstracts in Semantic Scholar.
     """
-
+    name = "Semantic Scholar"
     file_extension = "_semanticscholar_paper.bin"
 
     @staticmethod

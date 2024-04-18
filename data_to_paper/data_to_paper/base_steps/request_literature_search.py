@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, List, Collection, Optional
+from dataclasses import dataclass, field
+from typing import Dict, List, Collection, Optional, Any
 
 from data_to_paper.utils import dedent_triple_quote_str, word_count
 from data_to_paper.utils.nice_list import NiceDict, NiceList
@@ -8,13 +8,16 @@ from data_to_paper.servers.semantic_scholar import SEMANTIC_SCHOLAR_SERVER_CALLE
     SEMANTIC_SCHOLAR_EMBEDDING_SERVER_CALLER
 
 from .request_python_value import PythonDictWithDefinedKeysReviewBackgroundProductsConverser
-from .literature_search import LiteratureSearch
+from .literature_search import LiteratureSearch, CitationCollectionProduct, QueryCitationCollectionProduct, \
+    LiteratureSearchQueriesProduct
+from ..interactive import PanelNames
 
 
 @dataclass
 class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     number_of_papers_per_query: int = 100
     max_reviewing_rounds: int = 0
+    literature_search: LiteratureSearch = field(default_factory=LiteratureSearch)
     domains_to_definitions_and_examples = {
         'dataset': {
             'definition': 'papers that use the same or similar datasets as in our study',
@@ -121,13 +124,19 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
 
     def get_literature_search(self) -> LiteratureSearch:
         scopes_to_list_of_queries = self.run_and_get_valid_result()
-        literature_search = LiteratureSearch()
+        literature_search = self.literature_search
+        html = f'<h2>Querying Citations</h2>'
+        html += f'<p>Searching "{SEMANTIC_SCHOLAR_SERVER_CALLER.name}" ' \
+                f'for papers related to our study in the following areas:</p>'
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}
+            html += f'<h3>{scope.title()}-related queries:</h3>'
             for query in queries:
                 citations = SEMANTIC_SCHOLAR_SERVER_CALLER.get_server_response(query,
                                                                                rows=self.number_of_papers_per_query)
                 num_citations = len(citations)
+                html += f'<p>Query: "{query}". Found {num_citations} citations.</p>'
+                self._app_send_prompt(PanelNames.PRODUCT, html, provided_as_html=True)
                 self.comment(f'\nQuerying Semantic Scholar. '
                              f'Found {num_citations} / {self.number_of_papers_per_query} citations. '
                              f'Query: "{query}".')
@@ -139,7 +148,9 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                             f'The following citations specified in the excluded citation list were excluded:\n')
                         for citation in excluded_citations:
                             print_and_log_red(f'{citation}\n\n')
-                        citations = [citation for citation in citations if citation not in excluded_citations]
+                        citations = QueryCitationCollectionProduct(
+                            query=query,
+                            value=[citation for citation in citations if citation not in excluded_citations])
 
                 queries_to_citations[query] = citations
 
@@ -153,14 +164,8 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
                     "title": self.get_title(),
                     "abstract": self.get_abstract()})
 
+        self._app_request_continue()
         return literature_search
 
-    def get_valid_result_as_text_blocks(self) -> str:
-        s = '```md\n## Literature Search Queries\n'
-        scopes_to_list_of_queries = self.valid_result
-        for scope, queries in scopes_to_list_of_queries.items():
-            s += f'### {scope.title()}\n'
-            for query in queries:
-                s += f'- "{query}"\n'
-        s += '\n```'
-        return s
+    def _update_valid_result(self, valid_result: Any):
+        super()._update_valid_result(LiteratureSearchQueriesProduct(value=valid_result))

@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from typing import NamedTuple, Union, Callable, Tuple, Dict, List
+from typing import NamedTuple, Union, Callable, Tuple, Dict, List, Any
 
+from data_to_paper.base_products.product import Product
 from data_to_paper.conversation.stage import Stage
+from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.text_formatting import ArgsOrKwargs, format_with_args_or_kwargs
 
 
@@ -16,6 +18,15 @@ class NameDescriptionStageGenerator(NamedTuple):
     description: str
     stage: Union[Stage, Callable]
     func: Callable
+
+
+class ProductGenerator(NamedTuple):
+    product: Union[Product, Callable]
+    kwargs: Union[Dict[str, Any], Callable]
+
+
+UnifiedProduct = Union[NameDescriptionStage, Product]
+UnifiedProductGenerator = Union[NameDescriptionStageGenerator, ProductGenerator]
 
 
 def _convert_args_or_kwargs_to_args(args_or_kwargs: ArgsOrKwargs) -> Tuple[str]:
@@ -35,13 +46,13 @@ class Products:
     These outcomes are gradually populated, where in each step we get a new product based on previous products.
     """
 
-    _fields_to_name_description_stage: Dict[str, NameDescriptionStageGenerator] = None
+    _fields_to_unified_product_generators: Dict[str, UnifiedProductGenerator] = None
     _raise_on_none: bool = False
 
     def __post_init__(self):
-        self._fields_to_name_description_stage = self._get_generators()
+        self._fields_to_unified_product_generators = self._get_generators()
 
-    def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
+    def _get_generators(self) -> Dict[str, UnifiedProductGenerator]:
         """
         Return a dictionary mapping product fields to a tuple of
         (name: str, description: str, stage: Stages, func: Callable).
@@ -74,37 +85,70 @@ class Products:
         """
         return field.split(':')
 
-    def _get_name_description_stage_generators_and_variables(self, field: str
-                                                             ) -> Tuple[NameDescriptionStage, ArgsOrKwargs]:
+    def _get_unified_product_and_variables(self, field: str
+                                           ) -> Tuple[UnifiedProduct, ArgsOrKwargs]:
         """
         Return the name, stage, and description variables of the given field.
         """
-        (name, description, stage, func), args = self._get_name_stage_description_generator_and_args(field)
-        variables = func(*args)
-        if not isinstance(stage, Stage):
-            stage = stage(*args)
-        if not isinstance(variables, (tuple, dict)):
-            variables = (variables, )
-        return NameDescriptionStage(name, description, stage), variables
+        unified_product_generator, args = self._get_unified_product_generator_and_args(field)
+        if isinstance(unified_product_generator, NameDescriptionStageGenerator):
+            name, description, stage, func = unified_product_generator
+            variables = func(*args)
+            if not isinstance(stage, Stage):
+                stage = stage(*args)
+            if not isinstance(variables, (tuple, dict)):
+                variables = (variables, )
+            return NameDescriptionStage(name, description, stage), variables
+        elif isinstance(unified_product_generator, ProductGenerator):
+            product, kwargs = unified_product_generator
+            if not isinstance(product, Product):
+                product = product(*args)
+            if not isinstance(kwargs, dict):
+                kwargs = kwargs(*args)
+            return product, kwargs
+        else:
+            raise ValueError(f'Unknown product field: {field}')
 
     def _get_name_description_stage(self, field: str) -> NameDescriptionStage:
         """
         Return the name, stage, and description generator of the given field.
         """
-        (name, description, stage), variables = self._get_name_description_stage_generators_and_variables(field)
+        unified_product, variables = self._get_unified_product_and_variables(field)
         if self._raise_on_none and any(v is None for v in _convert_args_or_kwargs_to_args(variables)):
             raise ValueError(f'One of the variables in {variables} is None')
-        name = format_with_args_or_kwargs(name, variables)
-        description = format_with_args_or_kwargs(description, variables)
-        return NameDescriptionStage(name, description, stage)
+        if isinstance(unified_product, NameDescriptionStage):
+            name, description, stage = unified_product
+            name = format_with_args_or_kwargs(name, variables)
+            description = format_with_args_or_kwargs(description, variables)
+            return NameDescriptionStage(name, description, stage)
+        elif isinstance(unified_product, Product):
+            format_name = variables.pop('format_name') \
+                if 'format_name' in variables else 'markdown'
+            return NameDescriptionStage(
+                unified_product.get_header(**variables),
+                unified_product.as_specified_format(**variables),
+                unified_product.get_stage(format_name=format_name, **variables),
+            )
+        else:
+            raise ValueError(f'Unknown product field: {field}')
 
-    def _get_name_stage_description_generator_and_args(self, field: str
-                                                       ) -> Tuple[NameDescriptionStageGenerator, List[str]]:
+    def get_description_as_html(self, field: str) -> str:
+        """
+        Return the product of the given field.
+        """
+        unified_product, variables = self._get_unified_product_and_variables(field)
+        if isinstance(unified_product, Product):
+            return unified_product.as_html(level=2, **variables)
+        description = self.get_description(field)
+        return format_text_with_code_blocks(description, is_html=True, width=None)
+
+    def _get_unified_product_generator_and_args(self, field: str
+                                                ) -> Tuple[UnifiedProductGenerator, List[str]]:
         """
         Return the name, stage, and description of the given field.
         """
         subfields = self.extract_subfields(field)
-        for current_field, name_stage_description in self._fields_to_name_description_stage.items():
+        for current_field, unified_product in self._fields_to_unified_product_generators.items():
             current_subfields = self.extract_subfields(current_field)
             wildcard_subfields = []
             if len(subfields) == len(current_subfields):
@@ -114,7 +158,7 @@ class Products:
                     elif subfield != current_subfield:
                         break
                 else:
-                    return name_stage_description, wildcard_subfields
+                    return unified_product, wildcard_subfields
         raise ValueError(f'Unknown product field: {field}')
 
     def is_product_available(self, field: str) -> bool:
@@ -127,7 +171,7 @@ class Products:
         """
         try:
             self._raise_on_none = True
-            _, variables = self._get_name_description_stage_generators_and_variables(field)
+            _, variables = self._get_unified_product_and_variables(field)
             variables = _convert_args_or_kwargs_to_args(variables)
             return all(variable is not None for variable in variables)
         except (KeyError, AttributeError, ValueError):

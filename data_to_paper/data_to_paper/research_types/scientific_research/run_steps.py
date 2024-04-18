@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, Type, List, Union
 
-from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation
+from data_to_paper.base_steps import BaseStepsRunner, DirectorProductGPT, CheckLatexCompilation, LiteratureSearch
 
 from .cast import ScientificAgent
 from .add_citations import AddCitationReviewGPT
@@ -83,7 +83,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                                       )
         self.advance_stage_and_set_active_conversation(ScientificStages.DATA, ScientificAgent.Director)
         products.data_file_descriptions = director_converser.get_product_or_no_product_from_director(
-            product_field='data_file_descriptions', returned_product=self.data_file_descriptions)
+            product_name='Data description', returned_product=self.data_file_descriptions)
         self.send_product_to_client('data_file_descriptions')
 
         # Data exploration
@@ -100,7 +100,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
         # Goal
         self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
         products.research_goal = director_converser.get_product_or_no_product_from_director(
-            product_field='research_goal', returned_product=self.research_goal,
+            product_name='Research Goal', returned_product=self.research_goal,
             acknowledge_no_product_message="OK. no problem. I will devise the goal myself.")
         is_auto_goal = products.research_goal is None
         if is_auto_goal:
@@ -121,7 +121,8 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                                                                ScientificAgent.CitationExpert)
                 products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
                     self, excluded_citation_titles=self.excluded_citation_titles,
-                    stage=ScientificStages.LITERATURE_REVIEW_GOAL
+                    literature_search=LiteratureSearch(name='Goal-related literature search',
+                                                       stage=ScientificStages.LITERATURE_REVIEW_GOAL),
                 ).get_literature_search()
                 self.send_product_to_client('literature_search_goal')
 
@@ -130,9 +131,9 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
 
             # Check if the goal is OK
             self.advance_stage_and_set_active_conversation(ScientificStages.ASSESS_NOVELTY, ScientificAgent.Writer)
-            products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
-                {'cherry picked': GetMostSimilarCitations.from_(self).run_and_get_valid_result()}
+            products.most_similar_papers = GetMostSimilarCitations.from_(self).run_and_get_valid_result()
             products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
+            self.send_product_to_client('novelty_assessment')
             if products.novelty_assessment['choice'] == 'OK':
                 break
 
@@ -145,7 +146,6 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             ).run_and_get_valid_result()
             self.send_product_to_client('research_goal')
         self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
-        self.send_product_to_client('goal_and_novelty_assessment')
 
         # Plan
         self.advance_stage_and_set_active_conversation(ScientificStages.PLAN, ScientificAgent.PlanReviewer)

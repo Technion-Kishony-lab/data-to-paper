@@ -20,12 +20,8 @@ class DirectorProductGPT(BackgroundProductsConverser):
     mission_prompt: str = None
 
     # inputs:
-    product_field: str = None
+    product_name: str = None
     returned_product: Any = None
-
-    @property
-    def product_name(self):
-        return self.products.get_name(self.product_field) if self.product_field is not None else None
 
     def _get_product_from_director(self):
         """

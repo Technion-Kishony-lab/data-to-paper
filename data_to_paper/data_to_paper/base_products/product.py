@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
+from data_to_paper.code_and_output_files.file_view_params import ContentViewPurpose
 from data_to_paper.conversation.stage import Stage
 from data_to_paper.utils import format_text_with_code_blocks
 from data_to_paper.utils.text_formatting import wrap_text_with_triple_quotes
@@ -76,3 +77,18 @@ class ValueProduct(Product):
 
     def __iter__(self):
         return iter(self.value)
+
+    def items(self):
+        return self.value.items()
+
+    def keys(self):
+        return self.value.keys()
+
+    def values(self):
+        return self.value.values()
+
+    def __len__(self):
+        return len(self.value)
+
+    def __contains__(self, item):
+        return item in self.value

@@ -119,7 +119,7 @@ class CrossrefServerCaller(DictServerCaller):
     """
     Search for citations in Crossref.
     """
-
+    name = "Crossref"
     file_extension = "_crossref.bin"
 
     @staticmethod
