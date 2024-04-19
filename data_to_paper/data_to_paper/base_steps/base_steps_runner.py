@@ -203,14 +203,18 @@ class BaseStepsRunner(ProductsHandler, AppInteractor):
             msg = dedent_triple_quote_str("""
                 ## Completed
                 This *data-to-paper* research cycle is now completed.
-                The manuscript is ready.
+                The manuscript is ready. 
+                The paper.pdf file is in:
+                {output_directory}
+                
                 Please download the created manuscript and check it rigorously and carefully.
                 \n
                 *Remember that the process is not error-free and the responsibility for the final manuscript \t
                 remains with you.*
                 \n
-                You can close this window now.
-                """)
+                You can close the app now.
+                """).format(output_directory=self.output_directory)
+            msg = format_text_with_code_blocks(msg, from_md=True, is_html=True)
             self._app_clear_panels()
-            self._app_send_prompt(PanelNames.FEEDBACK, msg, from_md=True)
-            self._app_send_product_of_stage(Stages.FINISHED, "Run completed.")
+            self._app_send_prompt(PanelNames.MISSION_PROMPT, msg)
+            self._app_send_product_of_stage(Stages.FINISHED, msg)

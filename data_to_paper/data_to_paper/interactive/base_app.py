@@ -65,7 +65,7 @@ class BaseApp:
     def initialize(self):
         pass
 
-    def set_status(self, status: str):
+    def set_status(self, panel_name: PanelNames, status: str = ''):
         pass
 
     def request_continue(self):

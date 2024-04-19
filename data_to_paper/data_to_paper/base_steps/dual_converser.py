@@ -82,13 +82,17 @@ class DualConverserGPT(Converser):
                                                         hidden_messages: GeneralMessageDesignation = None,
                                                         expected_tokens_in_response: int = None,
                                                         **kwargs) -> Message:
-        return self.other_conversation_manager.get_and_append_assistant_message(
+        self._app_set_status(PanelNames.FEEDBACK, 'Reviewer LLM is thinking...')
+        self._app_send_prompt(PanelNames.FEEDBACK)
+        message = self.other_conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
             is_code=is_code, previous_code=previous_code,
             model_engine=model_engine or self.model_engine,
             expected_tokens_in_response=expected_tokens_in_response,
             hidden_messages=hidden_messages, **kwargs)
+        self._app_set_status(PanelNames.FEEDBACK)
+        return message
 
     def apply_to_other_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,
                                            comment: Optional[StrOrReplacer] = None,

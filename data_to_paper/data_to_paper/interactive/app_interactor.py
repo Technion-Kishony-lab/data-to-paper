@@ -25,11 +25,11 @@ class AppInteractor:
         for panel_name in panel_names:
             self.app.show_text(panel_name, '')
 
-    def _app_send_prompt(self, panel_name: PanelNames, prompt: str, provided_as_html: bool = False,
+    def _app_send_prompt(self, panel_name: PanelNames, prompt: str = '', provided_as_html: bool = False,
                          from_md: bool = False):
         if self.app is None:
             return
-        s = format_value(self, prompt or '')
+        s = format_value(self, prompt)
         if not provided_as_html:
             s = format_text_with_code_blocks(s, is_html=True, width=None, from_md=from_md)
         self.app.show_text(panel_name, s, is_html=True)
@@ -75,3 +75,8 @@ class AppInteractor:
         if self.app is None:
             return
         self.app.send_product_of_stage(stage, product_text)
+
+    def _app_set_status(self, panel_name: PanelNames, status: str = ''):
+        if self.app is None:
+            return
+        self.app.set_status(panel_name, status)

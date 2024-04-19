@@ -73,7 +73,7 @@ class Worker(QThread):
     set_focus_on_panel_signal = Signal(PanelNames)
     advance_stage_signal = Signal(str)
     send_product_of_stage_signal = Signal(str, str)
-    set_status_signal = Signal(str)
+    set_status_signal = Signal(PanelNames, str)
     request_continue_signal = Signal()
 
     def __init__(self, mutex, condition, func_to_run=None):
@@ -88,8 +88,8 @@ class Worker(QThread):
         if self.func_to_run is not None:
             self.func_to_run()
 
-    def worker_set_status(self, status: str):
-        self.set_status_signal.emit(status)
+    def worker_set_status(self, panel_name: PanelNames, status: str = ''):
+        self.set_status_signal.emit(panel_name, status)
 
     def worker_request_text(self, panel_name: PanelNames, initial_text: str = '',
                            title: Optional[str] = None, optional_suggestions: Dict[str, str] = None) -> str:
@@ -300,7 +300,6 @@ class EditableTextPanel(Panel):
             self._set_html_text(text)
         else:
             self._set_plain_text(text)
-        self._set_buttons_visibility(False)
 
     def edit_text(self, text: Optional[str] = '', title: Optional[str] = None,
                   suggestion_texts: Optional[List[str]] = None):
@@ -435,7 +434,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         self.set_focus_on_panel = self.worker.worker_set_focus_on_panel
         self.advance_stage = self.worker.worker_advance_stage
         self.send_product_of_stage = self.worker.worker_send_product_of_stage
-        self.set_status = self.upon_set_status
+        self.set_status = self.worker.worker_set_status
         self.request_continue = self.worker.worker_request_continue
 
         # Connect UI elements
@@ -464,13 +463,14 @@ class ResearchStepApp(QMainWindow, BaseApp):
     def initialize(self):
         self.show()
 
-    def upon_set_status(self, status: str):
-        print(f"Setting status: {status}")
-        self.panels[PanelNames.RESPONSE].set_header_right(status)
-        self.panels[PanelNames.PRODUCT].set_header_right(status)
-        # it does not get updated. so we need to call update() to update the header_right:
-        self.panels[PanelNames.RESPONSE].update()
-        self.panels[PanelNames.PRODUCT].update()
+    def upon_set_status(self, panel_name: PanelNames, status: str = ''):
+        if panel_name == PanelNames.PRODUCT or panel_name == PanelNames.RESPONSE:
+            panel_name = [PanelNames.PRODUCT, PanelNames.RESPONSE]
+        else:
+            panel_name = [panel_name]
+        for name in panel_name:
+            self.panels[name].set_header_right(status)
+            self.panels[name].update()
 
     @Slot()
     def upon_request_continue(self):

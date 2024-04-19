@@ -125,9 +125,11 @@ class BaseLiteratureSearchReviewGPT(PythonDictWithDefinedKeysReviewBackgroundPro
     def get_literature_search(self) -> LiteratureSearch:
         scopes_to_list_of_queries = self.run_and_get_valid_result()
         literature_search = self.literature_search
+        server_name = SEMANTIC_SCHOLAR_SERVER_CALLER.name
         html = f'<h2>Querying Citations</h2>'
-        html += f'<p>Searching "{SEMANTIC_SCHOLAR_SERVER_CALLER.name}" ' \
+        html += f'<p>Searching "{server_name}" ' \
                 f'for papers related to our study in the following areas:</p>'
+        self._app_set_status(PanelNames.FEEDBACK, 'Querying citations...')
         for scope, queries in scopes_to_list_of_queries.items():
             queries_to_citations = {}
             html += f'<h3>{scope.title()}-related queries:</h3>'

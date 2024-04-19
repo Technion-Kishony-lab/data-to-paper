@@ -131,6 +131,8 @@ class Converser(Copier, AppInteractor):
                                                expected_tokens_in_response: int = None,
                                                send_to_app: bool = True,
                                                **kwargs) -> Message:
+        if send_to_app and self.app:
+            self._app_set_status(PanelNames.RESPONSE, 'LLM is thinking...')
         message = self.conversation_manager.get_and_append_assistant_message(
             tag=tag,
             comment=comment,
@@ -142,6 +144,7 @@ class Converser(Copier, AppInteractor):
         if send_to_app and self.app:
             self._app_send_prompt(PanelNames.RESPONSE, message.pretty_content(with_header=False, is_html=True),
                                   provided_as_html=True)
+            self._app_set_status(PanelNames.RESPONSE)
         return message
 
     def apply_append_user_message(self, content: StrOrReplacer, tag: Optional[StrOrReplacer] = None,

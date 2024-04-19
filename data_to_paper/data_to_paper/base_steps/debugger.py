@@ -538,12 +538,11 @@ class DebuggerConverser(BackgroundProductsConverser):
             self._requesting_small_change = issues.do_all_issues_request_small_change()
         return None
 
-    def _get_code_and_respond_to_issues(self) -> Optional[CodeAndOutput]:
+    def _get_code_and_respond_to_issues(self, response: str) -> Optional[CodeAndOutput]:
         """
         Get a code from the LLM, run it and return code and result.
         If the code fails, notify the LLM and return None.
         """
-        response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
         code_runner = self._get_code_runner(response)
 
         # Try to extract the code:
@@ -610,7 +609,11 @@ class DebuggerConverser(BackgroundProductsConverser):
         """
         self.initialize_conversation_if_needed()
         for self.debug_iteration in range(1, self.max_debug_iterations + 1):
-            code_and_output = self._get_code_and_respond_to_issues()
+            response = self.apply_get_and_append_assistant_message(is_code=True, previous_code=self.previous_code).content
+            self._app_set_status(PanelNames.FEEDBACK, 'Running and checking code')
+            self._app_send_prompt(PanelNames.FEEDBACK)
+            code_and_output = self._get_code_and_respond_to_issues(response)
+            self._app_set_status(PanelNames.FEEDBACK)
             if code_and_output is not None:
                 return code_and_output
         self.apply_append_user_message(

@@ -219,9 +219,6 @@ def try_get_llm_response(messages: List[Message],
     if tokens + expected_tokens_in_response < ModelEngine.DEFAULT.max_tokens and model_engine > ModelEngine.DEFAULT:
         print_and_log(f'WARNING: Consider using {ModelEngine.DEFAULT} (max {ModelEngine.DEFAULT.max_tokens} tokens).',
                       should_log=False)
-    if CHOSEN_APP:
-        from data_to_paper.interactive import the_app
-        the_app.set_status(f'Waiting for LLM...')
     try:
         action = OPENAI_SERVER_CALLER.get_server_response(messages, model_engine=model_engine, **kwargs)
         assert isinstance(action, LLMResponse)
@@ -233,9 +230,6 @@ def try_get_llm_response(messages: List[Message],
             return e
         else:
             raise
-    finally:
-        if CHOSEN_APP:
-            the_app.set_status('')
 
 
 def get_human_response(app: BaseApp, **kwargs) -> HumanAction:

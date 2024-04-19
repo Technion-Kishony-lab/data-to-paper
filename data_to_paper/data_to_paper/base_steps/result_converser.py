@@ -326,6 +326,8 @@ class ResultConverser(Converser):
                 self_response = self_message.content
 
             # check if the response is valid:
+            self._app_set_status(PanelNames.FEEDBACK, 'Rule-based check ...')
+            self._app_send_prompt(PanelNames.FEEDBACK)
             response_error = None
             extracted_text = None
             try:
@@ -339,6 +341,7 @@ class ResultConverser(Converser):
                 except SelfResponseError as e:
                     response_error = e
             is_new_valid_result = self._valid_result_update_count > initial_valid_result_update_count
+            self._app_set_status(PanelNames.FEEDBACK)
             if not is_preexisting_self_response:
                 self.apply_append_surrogate_message(
                     content=(self_response if extracted_text is None or not alter_web_response
