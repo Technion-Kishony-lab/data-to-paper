@@ -130,7 +130,8 @@ class BackgroundProductsConverser(ProductsConverser):
         return thank_you_message, tag
 
     def get_product_description_and_tag(self, product_field: str) -> Tuple[str, str]:
-        product_description = self.products.get_description(product_field)
+        product = self.products[product_field]
+        product_description = f'# {product.name}\n{product.description}'
         tag, _ = self._get_product_tags(product_field)
         return product_description, tag
 

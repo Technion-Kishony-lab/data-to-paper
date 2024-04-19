@@ -231,7 +231,8 @@ class LiteratureSearch(ValueProduct):
         ) for citation in citations)
 
     def get_header(self, scope: Optional[str] = None, **kwargs):
-        return f'{self.name} for "{scope}"' if scope is not None else self.name
+        #
+        return f'"{scope}"-related literature search' if scope is not None else self.name
 
     def _get_content_as_text(self, level: int, scope: Optional[str] = None, style: str = 'llm', **kwargs) -> str:
         if scope is None:

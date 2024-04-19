@@ -14,12 +14,12 @@ class GoalAndHypothesisProduct(ValueProduct):
     value: str = None
 
     def _get_content_as_text(self, level: int, **kwargs):
-        return self.value.replace('###', '#' * (level + 1))
+        return self.value.replace('\n# ', '\n' + '#' * (level + 1) + ' ')
 
 
 @dataclass
 class MostSimilarPapersProduct(ValueProduct):
-    name: str = "Most Similar Papers"
+    name: str = "Papers Most Similar to our Research Goal"
     stage: ScientificStages = ScientificStages.ASSESS_NOVELTY
     value: List[Citation] = None
 

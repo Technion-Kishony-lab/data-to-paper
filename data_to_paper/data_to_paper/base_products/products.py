@@ -124,10 +124,12 @@ class Products:
         elif isinstance(unified_product, Product):
             format_name = variables.pop('format_name') \
                 if 'format_name' in variables else 'markdown'
+            level = variables.pop('level') if 'level' in variables else 2
             return NameDescriptionStage(
                 unified_product.get_header(**variables),
                 unified_product.as_specified_format(**variables),
-                unified_product.get_stage(format_name=format_name, **variables),
+                unified_product.get_stage(format_name=format_name, level=level,
+                                          **variables),
             )
         else:
             raise ValueError(f'Unknown product field: {field}')
