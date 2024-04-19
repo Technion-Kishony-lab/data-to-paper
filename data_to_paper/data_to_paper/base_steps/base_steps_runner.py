@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union
 
-from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT, CHOSEN_APP
+from data_to_paper.env import COALESCE_WEB_CONVERSATIONS, PRODUCTS_TO_SEND_TO_CLIENT
 from data_to_paper.utils.print_to_file import print_and_log
 from data_to_paper.servers.llm_call import OPENAI_SERVER_CALLER
 from data_to_paper.servers.crossref import CROSSREF_SERVER_CALLER
@@ -22,11 +22,13 @@ from data_to_paper.base_products import DataFileDescriptions
 from data_to_paper.run_gpt_code.code_runner import RUN_CACHE_FILEPATH
 
 from .base_products_conversers import ProductsHandler
-from ..utils import format_text_with_code_blocks
+from data_to_paper.interactive.app_interactor import AppInteractor
+from ..interactive import PanelNames
+from ..utils import format_text_with_code_blocks, dedent_triple_quote_str
 
 
 @dataclass
-class BaseStepsRunner(ProductsHandler):
+class BaseStepsRunner(ProductsHandler, AppInteractor):
     """
     A base class for running a series of steps whose Products gradually accumulate towards a high level goal.
     """
@@ -71,9 +73,7 @@ class BaseStepsRunner(ProductsHandler):
         """
         self.current_stage = stage
         self.actions_and_conversations.actions.apply_action(AdvanceStage(stage=stage))
-        if CHOSEN_APP:
-            from data_to_paper.interactive import the_app
-            the_app.advance_stage(stage)
+        self._app_advance_stage(stage)
 
     def set_active_conversation(self, agent: Agent):
         """
@@ -106,10 +106,9 @@ class BaseStepsRunner(ProductsHandler):
                 stage=self.products.get_stage(product_field),
                 products=self.products,
                 product_field=product_field))
-        if CHOSEN_APP:
-            from data_to_paper.interactive import the_app
+        if self.app:
             product = self.products.get_description_as_html(product_field)
-            the_app.send_product_of_stage(
+            self._app_send_product_of_stage(
                 stage=self.products.get_stage(product_field),
                 product_text=product,
                 )
@@ -200,3 +199,18 @@ class BaseStepsRunner(ProductsHandler):
             for product in PRODUCTS_TO_SEND_TO_CLIENT:
                 self.send_final_products_to_client(product_name=product)
             self.advance_stage(Stages.FINISHED)
+
+            msg = dedent_triple_quote_str("""
+                ## Completed
+                This *data-to-paper* research cycle is now completed.
+                The manuscript is ready.
+                Please download the created manuscript and check it rigorously and carefully.
+                \n
+                *Remember that the process is not error-free and the responsibility for the final manuscript \t
+                remains with you.*
+                \n
+                You can close this window now.
+                """)
+            self._app_clear_panels()
+            self._app_send_prompt(PanelNames.FEEDBACK, msg, from_md=True)
+            self._app_send_product_of_stage(Stages.FINISHED, "Run completed.")

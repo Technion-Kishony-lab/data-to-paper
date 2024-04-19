@@ -247,7 +247,7 @@ class LiteratureSearch(ValueProduct):
         if scope is None:
             s = 'We searched for papers in the following scopes:\n'
             for scope in self:
-                s += f'<h{level + 1}>{scope.title()}</h{level + 1}>'
+                s += f'<h{level + 1}>{scope.title()}-related papers</h{level + 1}>\n'
                 s += self._get_content_as_html(level, scope=scope, style=style)
         else:
             s = self.pretty_repr_for_scope_and_query(style=style, scope=scope,

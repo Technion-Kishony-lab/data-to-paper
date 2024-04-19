@@ -10,6 +10,7 @@ from . import the_app
 from .base_app import BaseApp
 from .types import PanelNames
 from .human_actions import HumanAction, ButtonClickedHumanAction, TextSentHumanAction
+from ..conversation.stage import Stage
 
 
 @dataclass
@@ -36,7 +37,7 @@ class AppInteractor:
     def _app_request_continue(self):
         if self.app is None:
             return
-        self.app.request_continue()
+        # self.app.request_continue()
 
     def _app_set_focus_on_panel(self, panel_name: PanelNames):
         if self.app is None:
@@ -64,3 +65,13 @@ class AppInteractor:
                                   initial_text=initial_text,
                                   title=title,
                                   optional_suggestions=optional_suggestions)
+
+    def _app_advance_stage(self, stage: Stage):
+        if self.app is None:
+            return
+        self.app.advance_stage(stage)
+
+    def _app_send_product_of_stage(self, stage: Stage, product_text: str):
+        if self.app is None:
+            return
+        self.app.send_product_of_stage(stage, product_text)

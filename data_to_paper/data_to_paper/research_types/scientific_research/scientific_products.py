@@ -433,8 +433,8 @@ class ScientificProducts(Products):
             ),
 
             'paper_sections:{}': NameDescriptionStageGenerator(
-                '{section_name} Section of the Paper',
-                'Here is the {section_name} section of the paper:\n\n{content}',
+                '# {section_name} Section of the Paper',
+                'Here is the {section_name} section of the paper:\n```latex\n{content}\n```',
                 lambda section_name: SECTION_NAMES_TO_WRITING_STAGES[section_name],
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.get_paper_sections_without_citations(
