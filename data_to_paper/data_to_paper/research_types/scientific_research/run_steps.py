@@ -14,7 +14,7 @@ from .literature_search import WritingLiteratureSearchReviewGPT, GoalLiteratureS
 from .produce_pdf_step import ProduceScientificPaperPDFWithAppendix
 from .scientific_products import ScientificProducts
 from .scientific_stage import ScientificStages, SECTION_NAMES_TO_WRITING_STAGES
-from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, IsGoalOK, ReGoalReviewGPT, \
+from .reviewing_steps import GoalReviewGPT, HypothesesTestingPlanReviewGPT, NoveltyAssessmentReview, ReGoalReviewGPT, \
     GetMostSimilarCitations
 from .writing_steps import SectionWriterReviewBackgroundProductsConverser, \
     FirstTitleAbstractSectionWriterReviewGPT, SecondTitleAbstractSectionWriterReviewGPT, \
@@ -110,34 +110,38 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
             ).run_and_get_valid_result()
-        # self.send_product_to_client('research_goal')
+        self.send_product_to_client('research_goal')
 
         goal_refinement_iteration = 0
         while True:
             # Literature search
             if self.should_do_literature_search:
                 # TODO: need a dedicated client Stage for literature search
-                self.set_active_conversation(ScientificAgent.CitationExpert)
+                self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_GOAL,
+                                                               ScientificAgent.CitationExpert)
                 products.literature_search['goal'] = GoalLiteratureSearchReviewGPT.from_(
                     self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()
-                # self.send_product_to_client('citations')
+                self.send_product_to_client('literature_search_goal')
 
             if not is_auto_goal or goal_refinement_iteration == self.max_goal_refinement_iterations:
                 break
 
             # Check if the goal is OK
+            self.advance_stage_and_set_active_conversation(ScientificStages.ASSESS_NOVELTY, ScientificAgent.Writer)
             products.literature_search['goal'].scopes_to_queries_to_citations['goal and hypothesis'] = \
                 {'cherry picked': GetMostSimilarCitations.from_(self).run_and_get_overlapping_citations()}
-            #            self.send_product_to_client('literature_search:goal:goal and hypothesis'
-            if IsGoalOK.from_(self).is_goal_ok():
+            products.novelty_assessment = NoveltyAssessmentReview.from_(self).run_and_get_valid_result()
+            if products.novelty_assessment['choice'] == 'OK':
                 break
 
             # Goal is not OK, so we need to devise the goal according to the literature search:
             goal_refinement_iteration += 1
+            self.advance_stage_and_set_active_conversation(ScientificStages.GOAL, ScientificAgent.Director)
             products.research_goal = ReGoalReviewGPT.from_(
                 self,
                 project_specific_goal_guidelines=self.project_specific_goal_guidelines
             ).run_and_get_valid_result()
+            self.send_product_to_client('research_goal')
         self.send_product_to_client('research_goal', save_to_file=True, should_send=False)
         self.send_product_to_client('goal_and_novelty_assessment')
 
@@ -192,7 +196,7 @@ class ScientificStepsRunner(BaseStepsRunner, CheckLatexCompilation):
             FirstTitleAbstractSectionWriterReviewGPT.from_(self, section_names=['title', 'abstract']
                                                            ).write_sections_with_citations()
         self.send_product_to_client('title_and_abstract_first')
-        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
+        self.advance_stage_and_set_active_conversation(ScientificStages.LITERATURE_REVIEW_WRITING,
                                                        ScientificAgent.CitationExpert)
         products.literature_search['writing'] = WritingLiteratureSearchReviewGPT.from_(
             self, excluded_citation_titles=self.excluded_citation_titles).get_literature_search()

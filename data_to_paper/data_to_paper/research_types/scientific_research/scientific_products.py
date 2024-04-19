@@ -110,6 +110,7 @@ class ScientificProducts(Products):
     data_file_descriptions: DataFileDescriptions = field(default_factory=DataFileDescriptions)
     codes_and_outputs: Dict[str, CodeAndOutput] = field(default_factory=dict)
     research_goal: Optional[str] = None
+    novelty_assessment: Dict[str, Union[str, List[str]]] = None
     literature_search: Dict[str, LiteratureSearch] = field(default_factory=dict)
     hypothesis_testing_plan: Optional[Dict[str, str]] = None
     paper_sections_and_optional_citations: Dict[str, Union[str, Tuple[str, Set[Citation]]]] = \
@@ -241,29 +242,11 @@ class ScientificProducts(Products):
         return extract_latex_section_from_response(latex, 'abstract', keep_tags=False)
 
     def get_novelty_assessment(self) -> str:
-        s = '# Goal and Hypothesis (including Novelty Assessment)\n'
-        s += '## Research Goal and Hypothesis\n'
-        s += self.research_goal
-        s += '## Novelty Assessment\n'
-        s += 'To assess the novelty of our Research Goal and Hypothesis, ' \
-             'we did the following literature searches:\n\n'
-
-        s += wrap_text_with_triple_quotes(
-            self.literature_search['goal'].pretty_repr_for_scope_and_query(
-                scope='dataset',
-                style='html',
-                **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'dataset')].to_dict()
-            ), 'html')
+        s = '# Assessment of Research Goal novelty\n'
         s += '\n\n'
-        s += wrap_text_with_triple_quotes(
-            self.literature_search['goal'].pretty_repr_for_scope_and_query(
-                scope='questions',
-                style='html',
-                **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'questions')].to_dict()
-            ), 'html')
-        s += '\n\n'
-        s += '## Most Relevant Papers\n\n'
-        s += 'From these searches, we found listed the following most relevant papers:'
+        s += '## Choice of Most Relevant Papers to our Research Goal\n\n'
+        s += 'From the literature searches that we have done, ' \
+             'we listed the following most relevant papers:'
         s += '\n\n'
         s += wrap_text_with_triple_quotes(self.literature_search['goal'].pretty_repr_for_scope_and_query(
                 scope='goal and hypothesis',
@@ -271,7 +254,16 @@ class ScientificProducts(Products):
                 **STAGE_AND_SCOPE_TO_LITERATURE_SEARCH_PARAMS[('goal', 'goal and hypothesis')].to_dict()
             ), 'html')
         s += '\n\n'
-        s += 'Based on these searches, we concluded that our Research Goal and Hypothesis are novel enough.'
+        s += '## Novelty Assessment\n\n'
+        results = self.novelty_assessment
+        s += f"### Similarities:\n"
+        for similarity in results['similarities']:
+            s += f"- {similarity}\n"
+        s += f"### Differences:\n"
+        for difference in results['differences']:
+            s += f"- {difference}\n"
+        s += f"### Choice:\n{results['choice']}\n"
+        s += f"### Explanation:\n{results['explanation']}\n"
         return s
 
     def _get_generators(self) -> Dict[str, NameDescriptionStageGenerator]:
@@ -372,6 +364,19 @@ class ScientificProducts(Products):
                 }
             ),
 
+            'literature_search_goal': NameDescriptionStageGenerator(
+                'Goal-related Literature Search',
+                'Here are citations from our Literature Search for papers related to the Goal of our study:\n\n'
+                'We searched for papers related to the Dataset and Questions of our study goal. \n\n'
+                '```html\n{dataset}\n```\n\n'
+                '```html\n{questions}\n```\n\n',
+                ScientificStages.LITERATURE_REVIEW_GOAL,
+                lambda: {
+                    'dataset': self['literature_search:goal:dataset:html'].description,
+                    'questions': self['literature_search:goal:questions:html'].description,
+                },
+            ),
+
             'scope_and_literature_search': NameDescriptionStageGenerator(
                 'Scope and Literature Search',
                 'Here is a draft of the abstract, written as a basis for the literature search below:\n\n'
@@ -382,7 +387,7 @@ class ScientificProducts(Products):
                 '```html\n{dataset}\n```\n\n'
                 '```html\n{methods}\n```\n\n'
                 '```html\n{results}\n```\n\n',
-                ScientificStages.LITERATURE_REVIEW_AND_SCOPE,
+                ScientificStages.LITERATURE_REVIEW_WRITING,
                 lambda: {
                     'title': self.get_title(),
                     'abstract': self.get_abstract(),

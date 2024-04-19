@@ -147,7 +147,7 @@ class ResultConverser(Converser):
     _valid_result_update_count: int = 0
 
     def get_valid_result_as_html(self) -> str:
-        return format_text_with_code_blocks(self.get_valid_result_as_text_blocks(), is_html=True)
+        return format_text_with_code_blocks(self.get_valid_result_as_text_blocks(), width=None, is_html=True)
 
     def get_valid_result_as_text_blocks(self) -> str:
         return str(self.valid_result)

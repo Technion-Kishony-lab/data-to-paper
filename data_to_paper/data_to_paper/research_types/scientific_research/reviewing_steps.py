@@ -1,12 +1,13 @@
 import re
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any, Iterable, List
+from typing import Tuple, Dict, Any, Iterable, List, Collection
 
 from data_to_paper.servers.model_engine import ModelEngine
 from data_to_paper.utils import dedent_triple_quote_str
 from data_to_paper.base_steps.result_converser import Rewind
 from data_to_paper.base_steps import BaseProductsQuotedReviewGPT, PythonDictReviewBackgroundProductsConverser, \
-    PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser
+    PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser, \
+    PythonDictWithDefinedKeysReviewBackgroundProductsConverser
 
 from data_to_paper.servers.custom_types import Citation
 
@@ -14,6 +15,7 @@ from .cast import ScientificAgent
 from .scientific_products import ScientificProducts
 from .writing_steps import ShowCitationProducts
 from .model_engines import get_model_engine_for_class
+from ...utils.nice_list import NiceList
 
 
 @dataclass
@@ -179,62 +181,102 @@ class GetMostSimilarCitations(ShowCitationProducts, PythonDictReviewBackgroundPr
         ) for citation in citations)
         return s
 
+
 @dataclass
-class IsGoalOK(ShowCitationProducts, PythonDictWithDefinedKeysAndValuesReviewBackgroundProductsConverser):
+class NoveltyAssessmentReview(ShowCitationProducts, PythonDictWithDefinedKeysReviewBackgroundProductsConverser):
     products: ScientificProducts = None
-    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(IsGoalOK))
-    value_type: type = Dict[str, str]
+    model_engine: ModelEngine = field(default_factory=lambda: get_model_engine_for_class(NoveltyAssessmentReview))
+    value_type: type = Dict[str, Any]
     allowed_values_for_keys: Dict[str, Iterable] = field(default_factory=lambda: {'choice': ('OK', 'REVISE')})
     default_rewind_for_result_error: Rewind = Rewind.AS_FRESH_CORRECTION  # to maintain chain of thought
-    goal_noun: str = 'research goal and hypothesis'
+    goal_noun: str = 'novelty assessment'
     goal_verb: str = 'check'
     assistant_agent: ScientificAgent = ScientificAgent.Performer
     user_agent: ScientificAgent = ScientificAgent.GoalReviewer
     conversation_name: str = 'is_goal_ok'
+    requested_keys: Collection[str] = ('similarities', 'differences', 'choice', 'explanation')
     is_new_conversation: bool = None  # this will create "research_goal_0", etc.
     background_product_fields: Tuple[str, ...] = ('general_dataset_description', 'research_goal',
                                                   'literature_search:goal:goal and hypothesis')
+    sentence_to_add_at_the_end_of_reviewer_response: str = dedent_triple_quote_str("""
+        Please correct your {goal_noun} based on the feedback provided.
+        Make sure to return your full assessment, as \t
+        a Python dictionary {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}.
+        """)
 
     mission_prompt: str = dedent_triple_quote_str("""
-        Given the related papers listed above, please follow these 3 steps:
+        We would like to assess the novelty of our {research_goal} with respect to the literature.
+        Given the related papers listed above, please return a Python dictionary \t
+        with the following structure \t
+        {'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}: 
 
-        (1) Provide a bullet-point list of potential similarities between our goal and hypothesis, \t
+        * 'similarities': Provide a List[str] of potential similarities between our goal and hypothesis, \t
+        and the related papers listed above.
+        
+        * 'differences': Provide a List[str] of potential differences, if any, between our stated {research_goal} \t
         and the related papers listed above.
 
-        (2) Determine in what ways, if any, our stated goal and hypothesis are distinct from the related papers \t
-        listed above.
-
-        (3) Given your assessment above, choose one of the following two options:
+        * 'choice': Given your assessment above, choose one of the following two options:
 
         a. Our goal and hypothesis offer a significant novelty compared to existing literature, and \t
         will likely lead to interesting and novel findings {'choice': 'OK'}.
 
         b. Our goal and hypothesis have overlap with existing literature, and I can suggest ways to \t
         revise them to make them more novel {'choice': 'REVISE'}.
-
-        Your response for this part should be formatted as a Python dictionary mapping 'choice' to \t
-        either 'OK' or 'REVISE'. 
-        Namely, return either: {'choice': 'OK'} or {'choice': 'REVISE'}
+        
+        * 'explanation': Provide a brief explanation of your choice.
+        
+        Your response should be formatted as a Python dictionary, like this:
+        ```python
+        {
+            'similarities': ['Our research goal is similar to the paper by ... in that ...',
+                             'Our research goal somewhat overlaps with the findings of ...'],
+                             'Our hypothesis is similar to the paper by ... in that ...'],
+            'differences': ['Our goal and hypothesis are distinct because ...',
+                            'Our hypothesis differs from the paper by ... in that ...'],
+            'choice': 'OK'  # or 'REVISE'
+            'explanation': 'While our goal and hypothesis have some overlap with existing literature, \t
+                            I believe that the ... aspect of our research is novel and will lead to ...'
+                            # or 'The overlap with the result of ... is too significant, and I think we can \t
+                            # revise our goal to make it more novel, for example by ...'
+        }
+        ```
         """)
 
-    def is_goal_ok(self):
-        return self.run_and_get_valid_result(with_review=False)['choice'] == 'OK'
+    def _check_response_value(self, response_value: Any) -> Any:
+        response_value = super()._check_response_value(response_value)
+        errors = []
+        if response_value['choice'] not in ['OK', 'REVISE']:
+            errors.append(f"Invalid choice: {response_value['choice']}. Choose 'OK' or 'REVISE'.")
+        if not isinstance(response_value['explanation'], str):
+            errors.append(f"Explanation must be a string.")
+        for key in ['similarities', 'differences']:
+            if not isinstance(response_value[key], list):
+                errors.append(f"'{key}' must be a list of strings.")
+            for item in response_value[key]:
+                if not isinstance(item, str):
+                    errors.append(f"Each item in '{key}' must be a string.")
+        if errors:
+            errors = '\n'.join(errors)
+            self._raise_self_response_error(
+                f"Errors in response structure:\n{errors}\n"
+                f"Your response should be formatted as a Python dictionary, like this:\n"
+                "{'similarities': List[str], 'differences': List[str], 'choice': str, 'explanation': str}")
+        return response_value
 
     def get_valid_result_as_text_blocks(self) -> str:
-        is_ok = self.valid_result['choice'] == 'OK'
-        if is_ok:
-            s = dedent_triple_quote_str("""
-                Considering the papers that we found, \t
-                my assessment is that our goal and hypothesis offer a significant novelty compared to 
-                existing literature. 
-            """)
-        else:
-            s = dedent_triple_quote_str("""
-                Considering the papers that we found, \t
-                my assessment is that our goal and hypothesis have too much overlap with existing literature. \t
-                I can suggest ways to revise our research goal to make it more novel.
-            """)
-        return f"```md\n## Goal and Hypothesis Assessment:\n{s}\n```"
+        results = self._get_valid_result()
+        s = f"```md\n## Goal and Hypothesis Assessment:\n"
+        s += f"### Similarities:\n"
+        for similarity in results['similarities']:
+            s += f"- {similarity}\n"
+        s += f"### Differences:\n"
+        for difference in results['differences']:
+            s += f"- {difference}\n"
+        s += f"### Choice:\n{results['choice']}\n"
+        s += f"### Explanation:\n{results['explanation']}\n"
+        s += "```"
+        return s
 
 
 @dataclass
