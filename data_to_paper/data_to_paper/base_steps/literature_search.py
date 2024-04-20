@@ -7,6 +7,7 @@ from typing import Optional, Dict, List, Iterable, NamedTuple
 
 from data_to_paper.base_products.product import ValueProduct, Product
 from data_to_paper.utils.iterators import interleave
+from data_to_paper.utils.mutable import Flag
 from data_to_paper.utils.nice_list import NiceList
 from data_to_paper.servers.custom_types import Citation
 
@@ -40,6 +41,7 @@ CITATION_REPR_FIELDS_FOR_LLM = \
     ('bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence')
 CITATION_REPR_FIELDS_FOR_PRINT = \
     ('query', 'search_rank', 'bibtex_id', 'title', 'journal_and_year', 'tldr', 'influence', 'embedding_similarity')
+GET_LITERATURE_SEARCH_FOR_PRINT = Flag(False)
 
 
 @dataclass
@@ -224,6 +226,8 @@ class LiteratureSearch(ValueProduct):
                                        sort_by_similarity=sort_by_similarity,
                                        minimal_influence=minimal_influence,
                                        )
+        if GET_LITERATURE_SEARCH_FOR_PRINT:
+            style = 'print'
         return '\n'.join(citation.pretty_repr(
             fields=CITATION_REPR_FIELDS_FOR_LLM if style == 'llm' else CITATION_REPR_FIELDS_FOR_PRINT,
             is_html=style == 'html',
@@ -240,7 +244,7 @@ class LiteratureSearch(ValueProduct):
             for scope in self:
                 s += self._get_content_as_markdown(level, scope=scope, style=style)
         else:
-            s = self.pretty_repr_for_scope_and_query(style='print', scope=scope,
+            s = self.pretty_repr_for_scope_and_query(scope=scope, style=style,
                                                      **self.scopes_to_search_params[scope].to_dict())
         return s
 
@@ -251,6 +255,6 @@ class LiteratureSearch(ValueProduct):
                 s += f'<h{level + 1}>{scope.title()}-related papers</h{level + 1}>\n'
                 s += self._get_content_as_html(level, scope=scope, style=style)
         else:
-            s = self.pretty_repr_for_scope_and_query(style=style, scope=scope,
+            s = self.pretty_repr_for_scope_and_query(scope=scope, style=style,
                                                      **self.scopes_to_search_params[scope].to_dict())
         return s

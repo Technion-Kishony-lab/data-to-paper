@@ -101,11 +101,13 @@ class CodeAndOutput:
                 s += '\n\n' + wrap_as_latex_code_output(content)
         return s
 
-    def to_text(self):
-        if self.name is None:
-            s = f"# Code and Output\n"
-        else:
-            s = f"# {self.name} Code and Output\n"
+    def to_text(self, with_header: bool = True):
+        s = ''
+        if with_header:
+            if self.name is None:
+                s = f"# Code and Output\n"
+            else:
+                s = f"# {self.name} Code and Output\n"
         if self.code:
             s += "## Code:\n"
             s += wrap_text_with_triple_quotes(self.code, 'python') + '\n'

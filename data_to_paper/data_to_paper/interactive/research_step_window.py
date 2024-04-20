@@ -384,6 +384,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         continue_button = QPushButton("Continue")
         # continue_button.setStyleSheet("font-size: 16px; background-color: #505050; color: white; border-radius: 5px;")
         continue_button.setEnabled(False)
+        continue_button.setVisible(False)  # TODO: the button is currently not used
 
         continue_button.clicked.connect(self.upon_continue)
         left_side.addWidget(continue_button)

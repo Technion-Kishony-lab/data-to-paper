@@ -249,21 +249,21 @@ class ScientificProducts(Products):
 
             'data_file_descriptions': NameDescriptionStageGenerator(
                 'Description of the Original Dataset',
-                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
+                '{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions,
             ),
 
             'data_file_descriptions_no_headers': NameDescriptionStageGenerator(
                 'Description of the Original Dataset',
-                'DESCRIPTION OF THE ORIGINAL DATASET\n\n{}',
+                '{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(num_lines=0),
             ),
 
             'data_file_descriptions_no_headers_linked': NameDescriptionStageGenerator(
-                'Description of the Original Dataset',
-                'DESCRIPTION OF THE ORIGINAL DATASET (with hypertargets)\n\n{}',
+                'Description of the Original Dataset (with hypertargets)',
+                '{}',
                 ScientificStages.DATA,
                 lambda: self.data_file_descriptions.pretty_repr(
                     num_lines=0, content_view=ContentViewPurpose.HYPERTARGET_PRODUCT),
@@ -359,7 +359,7 @@ class ScientificProducts(Products):
                 lambda code_step: get_code_stage(code_step),
                 lambda code_step: {
                     'code_name': self.codes_and_outputs[code_step].name,
-                    'description': self.codes_and_outputs[code_step].to_text()},
+                    'description': self.codes_and_outputs[code_step].to_text(with_header=False)},
             ),
 
             'created_files:{}': NameDescriptionStageGenerator(
@@ -410,8 +410,8 @@ class ScientificProducts(Products):
             # =======
 
             'title_and_abstract_first': NameDescriptionStageGenerator(
-                'Title and Abstract',
-                "# Initial draft of the title and abstract\n```latex\n{}\n\n{}```",
+                'Title and Abstract (initial draft)',
+                "```latex\n{}\n\n{}```",
                 ScientificStages.INTERPRETATION,
                 lambda: (self.get_paper_sections_without_citations()['title'],
                          self.get_paper_sections_without_citations()['abstract']),
@@ -419,22 +419,15 @@ class ScientificProducts(Products):
 
             'title_and_abstract': NameDescriptionStageGenerator(
                 'Title and Abstract',
-                "# Title and abstract of the paper\n```latex\n{}\n\n{}```",
+                "```latex\n{}\n\n{}```",
                 ScientificStages.WRITING_TITLE_AND_ABSTRACT,
                 lambda: (self.get_paper_sections_without_citations()['title'],
                          self.get_paper_sections_without_citations()['abstract']),
             ),
 
-            'most_updated_paper': NameDescriptionStageGenerator(
-                'Most Updated Draft of the Paper',
-                '{}',
-                ScientificStages.WRITING,
-                lambda: '\n\n'.join(self.get_tabled_paper_sections(ContentViewPurpose.FINAL_INLINE).values())
-            ),
-
             'paper_sections:{}': NameDescriptionStageGenerator(
                 '{section_name} Section of the Paper',
-                'Here is the {section_name} section of the paper:\n```latex\n{content}\n```',
+                '```latex\n{content}\n```',
                 lambda section_name: SECTION_NAMES_TO_WRITING_STAGES[section_name],
                 lambda section_name: {'section_name': section_name.title(),
                                       'content': self.get_paper_sections_without_citations(

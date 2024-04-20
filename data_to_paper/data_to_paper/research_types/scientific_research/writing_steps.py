@@ -5,6 +5,7 @@ from typing import Tuple, List, Set, Optional, Iterable
 from data_to_paper.base_steps import LatexReviewBackgroundProductsConverser, \
     CheckReferencedNumericReviewBackgroundProductsConverser
 from data_to_paper.base_steps.exceptions import FailedCreatingProductException
+from data_to_paper.base_steps.literature_search import GET_LITERATURE_SEARCH_FOR_PRINT
 from data_to_paper.latex.tables import get_table_label
 from data_to_paper.research_types.scientific_research.cast import ScientificAgent
 from data_to_paper.research_types.scientific_research.scientific_products import ScientificProducts
@@ -34,8 +35,9 @@ class ShowCitationProducts:
         contents = []
         for product_field in self.background_product_fields:
             if product_field.startswith('literature_search') and self.products.is_product_available(product_field):
-                product = self.products[product_field]
-                contents.append(f'{product.name}:\n{product.description}')
+                with GET_LITERATURE_SEARCH_FOR_PRINT.temporary_set(True):
+                    product = self.products[product_field]
+                    contents.append(f'{product.name}:\n{product.description}')
         return contents
 
     def _get_available_citations(self) -> Iterable[Citation]:

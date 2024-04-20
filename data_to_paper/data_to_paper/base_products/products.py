@@ -140,9 +140,10 @@ class Products:
         """
         unified_product, variables = self._get_unified_product_and_variables(field)
         if isinstance(unified_product, Product):
-            return unified_product.as_html(level=2, **variables)
+            return unified_product.as_html(level=1, **variables)
         description = self.get_description(field)
-        return format_text_with_code_blocks(description, is_html=True, width=None)
+        return ('<h1>' + self.get_name(field) + '</h1>\n' +
+            format_text_with_code_blocks(description, is_html=True, width=None))
 
     def _get_unified_product_generator_and_args(self, field: str
                                                 ) -> Tuple[UnifiedProductGenerator, List[str]]:
