@@ -7,5 +7,5 @@ def test_convert_latex_to_html():
 Hello, world!
 """
     html = convert_latex_to_html(latex)
-    assert '>Hello</h1>' in html
-    assert '> Hello, world! </p>' in html
+    assert '>Hello</h2>' in html
+    assert '>Hello, world!</p>' in html
