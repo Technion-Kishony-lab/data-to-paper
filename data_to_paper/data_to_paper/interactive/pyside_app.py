@@ -356,7 +356,7 @@ def create_tabs(names_to_panels: Dict[str, Panel]):
     return tabs
 
 
-class ResearchStepApp(QMainWindow, BaseApp):
+class PysideApp(QMainWindow, BaseApp):
     send_text_signal = Signal(str, PanelNames)
     send_continue_signal = Signal()
     a_application = None
@@ -402,7 +402,6 @@ class ResearchStepApp(QMainWindow, BaseApp):
         right_splitter = QSplitter(Qt.Vertical)
         main_splitter.addWidget(left_splitter)
         main_splitter.addWidget(right_splitter)
-        left_splitter.setSizes([100, 400])
 
         # Add the panels to the splitters (the top-right panel is a tab widget)
         self.tabs = create_tabs({'Response': self.panels[PanelNames.RESPONSE],
@@ -411,6 +410,7 @@ class ResearchStepApp(QMainWindow, BaseApp):
         left_splitter.addWidget(self.panels[PanelNames.MISSION_PROMPT])
         right_splitter.addWidget(self.tabs)
         right_splitter.addWidget(self.panels[PanelNames.FEEDBACK])
+        left_splitter.setSizes([100, 500])
 
         self.layout.addWidget(main_splitter)
         self.setCentralWidget(central_widget)

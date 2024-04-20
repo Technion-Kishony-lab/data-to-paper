@@ -21,9 +21,9 @@ def get_or_create_app() -> Optional[BaseApp]:
     if CHOSEN_APP == None:  # noqa  (Mutable)
         THE_APP = None
     elif CHOSEN_APP == 'pyside':
-        from .research_step_window import ResearchStepApp
+        from .pyside_app import PysideApp
         q_application = QApplication(sys.argv)
-        THE_APP = ResearchStepApp.get_instance()
+        THE_APP = PysideApp.get_instance()
         THE_APP.q_application = q_application
         THE_APP.initialize()
     elif CHOSEN_APP == 'console':
